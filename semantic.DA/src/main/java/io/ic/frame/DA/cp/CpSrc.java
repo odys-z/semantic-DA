@@ -19,16 +19,12 @@ import javax.sql.DataSource;
 
 import org.xml.sax.SAXException;
 
-import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
-import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSpec;
-import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
-
-import io.ic.frame.DA.DA;
-import io.ic.frame.DA.DA.DriverType;
-import io.ic.frame.DA.ICResultset;
-import io.ic.frame.DA.Mappings;
-import io.ic.frame.DA.OracleLob;
-import io.ic.frame.xtable.XMLTable;
+import io.odysz.semantic.DA.DA;
+import io.odysz.semantic.DA.DA.DriverType;
+import io.odysz.semantic.DA.ICResultset;
+import io.odysz.semantic.DA.Mappings;
+import io.odysz.semantic.DA.OracleLob;
+import io.odysz.semantic.xtable.XMLTable;
 // Deprecated. Use java.sql.Clob interface for declaration instead of using concrete class oracle.sql.CLOB.
 // see https://docs.oracle.com/database/121/JAJDB/oracle/sql/CLOB.html 
 import oracle.sql.CLOB;
