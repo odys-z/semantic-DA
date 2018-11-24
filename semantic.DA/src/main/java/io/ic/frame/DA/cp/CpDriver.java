@@ -15,7 +15,7 @@ import com.infochange.frame.util.HelperFactory;
 import com.infochange.frame.util.Regex;
 import com.ir.ifire.IFireSingleton;
 
-import io.ic.frame.DA.DA;
+import io.odysz.semantic.DA.DA;
 import io.ic.frame.DA.DA.DriverType;
 import io.ic.frame.DA.DatasetCfg;
 import io.ic.frame.DA.DbLog;
