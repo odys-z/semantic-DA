@@ -31,7 +31,6 @@ import oracle.sql.CLOB;
 
 /**
  * @author ody
- *
  */
 @SuppressWarnings("deprecation")
 public class CpSrc {
