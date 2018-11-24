@@ -10,20 +10,16 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.io.FilenameUtils;
 
-import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
-import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSchema;
-import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSpec;
-import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
-import com.infochange.frame.util.Regex;
+import io.odysz.common.Regex;
 
-import io.ic.frame.DA.DA;
-import io.ic.frame.DA.DA.DriverType;
-import io.ic.frame.DA.DatasetCfg;
-import io.ic.frame.DA.DbLog;
-import io.ic.frame.DA.ICResultset;
-import io.ic.frame.DA.IrSemantics;
-import io.ic.frame.DA.Mappings;
-import io.ic.frame.DA.OracleLob;
+import io.odysz.semantic.DA.DA;
+import io.odysz.semantic.DA.DA.DriverType;
+import io.odysz.semantic.DA.DatasetCfg;
+import io.odysz.semantic.DA.DbLog;
+import io.odysz.semantic.DA.ICResultset;
+import io.odysz.semantic.DA.IrSemantics;
+import io.odysz.semantic.DA.Mappings;
+import io.odysz.semantic.DA.OracleLob;
 import io.ic.frame.util.Log4jWrapper;
 import io.ic.frame.xtable.ILogger;
 import io.ic.frame.xtable.IXMLStruct;
@@ -52,9 +48,6 @@ public class DmDriver {
 	public static DbSpec getDbSpec(String connId) {
 		return srcs.get(connId).getSpec();
 	}
-
-	//public static boolean enableSystemout = Mysql.enableSystemout;
-	//public static boolean enableSystemout = SqliteDriver.enableSystemout;
 
 	public static ICResultset select(String conn, String sql, int ... flags) throws SQLException {
 		//return Mysql.select(sql);

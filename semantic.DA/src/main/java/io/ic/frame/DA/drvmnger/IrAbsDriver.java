@@ -6,14 +6,10 @@ import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
-import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSpec;
-import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
-
-import io.ic.frame.DA.DA.DriverType;
-import io.ic.frame.DA.ICResultset;
-import io.ic.frame.DA.IrSemantics;
-import io.ic.frame.DA.cp.CpSrc;
+import io.odysz.semantic.DA.DA.DriverType;
+import io.odysz.semantic.DA.ICResultset;
+import io.odysz.semantic.DA.IrSemantics;
+import io.odysz.semantic.DA.cp.CpSrc;
 
 public abstract class IrAbsDriver {
 	protected DriverType drvName;

@@ -14,6 +14,10 @@ import io.ic.frame.DA.drvmnger.DmDriver;
 import io.ic.frame.xtable.XMLTable;
 import io.ic.semantics.IrSingleton;
 
+/**
+ * @author ody
+ *
+ */
 public class DA {
 	public enum DriverType {deflt(99), mysql(0), ms2k(1), oracle(2), sqlite(3), postGIS(4), unknown(90);
 		private final int value;

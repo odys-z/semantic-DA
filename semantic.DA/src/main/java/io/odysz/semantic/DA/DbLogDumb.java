@@ -5,7 +5,7 @@ package io.odysz.semantic.DA;
 
 import java.util.ArrayList;
 
-import io.ic.semantics.IrSingleton;
+import io.odysz.semantics.IrSingleton;
 
 /**For any db update like synchronize task updating.
  * @author ody

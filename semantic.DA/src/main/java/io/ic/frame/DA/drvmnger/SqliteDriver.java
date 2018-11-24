@@ -13,7 +13,7 @@ import org.sqlite.JDBC;
 
 import com.infochange.frame.util.Configs;
 
-import io.ic.frame.DA.DA;
+import io.odysz.semantic.DA.DA;
 import io.ic.frame.DA.ICResultset;
 
 /**All instance using the same connection.

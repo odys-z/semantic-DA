@@ -17,9 +17,12 @@ import com.infochange.frame.util.Configs;
 import io.ic.frame.DA.ICResultset;
 import oracle.sql.BLOB;
 
+/**
+ * @author ody
+ *
+ */
 @SuppressWarnings("deprecation")
-public
-class OracleDriver {
+public class OracleDriver {
 
 	static DataSource ds;
 	static boolean enableSystemout = false;

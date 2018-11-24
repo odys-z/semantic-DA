@@ -20,7 +20,7 @@ import javax.json.JsonObjectBuilder;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.infochange.frame.util.Regex;
+import io.odysz.semantic.common.Regex;
 
 /**This Resultset used for non-connection operation. Rows and Cols are start at 1, the same as {@link java.sql.Resultset}.
  * @author zb

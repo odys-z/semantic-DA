@@ -20,7 +20,6 @@ import io.ic.semantics.json.JsonHelper;
 /**Configured dataset.xml manager and mapping helper.<br>
  * Design Memo: Separating getSql() and mapRs() will separate DA driver dependency - won't care using CP data source or DB manager.
  * @author ody
- *
  */
 public class DatasetCfg {
 	public static final int drv_mysql = 0;

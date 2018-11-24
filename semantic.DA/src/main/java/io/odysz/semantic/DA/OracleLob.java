@@ -9,7 +9,6 @@ import oracle.sql.CLOB;
 
 /**POJO class for oracle lob buffering.
  * @author ody
- *
  */
 @SuppressWarnings("deprecation")
 public class OracleLob {

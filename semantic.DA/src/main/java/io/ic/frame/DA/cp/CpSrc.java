@@ -29,6 +29,10 @@ import io.odysz.semantic.xtable.XMLTable;
 // see https://docs.oracle.com/database/121/JAJDB/oracle/sql/CLOB.html 
 import oracle.sql.CLOB;
 
+/**
+ * @author ody
+ *
+ */
 @SuppressWarnings("deprecation")
 public class CpSrc {
 	@SuppressWarnings("serial")

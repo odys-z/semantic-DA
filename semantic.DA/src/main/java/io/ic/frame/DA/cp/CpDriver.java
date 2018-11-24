@@ -11,10 +11,6 @@ import javax.servlet.ServletContext;
 
 import org.xml.sax.SAXException;
 
-import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
-import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSchema;
-import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSpec;
-import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
 import com.infochange.frame.util.HelperFactory;
 import com.infochange.frame.util.Regex;
 import com.ir.ifire.IFireSingleton;

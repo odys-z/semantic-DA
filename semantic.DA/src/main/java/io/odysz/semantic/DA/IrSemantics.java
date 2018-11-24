@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import com.infochange.frame.util.AESHelper;
-import com.infochange.frame.util.Radix64;
+import io.odysz.semantic.common.AESHelper;
+import io.odysz.semantic.common.Radix64;
 
 import io.ic.ex.IrSemanticsException;
 import io.ic.frame.DA.cp.CpDriver;

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 import com.infochange.frame.util.Configs;
 
-import io.ic.frame.DA.DA;
+import io.odysz.semantic.DA.DA;
 import io.ic.frame.DA.ICResultset;
 import sun.misc.BASE64Decoder;
 

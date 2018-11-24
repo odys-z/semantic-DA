@@ -17,7 +17,7 @@ import io.ic.semantics.serv.session.IrUser;
 /**Modifying History:
  * 1. Dao.commit()<br>
  * 2. This class<br>
- * 3. <pre> * DB oracle: 
+ * 3. <pre>DB oracle: 
 CREATE TABLE GARZE.A_LOGS (
 	logId VARCHAR2(45),
 	oper VARCHAR2(45),

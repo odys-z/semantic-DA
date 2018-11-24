@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 
 import org.xml.sax.SAXException;
 
-import io.ic.frame.DA.cp.CpDriver;
+import io.odysz.semantic.DA.cp.CpDriver;
 import io.ic.frame.xtable.IXMLStruct;
 import io.ic.frame.xtable.XMLTable;
 
