@@ -1,4 +1,4 @@
-package io.ic.frame.DA.cp;
+package io.odysz.semantic.DA.cp;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -19,12 +19,15 @@ import javax.sql.DataSource;
 
 import org.xml.sax.SAXException;
 
+import io.odysz.module.rs.ICResultset;
+import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DA.DA;
 import io.odysz.semantic.DA.DA.DriverType;
-import io.odysz.semantic.DA.ICResultset;
 import io.odysz.semantic.DA.Mappings;
 import io.odysz.semantic.DA.OracleLob;
-import io.odysz.semantic.xtable.XMLTable;
+import io.odysz.semantics.meta.ColumnMeta;
+import io.odysz.semantics.meta.DbMeta;
+import io.odysz.semantics.meta.TableMeta;
 // Deprecated. Use java.sql.Clob interface for declaration instead of using concrete class oracle.sql.CLOB.
 // see https://docs.oracle.com/database/121/JAJDB/oracle/sql/CLOB.html 
 import oracle.sql.CLOB;
@@ -80,9 +83,9 @@ public class CpSrc {
 	boolean printSql() { return printSql; }
 	private String srcId;
 	private DriverType driverType;
-	private DbSpec spec;
-	private HashMap<String, DbTable> tables;
-	private HashMap<String, HashMap<String, DbColumn>> tablCols;
+	private DbMeta spec;
+	private HashMap<String, TableMeta> tables;
+	private HashMap<String, HashMap<String, ColumnMeta>> tablCols;
 	private DataSource ds;
 	/**[table-id(logic/bump name), [upper-case-col, bump-case-col]] */
 	private HashMap<String, HashMap<String, String>> mappings;
@@ -95,8 +98,8 @@ public class CpSrc {
 	 * @param printSql
 	 * @throws SAXException 
 	 */
-	CpSrc (String srcId, DriverType driverType, LinkedHashMap<String, XMLTable> mappings, DbSpec spec, HashMap<String, DbTable> tables,
-			HashMap<String, HashMap<String, DbColumn>> tablCols, boolean printSql) throws SAXException {
+	CpSrc (String srcId, DriverType driverType, LinkedHashMap<String, XMLTable> mappings, DbMeta spec, HashMap<String, TableMeta> tables,
+			HashMap<String, HashMap<String, ColumnMeta>> tablCols, boolean printSql) throws SAXException {
 		this.mappings = Mappings.convertMap(mappings);
 		this.srcId = "java:/comp/env/" + srcId;
 		this.driverType = driverType;
@@ -181,21 +184,21 @@ public class CpSrc {
 
 	DriverType driverName() {return driverType; }
 	
-	public DbSpec getSpec() { return spec; }
+	public DbMeta getSpec() { return spec; }
 
-	public DbTable get(String tablname) {
+	public TableMeta get(String tablname) {
 		return get(DriverType.deflt, tablname);
 	}
 
-	public DbTable get(DriverType srcId, String tablname) {
+	public TableMeta get(DriverType srcId, String tablname) {
 		return tables.get(tablname);
 	}
 
-	public HashMap<String, DbColumn> getCols(String tabl) {
+	public HashMap<String, ColumnMeta> getCols(String tabl) {
 		return tablCols.get(tabl);
 	}
 
-	public DbColumn getColumn(String tabName, String colName) {
+	public ColumnMeta getColumn(String tabName, String colName) {
 		if(tablCols.containsKey(tabName))
 			return tablCols.get(tabName).get(colName);
 		else{

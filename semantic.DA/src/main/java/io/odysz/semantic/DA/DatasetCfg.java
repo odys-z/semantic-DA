@@ -8,14 +8,12 @@ import java.util.LinkedHashMap;
 import org.apache.commons.io.FilenameUtils;
 import org.xml.sax.SAXException;
 
-import com.infochange.frame.util.HelperFactory;
-
-import io.ic.frame.util.Log4jWrapper;
-import io.ic.frame.xtable.ILogger;
-import io.ic.frame.xtable.IXMLStruct;
-import io.ic.frame.xtable.XMLDataFactoryEx;
-import io.ic.frame.xtable.XMLTable;
-import io.ic.semantics.json.JsonHelper;
+import io.odysz.module.rs.ICResultset;
+import io.odysz.module.xtable.ILogger;
+import io.odysz.module.xtable.IXMLStruct;
+import io.odysz.module.xtable.Log4jWrapper;
+import io.odysz.module.xtable.XMLDataFactoryEx;
+import io.odysz.module.xtable.XMLTable;
 
 /**Configured dataset.xml manager and mapping helper.<br>
  * Design Memo: Separating getSql() and mapRs() will separate DA driver dependency - won't care using CP data source or DB manager.
@@ -37,7 +35,7 @@ public class DatasetCfg {
 
 	public static void init(XMLTable connections, String webRoot,
 			HashMap<String, HashMap<String, String>> orclMappings) throws Exception {
-		log = HelperFactory.getLogger("");
+		log = new Log4jWrapper("");
 		dss = new HashMap<String, Dataset>();
 		conn_driver = parseDrivers(connections);
 
@@ -190,9 +188,9 @@ public class DatasetCfg {
 //			return null;
 //		}
 
-		public ICResultset map(String conn, ICResultset rs) {
-			return JsonHelper.mapRsCols(colsExt, mappings.get(conn), rs);
-		}
+//		public ICResultset map(String conn, ICResultset rs) {
+//			return JsonHelper.mapRsCols(colsExt, mappings.get(conn), rs);
+//		}
 
 		/**
 		 * @param driver drv_orcl, drv_ms2k, drv_sqlit, drv_mysql(default)

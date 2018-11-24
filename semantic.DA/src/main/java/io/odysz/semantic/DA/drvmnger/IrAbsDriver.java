@@ -1,4 +1,4 @@
-package io.ic.frame.DA.drvmnger;
+package io.odysz.semantic.DA.drvmnger;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -6,10 +6,13 @@ import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import io.odysz.module.rs.ICResultset;
 import io.odysz.semantic.DA.DA.DriverType;
-import io.odysz.semantic.DA.ICResultset;
 import io.odysz.semantic.DA.IrSemantics;
 import io.odysz.semantic.DA.cp.CpSrc;
+import io.odysz.semantics.meta.ColumnMeta;
+import io.odysz.semantics.meta.DbMeta;
+import io.odysz.semantics.meta.TableMeta;
 
 public abstract class IrAbsDriver {
 	protected DriverType drvName;
@@ -32,28 +35,28 @@ public abstract class IrAbsDriver {
 		return expr;
 	}
 
-	private DbSpec spec;
-	public DbSpec getSpec() { return spec; }
+	private DbMeta spec;
+	public DbMeta getSpec() { return spec; }
 
-	private HashMap<String, DbTable> tables;
-	private HashMap<String, HashMap<String, DbColumn>> tablCols;	
+	private HashMap<String, TableMeta> tables;
+	private HashMap<String, HashMap<String, ColumnMeta>> tablCols;	
 
-	public IrAbsDriver meta(DbSpec spec, HashMap<String, DbTable> tables,
-			HashMap<String, HashMap<String, DbColumn>> tablCols, int flagPrintsql) {
+	public IrAbsDriver meta(DbMeta spec, HashMap<String, TableMeta> tables,
+			HashMap<String, HashMap<String, ColumnMeta>> tablCols, int flagPrintsql) {
 		this.spec = spec;
 		this.tables = tables;
 		this.tablCols = tablCols;
 		return this;
 	}
 
-	public DbColumn getColumn(String tabName, String colName) {
+	public ColumnMeta getColumn(String tabName, String colName) {
 		if(tablCols.containsKey(tabName))
 			return tablCols.get(tabName).get(colName);
 		else
 			return null;
 	}
 
-	public DbTable getTable(String tablname) {
+	public TableMeta getTable(String tablname) {
 		return tables.get(tablname);
 	}
 	

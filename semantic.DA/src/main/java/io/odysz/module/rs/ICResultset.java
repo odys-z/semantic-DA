@@ -1,7 +1,6 @@
-package io.odysz.semantic.DA;
+package io.odysz.module.rs;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -14,13 +13,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import io.odysz.semantic.common.Regex;
+import io.odysz.common.Regex;
+import io.odysz.semantic.SemanticObject;
 
 /**This Resultset used for non-connection operation. Rows and Cols are start at 1, the same as {@link java.sql.Resultset}.
  * @author zb
@@ -28,7 +22,6 @@ import io.odysz.semantic.common.Regex;
  */
 public class ICResultset {
 	private static final boolean debug = true;
-	private static Gson gson;
 
 	private int colCnt = 0;
 	/**current row index, start at 1. */
@@ -302,7 +295,7 @@ for (String coln : colnames.keySet())
 	 */
 	public String getString(String colName, SimpleDateFormat sdf) throws SQLException {
 		if (colName == null) return null;
-		return getString((int)colnames.get(colName.toUpperCase())[0], sdf);
+		return getString((Integer)colnames.get(colName.toUpperCase())[0], sdf);
 	}
 	
 	/**If field is a date value, return string formatted by sdf.
@@ -333,7 +326,7 @@ for (String coln : colnames.keySet())
 	 */
 	public String getStringNonull(String colName) throws SQLException {
 		if (colName == null) return "";
-		String s = getString((int)colnames.get(colName.toUpperCase())[0]);
+		String s = getString((Integer)colnames.get(colName.toUpperCase())[0]);
 		return s == null? "" : s;
 	}
 	
@@ -375,7 +368,7 @@ for (String coln : colnames.keySet())
 	}
 	
 	public boolean getBoolean(String colName) throws SQLException {
-		return getBoolean((int)colnames.get(colName.toUpperCase())[0]);
+		return getBoolean((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
 	public double getDouble(int colIndex) throws SQLException {
@@ -389,7 +382,7 @@ for (String coln : colnames.keySet())
 	}
 	
 	public double getDouble(String colName) throws SQLException {
-		return getDouble((int)colnames.get(colName.toUpperCase())[0]);
+		return getDouble((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
 	public BigDecimal getBigDecimal(int colIndex) throws SQLException {
@@ -397,7 +390,7 @@ for (String coln : colnames.keySet())
 	}
 
 	public BigDecimal getBigDecimal(String colName) throws SQLException {
-		return BigDecimal.valueOf(getDouble((int)colnames.get(colName.toUpperCase())[0]));
+		return BigDecimal.valueOf(getDouble((Integer)colnames.get(colName.toUpperCase())[0]));
 	}
 	
 	public Date getDate(int index)throws SQLException{
@@ -413,7 +406,7 @@ for (String coln : colnames.keySet())
 	}
 	
 	public Date getDate(String colName)throws SQLException{
-		return getDate((int)colnames.get(colName.toUpperCase())[0]);
+		return getDate((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
 	public int getInt(int colIndex) throws SQLException {
@@ -443,11 +436,11 @@ for (String coln : colnames.keySet())
 	}
 
 	public long getLong(String colName) throws SQLException {
-		return getLong((int)colnames.get(colName.toUpperCase())[0]);
+		return getLong((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
 	public int getInt(String colName) throws SQLException {
-		return getInt((int)colnames.get(colName.toUpperCase())[0]);
+		return getInt((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
 	public Blob getBlob(int colIndex) throws SQLException {
@@ -460,7 +453,7 @@ for (String coln : colnames.keySet())
 	}
 	
 	public Blob getBlob(String colName) throws SQLException {
-		return getBlob((int)colnames.get(colName.toUpperCase())[0]);
+		return getBlob((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
 	public Object getObject(int colIndex) throws SQLException {
@@ -534,7 +527,7 @@ for (String coln : colnames.keySet())
 	 */
 	public String getColumnName(int i) {
 		for (String cn : colnames.keySet()) {
-			if (((int)colnames.get(cn)[0]) == i)
+			if (((Integer)colnames.get(cn)[0]) == i)
 				return (String) colnames.get(cn)[1];
 		}
 		return null;
@@ -546,7 +539,7 @@ for (String coln : colnames.keySet())
 	 */
 	public void setColumnName(int i, String n) {
 		for (String cn : colnames.keySet()) {
-			if (((int)colnames.get(cn)[0]) == i) {
+			if (((Integer)colnames.get(cn)[0]) == i) {
 				colnames.get(cn)[1] = n;
 				break;
 			}
@@ -595,7 +588,7 @@ for (String coln : colnames.keySet())
 	 * @throws SQLException 
 	 */
 	public boolean set (String colName, String v) throws SQLException {
-		return set((int)colnames.get(colName.toUpperCase())[0], v);
+		return set((Integer)colnames.get(colName.toUpperCase())[0], v);
 	}
 
 	/**find the first row that contain a matched value in field <i>col</i>. Matching are done by <i>regex</i>.
@@ -654,63 +647,60 @@ for (String coln : colnames.keySet())
 	 * @return
 	 * @throws UnsupportedEncodingException 
 	 */
-	public JsonObjectBuilder convert2Jarr(boolean includeColHeader) throws UnsupportedEncodingException {
-		JsonObjectBuilder b = Json.createObjectBuilder();
-		b.add("rowCount", results == null ? 0 : results.size());
-		b.add("colCount", colnames == null ? 0 : colnames.size());
-		if (gson == null) gson = new Gson();
-		b.add("headers", gson.toJson(colnames));
-
-		Type rt = new TypeToken<ArrayList<ArrayList<String>>>(){}.getType();
-		b.add("rows", gson.toJson(results, rt ));
-//		String jsonString = gson.toJson(results, rt);
-//		byte[] utf8JsonString = jsonString.getBytes("UTF8");
-//		String rowstr = new String(utf8JsonString);
-//		b.add("rows", rowstr);
+	public SemanticObject convert2Jarr(boolean includeColHeader) throws UnsupportedEncodingException {
+		// JsonObjectBuilder b = Json.createObjectBuilder();
+		SemanticObject b = new SemanticObject();
+//		b.add("rowCount", results == null ? 0 : results.size());
+//		b.add("colCount", colnames == null ? 0 : colnames.size());
+//		if (gson == null) gson = new Gson();
+//		b.add("headers", gson.toJson(colnames));
+//
+//		Type rt = new TypeToken<ArrayList<ArrayList<String>>>(){}.getType();
+//		b.add("rows", gson.toJson(results, rt ));
 
 		return b;
 	}
 
-	@SuppressWarnings("unchecked")
-	public static ICResultset parseJarr(JsonObject jrs) {
-		if (gson == null)
-			gson = new Gson();
-		String jcols = jrs.getString("headers");
-		Type headrTp = new TypeToken<HashMap<String, Object[]>>() {}.getType();
-		HashMap<String, Object[]> headers = (HashMap<String, Object[]>) gson.fromJson(jcols, headrTp);
-		
-		// convert idx[0] to int 
-		if (headers != null)
-			for (Object[] headr : headers.values()) {
-				try {
-					headr[0] = (Integer)Math.round(Float.valueOf((String) headr[0]));
-				} catch (Exception ex) {
-					try {headr[0] = (int)Math.round((Double)headr[0]); }
-					catch(Exception e2) {}
-				}
-			}
-
-		ICResultset rs = new ICResultset(headers, true);
-
-		String jrows = jrs.getString("rows");
-
-		if (debug) {
-			System.out.println(" *********** ICResultset.parseJarr() parsing JsonObject **********");
-			System.out.println(jrs);
-		}
-
-		// append( (ArrayList<Object>) gson.fromJson(jrows, rt) );
-		Type rt = new TypeToken<ArrayList<ArrayList<String>>>(){}.getType();
-		rs.results = gson.fromJson(jrows, rt);
-		rs.rowCnt = rs.results.size();
-		rs.rowIdx = 0;
-	
-		if (debug) {
-			try { rs.printSomeData(false, rs.getRowCount() + 1, "abnormalId", "hostId", "ignorTimes", "abnormalConclusion");
-			} catch (Exception ex) {}
-		}
-		return rs;
-	}
+//	@SuppressWarnings("unchecked")
+//	public static ICResultset parseJarr(JsonObject jrs) {
+//		if (gson == null)
+//			gson = new Gson();
+//		String jcols = jrs.getString("headers");
+//		Type headrTp = new TypeToken<HashMap<String, Object[]>>() {}.getType();
+//		HashMap<String, Object[]> headers = (HashMap<String, Object[]>) gson.fromJson(jcols, headrTp);
+//		
+//		// convert idx[0] to int 
+//		if (headers != null)
+//			for (Object[] headr : headers.values()) {
+//				try {
+//					headr[0] = (Integer)Math.round(Float.valueOf((String) headr[0]));
+//				} catch (Exception ex) {
+//					try {headr[0] = (int)Math.round((Double)headr[0]); }
+//					catch(Exception e2) {}
+//				}
+//			}
+//
+//		ICResultset rs = new ICResultset(headers, true);
+//
+//		String jrows = jrs.getString("rows");
+//
+//		if (debug) {
+//			System.out.println(" *********** ICResultset.parseJarr() parsing JsonObject **********");
+//			System.out.println(jrs);
+//		}
+//
+//		// append( (ArrayList<Object>) gson.fromJson(jrows, rt) );
+//		Type rt = new TypeToken<ArrayList<ArrayList<String>>>(){}.getType();
+//		rs.results = gson.fromJson(jrows, rt);
+//		rs.rowCnt = rs.results.size();
+//		rs.rowIdx = 0;
+//	
+//		if (debug) {
+//			try { rs.printSomeData(false, rs.getRowCount() + 1, "abnormalId", "hostId", "ignorTimes", "abnormalConclusion");
+//			} catch (Exception ex) {}
+//		}
+//		return rs;
+//	}
 	
 	/**Collect fields value that can be used in "IN" condition, e.g. 'v1', 'v2', ...
 	 * @param rs
@@ -747,7 +737,7 @@ for (String coln : colnames.keySet())
 	public String getString(int rowix, String idField) {
 		if (results == null || results.size() < rowix)
 			return null;
-		int colix =(int)colnames.get(idField.toUpperCase())[0];
+		int colix = (Integer) colnames.get(idField.toUpperCase())[0];
 		return results == null ? null : (String) results.get(rowix - 1).get(colix - 1);
 	}
 }

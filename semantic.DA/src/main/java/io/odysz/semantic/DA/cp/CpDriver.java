@@ -1,4 +1,4 @@
-package io.ic.frame.DA.cp;
+package io.odysz.semantic.DA.cp;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -7,28 +7,26 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 
-import javax.servlet.ServletContext;
-
 import org.xml.sax.SAXException;
 
-import com.infochange.frame.util.HelperFactory;
-import com.infochange.frame.util.Regex;
-import com.ir.ifire.IFireSingleton;
-
+import io.odysz.common.Regex;
+import io.odysz.module.rs.ICResultset;
+import io.odysz.module.xtable.IXMLStruct;
+import io.odysz.module.xtable.Log4jWrapper;
+import io.odysz.module.xtable.XMLDataFactory;
+import io.odysz.module.xtable.XMLDataFactoryEx;
+import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DA.DA;
-import io.ic.frame.DA.DA.DriverType;
-import io.ic.frame.DA.DatasetCfg;
-import io.ic.frame.DA.DbLog;
-import io.ic.frame.DA.ICResultset;
-import io.ic.frame.DA.IrSemantics;
-import io.ic.frame.DA.IrSemantics.smtype;
-import io.ic.frame.DA.Mappings;
-import io.ic.frame.DA.OracleLob;
-import io.ic.frame.util.Log4jWrapper;
-import io.ic.frame.xadapter.XAdaptorServlet;
-import io.ic.frame.xtable.IXMLStruct;
-import io.ic.frame.xtable.XMLDataFactoryEx;
-import io.ic.frame.xtable.XMLTable;
+import io.odysz.semantic.DA.DA.DriverType;
+import io.odysz.semantic.DA.DatasetCfg;
+import io.odysz.semantics.meta.ColumnMeta;
+import io.odysz.semantics.meta.DbMeta;
+import io.odysz.semantics.meta.TableMeta;
+import io.odysz.semantic.DA.DbLog;
+import io.odysz.semantic.DA.IrSemantics;
+import io.odysz.semantic.DA.IrSemantics.smtype;
+import io.odysz.semantic.DA.Mappings;
+import io.odysz.semantic.DA.OracleLob;
 
 /**JDBC driver for connection pool mode.<br>
  * Use select() to query, use commit() to update.<br>
@@ -56,17 +54,17 @@ public class CpDriver {
 		else return srcs.get(connId).driverName();
 	}
 	
-	public static DbSpec getDbSpec(String connId) {
+	public static DbMeta getDbMeta(String connId) {
 		return srcs.get(connId).getSpec();
 	}
 	
-	public static DbTable getTable(String connId, String tabName) {
+	public static TableMeta getTable(String connId, String tabName) {
 		if (connId == null)
 			connId = defltConn;
 		return srcs.get(connId).get(tabName);
 	}
 	
-	public static DbColumn getColumn(String connId, String tabName, String expr) {
+	public static ColumnMeta getColumn(String connId, String tabName, String expr) {
 		if (connId == null)
 			connId = defltConn;
 		return srcs.get(connId).getColumn(tabName, expr);
@@ -123,12 +121,14 @@ public class CpDriver {
 		srcs.get(connId).readClob(rs, tabls);
 	}
 
-	public static void init(ServletContext context) {
+	public static void init(String path) {
 		if (srcs != null) return;
 		srcs = new HashMap<String, CpSrc>();
 		XMLTable conn = null;
 		try{
-			conn = XAdaptorServlet.getXTable(context, "WEB-INF/connections.xml", "dbcp", null, new IXMLStruct() {
+//			conn = XAdaptorServlet.getXTable(context, "WEB-INF/connections.xml", "dbcp", null, new IXMLStruct() {
+			conn = XMLDataFactory.getTable(logger , "drvmnger", path + "/connections.xml",
+						new IXMLStruct() {
 							@Override public String rootTag() { return "conns"; }
 							@Override public String tableTag() { return "t"; }
 							@Override public String recordTag() { return "c"; }});
@@ -149,8 +149,13 @@ public class CpDriver {
 							conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false)));
 					}
 					else if (type != null && type.trim().toLowerCase().equals("oracle")) {
+						// FIXME CpDriver don't care drive type anymore? (should be handled by semantic.transact?)
+						// FIXME CpDriver don't care drive type anymore? (should be handled by semantic.transact?)
+						// FIXME CpDriver don't care drive type anymore? (should be handled by semantic.transact?)
+						// FIXME CpDriver don't care drive type anymore? (should be handled by semantic.transact?)
 						// get name mapping config
-						String fullpath = HelperFactory.getRealPath(conn.getString("nmap"));
+						// String fullpath = HelperFactory.getRealPath(conn.getString("nmap"));
+						String fullpath = conn.getString("nmap");
 						if (fullpath == null)
 							throw new SQLException("Oracle connection need a nmap value. Check connection.xml and map file.");
 						if (orclMappings != null)
@@ -184,7 +189,7 @@ public class CpDriver {
 			// FIXME this shouldn't happen in the future when DmDriver and CpDriver are merged.
 			if (DA.defltJdbc() == DA.jdbc_dbcp) {
 				conn.beforeFirst();
-				DatasetCfg.init(conn, IFireSingleton.webRoot(), orclMappings);
+				DatasetCfg.init(conn, path, orclMappings);
 			}
 
 			System.out.println(String.format("INFO - DAO initialized using %s (%s) as default datasource.",
@@ -251,7 +256,7 @@ public class CpDriver {
 	 * @throws SAXException 
 	 */
 	private static CpSrc initMysqlCp(String srcName, DriverType diverType, String usr, String pswd, boolean printSql) throws SQLException, SAXException {
-		DbSpec spec = new DbSpec();
+		DbMeta spec = new DbMeta();
 		/*RegTextHarness report:
 		 * Enter your regex: (\w+)
 		 * Enter input string to search: varchar(20)
@@ -268,13 +273,13 @@ public class CpDriver {
 
 		// ICResultset rs = DBDriver.select(DbSrc.mysql, "show tables");
 		ICResultset rs = CpSrc.select(srcName, "show tables");
-		HashMap<String, HashMap<String, DbColumn>> tablCols = new HashMap<String, HashMap<String, DbColumn>>(rs.getRowCount());
-		HashMap<String, DbTable> tables = new HashMap<String, DbTable>(rs.getRowCount());
+		HashMap<String, HashMap<String, ColumnMeta>> tablCols = new HashMap<String, HashMap<String, ColumnMeta>>(rs.getRowCount());
+		HashMap<String, TableMeta> tables = new HashMap<String, TableMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		while (rs.next()) {
 			try {
 				String tn = rs.getString(1);
-				DbTable tab = schema.addTable(tn);
+				TableMeta tab = schema.addTable(tn);
 				tables.put(tn, tab);
 				tablCols.put(tn, buildColsMysql(srcName, tab, regex));
 			}
@@ -291,16 +296,16 @@ public class CpDriver {
 		return new CpSrc(srcName, diverType, null, spec, tables, tablCols, printSql);
 	}
 
-	private static HashMap<String, DbColumn> buildColsMysql(String srcName, DbTable tab, Regex regex) throws SQLException {
+	private static HashMap<String, ColumnMeta> buildColsMysql(String srcName, TableMeta tab, Regex regex) throws SQLException {
 		ICResultset rs = CpSrc.select(srcName, "show columns from " + tab.getName());
-		HashMap<String, DbColumn> cols = new HashMap<String, DbColumn>(rs.getRowCount());
+		HashMap<String, ColumnMeta> cols = new HashMap<String, ColumnMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		while (rs.next()) {
 			String tlen= rs.getString(2);
 			ArrayList<String> typeLen = regex.findGroups(tlen);
 			int len = 0;
 			try { len = Integer.valueOf(typeLen.get(1)); } catch (Exception e) {}
-			DbColumn col = tab.addColumn(rs.getString(1), typeLen.get(0), len == 0 ? null : len);
+			ColumnMeta col = tab.addColumn(rs.getString(1), typeLen.get(0), len == 0 ? null : len);
 			cols.put(rs.getString(1), col);
 		}
 		return cols;
@@ -328,23 +333,23 @@ public class CpDriver {
 //		Class<?>[] ifs2 = clss2.getInterfaces();
 //		Class<?> clss3 = Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 //		Class<?>[] ifs3 = clss3.getInterfaces();
-		DbSpec spec = new DbSpec();
+		DbMeta spec = new DbMeta();
 		DbSchema schema = spec.addDefaultSchema();
 		// https://stackoverflow.com/questions/175415/how-do-i-get-list-of-all-tables-in-a-database-using-tsql
 		ICResultset rs = CpSrc.select(srcName, "SELECT s.name FROM sysobjects s WHERE s.xtype = 'U' or s.xtype = 'V'");
-		HashMap<String, HashMap<String, DbColumn>> tablCols = new HashMap<String, HashMap<String, DbColumn>>(rs.getRowCount());
-		HashMap<String, DbTable> tables = new HashMap<String, DbTable>(rs.getRowCount());
+		HashMap<String, HashMap<String, ColumnMeta>> tablCols = new HashMap<String, HashMap<String, ColumnMeta>>(rs.getRowCount());
+		HashMap<String, TableMeta> tables = new HashMap<String, TableMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		while (rs.next()) {
 			String tn = rs.getString(1);
-			DbTable tab = schema.addTable(tn);
+			TableMeta tab = schema.addTable(tn);
 			tables.put(tn, tab);
 			tablCols.put(tn, buildColsMs2k(srcName, tab));
 		}
 		return new CpSrc(srcName, driverType, null, spec, tables, tablCols, printSql);
 	}
 
-	private static HashMap<String, DbColumn> buildColsMs2k(String srcName, DbTable tab) throws SQLException {
+	private static HashMap<String, ColumnMeta> buildColsMs2k(String srcName, TableMeta tab) throws SQLException {
 		// https://stackoverflow.com/questions/2418527/sql-server-query-to-get-the-list-of-columns-in-a-table-along-with-data-types-no
 		String sql = String.format("SELECT c.name, t.Name, c.max_length FROM sys.columns c " + 
 			"INNER JOIN sys.types t ON c.user_type_id = t.user_type_id " +
@@ -352,12 +357,12 @@ public class CpDriver {
 			"LEFT OUTER JOIN sys.indexes i ON ic.object_id = i.object_id AND ic.index_id = i.index_id " +
 			"WHERE c.object_id = OBJECT_ID('%s')", tab.getName());
 		ICResultset rs = CpSrc.select(srcName, sql);
-		HashMap<String, DbColumn> cols = new HashMap<String, DbColumn>(rs.getRowCount());
+		HashMap<String, ColumnMeta> cols = new HashMap<String, ColumnMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		while (rs.next()) {
 			int len = 0;
 			try { len = rs.getInt(3); } catch (Exception e) {}
-			DbColumn col = tab.addColumn(rs.getString(1), rs.getString(2), len == 0 ? null : len);
+			ColumnMeta col = tab.addColumn(rs.getString(1), rs.getString(2), len == 0 ? null : len);
 			cols.put(rs.getString(1), col);
 		}
 		return cols;
@@ -365,7 +370,7 @@ public class CpDriver {
 
 	private static CpSrc initOrcl(String srcName, DriverType driverType, String usr, String pswd, boolean printSql,
 			LinkedHashMap<String, XMLTable> maptables) throws SQLException, SAXException {
-		DbSpec spec = new DbSpec();
+		DbMeta spec = new DbMeta();
 		DbSchema schema = spec.addDefaultSchema();
 		// https://stackoverflow.com/questions/205736/get-list-of-all-tables-in-oracle
 		// https://stackoverflow.com/questions/1953239/search-an-oracle-database-for-tables-with-specific-column-names
@@ -399,8 +404,8 @@ public class CpDriver {
 				"'D_OWNCOMMANDORG', 'G_RELATERES', 'F_PREPLANS', 'M_INTERFACES', 'F_PUB_IFS', 'BAS_EQUIPMENT', " +
 				"'F_PLANRULE', 'F_CALL') " +
 				"ORDER BY table_name");
-		HashMap<String, DbTable> tables = new HashMap<String, DbTable>(rs.getRowCount());
-		HashMap<String, HashMap<String, DbColumn>> tablCols = new HashMap<String, HashMap<String, DbColumn>>(rs.getRow());
+		HashMap<String, TableMeta> tables = new HashMap<String, TableMeta>(rs.getRowCount());
+		HashMap<String, HashMap<String, ColumnMeta>> tablCols = new HashMap<String, HashMap<String, ColumnMeta>>(rs.getRow());
 		rs.beforeFirst();
 		System.err.println("\nChecking oracle db mapping configuration (dc.xml) against taget DB - srcName = " + srcName);
 		checkNames(maptables, rs);
@@ -411,10 +416,10 @@ public class CpDriver {
 			String tablId = mainxt.getString("u");
 			String bTabl = mainxt.getString("b");
 			System.out.println("Mapping table " + bTabl);
-			DbTable dbTab = schema.addTable(bTabl);
+			TableMeta dbTab = schema.addTable(bTabl);
 			tables.put(bTabl, dbTab);
 			XMLTable xt = maptables.get(tablId);
-			HashMap<String, DbColumn> cols = new HashMap<String, DbColumn>();
+			HashMap<String, ColumnMeta> cols = new HashMap<String, ColumnMeta>();
 			xt.beforeFirst();
 			while (xt.next()) {
 				// f,b,tn,len,flag

@@ -1,4 +1,4 @@
-package io.ic.frame.DA.drvmnger;
+package io.odysz.semantic.DA.drvmnger;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -11,22 +11,24 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.io.FilenameUtils;
 
 import io.odysz.common.Regex;
-
+import io.odysz.module.rs.ICResultset;
+import io.odysz.module.xtable.ILogger;
+import io.odysz.module.xtable.IXMLStruct;
+import io.odysz.module.xtable.Log4jWrapper;
+import io.odysz.module.xtable.XMLDataFactory;
+import io.odysz.module.xtable.XMLDataFactoryEx;
+import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DA.DA;
 import io.odysz.semantic.DA.DA.DriverType;
 import io.odysz.semantic.DA.DatasetCfg;
 import io.odysz.semantic.DA.DbLog;
-import io.odysz.semantic.DA.ICResultset;
 import io.odysz.semantic.DA.IrSemantics;
+import io.odysz.semantic.DA.IrSingleton;
 import io.odysz.semantic.DA.Mappings;
 import io.odysz.semantic.DA.OracleLob;
-import io.ic.frame.util.Log4jWrapper;
-import io.ic.frame.xtable.ILogger;
-import io.ic.frame.xtable.IXMLStruct;
-import io.ic.frame.xtable.XMLDataFactory;
-import io.ic.frame.xtable.XMLDataFactoryEx;
-import io.ic.frame.xtable.XMLTable;
-import io.ic.semantics.IrSingleton;
+import io.odysz.semantics.meta.ColumnMeta;
+import io.odysz.semantics.meta.DbMeta;
+import io.odysz.semantics.meta.TableMeta;
 
 /**This is the equivalent to DAO for driver-manager JDBC.<br>
  * Connection.xml is the configuration to change DA drivers.
@@ -45,7 +47,7 @@ public class DmDriver {
 		return srcs.get(connId).driverName();
 	}
 
-	public static DbSpec getDbSpec(String connId) {
+	public static DbMeta getDbMeta(String connId) {
 		return srcs.get(connId).getSpec();
 	}
 
@@ -78,14 +80,6 @@ public class DmDriver {
 		srcs = new HashMap<String, IrAbsDriver>();
 		XMLTable conn = null;
 		try{
-			/*
-			conn = XAdaptorServlet.getXTable(context, "WEB-INF/connections.xml", "drvmnger", null,
-						new IXMLStruct() {
-							@Override public String rootTag() { return "conns"; }
-							@Override public String tableTag() { return "t"; }
-							@Override public String recordTag() { return "c"; }});
-							*/
-
 			ILogger logger = new Log4jWrapper("xtabl");
 			conn = XMLDataFactory.getTable(logger , "drvmnger", webRoot + "/WEB-INF/connections.xml",
 						new IXMLStruct() {
@@ -201,15 +195,15 @@ cid |name       |type     |notnull |dflt_value |pk |
 	 */
 	private static IrAbsDriver initSqliteDrv(String connId, String jdbc, String usr, String pswd, int dbg) throws SQLException {
 
-		DbSpec spec = new DbSpec();
+		DbMeta spec = new DbMeta();
 		Regex regex = new Regex("(\\w+)");
 		DbSchema schema = spec.addDefaultSchema();
 
 		SqliteDriver drv = SqliteDriver.initConnection(jdbc, usr, pswd, dbg);
 		ICResultset rs = drv.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table'", DA.flag_nothing);
 
-		HashMap<String, HashMap<String, DbColumn>> tablCols = new HashMap<String, HashMap<String, DbColumn>>(rs.getRowCount());
-		HashMap<String, DbTable> tables = new HashMap<String, DbTable>(rs.getRowCount());
+		HashMap<String, HashMap<String, ColumnMeta>> tablCols = new HashMap<String, HashMap<String, ColumnMeta>>(rs.getRowCount());
+		HashMap<String, TableMeta> tables = new HashMap<String, TableMeta>(rs.getRowCount());
 		// also build locks and ir_autoseq initiation
 		HashMap<String, ReentrantLock> locks = new HashMap<String, ReentrantLock>(rs.getRowCount());
 		
@@ -217,7 +211,7 @@ cid |name       |type     |notnull |dflt_value |pk |
 		while (rs.next()) {
 			try {
 				String tn = rs.getString("name");
-				DbTable tab = schema.addTable(tn);
+				TableMeta tab = schema.addTable(tn);
 				tables.put(tn, tab);
 				tablCols.put(tn, buildColsSqlite(drv, connId, tab, regex, locks));
 			}
@@ -254,10 +248,10 @@ CREATE TABLE ir_autoseq (
 	 * @return
 	 * @throws SQLException
 	 */
-	private static HashMap<String, DbColumn> buildColsSqlite(SqliteDriver drv, String srcName,
-			DbTable tab, Regex regex, HashMap<String, ReentrantLock> locks) throws SQLException {
+	private static HashMap<String, ColumnMeta> buildColsSqlite(SqliteDriver drv, String srcName,
+			TableMeta tab, Regex regex, HashMap<String, ReentrantLock> locks) throws SQLException {
 		ICResultset rs = drv.select("PRAGMA table_info(" + tab.getName() + ")", DA.flag_nothing);
-		HashMap<String, DbColumn> cols = new HashMap<String, DbColumn>(rs.getRowCount());
+		HashMap<String, ColumnMeta> cols = new HashMap<String, ColumnMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		while (rs.next()) {
 			/*
@@ -281,7 +275,7 @@ cid |name        |type     |notnull |dflt_value |pk |
 			ArrayList<String> typeLen = regex.findGroups(tlen);
 			int len = 0;
 			try { len = Integer.valueOf(typeLen.get(1)); } catch (Exception e) {}
-			DbColumn col = tab.addColumn(rs.getString("name"), typeLen.get(0), len == 0 ? null : len);
+			ColumnMeta col = tab.addColumn(rs.getString("name"), typeLen.get(0), len == 0 ? null : len);
 			cols.put(rs.getString("name"), col);
 			
 			if (rs.getBoolean("pk")) {
@@ -346,13 +340,13 @@ CREATE TABLE ir_autoseq (
 		else return srcs.get(connId).driverName();
 	}
 
-	public static DbColumn getColumn(String connId, String tabName, String expr) {
+	public static ColumnMeta getColumn(String connId, String tabName, String expr) {
 		if (connId == null)
 			return srcs.get(defltConn).getColumn(tabName, expr);
 		else return srcs.get(connId).getColumn(tabName, expr);
 	}
 
-	public static DbTable getTable(String connId, String tabName) {
+	public static TableMeta getTable(String connId, String tabName) {
 		if (connId == null)
 			return srcs.get(defltConn).getTable(tabName);
 		else return srcs.get(connId).getTable(tabName);

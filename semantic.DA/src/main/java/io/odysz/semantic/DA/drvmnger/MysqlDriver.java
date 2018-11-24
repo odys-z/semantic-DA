@@ -1,4 +1,4 @@
-package io.ic.frame.DA.drvmnger;
+package io.odysz.semantic.DA.drvmnger;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -7,10 +7,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-import com.infochange.frame.util.Configs;
-
+import io.odysz.common.Configs;
+import io.odysz.module.rs.ICResultset;
 import io.odysz.semantic.DA.DA;
-import io.ic.frame.DA.ICResultset;
 import sun.misc.BASE64Decoder;
 
 public class MysqlDriver extends IrAbsDriver {

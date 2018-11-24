@@ -9,10 +9,14 @@ import java.util.concurrent.locks.Lock;
 
 import org.xml.sax.SAXException;
 
-import io.ic.frame.DA.cp.CpDriver;
-import io.ic.frame.DA.drvmnger.DmDriver;
-import io.ic.frame.xtable.XMLTable;
-import io.ic.semantics.IrSingleton;
+import io.odysz.common.Radix64;
+import io.odysz.module.rs.ICResultset;
+import io.odysz.module.xtable.XMLTable;
+import io.odysz.semantic.DA.cp.CpDriver;
+import io.odysz.semantic.DA.drvmnger.DmDriver;
+import io.odysz.semantics.meta.ColumnMeta;
+import io.odysz.semantics.meta.DbMeta;
+import io.odysz.semantics.meta.TableMeta;
 
 /**
  * @author ody
@@ -51,12 +55,12 @@ public class DA {
 	 * @param printSql
 	 * @param flag
 	 * @param sqls
-	 */
 	public static void printSql(boolean printSql, int flag, ArrayList<String> sqls) {
 		if ((flag & DA.flag_printSql) == DA.flag_printSql
 			|| printSql && (flag & DA.flag_disableSql) != DA.flag_disableSql)
 			print(sqls);
 	}
+	 */
 
 	public static void printSql(boolean printSql, int flag, String sql) {
 		if ((flag & DA.flag_printSql) == DA.flag_printSql
@@ -108,13 +112,13 @@ public class DA {
 			return null;
 	}
 
-	public static DbSpec getDbSpec(String connId) {
+	public static DbMeta getDbSpec(String connId) {
 		if (defltJdbc == jdbc_dbcp)
 			return CpDriver.getDbSpec(connId);
 		else return DmDriver.getDbSpec(connId);
 	}
 	
-	public static DbTable getTable(String connId, String tabName) {
+	public static TableMeta getTable(String connId, String tabName) {
 		if (connId == null)
 			connId = defltConn;
 		if (defltJdbc == jdbc_dbcp)
@@ -124,7 +128,7 @@ public class DA {
 			return DmDriver.getTable(connId, tabName);
 	}
 	
-	public static DbColumn getColumn(String connId, String tabName, String expr) {
+	public static ColumnMeta getColumn(String connId, String tabName, String expr) {
 		if (connId == null)
 			connId = defltConn;
 		if (defltJdbc == jdbc_dbcp)
@@ -134,11 +138,14 @@ public class DA {
 
 	/////////////////////////////////// semantics ////////////////////////////
 
-	public static void init(ServletContext servletContext) {
-		CpDriver.init(servletContext);
-
-		String webRoot = servletContext.getRealPath("/");
-		DmDriver.init(webRoot );
+//	public static void init(ServletContext servletContext) {
+//		CpDriver.init(servletContext);
+//
+//		String webRoot = servletContext.getRealPath("/");
+//		DmDriver.init(webRoot );
+//	}
+	public static void init(String path) {
+		DmDriver.init(path);
 	}
 
 	public static void reinstallSemantics(HashMap<String, HashMap<String, IrSemantics>> semantics) throws SQLException, SAXException {
@@ -343,45 +350,41 @@ end;
 	}
 
 	@SuppressWarnings("serial")
-	public static int[] commit(DbLog dblog, String sql) throws SQLException {
+	public static int[] commit(DbLog dblog, final String sql) throws SQLException {
 		return commit(dblog, new ArrayList<String> () { {add(sql);} });
 	}
 
 	//////////////////////////////// helpers ////////////////////////////////
 
-	public static CustomSql formatNow(String conn) throws SQLException {
-		DriverType driverType = null;
-		if (defltJdbc == jdbc_dbcp)
-			driverType = CpDriver.getConnType(conn);
-		else
-			driverType = DmDriver.getConnType(conn);
+	// TODO move to semantic.transact
+//	public static CustomSql formatNow(String conn) throws SQLException {
+//		DriverType driverType = null;
+//		if (defltJdbc == jdbc_dbcp)
+//			driverType = CpDriver.getConnType(conn);
+//		else
+//			driverType = DmDriver.getConnType(conn);
+//
+//		if (driverType == DriverType.mysql)
+//			return new CustomSql("now()");
+//		else if (driverType == DriverType.oracle)
+//			return new CustomSql("sysdate");
+//		else if (driverType == DriverType.ms2k)
+//			return new CustomSql("now()");
+//		else if (driverType == DriverType.sqlite)
+//			return new CustomSql("datetime('now')");
+//		else throw new SQLException("format Now(), TODO..");
+//	}
 
-		if (driverType == DriverType.mysql)
-			return new CustomSql("now()");
-		else if (driverType == DriverType.oracle)
-			return new CustomSql("sysdate");
-		else if (driverType == DriverType.ms2k)
-			return new CustomSql("now()");
-		else if (driverType == DriverType.sqlite)
-			return new CustomSql("datetime('now')");
-		else throw new SQLException("format Now(), TODO..");
-	}
-
-	public static String escapeValue(String v) {
-		if (v != null) {
-			v = v.replace("'", "''");
-			v = v.replace("%", "%%");
-		}
-		return v;
-	}
-
-	public static void checkNames(LinkedHashMap<String, XMLTable> maptables, ICResultset rs) {
-		// TODO Auto-generated method stub
-	}
+//	public static String escapeValue(String v) {
+//		if (v != null) {
+//			v = v.replace("'", "''");
+//			v = v.replace("%", "%%");
+//		}
+//		return v;
+//	}
 
 	/**Helper for error message printing.
 	 * @param sqls
-	 */
 	public static void printErr(ArrayList<String> sqls) {
 		if (sqls != null && sqls.size() > 0) {
 			for (String sql : sqls) {
@@ -401,6 +404,7 @@ end;
 					ex.getMessage(), x[0].getClassName(), x[0].getMethodName()));
 		}
 	}
+	 */
 
 	////////////////////////////// sqlite special //////////////////////////
 	private static boolean isSqlite(String connId) {
@@ -424,28 +428,4 @@ end;
 		else return DmDriver.formatFieldName(conn, expr);
 	}
 	
-	public static boolean isKeywords(String connId, String col) {
-		// TODO later when oracle is needed
-		return false;
-	}
-
-	public static boolean isOracle(String connId) {
-		// TODO later when oracle is needed
-		return false;
-	}
-
-	public static void readClob(String connId, ICResultset rs, String[] tabls) {
-		// TODO later when oracle is needed
-	}
-
-	public static Object getlobMeta(String defltConnId) {
-		// TODO later when oracle is needed
-		return null;
-	}
-
-	public static void appendClobSemantics(HashMap<String, IrSemantics> defltMetas, String defltConnId,
-			Object getlobMeta) {
-		// TODO later when oracle is needed
-	}
-
 }

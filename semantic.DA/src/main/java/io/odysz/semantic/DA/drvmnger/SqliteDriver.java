@@ -1,4 +1,4 @@
-package io.ic.frame.DA.drvmnger;
+package io.odysz.semantic.DA.drvmnger;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -11,10 +11,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.sqlite.JDBC;
 
-import com.infochange.frame.util.Configs;
-
+import io.odysz.common.Configs;
+import io.odysz.module.rs.ICResultset;
 import io.odysz.semantic.DA.DA;
-import io.ic.frame.DA.ICResultset;
 
 /**All instance using the same connection.
  * @author ody

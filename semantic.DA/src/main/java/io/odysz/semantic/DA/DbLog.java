@@ -3,16 +3,10 @@ package io.odysz.semantic.DA;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import javax.json.JsonObject;
-
-import org.json.simple.JSONObject;
-
-import io.ic.frame.DA.cp.CpDriver;
-import io.ic.frame.DA.drvmnger.IrAbsDriver;
-
-import com.infochange.frame.util.SQLString;
-
-import io.ic.semantics.serv.session.IrUser;
+import io.odysz.semantic.IrUser;
+import io.odysz.semantic.SemanticObject;
+import io.odysz.semantic.DA.cp.CpDriver;
+import io.odysz.semantic.DA.drvmnger.IrAbsDriver;
 
 /**Modifying History:
  * 1. Dao.commit()<br>
@@ -68,21 +62,9 @@ public class DbLog {
 	/**Stub only for dumb subclass. Don't use this if log() will be called */
 	DbLog() { }
 
-	public DbLog(IrUser usr, JSONObject jheader) throws SQLException {
+	public DbLog(IrUser usr, SemanticObject jheader) throws SQLException {
 		this.uid = usr.getLogId();
-		JSONObject userAct = (JSONObject) jheader.get("usrAct");
-		if (userAct == null)
-			throw new SQLException("Reqest payload header.usrAct is null. Log information can't initialized.");
-		this.funcName = (String) userAct.get("funcName");
-		this.funcId = (String) userAct.get("funcId");
-		this.url = (String) userAct.get("url");
-		String cmd = (String) userAct.get("cmd");
-		this.cmd = cmd == null || cmd.trim().length() == 0 ? "null" : String.format("'%s'", cmd.trim());
-	}
-
-	public DbLog(IrUser usr, JsonObject jheader) throws SQLException {
-		this.uid = usr.getLogId();
-		JsonObject userAct = jheader.getJsonObject("usrAct");
+		SemanticObject userAct = jheader.get("usrAct");
 		if (userAct == null)
 			throw new SQLException("Reqest payload header.usrAct is null. Log information can't initialized.");
 		this.funcName = userAct.getString("funcName");
@@ -91,6 +73,18 @@ public class DbLog {
 		String cmd = userAct.getString("cmd");
 		this.cmd = cmd == null || cmd.trim().length() == 0 ? "null" : String.format("'%s'", cmd.trim());
 	}
+
+//	public DbLog(IrUser usr, SemanticObject jheader) throws SQLException {
+//		this.uid = usr.getLogId();
+//		JsonObject userAct = jheader.getJsonObject("usrAct");
+//		if (userAct == null)
+//			throw new SQLException("Reqest payload header.usrAct is null. Log information can't initialized.");
+//		this.funcName = userAct.getString("funcName");
+//		this.funcId = userAct.getString("funcId");
+//		this.url = userAct.getString("url");
+//		String cmd = userAct.getString("cmd");
+//		this.cmd = cmd == null || cmd.trim().length() == 0 ? "null" : String.format("'%s'", cmd.trim());
+//	}
 
 	public void log(ArrayList<String> sqls) {
 		// no exception can be thrown here, no error response to client if failed.

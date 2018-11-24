@@ -1,4 +1,4 @@
-package io.ic.frame.DA.drvmnger;
+package io.odysz.semantic.DA.drvmnger;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,11 +11,7 @@ import java.util.ArrayList;
 
 import javax.sql.DataSource;
 
-import com.infochange.frame.DA.OracleLob;
-import com.infochange.frame.util.Configs;
-
-import io.ic.frame.DA.ICResultset;
-import oracle.sql.BLOB;
+import io.odysz.module.rs.ICResultset;
 
 /**
  * @author ody

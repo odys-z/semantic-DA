@@ -6,9 +6,9 @@ import java.util.LinkedHashMap;
 
 import org.xml.sax.SAXException;
 
+import io.odysz.module.xtable.IXMLStruct;
+import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DA.cp.CpDriver;
-import io.ic.frame.xtable.IXMLStruct;
-import io.ic.frame.xtable.XMLTable;
 
 /**Helper class for managing mapping file data structure.
  * A common module used by both {@link CpDriver} and {@link com.infochange.frame.DA.drvmnger.DmDriver}

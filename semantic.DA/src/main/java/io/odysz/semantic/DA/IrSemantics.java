@@ -1,18 +1,15 @@
 package io.odysz.semantic.DA;
 
 import java.sql.SQLException;
+import java.text.DateFormat;
 import java.util.ArrayList;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
+import io.odysz.semantics.x.SemanticException;
+import io.odysz.common.Radix64;
+import io.odysz.module.rs.ICResultset;
+import io.odysz.semantic.SemanticObject;
+import io.odysz.semantic.DA.cp.CpDriver;
 import io.odysz.semantic.common.AESHelper;
-import io.odysz.semantic.common.Radix64;
-
-import io.ic.ex.IrSemanticsException;
-import io.ic.frame.DA.cp.CpDriver;
-import io.ic.frame.util.DateFormat;
-import io.ic.semantics.serv.UpdateBatch;
 
 /**Data structure semantics description and supporter.<br>
  * Currently only semantics of fullpath used for depth-first tree traveling is supported.
@@ -314,12 +311,12 @@ public class IrSemantics {
 	}
 
 	/**If the configured sql has a resulting count (with pk-arg select) > 0,
-	 * throw an IrSemanticsException of message add while configuration.
+	 * throw an SemanticException of message add while configuration.
 	 * @param pkCol
 	 * @param pkv
-	 * @throws IrSemanticsException thrown when semantics-checking(IrSemantics.checkSqlCountOnDel, ...) failed.
+	 * @throws SemanticException thrown when semantics-checking(IrSemantics.checkSqlCountOnDel, ...) failed.
 	 */
-	public void checkRefereeCount(String connId, String pkCol, String pkv) throws IrSemanticsException {
+	public void checkRefereeCount(String connId, String pkCol, String pkv) throws SemanticException {
 		try {
 			if (pkCol.equals(checkCountPkCol_Del)) {
 				ICResultset rs = CpDriver.select(connId, String.format(checkCountSql_Del, pkv), DA.flag_nothing);
@@ -332,11 +329,11 @@ public class IrSemantics {
 					String arg3 = cols >= 4 ? rs.getString(4) : "";
 					String arg4 = cols >= 5 ? rs.getString(5) : "";
 					if (cnt > 0)
-						throw new IrSemanticsException(String.format(checkCountErrFormat_Del, cnt, arg1, arg2, arg3, arg4));
+						throw new SemanticException(String.format(checkCountErrFormat_Del, cnt, arg1, arg2, arg3, arg4));
 					// else return ok
 				}
 				else
-					throw new IrSemanticsException(String.format(checkCountErrFormat_Del, 0, "", "", "", ""));
+					throw new SemanticException(String.format(checkCountErrFormat_Del, 0, "", "", "", ""));
 			} // else check nothing
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -349,22 +346,22 @@ public class IrSemantics {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public JSONObject[] getDeleteChildrenCond(String parentId) {
+	public SemanticObject[] getDeleteChildrenCond(String parentId) {
 		if (childConstraints == null) return null;
-		JSONObject[] jreqs = new JSONObject[childConstraints.size()];
+		SemanticObject[] jreqs = new SemanticObject[childConstraints.size()];
 
 		for (int i = 0; i < jreqs.length; i++) {
 		//for (String[] childfk : childConstraints) {
 			String[] childfk = childConstraints.get(i);
-			JSONObject cond = new JSONObject();
+			SemanticObject cond = new SemanticObject();
 			cond.put("field", childfk[1]);
 			cond.put("v", parentId);
 			cond.put("logic", "=");
-			JSONArray jconds = new JSONArray();
-			jconds.add(cond);
+			SemanticObject jconds = new SemanticObject();
+			jconds.addObject(cond);
 
-			JSONObject req = new JSONObject();
-			JSONObject act = new JSONObject();
+			SemanticObject req = new SemanticObject();
+			SemanticObject act = new SemanticObject();
 			act.put("a", "delete");
 			act.put("conds", jconds);
 			req.put("tabl", childfk[0]);
@@ -436,7 +433,7 @@ public class IrSemantics {
 		return opTimeField;
 	}
 
-	public void checkSqlCountIns(String connId, String chkf, Object chkv) throws IrSemanticsException {
+	public void checkSqlCountIns(String connId, String chkf, Object chkv) throws SemanticException {
 		try {
 			if (chkf.equals(checkCountValueCol_Ins)) {
 				ICResultset rs = CpDriver.select(connId, String.format(checkCountSql_Ins, chkv), DA.flag_nothing);
@@ -449,11 +446,11 @@ public class IrSemantics {
 					String arg3 = cols >= 4 ? rs.getString(4) : "";
 					String arg4 = cols >= 5 ? rs.getString(5) : "";
 					if (cnt > 0)
-						throw new IrSemanticsException(String.format(checkCountErrFormat_Ins, cnt, arg1, arg2, arg3, arg4));
+						throw new SemanticException(String.format(checkCountErrFormat_Ins, cnt, arg1, arg2, arg3, arg4));
 					// else return ok
 				}
 				else
-					throw new IrSemanticsException(String.format(checkCountErrFormat_Ins, 0, "", "", "", ""));
+					throw new SemanticException(String.format(checkCountErrFormat_Ins, 0, "", "", "", ""));
 			} // else check nothing
 		} catch (SQLException e) {
 			e.printStackTrace();
