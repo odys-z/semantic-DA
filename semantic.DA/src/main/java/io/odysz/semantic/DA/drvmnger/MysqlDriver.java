@@ -9,10 +9,10 @@ import java.util.ArrayList;
 
 import io.odysz.common.Configs;
 import io.odysz.module.rs.ICResultset;
-import io.odysz.semantic.DA.DA;
-import sun.misc.BASE64Decoder;
+import io.odysz.semantic.DA.AbsConnect;
+import io.odysz.semantic.DA.Connects;
 
-public class MysqlDriver extends IrAbsDriver {
+public class MysqlDriver extends AbsConnect {
 	public static boolean printSql = true;
 	static boolean inited = false;
 	static String userName;
@@ -58,7 +58,7 @@ public class MysqlDriver extends IrAbsDriver {
 	 */
 	public static MysqlDriver initConnection(String conn, String user, String psword, int flags) throws SQLException {
 		if (!inited) {
-			printSql = (flags & DA.flag_printSql) > 0;
+			printSql = (flags & Connects.flag_printSql) > 0;
 			
 			connect = conn;
 			userName = user;
@@ -80,7 +80,6 @@ public class MysqlDriver extends IrAbsDriver {
 	 * @param pswd
 	 * @param userName
 	 * @return
-	 */
 	@SuppressWarnings("unused")
 	private static String DecryptPswd(String pswd, String userName) {
 		if (pswd == null) return ""; 
@@ -92,11 +91,12 @@ public class MysqlDriver extends IrAbsDriver {
 			return "";
 		}
 	}
+	 */
 	
 
 	public static ICResultset selectStatic(String sql, int flags) throws SQLException {
 		Connection conn = getConnection();
-		DA.printSql(printSql, flags, sql);
+		Connects.printSql(printSql, flags, sql);
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery(sql);
 		ICResultset icrs = new ICResultset(rs);
@@ -195,8 +195,8 @@ public class MysqlDriver extends IrAbsDriver {
 	}
 
 	@Override
-	int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
-		DA.printSql(printSql, flags, sqls);
+	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
+		Connects.printSql(printSql, flags, sqls);
 		
 		int[] ret;
 		Connection conn = getConnection();

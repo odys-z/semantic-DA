@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.concurrent.TimeUnit;
 
-import io.odysz.semantic.DA.DA.DriverType;
+import io.odysz.semantic.DA.Connects.DriverType;
 
 /**Date formatting and parsing helper.<br>
  * This is basically used for string used in sql.

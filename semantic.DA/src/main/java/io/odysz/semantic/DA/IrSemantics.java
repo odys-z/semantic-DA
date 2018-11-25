@@ -1,7 +1,6 @@
 package io.odysz.semantic.DA;
 
 import java.sql.SQLException;
-import java.text.DateFormat;
 import java.util.ArrayList;
 
 import io.odysz.semantics.x.SemanticException;
@@ -9,7 +8,8 @@ import io.odysz.common.Radix64;
 import io.odysz.module.rs.ICResultset;
 import io.odysz.semantic.SemanticObject;
 import io.odysz.semantic.DA.cp.CpDriver;
-import io.odysz.semantic.common.AESHelper;
+import io.odysz.semantic.util.DateFormat;
+import io.odysz.common.AESHelper;
 
 /**Data structure semantics description and supporter.<br>
  * Currently only semantics of fullpath used for depth-first tree traveling is supported.
@@ -249,7 +249,7 @@ public class IrSemantics {
 		if (parentId == null || parentId.equals(recId))
 			return String.format("%1$2s %2$s", sibling, recId); //.replace(' ', '0');
 		ICResultset rs = CpDriver.select(conn, String.format( "select %s as parentPath from %s where %s = '%s'",
-				fullPath, target, idField, parentId), DA.flag_nothing);
+				fullPath, target, idField, parentId), Connects.flag_nothing);
 		// find parent.fullpath
 		if (rs.getRowCount() == 0)
 			// no parent (path) found
@@ -319,7 +319,7 @@ public class IrSemantics {
 	public void checkRefereeCount(String connId, String pkCol, String pkv) throws SemanticException {
 		try {
 			if (pkCol.equals(checkCountPkCol_Del)) {
-				ICResultset rs = CpDriver.select(connId, String.format(checkCountSql_Del, pkv), DA.flag_nothing);
+				ICResultset rs = CpDriver.select(connId, String.format(checkCountSql_Del, pkv), Connects.flag_nothing);
 				rs.beforeFirst();
 				if (rs.next()) {
 					int cnt = rs.getInt(1);
@@ -345,13 +345,11 @@ public class IrSemantics {
 	 * @param parentId
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public SemanticObject[] getDeleteChildrenCond(String parentId) {
 		if (childConstraints == null) return null;
 		SemanticObject[] jreqs = new SemanticObject[childConstraints.size()];
 
 		for (int i = 0; i < jreqs.length; i++) {
-		//for (String[] childfk : childConstraints) {
 			String[] childfk = childConstraints.get(i);
 			SemanticObject cond = new SemanticObject();
 			cond.put("field", childfk[1]);
@@ -436,7 +434,7 @@ public class IrSemantics {
 	public void checkSqlCountIns(String connId, String chkf, Object chkv) throws SemanticException {
 		try {
 			if (chkf.equals(checkCountValueCol_Ins)) {
-				ICResultset rs = CpDriver.select(connId, String.format(checkCountSql_Ins, chkv), DA.flag_nothing);
+				ICResultset rs = CpDriver.select(connId, String.format(checkCountSql_Ins, chkv), Connects.flag_nothing);
 				rs.beforeFirst();
 				if (rs.next()) {
 					int cnt = rs.getInt(1);
@@ -511,15 +509,15 @@ public class IrSemantics {
 	 */
 	public String getComposedV(ArrayList<String> newIds, String[] componds) {
 		String res = "";
-		for (int ix = 0; ix < composingCols.length; ix++) {
-			String t = composingCols[ix];
-			// constant
-			if (t.startsWith("'") && t.endsWith("'")) {
-				res += t.replaceFirst("^'", "").replaceAll("'$", "");
-			}
-			// variable from client
-			else res += UpdateBatch.resolveAuto(componds[ix], newIds);
-		}
+//		for (int ix = 0; ix < composingCols.length; ix++) {
+//			String t = composingCols[ix];
+//			// constant
+//			if (t.startsWith("'") && t.endsWith("'")) {
+//				res += t.replaceFirst("^'", "").replaceAll("'$", "");
+//			}
+//			// variable from client
+//			else res += UpdateBatch.resolveAuto(componds[ix], newIds);
+//		}
 		return res;
 	}
 	
@@ -562,9 +560,9 @@ public class IrSemantics {
 		try {
 			if (dateStr == null || ((String)dateStr).trim().length() < 6)
 				// len(76-7-4) = 6
-				return DateFormat.incSeconds(DA.getConnType(conn), "1776-07-04 00:00:00", 0);
-			return DateFormat.incSeconds(DA.getConnType(conn), (String) dateStr, 1);
-		} catch (Exception e) { return DateFormat.getTimeStampYMDHms(DA.getConnType(conn)); }
+				return DateFormat.incSeconds(Connects.getConnType(conn), "1776-07-04 00:00:00", 0);
+			return DateFormat.incSeconds(Connects.getConnType(conn), (String) dateStr, 1);
+		} catch (Exception e) { return DateFormat.getTimeStampYMDHms(Connects.getConnType(conn)); }
 	}
 
 	public boolean isUpstamp(String n) {
@@ -586,11 +584,11 @@ public class IrSemantics {
 			// 
 			String sql = DatasetCfg.getSqlx(conn, "semantics.get-downstamp",
 					downStamp, tabl, this.idField, recId);
-			ICResultset rs = DA.select(sql, DA.flag_nothing);
+			ICResultset rs = Connects.select(sql, Connects.flag_nothing);
 			rs.next();
 			return rs.getString("upstamp");
 		} catch (SQLException e) {
-			return DateFormat.getTimeStampYMDHms(DA.dirverType(conn));
+			return DateFormat.getTimeStampYMDHms(Connects.dirverType(conn));
 		}
 	}
 

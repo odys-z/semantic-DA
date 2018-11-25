@@ -10,14 +10,13 @@ import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactory;
 import io.odysz.module.xtable.XMLTable;
-import io.odysz.semantic.DA.IrSingleton;
 
 /**Load WEB-INF/Messages.xml, use getMessage(key) to access the strings.<br>
  * A servlet constext must been registed by LeisureFactory before Messages is inited */
 public class Configs {
 	protected static ILogger log; // = HelperFactory.getLogger("com.ic.frame.util.config");
 	protected static final String tag = "CFG";
-	protected static String cfgFile = "WEB-INF/config.xml";
+	protected static String cfgFile = "config.xml";
 	protected static final String deftId = "default";
 	protected static HashMap<String, HashMap<String, String>> cfgs;
 	
@@ -41,7 +40,7 @@ public class Configs {
 	protected static void load(HashMap<String, HashMap<String, String>> cfgs, String tid) {
 		// String messageFile = null;
 		// String fullpath = HelperFactory.getRealPath(cfgFile);
-		String fullpath = FilenameUtils.concat(IrSingleton.webRoot() + "/", cfgFile);
+		String fullpath = FilenameUtils.concat(path + "/", cfgFile);
 
 		log.d("D", "message file path: " + fullpath);
 

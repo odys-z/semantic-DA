@@ -1,4 +1,4 @@
-package io.odysz.semantic.DA.drvmnger;
+package io.odysz.semantic.DA;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -7,16 +7,15 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import io.odysz.module.rs.ICResultset;
-import io.odysz.semantic.DA.DA.DriverType;
-import io.odysz.semantic.DA.IrSemantics;
+import io.odysz.semantic.DA.Connects.DriverType;
 import io.odysz.semantic.DA.cp.CpSrc;
 import io.odysz.semantics.meta.ColumnMeta;
 import io.odysz.semantics.meta.DbMeta;
 import io.odysz.semantics.meta.TableMeta;
 
-public abstract class IrAbsDriver {
+public abstract class AbsConnect {
 	protected DriverType drvName;
-	public DriverType driverName() { return drvName; }
+	public DriverType driverType() { return drvName; }
 
 	private boolean _isOrcl = false;
 	private boolean _isSqlite = false;
@@ -25,9 +24,9 @@ public abstract class IrAbsDriver {
 
 	HashMap<String, IrSemantics>  metas;
 
-	abstract ICResultset select(String sql, int flags) throws SQLException ;
+	public abstract ICResultset select(String sql, int flags) throws SQLException ;
 
-	abstract int[] commit(ArrayList<String> sqls, int flags) throws SQLException;
+	public abstract int[] commit(ArrayList<String> sqls, int flags) throws SQLException;
 
 	public String formatFieldName(String expr) {
 		if (_isOrcl  && CpSrc.orclKeywords.contains(expr.trim()))
@@ -41,7 +40,7 @@ public abstract class IrAbsDriver {
 	private HashMap<String, TableMeta> tables;
 	private HashMap<String, HashMap<String, ColumnMeta>> tablCols;	
 
-	public IrAbsDriver meta(DbMeta spec, HashMap<String, TableMeta> tables,
+	public AbsConnect meta(DbMeta spec, HashMap<String, TableMeta> tables,
 			HashMap<String, HashMap<String, ColumnMeta>> tablCols, int flagPrintsql) {
 		this.spec = spec;
 		this.tables = tables;
@@ -73,7 +72,7 @@ public abstract class IrAbsDriver {
 		metas = semantics;
 	}
 
-	HashMap<String, ReentrantLock> locks;
+	protected HashMap<String, ReentrantLock> locks;
 
 	public Lock getAutoseqLock(String target) throws SQLException {
 		if (!_isSqlite)

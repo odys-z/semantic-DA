@@ -10,14 +10,15 @@ import java.util.LinkedHashMap;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.Regex;
+import io.odysz.common.Utils;
 import io.odysz.module.rs.ICResultset;
 import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactory;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
-import io.odysz.semantic.DA.DA;
-import io.odysz.semantic.DA.DA.DriverType;
+import io.odysz.semantic.DA.Connects.DriverType;
+import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DA.DatasetCfg;
 import io.odysz.semantics.meta.ColumnMeta;
 import io.odysz.semantics.meta.DbMeta;
@@ -39,8 +40,6 @@ import io.odysz.semantic.DA.OracleLob;
  *
  */
 public class CpDriver {
-//	public static final String rootKey = "infochange-v2";
-
 
 	static String defltConn;
 	static HashMap<String, CpSrc> srcs;
@@ -50,8 +49,8 @@ public class CpDriver {
 	
 	public static DriverType getConnType(String connId) {
 		if (connId == null)
-			return srcs.get(defltConn).driverName();
-		else return srcs.get(connId).driverName();
+			return srcs.get(defltConn).driverType();
+		else return srcs.get(connId).driverType();
 	}
 	
 	public static DbMeta getDbMeta(String connId) {
@@ -127,7 +126,7 @@ public class CpDriver {
 		XMLTable conn = null;
 		try{
 //			conn = XAdaptorServlet.getXTable(context, "WEB-INF/connections.xml", "dbcp", null, new IXMLStruct() {
-			conn = XMLDataFactory.getTable(logger , "drvmnger", path + "/connections.xml",
+			conn = XMLDataFactory.getTable(new Log4jWrapper("dm"), "drvmnger", path + "/connections.xml",
 						new IXMLStruct() {
 							@Override public String rootTag() { return "conns"; }
 							@Override public String tableTag() { return "t"; }
@@ -141,11 +140,11 @@ public class CpDriver {
 					String id = conn.getString("id");
 
 					if (type != null && type.trim().toLowerCase().equals("mysql")) {
-						srcs.put(id, initMysqlCp(conn.getString("src"), DA.parseDrvType(conn.getString("type")),
+						srcs.put(id, initMysqlCp(conn.getString("src"), Connects.parseDrvType(conn.getString("type")),
 							conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false)));
 					}
 					else if (type != null && type.trim().toLowerCase().equals("mssql2k")) {
-						srcs.put(id, initMs2k(conn.getString("src"), DA.parseDrvType(conn.getString("type")), 
+						srcs.put(id, initMs2k(conn.getString("src"), Connects.parseDrvType(conn.getString("type")), 
 							conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false)));
 					}
 					else if (type != null && type.trim().toLowerCase().equals("oracle")) {
@@ -165,7 +164,7 @@ public class CpDriver {
 							orclMappings = Mappings.convertMap(xmappings);
 
 							// init with name mapping
-							srcs.put(id, initOrcl(conn.getString("src"), DA.parseDrvType(conn.getString("type")),
+							srcs.put(id, initOrcl(conn.getString("src"), Connects.parseDrvType(conn.getString("type")),
 								conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false), xmappings));
 						}
 					}
@@ -187,14 +186,14 @@ public class CpDriver {
 //			reinstallSemantics(createSemanticsGarze());
 			
 			// FIXME this shouldn't happen in the future when DmDriver and CpDriver are merged.
-			if (DA.defltJdbc() == DA.jdbc_dbcp) {
+//			if (DA.defltJdbc() == DA.jdbc_dbcp) {
 				conn.beforeFirst();
 				DatasetCfg.init(conn, path, orclMappings);
-			}
+//			}
 
 			System.out.println(String.format("INFO - DAO initialized using %s (%s) as default datasource.",
 					// getDefltConnId(), srcs.get(getDefltConnId()).getDriverName()));
-					defltConn, srcs != null && srcs.containsKey(defltConn) ? srcs.get(defltConn).driverName() : null));
+					defltConn, srcs != null && srcs.containsKey(defltConn) ? srcs.get(defltConn).driverType() : null));
 		}
 		catch (Exception ex) {
 			System.err.println("\nFATAL - DAO initializing failed! !!\n");
@@ -269,7 +268,7 @@ public class CpDriver {
 		 * I found the text "20" starting at index 9 and ending at index 11.
 		 */
 		Regex regex = new Regex("(\\w+)");
-		DbSchema schema = spec.addDefaultSchema();
+//		DbSchema schema = spec.addDefaultSchema();
 
 		// ICResultset rs = DBDriver.select(DbSrc.mysql, "show tables");
 		ICResultset rs = CpSrc.select(srcName, "show tables");
@@ -279,7 +278,7 @@ public class CpDriver {
 		while (rs.next()) {
 			try {
 				String tn = rs.getString(1);
-				TableMeta tab = schema.addTable(tn);
+				TableMeta tab = spec.addTable(tn);
 				tables.put(tn, tab);
 				tablCols.put(tn, buildColsMysql(srcName, tab, regex));
 			}
@@ -327,14 +326,9 @@ public class CpDriver {
 	 * @throws SAXException 
 	 */
 	private static CpSrc initMs2k(String srcName, DriverType driverType, String usr, String pswd, boolean printSql) throws SQLException, ClassNotFoundException, SAXException {
-//		Class<?> clss = Class.forName("com.microsoft.sqlserver.jdbc.SQLServerConnectionPoolDataSource");
-//		Class<?>[] ifs = clss.getInterfaces();
-//		Class<?> clss2 = Class.forName("com.mysql.jdbc.Driver");
-//		Class<?>[] ifs2 = clss2.getInterfaces();
-//		Class<?> clss3 = Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-//		Class<?>[] ifs3 = clss3.getInterfaces();
 		DbMeta spec = new DbMeta();
-		DbSchema schema = spec.addDefaultSchema();
+//		DbSchema schema = spec.addDefaultSchema();
+
 		// https://stackoverflow.com/questions/175415/how-do-i-get-list-of-all-tables-in-a-database-using-tsql
 		ICResultset rs = CpSrc.select(srcName, "SELECT s.name FROM sysobjects s WHERE s.xtype = 'U' or s.xtype = 'V'");
 		HashMap<String, HashMap<String, ColumnMeta>> tablCols = new HashMap<String, HashMap<String, ColumnMeta>>(rs.getRowCount());
@@ -342,7 +336,7 @@ public class CpDriver {
 		rs.beforeFirst();
 		while (rs.next()) {
 			String tn = rs.getString(1);
-			TableMeta tab = schema.addTable(tn);
+			TableMeta tab = spec.addTable(tn);
 			tables.put(tn, tab);
 			tablCols.put(tn, buildColsMs2k(srcName, tab));
 		}
@@ -371,7 +365,8 @@ public class CpDriver {
 	private static CpSrc initOrcl(String srcName, DriverType driverType, String usr, String pswd, boolean printSql,
 			LinkedHashMap<String, XMLTable> maptables) throws SQLException, SAXException {
 		DbMeta spec = new DbMeta();
-		DbSchema schema = spec.addDefaultSchema();
+		//DbSchema schema = spec.addDefaultSchema();
+
 		// https://stackoverflow.com/questions/205736/get-list-of-all-tables-in-oracle
 		// https://stackoverflow.com/questions/1953239/search-an-oracle-database-for-tables-with-specific-column-names
 		/*
@@ -416,7 +411,8 @@ public class CpDriver {
 			String tablId = mainxt.getString("u");
 			String bTabl = mainxt.getString("b");
 			System.out.println("Mapping table " + bTabl);
-			TableMeta dbTab = schema.addTable(bTabl);
+			// TableMeta dbTab = schema.addTable(bTabl);
+			TableMeta dbTab = spec.addTable(bTabl);
 			tables.put(bTabl, dbTab);
 			XMLTable xt = maptables.get(tablId);
 			HashMap<String, ColumnMeta> cols = new HashMap<String, ColumnMeta>();
@@ -477,7 +473,8 @@ public class CpDriver {
 			log.log(sqls);
 		else {
 			System.err.println("Some db commitment not logged:");
-			DA.printErr(sqls);
+			// DA.printErr(sqls);
+			Utils.warn(sqls);
 		}
 		return ret;
 	}
@@ -487,7 +484,7 @@ public class CpDriver {
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		sqls.add(log);
 		try {
-			srcs.get(defltConn).commit(sqls, DA.flag_nothing);
+			srcs.get(defltConn).commit(sqls, Connects.flag_nothing);
 			if (isOracle(defltConn)) 
 				srcs.get(defltConn).updateLobs(DbLog.formatLob(log));
 		} catch (SQLException e) {
@@ -641,6 +638,6 @@ public class CpDriver {
 	public static boolean isSqlite(String conn) {
 		if (conn == null)
 			conn = defltConn;
-		return srcs.get(conn).driverName() == DriverType.sqlite;
+		return srcs.get(conn).driverType() == DriverType.sqlite;
 	}
 }

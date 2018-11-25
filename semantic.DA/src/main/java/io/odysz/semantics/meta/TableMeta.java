@@ -7,4 +7,9 @@ public class TableMeta {
 		return tabl;
 	}
 
+	public ColumnMeta addColumn(String name, String type, Integer len) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

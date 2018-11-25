@@ -19,11 +19,10 @@ import javax.sql.DataSource;
 
 import org.xml.sax.SAXException;
 
-import io.odysz.common.Utils;
 import io.odysz.module.rs.ICResultset;
 import io.odysz.module.xtable.XMLTable;
-import io.odysz.semantic.DA.DA;
-import io.odysz.semantic.DA.DA.DriverType;
+import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.DA.Connects.DriverType;
 import io.odysz.semantic.DA.Mappings;
 import io.odysz.semantic.DA.OracleLob;
 import io.odysz.semantics.meta.ColumnMeta;
@@ -183,12 +182,12 @@ public class CpSrc {
         return conn;
 	}
 
-	DriverType driverName() {return driverType; }
+	DriverType driverType() {return driverType; }
 	
 	public DbMeta getSpec() { return spec; }
 
 	public TableMeta get(String tablname) {
-		return get(DriverType.deflt, tablname);
+		return get(DriverType.mysql, tablname);
 	}
 
 	public TableMeta get(DriverType srcId, String tablname) {
@@ -236,7 +235,7 @@ public class CpSrc {
         ICResultset icrs = null; 
         try {
         	// if (printSql) System.out.println(sql);
-        	DA.printSql(printSql, flags, sql);
+        	Connects.printSql(printSql, flags, sql);
 
         	con = getConnection();
             con.setAutoCommit(false);
@@ -279,7 +278,7 @@ public class CpSrc {
 					}
 					ICResultset lobrs = select(String.format("select %s, length(%s) from %s where %s = '%s'",
 							lob.lobField(), lob.lobField(), lob.tabl(), lob.idField(), rs.getString(lob.idField())),
-							DA.flag_nothing);
+							Connects.flag_nothing);
 
 					lobrs.beforeFirst().next();
 					int len = lobrs.getInt(2);
@@ -299,7 +298,7 @@ public class CpSrc {
 	}
 
 	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
-		DA.printSql(printSql, flags, sqls);
+		Connects.printSql(printSql, flags, sqls);
 
 		int[] ret = null;
         Connection conn = null;
@@ -481,7 +480,7 @@ public class CpSrc {
 		else if (driverType == DriverType.sqlite)
 			sql = "select DATETIME('now')";
 		
-		ICResultset rs = select(sql, DA.flag_nothing);
+		ICResultset rs = select(sql, Connects.flag_nothing);
 		if (rs.next())
 			return rs.getString(1);
 		else return null;

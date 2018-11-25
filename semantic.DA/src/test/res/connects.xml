@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<conns>
+  <t id="drvmnger" pk="id" columns="type,id,isdef,src,usr,pswd,dbg,nmap">
+  	<!-- dao table is used to configure basic db connection, for pooled datasource, see bdcp -->
+  	<!-- This is not implemented in emergency.garze - to be done in the future. -->
+  </t>
+
+  <t id="dbcp" pk="id" columns="id,type,src,usr,pswd,isdef,dbg,nmap">
+  	<!-- dbcp table is used to pooled db datasource, for basic connection, see dao -->
+  	<!-- type: mysql | oracle | mssql -->
+  	<!-- id: client specify id for the desired target data source -->
+  	<!-- src: context.xml/Context/Resource [name] -->
+  	<!-- dbg: true for printing sql -->
+  	<!-- nmap: name of config file for upper case to bump case mapping, only for oracle -->
+  	<!-- 
+  	<c>
+  		<id>local</id>
+  		<type>mysql</type>
+  		<src>jdbc/local-emerge</src>
+  		<usr></usr>
+  		<pswd></pswd>
+  		<dbg>true</dbg>
+  	</c>
+ 	<c>
+  		<id>callcenter</id>
+  		<type>mssql2k</type>
+  		<src>jdbc/callcenter</src>
+  		<usr></usr>
+  		<pswd></pswd>
+  		<dbg>true</dbg>
+  	</c>
+  	<c>
+  		<id>dc</id>
+  		<type>oracle</type>
+  		<src>jdbc/dc-orcl</src>
+  		<isdef>true</isdef>
+  		<usr></usr>
+  		<pswd></pswd>
+  		<dbg>true</dbg>
+  		<nmap>WEB-INF/dc.xml</nmap>
+  	</c>
+  	-->
+  	<!-- server.xml/GlobalNamingResoure/Resource
+  	<Resource name="jdbc/inet-ifire" global="jdbc/inet-ifire" 
+  			auth="Container" type="javax.sql.DataSource"
+  			maxActive="10" maxIdle="3" maxWait="10000"
+  			username="odysz" password="..." driverClassName="com.mysql.jdbc.Driver"
+  			url="jdbc:mysql://...:3306/prj" connectionProperties="useUnicode=yes;characterEncoding=utf8;autoReconnect=true;autoReconnectForPools=true" />
+  	 -->
+   	<c>
+  		<id>inet</id>
+  		<type>mysql</type>
+  		<src>jdbc/inet-ifire</src>
+  		<isdef>true</isdef>
+  		<usr></usr>
+  		<pswd></pswd>
+  		<dbg>true</dbg>
+  	</c>
+  </t>
+</conns>

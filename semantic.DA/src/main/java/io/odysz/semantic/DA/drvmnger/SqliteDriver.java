@@ -13,13 +13,15 @@ import org.sqlite.JDBC;
 
 import io.odysz.common.Configs;
 import io.odysz.module.rs.ICResultset;
-import io.odysz.semantic.DA.DA;
+import io.odysz.semantic.DA.AbsConnect;
+import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.DA.Connects.DriverType;
 
 /**All instance using the same connection.
  * @author ody
  *
  */
-public class SqliteDriver extends IrAbsDriver {
+public class SqliteDriver extends AbsConnect {
 	public static boolean enableSystemout = true;
 	static boolean inited = false;
 	static String userName;
@@ -36,7 +38,10 @@ public class SqliteDriver extends IrAbsDriver {
 		}
 	}
 
-	SqliteDriver() {drvName = DA.DriverType.sqlite;}
+	SqliteDriver() {
+		drvName = DriverType.sqlite;
+		locks = new HashMap<String, ReentrantLock>();
+	}
 
 //	public static void getConnection(String fileName) {
 //		 
@@ -93,7 +98,7 @@ public class SqliteDriver extends IrAbsDriver {
 	 */
 	public static SqliteDriver initConnection(String jdbc, String user, String psword, int flags) throws SQLException {
 		if (!inited) {
-			enableSystemout = (flags & DA.flag_printSql) > 0;
+			enableSystemout = (flags & Connects.flag_printSql) > 0;
 			
 			jdbcUrl = jdbc;
 			userName = user;
@@ -106,6 +111,7 @@ public class SqliteDriver extends IrAbsDriver {
 //				e.printStackTrace();
 //				throw new SQLException(e.getMessage());
 //			}
+
 			inited = true;
 		}
 		return new SqliteDriver();
@@ -113,7 +119,7 @@ public class SqliteDriver extends IrAbsDriver {
 	
 	static ICResultset selectStatic(String sql, int flag) throws SQLException {
 		Connection conn = getConnection();
-		DA.printSql(enableSystemout, flag, sql);
+		Connects.printSql(enableSystemout, flag, sql);
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery(sql);
 		ICResultset icrs = new ICResultset(rs);
@@ -124,7 +130,7 @@ public class SqliteDriver extends IrAbsDriver {
 		return icrs;
 	}
 
-	ICResultset select(String sql, int flag) throws SQLException {
+	public ICResultset select(String sql, int flag) throws SQLException {
 //		Connection conn = getConnection();
 //		DA.printSql(enableSystemout, flag, sql);
 //		Statement stmt = conn.createStatement();
@@ -213,12 +219,12 @@ public class SqliteDriver extends IrAbsDriver {
 //			}
 //		}
 //	}
-	int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
+	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
 		return commitst(sqls, flags);
 	}
 
 	static int[] commitst(ArrayList<String> sqls, int flags) throws SQLException {
-		DA.printSql(enableSystemout, flags, sqls);;
+		Connects.printSql(enableSystemout, flags, sqls);;
 
 		int[] ret;
 		Statement stmt = null;
@@ -256,9 +262,9 @@ public class SqliteDriver extends IrAbsDriver {
 		return ret;
 	}
 
-	void setLocks(HashMap<String, ReentrantLock> locks) {
-		this.locks = locks;
-	}
+//	void setLocks(HashMap<String, ReentrantLock> locks) {
+//		this.locks = locks;
+//	}
 	
 
 }

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import io.odysz.semantic.SUser;
 import io.odysz.semantic.SemanticObject;
 import io.odysz.semantic.DA.cp.CpDriver;
-import io.odysz.semantic.DA.drvmnger.IrAbsDriver;
+import io.odysz.semantic.util.SQLString;
 
 /**Modifying History:
  * 1. Dao.commit()<br>
@@ -89,7 +89,7 @@ public class DbLog {
 	public void log(ArrayList<String> sqls) {
 		// no exception can be thrown here, no error response to client if failed.
 		try {
-			String newId = DA.genId(DA.getDefltConnId(), "a_logs", "logId", null);
+			String newId = Connects.genId(Connects.defltConn(), "a_logs", "logId", null);
 			String sql = DatasetCfg.getSqlx(CpDriver.getDefltConnId(), "log-template",
 				// insert into a_logs(logId, oper, funcName, funcId, cmd, url, operDate, txt)
 				// values ('%s', '%s', '%s', '%s', null, '%s', sysdate, '%s');
@@ -101,10 +101,10 @@ public class DbLog {
 		}
 	}
 	
-	public void log(ArrayList<String> sqls, IrAbsDriver driver) {
+	public void log(ArrayList<String> sqls, AbsConnect driver) {
 		// no exception can be thrown here, no error response to client if failed.
 		try {
-			String newId = DA.genId(DA.getDefltConnId(), "a_logs", "logId", null);
+			String newId = Connects.genId(Connects.defltConn(), "a_logs", "logId", null);
 			String sql = DatasetCfg.getSqlx(CpDriver.getDefltConnId(), "log-template",
 				// insert into a_logs(logId, oper, funcName, funcId, cmd, url, operDate, txt)
 				// values ('%s', '%s', '%s', '%s', null, '%s', sysdate, '%s');

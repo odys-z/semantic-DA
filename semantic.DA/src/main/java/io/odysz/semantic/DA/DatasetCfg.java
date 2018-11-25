@@ -8,7 +8,6 @@ import java.util.LinkedHashMap;
 import org.apache.commons.io.FilenameUtils;
 import org.xml.sax.SAXException;
 
-import io.odysz.module.rs.ICResultset;
 import io.odysz.module.xtable.ILogger;
 import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
@@ -112,7 +111,7 @@ public class DatasetCfg {
 		if (k == null || !dss.containsKey(k))
 			throw new SQLException(String.format("No dataset configuration found for k = %s", k));
 
-		if (conn == null) conn = DA.getDefltConnId();
+		if (conn == null) conn = Connects.defltConn();
 		String sql = dss.get(k).getSql(conn_driver.get(conn));
 		if (args == null || args.length == 0)
 			return sql;
@@ -124,15 +123,15 @@ public class DatasetCfg {
 			throw new SQLException("FATAL - dataset not initialized...");
 		if (k == null || !dss.containsKey(k))
 			throw new SQLException(String.format("No dataset configuration found for k = %s", k));
-		if (conn == null) conn = DA.getDefltConnId();
+		if (conn == null) conn = Connects.defltConn();
 		return dss.get(k).stree();
 	}
 
-	public static ICResultset mapRs(String conn, String k, ICResultset rs) {
-		if (conn == null || k == null)
-			return rs;
-		return dss.get(k).map(conn, rs);
-	}
+//	public static ICResultset mapRs(String conn, String k, ICResultset rs) {
+//		if (conn == null || k == null)
+//			return rs;
+//		return dss.get(k).map(conn, rs);
+//	}
 
 	
 	/**POJO dataset element as configured in dataset.xml.<br>
@@ -148,7 +147,7 @@ public class DatasetCfg {
 		 */
 		String stree;
 
-		/**Create a dataset, with mapping prepared according mapping file.
+		/**Create a dataset, with mapping prepared according with mapping file.
 		 * @param conn_drv
 		 * @param k
 		 * @param tabls

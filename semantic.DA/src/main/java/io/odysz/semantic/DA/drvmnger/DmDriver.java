@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.io.FilenameUtils;
 
 import io.odysz.common.Regex;
+import io.odysz.common.Utils;
 import io.odysz.module.rs.ICResultset;
 import io.odysz.module.xtable.ILogger;
 import io.odysz.module.xtable.IXMLStruct;
@@ -18,12 +18,12 @@ import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactory;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
-import io.odysz.semantic.DA.DA;
-import io.odysz.semantic.DA.DA.DriverType;
+import io.odysz.semantic.DA.AbsConnect;
+import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.DA.Connects.DriverType;
 import io.odysz.semantic.DA.DatasetCfg;
 import io.odysz.semantic.DA.DbLog;
 import io.odysz.semantic.DA.IrSemantics;
-import io.odysz.semantic.DA.IrSingleton;
 import io.odysz.semantic.DA.Mappings;
 import io.odysz.semantic.DA.OracleLob;
 import io.odysz.semantics.meta.ColumnMeta;
@@ -35,7 +35,7 @@ import io.odysz.semantics.meta.TableMeta;
  * @author ody
  */
 public class DmDriver {
-	private static HashMap<String, IrAbsDriver> srcs;
+	private static HashMap<String, AbsConnect> srcs;
 
 //	private static HashMap<String, HashMap<String, IrSemantics>>  metas;
 
@@ -44,7 +44,7 @@ public class DmDriver {
 	public static String defltConn() {return defltConn;}
 
 	public static DriverType connType(String connId) {
-		return srcs.get(connId).driverName();
+		return srcs.get(connId).driverType();
 	}
 
 	public static DbMeta getDbMeta(String connId) {
@@ -55,7 +55,7 @@ public class DmDriver {
 		//return Mysql.select(sql);
 		// return SqliteDriver.select(sql);
 		if (conn == null) conn = defltConn;
-		return srcs.get(conn).select(sql, flags != null && flags.length > 0 ? flags[0] : DA.flag_nothing);
+		return srcs.get(conn).select(sql, flags != null && flags.length > 0 ? flags[0] : Connects.flag_nothing);
 	}
 	
 	/**Use this to initialize connection without using servlet context for retrieving configured strings.<br>
@@ -75,13 +75,13 @@ public class DmDriver {
 	 * initialize all connections.
 	 * @param context
 	 */
-	public static void init(String webRoot) {
+	public static void init(String xmlDir) {
 		if (srcs != null) return;
-		srcs = new HashMap<String, IrAbsDriver>();
+		srcs = new HashMap<String, AbsConnect>();
 		XMLTable conn = null;
 		try{
 			ILogger logger = new Log4jWrapper("xtabl");
-			conn = XMLDataFactory.getTable(logger , "drvmnger", webRoot + "/WEB-INF/connections.xml",
+			conn = XMLDataFactory.getTable(logger , "drvmnger", xmlDir + "/WEB-INF/connections.xml",
 						new IXMLStruct() {
 							@Override public String rootTag() { return "conns"; }
 							@Override public String tableTag() { return "t"; }
@@ -96,12 +96,12 @@ public class DmDriver {
 					String id = conn.getString("id");
 					if (type != null && type.trim().toLowerCase().equals("mysql")) {
 						srcs.put(id, initMysqlDrv(conn.getString("src"),
-							conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false) ? DA.flag_printSql : DA.flag_nothing));
+							conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false) ? Connects.flag_printSql : Connects.flag_nothing));
 					}
 					else if (type != null && type.trim().toLowerCase().equals("sqlite")) {
-						srcs.put(id, initSqliteDrv(id, String.format("jdbc:sqlite:%s", FilenameUtils.concat(IrSingleton.webRoot(), conn.getString("src"))),
+						srcs.put(id, initSqliteDrv(id, String.format("jdbc:sqlite:%s", FilenameUtils.concat(xmlDir, conn.getString("src"))),
 //								conn.getString("src"),
-							conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false) ? DA.flag_printSql : DA.flag_nothing));
+							conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false) ? Connects.flag_printSql : Connects.flag_nothing));
 					}
 					else if (type != null && type.trim().toLowerCase().equals("mssql2k")) {
 						srcs.put(id, initMs2kDrv(conn.getString("src"),
@@ -110,7 +110,7 @@ public class DmDriver {
 					else if (type != null && type.trim().toLowerCase().equals("oracle")) {
 						// get name mapping config
 						// String fullpath = getRealPath(conn.getString("nmap"));
-						String fullpath = FilenameUtils.concat(webRoot + "/", conn.getString("nmpa"));
+						String fullpath = FilenameUtils.concat(xmlDir + "/", conn.getString("nmpa"));
 
 						if (fullpath == null)
 							throw new SQLException("Oracle connection need a nmap value, check connection.xml.");
@@ -138,14 +138,11 @@ public class DmDriver {
 			if (srcs != null && srcs.size() > 0 && !srcs.containsKey(defltConn))
 				throw new SQLException("Failed initializing, db source must configured with a default source."); 
 
-			// FIXME this shouldn't happen in the future when DmDriver and CpDriver are merged.
-			if (DA.defltJdbc() == DA.jdbc_drvmnger) {
-				conn.beforeFirst();
-				DatasetCfg.init(conn, IrSingleton.webRoot(), orclMappings);
-			}
+			conn.beforeFirst();
+			DatasetCfg.init(conn, xmlDir, orclMappings);
 
 			System.out.println(String.format("INFO - DmDriver initialized using %s (%s) as default datasource.",
-					defltConn, srcs != null && srcs.size() > 0 ? srcs.get(defltConn).driverName() : "empty"));
+					defltConn, srcs != null && srcs.size() > 0 ? srcs.get(defltConn).driverType() : "empty"));
 		}
 		catch (Exception ex) {
 			System.err.println("\nFATAL - DmDriver initializing failed! !!\n");
@@ -154,7 +151,7 @@ public class DmDriver {
 		}
 	}
 
-	private static IrAbsDriver initMysqlDrv(String jdbc, String usr, String pswd, int dbg) throws SQLException {
+	private static AbsConnect initMysqlDrv(String jdbc, String usr, String pswd, int dbg) throws SQLException {
 		return MysqlDriver.initConnection(jdbc, usr, pswd, dbg);
 	}
 
@@ -193,27 +190,27 @@ cid |name       |type     |notnull |dflt_value |pk |
 	 * @return
 	 * @throws SQLException
 	 */
-	private static IrAbsDriver initSqliteDrv(String connId, String jdbc, String usr, String pswd, int dbg) throws SQLException {
+	private static AbsConnect initSqliteDrv(String connId, String jdbc, String usr, String pswd, int dbg) throws SQLException {
 
 		DbMeta spec = new DbMeta();
 		Regex regex = new Regex("(\\w+)");
-		DbSchema schema = spec.addDefaultSchema();
+//		DbSchema schema = spec.addDefaultSchema();
 
 		SqliteDriver drv = SqliteDriver.initConnection(jdbc, usr, pswd, dbg);
-		ICResultset rs = drv.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table'", DA.flag_nothing);
+		ICResultset rs = drv.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table'", Connects.flag_nothing);
 
 		HashMap<String, HashMap<String, ColumnMeta>> tablCols = new HashMap<String, HashMap<String, ColumnMeta>>(rs.getRowCount());
 		HashMap<String, TableMeta> tables = new HashMap<String, TableMeta>(rs.getRowCount());
 		// also build locks and ir_autoseq initiation
-		HashMap<String, ReentrantLock> locks = new HashMap<String, ReentrantLock>(rs.getRowCount());
+//		HashMap<String, ReentrantLock> locks = new HashMap<String, ReentrantLock>(rs.getRowCount());
 		
 		rs.beforeFirst();
 		while (rs.next()) {
 			try {
 				String tn = rs.getString("name");
-				TableMeta tab = schema.addTable(tn);
+				TableMeta tab = spec.addTable(tn);
 				tables.put(tn, tab);
-				tablCols.put(tn, buildColsSqlite(drv, connId, tab, regex, locks));
+				tablCols.put(tn, buildColsSqlite(drv, connId, tab, regex));
 			}
 			catch (SQLException e) {
 				System.err.println(e.getMessage());
@@ -222,10 +219,12 @@ cid |name       |type     |notnull |dflt_value |pk |
 			}
 		}
 		
-		drv = (SqliteDriver) drv.meta(spec, tables, tablCols, DA.flag_printSql);
+		drv = (SqliteDriver) drv.meta(spec, tables, tablCols, Connects.flag_printSql);
 
 		drv.isSqlite(true);
-		drv.setLocks(locks);
+
+		// drv.setLocks(locks);
+//		drv.locks = locks;
 
 
 		return drv;
@@ -249,8 +248,8 @@ CREATE TABLE ir_autoseq (
 	 * @throws SQLException
 	 */
 	private static HashMap<String, ColumnMeta> buildColsSqlite(SqliteDriver drv, String srcName,
-			TableMeta tab, Regex regex, HashMap<String, ReentrantLock> locks) throws SQLException {
-		ICResultset rs = drv.select("PRAGMA table_info(" + tab.getName() + ")", DA.flag_nothing);
+			TableMeta tab, Regex regex) throws SQLException {
+		ICResultset rs = drv.select("PRAGMA table_info(" + tab.getName() + ")", Connects.flag_nothing);
 		HashMap<String, ColumnMeta> cols = new HashMap<String, ColumnMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		while (rs.next()) {
@@ -279,7 +278,8 @@ cid |name        |type     |notnull |dflt_value |pk |
 			cols.put(rs.getString("name"), col);
 			
 			if (rs.getBoolean("pk")) {
-				locks.put(tab.getName(), new ReentrantLock());
+				// FIXME where to do this?
+				// locks.put(tab.getName(), new ReentrantLock());
 				
 				// if doesn't exists an auto seq, insert one
 				/*
@@ -291,24 +291,24 @@ CREATE TABLE ir_autoseq (
 );				 */
 				String sql = String.format("select seq from ir_autoseq where sid = '%s.%s'",
 						tab.getName(), rs.getString("name"));
-				ICResultset rseq = SqliteDriver.selectStatic(sql, DA.flag_nothing);
+				ICResultset rseq = SqliteDriver.selectStatic(sql, Connects.flag_nothing);
 				if (rseq.getRowCount() <= 0) {
 					ArrayList<String> sqls = new ArrayList<String>(1);
 					sqls.add(String.format("insert into ir_autoseq(sid, seq, remarks) values('%s.%s', 0, datetime('now'))",
 						tab.getName(), rs.getString("name")));
-					SqliteDriver.commitst(sqls, DA.flag_nothing);
+					SqliteDriver.commitst(sqls, Connects.flag_nothing);
 				}
 			}
 		}
 		return cols;
 	}
 
-	private static IrAbsDriver initMs2kDrv(String string, String string2, String string3,
+	private static AbsConnect initMs2kDrv(String string, String string2, String string3,
 			boolean bool) throws SQLException {
-		throw new SQLException("orcale is not supported yet");
+		throw new SQLException("ms2k is not supported yet");
 	}
 
-	private static IrAbsDriver initOrclDrv(String string, String string2, String string3,
+	private static AbsConnect initOrclDrv(String string, String string2, String string3,
 			boolean bool, HashMap<String, HashMap<String, String>> orclMappings) throws SQLException {
 		throw new SQLException("orcale is not supported yet");
 	}
@@ -329,15 +329,15 @@ CREATE TABLE ir_autoseq (
 			log.log(sqls);
 		else {
 			System.err.println("Some db commitment not logged:");
-			DA.printErr(sqls);
+			Utils.warn(sqls);
 		}
 		return c;
 	}
 
 	public static DriverType getConnType(String connId) {
 		if (connId == null)
-			return srcs.get(defltConn).driverName();
-		else return srcs.get(connId).driverName();
+			return srcs.get(defltConn).driverType();
+		else return srcs.get(connId).driverType();
 	}
 
 	public static ColumnMeta getColumn(String connId, String tabName, String expr) {

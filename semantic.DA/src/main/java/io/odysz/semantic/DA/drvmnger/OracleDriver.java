@@ -11,14 +11,18 @@ import java.util.ArrayList;
 
 import javax.sql.DataSource;
 
+import io.odysz.common.Configs;
 import io.odysz.module.rs.ICResultset;
+import io.odysz.semantic.DA.AbsConnect;
+import io.odysz.semantic.DA.OracleLob;
+import oracle.sql.BLOB;
 
 /**
  * @author ody
  *
  */
 @SuppressWarnings("deprecation")
-public class OracleDriver {
+public class OracleDriver extends AbsConnect {
 
 	static DataSource ds;
 	static boolean enableSystemout = false;
@@ -58,7 +62,7 @@ public class OracleDriver {
 		return conn;
 	}
 
-	public static void initConnection(String conn, String user, String psword) throws SQLException {
+	public static AbsConnect initConnection(String conn, String user, String psword, int flag) throws SQLException {
 		if (!inited) {
 			enableSystemout = true;
 			
@@ -76,6 +80,7 @@ public class OracleDriver {
 			}
 			inited = true;
 		}
+		return new OracleDriver();
 	}	
 	/*
 	public static Connection getSQLConnection() throws Exception {
@@ -314,6 +319,18 @@ public class OracleDriver {
 					e.printStackTrace();
 				}
 		}
+	}
+
+	@Override
+	public ICResultset select(String sql, int flags) throws SQLException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 
