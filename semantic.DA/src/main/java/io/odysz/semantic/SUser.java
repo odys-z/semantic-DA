@@ -5,7 +5,12 @@ import java.sql.SQLException;
 
 import io.odysz.semantics.x.SemanticException;
 
-public interface IrUser {
+/**Semantic User used for finger print when asking DA functions.<br>
+ * Finger print including Semantic data operater, logger info, etc.
+ * @author ody
+ *
+ */
+public interface SUser {
 	//JsonStructure logout(Object jheader);
 	public SemanticObject logout(Object header);
 	public void removed();

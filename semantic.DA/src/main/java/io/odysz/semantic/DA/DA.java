@@ -99,7 +99,7 @@ public class DA {
 		return getConnType(defltJdbc, conn);
 	}
 	// //////////////////////// // metas // //////////////////////// //
-	public static final String rootKey = "infochange-v2";
+	public static final String rootKey = "abcdef-123456";
 
 	static String defltConn;
 //	static HashMap<String, DaSrc> srcs;

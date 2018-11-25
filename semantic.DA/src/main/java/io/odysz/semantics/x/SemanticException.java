@@ -2,9 +2,7 @@ package io.odysz.semantics.x;
 
 import io.odysz.transact.x.TransException;
 
-// waiting maven
-// public class SemanticException extends TransException {
-public class SemanticException extends Exception {
+ public class SemanticException extends TransException {
 	private static final long serialVersionUID = 1L;
 
 	public SemanticException(String format, Object... args) {

@@ -3,7 +3,7 @@ package io.odysz.semantic.DA;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import io.odysz.semantic.IrUser;
+import io.odysz.semantic.SUser;
 import io.odysz.semantic.SemanticObject;
 import io.odysz.semantic.DA.cp.CpDriver;
 import io.odysz.semantic.DA.drvmnger.IrAbsDriver;
@@ -62,7 +62,7 @@ public class DbLog {
 	/**Stub only for dumb subclass. Don't use this if log() will be called */
 	DbLog() { }
 
-	public DbLog(IrUser usr, SemanticObject jheader) throws SQLException {
+	public DbLog(SUser usr, SemanticObject jheader) throws SQLException {
 		this.uid = usr.getLogId();
 		SemanticObject userAct = jheader.get("usrAct");
 		if (userAct == null)
@@ -74,7 +74,7 @@ public class DbLog {
 		this.cmd = cmd == null || cmd.trim().length() == 0 ? "null" : String.format("'%s'", cmd.trim());
 	}
 
-//	public DbLog(IrUser usr, SemanticObject jheader) throws SQLException {
+//	public DbLog(SUser usr, SemanticObject jheader) throws SQLException {
 //		this.uid = usr.getLogId();
 //		JsonObject userAct = jheader.getJsonObject("usrAct");
 //		if (userAct == null)
@@ -116,7 +116,7 @@ public class DbLog {
 		}
 	}
 
-	public DbLog(IrUser usr, String funcName, String funcId, String cmd) {
+	public DbLog(SUser usr, String funcName, String funcId, String cmd) {
 		this.uid = usr.getLogId();
 		this.funcName = funcName;
 		this.funcId = funcId;
