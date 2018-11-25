@@ -10,6 +10,7 @@ import java.util.concurrent.locks.Lock;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.Radix64;
+import io.odysz.common.Utils;
 import io.odysz.module.rs.ICResultset;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DA.cp.CpDriver;
@@ -55,17 +56,18 @@ public class DA {
 	 * @param printSql
 	 * @param flag
 	 * @param sqls
+	 */
 	public static void printSql(boolean printSql, int flag, ArrayList<String> sqls) {
 		if ((flag & DA.flag_printSql) == DA.flag_printSql
 			|| printSql && (flag & DA.flag_disableSql) != DA.flag_disableSql)
 			print(sqls);
 	}
-	 */
 
 	public static void printSql(boolean printSql, int flag, String sql) {
 		if ((flag & DA.flag_printSql) == DA.flag_printSql
 			|| printSql && (flag & DA.flag_disableSql) != DA.flag_disableSql)
-			System.out.println(sql);
+			// System.out.println(sql);
+			Utils.logi(sql);
 	}
 
 	/////////////////////// stupid bridging /////////////////////////
@@ -385,6 +387,7 @@ end;
 
 	/**Helper for error message printing.
 	 * @param sqls
+	 */
 	public static void printErr(ArrayList<String> sqls) {
 		if (sqls != null && sqls.size() > 0) {
 			for (String sql : sqls) {
@@ -404,7 +407,6 @@ end;
 					ex.getMessage(), x[0].getClassName(), x[0].getMethodName()));
 		}
 	}
-	 */
 
 	////////////////////////////// sqlite special //////////////////////////
 	private static boolean isSqlite(String connId) {

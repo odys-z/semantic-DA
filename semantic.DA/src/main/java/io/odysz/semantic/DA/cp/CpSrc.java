@@ -19,6 +19,7 @@ import javax.sql.DataSource;
 
 import org.xml.sax.SAXException;
 
+import io.odysz.common.Utils;
 import io.odysz.module.rs.ICResultset;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DA.DA;
