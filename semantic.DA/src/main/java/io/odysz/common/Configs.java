@@ -21,30 +21,28 @@ public class Configs {
 	protected static HashMap<String, HashMap<String, String>> cfgs;
 	
 	static {
-		init(cfgFile);
-		// log = HelperFactory.getLogger("");
+		// init(cfgFile);
 		log = new Log4jWrapper("Configs");
 
 		cfgs = new HashMap<String, HashMap<String, String>>(3);
 
-		load(cfgs, deftId);
+		// load(cfgs, deftId);
 	}
 
 	/**For redirect path of config.xml
-	 * @param configxml
+	 * @param xmlDir
 	 */
-	protected static void init(String configxml) {
-		cfgFile = configxml;
+	protected static void init(String xmlDir) {
+		cfgFile = FilenameUtils.concat(xmlDir, cfgFile);
+		load(cfgs, deftId);
 	}
 		
 	protected static void load(HashMap<String, HashMap<String, String>> cfgs, String tid) {
 		// String messageFile = null;
 		// String fullpath = HelperFactory.getRealPath(cfgFile);
-		String fullpath = FilenameUtils.concat(path + "/", cfgFile);
+		Utils.logi("config file : %s", cfgFile);
 
-		log.d("D", "message file path: " + fullpath);
-
-		XMLTable deft = XMLDataFactory.getTable("config.xml", log, tid, fullpath, new IXMLStruct(){
+		XMLTable deft = XMLDataFactory.getTable("config.xml", log, tid, cfgFile, new IXMLStruct(){
 			@Override public String rootTag() { return "configs"; }
 			@Override public String tableTag() { return "t"; } 
 			@Override public String recordTag() { return "c"; }
@@ -71,16 +69,15 @@ public class Configs {
 		return cfgs.get(deftId).get(key);
 	}
 	
-	private static String getCfg2(String tid, String k) {
+	public static String getCfg(String tid, String k) {
 		if (!cfgs.containsKey(tid)) load(cfgs, tid);
 		return cfgs.get(tid).get(k);
 	}
 	
 
-	public static String getCfg(String tid, String k) {
-//		return getCfg(tid, null, k);
-		return getCfg2(tid, k);
-	}
+//	public static String getCfg(String tid, String k) {
+//		return getCfg2(tid, k);
+//	}
 
 	/**find v from config.xml: table=tid/k=driver-type:k
 	 * @param tid
@@ -134,9 +131,10 @@ public class Configs {
 	}
 	
 	public static boolean hasCfg(String key) {
-		throw new UnsupportedOperationException();
+		return hasCfg(deftId, key);
 	}
+
 	public static boolean hasCfg(String tid, String key) {
-		throw new UnsupportedOperationException();
+		return getCfg(tid, key) != null;
 	}
 }
