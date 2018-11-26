@@ -56,9 +56,13 @@ public class Connects {
 	private static String defltConn;
 	public static String defltConn() { return defltConn; }
 
-	/**parse connection.xml/table id="drvmnger" pk="id" columns="type,id,isdef,conn,usr,pswd,dbg",
+	/**
 	 * initialize all connections.
 	 * @param context
+	 */
+	/**parse connects.xml, setup connections configured in table "drvmnger", for JDBC DriverManger,
+	 * and "".
+	 * @param xmlDir
 	 */
 	public static void init(String xmlDir) {
 		if (srcs != null) return;
