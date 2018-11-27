@@ -16,15 +16,26 @@
 	<maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
+  <repositories>
+  	<repository>
+  		<id>sonatype-snapshots</id>
+  		<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+  	</repository>
+  </repositories>
+
   <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
+	<!-- https://mvnrepository.com/artifact/junit/junit -->
+	<dependency>
+	    <groupId>junit</groupId>
+	    <artifactId>junit</artifactId>
+	    <version>4.12</version>
+	    <scope>test</scope>
+	</dependency>
 
 	<dependency>
+		<!-- As sonatype SNAPSHOT is updating on a daily base, you may update this with:
+			mvn clean package -U
+			to update immediately. -->
 	    <groupId>io.github.odys-z</groupId>
 	    <artifactId>semantics.transact</artifactId>
 	    <version>0.0.1-SNAPSHOT</version>
@@ -42,6 +53,16 @@
 	    <groupId>org.xerial</groupId>
 	    <artifactId>sqlite-jdbc</artifactId>
 	    <version>3.25.2</version>
+	</dependency>
+	
+	<!-- ojdbc7.jar
+		Since oracle JDBC driver package needing license agreement, you need install ojdbc.jar like this:
+		mvn install:install-file -Dfile=lib/ojdbc7.jar -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=12.1.0.1 -Dpackaging=jar
+	-->
+	<dependency>
+	    <groupId>com.oracle</groupId>
+	    <artifactId>ojdbc14</artifactId>
+	    <version>12.1.0.1</version>
 	</dependency>
 	
   </dependencies>
