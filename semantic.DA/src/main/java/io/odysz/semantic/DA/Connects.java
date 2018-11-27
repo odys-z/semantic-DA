@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 
 import org.apache.commons.io.FilenameUtils;
 
+import io.odysz.common.JDBCType;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.ICResultset;
 import io.odysz.module.xtable.ILogger;
@@ -23,11 +24,11 @@ import io.odysz.semantic.util.LogFlags;
 import io.odysz.semantics.x.SemanticException;
 
 public class Connects {
-	public enum DriverType {mysql(0), ms2k(1), oracle(2), sqlite(3), postGIS(4);
-		private final int value;
-    	private DriverType(int value) { this.value = value; }
-    	public int getValue() { return value; }
-	}
+//	public enum JDBCType {mysql(0), ms2k(1), oracle(2), sqlite(3), postGIS(4);
+//		private final int value;
+//    	private JDBCType(int value) { this.value = value; }
+//    	public int getValue() { return value; }
+//	}
 
 	// TODO: separate log witches from semantic flags like adding "''".
 	/** no special for commit */
@@ -35,18 +36,18 @@ public class Connects {
 	public static final int flag_printSql = 1;
 	public static final int flag_disableSql = 2;
 
-	public static DriverType parseDrvType(String type) throws SemanticException {
+	public static JDBCType parseDrvType(String type) throws SemanticException {
 		if (type == null || type.trim().length() == 0)
 			throw new SemanticException("Drived type not suppored: %s", type);
 		type = type.trim().toLowerCase();
 		if (type.equals("mysql")) 
-			return DriverType.mysql;
+			return JDBCType.mysql;
 		else if (type.equals("mssql2k") || type.equals("ms2k"))
-			return DriverType.ms2k;
+			return JDBCType.ms2k;
 		else if (type.equals("oracle") || type.equals("orcl"))
-			return DriverType.oracle;
+			return JDBCType.oracle;
 		else if (type.startsWith("sqlit"))
-			return DriverType.sqlite;
+			return JDBCType.sqlite;
 		else
 			throw new SemanticException("Drived type not suppored: %s", type);
 	}
@@ -81,21 +82,21 @@ public class Connects {
 			while (conn.next()) {
 				try {
 					// columns="type,id,isdef,conn,usr,pswd,dbg"
-					DriverType type = parseDrvType(conn.getString("type"));
+					JDBCType type = parseDrvType(conn.getString("type"));
 					String id = conn.getString("id");
-					if (type != null && type == DriverType.mysql) {
+					if (type != null && type == JDBCType.mysql) {
 						srcs.put(id, MysqlDriver.initConnection(conn.getString("src"),
 							conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false) ? Connects.flag_printSql : Connects.flag_nothing));
 					}
-					else if (type != null && type == DriverType.sqlite) {
+					else if (type != null && type == JDBCType.sqlite) {
 						srcs.put(id, SqliteDriver.initConnection(String.format("jdbc:sqlite:%s", FilenameUtils.concat(xmlDir, conn.getString("src"))),
 							conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false) ? Connects.flag_printSql : Connects.flag_nothing));
 					}
-					else if (type != null && type == DriverType.ms2k) {
+					else if (type != null && type == JDBCType.ms2k) {
 						srcs.put(id, Msql2kDriver.initConnection(conn.getString("src"),
 							conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false) ? Connects.flag_printSql : Connects.flag_nothing));
 					}
-					else if (type != null && type == DriverType.oracle) {
+					else if (type != null && type == JDBCType.oracle) {
 						// get name mapping config
 						// String fullpath = getRealPath(conn.getString("nmap"));
 						String fullpath = FilenameUtils.concat(xmlDir + "/", conn.getString("nmpa"));
@@ -180,12 +181,12 @@ public class Connects {
 		return null;
 	}
 
-	public static DriverType getConnType(String conn) {
+	public static JDBCType getConnType(String conn) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public static DriverType dirverType(String conn) {
+	public static JDBCType dirverType(String conn) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -17,7 +17,7 @@ import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactory;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
-import io.odysz.semantic.DA.Connects.DriverType;
+import io.odysz.common.JDBCType;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DA.DatasetCfg;
 import io.odysz.semantics.meta.ColumnMeta;
@@ -47,7 +47,7 @@ public class CpDriver {
 	
 	public static String getDefltConnId() { return defltConn; }
 	
-	public static DriverType getConnType(String connId) {
+	public static JDBCType getConnType(String connId) {
 		if (connId == null)
 			return srcs.get(defltConn).driverType();
 		else return srcs.get(connId).driverType();
@@ -254,7 +254,7 @@ public class CpDriver {
 	 * @throws SQLException
 	 * @throws SAXException 
 	 */
-	private static CpSrc initMysqlCp(String srcName, DriverType diverType, String usr, String pswd, boolean printSql) throws SQLException, SAXException {
+	private static CpSrc initMysqlCp(String srcName, JDBCType diverType, String usr, String pswd, boolean printSql) throws SQLException, SAXException {
 		DbMeta spec = new DbMeta();
 		/*RegTextHarness report:
 		 * Enter your regex: (\w+)
@@ -325,7 +325,7 @@ public class CpDriver {
 	 * @throws ClassNotFoundException
 	 * @throws SAXException 
 	 */
-	private static CpSrc initMs2k(String srcName, DriverType driverType, String usr, String pswd, boolean printSql) throws SQLException, ClassNotFoundException, SAXException {
+	private static CpSrc initMs2k(String srcName, JDBCType driverType, String usr, String pswd, boolean printSql) throws SQLException, ClassNotFoundException, SAXException {
 		DbMeta spec = new DbMeta();
 //		DbSchema schema = spec.addDefaultSchema();
 
@@ -362,7 +362,7 @@ public class CpDriver {
 		return cols;
 	}
 
-	private static CpSrc initOrcl(String srcName, DriverType driverType, String usr, String pswd, boolean printSql,
+	private static CpSrc initOrcl(String srcName, JDBCType driverType, String usr, String pswd, boolean printSql,
 			LinkedHashMap<String, XMLTable> maptables) throws SQLException, SAXException {
 		DbMeta spec = new DbMeta();
 		//DbSchema schema = spec.addDefaultSchema();
@@ -638,6 +638,6 @@ public class CpDriver {
 	public static boolean isSqlite(String conn) {
 		if (conn == null)
 			conn = defltConn;
-		return srcs.get(conn).driverType() == DriverType.sqlite;
+		return srcs.get(conn).driverType() == JDBCType.sqlite;
 	}
 }

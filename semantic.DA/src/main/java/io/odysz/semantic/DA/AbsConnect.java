@@ -7,15 +7,15 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import io.odysz.module.rs.ICResultset;
-import io.odysz.semantic.DA.Connects.DriverType;
+import io.odysz.common.JDBCType;
 import io.odysz.semantic.DA.cp.CpSrc;
 import io.odysz.semantics.meta.ColumnMeta;
 import io.odysz.semantics.meta.DbMeta;
 import io.odysz.semantics.meta.TableMeta;
 
 public abstract class AbsConnect {
-	protected DriverType drvName;
-	public DriverType driverType() { return drvName; }
+	protected JDBCType drvName;
+	public JDBCType driverType() { return drvName; }
 
 	private boolean _isOrcl = false;
 	private boolean _isSqlite = false;

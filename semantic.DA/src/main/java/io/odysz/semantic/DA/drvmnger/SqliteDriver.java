@@ -12,10 +12,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.sqlite.JDBC;
 
 import io.odysz.common.Configs;
+import io.odysz.common.JDBCType;
 import io.odysz.module.rs.ICResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.DA.Connects.DriverType;
 
 /**All instance using the same connection.
  * @author ody
@@ -39,7 +39,7 @@ public class SqliteDriver extends AbsConnect {
 	}
 
 	SqliteDriver() {
-		drvName = DriverType.sqlite;
+		drvName = JDBCType.sqlite;
 		locks = new HashMap<String, ReentrantLock>();
 	}
 

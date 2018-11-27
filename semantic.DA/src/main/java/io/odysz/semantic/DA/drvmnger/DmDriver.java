@@ -20,7 +20,7 @@ import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.DA.Connects.DriverType;
+import io.odysz.common.JDBCType;
 import io.odysz.semantic.DA.DatasetCfg;
 import io.odysz.semantic.DA.DbLog;
 import io.odysz.semantic.DA.IrSemantics;
@@ -43,7 +43,7 @@ public class DmDriver {
 
 	public static String defltConn() {return defltConn;}
 
-	public static DriverType connType(String connId) {
+	public static JDBCType connType(String connId) {
 		return srcs.get(connId).driverType();
 	}
 
@@ -334,7 +334,7 @@ CREATE TABLE ir_autoseq (
 		return c;
 	}
 
-	public static DriverType getConnType(String connId) {
+	public static JDBCType getConnType(String connId) {
 		if (connId == null)
 			return srcs.get(defltConn).driverType();
 		else return srcs.get(connId).driverType();

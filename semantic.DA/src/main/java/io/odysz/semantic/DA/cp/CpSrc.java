@@ -22,7 +22,7 @@ import org.xml.sax.SAXException;
 import io.odysz.module.rs.ICResultset;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.DA.Connects.DriverType;
+import io.odysz.common.JDBCType;
 import io.odysz.semantic.DA.Mappings;
 import io.odysz.semantic.DA.OracleLob;
 import io.odysz.semantics.meta.ColumnMeta;
@@ -82,7 +82,7 @@ public class CpSrc {
 	private boolean printSql;
 	boolean printSql() { return printSql; }
 	private String srcId;
-	private DriverType driverType;
+	private JDBCType driverType;
 	private DbMeta spec;
 	private HashMap<String, TableMeta> tables;
 	private HashMap<String, HashMap<String, ColumnMeta>> tablCols;
@@ -98,12 +98,12 @@ public class CpSrc {
 	 * @param printSql
 	 * @throws SAXException 
 	 */
-	CpSrc (String srcId, DriverType driverType, LinkedHashMap<String, XMLTable> mappings, DbMeta spec, HashMap<String, TableMeta> tables,
+	CpSrc (String srcId, JDBCType driverType, LinkedHashMap<String, XMLTable> mappings, DbMeta spec, HashMap<String, TableMeta> tables,
 			HashMap<String, HashMap<String, ColumnMeta>> tablCols, boolean printSql) throws SAXException {
 		this.mappings = Mappings.convertMap(mappings);
 		this.srcId = "java:/comp/env/" + srcId;
 		this.driverType = driverType;
-		if (DriverType.oracle == driverType) {
+		if (JDBCType.oracle == driverType) {
 			_isOrcl = true;
 			clobMeta = buildClobMeta(mappings);
 		}
@@ -182,15 +182,15 @@ public class CpSrc {
         return conn;
 	}
 
-	DriverType driverType() {return driverType; }
+	JDBCType driverType() {return driverType; }
 	
 	public DbMeta getSpec() { return spec; }
 
 	public TableMeta get(String tablname) {
-		return get(DriverType.mysql, tablname);
+		return get(JDBCType.mysql, tablname);
 	}
 
-	public TableMeta get(DriverType srcId, String tablname) {
+	public TableMeta get(JDBCType srcId, String tablname) {
 		return tables.get(tablname);
 	}
 
@@ -470,14 +470,14 @@ public class CpSrc {
 
 	public String getTimestamp() throws SQLException {
 		String sql = null;
-		if (driverType == DriverType.mysql) {
+		if (driverType == JDBCType.mysql) {
 			sql = "select now()";
 		}
-		else if (driverType == DriverType.oracle)
+		else if (driverType == JDBCType.oracle)
 			sql = "select sysDate";
-		else if (driverType == DriverType.ms2k)
+		else if (driverType == JDBCType.ms2k)
 			sql = "select now()";
-		else if (driverType == DriverType.sqlite)
+		else if (driverType == JDBCType.sqlite)
 			sql = "select DATETIME('now')";
 		
 		ICResultset rs = select(sql, Connects.flag_nothing);
