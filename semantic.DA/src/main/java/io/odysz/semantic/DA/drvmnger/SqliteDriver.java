@@ -1,5 +1,6 @@
 package io.odysz.semantic.DA.drvmnger;
 
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -16,12 +17,13 @@ import io.odysz.common.JDBCType;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.DA.DbLog;
 
 /**All instance using the same connection.
  * @author ody
  *
  */
-public class SqliteDriver extends AbsConnect {
+public class SqliteDriver extends AbsConnect<SqliteDriver> {
 	public static boolean enableSystemout = true;
 	static boolean inited = false;
 	static String userName;
@@ -219,6 +221,7 @@ public class SqliteDriver extends AbsConnect {
 //			}
 //		}
 //	}
+
 	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
 		return commitst(sqls, flags);
 	}
@@ -262,9 +265,8 @@ public class SqliteDriver extends AbsConnect {
 		return ret;
 	}
 
-//	void setLocks(HashMap<String, ReentrantLock> locks) {
-//		this.locks = locks;
-//	}
-	
-
+	@Override
+	public int[] commit(DbLog log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
+		throw new SQLException("To the author's knowledge, Sqlite do not supporting CLOB - TEXT is enough. You can contact the author.");
+	}
 }

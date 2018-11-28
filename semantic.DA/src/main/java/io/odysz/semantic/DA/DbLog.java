@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import io.odysz.semantic.SUser;
 import io.odysz.semantic.SemanticObject;
-import io.odysz.semantic.DA.cp.CpDriver;
 import io.odysz.semantic.util.SQLString;
 
 /**Modifying History:
@@ -90,31 +89,31 @@ public class DbLog {
 		// no exception can be thrown here, no error response to client if failed.
 		try {
 			String newId = Connects.genId(Connects.defltConn(), "a_logs", "logId", null);
-			String sql = DatasetCfg.getSqlx(CpDriver.getDefltConnId(), "log-template",
+			String sql = DatasetCfg.getSqlx(Connects.defltConn(), "log-template",
 				// insert into a_logs(logId, oper, funcName, funcId, cmd, url, operDate, txt)
 				// values ('%s', '%s', '%s', '%s', null, '%s', sysdate, '%s');
 				newId, uid, funcName, funcId, cmd, url, String.valueOf(sqls.size()), txt(sqls));
-			CpDriver.commitLog(sql); // reporting commit failed in err console
+			Connects.commitLog(sql); // reporting commit failed in err console
 		} catch (SQLException e) {
 			// failed case must be a bug - commitLog()'s exception already caught.
 			e.printStackTrace();
 		}
 	}
 	
-	public void log(ArrayList<String> sqls, AbsConnect driver) {
-		// no exception can be thrown here, no error response to client if failed.
-		try {
-			String newId = Connects.genId(Connects.defltConn(), "a_logs", "logId", null);
-			String sql = DatasetCfg.getSqlx(CpDriver.getDefltConnId(), "log-template",
-				// insert into a_logs(logId, oper, funcName, funcId, cmd, url, operDate, txt)
-				// values ('%s', '%s', '%s', '%s', null, '%s', sysdate, '%s');
-				newId, uid, funcName, funcId, cmd, url, String.valueOf(sqls.size()), txt(sqls));
-			CpDriver.commitLog(sql); // reporting commit failed in err console
-		} catch (SQLException e) {
-			// failed case must be a bug - commitLog()'s exception already caught.
-			e.printStackTrace();
-		}
-	}
+//	public void log(ArrayList<String> sqls, AbsConnect driver) {
+//		// no exception can be thrown here, no error response to client if failed.
+//		try {
+//			String newId = Connects.genId(Connects.defltConn(), "a_logs", "logId", null);
+//			String sql = DatasetCfg.getSqlx(Connects.defltConn(), "log-template",
+//				// insert into a_logs(logId, oper, funcName, funcId, cmd, url, operDate, txt)
+//				// values ('%s', '%s', '%s', '%s', null, '%s', sysdate, '%s');
+//				newId, uid, funcName, funcId, cmd, url, String.valueOf(sqls.size()), txt(sqls));
+//			Connects.commitLog(sql); // reporting commit failed in err console
+//		} catch (SQLException e) {
+//			// failed case must be a bug - commitLog()'s exception already caught.
+//			e.printStackTrace();
+//		}
+//	}
 
 	public DbLog(SUser usr, String funcName, String funcId, String cmd) {
 		this.uid = usr.getLogId();

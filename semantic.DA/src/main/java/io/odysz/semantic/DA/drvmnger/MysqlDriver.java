@@ -1,5 +1,6 @@
 package io.odysz.semantic.DA.drvmnger;
 
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -11,8 +12,9 @@ import io.odysz.common.Configs;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.DA.DbLog;
 
-public class MysqlDriver extends AbsConnect {
+public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	public static boolean printSql = true;
 	static boolean inited = false;
 	static String userName;
@@ -159,5 +161,12 @@ public class MysqlDriver extends AbsConnect {
 			}
 		}
 		return ret;
+	}
+
+	@Override
+	public int[] commit(DbLog log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
+		throw new SQLException("For the author's knowledge, Mysql TEXT is enough for CLOB"
+				+ " - and not planning supporting BLOB as this project is currently designed for supporting mainly JSON module over HTTP. "
+				+ "You can contact the author for any suggestion.");
 	}
 }

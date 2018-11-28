@@ -8,7 +8,6 @@ import io.odysz.common.Radix64;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DA.DatasetCfg;
-import io.odysz.semantic.DA.cp.CpDriver;
 import io.odysz.semantic.util.DateFormat;
 import io.odysz.common.AESHelper;
 
@@ -418,13 +417,13 @@ public class Semantics {
 		}
 	}
 
-	public boolean isClob(String conn, String n) {
-		if (!CpDriver.isOracle(conn) || lobFields == null) return false;
-		for (String lob : lobFields)
-			if (lob.equals(n))
-				return true;
-		return false;
-	}
+//	public boolean isClob(String conn, String n) {
+//		if (!CpDriver.isOracle(conn) || lobFields == null) return false;
+//		for (String lob : lobFields)
+//			if (lob.equals(n))
+//				return true;
+//		return false;
+//	}
 
 	public boolean hasOperTime() {
 		return operField != null;

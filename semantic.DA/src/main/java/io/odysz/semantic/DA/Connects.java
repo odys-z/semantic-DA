@@ -1,11 +1,11 @@
 package io.odysz.semantic.DA;
 
+import java.sql.Clob;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 
-import org.apache.commons.io.FilenameUtils;
+import org.xml.sax.SAXException;
 
 import io.odysz.common.JDBCType;
 import io.odysz.common.Utils;
@@ -14,23 +14,12 @@ import io.odysz.module.xtable.ILogger;
 import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactory;
-import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.Semantics;
-import io.odysz.semantic.DA.drvmnger.Msql2kDriver;
-import io.odysz.semantic.DA.drvmnger.MysqlDriver;
-import io.odysz.semantic.DA.drvmnger.OracleDriver;
-import io.odysz.semantic.DA.drvmnger.SqliteDriver;
 import io.odysz.semantic.util.LogFlags;
 import io.odysz.semantics.x.SemanticException;
 
 public class Connects {
-//	public enum JDBCType {mysql(0), ms2k(1), oracle(2), sqlite(3), postGIS(4);
-//		private final int value;
-//    	private JDBCType(int value) { this.value = value; }
-//    	public int getValue() { return value; }
-//	}
-
 	// TODO: separate log switches from semantic flags like adding "''".
 	/** nothing special for commit */
 	public static final int flag_nothing = 0;
@@ -53,83 +42,31 @@ public class Connects {
 			throw new SemanticException("Drived type not suppored: %s", type);
 	}
 
-	private static HashMap<String, AbsConnect> srcs;
+	private static HashMap<String, AbsConnect<? extends AbsConnect<?>>> srcs;
 
 	private static String defltConn;
 	public static String defltConn() { return defltConn; }
 
-	/**
-	 * initialize all connections.
-	 * @param context
-	 */
+	private static final int DmConn = 1;
+	private static final int CpConn = 2;
+
 	/**parse connects.xml, setup connections configured in table "drvmnger", for JDBC DriverManger,
-	 * and "".
+	 * and "dbcp", for JDBC connection-pooled connection managed by container.
 	 * @param xmlDir
 	 */
 	public static void init(String xmlDir) {
 		if (srcs != null) return;
-		srcs = new HashMap<String, AbsConnect>();
-		XMLTable conn = null;
+		srcs = new HashMap<String, AbsConnect<? extends AbsConnect<?>>>();
 		try{
 			ILogger logger = new Log4jWrapper("xtabl");
-			conn = XMLDataFactory.getTable(logger , "drvmnger", xmlDir + "/connects.xml",
-						new IXMLStruct() {
-							@Override public String rootTag() { return "conns"; }
-							@Override public String tableTag() { return "t"; }
-							@Override public String recordTag() { return "c"; }});
-			conn.beforeFirst();
-			
-			HashMap<String, HashMap<String, String>> orclMappings = null; 
-			while (conn.next()) {
-				try {
-					// columns="type,id,isdef,conn,usr,pswd,dbg"
-					JDBCType type = parseDrvType(conn.getString("type"));
-					String id = conn.getString("id");
-					if (type != null && type == JDBCType.mysql) {
-						srcs.put(id, MysqlDriver.initConnection(conn.getString("src"),
-							conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false) ? Connects.flag_printSql : Connects.flag_nothing));
-					}
-					else if (type != null && type == JDBCType.sqlite) {
-						srcs.put(id, SqliteDriver.initConnection(String.format("jdbc:sqlite:%s", FilenameUtils.concat(xmlDir, conn.getString("src"))),
-							conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false) ? Connects.flag_printSql : Connects.flag_nothing));
-					}
-					else if (type != null && type == JDBCType.ms2k) {
-						srcs.put(id, Msql2kDriver.initConnection(conn.getString("src"),
-							conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false) ? Connects.flag_printSql : Connects.flag_nothing));
-					}
-					else if (type != null && type == JDBCType.oracle) {
-						// get name mapping config
-						// String fullpath = getRealPath(conn.getString("nmap"));
-						String fullpath = FilenameUtils.concat(xmlDir + "/", conn.getString("nmpa"));
-
-						if (fullpath == null)
-							throw new SQLException("Oracle connection need a nmap value, check connection.xml.");
-						LinkedHashMap<String, XMLTable> xmappings = XMLDataFactoryEx.getXtables(new Log4jWrapper("nmap").setDebugMode(false), fullpath, Mappings.mapXStruct);
-						if (xmappings == null | xmappings.size() == 0)
-							throw new SQLException("Oracle connection need a nmap file, check " + fullpath);
-						orclMappings = Mappings.convertMap(xmappings);
-
-						// init with name mapping
-						srcs.put(id, OracleDriver.initConnection(conn.getString("src"),
-							conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false) ? Connects.flag_printSql : Connects.flag_nothing));
-					}
-					else System.err.println(String.format("The configured DB type %s is not supported yet.", type));
-					if (conn.getBool("isdef", false)) {
-						if (defltConn != null)
-							System.err.println("\nWARN - duplicate default id found, the previous defined source been ignored: " + defltConn);
-						defltConn = id;
-					}
-				} catch (Exception e) {
-					System.err.println(e.getMessage());
-					continue;
-				}
-			}
+			srcs = loadConnects(srcs, "drvmnger", DmConn, logger, xmlDir);
+			srcs = loadConnects(srcs, "dbcp", CpConn, logger, xmlDir);
 		
 			if (srcs != null && srcs.size() > 0 && !srcs.containsKey(defltConn))
 				throw new SQLException("Failed initializing, db source must configured with a default source."); 
 
-			conn.beforeFirst();
-			DatasetCfg.init(conn, xmlDir, orclMappings);
+//			conn.beforeFirst();
+//			DatasetCfg.init(conn, xmlDir, orclMappings);
 
 			if (LogFlags.Semantic.connects)
 				Utils.logi("INFO - JDBC initialized using %s (%s) as default connection.",
@@ -140,6 +77,43 @@ public class Connects {
 			ex.printStackTrace();
 			return;
 		}
+	}
+	
+	private static HashMap<String, AbsConnect<? extends AbsConnect<?>>> loadConnects(HashMap<String, AbsConnect<? extends AbsConnect<?>>> srcs,
+			String tablId, int dmCp, ILogger logger, String xmlDir) throws SAXException {
+		if (srcs == null)
+			srcs = new HashMap<String, AbsConnect<? extends AbsConnect<?>>>();
+
+		XMLTable conn = XMLDataFactory.getTable(logger , tablId, xmlDir + "/connects.xml",
+						new IXMLStruct() {
+							@Override public String rootTag() { return "conns"; }
+							@Override public String tableTag() { return "t"; }
+							@Override public String recordTag() { return "c"; }});
+		conn.beforeFirst();
+			
+		while (conn.next()) {
+			try {
+				// columns="type,id,isdef,conn,usr,pswd,dbg"
+				JDBCType type = parseDrvType(conn.getString("type"));
+				String id = conn.getString("id");
+				if (dmCp == DmConn)
+					srcs.put(id, AbsConnect.initDmConnect(xmlDir, type, conn.getString("src"),
+						conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false)));
+				else
+					srcs.put(id, AbsConnect.initPooledConnect(xmlDir, type, conn.getString("src"),
+						conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false)));
+
+				if (conn.getBool("isdef", false)) {
+					if (defltConn != null)
+						Utils.warn("WARN - duplicate default ids found, the previous defined source been ignored: " + defltConn);
+					defltConn = id;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				continue;
+			}
+		}
+		return srcs;
 	}
 
 	public static void installSemantics(HashMap<String, HashMap<String, Semantics>> semantics) {
@@ -222,15 +196,11 @@ public class Connects {
 
 	/////////////////////////////////// update /////////////////////////////
 	public static int[] commit(DbLog log, ArrayList<String> sqls, int... flags) throws SQLException {
-		if (defltJdbc == jdbc_dbcp)
-			return CpDriver.commit(log, sqls, flags.length > 0 ? flags[0] : DA.flag_nothing);
-		else return DmDriver.commit(log, sqls, flags.length > 0 ? flags[0] : DA.flag_nothing);
+		return srcs.get(defltConn).commit(log, sqls, flags.length > 0 ? flags[0] : flag_nothing);
 	}
 	
-	public static int[] commit(DbLog log, ArrayList<String> sqls, ArrayList<OracleLob> lobs, int... flags) throws SQLException {
-		if (defltJdbc == jdbc_dbcp)
-			return CpDriver.commit(log, sqls, lobs, flags.length > 0 ? flags[0] : DA.flag_nothing);
-		else return DmDriver.commit(log, sqls, lobs, flags.length > 0 ? flags[0] : DA.flag_nothing);
+	public static int[] commit(DbLog log, ArrayList<String> sqls, ArrayList<Clob> lobs, int... flags) throws SQLException {
+		return srcs.get(defltConn).commit(log, sqls, lobs, flags.length > 0 ? flags[0] : flag_nothing);
 	}
 
 	@SuppressWarnings("serial")
@@ -241,6 +211,11 @@ public class Connects {
 	public static JDBCType driverType(String conn) {
 		conn = conn == null ? defltConn : conn;
 		return srcs.get(conn).driverType();
+	}
+
+	public static void commitLog(String sql) {
+		// TODO Auto-generated method stub
+		
 	}
 
 

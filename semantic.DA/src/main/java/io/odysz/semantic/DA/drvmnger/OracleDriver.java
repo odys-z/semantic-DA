@@ -2,6 +2,7 @@ package io.odysz.semantic.DA.drvmnger;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -14,6 +15,7 @@ import javax.sql.DataSource;
 import io.odysz.common.Configs;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
+import io.odysz.semantic.DA.DbLog;
 import io.odysz.semantic.DA.OracleLob;
 import oracle.sql.BLOB;
 
@@ -22,7 +24,7 @@ import oracle.sql.BLOB;
  *
  */
 @SuppressWarnings("deprecation")
-public class OracleDriver extends AbsConnect {
+public class OracleDriver extends AbsConnect<OracleDriver> {
 
 	static DataSource ds;
 	static boolean enableSystemout = false;
@@ -62,7 +64,7 @@ public class OracleDriver extends AbsConnect {
 		return conn;
 	}
 
-	public static AbsConnect initConnection(String conn, String user, String psword, int flag) throws SQLException {
+	public static OracleDriver initConnection(String conn, String user, String psword, int flag) throws SQLException {
 		if (!inited) {
 			enableSystemout = true;
 			
@@ -329,6 +331,12 @@ public class OracleDriver extends AbsConnect {
 
 	@Override
 	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int[] commit(DbLog log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
 	}
