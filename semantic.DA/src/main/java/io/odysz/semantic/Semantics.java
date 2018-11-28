@@ -1,12 +1,13 @@
-package io.odysz.semantic.DA;
+package io.odysz.semantic;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.common.Radix64;
-import io.odysz.module.rs.ICResultset;
-import io.odysz.semantic.SemanticObject;
+import io.odysz.module.rs.SResultset;
+import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.DA.DatasetCfg;
 import io.odysz.semantic.DA.cp.CpDriver;
 import io.odysz.semantic.util.DateFormat;
 import io.odysz.common.AESHelper;
@@ -15,7 +16,7 @@ import io.odysz.common.AESHelper;
  * Currently only semantics of fullpath used for depth-first tree traveling is supported.
  * @author ody
  */
-public class IrSemantics {
+public class Semantics {
 	/**Response error code*/
 	public static final String ERR_CHK = "err_smtcs";;
 
@@ -99,14 +100,14 @@ public class IrSemantics {
 	 * @param semantic
 	 * @param args
 	 */
-	public IrSemantics(smtype semantic, String[] args) {
+	public Semantics(smtype semantic, String[] args) {
 		try { addSemantics(semantic, args);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	/**@see {@link IrSemantics#IrSemantics(smtype, String[])}
+	/**@see {@link Semantics#IrSemantics(smtype, String[])}
 	 * @param semantic
 	 * @param args
 	 * @throws SQLException
@@ -248,7 +249,7 @@ public class IrSemantics {
 		// 无上级节点，根 fullpath = sibling-val
 		if (parentId == null || parentId.equals(recId))
 			return String.format("%1$2s %2$s", sibling, recId); //.replace(' ', '0');
-		ICResultset rs = CpDriver.select(conn, String.format( "select %s as parentPath from %s where %s = '%s'",
+		SResultset rs = CpDriver.select(conn, String.format( "select %s as parentPath from %s where %s = '%s'",
 				fullPath, target, idField, parentId), Connects.flag_nothing);
 		// find parent.fullpath
 		if (rs.getRowCount() == 0)
@@ -319,7 +320,7 @@ public class IrSemantics {
 	public void checkRefereeCount(String connId, String pkCol, String pkv) throws SemanticException {
 		try {
 			if (pkCol.equals(checkCountPkCol_Del)) {
-				ICResultset rs = CpDriver.select(connId, String.format(checkCountSql_Del, pkv), Connects.flag_nothing);
+				SResultset rs = CpDriver.select(connId, String.format(checkCountSql_Del, pkv), Connects.flag_nothing);
 				rs.beforeFirst();
 				if (rs.next()) {
 					int cnt = rs.getInt(1);
@@ -434,7 +435,7 @@ public class IrSemantics {
 	public void checkSqlCountIns(String connId, String chkf, Object chkv) throws SemanticException {
 		try {
 			if (chkf.equals(checkCountValueCol_Ins)) {
-				ICResultset rs = CpDriver.select(connId, String.format(checkCountSql_Ins, chkv), Connects.flag_nothing);
+				SResultset rs = CpDriver.select(connId, String.format(checkCountSql_Ins, chkv), Connects.flag_nothing);
 				rs.beforeFirst();
 				if (rs.next()) {
 					int cnt = rs.getInt(1);
@@ -584,7 +585,7 @@ public class IrSemantics {
 			// 
 			String sql = DatasetCfg.getSqlx(conn, "semantics.get-downstamp",
 					downStamp, tabl, this.idField, recId);
-			ICResultset rs = Connects.select(sql, Connects.flag_nothing);
+			SResultset rs = Connects.select(sql, Connects.flag_nothing);
 			rs.next();
 			return rs.getString("upstamp");
 		} catch (SQLException e) {

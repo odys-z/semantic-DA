@@ -3,7 +3,7 @@ package io.odysz.semantic.util;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import io.odysz.module.rs.ICResultset;
+import io.odysz.module.rs.SResultset;
 
 public class SQLString {
 
@@ -34,7 +34,7 @@ public class SQLString {
 	 * @return
 	 * @throws SQLException
 	 */
-	public static ArrayList<String> composeInserts(ICResultset rs, String table) throws SQLException {
+	public static ArrayList<String> composeInserts(SResultset rs, String table) throws SQLException {
 		if (rs == null) return null;
 		
 		String fields = null;

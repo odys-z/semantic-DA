@@ -16,11 +16,13 @@ import java.util.HashMap;
 import io.odysz.common.Regex;
 import io.odysz.semantic.SemanticObject;
 
-/**This Resultset used for non-connection operation. Rows and Cols are start at 1, the same as {@link java.sql.Resultset}.
- * @author zb
+/**This Resultset used for non-connected manipulation.
+ * Rows and Cols are start at 1, the same as {@link java.sql.Resultset}.<br>
+ * TODO This will be changed in the future (It's proved starting at 0 is more bug free).
+ * @author Odys Zhou
  *
  */
-public class ICResultset {
+public class SResultset {
 	private static final boolean debug = true;
 
 	private int colCnt = 0;
@@ -43,11 +45,11 @@ for (String coln : colnames.keySet())
 	private Connection conn;
 	private Statement stmt;
 
-	public ICResultset(ResultSet rs) throws SQLException {
+	public SResultset(ResultSet rs) throws SQLException {
 		ICRconstructor(rs);
 	}
 
-	public ICResultset(ResultSet rs, Connection connection, Statement statement) throws SQLException {
+	public SResultset(ResultSet rs, Connection connection, Statement statement) throws SQLException {
 		this.rs = rs;
 		conn = connection;
 		stmt = statement;
@@ -83,7 +85,7 @@ for (String coln : colnames.keySet())
 		}
 	}
 
-	public ICResultset(ICResultset icrs) throws SQLException {
+	public SResultset(SResultset icrs) throws SQLException {
 		results = new ArrayList<ArrayList<Object>>();
 		if (icrs == null) return;
 		HashMap<String, Object[]> src_colnames = icrs.getColnames();
@@ -110,7 +112,7 @@ for (String coln : colnames.keySet())
 	/**Construct an empty set, used for appending rows.
 	 * @param colnames
 	 */
-	public ICResultset(HashMap<String, Integer> colnames) {
+	public SResultset(HashMap<String, Integer> colnames) {
 		results = new ArrayList<ArrayList<Object>>();
 		colCnt = colnames.size();
 		this.colnames = new HashMap<String, Object[]>(colCnt);
@@ -125,7 +127,7 @@ for (String coln : colnames.keySet())
 	 * Cols are deep copied.
 	 * @param colnames
 	 */
-	public ICResultset(HashMap<String, Object[]> colnames, boolean toUpperCase) {
+	public SResultset(HashMap<String, Object[]> colnames, boolean toUpperCase) {
 		results = new ArrayList<ArrayList<Object>>();
 		colCnt = colnames.size();
 		this.colnames = new HashMap<String, Object[]>(colCnt);
@@ -141,7 +143,7 @@ for (String coln : colnames.keySet())
 	 * @param row
 	 * @return
 	 */
-	public ICResultset appendDeeply(ArrayList<Object> row) {
+	public SResultset appendDeeply(ArrayList<Object> row) {
 		ArrayList<Object> newRow = new ArrayList<Object>(row.size());
 		for (int j = 0; j < row.size(); j++) {
 			String v = "";
@@ -155,7 +157,7 @@ for (String coln : colnames.keySet())
 		return this;
 	}
 	
-	public ICResultset append(ArrayList<Object> includingRow) {
+	public SResultset append(ArrayList<Object> includingRow) {
 		results.add(includingRow);
 		rowCnt++;
 		rowIdx = results.size();
@@ -166,7 +168,7 @@ for (String coln : colnames.keySet())
 	 * @param rows
 	 * @param cols
 	 */
-	public ICResultset(int rows, int cols, String... colPrefix) {
+	public SResultset(int rows, int cols, String... colPrefix) {
 		if (rows <= 0 || cols <= 0)
 			return;
 		results = new ArrayList<ArrayList<Object>>(rows);
@@ -188,7 +190,7 @@ for (String coln : colnames.keySet())
 		}
 	}
 	
-	public ICResultset(int rows, String[] colNames, boolean generateData) {
+	public SResultset(int rows, String[] colNames, boolean generateData) {
 		if (rows <= 0 || colNames == null  || colNames.length == 0)
 			return;
 		results = new ArrayList<ArrayList<Object>>(rows);
@@ -212,7 +214,7 @@ for (String coln : colnames.keySet())
 		}
 	}
 
-	public ICResultset(String[] colNames) {
+	public SResultset(String[] colNames) {
 		results = new ArrayList<ArrayList<Object>>(16);
 		colCnt = colNames.length;
 		this.colnames = new HashMap<String, Object[]>(colCnt);
@@ -225,7 +227,7 @@ for (String coln : colnames.keySet())
 		rowCnt = 0;
 	}
 
-	public ICResultset(ArrayList<String> colNames) {
+	public SResultset(ArrayList<String> colNames) {
 		results = new ArrayList<ArrayList<Object>>(16);
 		colCnt = colNames.size();
 		this.colnames = new HashMap<String, Object[]>(colCnt);
@@ -264,7 +266,7 @@ for (String coln : colnames.keySet())
 		else return true;
 	}
 	
-	public int append(ICResultset more) throws SQLException {
+	public int append(SResultset more) throws SQLException {
 		// check cols
 		if (colCnt != more.getColCount()) throw new SQLException("Columns not matched.");
 		results.addAll(more.results);
@@ -486,7 +488,7 @@ for (String coln : colnames.keySet())
 		if (rs != null) rs.first();
 	}
 
-	public ICResultset beforeFirst() throws SQLException {
+	public SResultset beforeFirst() throws SQLException {
 		if (getRow() > 0) rowIdx = 0;
 		if (rs != null) rs.beforeFirst();
 		return this;
@@ -499,7 +501,7 @@ for (String coln : colnames.keySet())
 	 * @return
 	 * @throws SQLException
 	 */
-	public ICResultset before(int idx) throws SQLException {
+	public SResultset before(int idx) throws SQLException {
 		if (rs != null) throw new SQLException("before(int) can't been called when there is an associate java.sql.Resultset.");
 		rowIdx = idx - 1;
 		return this;
@@ -708,7 +710,7 @@ for (String coln : colnames.keySet())
 	 * @return ['row0 field-val', 'row1 field-val', ...]
 	 * @throws SQLException
 	 */
-	public static String collectFields(ICResultset rs, String... fields) throws SQLException {
+	public static String collectFields(SResultset rs, String... fields) throws SQLException {
 		String s = "";
 		if (rs != null) {
 			rs.beforeFirst();

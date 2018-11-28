@@ -19,7 +19,7 @@ import javax.sql.DataSource;
 
 import org.xml.sax.SAXException;
 
-import io.odysz.module.rs.ICResultset;
+import io.odysz.module.rs.SResultset;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.common.JDBCType;
@@ -47,10 +47,10 @@ public class CpSrc {
 	 * @return
 	 * @throws SQLException
 	 */
-	public static ICResultset select(String src, String sql) throws SQLException {
+	public static SResultset select(String src, String sql) throws SQLException {
         Connection con = null;
         PreparedStatement pstmt;
-        ICResultset icrs = null; 
+        SResultset icrs = null; 
         try {
         	InitialContext ctx = new InitialContext();
         	// DataSource ds = (DataSource)ctx.lookup("java:/comp/env/jdbc/frameDs");
@@ -64,7 +64,7 @@ public class CpSrc {
 
             pstmt = con.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
-            icrs = new ICResultset(rs);
+            icrs = new SResultset(rs);
 
             con.commit();
             pstmt.close();
@@ -229,10 +229,10 @@ public class CpSrc {
 	 * @throws SQLException
 	 * @throws NamingException 
 	 */
-	ICResultset select(String sql, int flags) throws SQLException {
+	SResultset select(String sql, int flags) throws SQLException {
 		Connection con = null;
         PreparedStatement pstmt;
-        ICResultset icrs = null; 
+        SResultset icrs = null; 
         try {
         	// if (printSql) System.out.println(sql);
         	Connects.printSql(printSql, flags, sql);
@@ -241,7 +241,7 @@ public class CpSrc {
             con.setAutoCommit(false);
             pstmt = con.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
-            icrs = new ICResultset(rs);
+            icrs = new SResultset(rs);
 
             con.commit();
             pstmt.close();
@@ -252,14 +252,14 @@ public class CpSrc {
         return icrs;
 	}
 
-	public void readClob(ICResultset rs, String[] tabls) throws SQLException, IOException {
+	public void readClob(SResultset rs, String[] tabls) throws SQLException, IOException {
 		if (tabls == null) return;
 		for (String tabl : tabls) {
 			readClob(rs, clobMeta.get(tabl));
 		}
 	}
 
-	private void readClob(ICResultset rs, HashMap<String, OracleLob> tablobs) throws SQLException, IOException {
+	private void readClob(SResultset rs, HashMap<String, OracleLob> tablobs) throws SQLException, IOException {
 		if (rs == null || tablobs == null) return;
 		rs.beforeFirst();
 		while (rs.next()) {
@@ -276,7 +276,7 @@ public class CpSrc {
 						System.err.println("Tips:\n\tDon't use alais for a CLOB/text field. Can't handle this.");
 						continue;
 					}
-					ICResultset lobrs = select(String.format("select %s, length(%s) from %s where %s = '%s'",
+					SResultset lobrs = select(String.format("select %s, length(%s) from %s where %s = '%s'",
 							lob.lobField(), lob.lobField(), lob.tabl(), lob.idField(), rs.getString(lob.idField())),
 							Connects.flag_nothing);
 
@@ -480,7 +480,7 @@ public class CpSrc {
 		else if (driverType == JDBCType.sqlite)
 			sql = "select DATETIME('now')";
 		
-		ICResultset rs = select(sql, Connects.flag_nothing);
+		SResultset rs = select(sql, Connects.flag_nothing);
 		if (rs.next())
 			return rs.getString(1);
 		else return null;

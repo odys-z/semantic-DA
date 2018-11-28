@@ -13,7 +13,7 @@ import org.sqlite.JDBC;
 
 import io.odysz.common.Configs;
 import io.odysz.common.JDBCType;
-import io.odysz.module.rs.ICResultset;
+import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 
@@ -117,12 +117,12 @@ public class SqliteDriver extends AbsConnect {
 		return new SqliteDriver();
 	}
 	
-	static ICResultset selectStatic(String sql, int flag) throws SQLException {
+	static SResultset selectStatic(String sql, int flag) throws SQLException {
 		Connection conn = getConnection();
 		Connects.printSql(enableSystemout, flag, sql);
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery(sql);
-		ICResultset icrs = new ICResultset(rs);
+		SResultset icrs = new SResultset(rs);
 		rs.close();
 		stmt.close();
 		conn.close();
@@ -130,7 +130,7 @@ public class SqliteDriver extends AbsConnect {
 		return icrs;
 	}
 
-	public ICResultset select(String sql, int flag) throws SQLException {
+	public SResultset select(String sql, int flag) throws SQLException {
 //		Connection conn = getConnection();
 //		DA.printSql(enableSystemout, flag, sql);
 //		Statement stmt = conn.createStatement();

@@ -6,8 +6,9 @@ import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import io.odysz.module.rs.ICResultset;
+import io.odysz.module.rs.SResultset;
 import io.odysz.common.JDBCType;
+import io.odysz.semantic.Semantics;
 import io.odysz.semantic.DA.cp.CpSrc;
 import io.odysz.semantics.meta.ColumnMeta;
 import io.odysz.semantics.meta.DbMeta;
@@ -22,9 +23,9 @@ public abstract class AbsConnect {
 	public void isSqlite(boolean is) { _isSqlite = is; }
 	public boolean isSqlite() { return _isSqlite; }
 
-	HashMap<String, IrSemantics>  metas;
+	HashMap<String, Semantics>  metas;
 
-	public abstract ICResultset select(String sql, int flags) throws SQLException ;
+	public abstract SResultset select(String sql, int flags) throws SQLException ;
 
 	public abstract int[] commit(ArrayList<String> sqls, int flags) throws SQLException;
 
@@ -59,12 +60,12 @@ public abstract class AbsConnect {
 		return tables.get(tablname);
 	}
 	
-	public IrSemantics getTableSemantics(String tabName) throws SQLException {
+	public Semantics getTableSemantics(String tabName) throws SQLException {
 		if (metas == null) throw new SQLException ("not initialized ");
 		return metas.get(tabName);
 	}
 
-	public void reinstallSemantics(HashMap<String, IrSemantics> semantics) {
+	public void reinstallSemantics(HashMap<String, Semantics> semantics) {
 		if (metas != null && metas.size() > 0) {
 			System.err.println("Clear and reinstall semantics of " + drvName);
 			metas.clear();

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import javax.sql.DataSource;
 
 import io.odysz.common.Configs;
-import io.odysz.module.rs.ICResultset;
+import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.OracleLob;
 import oracle.sql.BLOB;
@@ -102,7 +102,7 @@ public class OracleDriver extends AbsConnect {
 //		return username;
 //	}
 
-	public static ICResultset select(String sql) throws SQLException {
+	public static SResultset select(String sql) throws SQLException {
 		if (enableSystemout) System.out.println(sql);
 		Connection conn = getConnection();
 //		try {
@@ -113,7 +113,7 @@ public class OracleDriver extends AbsConnect {
 //		Connection conn = DriverManager.getConnection( "jdbc:oracle:thin:@192.168.1.101:1521:emergenc", "emergency", "emergency" );
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery(sql);
-		ICResultset icrs = new ICResultset(rs);
+		SResultset icrs = new SResultset(rs);
 		rs.close();
 		stmt.close();
 		conn.close();
@@ -293,12 +293,12 @@ public class OracleDriver extends AbsConnect {
 	 * @return
 	 * @throws SQLException 
 	 */
-	public static ICResultset selectBlob(String sql) throws SQLException {
+	public static SResultset selectBlob(String sql) throws SQLException {
 		if (enableSystemout) System.out.println(sql);
 		Connection conn = getConnection();
 		Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		ResultSet rs = stmt.executeQuery(sql);
-		ICResultset icrs = new ICResultset(rs, conn, stmt);
+		SResultset icrs = new SResultset(rs, conn, stmt);
 		return icrs;
 	}
 
@@ -322,7 +322,7 @@ public class OracleDriver extends AbsConnect {
 	}
 
 	@Override
-	public ICResultset select(String sql, int flags) throws SQLException {
+	public SResultset select(String sql, int flags) throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
 	}

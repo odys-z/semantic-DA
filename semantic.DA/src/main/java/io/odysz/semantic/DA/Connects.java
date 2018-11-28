@@ -9,13 +9,14 @@ import org.apache.commons.io.FilenameUtils;
 
 import io.odysz.common.JDBCType;
 import io.odysz.common.Utils;
-import io.odysz.module.rs.ICResultset;
+import io.odysz.module.rs.SResultset;
 import io.odysz.module.xtable.ILogger;
 import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactory;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
+import io.odysz.semantic.Semantics;
 import io.odysz.semantic.DA.drvmnger.Msql2kDriver;
 import io.odysz.semantic.DA.drvmnger.MysqlDriver;
 import io.odysz.semantic.DA.drvmnger.OracleDriver;
@@ -30,8 +31,8 @@ public class Connects {
 //    	public int getValue() { return value; }
 //	}
 
-	// TODO: separate log witches from semantic flags like adding "''".
-	/** no special for commit */
+	// TODO: separate log switches from semantic flags like adding "''".
+	/** nothing special for commit */
 	public static final int flag_nothing = 0;
 	public static final int flag_printSql = 1;
 	public static final int flag_disableSql = 2;
@@ -141,7 +142,7 @@ public class Connects {
 		}
 	}
 
-	public static void installSemantics(HashMap<String, HashMap<String, IrSemantics>> semantics) {
+	public static void installSemantics(HashMap<String, HashMap<String, Semantics>> semantics) {
 		if (semantics != null)
 			for (String conn : semantics.keySet())
 				srcs.get(conn).reinstallSemantics(semantics.get(conn));
@@ -176,7 +177,7 @@ public class Connects {
 		return null;
 	}
 
-	public static ICResultset select(String sql, int flagNothing) {
+	public static SResultset select(String sql, int flagNothing) {
 		// TODO Auto-generated method stub
 		return null;
 	}

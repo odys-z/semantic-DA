@@ -11,23 +11,23 @@ import org.xml.sax.SAXException;
 
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
-import io.odysz.module.rs.ICResultset;
+import io.odysz.module.rs.SResultset;
 import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactory;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.common.JDBCType;
+import io.odysz.semantic.Semantics;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DA.DatasetCfg;
 import io.odysz.semantics.meta.ColumnMeta;
 import io.odysz.semantics.meta.DbMeta;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantic.DA.DbLog;
-import io.odysz.semantic.DA.IrSemantics;
-import io.odysz.semantic.DA.IrSemantics.smtype;
 import io.odysz.semantic.DA.Mappings;
 import io.odysz.semantic.DA.OracleLob;
+import io.odysz.semantic.Semantics.smtype;
 
 /**JDBC driver for connection pool mode.<br>
  * Use select() to query, use commit() to update.<br>
@@ -43,7 +43,7 @@ public class CpDriver {
 
 	static String defltConn;
 	static HashMap<String, CpSrc> srcs;
-	static HashMap<String, HashMap<String, IrSemantics>> metas;
+	static HashMap<String, HashMap<String, Semantics>> metas;
 	
 	public static String getDefltConnId() { return defltConn; }
 	
@@ -104,7 +104,7 @@ public class CpDriver {
 //		return srcs.get(conn).formatNow();
 //	}
 
-	public static ICResultset select(String connId, String sql, int flags) throws SQLException {
+	public static SResultset select(String connId, String sql, int flags) throws SQLException {
 		if (connId == null)
 			return srcs.get(defltConn).select(sql, flags);
 		if (!srcs.containsKey(connId))
@@ -112,11 +112,11 @@ public class CpDriver {
 		return srcs.get(connId).select(sql, flags);
 	}
 	
-	public static ICResultset select(String sql, int flags) throws SQLException {
+	public static SResultset select(String sql, int flags) throws SQLException {
 		return srcs.get(defltConn).select(sql, flags);
 	}
 	
-	public static void readClob(String connId, ICResultset rs, String[] tabls) throws SQLException, IOException {
+	public static void readClob(String connId, SResultset rs, String[] tabls) throws SQLException, IOException {
 		srcs.get(connId).readClob(rs, tabls);
 	}
 
@@ -207,7 +207,7 @@ public class CpDriver {
 	 * @throws SQLException
 	 * @throws SAXException
 	 */
-	public static void reinstallSemantics(HashMap<String, HashMap<String, IrSemantics>> semantics) throws SQLException, SAXException {
+	public static void reinstallSemantics(HashMap<String, HashMap<String, Semantics>> semantics) throws SQLException, SAXException {
 		// FIXME let's do this with xml configuration.
 		if (metas != null && metas.size() > 0) {
 			System.err.println("Clear and reinstall semantics ... ");
@@ -220,7 +220,7 @@ public class CpDriver {
 		return srcs.get(connId).getlobMeta();
 	}
 
-	public static void appendClobSemantics(HashMap<String, IrSemantics> semantics, String onLobOfConnId,
+	public static void appendClobSemantics(HashMap<String, Semantics> semantics, String onLobOfConnId,
 			HashMap<String, HashMap<String, OracleLob>> lobMeta) throws SAXException, SQLException {
 		for (String btid : lobMeta.keySet()) {
 			HashMap<String, OracleLob> tablobs = lobMeta.get(btid);
@@ -230,11 +230,11 @@ public class CpDriver {
 			if (tablobs != null)
 				for (String bcol : tablobs.keySet()) {
 					OracleLob lt = tablobs.get(bcol);
-					IrSemantics smtc = semantics.get(btid);
+					Semantics smtc = semantics.get(btid);
 					String idf = casemaps.get(0).get(lt.idField());
 					String lobf = casemaps.get(0).get(lt.lobField());
 					if (smtc == null) {
-						smtc = new IrSemantics(smtype.orclClob, new String[] {btid, idf, lobf});
+						smtc = new Semantics(smtype.orclClob, new String[] {btid, idf, lobf});
 						semantics.put(btid, smtc);
 					}
 					else
@@ -271,7 +271,7 @@ public class CpDriver {
 //		DbSchema schema = spec.addDefaultSchema();
 
 		// ICResultset rs = DBDriver.select(DbSrc.mysql, "show tables");
-		ICResultset rs = CpSrc.select(srcName, "show tables");
+		SResultset rs = CpSrc.select(srcName, "show tables");
 		HashMap<String, HashMap<String, ColumnMeta>> tablCols = new HashMap<String, HashMap<String, ColumnMeta>>(rs.getRowCount());
 		HashMap<String, TableMeta> tables = new HashMap<String, TableMeta>(rs.getRowCount());
 		rs.beforeFirst();
@@ -296,7 +296,7 @@ public class CpDriver {
 	}
 
 	private static HashMap<String, ColumnMeta> buildColsMysql(String srcName, TableMeta tab, Regex regex) throws SQLException {
-		ICResultset rs = CpSrc.select(srcName, "show columns from " + tab.getName());
+		SResultset rs = CpSrc.select(srcName, "show columns from " + tab.getName());
 		HashMap<String, ColumnMeta> cols = new HashMap<String, ColumnMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		while (rs.next()) {
@@ -330,7 +330,7 @@ public class CpDriver {
 //		DbSchema schema = spec.addDefaultSchema();
 
 		// https://stackoverflow.com/questions/175415/how-do-i-get-list-of-all-tables-in-a-database-using-tsql
-		ICResultset rs = CpSrc.select(srcName, "SELECT s.name FROM sysobjects s WHERE s.xtype = 'U' or s.xtype = 'V'");
+		SResultset rs = CpSrc.select(srcName, "SELECT s.name FROM sysobjects s WHERE s.xtype = 'U' or s.xtype = 'V'");
 		HashMap<String, HashMap<String, ColumnMeta>> tablCols = new HashMap<String, HashMap<String, ColumnMeta>>(rs.getRowCount());
 		HashMap<String, TableMeta> tables = new HashMap<String, TableMeta>(rs.getRowCount());
 		rs.beforeFirst();
@@ -350,7 +350,7 @@ public class CpDriver {
 			"LEFT OUTER JOIN sys.index_columns ic ON ic.object_id = c.object_id AND ic.column_id = c.column_id " +
 			"LEFT OUTER JOIN sys.indexes i ON ic.object_id = i.object_id AND ic.index_id = i.index_id " +
 			"WHERE c.object_id = OBJECT_ID('%s')", tab.getName());
-		ICResultset rs = CpSrc.select(srcName, sql);
+		SResultset rs = CpSrc.select(srcName, sql);
 		HashMap<String, ColumnMeta> cols = new HashMap<String, ColumnMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		while (rs.next()) {
@@ -385,7 +385,7 @@ public class CpDriver {
 				"'F_PLANRULE', 'C_LAYERS', 'C_DECISIONS', 'F_CALL') " +
 				"ORDER BY table_name");
 				*/
-		ICResultset rs = CpSrc.select(srcName, "SELECT table_name, column_name, data_type, data_length, null as flag FROM cols " +
+		SResultset rs = CpSrc.select(srcName, "SELECT table_name, column_name, data_type, data_length, null as flag FROM cols " +
 				"WHERE (substr(table_name, 0, 2) IN ('A_', 'B_', 'D_', 'F_', 'G_', 'K_', 'M_', 'V_', 'VW') " + 
 				"OR table_name IN ('IR_AUTOSEQS', 'BAS_CHGCAP', 'BAS_COMFIRM', 'BAS_COMFIRM_RES', 'BAS_GROUP_CONTACT', " +
 				"'BAS_HEALTHORG', 'BAS_HEALTHORG_RES', 'BAS_MATCAP', " +
@@ -495,13 +495,13 @@ public class CpDriver {
 		}
 	}
 
-	public static IrSemantics getTableSemantics(String conn, String tabName) {
+	public static Semantics getTableSemantics(String conn, String tabName) {
 		if (metas.containsKey(conn))
 			return metas.get(conn).get(tabName);
 		else return null;
 	}
 
-	static LinkedHashMap<String,XMLTable> checkNames(LinkedHashMap<String, XMLTable> maptables, ICResultset rs) throws SQLException, SAXException {
+	static LinkedHashMap<String,XMLTable> checkNames(LinkedHashMap<String, XMLTable> maptables, SResultset rs) throws SQLException, SAXException {
 		HashMap<String, String> ku = new HashMap<String, String>(1);
 		HashMap<String, String> kf = new HashMap<String, String>(1);
 		XMLTable mainxtabl = maptables.get("tabls");

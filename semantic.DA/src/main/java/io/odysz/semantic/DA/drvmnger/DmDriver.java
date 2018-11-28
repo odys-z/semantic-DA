@@ -11,19 +11,19 @@ import org.apache.commons.io.FilenameUtils;
 
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
-import io.odysz.module.rs.ICResultset;
+import io.odysz.module.rs.SResultset;
 import io.odysz.module.xtable.ILogger;
 import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactory;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
+import io.odysz.semantic.Semantics;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.common.JDBCType;
 import io.odysz.semantic.DA.DatasetCfg;
 import io.odysz.semantic.DA.DbLog;
-import io.odysz.semantic.DA.IrSemantics;
 import io.odysz.semantic.DA.Mappings;
 import io.odysz.semantic.DA.OracleLob;
 import io.odysz.semantics.meta.ColumnMeta;
@@ -51,7 +51,7 @@ public class DmDriver {
 		return srcs.get(connId).getSpec();
 	}
 
-	public static ICResultset select(String conn, String sql, int ... flags) throws SQLException {
+	public static SResultset select(String conn, String sql, int ... flags) throws SQLException {
 		//return Mysql.select(sql);
 		// return SqliteDriver.select(sql);
 		if (conn == null) conn = defltConn;
@@ -197,7 +197,7 @@ cid |name       |type     |notnull |dflt_value |pk |
 //		DbSchema schema = spec.addDefaultSchema();
 
 		SqliteDriver drv = SqliteDriver.initConnection(jdbc, usr, pswd, dbg);
-		ICResultset rs = drv.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table'", Connects.flag_nothing);
+		SResultset rs = drv.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table'", Connects.flag_nothing);
 
 		HashMap<String, HashMap<String, ColumnMeta>> tablCols = new HashMap<String, HashMap<String, ColumnMeta>>(rs.getRowCount());
 		HashMap<String, TableMeta> tables = new HashMap<String, TableMeta>(rs.getRowCount());
@@ -249,7 +249,7 @@ CREATE TABLE ir_autoseq (
 	 */
 	private static HashMap<String, ColumnMeta> buildColsSqlite(SqliteDriver drv, String srcName,
 			TableMeta tab, Regex regex) throws SQLException {
-		ICResultset rs = drv.select("PRAGMA table_info(" + tab.getName() + ")", Connects.flag_nothing);
+		SResultset rs = drv.select("PRAGMA table_info(" + tab.getName() + ")", Connects.flag_nothing);
 		HashMap<String, ColumnMeta> cols = new HashMap<String, ColumnMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		while (rs.next()) {
@@ -291,7 +291,7 @@ CREATE TABLE ir_autoseq (
 );				 */
 				String sql = String.format("select seq from ir_autoseq where sid = '%s.%s'",
 						tab.getName(), rs.getString("name"));
-				ICResultset rseq = SqliteDriver.selectStatic(sql, Connects.flag_nothing);
+				SResultset rseq = SqliteDriver.selectStatic(sql, Connects.flag_nothing);
 				if (rseq.getRowCount() <= 0) {
 					ArrayList<String> sqls = new ArrayList<String>(1);
 					sqls.add(String.format("insert into ir_autoseq(sid, seq, remarks) values('%s.%s', 0, datetime('now'))",
@@ -361,7 +361,7 @@ CREATE TABLE ir_autoseq (
 		return srcs.get(conn).formatFieldName(expr);
 	}
 
-	public static void reinstallSemantics(String conn, HashMap<String, IrSemantics> semantics) {
+	public static void reinstallSemantics(String conn, HashMap<String, Semantics> semantics) {
 		srcs.get(conn).reinstallSemantics(semantics);
 //		if (metas != null && metas.size() > 0) {
 //			System.err.println("Clear and reinstall semantics ... ");
@@ -370,13 +370,13 @@ CREATE TABLE ir_autoseq (
 //		metas = semantics;
 	}
 
-	public static void reinstallSemantics(HashMap<String, HashMap<String, IrSemantics>> semantics) {
+	public static void reinstallSemantics(HashMap<String, HashMap<String, Semantics>> semantics) {
 		if (semantics != null)
 			for (String conn : semantics.keySet())
 				reinstallSemantics(conn, semantics.get(conn));
 	}
 
-	public static IrSemantics getTableSemantics(String conn, String tabName) throws SQLException {
+	public static Semantics getTableSemantics(String conn, String tabName) throws SQLException {
 //		if (metas.containsKey(conn))
 //			return metas.get(conn).get(tabName);
 //		else return null;
