@@ -69,7 +69,7 @@ public class CpDriver {
 		return srcs.get(connId).getColumn(tabName, expr);
 	}
 
-	/**If oracle, to quoted upper case "FIELD"
+	/**If oracle, format to quoted upper case "FIELD"
 	 * @param conn
 	 * @param expr
 	 * @return
@@ -330,35 +330,8 @@ public class CpDriver {
 
 		// https://stackoverflow.com/questions/205736/get-list-of-all-tables-in-oracle
 		// https://stackoverflow.com/questions/1953239/search-an-oracle-database-for-tables-with-specific-column-names
-		/*
-		ICResultset rs = DaSrc.select(srcName, "SELECT table_name, column_name, data_type, data_length, null as flag FROM cols " +
-				"WHERE (substr(table_name, 0, 2) IN ('A_', 'B_', 'C_', 'D_', 'E_', 'F_', 'G_', 'K_', 'M_', 'V_', 'VW') " + 
-				"OR table_name IN ('IR_AUTOSEQS', 'BAS_CHGCAP', 'BAS_COMFIRM', 'BAS_COMFIRM_RES', 'BAS_GROUP_CONTACT', " +
-				"'BAS_HEALTHORG', 'BAS_HEALTHORG_RES', 'BAS_MATCAP', " +
-				"'BAS_MATERIAL', 'BAS_MATERIALFIRM', 'BAS_ORG', 'BAS_PERSON', 'BAS_REPERTORY', 'BAS_RESCUE', " +
-				"'BAS_SHELTER', 'BAS_TEAMEQUIP', 'BAS_TRANSFIRM', 'BAS_TRANSTOOL')) " +
-				"and table_name NOT IN ('E_RISKTYPES', 'F_MEETINGROOM', 'F_TEL', 'E_TYPE_SIZES', 'A_MGCK', 'C_ALERTS', " +
-				"'E_INDICS', 'C_INDICS', 'G_SECTIONTEMPLS', 'M_INOUTS', 'BAS_PLAN', 'D_DEDUCTDETAILS', 'F_FILES', 'F_MRUSE', " +
-				"'D_SUBJECT', 'F_SHIFTSRECORD', 'F_LDRWORK', 'C_MODES', 'M_SUPPORTPLANDC', 'K_EXCER_EMERGS', 'E_RISKS', " +
-				"'D_SUMMERY', 'E_VALUES', 'E_RISK_MARKS', 'A_RISKPOINTS', 'A_RISKMARKS', 'C_METAS', 'C_VALUES', 'C_MODE_INDIC', " +
-				"'G_SECTIONS', 'D_OWNCONTACTS', 'F_LDRTRIP', 'D_DEDUCTIONS', 'G_PLANDC', 'K_EMERGASSERTS', 'F_RECEIVE', " +
-				"'E_RISKLEVELS', 'D_OWNCOMMANDORG', 'G_RELATERES', 'F_PREPLANS', 'M_INTERFACES', 'F_PUB_IFS', 'BAS_EQUIPMENT', " +
-				"'F_PLANRULE', 'C_LAYERS', 'C_DECISIONS', 'F_CALL') " +
-				"ORDER BY table_name");
-				*/
 		SResultset rs = CpSrc.select(srcName, "SELECT table_name, column_name, data_type, data_length, null as flag FROM cols " +
 				"WHERE (substr(table_name, 0, 2) IN ('A_', 'B_', 'D_', 'F_', 'G_', 'K_', 'M_', 'V_', 'VW') " + 
-				"OR table_name IN ('IR_AUTOSEQS', 'BAS_CHGCAP', 'BAS_COMFIRM', 'BAS_COMFIRM_RES', 'BAS_GROUP_CONTACT', " +
-				"'BAS_HEALTHORG', 'BAS_HEALTHORG_RES', 'BAS_MATCAP', " +
-				"'BAS_MATERIAL', 'BAS_MATERIALFIRM', 'BAS_ORG', 'BAS_PERSON', 'BAS_REPERTORY', 'BAS_RESCUE', " +
-				"'BAS_SHELTER', 'BAS_TEAMEQUIP', 'BAS_TRANSFIRM', 'BAS_TRANSTOOL', 'BAS_UPLOADFILES','BAS_PUBLICSMS')) " +
-				"and table_name NOT IN ('F_MEETINGROOM', 'F_TEL', 'A_MGCK', " +
-				"'G_SECTIONTEMPLS', 'M_INOUTS', 'BAS_PLAN', 'D_DEDUCTDETAILS', 'F_FILES', 'F_MRUSE', " +
-				"'D_SUBJECT', 'DISTRICTS','F_SHIFTSRECORD', 'F_LDRWORK', 'M_SUPPORTPLANDC', 'K_EXCER_EMERGS', " +
-				"'D_SUMMERY', 'A_RISKPOINTS', 'A_RISKMARKS', " +
-				"'G_SECTIONS', 'D_OWNCONTACTS', 'F_LDRTRIP', 'D_DEDUCTIONS', 'G_PLANDC', 'K_EMERGASSERTS', 'F_RECEIVE', " +
-				"'D_OWNCOMMANDORG', 'G_RELATERES', 'F_PREPLANS', 'M_INTERFACES', 'F_PUB_IFS', 'BAS_EQUIPMENT', " +
-				"'F_PLANRULE', 'F_CALL') " +
 				"ORDER BY table_name");
 		HashMap<String, TableMeta> tables = new HashMap<String, TableMeta>(rs.getRowCount());
 		HashMap<String, HashMap<String, ColumnMeta>> tablCols = new HashMap<String, HashMap<String, ColumnMeta>>(rs.getRow());
