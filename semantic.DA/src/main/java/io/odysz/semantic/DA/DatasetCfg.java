@@ -1,5 +1,6 @@
 package io.odysz.semantic.DA;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +9,7 @@ import java.util.LinkedHashMap;
 import org.apache.commons.io.FilenameUtils;
 import org.xml.sax.SAXException;
 
+import io.odysz.common.Utils;
 import io.odysz.module.xtable.ILogger;
 import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
@@ -27,18 +29,18 @@ public class DatasetCfg {
 
 	protected static ILogger log;
 	protected static final String tag = "DataSet";
-	protected static final String cfgFile = "WEB-INF/dataset.xml";
+	protected static final String cfgFile = "dataset.xml";
 	protected static final String deftId = "ds";
 	protected static HashMap<String, Dataset> dss;
 	protected static HashMap<String, String> conn_driver;
 
-	public static void init(XMLTable connections, String webRoot,
+	public static void init(XMLTable connections, String path,
 			HashMap<String, HashMap<String, String>> orclMappings) throws Exception {
 		log = new Log4jWrapper("");
 		dss = new HashMap<String, Dataset>();
 		conn_driver = parseDrivers(connections);
 
-		load(conn_driver, dss, webRoot, orclMappings);
+		load(conn_driver, dss, path, orclMappings);
 	}
 
 	/**Get conn-id and conn-type pairs.
@@ -64,17 +66,22 @@ public class DatasetCfg {
 	 * @throws Exception
 	 */
 	protected static void load(HashMap<String, String> conn_drv, HashMap<String, Dataset> cfgs,
-			String webRoot, HashMap<String, HashMap<String, String>> orclMappings) throws Exception {
-		// String messageFile = null;
-		// String fullpath = HelperFactory.getRealPath(cfgFile);
-		String fullpath = FilenameUtils.concat(webRoot + "/", cfgFile);
+			String xmlPath, HashMap<String, HashMap<String, String>> orclMappings) throws Exception {
+		String fullpath = FilenameUtils.concat(xmlPath + "/", cfgFile);
 		log.d("D", "message file path: " + fullpath);
 
-		LinkedHashMap<String,XMLTable> xtabs = XMLDataFactoryEx.getXtables(new Log4jWrapper("DS").setDebugMode(false), fullpath, new IXMLStruct() {
-			@Override public String rootTag() { return "dataset"; }
-			@Override public String tableTag() { return "t"; } 
-			@Override public String recordTag() { return "c"; }
-		});
+		File f = new File(fullpath);
+		if (!f.exists() || !f.isFile()) {
+			Utils.warn("WARN - Can't find dataset.xml, configuration ignored. Check %s", fullpath);
+			return;
+		}
+
+		LinkedHashMap<String,XMLTable> xtabs = XMLDataFactoryEx.getXtables(
+				new Log4jWrapper("DA").setDebugMode(false), fullpath, new IXMLStruct() {
+					@Override public String rootTag() { return "dataset"; }
+					@Override public String tableTag() { return "t"; } 
+					@Override public String recordTag() { return "c"; }
+				});
 		XMLTable deft = xtabs.get("ds");
 		
 		if (deft != null) {

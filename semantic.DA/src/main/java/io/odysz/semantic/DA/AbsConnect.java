@@ -23,17 +23,18 @@ public abstract class AbsConnect {
 	public void isSqlite(boolean is) { _isSqlite = is; }
 	public boolean isSqlite() { return _isSqlite; }
 
+
 	HashMap<String, Semantics>  metas;
 
 	public abstract SResultset select(String sql, int flags) throws SQLException ;
 
 	public abstract int[] commit(ArrayList<String> sqls, int flags) throws SQLException;
 
-	public String formatFieldName(String expr) {
-		if (_isOrcl  && CpSrc.orclKeywords.contains(expr.trim()))
-			return String.format("\"%s\"", expr.trim().toUpperCase());
-		return expr;
-	}
+//	public String formatFieldName(String expr) {
+//		if (_isOrcl  && CpSrc.orclKeywords.contains(expr.trim()))
+//			return String.format("\"%s\"", expr.trim().toUpperCase());
+//		return expr;
+//	}
 
 	private DbMeta spec;
 	public DbMeta getSpec() { return spec; }

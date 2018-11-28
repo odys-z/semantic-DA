@@ -78,44 +78,6 @@ public class CpDriver {
 		return srcs.get(conn).formatFieldName(expr);
 	}
 	
-	/**compose paged sql, e.g. for Oracle: select * from (sql) t where rownum > 0 and row num < 14
-	 * @param sql
-	 * @param page
-	 * @param size
-	 * @return
-	public static String pagingSql(String conn, String sql, int page, int size) {
-		return srcs.get(conn).pageSql(sql, page, size);
-	}
-	 */
-	
-	public static String escapeValue(String v) {
-		if (v != null) {
-			v = v.replace("'", "''");
-			v = v.replace("%", "%%");
-		}
-		return v;
-	}
-
-	public static boolean isKeywords(String conn, String expr) {
-		return srcs.get(conn).isKeywords(expr);
-	}
-	
-//	public static CustomSql formatNow(String conn) {
-//		return srcs.get(conn).formatNow();
-//	}
-
-	public static SResultset select(String connId, String sql, int flags) throws SQLException {
-		if (connId == null)
-			return srcs.get(defltConn).select(sql, flags);
-		if (!srcs.containsKey(connId))
-			throw new SQLException("Datasource not exist: " + connId);
-		return srcs.get(connId).select(sql, flags);
-	}
-	
-	public static SResultset select(String sql, int flags) throws SQLException {
-		return srcs.get(defltConn).select(sql, flags);
-	}
-	
 	public static void readClob(String connId, SResultset rs, String[] tabls) throws SQLException, IOException {
 		srcs.get(connId).readClob(rs, tabls);
 	}
@@ -125,8 +87,7 @@ public class CpDriver {
 		srcs = new HashMap<String, CpSrc>();
 		XMLTable conn = null;
 		try{
-//			conn = XAdaptorServlet.getXTable(context, "WEB-INF/connections.xml", "dbcp", null, new IXMLStruct() {
-			conn = XMLDataFactory.getTable(new Log4jWrapper("dm"), "drvmnger", path + "/connections.xml",
+			conn = XMLDataFactory.getTable(new Log4jWrapper("dm"), "drvmnger", path + "/connects.xml",
 						new IXMLStruct() {
 							@Override public String rootTag() { return "conns"; }
 							@Override public String tableTag() { return "t"; }
@@ -463,7 +424,8 @@ public class CpDriver {
 	 * @return an array of update counts, see {@link java.sql.Statement#executeBatch()}
 	 * @throws SQLException
 	 */
-	public static int[] commit(DbLog log, String connId, ArrayList<String> sqls, int flags) throws SQLException {
+	public static int[] commit(DbLog log, String connId, ArrayList<String> sqls, int flags)
+			throws SQLException {
 		if (connId == null)
 			srcs.get(defltConn).commit(sqls, flags);
 		if (!srcs.containsKey(connId))
@@ -473,7 +435,6 @@ public class CpDriver {
 			log.log(sqls);
 		else {
 			System.err.println("Some db commitment not logged:");
-			// DA.printErr(sqls);
 			Utils.warn(sqls);
 		}
 		return ret;

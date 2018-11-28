@@ -3,20 +3,29 @@ package io.odysz.semantic.DA;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
+import java.sql.SQLException;
+import java.util.ArrayList;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import io.odysz.common.Utils;
 import io.odysz.module.rs.SResultset;
+import io.odysz.transact.sql.Transcxt;
+import io.odysz.transact.x.TransException;
 
 class ConnectsTest {
 
+	private static Transcxt st;
+
 	@BeforeAll
-	void testInit() {
+	static void testInit() {
 		File file = new File("src/test/res");
 		String path = file.getAbsolutePath();
-		System.out.println(path);
+		Utils.logi(path);
 		Connects.init(path);
+
+		st = new Transcxt();
 	}
 
 	@Test
@@ -24,14 +33,35 @@ class ConnectsTest {
 	}
 
 	@Test
-	void testSelect() {
+	void testSelect() throws SQLException, TransException {
 		/*
 		insert into a_functions (flags, funcId, funcName, url, parentId, sibling, fullpath) values
 		('test00', '0001', 'System Title', null, null, '0', '0 0001'),
 		('test00', '0002', 'Portal', 'views/portal.html', '0001', '1', '0 0001.1 0002'),
 		('test00', '0003', 'User Info', 'views/user-info.html', '0001', '2', '0 0001.2 0003');
 		*/
-		SResultset rs = Connects.select("select * from a_functions", Connects.flag_nothing);
+		SResultset rs = Connects.select("select * from a_functions where flags='test00' order by fullpath, sibling", Connects.flag_nothing);
+		rs.printSomeData(false, 3, "funcId", "funcName", "fullpath");
+		assertEquals(rs.getRowCount(), 3);
+		
+		ArrayList<String> sqls = new ArrayList<String>(1);
+		st.select("a_functions", "f")
+			.col("funcId")
+			.col("funcName", "text")
+			.col("fullpath")
+			.orderby("fullpath")
+			.orderby("sibling", "desc")
+			.where("=", "flags", "'test00'")
+			.commit(sqls)
+			;
+		Utils.logi(sqls);
+
+		rs = Connects.select(sqls.get(0));
+		rs.printSomeData(false, 3, "funcId", "text", "fullpath");
+		assertEquals(rs.getRowCount(), 3);
+		
+		assertEquals(sqls.get(0),
+				"select funcId, funcName text, fullpath from a_functions f where flags = 'test00' order by fullpath asc, sibling desc");
 	}
 
 }

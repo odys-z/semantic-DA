@@ -153,7 +153,7 @@ public class Connects {
 		}
 	}
 	
-	////////////////////////////////////////////// common helper //////////////
+	/////////////////////////////// common helper /////////////////////////////
 	/** If printSql is true or if asking enable, 
 	 * then print sqls.
 	 * @param asking
@@ -177,19 +177,70 @@ public class Connects {
 		return null;
 	}
 
-	public static SResultset select(String sql, int flagNothing) {
-		// TODO Auto-generated method stub
-		return null;
+	///////////////////////////////////// select ///////////////////////////////
+	public static SResultset select(String conn, String sql, int... flags) throws SQLException {
+		return srcs.get(conn == null ? defltConn : conn)
+				.select(sql, flags == null || flags.length <= 0 ? flag_nothing : flags[0]);
 	}
 
-	public static JDBCType getConnType(String conn) {
-		// TODO Auto-generated method stub
-		return null;
+	public static SResultset select(String sql, int... flags) throws SQLException {
+		return select(null, sql, flags);
 	}
 
-	public static JDBCType dirverType(String conn) {
-		// TODO Auto-generated method stub
-		return null;
+	/**compose paged sql, e.g. for Oracle: select * from (sql) t where rownum > 0 and row num < 14
+	 * @param sql
+	 * @param page
+	 * @param size
+	 * @return
+	 * @throws SQLException 
+	 */
+	public static String pagingSql(String conn, String sql, int page, int size) throws SQLException {
+		conn = conn == null ? defltConn : conn;
+		JDBCType driverType = srcs.get(conn).driverType();
+
+		int r1 = page * size;
+		int r2 = r1 + size;
+		if (driverType == JDBCType.mysql) {
+			String s2 = String.format(
+					"select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s",
+					sql, r1, r2);
+			return s2;
+		}
+		else if (driverType == JDBCType.oracle)
+			return String.format("select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s",
+					sql, r2, r1);
+		else if (driverType == JDBCType.ms2k)
+			return String.format("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= 1 and rownum <= 2;" + 
+					sql, r1, r2);
+		else if (driverType == JDBCType.sqlite)
+			// DON'T COMMENT THIS OUT
+			// Reaching here means your code has bugs
+			// To stop paging from html, don't enable a html pager
+			throw new SQLException("How to page in sqlite?");
+		else return sql;
+	}
+
+	/////////////////////////////////// update /////////////////////////////
+	public static int[] commit(DbLog log, ArrayList<String> sqls, int... flags) throws SQLException {
+		if (defltJdbc == jdbc_dbcp)
+			return CpDriver.commit(log, sqls, flags.length > 0 ? flags[0] : DA.flag_nothing);
+		else return DmDriver.commit(log, sqls, flags.length > 0 ? flags[0] : DA.flag_nothing);
+	}
+	
+	public static int[] commit(DbLog log, ArrayList<String> sqls, ArrayList<OracleLob> lobs, int... flags) throws SQLException {
+		if (defltJdbc == jdbc_dbcp)
+			return CpDriver.commit(log, sqls, lobs, flags.length > 0 ? flags[0] : DA.flag_nothing);
+		else return DmDriver.commit(log, sqls, lobs, flags.length > 0 ? flags[0] : DA.flag_nothing);
+	}
+
+	@SuppressWarnings("serial")
+	public static int[] commit(DbLog dblog, final String sql) throws SQLException {
+		return commit(dblog, new ArrayList<String> () { {add(sql);} });
+	}
+
+	public static JDBCType driverType(String conn) {
+		conn = conn == null ? defltConn : conn;
+		return srcs.get(conn).driverType();
 	}
 
 

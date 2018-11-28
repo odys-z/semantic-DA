@@ -242,28 +242,34 @@ public class Semantics {
 		descFullpath = String.format("fullpath rule (%s = 'parent-%s.%s')", fullPath, fullPath, pathSufix);
 	}
 
-	public String genFullpath2(String conn, Object parentId, Object recId, Object siblingOrder) throws SQLException {
+	/**Generating fullpath - why not used?
+	 * @param conn
+	 * @param parentId
+	 * @param recId
+	 * @param siblingOrder
+	 * @return
+	 * @throws SQLException
+	 */
+	public String genFullpath(String conn, Object parentId, Object recId, Object siblingOrder) throws SQLException {
 		int order = 0;
 		try { order = Integer.valueOf((String) siblingOrder); } catch (Exception e) {}
 		String sibling = Radix64.toString(order, 2);
-		// 无上级节点，根 fullpath = sibling-val
+		// No parent, root-fullpath = sibling-id
 		if (parentId == null || parentId.equals(recId))
-			return String.format("%1$2s %2$s", sibling, recId); //.replace(' ', '0');
-		SResultset rs = CpDriver.select(conn, String.format( "select %s as parentPath from %s where %s = '%s'",
+			return String.format("%1$2s %2$s", sibling, recId);
+		SResultset rs = Connects.select(conn, String.format( "select %s as parentPath from %s where %s = '%s'",
 				fullPath, target, idField, parentId), Connects.flag_nothing);
 		// find parent.fullpath
 		if (rs.getRowCount() == 0)
 			// no parent (path) found
-			return String.format("%1$2s %2$s", sibling, recId); //.replace(' ', '0');
+			return String.format("%1$2s %2$s", sibling, recId);
 
 		rs.beforeFirst().next();
 		String parentPath = rs.getString("parentPath");
 		if (parentPath == null || parentPath.trim().length() == 0)
-			return String.format("%1$2s %2$s", sibling, recId); //.replace(' ', '0');
+			return String.format("%1$2s %2$s", sibling, recId);
 		else {
-//			System.out.println(String.format("WARN - using empty sufix for sibling order? %s : %s",
-//					recId, getDesc(smtype.fullpath)));
-			return String.format("%s.%2s %s", parentPath, sibling, recId); //.replace(' ', '0');
+			return String.format("%s.%2s %s", parentPath, sibling, recId);
 		}
 	}
 
@@ -320,7 +326,7 @@ public class Semantics {
 	public void checkRefereeCount(String connId, String pkCol, String pkv) throws SemanticException {
 		try {
 			if (pkCol.equals(checkCountPkCol_Del)) {
-				SResultset rs = CpDriver.select(connId, String.format(checkCountSql_Del, pkv), Connects.flag_nothing);
+				SResultset rs = Connects.select(connId, String.format(checkCountSql_Del, pkv), Connects.flag_nothing);
 				rs.beforeFirst();
 				if (rs.next()) {
 					int cnt = rs.getInt(1);
@@ -435,7 +441,7 @@ public class Semantics {
 	public void checkSqlCountIns(String connId, String chkf, Object chkv) throws SemanticException {
 		try {
 			if (chkf.equals(checkCountValueCol_Ins)) {
-				SResultset rs = CpDriver.select(connId, String.format(checkCountSql_Ins, chkv), Connects.flag_nothing);
+				SResultset rs = Connects.select(connId, String.format(checkCountSql_Ins, chkv), Connects.flag_nothing);
 				rs.beforeFirst();
 				if (rs.next()) {
 					int cnt = rs.getInt(1);
@@ -561,9 +567,9 @@ public class Semantics {
 		try {
 			if (dateStr == null || ((String)dateStr).trim().length() < 6)
 				// len(76-7-4) = 6
-				return DateFormat.incSeconds(Connects.getConnType(conn), "1776-07-04 00:00:00", 0);
-			return DateFormat.incSeconds(Connects.getConnType(conn), (String) dateStr, 1);
-		} catch (Exception e) { return DateFormat.getTimeStampYMDHms(Connects.getConnType(conn)); }
+				return DateFormat.incSeconds(Connects.driverType(conn), "1776-07-04 00:00:00", 0);
+			return DateFormat.incSeconds(Connects.driverType(conn), (String) dateStr, 1);
+		} catch (Exception e) { return DateFormat.getTimeStampYMDHms(Connects.driverType(conn)); }
 	}
 
 	public boolean isUpstamp(String n) {
@@ -589,7 +595,7 @@ public class Semantics {
 			rs.next();
 			return rs.getString("upstamp");
 		} catch (SQLException e) {
-			return DateFormat.getTimeStampYMDHms(Connects.dirverType(conn));
+			return DateFormat.getTimeStampYMDHms(Connects.driverType(conn));
 		}
 	}
 

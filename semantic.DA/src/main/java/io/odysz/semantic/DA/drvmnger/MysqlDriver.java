@@ -20,7 +20,7 @@ public class MysqlDriver extends AbsConnect {
 	static String connect;
 	
 	/**
-	 * MUST CLOSE CONNECTION!
+	 * IMPORTANT: Caller must close connection!
 	 * @return
 	 * @throws SQLException
 	 */
@@ -111,89 +111,6 @@ public class MysqlDriver extends AbsConnect {
 		return selectStatic(sql, flags);
 	}
 	
-	/**@deprecated
-	 * @param sqls
-	 * @throws SQLException
-	 */
-	static void executeBatch(ArrayList<String> sqls) throws SQLException {
-		Connection conn = getConnection();
-		excecuteBatch(conn, sqls);
-		conn.close();
-	}
-	
-	/**@deprecated
-	 * @param conn
-	 * @param sqls
-	 * @throws SQLException
-	 */
-	static void excecuteBatch(Connection conn, ArrayList<String> sqls) throws SQLException {
-		if (printSql)
-			System.out.println(sqls);
-
-		Statement stmt = null;
-		try {
-			if (conn != null) {
-				stmt = conn.createStatement();
-				try {
-					// String logs = "";
-					// boolean noMoreLogs = false;
-					stmt = conn.createStatement(
-							ResultSet.TYPE_SCROLL_SENSITIVE,
-							ResultSet.CONCUR_UPDATABLE);
-					conn.setAutoCommit(false);
-
-					for (String sql : sqls) {
-						stmt.addBatch(sql);
-					}
-
-					/* not need 
-					for (String sql : sqls) {
-						if (enableSystemout) System.out.println(sql + ";");
-						stmt.addBatch(sql);
-						if (!noMoreLogs && logs.length() + sql.length() + 1 + "...".length() <= 4000) {
-							logs += sql.replaceAll("'", "''") + ";";
-						}
-						else if (!noMoreLogs && logs.length() + sql.length() + 1 + "...".length() > 4000) {
-							noMoreLogs = true;
-							if (logs.length() + "...".length() <= 4000) {
-								logs += "...";
-							}
-						}
-					}
-					if (!"".equals(logs)) {
-						String logsql = String.format("insert into frame_logs(operID, oper, operTime, funcName, sysID, remarks) values " +
-								"('%s', '%s', to_date('%s', 'yyyy-MM-dd hh24:mi:ss'), '%s', '%s', '%s')", userid, username, operTime, funcName, sysID, logs);
-						stmt.addBatch(logsql);
-						if (enableSystemout) System.out.println(logsql);
-					}*/
-					stmt.executeBatch();
-					conn.commit();
-					if (printSql) System.out.println("mysql batch execute successfully.");
-//					logOperations (logs, userid, operTime, funcName, remarks);
-				} catch (Exception exx) {
-					conn.rollback();
-					exx.printStackTrace();
-					throw new SQLException(exx);
-				} finally {
-//					conn.setAutoCommit(status);
-				}
-			} else {
-				throw new SQLException("mysql batch execution failed");
-			}
-		} catch (SQLException ex) {
-			throw ex;
-		} finally {
-			try {
-				if (stmt != null)
-					stmt.close();
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			} finally {
-				stmt = null;
-			}
-		}
-	}
-
 	@Override
 	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
 		Connects.printSql(printSql, flags, sqls);

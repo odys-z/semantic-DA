@@ -357,9 +357,9 @@ CREATE TABLE ir_autoseq (
 	 * @param expr
 	 * @return
 	 */
-	public static String formatFieldName(String conn, String expr) {
-		return srcs.get(conn).formatFieldName(expr);
-	}
+//	public static String formatFieldName(String conn, String expr) {
+//		return srcs.get(conn).formatFieldName(expr);
+//	}
 
 	public static void reinstallSemantics(String conn, HashMap<String, Semantics> semantics) {
 		srcs.get(conn).reinstallSemantics(semantics);
