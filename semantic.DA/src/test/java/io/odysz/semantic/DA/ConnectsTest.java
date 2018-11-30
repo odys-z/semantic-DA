@@ -5,10 +5,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import io.odysz.common.DateFormat;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.SResultset;
 import io.odysz.transact.sql.Transcxt;
@@ -64,4 +66,17 @@ class ConnectsTest {
 				"select funcId, funcName text, fullpath from a_functions f where flags = 'test00' order by fullpath asc, sibling desc");
 	}
 
+	@Test
+	void testInsert() throws TransException {
+		String flag = DateFormat.format(new Date());
+
+		ArrayList<String> sqls = new ArrayList<String>(1);
+		st.insert("a_functions")
+			.nv("flags", flag)
+			.nv("funcId", "AUTO")
+			.nv("funcName", "func - " + flag)
+			.commit(sqls);
+		
+		Utils.logi(sqls);
+	}
 }
