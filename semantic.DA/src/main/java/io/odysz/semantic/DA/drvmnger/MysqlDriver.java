@@ -9,6 +9,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 
 import io.odysz.common.Configs;
+import io.odysz.common.JDBCType;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
@@ -95,7 +96,6 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	}
 	 */
 	
-
 	public static SResultset selectStatic(String sql, int flags) throws SQLException {
 		Connection conn = getConnection();
 		Connects.printSql(printSql, flags, sql);
@@ -107,6 +107,10 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 		conn.close();
 		
 		return icrs;
+	}
+
+	public MysqlDriver() {
+		super(JDBCType.mysql);
 	}
 
 	public SResultset select(String sql, int flags) throws SQLException {

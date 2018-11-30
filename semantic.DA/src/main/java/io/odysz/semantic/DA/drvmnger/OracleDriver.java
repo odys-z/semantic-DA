@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import javax.sql.DataSource;
 
 import io.odysz.common.Configs;
+import io.odysz.common.JDBCType;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.DbLog;
@@ -321,6 +322,10 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 					e.printStackTrace();
 				}
 		}
+	}
+
+	public OracleDriver() {
+		super(JDBCType.oracle);
 	}
 
 	@Override

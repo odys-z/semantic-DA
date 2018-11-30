@@ -244,6 +244,10 @@ for (String coln : colnames.keySet())
 	public HashMap<String, Object[]> getColnames() {
 		return colnames;
 	}
+	
+	public ArrayList<ArrayList<Object>> getRows() {
+		return results;
+	}
 
 	public boolean next() throws SQLException {
 		rowIdx++;

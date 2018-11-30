@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jardesc>
+    <jar path="semantic-DA.Test/src/main/webapp/WEB-INF/lib/sematnic-DA-1.0.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/semantic.DA/export-rt.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="true" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.module.rs"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA{DbLog.java"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.module.xtable"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantics.x"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA{DatasetCfg.java"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA.drvmnger{SqliteDriver.java"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA{Connects.java"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA{OracleLob.java"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA.drvmnger{OracleDriver.java"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA{AbsConnect.java"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA.drvmnger{MysqlDriver.java"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantics.meta"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.util"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;org.apache.commons.io"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA{DbLogDumb.java"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA.cp{CpConnect.java"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA.drvmnger{Msql2kDriver.java"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA{Mappings.java"/>
+        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.common"/>
+    </selectedElements>
+</jardesc>

@@ -13,6 +13,7 @@ import io.odysz.common.JDBCType;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.Semantics;
+import io.odysz.semantic.DA.cp.CpConnect;
 import io.odysz.semantic.DA.drvmnger.Msql2kDriver;
 import io.odysz.semantic.DA.drvmnger.MysqlDriver;
 import io.odysz.semantic.DA.drvmnger.OracleDriver;
@@ -26,10 +27,13 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 	protected JDBCType drvName;
 	public JDBCType driverType() { return drvName; }
 
-	private boolean _isOrcl = false;
-	private boolean _isSqlite = false;
-	public void isSqlite(boolean is) { _isSqlite = is; }
-	public boolean isSqlite() { return _isSqlite; }
+	public AbsConnect (JDBCType drvName) {
+		this.drvName = drvName;
+	}
+//	private boolean _isOrcl = false;
+//	private boolean _isSqlite = false;
+//	public void isSqlite(boolean is) { _isSqlite = is; }
+//	public boolean isSqlite() { return _isSqlite; }
 	
 	public static AbsConnect<?> initDmConnect(String xmlDir, JDBCType type, String jdbcUrl,
 			String usr, String pswd, boolean printSql) throws SQLException, SemanticException {
@@ -55,7 +59,27 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 
 	public static AbsConnect<? extends AbsConnect<?>> initPooledConnect(String xmlDir, JDBCType type,
 			String jdbcUrl, String usr, String pswd, boolean printSql) {
-		return null;
+		/*
+		if (type == JDBCType.mysql) {
+			return MysqlDriver.initPooledConnect(jdbcUrl,
+					usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+		}
+		else if (type == JDBCType.sqlite) {
+			return SqliteDriver.initPooledConnect(String.format("jdbc:sqlite:%s", FilenameUtils.concat(xmlDir, jdbcUrl)),
+				usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+		}
+		else if (type == JDBCType.ms2k) {
+			return Msql2kDriver.initPooledConnect(jdbcUrl,
+				usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+		}
+		else if (type == JDBCType.oracle) {
+			return OracleDriver.initPooledConnect(jdbcUrl,
+				usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+		}
+		else
+			throw new SemanticException("The configured DB type %s is not supported yet.", type);
+			*/
+		return new CpConnect(jdbcUrl, type, printSql);
 	}
 
 	HashMap<String, Semantics>  metas;
@@ -88,12 +112,13 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 	private HashMap<String, TableMeta> tables;
 	private HashMap<String, HashMap<String, ColumnMeta>> tablCols;	
 
-	public AbsConnect meta(DbMeta spec, HashMap<String, TableMeta> tables,
+	@SuppressWarnings("unchecked")
+	public AbsConnect<T> meta(DbMeta spec, HashMap<String, TableMeta> tables,
 			HashMap<String, HashMap<String, ColumnMeta>> tablCols, int flagPrintsql) {
 		this.spec = spec;
 		this.tables = tables;
 		this.tablCols = tablCols;
-		return this;
+		return (T) this;
 	}
 
 	public ColumnMeta getColumn(String tabName, String colName) {
@@ -126,8 +151,8 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 	protected HashMap<String, ReentrantLock> locks;
 
 	public Lock getAutoseqLock(String target) throws SQLException {
-		if (!_isSqlite)
-			throw new SQLException ("?? Why needing a lock for " + drvName);
+//		if (!_isSqlite)
+//			throw new SQLException ("?? Why needing a lock for " + drvName);
 		return locks.get(target);
 	}
 }

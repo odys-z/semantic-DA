@@ -73,7 +73,7 @@ public class Connects {
 					defltConn, srcs != null && srcs.size() > 0 ? srcs.get(defltConn).driverType() : "empty");
 		}
 		catch (Exception ex) {
-			System.err.println("\nFATAL - DmDriver initializing failed! !!\n");
+			System.err.println("\nFATAL - Connection initializing failed! !!\n");
 			ex.printStackTrace();
 			return;
 		}

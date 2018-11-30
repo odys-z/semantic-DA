@@ -40,7 +40,8 @@ public class SqliteDriver extends AbsConnect<SqliteDriver> {
 		}
 	}
 
-	SqliteDriver() {
+	public SqliteDriver() {
+		super(JDBCType.sqlite);
 		drvName = JDBCType.sqlite;
 		locks = new HashMap<String, ReentrantLock>();
 	}

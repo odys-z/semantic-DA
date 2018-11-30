@@ -9,5 +9,4 @@ public class LogFlags {
 
 	public static final boolean logDumb = false;
 
-
 }
