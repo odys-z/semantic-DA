@@ -9,7 +9,7 @@ import org.xml.sax.SAXException;
 import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.XMLTable;
 
-/**@deprecated Semantics.Transact can handle the column uppercase lowercase mapping perfectly - not implemented yet.
+/**@deprecated Semantics2.Transact can handle the column uppercase lowercase mapping perfectly - not implemented yet.
  * Helper class for managing mapping file data structure.
  * A common module used by both {@link CpDriver} and {@link com.infochange.frame.DA.drvmnger.DmDriver}
  * @author ody

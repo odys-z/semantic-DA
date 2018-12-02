@@ -43,7 +43,7 @@
 //
 //	static String defltConn;
 //	static HashMap<String, CpSrc> srcs;
-//	static HashMap<String, HashMap<String, Semantics>> metas;
+//	static HashMap<String, HashMap<String, Semantics2>> metas;
 //	
 //	public static String getDefltConnId() { return defltConn; }
 //	
@@ -163,12 +163,12 @@
 //		}
 //	}
 //
-//	/**Semantics configuration are installed in this method
+//	/**Semantics2 configuration are installed in this method
 //	 * - which can be called by ifire to install the other version.
 //	 * @throws SQLException
 //	 * @throws SAXException
 //	 */
-//	public static void reinstallSemantics(HashMap<String, HashMap<String, Semantics>> semantics) throws SQLException, SAXException {
+//	public static void reinstallSemantics(HashMap<String, HashMap<String, Semantics2>> semantics) throws SQLException, SAXException {
 //		// FIXME let's do this with xml configuration.
 //		if (metas != null && metas.size() > 0) {
 //			System.err.println("Clear and reinstall semantics ... ");
@@ -181,7 +181,7 @@
 //		return srcs.get(connId).getlobMeta();
 //	}
 //
-//	public static void appendClobSemantics(HashMap<String, Semantics> semantics, String onLobOfConnId,
+//	public static void appendClobSemantics(HashMap<String, Semantics2> semantics, String onLobOfConnId,
 //			HashMap<String, HashMap<String, OracleLob>> lobMeta) throws SAXException, SQLException {
 //		for (String btid : lobMeta.keySet()) {
 //			HashMap<String, OracleLob> tablobs = lobMeta.get(btid);
@@ -191,15 +191,15 @@
 //			if (tablobs != null)
 //				for (String bcol : tablobs.keySet()) {
 //					OracleLob lt = tablobs.get(bcol);
-//					Semantics smtc = semantics.get(btid);
+//					Semantics2 smtc = semantics.get(btid);
 //					String idf = casemaps.get(0).get(lt.idField());
 //					String lobf = casemaps.get(0).get(lt.lobField());
 //					if (smtc == null) {
-//						smtc = new Semantics(smtype.orclClob, new String[] {btid, idf, lobf});
+//						smtc = new Semantics2(smtype.orclob, new String[] {btid, idf, lobf});
 //						semantics.put(btid, smtc);
 //					}
 //					else
-//						smtc.addSemantics(smtype.orclClob, new String[] { btid, idf, lobf});
+//						smtc.addSemantics(smtype.orclob, new String[] { btid, idf, lobf});
 //				}
 //		}
 //	}
@@ -429,7 +429,7 @@
 //		}
 //	}
 //
-//	public static Semantics getTableSemantics(String conn, String tabName) {
+//	public static Semantics2 getTableSemantics(String conn, String tabName) {
 //		if (metas.containsKey(conn))
 //			return metas.get(conn).get(tabName);
 //		else return null;

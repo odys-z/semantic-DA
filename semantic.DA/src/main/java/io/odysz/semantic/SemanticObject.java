@@ -1,6 +1,6 @@
 package io.odysz.semantic;
 
-/**The equivalent of JsonObject in previous project
+/**The equivalent of JsonObject in previous projects
  * @author ody
  *
  */

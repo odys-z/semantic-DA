@@ -33,7 +33,7 @@ public class Semantics {
 	 * on inserting, up-stamp is the value of increased down stamp, or current time if it's not usable;<br>
 	 * on updating, up-stamp is set as down stamp increased if down stamp value not presented in sql, or,
 	 * up stamp will be ignored if down stamp presented. (use case of down stamp updating by synchronizer).<br>
-	 * <b>x. orclClob</b>: the field must saved as clob when driver type is orcl;
+	 * <b>x. orclob</b>: the field must saved as clob when driver type is orcl;
 	 */
 	public enum smtype {
 		fullpath,
@@ -106,7 +106,7 @@ public class Semantics {
 		}
 	}
 	
-	/**@see {@link Semantics#IrSemantics(smtype, String[])}
+	/**@see {@link Semantics2#IrSemantics(smtype, String[])}
 	 * @param semantic
 	 * @param args
 	 * @throws SQLException

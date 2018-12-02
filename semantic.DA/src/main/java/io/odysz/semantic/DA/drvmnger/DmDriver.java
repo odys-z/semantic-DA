@@ -361,7 +361,7 @@
 ////		return srcs.get(conn).formatFieldName(expr);
 ////	}
 //
-//	public static void reinstallSemantics(String conn, HashMap<String, Semantics> semantics) {
+//	public static void reinstallSemantics(String conn, HashMap<String, Semantics2> semantics) {
 //		srcs.get(conn).reinstallSemantics(semantics);
 ////		if (metas != null && metas.size() > 0) {
 ////			System.err.println("Clear and reinstall semantics ... ");
@@ -370,13 +370,13 @@
 ////		metas = semantics;
 //	}
 //
-//	public static void reinstallSemantics(HashMap<String, HashMap<String, Semantics>> semantics) {
+//	public static void reinstallSemantics(HashMap<String, HashMap<String, Semantics2>> semantics) {
 //		if (semantics != null)
 //			for (String conn : semantics.keySet())
 //				reinstallSemantics(conn, semantics.get(conn));
 //	}
 //
-//	public static Semantics getTableSemantics(String conn, String tabName) throws SQLException {
+//	public static Semantics2 getTableSemantics(String conn, String tabName) throws SQLException {
 ////		if (metas.containsKey(conn))
 ////			return metas.get(conn).get(tabName);
 ////		else return null;

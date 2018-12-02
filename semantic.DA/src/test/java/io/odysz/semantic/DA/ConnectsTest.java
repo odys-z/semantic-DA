@@ -27,7 +27,7 @@ class ConnectsTest {
 		Utils.logi(path);
 		Connects.init(path);
 
-		st = new Transcxt();
+		st = new Transcxt(null);
 	}
 
 	@Test
@@ -67,7 +67,7 @@ class ConnectsTest {
 	}
 
 	@Test
-	void testInsert() throws TransException {
+	void testInsert() throws TransException, SQLException {
 		String flag = DateFormat.format(new Date());
 
 		ArrayList<String> sqls = new ArrayList<String>(1);
@@ -78,5 +78,8 @@ class ConnectsTest {
 			.commit(sqls);
 		
 		Utils.logi(sqls);
+		
+		DbLog log = new DbLog();
+		Connects.commit(log , sqls);
 	}
 }
