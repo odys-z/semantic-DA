@@ -66,11 +66,17 @@ public class DbLog {
 		SemanticObject userAct = jheader.get("usrAct");
 		if (userAct == null)
 			throw new SQLException("Reqest payload header.usrAct is null. Log information can't initialized.");
-		this.funcName = userAct.getString("funcName");
-		this.funcId = userAct.getString("funcId");
-		this.url = userAct.getString("url");
-		String cmd = userAct.getString("cmd");
-		this.cmd = cmd == null || cmd.trim().length() == 0 ? "null" : String.format("'%s'", cmd.trim());
+		// TODO
+		// TODO
+		// TODO
+		// TODO
+		// TODO
+		// TODO
+//		this.funcName = userAct.getString("funcName");
+//		this.funcId = userAct.getString("funcId");
+//		this.url = userAct.getString("url");
+//		String cmd = userAct.getString("cmd");
+//		this.cmd = cmd == null || cmd.trim().length() == 0 ? "null" : String.format("'%s'", cmd.trim());
 	}
 
 //	public DbLog(SUser usr, SemanticObject jheader) throws SQLException {
@@ -87,17 +93,17 @@ public class DbLog {
 
 	public void log(ArrayList<String> sqls) {
 		// no exception can be thrown here, no error response to client if failed.
-		try {
-			String newId = Connects.genId(Connects.defltConn(), "a_logs", "logId", null);
-			String sql = DatasetCfg.getSqlx(Connects.defltConn(), "log-template",
-				// insert into a_logs(logId, oper, funcName, funcId, cmd, url, operDate, txt)
-				// values ('%s', '%s', '%s', '%s', null, '%s', sysdate, '%s');
-				newId, uid, funcName, funcId, cmd, url, String.valueOf(sqls.size()), txt(sqls));
-			Connects.commitLog(sql); // reporting commit failed in err console
-		} catch (SQLException e) {
-			// failed case must be a bug - commitLog()'s exception already caught.
-			e.printStackTrace();
-		}
+//		try {
+//			String newId = Connects.genId(Connects.defltConn(), "a_logs", "logId", null);
+//			String sql = DatasetCfg.getSqlx(Connects.defltConn(), "log-template",
+//				// insert into a_logs(logId, oper, funcName, funcId, cmd, url, operDate, txt)
+//				// values ('%s', '%s', '%s', '%s', null, '%s', sysdate, '%s');
+//				newId, uid, funcName, funcId, cmd, url, String.valueOf(sqls.size()), txt(sqls));
+//			Connects.commitLog(sql); // reporting commit failed in err console
+//		} catch (SQLException e) {
+//			// failed case must be a bug - commitLog()'s exception already caught.
+//			e.printStackTrace();
+//		}
 	}
 	
 //	public void log(ArrayList<String> sqls, AbsConnect driver) {

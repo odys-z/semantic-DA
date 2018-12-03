@@ -362,7 +362,7 @@ public class Semantics {
 			cond.put("v", parentId);
 			cond.put("logic", "=");
 			SemanticObject jconds = new SemanticObject();
-			jconds.addObject(cond);
+			// jconds.addObject(cond);
 
 			SemanticObject req = new SemanticObject();
 			SemanticObject act = new SemanticObject();
