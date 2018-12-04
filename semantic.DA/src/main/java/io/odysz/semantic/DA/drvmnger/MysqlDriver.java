@@ -13,7 +13,7 @@ import io.odysz.common.JDBCType;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.DA.DbLog;
+import io.odysz.semantics.IUser;
 
 public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	public static boolean printSql = true;
@@ -168,7 +168,7 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	}
 
 	@Override
-	public int[] commit(DbLog log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
+	public int[] commit(IUser log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
 		throw new SQLException("For the author's knowledge, Mysql TEXT is enough for CLOB"
 				+ " - and not planning supporting BLOB as this project is currently designed for supporting mainly JSON module over HTTP. "
 				+ "You can contact the author for any suggestion.");

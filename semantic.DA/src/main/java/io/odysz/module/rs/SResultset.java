@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 
 import io.odysz.common.Regex;
-import io.odysz.semantic.SemanticObject;
+import io.odysz.semantics.SemanticObject;
 
 /**This Resultset used for non-connected manipulation.
  * Rows and Cols are start at 1, the same as {@link java.sql.Resultset}.<br>

@@ -17,6 +17,7 @@ import io.odysz.module.xtable.XMLDataFactory;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.Semantics;
 import io.odysz.semantic.util.LogFlags;
+import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
 
 public class Connects {
@@ -146,10 +147,10 @@ public class Connects {
 			Utils.logi(sql);
 	}
 
-	public static String genId(String defltConn2, String string, String string2, Object object) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	public static String genId(String defltConn2, String string, String string2, Object object) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 	///////////////////////////////////// select ///////////////////////////////
 	public static SResultset select(String conn, String sql, int... flags) throws SQLException {
@@ -195,17 +196,17 @@ public class Connects {
 	}
 
 	/////////////////////////////////// update /////////////////////////////
-	public static int[] commit(DbLog log, ArrayList<String> sqls, int... flags) throws SQLException {
-		return srcs.get(defltConn).commit(log, sqls, flags.length > 0 ? flags[0] : flag_nothing);
+	public static int[] commit(IUser usr, ArrayList<String> sqls, int... flags) throws SQLException {
+		return srcs.get(defltConn).commit(usr, sqls, flags.length > 0 ? flags[0] : flag_nothing);
 	}
 	
-	public static int[] commit(DbLog log, ArrayList<String> sqls, ArrayList<Clob> lobs, int... flags) throws SQLException {
-		return srcs.get(defltConn).commit(log, sqls, lobs, flags.length > 0 ? flags[0] : flag_nothing);
+	public static int[] commit(IUser usr, ArrayList<String> sqls, ArrayList<Clob> lobs, int... flags) throws SQLException {
+		return srcs.get(defltConn).commit(usr, sqls, lobs, flags.length > 0 ? flags[0] : flag_nothing);
 	}
 
 	@SuppressWarnings("serial")
-	public static int[] commit(DbLog dblog, final String sql) throws SQLException {
-		return commit(dblog, new ArrayList<String> () { {add(sql);} });
+	public static int[] commit(IUser usr, final String sql) throws SQLException {
+		return commit(usr, new ArrayList<String> () { {add(sql);} });
 	}
 
 	public static JDBCType driverType(String conn) {

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import io.odysz.common.JDBCType;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
-import io.odysz.semantic.DA.DbLog;
+import io.odysz.semantics.IUser;
 
 public class Msql2kDriver extends AbsConnect<Msql2kDriver> {
 
@@ -38,7 +38,7 @@ public class Msql2kDriver extends AbsConnect<Msql2kDriver> {
 //	}
 
 	@Override
-	public int[] commit(DbLog log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
+	public int[] commit(IUser usr, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
 		throw new SQLException("For the author's knowledge, MS 2000 seams do not supporting LOB - TEXT is enough. You can contact the author.");
 	}
 

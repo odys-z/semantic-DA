@@ -1,20 +1,31 @@
 package io.odysz.semantic;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.xml.sax.SAXException;
+
 import io.odysz.common.JDBCType;
 import io.odysz.common.Radix64;
+import io.odysz.common.Utils;
 import io.odysz.module.rs.SResultset;
+import io.odysz.module.xtable.IXMLStruct;
+import io.odysz.module.xtable.Log4jWrapper;
+import io.odysz.module.xtable.XMLDataFactoryEx;
+import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DA.DATranscxt;
-import io.odysz.semantic.DA.DbLogDumb;
 import io.odysz.semantics.ISemantext;
+import io.odysz.semantics.IUser;
+import io.odysz.semantics.SemanticObject;
+import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Update;
@@ -22,15 +33,48 @@ import io.odysz.transact.x.TransException;
 
 public class DASemantext implements ISemantext {
 
-	/** main starting table */
-	private String tabl0;
 	private HashMap<Object, Object> autoVals;
 	private Statement<?> callerStatement;
 	private static DATranscxt rawst = new DATranscxt(null);
 
-	public DASemantext(String tabl) {
-		this.tabl0 = tabl;
+	private HashMap<String, SemanticObject> resolvedIds;
+
+	private HashMap<String, DASemantics> ss;
+	private IUser usr;
+
+	public DASemantext(String path) throws SemanticException, SAXException, IOException {
+		if (path != null && ss == null)
+			ss = init(path);
+		else ss = null;
 	}
+
+	static HashMap<String,DASemantics> init(String filepath) throws SAXException, IOException {
+		HashMap<String, DASemantics> ss = new HashMap<String, DASemantics>();
+		LinkedHashMap<String,XMLTable> xtabs = XMLDataFactoryEx.getXtables(
+				new Log4jWrapper("").setDebugMode(false), filepath, new IXMLStruct() {
+						@Override public String rootTag() { return "semantics"; }
+						@Override public String tableTag() { return "t"; }
+						@Override public String recordTag() { return "s"; }});
+
+		XMLTable conn = xtabs.get("semantics");
+		conn.beforeFirst();
+		while (conn.next()) {
+			String tabl = conn.getString("tabl");
+			DASemantics s = ss.get(tabl);
+			if (s == null) {
+				s = new DASemantics(tabl, conn.getString("pk"));
+				ss.put(tabl, s);
+			}
+			try {s.addHandler(conn.getString("smtc"), conn.getString("args")); }
+			catch (SemanticException e) {
+				// some configuration error
+				// continue
+				Utils.warn(e.getMessage());
+			}
+		}
+		return ss;
+	}
+
 
 	/**When inserting, replace inserting values in 'AUTO' columns, e.g. generate auto PK for rec-id.
 	 * @see io.odysz.semantics.ISemantext#onInsert(io.odysz.transact.sql.Insert, java.lang.String, java.util.List)
@@ -41,52 +85,39 @@ public class DASemantext implements ISemantext {
 		if (valuesNv != null)
 			for (ArrayList<Object[]> value : valuesNv) {
 				Map<String, Integer> cols = insert.getColumns();
-				replaceAuto(value, tabl, cols);
-				DASemantics s = DASemantics.get(tabl);
-				if (s == null)
-					continue;
-//				if (s.is(smtype.autoPk)) {
-//					String pk = s.autoPk();
-//					String n = (String) value.get(cols.get(pk))[0];
-//					if (n.equals(pk))
-//						value.get(cols.get(pk))[1] = "TEST-" + DateFormat.format(new Date());
-//				}
-//				if (s.is(smtype.fullpath)) {
-//					String n = s.getFullpathField();
-//					String fp = s.genFullpath(value, cols);
-//					Object[] nv = null;
-//					if (!cols.containsKey(n)) {
-//						// append fullpath nv
-//						int c = cols.size();
-//						nv = new Object[] {n, fp};
-//						value.add(nv);
-//						cols.put(n, c);
-//					}
-//					else {
-//						nv = value.get(cols.get(n));
-//						nv[1] = fp;
-//					}
-//				}
-				s.onInsert(value, cols);
+				// replace AUTO
+				try {
+					replaceAuto(value, tabl, cols);
+				} catch (SQLException | TransException e) {
+					e.printStackTrace();
+				}
+				// handle semantics
+				DASemantics s = ss.get(tabl);
+				if (s != null)
+					s.onInsert(value, cols, usr);
 			}
 		return this;
 	}
 	
 
-	private void replaceAuto(ArrayList<Object[]> nvs, String tabl, Map<String, Integer> cols) {
+	private void replaceAuto(ArrayList<Object[]> nvs, String tabl, Map<String, Integer> cols) throws SQLException, TransException {
 		if (nvs != null) {
 			for (String col : cols.keySet()) {
 				Integer c = cols.get(col);
 				Object[] nv = nvs.get(c);
 				if (nv != null && nv.length > 1
-					&& nv[1] instanceof String && "AUTO".equals(nv[1]))
+					&& nv[1] instanceof String && "AUTO".equals(nv[1])) {
 					nv[1] = genId(tabl, col);
+					
+					// set results
+					if (resolvedIds == null)
+						resolvedIds = new HashMap<String, SemanticObject>();
+					if (!resolvedIds.containsKey(tabl))
+						resolvedIds.put(tabl, new SemanticObject());
+					resolvedIds.get(tabl).add("new-ids", nv[1]);
+				}
 			}
 		}
-	}
-
-	private String genId(String tabl, String col) {
-		return tabl + col;
 	}
 
 	@Override
@@ -99,20 +130,40 @@ public class DASemantext implements ISemantext {
 		return this;
 	}
 
-
 	@Override
-	public ISemantext insert(Insert insert, String tabl) {
-		return new DASemantext(tabl);
+	public ISemantext insert(Insert insert, String tabl, IUser... usr) {
+		return clone(this, usr);
 	}
 
 	@Override
-	public ISemantext update(Update update, String tabl) {
-		return new DASemantext(tabl);
+	public ISemantext update(Update update, String tabl, IUser... usr) {
+		return clone(this, usr);
 	}
 
+	private ISemantext clone(DASemantext srctx, IUser... usr) {
+		DASemantext newInst;
+		try {
+			newInst = new DASemantext(null);
+			newInst.ss = srctx.ss;
+			newInst.usr = usr != null && usr.length > 0 ? usr[0] : null;
+			return newInst;
+		} catch (IOException | SemanticException | SAXException e) {
+			e.printStackTrace();
+		}
+		return this;
+	}
+
+	@Override
+	public HashMap<String, SemanticObject> results() {
+		return resolvedIds;
+	}
 	///////////////////////////////////////////////////////////////////////////
 	// auto ID
 	///////////////////////////////////////////////////////////////////////////
+	public static String genId(String tabl, String col) throws SQLException, TransException {
+		return genId(Connects.defltConn(), tabl, col, null);
+	}
+
 	/**Generate new Id with the help of db function f_incSeq(varchar idName)<br>
 	 * Sql script for stored function:<br>
 	 * Mysql:<pre>
@@ -163,6 +214,7 @@ begin
 end;
 	 </pre>
 	 * select f_incSeq2('%s.%s', '%s') newId from dual
+	 * <p>auto ID for sqlite is handled by {@link #genSqliteId(String, String, String)} - needing table initialization.</p> 
 	 * @param connId
 	 * @param target target table
 	 * @param idField table id column (no multi-column id supported)
@@ -189,28 +241,34 @@ end;
 		rs.beforeFirst().next();
 		int newInt = rs.getInt("newId");
 		
-		if (subCate.equals(""))
+		if (subCate == null || subCate.equals(""))
 			return Radix64.toString(newInt);
 		else
 			return String.format("%1$s_%2$6s", subCate, Radix64.toString(newInt));
 	}
 	
-	static DbLogDumb dlog = new DbLogDumb();
-
+	/**Generate auto id in sqlite.<br>
+	 * All auto ids are recorded in oz_autoseq table.<br>
+	 * See {@link DASemantextTest} for how to initialize oz_autoseq.
+	 * @param conn
+	 * @param target
+	 * @param idF
+	 * @return
+	 * @throws SQLException
+	 * @throws TransException
+	 */
 	static String genSqliteId(String conn, String target, String idF) throws SQLException, TransException { 
 		Lock lock;
 		lock = getAutoseqLock(conn, target);
 
-		// TODO insert initial value in ir_autoseq
 		// 1. update ir_autoseq (seq) set seq = seq + 1 where sid = tabl.idf
 		// 2. select seq from ir_autoseq where sid = tabl.id
 
 		ArrayList<String> sqls = new ArrayList<String>();
-		sqls.add(String.format("update ir_autoseq set seq = seq + 1 where sid = '%s.%s'",
+		sqls.add(String.format("update oz_autoseq set seq = seq + 1 where sid = '%s.%s'",
 					target, idF));
 			
-		String select = String.format("select seq from ir_autoseq where sid = '%s.%s'",
-					target, idF);
+//		String select = String.format("select seq from oz_autoseq where sid = '%s.%s'", target, idF);
 
 		SResultset rs = null;
 		
@@ -219,12 +277,12 @@ end;
 		lock.lock();
 		try {
 			// for efficiency
-			Connects.commit(dlog, sqls, Connects.flag_nothing);
+			Connects.commit(null, sqls, Connects.flag_nothing);
 
 			// rs = Connects.select(conn, select, Connects.flag_nothing);
-			rs = (SResultset) rawst.select("ir_autoseq").col("seq")
-					.where("=", "sid", String.format("%s.%s", target, idF))
-					.rs(null);
+			rs = (SResultset) rawst.select("oz_autoseq").col("seq")
+					.where("=", "sid", String.format("'%s.%s'", target, idF))
+					.rs();
 		} finally { lock.unlock();}
 		rs.beforeFirst().next();
 

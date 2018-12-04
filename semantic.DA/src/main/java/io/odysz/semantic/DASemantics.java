@@ -5,20 +5,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.xml.sax.SAXException;
-
 import io.odysz.module.rs.SResultset;
-import io.odysz.module.xtable.IXMLStruct;
-import io.odysz.module.xtable.Log4jWrapper;
-import io.odysz.module.xtable.XMLDataFactory;
-import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DA.DATranscxt;
 import io.odysz.semantics.ISemantext;
+import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.Transcxt;
+import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.x.TransException;
 
 /**<h2>The default semantics used by semantic-DA.</h2>
- * The {@link DASemantext} use this to manage semantics configuration for resolving data semantics.
+ * <p>The {@link DASemantext} use this to manage semantics configuration for resolving data semantics.</p>
+ * DASemantics is basically a {@link SemanticHandler}'s container, with subclass handlers handling different
+ * semantics (processing values). </p>
  * <h3>What's DASemantics for?</h3>
  * <p>Well, the word semantics is a computer science term. The author don't want to redefine this word,
  * but here is some explanation what <i>semantic-transact</i> is trying to support.</p>
@@ -65,7 +64,7 @@ public class DASemantics {
 	/**error code key word*/
 	public static final String ERR_CHK = "err_smtcs";;
 
-	/**<b>0. {@link #autoPk} </b> key-word: "auto" | "pk" | "a-k"<br>
+	/**<b>0. {@link #autoInc} </b> key-word: "auto" | "ai" | "a-i"<br>
 	 * <b>1. {@link #fullpath} </b> key-word: "fullpath" | "fp" | "f-p"<br>
 	 * <b>2. {@link #parentChildren} </b> key-word: "pc-del-all" | "parent-child-del-all"<br>
 	 * <b>3. {@link #dencrypt} </b> key-word: "d-e" | "de-encrypt" <br>
@@ -83,8 +82,8 @@ public class DASemantics {
 	 * <b>x. orclob</b>: the field must saved as clob when driver type is orcl;
 	 */
 	public enum smtype {
-		/**"auto" | "pk" | "a-k": Generate auto pk for the field when inserting */
-		autoPk,
+		/**"auto" | "ai" | "a-i": Generate auto increased value for the field when inserting */
+		autoInc,
 		/** "f-p" | "fp" | "fullpath":
 		 * when updating, auto update fullpath field according to parent-id and current record id<br>
 		 * Handler: {@link ShFullpath#ShFullpath(String, String, String[])}*/
@@ -93,7 +92,8 @@ public class DASemantics {
 		parentChildrenOnDel,
 		/** "d-e" | "de-encrypt": decrypt then encrypt (target col cannot be pk or anything other semantics will updated */
 		dencrypt,
-		/** "o-t" | "oper-time": oper and operTime that must auto updated when a user updating a record*/
+		/** "o-t" | "oper-time": oper and operTime that must auto updated when a user updating a record
+		 * Handler: {@link ShOperTime#ShOperTime(Transcxt, String, String, String[])}*/
 		opTime,
 		/** "ck-cnt-del" | "check-count-del": check is this record a referee of children records - results from sql.select(count, description-args ...). The record(s) can't been deleted if referenced;*/
 		checkSqlCountOnDel,
@@ -112,7 +112,7 @@ public class DASemantics {
 			if (type == null) throw new SemanticException("semantics is null");
 			type = type.toLowerCase().trim();
 			if ("auto".equals(type) || "pk".equals(type) || "a-k".equals(type) || "autopk".equals(type))
-				return autoPk;
+				return autoInc;
 			else if ("fullpath".equals(type) || "f-p".equals(type))
 				return fullpath;
 			else if ("pc-del-all".equals(type) || "parent-child-del-all".equals(type) || "parentchildondel".equals(type))
@@ -137,49 +137,30 @@ public class DASemantics {
 		}
 	}
 
-	private static HashMap<String, DASemantics> ss;
+	private HashMap<String, DASemantics> ss;
 	/** raw transact context for DB accessing without semantics support */
-	private static DATranscxt rawTsx;
+	private DATranscxt rawTsx;
 
-	public static void init(String filepath) throws SAXException, SemanticException {
-		if (ss == null) {
-			ss = new HashMap<String, DASemantics>();
-			XMLTable conn = XMLDataFactory.getTable(new Log4jWrapper("") , "semantics", filepath,
-			new IXMLStruct() {
-				@Override public String rootTag() { return "semantics"; }
-				@Override public String tableTag() { return "t"; }
-				@Override public String recordTag() { return "s"; }});
-
-			conn.beforeFirst();
-			while (conn.next()) {
-				String tabl = conn.getString("tabl");
-				DASemantics s = ss.get(tabl);
-				if (s == null)
-					s = new DASemantics(conn.getString("smtc"), tabl,
-							conn.getString("pk"), conn.getString("args"));
-				else s.addSemantics(conn.getString("smtc"), tabl,
-						conn.getString("pk"), conn.getString("args"));
-				ss.put(tabl, s);
-			}
-
-			rawTsx = new DATranscxt(null);
-		}
-	}
-
-
-	public static DASemantics get(String tabl) {
+	public DASemantics get(String tabl) {
 		return ss == null ? null : ss.get(tabl);
 	}
 
-	///////////////////////////////// base class ///////////////////////////////
+	///////////////////////////////// container class ///////////////////////////////
 	private ArrayList<SemanticHandler> handlers;
+	private String tabl;
+	private String pk;
 
-	public DASemantics(String semantic, String tabl, String recId, String args) throws SemanticException {
-		addSemantics(semantic, tabl, recId, args);
+	public DASemantics(String tabl, String recId) {
+		this.tabl = tabl;
+		this.pk = recId;
+		rawTsx = new DATranscxt(null);
+		
+		handlers = new ArrayList<SemanticHandler>();
+		// addSemantics(semantic, args);
 	}
 
-	private void addSemantics(String semantic, String tabl, String recId, String args) throws SemanticException {
-		addSemantics(smtype.parse(semantic), tabl, recId, args);
+	void addHandler(String semantic, String args) throws SemanticException {
+		addHandler(smtype.parse(semantic), tabl, pk, args);
 	}
 	
 	/**@see {@link Semantics2#Semantics(smtype, String[])}
@@ -188,30 +169,37 @@ public class DASemantics {
 	 * @param args
 	 * @throws SQLException
 	 */
-	public void addSemantics(smtype semantic, String tabl, String recId, String args) throws SemanticException {
-		SemanticHandler handler = null;
+	public void addHandler(smtype semantic, String tabl, String recId, String args) throws SemanticException {
 
 		String[] argss = args.split(",");
+		if (argss.length == 0)
+			argss = new String[] {args};
+
+		checkParas(tabl, pk, args);
+		SemanticHandler handler = null;
+
 		if (smtype.fullpath == semantic)
 			// addFullpath(tabl, recId, argss);
-			handler = new ShFullpath(tabl, recId, argss);
-//		else if (smtype.autoPk == semantic)
-//			addAutoPk(tabl, recId, argss);
+			handler = new ShFullpath(rawTsx, tabl, recId, argss);
+		else if (smtype.autoInc == semantic)
+			// addAutoPk(tabl, recId, argss);
+			handler = new ShAutoK(rawTsx, tabl, recId, argss);
 		else if (smtype.parentChildrenOnDel == semantic)
 			// addParentChildren(tabl, recId, argss);
-			handler = new ShPCDelAll(tabl, recId, argss);
+			handler = new ShPCDelAll(rawTsx, tabl, recId, argss);
 //		else if (smtype.dencrypt == semantic)
 //			addDencrypt(tabl, recId, argss);
 //		else if (smtype.orclob == semantic)
 //			addClob(tabl, recId, argss);
-//		else if (smtype.opTime == semantic)
-//			addOperTime(tabl, recId, argss);
+		else if (smtype.opTime == semantic)
+			// addOperTime(tabl, recId, argss);
+			handler = new ShOperTime(rawTsx, tabl, recId, argss);
 		else if (smtype.checkSqlCountOnDel == semantic)
 			// addCheckSqlCountOnDel(tabl, recId, argss);
-			handler = new ShChkPCDel(tabl, recId, argss);
+			handler = new ShChkPCDel(rawTsx, tabl, recId, argss);
 		else if (smtype.checkSqlCountOnInsert == semantic)
 			// addCheckSqlCountOnInsert(tabl, recId, argss);
-			handler = new ShChkPCInsert(tabl, recId, argss);
+			handler = new ShChkPCInsert(rawTsx, tabl, recId, argss);
 //		else if (smtype.composingCol == semantic)
 //			addComposings(tabl, recId, argss);
 //		else if (smtype.stamp1MoreThanRefee == semantic)
@@ -221,11 +209,29 @@ public class DASemantics {
 		handlers.add(handler);
 	}
 
-	public void onInsert(ArrayList<Object[]> row, Map<String, Integer> cols) {
+	/**Throw exception if args is null or target (table) not correct.
+	 * @param tabl
+	 * @param pk
+	 * @param args
+	 * @throws SemanticException sementic configuration not matching the target or lack of args.
+	 */
+	private void checkParas(String tabl, String pk, String args) throws SemanticException {
+		if (tabl == null || pk == null || args == null || args.trim().length() == 0)
+			throw new SemanticException(String.format(
+					"adding semantics with empty targets? %s %s %s",
+					tabl, pk, args));
+
+		if (this.tabl != null && !this.tabl.equals(tabl))
+			throw new SemanticException(String.format("adding semantics for different target? %s vs. %s", this.tabl, tabl));
+		if (this.pk != null && !this.pk.equals(pk))
+			throw new SemanticException(String.format("adding semantics for target of diferent id field? %s vs. %s", this.pk, pk));
+	}
+
+	public void onInsert(ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
 				if (handler.insert)
-					handler.onInsert(row, cols);
+					handler.onInsert(row, cols, usr);
 	}
 
 	//////////////////////////////// Base Handler //////////////////////////////
@@ -235,41 +241,27 @@ public class DASemantics {
 		String target;
 		String idField;
 		String[] args;
+		protected Transcxt trxt;
 
-		SemanticHandler(String semantic, String tabl, String pk,
+		SemanticHandler(Transcxt trxt, String semantic, String tabl, String pk,
 				String[] args) throws SemanticException {
-			checkParas(tabl, pk, args);
+			this.trxt = trxt;
 			target = tabl;
 			idField = pk;
 		}
 
-		void onInsert(ArrayList<Object[]> row, Map<String, Integer> cols) {}
+		void onInsert(ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
+		void onUpdate(ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
 
-		SemanticHandler(smtype fullpath, String tabl, String pk,
+		SemanticHandler(Transcxt trxt, smtype fullpath, String tabl, String pk,
 				String[] args) throws SemanticException {
-			checkParas(tabl, pk, args);
+			this.trxt = trxt;
 			target = tabl;
 			idField = pk;
 			this.args = args;
 		}
 
-		/**Throw exception if args is null or target (table) not correct.
-		 * @param tabl
-		 * @param pk
-		 * @param args
-		 * @throws SemanticException sementic configuration not matching the target or lack of args.
-		 */
-		private void checkParas(String tabl, String pk, String[] args) throws SemanticException {
-			if (tabl == null || pk == null || args == null)
-				throw new SemanticException(String.format(
-						"adding semantics with empty targets? %s %s %s",
-						tabl, pk, args));
-	
-			if (target != null && !target.equals(tabl))
-				throw new SemanticException(String.format("adding semantics for different target? %s vs. %s", target, tabl));
-			if (idField != null && !idField.equals(pk))
-				throw new SemanticException(String.format("adding semantics for target of diferent id field? %s vs. %s", idField, pk));
-		}
+
 	}
 	
 	//////////////////////////////// subclasses ////////////////////////////////
@@ -280,34 +272,45 @@ public class DASemantics {
 		 * @param args 0: parent Id field, 1: sibling/sort field (optional), 2: fullpath field
 		 * @throws SemanticException
 		 */
-		public ShFullpath(String tabl, String recId, String[] args) throws SemanticException {
-			super(smtype.fullpath, tabl, recId, args);
+		public ShFullpath(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
+			super(trxt, smtype.fullpath, tabl, recId, args);
 			insert = true;
 			update = true;
 		}
 
 		@Override
-		void onInsert(ArrayList<Object[]> row, Map<String, Integer> cols) {
+		void onInsert(ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			String sibling = null;
 			try { sibling = (String) row.get(cols.get(args[1]))[1];}
 			catch (Exception e) {}
 			
-			String id = (String) row.get(cols.get(idField))[1];
-
-			String pid = (String) row.get(cols.get(args[0]))[1];
-			
-			// select fullpath where id = $parentId
 			String v = null;
 			try {
-				SResultset rs =
-						(SResultset) rawTsx.select(target, "_t0")
+				String id = (String) row.get(cols.get(idField))[1];
+
+				String pid = cols.containsKey(args[0]) ?
+							  (String) row.get(cols.get(args[0]))[1]
+							: null;
+			
+				// select fullpath where id = $parentId
+				SResultset rs;
+				
+				if (pid == null || "null".equals(pid))
+//					rs = (SResultset) trxt.select(target, "_t0")
+//						.col(args[2])
+//						.where("?0", idField, null)
+//						.rs();
+					v = "";
+				else {
+					rs = (SResultset) trxt.select(target, "_t0")
 						.col(args[2])
 						.where("=", idField, "'" + pid + "'")
-						.rs(new DASemantext(""));
-				rs.beforeFirst().next();
-				String parentpath = rs.getString(args[2]);
-				v = String.format("%s.%s%s", parentpath,
-					sibling == null ? "" : sibling + " ", id);
+						.rs();
+					rs.beforeFirst().next();
+					String parentpath = rs.getString(args[2]);
+					v = String.format("%s.%s%s", parentpath,
+						sibling == null ? "" : sibling + " ", id);
+				}
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
 			}
@@ -324,23 +327,98 @@ public class DASemantics {
 		}
 	}
 
+	static class ShAutoK extends SemanticHandler {
+
+		/**
+		 * @param trxt
+		 * @param tabl
+		 * @param pk
+		 * @param args 0: auto field
+		 * @throws SemanticException
+		 */
+		ShAutoK(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
+			super(trxt, smtype.autoInc, tabl, pk, args);
+			insert = true;
+		}
+		
+		@Override
+		void onInsert(ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			Object[] nv;
+			if (cols.containsKey(args[0]))
+				nv = row.get(cols.get(args[0]));
+			else {
+				nv = new String[2];
+				cols.put(args[0], row.size());
+				row.add(nv);
+			}
+			nv[0] = args[0];
+			try {
+				nv[1] = DASemantext.genId(target, args[0]);
+			} catch (SQLException | TransException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	static class ShPCDelAll extends SemanticHandler {
-		public ShPCDelAll(String tabl, String recId, String[] args) throws SemanticException {
-			super(smtype.parentChildrenOnDel, tabl, recId, args);
+		public ShPCDelAll(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
+			super(trxt, smtype.parentChildrenOnDel, tabl, recId, args);
 		}
 
 	}
 	
 	static class ShChkPCDel extends SemanticHandler {
-		public ShChkPCDel(String tabl, String recId, String[] args) throws SemanticException {
-			super(smtype.checkSqlCountOnDel, tabl, recId, args);
+		public ShChkPCDel(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
+			super(trxt, smtype.checkSqlCountOnDel, tabl, recId, args);
 		}
 	}
 	
 	static class ShChkPCInsert extends SemanticHandler {
-		public ShChkPCInsert(String tabl, String recId, String[] args) throws SemanticException {
-			super(smtype.checkSqlCountOnInsert, tabl, recId, args);
+		public ShChkPCInsert(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
+			super(trxt, smtype.checkSqlCountOnInsert, tabl, recId, args);
 			insert = true;
+		}
+	}
+	
+	static class ShOperTime extends SemanticHandler {
+		/**
+		 * @param trxt
+		 * @param tabl
+		 * @param recId
+		 * @param args 0: oper-field, 1: oper-time-field (optional)
+		 * @throws SemanticException
+		 */
+		public ShOperTime(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
+			super(trxt, smtype.checkSqlCountOnInsert, tabl, recId, args);
+			insert = true;
+			update = true;
+		}
+
+		@Override
+		void onInsert(ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			Object[] nvOper;
+			if (cols.containsKey(args[0]))
+				nvOper = row.get(cols.get(args[0]));
+			else {
+				nvOper = new String[2];
+				cols.put(args[0], row.size());
+				row.add(nvOper);
+			}
+			nvOper[0] = args[0];
+			nvOper[1] = usr == null ? "sys" : usr.getUserId();
+
+			if (args.length > 1 && args[1] != null) {
+				Object[] nvTime;
+				if (cols.containsKey(args[1]))
+					nvTime = row.get(cols.get(args[1]));
+				else {
+					nvTime = new Object[2];
+					cols.put(args[0], row.size());
+					row.add(nvTime);
+				}
+				nvTime[0] =  args[0];
+				nvTime[1] =  new ExprPart("now()");
+			}
 		}
 	}
 }

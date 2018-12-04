@@ -18,6 +18,7 @@ import io.odysz.semantic.DA.drvmnger.Msql2kDriver;
 import io.odysz.semantic.DA.drvmnger.MysqlDriver;
 import io.odysz.semantic.DA.drvmnger.OracleDriver;
 import io.odysz.semantic.DA.drvmnger.SqliteDriver;
+import io.odysz.semantics.IUser;
 import io.odysz.semantics.meta.ColumnMeta;
 import io.odysz.semantics.meta.DbMeta;
 import io.odysz.semantics.meta.TableMeta;
@@ -88,17 +89,20 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 
 	protected abstract int[] commit(ArrayList<String> sqls, int flags) throws SQLException;
 
-	public final int[] commit(DbLog log, ArrayList<String> sqls, int flags) throws SQLException {
+	public final int[] commit(IUser usr, ArrayList<String> sqls, int flags) throws SQLException {
 		int[] c = commit(sqls, flags);
-		if (log != null)
-			log.log(sqls);
+		if (usr != null) {
+			sqls = usr.dbLog(sqls);
+			if (sqls != null)
+				commit(null, sqls, Connects.flag_nothing);
+		}
 		else {
 			Utils.warn("Some db commitment not logged:", sqls);
 		}
 		return c;
 	}
 
-	public abstract int[] commit(DbLog log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException;
+	public abstract int[] commit(IUser usr, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException;
 	
 //	public String formatFieldName(String expr) {
 //		if (_isOrcl  && CpSrc.orclKeywords.contains(expr.trim()))

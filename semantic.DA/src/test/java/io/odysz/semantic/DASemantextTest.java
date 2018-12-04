@@ -1,33 +1,48 @@
 package io.odysz.semantic;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.xml.sax.SAXException;
 
 import io.odysz.common.DateFormat;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DA.DATranscxt;
-import io.odysz.semantic.DA.DbLog;
-import io.odysz.semantic.DA.drvmnger.SqliteDriver;
 import io.odysz.semantics.ISemantext;
+import io.odysz.semantics.IUser;
+import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
+/**Test basic semantics for semantic-jserv.<br>
+ * To initialize oz_autoseq table:<pre>
+CREATE TABLE oz_autoseq (
+  sid text(50),
+  seq INTEGER,
+  remarks text(200),
+  CONSTRAINT oz_autoseq_pk PRIMARY KEY (sid)
+);</pre>
+ * @author ody
+ *
+ */
 class DASemantextTest {
 	private static DATranscxt st;
-	private static DbLog log;
+	private static IUser usr;
 
 	@BeforeAll
-	static void testInit() throws SQLException {
+	static void testInit() throws SQLException, SemanticException, SAXException, IOException {
+		Utils.printCaller(false);
+
 		File file = new File("src/test/res");
 		String path = file.getAbsolutePath();
 		Utils.logi(path);
@@ -36,31 +51,15 @@ class DASemantextTest {
 		ISemantext s = new DASemantext("src/test/res/semantics.xml");
 		st = new DATranscxt(s);
 		
-		SUser usr = new SUser() {
-			@Override public SemanticObject logout(Object header) { return null; }
-			@Override public void removed() { }
-			@Override public void touch() { }
-			@Override public boolean login(Object jlogin) throws SemanticException, SQLException, IOException { return false; } 
-			@Override public String getSessionId() { return null; } 
-			@Override public long getLastAccessTime() { return 0; } 
-			@Override public String getLogId() { return null; } 
-			@Override public String getUserId() { return null; } 
-			@Override public String getUserName() { return null; } 
-			@Override public String getRoleName() { return null; } 
-			@Override public String getRoleId() { return null; } 
-			@Override public String getOrgName() { return null; } 
-			@Override public String getOrgId() { return null; } 
-			@Override public boolean isAdmin() { return false; } 
-			@Override public String homepage() { return null; } 
-		};
-
 		SemanticObject jo = new SemanticObject();
-		jo.put("usrAct", new SemanticObject());
-		log = new DbLog(usr, jo);
+		jo.put("userId", "tester");
+		SemanticObject usrAct = new SemanticObject();
+		usrAct.put("funcId", "DASemantextTest");
+		usrAct.put("funcName", "test ISemantext implementation");
+		jo.put("usrAct", usrAct);
+		usr = new TestUser("tester", jo);
 		
-		
-		// initialize ir_autoseq
-//		SqliteDriver drv = SqliteDriver.initConnection(jdbc, usr, pswd, dbg);
+		// initialize oz_autoseq
 		SResultset rs = Connects.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table' and tbl_name = 'oz_autoseq'",
 				Connects.flag_nothing);
 		if (rs.getRowCount() == 0) {
@@ -70,25 +69,26 @@ class DASemantextTest {
 					"  sid text(50),\n" + 
 					"  seq INTEGER,\n" + 
 					"  remarks text(200),\n" + 
-					"  CONSTRAINT oz_autoseq_pk PRIMARY KEY (sid)\n" + 
-					")");
-			Connects.commit(log, sqls, Connects.flag_nothing);
+					"  CONSTRAINT oz_autoseq_pk PRIMARY KEY (sid))");
+			sqls.add("insert into oz_autoseq (sid, seq, remarks) values" +
+					"('a_functions.funcId', 0, 'test')," +
+					"('a_roles.roleId', 0, 'test')," + 
+					"('a_users.userId', 0, 'test')");
+			try { Connects.commit(usr, sqls, Connects.flag_nothing); }
+			catch (Exception e) {
+				Utils.warn("Make sure table oz_autoseq already exists");
+			}
 		}
-
 	}
 
 
-	@Test
-	void testGenId() {
-	}
-
-
+	@SuppressWarnings("unchecked")
 	@Test
 	void testInsert() throws TransException, SQLException {
 		String flag = DateFormat.format(new Date());
 
 		ArrayList<String> sqls = new ArrayList<String>(1);
-		st.insert("a_functions")
+		HashMap<String, SemanticObject> r = st.insert("a_functions")
 			.nv("flags", flag)
 			.nv("funcId", "AUTO")
 			.nv("funcName", "func - " + flag)
@@ -96,7 +96,11 @@ class DASemantextTest {
 		
 		Utils.logi(sqls);
 		
-		Connects.commit(log , sqls);
+		assertNotEquals(r.get("a_functions"), null);
+		
+		Connects.commit(usr , sqls);
+		Utils.logi("New ID for %s:", "a_functions");
+		Utils.logi((ArrayList<String>)r.get("a_functions").get("new-ids"));
 	}
 
 	@Test

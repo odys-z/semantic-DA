@@ -3,6 +3,7 @@ package io.odysz.semantic;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.common.Radix64;
 import io.odysz.module.rs.SResultset;

@@ -17,7 +17,7 @@ import io.odysz.common.JDBCType;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.DA.DbLog;
+import io.odysz.semantics.IUser;
 
 /**All instance using the same connection.
  * @author ody
@@ -267,7 +267,7 @@ public class SqliteDriver extends AbsConnect<SqliteDriver> {
 	}
 
 	@Override
-	public int[] commit(DbLog log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
+	public int[] commit(IUser usr, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
 		throw new SQLException("To the author's knowledge, Sqlite do not supporting CLOB - TEXT is enough. You can contact the author.");
 	}
 }

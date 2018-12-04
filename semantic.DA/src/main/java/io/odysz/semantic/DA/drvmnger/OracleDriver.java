@@ -16,8 +16,8 @@ import io.odysz.common.Configs;
 import io.odysz.common.JDBCType;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
-import io.odysz.semantic.DA.DbLog;
 import io.odysz.semantic.DA.OracleLob;
+import io.odysz.semantics.IUser;
 import oracle.sql.BLOB;
 
 /**
@@ -341,7 +341,7 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 	}
 
 	@Override
-	public int[] commit(DbLog log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
+	public int[] commit(IUser log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
 	}

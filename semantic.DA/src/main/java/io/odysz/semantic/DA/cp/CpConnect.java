@@ -23,8 +23,8 @@ import io.odysz.common.JDBCType;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.DA.DbLog;
 import io.odysz.semantic.DA.OracleLob;
+import io.odysz.semantics.IUser;
 // Deprecated. Use java.sql.Clob interface for declaration instead of using concrete class oracle.sql.CLOB.
 // see https://docs.oracle.com/database/121/JAJDB/oracle/sql/CLOB.html 
 import oracle.sql.CLOB;
@@ -483,8 +483,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	}
 
 	@Override
-	public int[] commit(DbLog log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
-		// TODO Auto-generated method stub
+	public int[] commit(IUser log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
 		return null;
 	}
 }

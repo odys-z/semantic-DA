@@ -54,8 +54,7 @@ class ConnectsTest {
 			.orderby("fullpath")
 			.orderby("sibling", "desc")
 			.where("=", "flags", "'test00'")
-			.commit(sqls)
-			;
+			.commit(sqls);
 		Utils.logi(sqls);
 
 		rs = Connects.select(sqls.get(0));
@@ -79,7 +78,7 @@ class ConnectsTest {
 		
 		Utils.logi(sqls);
 		
-		DbLog log = new DbLog();
-		Connects.commit(log , sqls);
+//		DbLog log = new DbLog(st);
+		Connects.commit(null , sqls);
 	}
 }

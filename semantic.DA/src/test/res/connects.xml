@@ -14,7 +14,7 @@
   		<usr>test</usr>
   		<pswd>test</pswd>
   		<!-- enable sql printing -->
-  		<dbg>false</dbg>
+  		<dbg>true</dbg>
   	</c>
   </t>
 
