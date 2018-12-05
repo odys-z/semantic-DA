@@ -421,22 +421,6 @@ public class DASemantics {
 			}
 			nvOper[0] = args[0];
 			nvOper[1] = usr == null ? "sys" : usr.getUserId();
-
-<<<<<<< HEAD
-			if (args.length > 1 && args[1] != null) {
-				Object[] nvTime;
-				if (cols.containsKey(args[1]))
-					nvTime = row.get(cols.get(args[1]));
-				else {
-					nvTime = new Object[2];
-					cols.put(args[1], row.size()); // operTime
-					row.add(nvTime);
-				}
-				nvTime[0] =  args[1];
-				nvTime[1] =  new ExprPart("now()");
-			}
-=======
->>>>>>> branch 'master' of https://github.com/odys-z/semantic-DA.git
 		}
 	}
 }
