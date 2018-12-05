@@ -4,14 +4,14 @@ import java.sql.Clob;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import io.odysz.common.JDBCType;
+import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantics.IUser;
 
 public class Msql2kDriver extends AbsConnect<Msql2kDriver> {
 
-	public Msql2kDriver(JDBCType drvName) {
+	public Msql2kDriver(dbtype drvName) {
 		super(drvName);
 	}
 

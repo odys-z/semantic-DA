@@ -11,7 +11,7 @@ import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Transcxt;
-import io.odysz.transact.sql.parts.condition.ExprPart;
+import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 /**<h2>The default semantics used by semantic-DA.</h2>
@@ -396,6 +396,21 @@ public class DASemantics {
 
 		@Override
 		void onInsert(ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			// operTiem
+			if (args.length > 1 && args[1] != null) {
+				Object[] nvTime;
+				if (cols.containsKey(args[1]))
+					nvTime = row.get(cols.get(args[1]));
+				else {
+					nvTime = new Object[2];
+					cols.put(args[1], row.size());
+					row.add(nvTime);
+				}
+				nvTime[0] =  args[1];
+				nvTime[1] =  Funcall.now();
+			}
+
+			// oper
 			Object[] nvOper;
 			if (cols.containsKey(args[0]))
 				nvOper = row.get(cols.get(args[0]));
@@ -407,6 +422,7 @@ public class DASemantics {
 			nvOper[0] = args[0];
 			nvOper[1] = usr == null ? "sys" : usr.getUserId();
 
+<<<<<<< HEAD
 			if (args.length > 1 && args[1] != null) {
 				Object[] nvTime;
 				if (cols.containsKey(args[1]))
@@ -419,6 +435,8 @@ public class DASemantics {
 				nvTime[0] =  args[1];
 				nvTime[1] =  new ExprPart("now()");
 			}
+=======
+>>>>>>> branch 'master' of https://github.com/odys-z/semantic-DA.git
 		}
 	}
 }

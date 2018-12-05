@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 import org.xml.sax.SAXException;
 
-import io.odysz.common.JDBCType;
+import io.odysz.common.dbtype;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.SResultset;
 import io.odysz.module.xtable.ILogger;
@@ -27,18 +27,18 @@ public class Connects {
 	public static final int flag_printSql = 1;
 	public static final int flag_disableSql = 2;
 
-	public static JDBCType parseDrvType(String type) throws SemanticException {
+	public static dbtype parseDrvType(String type) throws SemanticException {
 		if (type == null || type.trim().length() == 0)
 			throw new SemanticException("Drived type not suppored: %s", type);
 		type = type.trim().toLowerCase();
 		if (type.equals("mysql")) 
-			return JDBCType.mysql;
+			return dbtype.mysql;
 		else if (type.equals("mssql2k") || type.equals("ms2k"))
-			return JDBCType.ms2k;
+			return dbtype.ms2k;
 		else if (type.equals("oracle") || type.equals("orcl"))
-			return JDBCType.oracle;
+			return dbtype.oracle;
 		else if (type.startsWith("sqlit"))
-			return JDBCType.sqlite;
+			return dbtype.sqlite;
 		else
 			throw new SemanticException("Drived type not suppored: %s", type);
 	}
@@ -95,7 +95,7 @@ public class Connects {
 		while (conn.next()) {
 			try {
 				// columns="type,id,isdef,conn,usr,pswd,dbg"
-				JDBCType type = parseDrvType(conn.getString("type"));
+				dbtype type = parseDrvType(conn.getString("type"));
 				String id = conn.getString("id");
 				if (dmCp == DmConn)
 					srcs.put(id, AbsConnect.initDmConnect(xmlDir, type, conn.getString("src"),
@@ -171,23 +171,23 @@ public class Connects {
 	 */
 	public static String pagingSql(String conn, String sql, int page, int size) throws SQLException {
 		conn = conn == null ? defltConn : conn;
-		JDBCType driverType = srcs.get(conn).driverType();
+		dbtype driverType = srcs.get(conn).driverType();
 
 		int r1 = page * size;
 		int r2 = r1 + size;
-		if (driverType == JDBCType.mysql) {
+		if (driverType == dbtype.mysql) {
 			String s2 = String.format(
 					"select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s",
 					sql, r1, r2);
 			return s2;
 		}
-		else if (driverType == JDBCType.oracle)
+		else if (driverType == dbtype.oracle)
 			return String.format("select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s",
 					sql, r2, r1);
-		else if (driverType == JDBCType.ms2k)
+		else if (driverType == dbtype.ms2k)
 			return String.format("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= 1 and rownum <= 2;" + 
 					sql, r1, r2);
-		else if (driverType == JDBCType.sqlite)
+		else if (driverType == dbtype.sqlite)
 			// DON'T COMMENT THIS OUT
 			// Reaching here means your code has bugs
 			// To stop paging from html, don't enable a html pager
@@ -209,7 +209,7 @@ public class Connects {
 		return commit(usr, new ArrayList<String> () { {add(sql);} });
 	}
 
-	public static JDBCType driverType(String conn) {
+	public static dbtype driverType(String conn) {
 		conn = conn == null ? defltConn : conn;
 		return srcs.get(conn).driverType();
 	}

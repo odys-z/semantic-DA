@@ -12,7 +12,6 @@
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
         <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.module.rs"/>
-        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA{DbLog.java"/>
         <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.module.xtable"/>
         <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantics.x"/>
         <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA{DatasetCfg.java"/>
@@ -25,7 +24,6 @@
         <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantics.meta"/>
         <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.util"/>
         <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;org.apache.commons.io"/>
-        <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA{DbLogDumb.java"/>
         <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA.cp{CpConnect.java"/>
         <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic.DA.drvmnger{Msql2kDriver.java"/>
         <javaElement handleIdentifier="=semantic.DA/src\/main\/java&lt;io.odysz.semantic"/>
