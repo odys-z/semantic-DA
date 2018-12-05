@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.xml.sax.SAXException;
 
-import io.odysz.common.JDBCType;
+import io.odysz.common.dbtype;
 import io.odysz.common.Radix64;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.SResultset;
@@ -41,8 +41,10 @@ public class DASemantext implements ISemantext {
 
 	private HashMap<String, DASemantics> ss;
 	private IUser usr;
+	private String connId;
 
-	public DASemantext(String path) throws SemanticException, SAXException, IOException {
+	public DASemantext(String connId, String path) throws SemanticException, SAXException, IOException {
+		this.connId = connId;
 		if (path != null && ss == null)
 			ss = init(path);
 		else ss = null;
@@ -140,10 +142,15 @@ public class DASemantext implements ISemantext {
 		return clone(this, usr);
 	}
 
+	@Override
+	public dbtype dbtype() {
+		return Connects.driverType(connId);
+	}
+
 	private ISemantext clone(DASemantext srctx, IUser... usr) {
 		DASemantext newInst;
 		try {
-			newInst = new DASemantext(null);
+			newInst = new DASemantext(connId, null);
 			newInst.ss = srctx.ss;
 			newInst.usr = usr != null && usr.length > 0 ? usr[0] : null;
 			return newInst;
@@ -224,13 +231,13 @@ end;
 	 * @throws TransException 
 	 */
 	public static String genId(String connId, String target, String idField, String subCate) throws SQLException, TransException {
-		JDBCType dt = Connects.driverType(connId);
-		if (dt == JDBCType.sqlite)
+		dbtype dt = Connects.driverType(connId);
+		if (dt == dbtype.sqlite)
 			return genSqliteId(connId, target, idField);
 
 		if (subCate == null) subCate = "";
 		String sql;
-		if (dt == JDBCType.oracle)
+		if (dt == dbtype.oracle)
 			sql = String.format("select f_incSeq2('%s.%s', '%s') newId from dual", target, idField, subCate);
 		else
 			sql = String.format("select f_incSeq2('%s.%s', '%s') newId", target, idField, subCate);

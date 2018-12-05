@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import io.odysz.common.JDBCType;
+import io.odysz.common.dbtype;
 
 /**Date formatting and parsing helper.<br>
  * This is basically used for datatime used in Json / Gson.
@@ -81,7 +81,7 @@ public class JDateFormat {
 
 	public Date parse(String text) throws ParseException { return mysdf.parse(text); }
 
-	public String incSeconds(JDBCType drvType, String date0, int snds) throws ParseException {
+	public String incSeconds(dbtype drvType, String date0, int snds) throws ParseException {
 		Date d0 = parse(date0);
 		d0.setTime(d0.getTime() + snds);
 		return format(d0);

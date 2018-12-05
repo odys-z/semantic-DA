@@ -9,7 +9,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 
 import io.odysz.common.Configs;
-import io.odysz.common.JDBCType;
+import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
@@ -110,7 +110,7 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	}
 
 	public MysqlDriver() {
-		super(JDBCType.mysql);
+		super(dbtype.mysql);
 	}
 
 	public SResultset select(String sql, int flags) throws SQLException {

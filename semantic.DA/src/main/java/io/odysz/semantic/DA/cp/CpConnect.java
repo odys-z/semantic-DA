@@ -19,7 +19,7 @@ import javax.sql.DataSource;
 
 import org.xml.sax.SAXException;
 
-import io.odysz.common.JDBCType;
+import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
@@ -93,7 +93,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	 * @param printSql
 	 * @throws SAXException
 	 */
-	public CpConnect (String srcId, JDBCType driverType, boolean printSql) {
+	public CpConnect (String srcId, dbtype driverType, boolean printSql) {
 		super(driverType);
 		this.srcId = "java:/comp/env/" + srcId;
 //		this.driverType = driverType;

@@ -9,7 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.io.FilenameUtils;
 
-import io.odysz.common.JDBCType;
+import io.odysz.common.dbtype;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.Semantics;
@@ -25,10 +25,10 @@ import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 
 public abstract class AbsConnect<T extends AbsConnect<T>> {
-	protected JDBCType drvName;
-	public JDBCType driverType() { return drvName; }
+	protected dbtype drvName;
+	public dbtype driverType() { return drvName; }
 
-	public AbsConnect (JDBCType drvName) {
+	public AbsConnect (dbtype drvName) {
 		this.drvName = drvName;
 	}
 //	private boolean _isOrcl = false;
@@ -36,21 +36,21 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 //	public void isSqlite(boolean is) { _isSqlite = is; }
 //	public boolean isSqlite() { return _isSqlite; }
 	
-	public static AbsConnect<?> initDmConnect(String xmlDir, JDBCType type, String jdbcUrl,
+	public static AbsConnect<?> initDmConnect(String xmlDir, dbtype type, String jdbcUrl,
 			String usr, String pswd, boolean printSql) throws SQLException, SemanticException {
-		if (type == JDBCType.mysql) {
+		if (type == dbtype.mysql) {
 			return MysqlDriver.initConnection(jdbcUrl,
 					usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
-		else if (type == JDBCType.sqlite) {
+		else if (type == dbtype.sqlite) {
 			return SqliteDriver.initConnection(String.format("jdbc:sqlite:%s", FilenameUtils.concat(xmlDir, jdbcUrl)),
 				usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
-		else if (type == JDBCType.ms2k) {
+		else if (type == dbtype.ms2k) {
 			return Msql2kDriver.initConnection(jdbcUrl,
 				usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
-		else if (type == JDBCType.oracle) {
+		else if (type == dbtype.oracle) {
 			return OracleDriver.initConnection(jdbcUrl,
 				usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
@@ -58,7 +58,7 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 			throw new SemanticException("The configured DB type %s is not supported yet.", type);
 	}
 
-	public static AbsConnect<? extends AbsConnect<?>> initPooledConnect(String xmlDir, JDBCType type,
+	public static AbsConnect<? extends AbsConnect<?>> initPooledConnect(String xmlDir, dbtype type,
 			String jdbcUrl, String usr, String pswd, boolean printSql) {
 		/*
 		if (type == JDBCType.mysql) {

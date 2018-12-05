@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import javax.sql.DataSource;
 
 import io.odysz.common.Configs;
-import io.odysz.common.JDBCType;
+import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.OracleLob;
@@ -325,7 +325,7 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 	}
 
 	public OracleDriver() {
-		super(JDBCType.oracle);
+		super(dbtype.oracle);
 	}
 
 	@Override

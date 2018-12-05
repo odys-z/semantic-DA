@@ -48,7 +48,7 @@ class DASemantextTest {
 		Utils.logi(path);
 		Connects.init(path);
 
-		ISemantext s = new DASemantext("src/test/res/semantics.xml");
+		ISemantext s = new DASemantext("local", "src/test/res/semantics.xml");
 		st = new DATranscxt(s);
 		
 		SemanticObject jo = new SemanticObject();
