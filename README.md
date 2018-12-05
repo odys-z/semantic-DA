@@ -10,3 +10,6 @@ The final data is used to build the SQL statement(s). In this way, a typical dat
 Semantic-DA is a building block of a future framework project, semantic-jserv. With semantic-DA, typical CRUD semantics handling should sported via been semantics patterns.
 
 In short, semantic-transact handling sql structure, ISemantics handling data modification, semantic-DA glue this together, based on JDBC connection(s).
+
+# Quick Start, Hello Word, Docs/Wiki, ...
+comming soon. Sorry about that.
