@@ -1,4 +1,6 @@
 # semantic-DA
+
+## about
 A data access layer based on Semantic-Transact.
 
 Semantic-DA can emit sql AST building / traveling events that let users have chances to organize updating data to inject the business semantics.
@@ -11,5 +13,5 @@ Semantic-DA is a building block of a future framework project, semantic-jserv. W
 
 In short, semantic-transact handling sql structure, ISemantics handling data modification, semantic-DA glue this together, based on JDBC connection(s).
 
-# Quick Start, Hello Word, Docs/Wiki, ...
+## Quick Start, Hello Word, Docs/Wiki, ...
 comming soon. Sorry about that.
