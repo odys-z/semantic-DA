@@ -21,6 +21,10 @@
   		<pk>logId</pk>
   		<args>logId</args>
   	</s>
+  	<!-- IUser.dbLog() can not support oper-time? because:
+  		1. The transcxt.insert(tabl, log)'s log must be null, otherwise it will results in infinite recursive calls;
+  		2. Oper can only been set by insert#nv("oper", uid), because log is null.
+  	-->
   	<s>
   		<id>02</id>
  		<smtc>o-t</smtc>

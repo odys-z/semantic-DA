@@ -20,10 +20,17 @@ public class TestUser implements IUser {
 	private DATranscxt logSemantic;
 	private String uid;
 	private SemanticObject action;
+	private IUser dumbUser;
+
 
 	public TestUser(String userId, SemanticObject action) {
 		this.uid = userId;
 		this.action = action;
+
+		dumbUser = new IUser() {
+				@Override public String getUserId() { return userId; }
+				@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
+			};
 		
 		ISemantext semt;
 		try {
@@ -46,7 +53,8 @@ public class TestUser implements IUser {
 			//	// insert into a_logs(logId, oper, funcName, funcId, cmd, url, operDate, txt)
 			//	// values ('%s', '%s', '%s', '%s', null, '%s', sysdate, '%s');
 			//	newId, uid, funcName, funcId, cmd, url, String.valueOf(sqls.size()), txt(sqls));
-			logSemantic.insert("a_logs", null)
+
+			logSemantic.insert("a_logs", dumbUser)
 				.nv("oper", uid)
 				.nv("funcName", action.getString("funcName"))
 				.nv("funcId", action.getString("funcId"))

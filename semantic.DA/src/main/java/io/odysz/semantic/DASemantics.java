@@ -401,7 +401,7 @@ public class DASemantics {
 				nvOper = row.get(cols.get(args[0]));
 			else {
 				nvOper = new String[2];
-				cols.put(args[0], row.size());
+				cols.put(args[0], row.size()); // oper
 				row.add(nvOper);
 			}
 			nvOper[0] = args[0];
@@ -413,10 +413,10 @@ public class DASemantics {
 					nvTime = row.get(cols.get(args[1]));
 				else {
 					nvTime = new Object[2];
-					cols.put(args[0], row.size());
+					cols.put(args[1], row.size()); // operTime
 					row.add(nvTime);
 				}
-				nvTime[0] =  args[0];
+				nvTime[0] =  args[1];
 				nvTime[1] =  new ExprPart("now()");
 			}
 		}
