@@ -12,8 +12,8 @@ import io.odysz.semantic.DA.DatasetCfg;
 import io.odysz.semantic.util.DateFormat;
 import io.odysz.common.AESHelper;
 
-/**Data structure semantics description and supporter.<br>
- * Currently only semantics of fullpath used for depth-first tree traveling is supported.
+/**Data structure semantics item description and supporter,
+ * e.g. semantics of fullpath is used for depth-first tree traveling.
  * @author ody
  */
 public class Semantics {
