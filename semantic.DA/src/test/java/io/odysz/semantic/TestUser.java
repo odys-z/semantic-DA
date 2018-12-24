@@ -28,8 +28,12 @@ public class TestUser implements IUser {
 		this.action = action;
 
 		dumbUser = new IUser() {
-				@Override public String getUserId() { return userId; }
 				@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
+				@Override public boolean login() throws TransException { return false; }
+				@Override public String sessionId() { return null; }
+				@Override public void touch() { }
+				@Override public String uid() { return userId; }
+				@Override public SemanticObject logout() { return null; }
 			};
 		
 		ISemantext semt;
@@ -42,7 +46,7 @@ public class TestUser implements IUser {
 	}
 
 	@Override
-	public String getUserId() { return uid; }
+	public String uid() { return uid; }
 
 	@Override
 	public ArrayList<String> dbLog(ArrayList<String> sqls) {
@@ -75,6 +79,30 @@ public class TestUser implements IUser {
 			// FIXME performance problem here
 			sqls.stream().map(e -> SQLString.formatSql(e))
 				.collect(Collectors.joining(";"));
+	}
+
+	@Override
+	public boolean login() throws TransException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public String sessionId() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void touch() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public SemanticObject logout() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

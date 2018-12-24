@@ -420,7 +420,7 @@ public class DASemantics {
 				row.add(nvOper);
 			}
 			nvOper[0] = args[0];
-			nvOper[1] = usr == null ? "sys" : usr.getUserId();
+			nvOper[1] = usr == null ? "sys" : usr.uid();
 		}
 	}
 }

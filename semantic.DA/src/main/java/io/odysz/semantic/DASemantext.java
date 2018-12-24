@@ -27,17 +27,16 @@ import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
-import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.x.TransException;
 
 public class DASemantext implements ISemantext {
 
 	private HashMap<Object, Object> autoVals;
-	private Statement<?> callerStatement;
+//	private Statement<?> callerStatement;
 	private static DATranscxt rawst = new DATranscxt(null);
 
-	private HashMap<String, SemanticObject> resolvedIds;
+	private SemanticObject resolvedIds;
 
 	private HashMap<String, DASemantics> ss;
 	private IUser usr;
@@ -83,7 +82,7 @@ public class DASemantext implements ISemantext {
 	 */
 	@Override
 	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> valuesNv) {
-		callerStatement = insert;
+//		callerStatement = insert;
 		if (valuesNv != null)
 			for (ArrayList<Object[]> value : valuesNv) {
 				Map<String, Integer> cols = insert.getColumns();
@@ -113,10 +112,9 @@ public class DASemantext implements ISemantext {
 					
 					// set results
 					if (resolvedIds == null)
-						resolvedIds = new HashMap<String, SemanticObject>();
-					if (!resolvedIds.containsKey(tabl))
-						resolvedIds.put(tabl, new SemanticObject());
-					resolvedIds.get(tabl).add("new-ids", nv[1]);
+						resolvedIds = new SemanticObject();
+					resolvedIds.put(tabl, new SemanticObject());
+					((SemanticObject) resolvedIds.get(tabl)).add("new-ids", nv[1]);
 				}
 			}
 		}
@@ -161,7 +159,7 @@ public class DASemantext implements ISemantext {
 	}
 
 	@Override
-	public HashMap<String, SemanticObject> results() {
+	public SemanticObject results() {
 		return resolvedIds;
 	}
 	///////////////////////////////////////////////////////////////////////////

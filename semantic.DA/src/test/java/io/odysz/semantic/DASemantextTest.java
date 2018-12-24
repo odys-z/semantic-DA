@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -88,7 +87,7 @@ class DASemantextTest {
 		String flag = DateFormat.format(new Date());
 
 		ArrayList<String> sqls = new ArrayList<String>(1);
-		HashMap<String, SemanticObject> r = st.insert("a_functions")
+		SemanticObject r = st.insert("a_functions")
 			.nv("flags", flag)
 			.nv("funcId", "AUTO")
 			.nv("funcName", "func - " + flag)
@@ -100,7 +99,7 @@ class DASemantextTest {
 		
 		Connects.commit(usr , sqls);
 		Utils.logi("New ID for %s:", "a_functions");
-		Utils.logi((ArrayList<String>)r.get("a_functions").get("new-ids"));
+		Utils.logi((ArrayList<String>)((SemanticObject) r.get("a_functions")).get("new-ids"));
 	}
 
 	@Test
