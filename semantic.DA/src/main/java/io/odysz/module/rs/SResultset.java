@@ -666,47 +666,6 @@ for (String coln : colnames.keySet())
 		return b;
 	}
 
-//	@SuppressWarnings("unchecked")
-//	public static ICResultset parseJarr(JsonObject jrs) {
-//		if (gson == null)
-//			gson = new Gson();
-//		String jcols = jrs.getString("headers");
-//		Type headrTp = new TypeToken<HashMap<String, Object[]>>() {}.getType();
-//		HashMap<String, Object[]> headers = (HashMap<String, Object[]>) gson.fromJson(jcols, headrTp);
-//		
-//		// convert idx[0] to int 
-//		if (headers != null)
-//			for (Object[] headr : headers.values()) {
-//				try {
-//					headr[0] = (Integer)Math.round(Float.valueOf((String) headr[0]));
-//				} catch (Exception ex) {
-//					try {headr[0] = (int)Math.round((Double)headr[0]); }
-//					catch(Exception e2) {}
-//				}
-//			}
-//
-//		ICResultset rs = new ICResultset(headers, true);
-//
-//		String jrows = jrs.getString("rows");
-//
-//		if (debug) {
-//			System.out.println(" *********** ICResultset.parseJarr() parsing JsonObject **********");
-//			System.out.println(jrs);
-//		}
-//
-//		// append( (ArrayList<Object>) gson.fromJson(jrows, rt) );
-//		Type rt = new TypeToken<ArrayList<ArrayList<String>>>(){}.getType();
-//		rs.results = gson.fromJson(jrows, rt);
-//		rs.rowCnt = rs.results.size();
-//		rs.rowIdx = 0;
-//	
-//		if (debug) {
-//			try { rs.printSomeData(false, rs.getRowCount() + 1, "abnormalId", "hostId", "ignorTimes", "abnormalConclusion");
-//			} catch (Exception ex) {}
-//		}
-//		return rs;
-//	}
-	
 	/**Collect fields value that can be used in "IN" condition, e.g. 'v1', 'v2', ...
 	 * @param rs
 	 * @param fields
@@ -730,8 +689,6 @@ for (String coln : colnames.keySet())
 		}
 		return s;
 	}
-
-
 
 	public void disableColumns(String... cols2Disable) {
 		if (cols2Disable != null && colnames != null)

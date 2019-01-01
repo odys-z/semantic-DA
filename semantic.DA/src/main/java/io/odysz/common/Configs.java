@@ -32,7 +32,7 @@ public class Configs {
 	/**For redirect path of config.xml
 	 * @param xmlDir
 	 */
-	protected static void init(String xmlDir) {
+	public static void init(String xmlDir) {
 		cfgFile = FilenameUtils.concat(xmlDir, cfgFile);
 		load(cfgs, deftId);
 	}
@@ -74,42 +74,6 @@ public class Configs {
 		return cfgs.get(tid).get(k);
 	}
 	
-
-//	public static String getCfg(String tid, String k) {
-//		return getCfg2(tid, k);
-//	}
-
-	/**find v from config.xml: table=tid/k=driver-type:k
-	 * @param tid
-	 * @param connId
-	 * @param k
-	 * @return
-	public static String getCfg(String tid, String connId, String k) {
-		if (connId == null)
-			connId = DA.getDefltConnId();
-
-		DriverType driver = DA.getConnType(connId);
-
-		// try diver-type
-		String v = getCfg2(tid, driver + ":" + k);
-		if (v != null)
-			return v;
-
-		if ("orcl".equals(driver)) {
-			v = getCfg2(tid, "oracle" + ":" + k);
-			if (v != null)
-				return v;
-		}
-		else if ("oracle".equals(driver)) {
-			v = getCfg2(tid, "orcl" + ":" + k);
-			if (v != null)
-				return v;
-		}
-
-		return getCfg2(tid, k);
-	}
-	 */
-
 	public static boolean getBoolean(String key) {
 		String isTrue = Configs.getCfg(key);
 		if (isTrue == null) return false;
