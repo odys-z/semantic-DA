@@ -1,0 +1,156 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.github.odys-z</groupId>
+  <artifactId>semantic.DA</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>semantic.DA</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<maven.compiler.source>1.8</maven.compiler.source>
+	<maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+
+  <repositories>
+  	<repository>
+  		<id>sonatype-snapshots</id>
+  		<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+  	</repository>
+  </repositories>
+
+  <dependencies>
+	<!-- https://mvnrepository.com/artifact/junit/junit
+	<dependency>
+	    <groupId>junit</groupId>
+	    <artifactId>junit</artifactId>
+	    <version>4.12</version>
+	    <scope>test</scope>
+	</dependency> -->
+	<dependency>
+    	<groupId>org.junit.jupiter</groupId>
+    	<artifactId>junit-jupiter-engine</artifactId>
+    	<version>5.3.1</version>
+    	<scope>test</scope>
+	</dependency>
+
+
+	<dependency>
+		<!-- As sonatype SNAPSHOT is updating on a daily base, you may update this with:
+			mvn clean package -U
+			to update immediately. -->
+	    <groupId>io.github.odys-z</groupId>
+	    <artifactId>semantics.transact</artifactId>
+	    <version>0.5.0-SNAPSHOT</version>
+	</dependency>
+
+	<!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
+	<dependency>
+	    <groupId>org.xerial</groupId>
+	    <artifactId>sqlite-jdbc</artifactId>
+	    <version>3.25.2</version>
+	</dependency>
+	
+	<!-- ojdbc7.jar
+		Since oracle JDBC driver package needing license agreement, you need install ojdbc.jar like this:
+		mvn install:install-file -Dfile=lib/ojdbc7.jar -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=12.1.0.1 -Dpackaging=jar
+	-->
+	<dependency>
+	    <groupId>com.oracle</groupId>
+	    <artifactId>ojdbc14</artifactId>
+	    <version>12.1.0.1</version>
+	</dependency>
+  </dependencies>
+
+  <scm>
+  	<connection>scm:git:git://github.com/odys-z/semantic-DA.git</connection>
+  	<developerConnection>scm:git:odys-z@github.com:odys-z/semantic-DA.git</developerConnection>
+  	<url>https://github.com/odys-z/semantic-DA</url>
+  	<tag>HEAD</tag>
+  </scm>
+
+  <distributionManagement>
+  	<snapshotRepository>
+  		<id>ossrh</id>
+  		<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+  		<uniqueVersion>false</uniqueVersion>
+  	</snapshotRepository>
+  	<repository>
+  		<id>ossrh</id>
+  		<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+	</repository>
+  </distributionManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+      	<artifactId>maven-compiler-plugin</artifactId>
+        <version>3.7.0</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+
+	  <plugin>
+	  	<artifactId>maven-deploy-plugin</artifactId>
+	  	<version>2.8.2</version>
+	  	<executions>
+	  		<execution>
+	  			<id>default-deploy</id>
+	  			<phase>deploy</phase>
+	  			<goals>
+	  				<goal>deploy</goal>
+	  			</goals>
+	  		</execution>
+	  	</executions>
+	  </plugin>
+
+	  <plugin>
+		<groupId>org.sonatype.plugins</groupId>
+		<artifactId>nexus-staging-maven-plugin</artifactId>
+		<version>1.6.7</version>
+		<extensions>true</extensions>
+		<configuration>
+			<serverId>odys-z</serverId>
+			<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+			<autoReleaseAfterClose>true</autoReleaseAfterClose>
+		</configuration>
+	  </plugin>
+
+	  <!-- JavaDoc and source attachment -->
+	  <plugin>
+	      <groupId>org.apache.maven.plugins</groupId>
+	      <artifactId>maven-source-plugin</artifactId>
+	      <version>2.2.1</version>
+	      <executions>
+	        <execution>
+	          <id>attach-sources</id>
+	          <goals>
+	            <goal>jar-no-fork</goal>
+	          </goals>
+	        </execution>
+	      </executions>
+	  </plugin>
+
+	  <plugin>
+	      <groupId>org.apache.maven.plugins</groupId>
+	      <artifactId>maven-javadoc-plugin</artifactId>
+	      <version>2.9.1</version>
+	      <executions>
+	        <execution>
+	          <id>attach-javadocs</id>
+	          <goals>
+	            <goal>jar</goal>
+	          </goals>
+	        </execution>
+	      </executions>
+	  </plugin>
+     </plugins>
+   </build>
+ 
+</project>
