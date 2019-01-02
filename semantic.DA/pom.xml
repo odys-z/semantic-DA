@@ -48,13 +48,6 @@
 	    <version>0.5.0-SNAPSHOT</version>
 	</dependency>
 
-	<!-- https://mvnrepository.com/artifact/commons-io/commons-io
-	<dependency>
-	    <groupId>commons-io</groupId>
-	    <artifactId>commons-io</artifactId>
-	    <version>2.6</version>
-	</dependency> -->
-
 	<!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
 	<dependency>
 	    <groupId>org.xerial</groupId>
@@ -62,7 +55,15 @@
 	    <version>3.25.2</version>
 	</dependency>
 	
-
+	<!-- ojdbc7.jar
+		Since oracle JDBC driver package needing license agreement, you need install ojdbc.jar like this:
+		mvn install:install-file -Dfile=lib/ojdbc7.jar -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=12.1.0.1 -Dpackaging=jar
+	-->
+	<dependency>
+	    <groupId>com.oracle</groupId>
+	    <artifactId>ojdbc14</artifactId>
+	    <version>12.1.0.1</version>
+	</dependency>
   </dependencies>
 
   <scm>

@@ -29,11 +29,12 @@ public class TestUser implements IUser {
 
 		dumbUser = new IUser() {
 				@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
-				@Override public boolean login() throws TransException { return false; }
+				@Override public boolean login(Object req) throws TransException { return false; }
 				@Override public String sessionId() { return null; }
 				@Override public void touch() { }
 				@Override public String uid() { return userId; }
 				@Override public SemanticObject logout() { return null; }
+				@Override public void writeJsonRespValue(Object writer) throws IOException { }
 			};
 		
 		ISemantext semt;
@@ -82,27 +83,17 @@ public class TestUser implements IUser {
 	}
 
 	@Override
-	public boolean login() throws TransException {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	public boolean login(Object req) throws TransException { return false; }
 
 	@Override
-	public String sessionId() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	public String sessionId() { return null; }
+
+	@Override public void touch() { }
 
 	@Override
-	public void touch() {
-		// TODO Auto-generated method stub
-		
-	}
+	public SemanticObject logout() { return null; }
 
 	@Override
-	public SemanticObject logout() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	public void writeJsonRespValue(Object writer) throws IOException { }
 
 }
