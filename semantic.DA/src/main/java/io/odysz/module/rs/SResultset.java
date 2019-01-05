@@ -1,6 +1,5 @@
 package io.odysz.module.rs;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -14,7 +13,6 @@ import java.util.Date;
 import java.util.HashMap;
 
 import io.odysz.common.Regex;
-import io.odysz.semantics.SemanticObject;
 
 /**This Resultset used for non-connected manipulation.
  * Rows and Cols are start at 1, the same as {@link java.sql.Resultset}.<br>
@@ -652,19 +650,19 @@ for (String coln : colnames.keySet())
 	 * @return
 	 * @throws UnsupportedEncodingException 
 	 */
-	public SemanticObject convert2Jarr(boolean includeColHeader) throws UnsupportedEncodingException {
-		// JsonObjectBuilder b = Json.createObjectBuilder();
-		SemanticObject b = new SemanticObject();
-//		b.add("rowCount", results == null ? 0 : results.size());
-//		b.add("colCount", colnames == null ? 0 : colnames.size());
-//		if (gson == null) gson = new Gson();
-//		b.add("headers", gson.toJson(colnames));
+//	public SemanticObject convert2Jarr(boolean includeColHeader) throws UnsupportedEncodingException {
+//		// JsonObjectBuilder b = Json.createObjectBuilder();
+//		SemanticObject b = new SemanticObject();
+////		b.add("rowCount", results == null ? 0 : results.size());
+////		b.add("colCount", colnames == null ? 0 : colnames.size());
+////		if (gson == null) gson = new Gson();
+////		b.add("headers", gson.toJson(colnames));
+////
+////		Type rt = new TypeToken<ArrayList<ArrayList<String>>>(){}.getType();
+////		b.add("rows", gson.toJson(results, rt ));
 //
-//		Type rt = new TypeToken<ArrayList<ArrayList<String>>>(){}.getType();
-//		b.add("rows", gson.toJson(results, rt ));
-
-		return b;
-	}
+//		return b;
+//	}
 
 	/**Collect fields value that can be used in "IN" condition, e.g. 'v1', 'v2', ...
 	 * @param rs
