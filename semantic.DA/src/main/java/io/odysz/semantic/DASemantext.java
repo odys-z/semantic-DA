@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Stream;
 
 import org.xml.sax.SAXException;
 
@@ -310,6 +311,37 @@ end;
 			l = locks.get(conn).get(tabl);
 		} finally { lockOflocks.unlock(); }
 		return l;
+	}
+
+	@Override
+	public Stream<String> pagingStream(Stream<String> s, int pageIx, int pgSize) throws TransException {
+		dbtype dt = Connects.driverType(connId);
+		return pagingStream(dt, s, pageIx, pgSize);
+	}
+
+	public static Stream<String> pagingStream(dbtype dt, Stream<String> s, int pageIx, int pgSize) throws TransException {
+		int r1 = pageIx * pgSize;
+		int r2 = r1 + pgSize;
+		switch(dt) {
+		case oracle:
+			// "select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s"
+			return Stream.concat(Stream.concat(
+						Stream.of("select * from (select t.*, rownum r_n_ from ("), s),
+						Stream.of(String.format(") t WHERE rownum <= %s  order by rownum) t where r_n_ > %s", r1, r2)));
+		case ms2k:
+			// "select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= %s and rownum <= %s"
+			return Stream.concat(Stream.concat(
+						Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from ("), s),
+						Stream.of(String.format(") t) t where rownum >= %s and rownum <= %s", r1, r2)));
+		case sqlite:
+			throw new TransException("There is not a easy way to support sqlite paging. Don't using server side paging for sqlite datasource."); 
+		case mysql:
+		default: // mysql
+			// "select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s"
+			return Stream.concat(Stream.concat(
+						Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from ("), s),
+						Stream.of(String.format(") t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s", r1, r2)));
+		}
 	}
 	
 }

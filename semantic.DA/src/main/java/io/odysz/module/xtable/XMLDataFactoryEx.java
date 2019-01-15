@@ -19,9 +19,9 @@ public class XMLDataFactoryEx {
 	 * Construct a new table.<br/>
 	 * Not xml table data are buffered - for release memory.
 	 * @param logger
-	 * @param targetFullpath
+	 * @param targetFullpath path and filename
 	 * @param xmlStruct
-	 * @return
+	 * @return xtables
 	 * @throws SQLException 
 	 * @throws IOException 
 	 */
