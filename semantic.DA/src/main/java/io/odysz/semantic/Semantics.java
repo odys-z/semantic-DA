@@ -13,7 +13,8 @@ import io.odysz.semantic.util.DateFormat;
 import io.odysz.common.AESHelper;
 
 /**Data structure semantics item description and supporter,
- * e.g. semantics of fullpath is used for depth-first tree traveling.
+ * e.g. semantics of fullpath is used for depth-first tree traveling.<br>
+ * TODO should renamed as DB Table relationships?
  * @author ody
  */
 public class Semantics {
