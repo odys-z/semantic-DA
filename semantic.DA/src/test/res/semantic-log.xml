@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <semantics>
   <t id="semantics" pk="id" columns="id,smtc,tabl,pk,args">
-  <!-- smtc:
+  <!-- see semantic.DA/io.odysz.semantic.DASemantics
+  smtc:
   	0. {@link #autoPk} </b> key-word: "auto" | "ai" | "a-i" args: 0: auto incrementing handled field
 	1. {@link #fullpath} </b> key-word: "fullpath" | "fp" | "f-p" 0: parent Id field, 1: sibling/sort field (optional), 2: fullpath field
 	2. {@link #parentChildren} </b> key-word: "pc-del-all" | "parent-child-del-all"
@@ -21,7 +22,8 @@
   		<pk>logId</pk>
   		<args>logId</args>
   	</s>
-  	<!-- IUser.dbLog() can not support oper-time? because:
+  	<!-- IUser.dbLog() can not support oper-time?
+  		Because:
   		1. The transcxt.insert(tabl, log)'s log must be null, otherwise it will results in infinite recursive calls;
   		2. Oper can only been set by insert#nv("oper", uid), because log is null.
   	-->

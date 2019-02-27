@@ -31,6 +31,10 @@ import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.x.TransException;
 
+/**A basic semantic context for generating sql.
+ * @author ody
+ *
+ */
 public class DASemantext implements ISemantext {
 
 	private HashMap<Object, Object> autoVals;
