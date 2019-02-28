@@ -23,7 +23,9 @@
 			and u.roleId = rf.roleId and rf.funcId = f.funcId 
 			order by fullPath
   		</mysql>
-  		<s-tree>checked,ir_workflow,id,parentId,text,,,false</s-tree>
+  		<sqlit>SELECT domainId, parentId, domainName, domainValue, sort, "others", fullpath, stamp, upstamp FROM a_domain;
+  		</sqlit>
+  		<s-tree>checked,ir_workflow,domainId id,parentId,text,,,false</s-tree>
 	</c>
 </t>
 </dataset>
