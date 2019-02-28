@@ -1,6 +1,7 @@
 package io.odysz.module.xtable;
 
-/**Code snipet for default ILogger android implementation:<pre>
+/**@deprecated replaced by {@link io.odysz.common.Utils}<br>
+ * Code snipet for default ILogger android implementation:<pre>
  public class Logger implements ILogger {
 	private static boolean debugging = true;
 

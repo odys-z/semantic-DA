@@ -583,14 +583,15 @@ public class Semantics {
 	 * @param tabl
 	 * @param recId
 	 * @return
+	 * @throws SemanticException 
 	 */
-	public String upstampOnUpdate(String conn, String tabl, String recId) {
+	public String upstampOnUpdate(String conn, String tabl, String recId) throws SemanticException {
 		if (!supportUpStampOnUpdate)
 			return null;
 		try {
 			// <mysql>select Date_add(%s, interval 1 second) upstamp from %s where %s = '%s'</mysql>
 			// 
-			String sql = DatasetCfg.getSqlx(conn, "semantics.get-downstamp",
+			String sql = DatasetCfg.getSql(conn, "semantics.get-downstamp",
 					downStamp, tabl, this.idField, recId);
 			SResultset rs = Connects.select(sql, Connects.flag_nothing);
 			rs.next();

@@ -9,4 +9,7 @@ public class LogFlags {
 
 	public static final boolean logDumb = false;
 
+	/**{@link io.odysz.semantic.DA.DatasetCfg} */
+	public static final boolean datasetCfg = false;
+
 }

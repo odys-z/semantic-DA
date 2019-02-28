@@ -1,24 +1,33 @@
 package io.odysz.semantic.DA;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 import org.xml.sax.SAXException;
 
+import io.odysz.common.LangExt;
 import io.odysz.common.Utils;
-import io.odysz.module.xtable.ILogger;
+import io.odysz.common.dbtype;
+import io.odysz.module.rs.SResultset;
 import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
+import io.odysz.semantic.util.LogFlags;
+import io.odysz.semantics.SemanticObject;
+import io.odysz.semantics.x.SemanticException;
 
 /**Configured dataset.xml manager and mapping helper.<br>
- * Design Memo: Separating getSql() and mapRs() will separate DA driver dependency - won't care using CP data source or DB manager.
- * @author ody
+ * Design Memo: Separating getSql() and mapRs() will separate DA driver dependency
+ * - won't care using CP data source or DB manager (2019.2.28).
+ * 
+ * @author odys-z@github.com
  */
 public class DatasetCfg {
 	public static final int drv_mysql = 0;
@@ -27,48 +36,41 @@ public class DatasetCfg {
 	public static final int drv_sqlit = 3;
 	public static final int drv_unknow = 4;
 
-	protected static ILogger log;
 	protected static final String tag = "DataSet";
 	protected static final String cfgFile = "dataset.xml";
 	protected static final String deftId = "ds";
 	protected static HashMap<String, Dataset> dss;
-	protected static HashMap<String, String> conn_driver;
 
-	public static void init(XMLTable connections, String path,
-			HashMap<String, HashMap<String, String>> orclMappings) throws Exception {
-		log = new Log4jWrapper("");
-		dss = new HashMap<String, Dataset>();
-		conn_driver = parseDrivers(connections);
-
-		load(conn_driver, dss, path, orclMappings);
+	public static class Ix {
+		public static final int count = 9;
+		/** the boolean field */
+		public static final int chked = 0;
+		public static final int tabl = 1;
+		public static final int recId = 2;
+		public static final int parent = 3;
+		public static final int fullpath = 4;
+		public static final int sort = 5;
+		public static final int text = 6;
+		public static final int pageByServer = 8;
 	}
 
-	/**Get conn-id and conn-type pairs.
-	 * @param connections
-	 * @return
-	 * @throws SAXException
-	 */
-	private static HashMap<String, String> parseDrivers(XMLTable connections) throws SAXException {
-		HashMap<String, String> con_drv = new HashMap<String, String>(connections.getRowCount());
-		connections.beforeFirst();
-		while (connections.next()) {
-			con_drv.put(connections.getString("id"), connections.getString("type"));
-		}
-		return con_drv;
+	public static void init(String path) throws SAXException, IOException {
+		dss = new HashMap<String, Dataset>();
+		load(dss, path);
 	}
 
 	/**Load all dataset.xml into the argument cfgs.<br>
 	 * When return, cfgs is loaded with dataset configurations like [id, mysql:sql, orcl:sql, ...].
-	 * @param conn_drv [conn-id, driver]
 	 * @param cfgs
-	 * @param context
-	 * @param orclMappings 
-	 * @throws Exception
+	 * @param xmlPath
+	 * @throws IOException 
+	 * @throws SAXException 
 	 */
-	protected static void load(HashMap<String, String> conn_drv, HashMap<String, Dataset> cfgs,
-			String xmlPath, HashMap<String, HashMap<String, String>> orclMappings) throws Exception {
+	protected static void load(HashMap<String, Dataset> cfgs, String xmlPath)
+			throws SAXException, IOException {
 		String fullpath = FilenameUtils.concat(xmlPath + "/", cfgFile);
-		log.d("D", "message file path: " + fullpath);
+		if (LogFlags.datasetCfg)
+			Utils.logi("message file path: %s", fullpath);
 
 		File f = new File(fullpath);
 		if (!f.exists() || !f.isFile()) {
@@ -96,11 +98,10 @@ public class DatasetCfg {
 					sqls[drv_ms2k] = deft.getString("ms2k");
 
 					// columns="id,tabls,cols,orcl,mysql,ms2k"
-					ds = new Dataset(conn_drv, deft.getString("id"),
-									deft.getString("tabls"), deft.getString("cols"),
-									sqls, deft.getString("s-tree"), orclMappings);
+					ds = new Dataset(deft.getString("sk"), deft.getString("cols"),
+									sqls, deft.getString("s-tree"));
 					if (ds != null)
-						cfgs.put(deft.getString("id"), ds);
+						cfgs.put(deft.getString("sk"), ds);
 				}
 			} catch (SAXException e) {
 				e.printStackTrace();
@@ -108,103 +109,178 @@ public class DatasetCfg {
 		}
 	}
 
-	public static String getSql(String conn, String k, Object[] args) throws SQLException {
-		return getSqlx(conn, k, args);
-	}
-
-	public static String getSqlx(String conn, String k, Object... args) throws SQLException {
+	public static String getSql(String conn, String k, Object... args) throws SQLException, SemanticException {
 		if (dss == null)
 			throw new SQLException("FATAL - dataset not initialized...");
 		if (k == null || !dss.containsKey(k))
 			throw new SQLException(String.format("No dataset configuration found for k = %s", k));
 
 		if (conn == null) conn = Connects.defltConn();
-		String sql = dss.get(k).getSql(conn_driver.get(conn));
+		String sql = dss.get(k).getSql(Connects.driverType(conn));
 		if (args == null || args.length == 0)
 			return sql;
 		else return String.format(sql, (Object[])args);
 	}
 	
-	public static String getStree(String conn, String k) throws SQLException {
-		if (dss == null)
-			throw new SQLException("FATAL - dataset not initialized...");
-		if (k == null || !dss.containsKey(k))
-			throw new SQLException(String.format("No dataset configuration found for k = %s", k));
-		if (conn == null) conn = Connects.defltConn();
-		return dss.get(k).stree();
-	}
-
-//	public static ICResultset mapRs(String conn, String k, ICResultset rs) {
-//		if (conn == null || k == null)
-//			return rs;
-//		return dss.get(k).map(conn, rs);
+	/**
+	 * @param conn
+	 * @param k
+	 * @return Tree semantics
+	 * @throws SQLException
+	 */
+//	public static String[] getStreeSmtcs(String conn, String k) throws SQLException {
+//		if (dss == null)
+//			throw new SQLException("FATAL - dataset not initialized...");
+//		if (k == null || !dss.containsKey(k))
+//			throw new SQLException(String.format("No dataset configuration found for k = %s", k));
+//		if (conn == null) conn = Connects.defltConn();
+//		return dss.get(k).treeSemtcs;
 //	}
 
+	public static List<SemanticObject> loadStree(String conn, String sk, Object... args)
+			throws SemanticException, SQLException {
+		if (conn == null || sk == null)
+			return null;
+
+		String sql = getSql(conn, sk, args);
+		SResultset rs = Connects.select(sql);
+		rs = dss.get(sk).map(conn, rs);	
+		return buildForest(rs, dss.get(sk).treeSemtcs);
+	}
+	
+	/**TODO We need a tree's semantics class, for overriding and handling semantic-tree table in xml?
+	 * @param rs
+	 * @param semanticss
+	 * @return built forest
+	 * @throws SQLException
+	 */
+	public static List<SemanticObject> buildForest (SResultset rs, String[] semanticss) throws SQLException {
+		// build the tree/forest
+		List<SemanticObject> forest = new ArrayList<SemanticObject>();
+		rs.beforeFirst();
+		while (rs.next()) {
+			SemanticObject root  = formatSemanticNode(semanticss, rs);
+
+			// checkSemantics(rs, semanticss, Ix.recId);
+			List<SemanticObject> children = buildSubTree(semanticss, root,
+					rs.getString(semanticss[Ix.recId] == null ? semanticss[Ix.recId] : semanticss[Ix.recId]), rs);
+			if (children.size() > 0)
+				root.put("children", children);
+			forest.add(root);
+		}
+
+		return forest;
+	}
+
+	/**Create a SemanticObject for tree node with current rs row.
+	 * @param sm
+	 * @param rs
+	 * @return
+	 * @throws SQLException
+	 */
+	private static SemanticObject formatSemanticNode(String[] sm, SResultset rs) throws SQLException {
+		SemanticObject node = new SemanticObject();
+
+		for (int i = 1;  i <= rs.getColCount(); i++) {
+			String v = rs.getString(i);
+			String col = rs.getColumnName(i);
+			if (v != null)
+				if (col.equals(sm[Ix.chked]))
+					node.put(col, rs.getBoolean(i));
+				else
+					node.put(col, v);
+		}
+		return node;
+	}
+
+	private static List<SemanticObject> buildSubTree(String[] sm,
+			SemanticObject parentNode, String parentId, SResultset rs) throws SQLException {
+		List<SemanticObject> childrenArray  = new ArrayList<SemanticObject>();
+		while (rs.next()) {
+			// Don't delete this except the servlet is completed and solved alias configure in xml.
+			// checkSemantics(rs, sm, Ix.parent);
+			String currentParentID = rs.getString(sm[Ix.parent]);
+			if (currentParentID == null || currentParentID.trim().length() == 0) {
+				// new tree root
+				rs.previous();
+				if (childrenArray.size() > 0) 
+					parentNode.put("children", childrenArray);
+				return childrenArray;
+			}
+			// HERE! ending adding children
+			if (!currentParentID.trim().equals(parentId.trim())) {
+				rs.previous();
+				if (childrenArray.size() > 0)
+					parentNode.put("children", childrenArray);
+				return childrenArray;
+			}
+
+			SemanticObject child = formatSemanticNode(sm, rs);
+
+			List<SemanticObject> subOrg = buildSubTree(sm, child,
+					rs.getString(sm[Ix.recId]), rs);
+
+			if (subOrg.size() > 0)
+				child.put("children", subOrg);
+			childrenArray.add(child);
+		}
+		return childrenArray;
+	}
 	
 	/**POJO dataset element as configured in dataset.xml.<br>
-	 * (oracle mapping information alse initialized according to mapping file and the "cols" tag.)*/
+	 * (oracle mapping information also initialized according to mapping file and the "cols" tag.)*/
 	static class Dataset {
 		String k;
-		/**[connId, list[mappings]], where mappings = map[upper-case-col, bump-case-col]*/
-		HashMap<String, ArrayList<HashMap<String, String>>> mappings;
-		HashMap<String, String> colsExt;
+
+		/**[key: UPPER-CASE, value: bumpCase] */
+		HashMap<String, String> colMappings;
 		String[] sqls;
-		/** If the result set can be used to construct a tree, a tree semantics configuration is needed.
-		 * "stree" is used to configure a tree semantics configuration.
+
+		/**Configuration in dataset.xml/t/c/s-tree.<br>
+		 * If the result set can be used to construct a tree, a tree semantics configuration is needed.
+		 * "s-tree" tag is used to configure a tree semantics configuration.
+		 * <p>DESIGN MEMO</p>
+		 * Currently s-tree tag don't support alias, but it's definitely needed in Stree servlet
+		 * as the client needing some special fields but with queried results from abstract sql construction.<br>
+		 * See the old version of SemanticTree servlet.
 		 */
-		String stree;
+		String[] treeSemtcs;
 
 		/**Create a dataset, with mapping prepared according with mapping file.
-		 * @param conn_drv
 		 * @param k
-		 * @param tabls
 		 * @param cols
 		 * @param sqls
 		 * @param stree
 		 * @param orclMappings mappings from mapping the file.
 		 * @throws SAXException 
 		 */
-		public Dataset(HashMap<String, String> conn_drv, String k, String tabls, String cols,
-				String[] sqls, String stree, HashMap<String, HashMap<String, String>> orclMappings) throws SAXException {
+		public Dataset(String k, String cols, String[] sqls, String stree)
+				throws SAXException {
 			this.k = k;
 
-			if (tabls != null) {
-				String[] ts = tabls.split(",");
-				if (ts != null && ts.length > 0)
-					for (String connId : conn_drv.keySet()) {
-						if (this.mappings == null)
-							this.mappings = new HashMap<String, ArrayList<HashMap<String, String>>>();
-
-						// 2018.09.15 mappings not only used by CPC Dao, also by drvMnger drivers.
-						// So moving mappings to the common module.
-						// That leads to take mappings a arguments for Dataset, not asking from Dao. 
-						// this.mappings.put(connId, Dao.getMappings(connId, ts));
-						this.mappings.put(connId, Mappings.getMappings4Tabl(orclMappings, ts));
-					}
-			}
-			colsExt = cols == null ? null : upper_bumpCase(cols.split(","));
+			colMappings = cols == null ? null : upper_bumpCase(cols.split(","));
 			this.sqls = sqls;
 			
-			this.stree = stree;
+			this.treeSemtcs = stree == null ? null
+					: LangExt.split(stree, ",");
 		}
 
-//		private ArrayList<HashMap<String, String>> getMappings(LinkedHashMap<String, XMLTable> orclMappings,
-//				String[] ts) {
-//			// TODO Auto-generated method stub
-//			return null;
-//		}
-
-//		public ICResultset map(String conn, ICResultset rs) {
-//			return JsonHelper.mapRsCols(colsExt, mappings.get(conn), rs);
-//		}
+		public SResultset map(String conn, SResultset rs) {
+			if (colMappings == null)
+				return rs;
+			else
+				return rs.setColumnCase(colMappings);
+		}
 
 		/**
 		 * @param driver drv_orcl, drv_ms2k, drv_sqlit, drv_mysql(default)
-		 * @return
+		 * @return sql db version of the jdbc connection
+		 * @throws SemanticException can't find correct sql version 
 		 */
-		public String getSql(String driver) {
+		public String getSql(dbtype driver) throws SemanticException {
 			if (driver == null)
 				return null;
+			/*
 			driver = driver.toLowerCase();
 			if ("orcl".equals(driver) || "oracle".equals(driver))
 				return sqls[drv_orcl] == null ? sqls[drv_mysql] : sqls[drv_orcl];
@@ -214,10 +290,25 @@ public class DatasetCfg {
 				return sqls[drv_sqlit] == null ? sqls[drv_mysql] : sqls[drv_sqlit];
 			else 
 				return sqls[drv_mysql];
+				*/
+			switch (driver) {
+			case oracle:
+				return sqls[drv_orcl];
+			case ms2k:
+				return sqls[drv_ms2k];
+			case sqlite:
+				return sqls[drv_sqlit];
+			case mysql:
+				return sqls[drv_mysql];
+			default:
+				throw new SemanticException("unsupported db type: %s", driver);
+			}
 		}
 		
-		public String stree() { return stree; }
-
+		/**
+		 * @param bumps bump case col names
+		 * @return [key = UPPER-CASE, value = bumpCase]
+		 */
 		private HashMap<String, String> upper_bumpCase(String[] bumps) {
 			if (bumps == null) return null;
 			HashMap<String, String> colMaps = new HashMap<String, String>();

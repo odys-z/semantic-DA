@@ -548,6 +548,23 @@ for (String coln : colnames.keySet())
 			}
 		}
 	}
+	
+	/**
+	 * @param upper_bumps [key: UPPER-CASE, value: bumpCase]
+	 * @return this (with column names updated)
+	 */
+	public SResultset setColumnCase(HashMap<String, String> upper_bumps) {
+		if (upper_bumps == null) return this;
+
+		for (String cn : colnames.keySet()) {
+			if (upper_bumps.containsKey(cn)) {
+				String bump =  (upper_bumps.get(cn));
+				if (bump != null)
+					colnames.get(cn)[1] = bump;
+			}
+		}
+		return this;
+	}
 
 	public int getRowCount() {
 		return rowCnt;
