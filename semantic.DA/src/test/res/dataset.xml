@@ -17,15 +17,16 @@
 	<c>
   		<sk>test.tree</sk>
   		<cols></cols>
-  		<mysql>select replace(group_concat(fullPath),'.',',') as ids 
-			from a_functions f, a_role_funcs rf, a_user u 
-			where rf.roleId = u.roleId and '%s' = u.userId 
-			and u.roleId = rf.roleId and rf.funcId = f.funcId 
-			order by fullPath
+  		<mysql>SELECT domainId id, parentId, domainName, domainValue, sort, "others", fullpath
+  			FROM a_domain order by fullpath limit 5;
   		</mysql>
-  		<sqlit>SELECT domainId, parentId, domainName, domainValue, sort, "others", fullpath, stamp, upstamp FROM a_domain;
+  		<orcl>SELECT "domId" "id", "parentId", "domName" "domainName", "domVal" "domainValue", "sort", "remarks", "fullpath"
+  			FROM "a_domain" order by "fullpath"
+  		</orcl>
+  		<sqlit>SELECT domainId id, parentId, domainName, domainValue, sort, "others", fullpath, stamp, upstamp
+  			FROM a_domain order by fullpath;
   		</sqlit>
-  		<s-tree>checked,ir_workflow,domainId id,parentId,text,,,false</s-tree>
+  		<s-tree>checked,ir_workflow,id idVue,parentId,text,,,false</s-tree>
 	</c>
 </t>
 </dataset>

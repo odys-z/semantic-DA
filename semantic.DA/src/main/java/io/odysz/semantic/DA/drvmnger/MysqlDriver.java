@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-import io.odysz.common.Configs;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
@@ -21,6 +20,7 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	static String userName;
 	static String pswd;
 	static String connect;
+	private static Connection conn;
 	
 	/**
 	 * IMPORTANT: Caller must close connection!
@@ -29,24 +29,27 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	 */
 	protected static Connection getConnection() throws SQLException {
 		if (!inited) {
-			String isTrue = Configs.getCfg("MySql.printSQL.enable");
-			printSql = isTrue != null && "true".equals(isTrue.toLowerCase());
-			
-			connect = Configs.getCfg("com.ic.DA.MySql.connect");
-			userName = Configs.getCfg("com.ic.DA.MySql.username");
-			pswd = Configs.getCfg("com.ic.DA.MySql.password");
-			// FIXME decipher pswd
-			// pswd = Encrypt.DecryptPswdImpl(pswd);
-			try {
-				Class.forName("com.mysql.jdbc.Driver").newInstance();
-			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-				e.printStackTrace();
-				throw new SQLException(e.getMessage());
-			}
-			inited = true;
+//			String isTrue = Configs.getCfg("MySql.printSQL.enable");
+//			printSql = isTrue != null && "true".equals(isTrue.toLowerCase());
+//			
+//			connect = Configs.getCfg("com.ic.DA.MySql.connect");
+//			userName = Configs.getCfg("com.ic.DA.MySql.username");
+//			pswd = Configs.getCfg("com.ic.DA.MySql.password");
+//			// FIXME decipher pswd
+//			// pswd = Encrypt.DecryptPswdImpl(pswd);
+//			try {
+//				Class.forName("com.mysql.jdbc.Driver").newInstance();
+//			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+//				e.printStackTrace();
+//				throw new SQLException(e.getMessage());
+//			}
+//			inited = true;
+
+			throw new SQLException("connection must explicitly initialized first - call initConnection()");
 		}
 
-		Connection conn = DriverManager.getConnection(connect, userName, pswd);
+		if (conn == null)
+			conn = DriverManager.getConnection(connect, userName, pswd);
 		return conn;
 	}
 	

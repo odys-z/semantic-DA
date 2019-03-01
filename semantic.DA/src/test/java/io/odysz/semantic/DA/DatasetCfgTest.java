@@ -28,10 +28,21 @@ class DatasetCfgTest {
 	@Test
 	void testLoadStree() throws SemanticException, SQLException {
 		List<SemanticObject> t = DatasetCfg.loadStree(
-				"local", // local: semantic-DA.db, see connects.xml
-				"test.tree", "admin");
-		if (t != null && t.size() > 0)
-			assertEquals(t.get(0).get("id"), "01");
+				"local-sqlite", // expect "01"; for semantic-DA.db, see connects.xml
+				// "local-mysql", // expect "11"
+				// "local-orcl", 	// expect "10"
+				"test.tree", -1, 0, "admin");
+		if (t != null && t.size() > 0) {
+			print(t);
+			assertEquals("01", t.get(0).get("idVue"));
+			// sqlite: assertEquals("10", t.get(0).get("id"));
+		}
+	}
+
+	static void print(List<SemanticObject> lst) {
+		for (SemanticObject e : lst) {
+			e.print(System.out);
+		}
 	}
 
 }

@@ -11,7 +11,6 @@ import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import org.xml.sax.SAXException;
 
-import io.odysz.common.LangExt;
 import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
@@ -30,17 +29,6 @@ import io.odysz.semantics.x.SemanticException;
  * @author odys-z@github.com
  */
 public class DatasetCfg {
-	public static final int drv_mysql = 0;
-	public static final int drv_orcl = 1;
-	public static final int drv_ms2k = 2;
-	public static final int drv_sqlit = 3;
-	public static final int drv_unknow = 4;
-
-	protected static final String tag = "DataSet";
-	protected static final String cfgFile = "dataset.xml";
-	protected static final String deftId = "ds";
-	protected static HashMap<String, Dataset> dss;
-
 	public static class Ix {
 		public static final int count = 9;
 		/** the boolean field */
@@ -53,6 +41,94 @@ public class DatasetCfg {
 		public static final int text = 6;
 		public static final int pageByServer = 8;
 	}
+
+	/**Data structure of s-tree configuration.
+	 * @author odys-z@github.com
+	 */
+	public static class TreeSemantics {
+		/**parse tree semantics like ",checked,table,recId id,parentId,itemName text,fullpath,siblingSort,false" to 2d array.
+		 * @param semantic
+		 * @return [0:[checked, null], 1:[tabl, null], 2:[areaId, id], ...]
+		 */
+		public static String[][] parseSemantics(String semantic) {
+			if (semantic == null) return null;
+			String[][] sm = new String[Ix.count][];
+			String[] sms = semantic.split(",");
+			for (int ix = 0; ix < sms.length; ix++) {
+				String smstr = sms[ix];
+				smstr = smstr.replaceAll("\\s+[aA][sS]\\s+", " "); // replace " as "
+				String[] smss = smstr.split(" ");
+				if (smss == null || smss.length > 2 || smss[0] == null)
+					System.err.println(String.format("WARN - SematnicTree: ignoring semantics not understandable: %s", smstr));
+				else {
+					sm[ix] = new String[] {smss[0].trim(),
+						(smss.length > 1 && smss[1] != null) ? smss[1].trim() : null};
+				}
+			}
+			return sm;
+		}
+
+		String[][] treeSmtcs;
+
+		public TreeSemantics(String stree) {
+			treeSmtcs = parseSemantics(stree);
+		}
+
+		/**Get raw expression of record id.
+		 * @return column name of sql result
+		 */
+		public String dbRecId() {
+			return exp(Ix.recId)[0];
+		}
+		
+		private String[] exp(int ix) {
+			return treeSmtcs[ix];
+		}
+		
+		/**Get column name, if there is an alias, get alias, otherwise get the db field name.
+		 * @param ix
+		 * @return
+		 */
+		String alias(int ix) {
+			return treeSmtcs[ix].length > 0 && treeSmtcs[ix][1] != null ?
+					treeSmtcs[ix][1] : treeSmtcs[ix][0];
+		}
+
+		public boolean isColChecked(String col) {
+			String chk = alias(Ix.chked);
+			if (col == null || chk == null)
+				return false;
+			return (chk.equals(col.trim()));
+		}
+
+		public String aliasParent() {
+			return alias(Ix.parent);
+		}
+		
+		/**Get alias if possible, other wise the expr itself
+		 * @param expr
+		 * @return alias
+		 */
+		public String alias(String expr) {
+			if (expr != null)
+				for (String[] colAls : treeSmtcs)
+					if (colAls != null && expr.equals(colAls[0]))
+						return colAls[1];
+			return expr;
+		}
+	}
+
+
+	public static final int drv_mysql = 0;
+	public static final int drv_orcl = 1;
+	public static final int drv_ms2k = 2;
+	public static final int drv_sqlit = 3;
+	public static final int drv_unknow = 4;
+
+	protected static final String tag = "DataSet";
+	protected static final String cfgFile = "dataset.xml";
+	protected static final String deftId = "ds";
+	protected static HashMap<String, Dataset> dss;
 
 	public static void init(String path) throws SAXException, IOException {
 		dss = new HashMap<String, Dataset>();
@@ -109,14 +185,30 @@ public class DatasetCfg {
 		}
 	}
 
-	public static String getSql(String conn, String k, Object... args) throws SQLException, SemanticException {
+	public static SResultset select(String conn, String sk,
+			int page, int size, String... args) throws SemanticException, SQLException {
+		String sql = getSql(conn, sk, args);
+		if (page >= 0 && size >= 0)
+			sql = Connects.pagingSql(conn, sql, page, size);
+
+		SResultset rs = Connects.select(conn, sql);
+		rs = dss.get(sk).map(conn, rs);	
+		return rs;
+	}
+
+	private static String getSql(String conn, String k, String... args) throws SQLException, SemanticException {
 		if (dss == null)
 			throw new SQLException("FATAL - dataset not initialized...");
 		if (k == null || !dss.containsKey(k))
 			throw new SQLException(String.format("No dataset configuration found for k = %s", k));
 
 		if (conn == null) conn = Connects.defltConn();
+
 		String sql = dss.get(k).getSql(Connects.driverType(conn));
+		if (sql == null)
+			throw new SemanticException("Sql not found for sk=%s, type = %s",
+					k, Connects.driverType(conn));
+
 		if (args == null || args.length == 0)
 			return sql;
 		else return String.format(sql, (Object[])args);
@@ -137,33 +229,46 @@ public class DatasetCfg {
 //		return dss.get(k).treeSemtcs;
 //	}
 
-	public static List<SemanticObject> loadStree(String conn, String sk, Object... args)
+	public static List<SemanticObject> loadStree(String conn, String sk,
+			int page, int size, String... args)
 			throws SemanticException, SQLException {
+
 		if (conn == null || sk == null)
 			return null;
 
+
+		SResultset rs = select(conn, sk, page, size, args);
+		
+		/*
 		String sql = getSql(conn, sk, args);
-		SResultset rs = Connects.select(sql);
+		if (page >= 0 && size >= 0)
+			sql = Connects.pagingSql(conn, sql, page, size);
+
+		SResultset rs = Connects.select(conn, sql);
 		rs = dss.get(sk).map(conn, rs);	
+		*/
+
 		return buildForest(rs, dss.get(sk).treeSemtcs);
 	}
 	
 	/**TODO We need a tree's semantics class, for overriding and handling semantic-tree table in xml?
 	 * @param rs
-	 * @param semanticss
+	 * @param treeSemtcs
 	 * @return built forest
 	 * @throws SQLException
 	 */
-	public static List<SemanticObject> buildForest (SResultset rs, String[] semanticss) throws SQLException {
+	public static List<SemanticObject> buildForest(SResultset rs, TreeSemantics treeSemtcs) throws SQLException {
 		// build the tree/forest
 		List<SemanticObject> forest = new ArrayList<SemanticObject>();
 		rs.beforeFirst();
 		while (rs.next()) {
-			SemanticObject root  = formatSemanticNode(semanticss, rs);
+			SemanticObject root  = formatSemanticNode(treeSemtcs, rs);
 
 			// checkSemantics(rs, semanticss, Ix.recId);
-			List<SemanticObject> children = buildSubTree(semanticss, root,
-					rs.getString(semanticss[Ix.recId] == null ? semanticss[Ix.recId] : semanticss[Ix.recId]), rs);
+			List<SemanticObject> children = buildSubTree(treeSemtcs, root,
+					// rs.getString(treeSemtcs[Ix.recId] == null ? treeSemtcs[Ix.recId] : treeSemtcs[Ix.recId]),
+					rs.getString(treeSemtcs.dbRecId()),
+					rs);
 			if (children.size() > 0)
 				root.put("children", children);
 			forest.add(root);
@@ -172,20 +277,23 @@ public class DatasetCfg {
 		return forest;
 	}
 
-	/**Create a SemanticObject for tree node with current rs row.
-	 * @param sm
+	/**Create a SemanticObject for tree node with current rs row.<br>
+	 * TODO should this moved to TreeSemantics?
+	 * @param treeSemtcs
 	 * @param rs
 	 * @return
 	 * @throws SQLException
 	 */
-	private static SemanticObject formatSemanticNode(String[] sm, SResultset rs) throws SQLException {
+	private static SemanticObject formatSemanticNode(TreeSemantics treeSemtcs, SResultset rs) throws SQLException {
 		SemanticObject node = new SemanticObject();
 
 		for (int i = 1;  i <= rs.getColCount(); i++) {
 			String v = rs.getString(i);
 			String col = rs.getColumnName(i);
+			col = treeSemtcs.alias(col);
 			if (v != null)
-				if (col.equals(sm[Ix.chked]))
+//				if (col.equals(treeSemtcs[Ix.chked]))
+				if (treeSemtcs.isColChecked(col))
 					node.put(col, rs.getBoolean(i));
 				else
 					node.put(col, v);
@@ -193,13 +301,15 @@ public class DatasetCfg {
 		return node;
 	}
 
-	private static List<SemanticObject> buildSubTree(String[] sm,
+	private static List<SemanticObject> buildSubTree(TreeSemantics sm,
 			SemanticObject parentNode, String parentId, SResultset rs) throws SQLException {
 		List<SemanticObject> childrenArray  = new ArrayList<SemanticObject>();
 		while (rs.next()) {
 			// Don't delete this except the servlet is completed and solved alias configure in xml.
 			// checkSemantics(rs, sm, Ix.parent);
-			String currentParentID = rs.getString(sm[Ix.parent]);
+
+			// String currentParentID = rs.getString(sm[Ix.parent]);
+			String currentParentID = rs.getString(sm.aliasParent());
 			if (currentParentID == null || currentParentID.trim().length() == 0) {
 				// new tree root
 				rs.previous();
@@ -218,7 +328,8 @@ public class DatasetCfg {
 			SemanticObject child = formatSemanticNode(sm, rs);
 
 			List<SemanticObject> subOrg = buildSubTree(sm, child,
-					rs.getString(sm[Ix.recId]), rs);
+					// rs.getString(sm[Ix.recId]), rs);
+					rs.getString(sm.dbRecId()), rs);
 
 			if (subOrg.size() > 0)
 				child.put("children", subOrg);
@@ -226,6 +337,7 @@ public class DatasetCfg {
 		}
 		return childrenArray;
 	}
+
 	
 	/**POJO dataset element as configured in dataset.xml.<br>
 	 * (oracle mapping information also initialized according to mapping file and the "cols" tag.)*/
@@ -240,11 +352,12 @@ public class DatasetCfg {
 		 * If the result set can be used to construct a tree, a tree semantics configuration is needed.
 		 * "s-tree" tag is used to configure a tree semantics configuration.
 		 * <p>DESIGN MEMO</p>
-		 * Currently s-tree tag don't support alias, but it's definitely needed in Stree servlet
+		 * <p>Currently s-tree tag don't support alias, but it's definitely needed in Stree servlet
 		 * as the client needing some special fields but with queried results from abstract sql construction.<br>
-		 * See the old version of SemanticTree servlet.
+		 * See the old version of SemanticTree servlet.</p>
+		 * Core data: String[][] treeSemtcs;
 		 */
-		String[] treeSemtcs;
+		TreeSemantics treeSemtcs;
 
 		/**Create a dataset, with mapping prepared according with mapping file.
 		 * @param k
@@ -262,7 +375,8 @@ public class DatasetCfg {
 			this.sqls = sqls;
 			
 			this.treeSemtcs = stree == null ? null
-					: LangExt.split(stree, ",");
+		// 			: LangExt.split(stree, ",");
+					: new TreeSemantics(stree);
 		}
 
 		public SResultset map(String conn, SResultset rs) {

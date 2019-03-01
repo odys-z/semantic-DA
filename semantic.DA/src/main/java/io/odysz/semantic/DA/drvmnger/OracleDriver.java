@@ -12,17 +12,16 @@ import java.util.ArrayList;
 
 import javax.sql.DataSource;
 
-import io.odysz.common.Configs;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
+import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DA.OracleLob;
 import io.odysz.semantics.IUser;
 import oracle.sql.BLOB;
 
 /**
- * @author ody
- *
+ * @author odys-z@github.com
  */
 @SuppressWarnings("deprecation")
 public class OracleDriver extends AbsConnect<OracleDriver> {
@@ -41,24 +40,26 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 	 */
 	public static Connection getConnection() throws SQLException {
 		if (!inited) {
-			// String isTrue = Configs.getCfg("printSQL.enable");
-			String isTrue = "true";
-			enableSystemout = isTrue != null && "true".equals(isTrue.toLowerCase());
-			
-			// This depends on servlet context. 
-			// To init connection without config, call initConnection() before any select() or commit()
-			connect = Configs.getCfg("com.ic.DA.Oracle.connect");
-			userName = Configs.getCfg("com.ic.DA.Oracle.username");
-			pswd = Configs.getCfg("com.ic.DA.Oracle.password");
+//			// String isTrue = Configs.getCfg("printSQL.enable");
+//			String isTrue = "true";
+//			enableSystemout = isTrue != null && "true".equals(isTrue.toLowerCase());
+//			
+//			// This depends on servlet context. 
+//			// To init connection without config, call initConnection() before any select() or commit()
+//			connect = Configs.getCfg("com.ic.DA.Oracle.connect");
+//			userName = Configs.getCfg("com.ic.DA.Oracle.username");
+//			pswd = Configs.getCfg("com.ic.DA.Oracle.password");
+//
+////			connect = "jdbc:oracle:thin:@118.122.251.196:1521:orcl";
+////			userName = "gzdx_yjpt";
+////			pswd = "gzdx_yjpt";
+//
+//			//pswd = decryptDBpswd(pswd, userName);
+//			DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver()); 
+//			
+//			inited = true;
 
-//			connect = "jdbc:oracle:thin:@118.122.251.196:1521:orcl";
-//			userName = "gzdx_yjpt";
-//			pswd = "gzdx_yjpt";
-
-			//pswd = decryptDBpswd(pswd, userName);
-			DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver()); 
-			
-			inited = true;
+			throw new SQLException("connection must explicitly initialized first - call initConnection()");
 		}
 
 		Connection conn = DriverManager.getConnection(connect, userName, pswd);
@@ -97,8 +98,6 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 
 
 	    return connSQL;
-	        
-
 	}*/
 	
 //	private static String decryptDBpswd(String cipher, String username) {
@@ -267,7 +266,7 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 			if(rs.next()){
 				BLOB rsblob = (BLOB)rs.getBlob(1);
 				if (rsblob == null) {
-					System.out.println("д��BLOB����" + blobField + "�ֶ�Ϊnull. ��insert�¼�¼ʱ��Ҫ����EMPTY_BLOB()���磺");
+					System.out.println("blob filed: " + blobField + " is null. inserting EMPTY_BLOB()...");
 					System.out.println("insert into myUploadTable(id, filedata) values('id.001', EMPTY_BLOB())");
 					return;
 				}
@@ -330,8 +329,16 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 
 	@Override
 	public SResultset select(String sql, int flags) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		Connection conn = getConnection();
+		Connects.printSql(enableSystemout, flags, sql);
+		Statement stmt = conn.createStatement();
+		ResultSet rs = stmt.executeQuery(sql);
+		SResultset icrs = new SResultset(rs);
+		rs.close();
+		stmt.close();
+		conn.close();
+		
+		return icrs;
 	}
 
 	@Override
