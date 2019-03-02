@@ -39,48 +39,5 @@
   	</c>
   </t>
 
-  <t id="cbb" pk="k" columns="k,v">
-  	<!-- signal / communication way (link layer) -->
-  	<c><k>a-comm-link</k>
-  		<v>value of a-comm-link</v>
-  	</c>
-  	<c><k>model</k>
-  		<v>value of model</v>
-  	</c>
-	<c><k>gisorg</k>
-  		<v>value of gisorg</v>
-  	</c>
-  	<c><k>gisorgType</k>
-  		<v>select domainId as value, domainName as text from a_domain where domainId = '0104'</v>
-  	</c>
-	<c><k>dealType</k>
-    	<v>select domainId as value, domainName as text from a_domain where domainValue='2'</v>
-    </c>
-  	
-    <c><k>regOrg</k>
-    	<v>select orgId as value, orgName as text from a_reg_org   </v>
-    </c>
-    
-    <c><k>frontend</k>
-    	<v>select frontendId as value, frontendName as text from e_frontend where areaId='%s'  </v>
-    </c>
-    <c><k>area</k>
-    	<v>select areaId as value, areaName as text from e_areas where orgId='%s'  </v>
-    </c>
 
-     <c><k>modelarea</k>
-    	<v>select areaId as value, areaName as text from e_areas   </v>
-    </c>
-    
-    <!-- device running state (e_device.runStatus) -->
-    <!-- device state -->
-  	<c><k>e-device-state</k>
-    	<v>select domainId as value, domainName as text from a_domain where parentId ='C05'  </v>
-  	</c>
-  	
-    <c>
-    	<k>allroles</k>
-    	<v>select roleId as value, roleName as text from a_roles order by roleId desc</v>
-    </c>
-  </t>
 </configs>

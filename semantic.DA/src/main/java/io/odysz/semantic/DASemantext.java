@@ -38,7 +38,6 @@ import io.odysz.transact.x.TransException;
 public class DASemantext implements ISemantext {
 
 	private HashMap<Object, Object> autoVals;
-//	private Statement<?> callerStatement;
 	private static DATranscxt rawst = new DATranscxt(null);
 
 	private SemanticObject resolvedIds;
@@ -228,10 +227,10 @@ end;
 	 * @param connId
 	 * @param target target table
 	 * @param idField table id column (no multi-column id supported)
-	 * @param jdbc using one of jdbc_dbcp or jdbc_drvmnger, defult jdbc_dbcp
+	 * @param subCate
 	 * @return new Id (shortened in radix 64 by {@link com.infochange.frame.util.Radix64})
 	 * @throws SQLException
-	 * @throws TransException 
+	 * @throws TransException
 	 */
 	public static String genId(String connId, String target, String idField, String subCate) throws SQLException, TransException {
 		dbtype dt = Connects.driverType(connId);
@@ -263,7 +262,7 @@ end;
 	 * @param conn
 	 * @param target
 	 * @param idF
-	 * @return
+	 * @return new Id
 	 * @throws SQLException
 	 * @throws TransException
 	 */

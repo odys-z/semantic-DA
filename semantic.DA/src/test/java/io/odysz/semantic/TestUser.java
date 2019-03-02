@@ -33,6 +33,7 @@ public class TestUser implements IUser {
 				@Override public String sessionId() { return null; }
 				@Override public void touch() { }
 				@Override public String uid() { return userId; }
+				@Override public String get(String prop) { return "prop"; }
 				@Override public SemanticObject logout() { return null; }
 				@Override public void writeJsonRespValue(Object writer) throws IOException { }
 			};
@@ -48,6 +49,9 @@ public class TestUser implements IUser {
 
 	@Override
 	public String uid() { return uid; }
+
+	@Override
+	public String get(String prop) { return "prop"; }
 
 	@Override
 	public ArrayList<String> dbLog(ArrayList<String> sqls) {

@@ -29,23 +29,23 @@ import io.odysz.semantics.x.SemanticException;
  * @author odys-z@github.com
  */
 public class DatasetCfg {
-	public static class Ix {
-		public static final int count = 9;
-		/** the boolean field */
-		public static final int chked = 0;
-		public static final int tabl = 1;
-		public static final int recId = 2;
-		public static final int parent = 3;
-		public static final int fullpath = 4;
-		public static final int sort = 5;
-		public static final int text = 6;
-		public static final int pageByServer = 8;
-	}
-
 	/**Data structure of s-tree configuration.
 	 * @author odys-z@github.com
 	 */
 	public static class TreeSemantics {
+		static class Ix {
+			public static final int count = 9;
+			/** the boolean field */
+			public static final int chked = 0;
+			public static final int tabl = 1;
+			public static final int recId = 2;
+			public static final int parent = 3;
+			public static final int fullpath = 4;
+			public static final int sort = 5;
+			public static final int text = 6;
+			public static final int pageByServer = 8;
+		}
+
 		/**parse tree semantics like ",checked,table,recId id,parentId,itemName text,fullpath,siblingSort,false" to 2d array.
 		 * @param semantic
 		 * @return [0:[checked, null], 1:[tabl, null], 2:[areaId, id], ...]
@@ -73,12 +73,28 @@ public class DatasetCfg {
 		public TreeSemantics(String stree) {
 			treeSmtcs = parseSemantics(stree);
 		}
+		
+		public String tabl() {
+			return alias(Ix.tabl);
+		}
 
 		/**Get raw expression of record id.
 		 * @return column name of sql result
 		 */
 		public String dbRecId() {
 			return exp(Ix.recId)[0];
+		}
+		
+		public String dbParent() {
+			return alias(Ix.parent);
+		}
+		
+		public String dbFullpath() {
+			return alias(Ix.fullpath);
+		}
+		
+		public String dbSort() {
+			return alias(Ix.sort);
 		}
 		
 		private String[] exp(int ix) {
@@ -196,7 +212,7 @@ public class DatasetCfg {
 		return rs;
 	}
 
-	private static String getSql(String conn, String k, String... args) throws SQLException, SemanticException {
+	public static String getSql(String conn, String k, String... args) throws SQLException, SemanticException {
 		if (dss == null)
 			throw new SQLException("FATAL - dataset not initialized...");
 		if (k == null || !dss.containsKey(k))
@@ -214,6 +230,12 @@ public class DatasetCfg {
 		else return String.format(sql, (Object[])args);
 	}
 	
+	public static TreeSemantics getTreeSemtcs(String sk) {
+		if (dss != null && dss.containsKey(sk))
+			return dss.get(sk).treeSemtcs;
+		else return null;
+	}
+	
 	/**
 	 * @param conn
 	 * @param k
@@ -228,17 +250,20 @@ public class DatasetCfg {
 //		if (conn == null) conn = Connects.defltConn();
 //		return dss.get(k).treeSemtcs;
 //	}
-
-	public static List<SemanticObject> loadStree(String conn, String sk,
+	
+	public static SResultset loadDataset(String conn, String sk,
 			int page, int size, String... args)
 			throws SemanticException, SQLException {
 
 		if (conn == null || sk == null)
 			return null;
+		return select(conn, sk, page, size, args);
+	}
 
-
-		SResultset rs = select(conn, sk, page, size, args);
-		
+	public static List<SemanticObject> loadStree(String conn, String sk,
+			int page, int size, String... args)
+			throws SemanticException, SQLException {
+		SResultset rs = loadDataset(conn, sk, page, size, args);
 		/*
 		String sql = getSql(conn, sk, args);
 		if (page >= 0 && size >= 0)
@@ -247,7 +272,6 @@ public class DatasetCfg {
 		SResultset rs = Connects.select(conn, sql);
 		rs = dss.get(sk).map(conn, rs);	
 		*/
-
 		return buildForest(rs, dss.get(sk).treeSemtcs);
 	}
 	

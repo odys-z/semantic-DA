@@ -138,7 +138,7 @@ for (String coln : colnames.keySet())
 
 	/**Append a new row - deep copy, set current row as the appended row.
 	 * @param row
-	 * @return
+	 * @return this
 	 */
 	public SResultset appendDeeply(ArrayList<Object> row) {
 		ArrayList<Object> newRow = new ArrayList<Object>(row.size());
@@ -257,7 +257,7 @@ for (String coln : colnames.keySet())
 	 * If current index = 4, nextUntill(5) return true;<br>
 	 * If current index = 5, nextUntill(5) return false;
 	 * @param last
-	 * @return
+	 * @return true: ok
 	 * @throws SQLException
 	 */
 	public boolean nextUntill(int last) throws SQLException {
@@ -293,7 +293,7 @@ for (String coln : colnames.keySet())
 	/**If field is a date value, return string formatted by sdf.
 	 * @param colName
 	 * @param sdf
-	 * @return
+	 * @return string value
 	 * @throws SQLException
 	 */
 	public String getString(String colName, SimpleDateFormat sdf) throws SQLException {
@@ -304,7 +304,7 @@ for (String coln : colnames.keySet())
 	/**If field is a date value, return string formatted by sdf.
 	 * @param colIndex
 	 * @param sdf
-	 * @return
+	 * @return string value
 	 * @throws SQLException
 	 */
 	public String getString(int colIndex, SimpleDateFormat sdf) throws SQLException {
@@ -324,7 +324,7 @@ for (String coln : colnames.keySet())
 	/**
 	 * if null, change to ""
 	 * @param colName
-	 * @return
+	 * @return string value
 	 * @throws SQLException
 	 */
 	public String getStringNonull(String colName) throws SQLException {
@@ -335,7 +335,7 @@ for (String coln : colnames.keySet())
 	
 	/**if value is equals case insensitive to 1,true, yes, y, t, decimal > 0.001 return true, else return false;
 	 * @param colIndex
-	 * @return
+	 * @return string value
 	 * @throws SQLException
 	 */
 	public boolean getBoolean(int colIndex) throws SQLException {
@@ -472,7 +472,7 @@ for (String coln : colnames.keySet())
 	 * Get current row index.<br>
 	 * Row index start from 1.<br>
 	 * The last row indix == getRowCount()
-	 * @return
+	 * @return string value
 	 */
 	public int getRow() {
 		if (results == null) return 0;
@@ -499,7 +499,7 @@ for (String coln : colnames.keySet())
 	 * As java.sql.Resultset don't support this method,
 	 * calling this will throw an exception if this object are created from a java.sql.Resultset.
 	 * @param idx
-	 * @return
+	 * @return this
 	 * @throws SQLException
 	 */
 	public SResultset before(int idx) throws SQLException {
@@ -526,7 +526,7 @@ for (String coln : colnames.keySet())
 
 	/**Get col name in raw case.<br>
 	 * @param i start at 1
-	 * @return
+	 * @return column name or null
 	 */
 	public String getColumnName(int i) {
 		for (String cn : colnames.keySet()) {
@@ -614,7 +614,7 @@ for (String coln : colnames.keySet())
 	/**find the first row that contain a matched value in field <i>col</i>. Matching are done by <i>regex</i>.
 	 * @param col
 	 * @param regex
-	 * @return
+	 * @return row index or 0
 	 * @throws SQLException
 	 */
 	public int findFirst(String col, Regex regex) throws SQLException {
