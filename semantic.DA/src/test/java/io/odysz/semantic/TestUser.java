@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.Disabled;
 import org.xml.sax.SAXException;
 
 import io.odysz.semantic.DA.DATranscxt;
@@ -15,13 +16,13 @@ import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
+@Disabled
 public class TestUser implements IUser {
 
 	private DATranscxt logSemantic;
 	private String uid;
 	private SemanticObject action;
 	private IUser dumbUser;
-
 
 	public TestUser(String userId, SemanticObject action) {
 		this.uid = userId;
@@ -34,6 +35,7 @@ public class TestUser implements IUser {
 				@Override public void touch() { }
 				@Override public String uid() { return userId; }
 				@Override public String get(String prop) { return "prop"; }
+				@Override public IUser set(String prop, Object v) { return this; }
 				@Override public SemanticObject logout() { return null; }
 				@Override public void writeJsonRespValue(Object writer) throws IOException { }
 			};
@@ -52,6 +54,9 @@ public class TestUser implements IUser {
 
 	@Override
 	public String get(String prop) { return "prop"; }
+
+	@Override
+	public IUser set(String prop, Object v) { return this; }
 
 	@Override
 	public ArrayList<String> dbLog(ArrayList<String> sqls) {

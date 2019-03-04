@@ -146,9 +146,14 @@ public class DatasetCfg {
 	protected static final String deftId = "ds";
 	protected static HashMap<String, Dataset> dss;
 
+	private static boolean inited = false;
+
 	public static void init(String path) throws SAXException, IOException {
-		dss = new HashMap<String, Dataset>();
-		load(dss, path);
+		if (inited  == false) {
+			dss = new HashMap<String, Dataset>();
+			load(dss, path);
+			inited = true;
+		}
 	}
 
 	/**Load all dataset.xml into the argument cfgs.<br>
@@ -255,14 +260,18 @@ public class DatasetCfg {
 			int page, int size, String... args)
 			throws SemanticException, SQLException {
 
-		if (conn == null || sk == null)
-			return null;
+		if (sk == null)
+			throw new SemanticException("null semantic key");
 		return select(conn, sk, page, size, args);
 	}
 
 	public static List<SemanticObject> loadStree(String conn, String sk,
 			int page, int size, String... args)
 			throws SemanticException, SQLException {
+		if (dss == null || !dss.containsKey(sk))
+			throw new SemanticException("Can't find tree semantics, dss %s, sk = %s. Check configuration.",
+					dss == null ? "null" : dss.size(), sk);
+
 		SResultset rs = loadDataset(conn, sk, page, size, args);
 		/*
 		String sql = getSql(conn, sk, args);
