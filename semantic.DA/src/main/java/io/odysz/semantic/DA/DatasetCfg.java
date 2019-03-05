@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.xml.sax.SAXException;
@@ -52,8 +54,15 @@ public class DatasetCfg {
 		 */
 		public static String[][] parseSemantics(String semantic) {
 			if (semantic == null) return null;
-			String[][] sm = new String[Ix.count][];
 			String[] sms = semantic.split(",");
+			
+			return parseSemantics(sms);
+		}
+		
+		public static String[][] parseSemantics(String[] sms) {
+			if (sms == null) return new String[0][2];
+
+			String[][] sm = new String[Ix.count][];
 			for (int ix = 0; ix < sms.length; ix++) {
 				String smstr = sms[ix];
 				smstr = smstr.replaceAll("\\s+[aA][sS]\\s+", " "); // replace " as "
@@ -67,10 +76,23 @@ public class DatasetCfg {
 			}
 			return sm;
 		}
+		
+		public String toJson() {
+			if (treeSmtcs != null) {
+				return Arrays.stream(treeSmtcs)
+						.map(e -> String.format("[%s, %s]", e[0], e[1]))
+						.collect(Collectors.joining(", ", "[", "]"));
+			}
+			return "[]";
+		}
 
 		String[][] treeSmtcs;
 
 		public TreeSemantics(String stree) {
+			treeSmtcs = parseSemantics(stree);
+		}
+
+		public TreeSemantics(String[] stree) {
 			treeSmtcs = parseSemantics(stree);
 		}
 		
