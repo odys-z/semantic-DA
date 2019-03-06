@@ -263,21 +263,6 @@ public class DatasetCfg {
 		else return null;
 	}
 	
-	/**
-	 * @param conn
-	 * @param k
-	 * @return Tree semantics
-	 * @throws SQLException
-	 */
-//	public static String[] getStreeSmtcs(String conn, String k) throws SQLException {
-//		if (dss == null)
-//			throw new SQLException("FATAL - dataset not initialized...");
-//		if (k == null || !dss.containsKey(k))
-//			throw new SQLException(String.format("No dataset configuration found for k = %s", k));
-//		if (conn == null) conn = Connects.defltConn();
-//		return dss.get(k).treeSemtcs;
-//	}
-	
 	public static SResultset loadDataset(String conn, String sk,
 			int page, int size, String... args)
 			throws SemanticException, SQLException {
