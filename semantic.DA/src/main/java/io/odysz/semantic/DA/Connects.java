@@ -147,11 +147,6 @@ public class Connects {
 			Utils.logi(sql);
 	}
 
-//	public static String genId(String defltConn2, String string, String string2, Object object) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-
 	///////////////////////////////////// select ///////////////////////////////
 	public static SResultset select(String conn, String sql, int... flags) throws SQLException {
 		return srcs.get(conn == null ? defltConn : conn)

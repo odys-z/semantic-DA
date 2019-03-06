@@ -123,6 +123,18 @@
 	  	</executions>
 	  </plugin>
 
+	<!-- http://ykyuen.wordpress.com/2009/10/30/maven-dependency-on-jarwar-package
+			https://pragmaticintegrator.wordpress.com/2010/10/22/using-a-war-module-as-dependency-in-maven/
+	  <plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-war-plugin</artifactId>
+			<version>3.2.2</version>
+			<configuration>
+				<failOnMissingWebXml>false</failOnMissingWebXml>
+			</configuration>
+	  </plugin>
+	 -->
+
 	  <plugin>
 		<groupId>org.sonatype.plugins</groupId>
 		<artifactId>nexus-staging-maven-plugin</artifactId>
@@ -135,7 +147,7 @@
 		</configuration>
 	  </plugin>
 
-	  <!-- JavaDoc and source attachment -->
+	  <!-- JavaDoc and source attachment
 	  <plugin>
 	      <groupId>org.apache.maven.plugins</groupId>
 	      <artifactId>maven-source-plugin</artifactId>
@@ -162,7 +174,7 @@
 	          </goals>
 	        </execution>
 	      </executions>
-	  </plugin>
+	  </plugin> -->
      </plugins>
    </build>
  

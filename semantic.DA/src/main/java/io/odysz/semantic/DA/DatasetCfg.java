@@ -149,9 +149,12 @@ public class DatasetCfg {
 		 */
 		public String alias(String expr) {
 			if (expr != null)
-				for (String[] colAls : treeSmtcs)
+				// for (String[] colAls : treeSmtcs)
+				for (int x = 0; x < treeSmtcs.length; x++) {
+					String[] colAls = treeSmtcs[x];
 					if (colAls != null && expr.equals(colAls[0]))
-						return colAls[1];
+						return alias(x);
+				}
 			return expr;
 		}
 	}
@@ -231,7 +234,7 @@ public class DatasetCfg {
 	public static SResultset select(String conn, String sk,
 			int page, int size, String... args) throws SemanticException, SQLException {
 		String sql = getSql(conn, sk, args);
-		if (page >= 0 && size >= 0)
+		if (page >= 0 && size > 0)
 			sql = Connects.pagingSql(conn, sql, page, size);
 
 		SResultset rs = Connects.select(conn, sql);
