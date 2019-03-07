@@ -437,29 +437,16 @@ public class DatasetCfg {
 		public String getSql(dbtype driver) throws SemanticException {
 			if (driver == null)
 				return null;
-			/*
-			driver = driver.toLowerCase();
-			if ("orcl".equals(driver) || "oracle".equals(driver))
-				return sqls[drv_orcl] == null ? sqls[drv_mysql] : sqls[drv_orcl];
-			else if ("ms2k".equals(driver))
-				return sqls[drv_ms2k] == null ? sqls[drv_mysql] : sqls[drv_ms2k];
-			else if (driver.startsWith("sqlit"))
-				return sqls[drv_sqlit] == null ? sqls[drv_mysql] : sqls[drv_sqlit];
-			else 
-				return sqls[drv_mysql];
-				*/
-			switch (driver) {
-			case oracle:
+			if (driver == dbtype.oracle)
 				return sqls[drv_orcl];
-			case ms2k:
+			else if (driver == dbtype.ms2k)
 				return sqls[drv_ms2k];
-			case sqlite:
+			else if (driver == dbtype.sqlite)
 				return sqls[drv_sqlit];
-			case mysql:
+			else if (driver == dbtype.mysql)
 				return sqls[drv_mysql];
-			default:
+			else
 				throw new SemanticException("unsupported db type: %s", driver);
-			}
 		}
 		
 		/**

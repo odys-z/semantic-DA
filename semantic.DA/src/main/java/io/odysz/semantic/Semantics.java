@@ -401,31 +401,21 @@ public class Semantics {
 	}
 
 	public boolean is(smtype type) {
-		switch (type) {
-		case fullpath:
+		if (type == smtype.fullpath)
 			return fullPath != null;
-		case parentChildrenOnDel :
+		if (type == smtype.parentChildrenOnDel)
 			return childConstraints != null && childConstraints.size() > 0;
-		case checkSqlCountOnInsert :
+		if (type == smtype.checkSqlCountOnInsert)
 			return checkCountSql_Ins != null && checkCountValueCol_Ins != null;
-		case dencrypt:
+		if (type == smtype.dencrypt)
 			return cipherCol != null && decryptK.length() > 0 && encryptK.length() > 0;
-		case composingCol:
+		if (type == smtype.composingCol)
 			return composedCol != null && composingCols != null && composingCols.length > 0;
-		case stamp1MoreThanRefee:
+		if (type == smtype.stamp1MoreThanRefee)
 			return upStamp != null && downStamp != null;
-		default:
+		else
 			return false;
-		}
 	}
-
-//	public boolean isClob(String conn, String n) {
-//		if (!CpDriver.isOracle(conn) || lobFields == null) return false;
-//		for (String lob : lobFields)
-//			if (lob.equals(n))
-//				return true;
-//		return false;
-//	}
 
 	public boolean hasOperTime() {
 		return operField != null;
