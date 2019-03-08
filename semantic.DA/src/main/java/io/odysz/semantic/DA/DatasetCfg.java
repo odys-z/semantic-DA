@@ -65,6 +65,7 @@ public class DatasetCfg {
 			String[][] sm = new String[Ix.count][];
 			for (int ix = 0; ix < sms.length; ix++) {
 				String smstr = sms[ix];
+				if (smstr == null) continue;
 				smstr = smstr.replaceAll("\\s+[aA][sS]\\s+", " "); // replace " as "
 				String[] smss = smstr.split(" ");
 				if (smss == null || smss.length > 2 || smss[0] == null)
@@ -77,16 +78,18 @@ public class DatasetCfg {
 			return sm;
 		}
 		
-		public String toJson() {
+		@Override
+		public String toString() {
 			if (treeSmtcs != null) {
 				return Arrays.stream(treeSmtcs)
-						.map(e -> String.format("[%s, %s]", e[0], e[1]))
+						.map(e -> e == null ? null : String.format("[%s, %s]", e[0], e.length > 0 ? e[1] : null))
 						.collect(Collectors.joining(", ", "[", "]"));
 			}
 			return "[]";
 		}
 
 		String[][] treeSmtcs;
+		public String[][] treeSmtcs() { return treeSmtcs; }
 
 		public TreeSemantics(String stree) {
 			treeSmtcs = parseSemantics(stree);
@@ -95,6 +98,11 @@ public class DatasetCfg {
 		public TreeSemantics(String[] stree) {
 			treeSmtcs = parseSemantics(stree);
 		}
+
+		public TreeSemantics(String[][] stree) {
+			treeSmtcs = stree;
+		}
+		
 		
 		public String tabl() {
 			return alias(Ix.tabl);
@@ -120,7 +128,7 @@ public class DatasetCfg {
 		}
 		
 		private String[] exp(int ix) {
-			return treeSmtcs[ix];
+			return treeSmtcs != null && treeSmtcs.length > ix ? treeSmtcs[ix] : null;
 		}
 		
 		/**Get column name, if there is an alias, get alias, otherwise get the db field name.
@@ -128,8 +136,10 @@ public class DatasetCfg {
 		 * @return
 		 */
 		String alias(int ix) {
-			return treeSmtcs[ix].length > 0 && treeSmtcs[ix][1] != null ?
-					treeSmtcs[ix][1] : treeSmtcs[ix][0];
+			return  treeSmtcs != null && treeSmtcs.length > ix ?
+				treeSmtcs[ix].length > 0 && treeSmtcs[ix][1] != null
+				? treeSmtcs[ix][1] : treeSmtcs[ix][0]
+				: null;
 		}
 
 		public boolean isColChecked(String col) {
