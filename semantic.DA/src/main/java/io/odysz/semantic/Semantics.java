@@ -403,15 +403,15 @@ public class Semantics {
 	public boolean is(smtype type) {
 		if (type == smtype.fullpath)
 			return fullPath != null;
-		if (type == smtype.parentChildrenOnDel)
+		else if (type == smtype.parentChildrenOnDel)
 			return childConstraints != null && childConstraints.size() > 0;
-		if (type == smtype.checkSqlCountOnInsert)
+		else if (type == smtype.checkSqlCountOnInsert)
 			return checkCountSql_Ins != null && checkCountValueCol_Ins != null;
-		if (type == smtype.dencrypt)
+		else if (type == smtype.dencrypt)
 			return cipherCol != null && decryptK.length() > 0 && encryptK.length() > 0;
-		if (type == smtype.composingCol)
+		else if (type == smtype.composingCol)
 			return composedCol != null && composingCols != null && composingCols.length > 0;
-		if (type == smtype.stamp1MoreThanRefee)
+		else if (type == smtype.stamp1MoreThanRefee)
 			return upStamp != null && downStamp != null;
 		else
 			return false;
