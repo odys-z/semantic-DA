@@ -35,6 +35,7 @@ CREATE TABLE oz_autoseq (
  *
  */
 class DASemantextTest {
+	static final String connId = "local-sqlite";
 	private static DATranscxt st;
 	private static IUser usr;
 
@@ -47,7 +48,7 @@ class DASemantextTest {
 		Utils.logi(path);
 		Connects.init(path);
 
-		ISemantext s = new DASemantext("local", "src/test/res/semantics.xml");
+		ISemantext s = new DASemantext(connId, "src/test/res/semantics.xml");
 		st = new DATranscxt(s);
 		
 		SemanticObject jo = new SemanticObject();
@@ -58,7 +59,7 @@ class DASemantextTest {
 		jo.put("usrAct", usrAct);
 		usr = new TestUser("tester", jo);
 		
-		// initialize oz_autoseq
+		// initialize oz_autoseq - only for sqlite
 		SResultset rs = Connects.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table' and tbl_name = 'oz_autoseq'",
 				Connects.flag_nothing);
 		if (rs.getRowCount() == 0) {
@@ -75,7 +76,7 @@ class DASemantextTest {
 					"('a_users.userId', 0, 'test')");
 			try { Connects.commit(usr, sqls, Connects.flag_nothing); }
 			catch (Exception e) {
-				Utils.warn("Make sure table oz_autoseq already exists");
+				Utils.warn("Make sure table oz_autoseq already exists, and only for testing aginst a sqlite DB.");
 			}
 		}
 	}

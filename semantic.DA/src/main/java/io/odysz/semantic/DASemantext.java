@@ -32,8 +32,8 @@ import io.odysz.transact.sql.Update;
 import io.odysz.transact.x.TransException;
 
 /**A basic semantic context for generating sql.
- * @author ody
- *
+ * Handling semantics defined in xml file. See path of constructor.
+ * @author odys-z@github.com
  */
 public class DASemantext implements ISemantext {
 
@@ -41,11 +41,22 @@ public class DASemantext implements ISemantext {
 	private static DATranscxt rawst = new DATranscxt(null);
 
 	private SemanticObject resolvedIds;
+	@Override
+	public SemanticObject resolvedNewIds() { return resolvedIds; }
 
+	/**Semantic Configurations */
 	private HashMap<String, DASemantics> ss;
 	private IUser usr;
 	private String connId;
 
+	/**Initialize a context for semantics handling.
+	 * This class handling semantics comes form path, usually an xml like test/res/semantics.xml.
+	 * @param connId
+	 * @param path
+	 * @throws SemanticException
+	 * @throws SAXException
+	 * @throws IOException
+	 */
 	public DASemantext(String connId, String path) throws SemanticException, SAXException, IOException {
 		this.connId = connId;
 		if (path != null && ss == null)
@@ -53,7 +64,7 @@ public class DASemantext implements ISemantext {
 		else ss = null;
 	}
 
-	static HashMap<String,DASemantics> init(String filepath) throws SAXException, IOException {
+	HashMap<String,DASemantics> init(String filepath) throws SAXException, IOException {
 		HashMap<String, DASemantics> ss = new HashMap<String, DASemantics>();
 		LinkedHashMap<String,XMLTable> xtabs = XMLDataFactoryEx.getXtables(
 				new Log4jWrapper("").setDebugMode(false), filepath, new IXMLStruct() {
@@ -65,28 +76,46 @@ public class DASemantext implements ISemantext {
 		conn.beforeFirst();
 		while (conn.next()) {
 			String tabl = conn.getString("tabl");
-			DASemantics s = ss.get(tabl);
-			if (s == null) {
-				s = new DASemantics(tabl, conn.getString("pk"));
-				ss.put(tabl, s);
-			}
-			try {s.addHandler(conn.getString("smtc"), conn.getString("args")); }
-			catch (SemanticException e) {
+			String pk = conn.getString("pk");
+			String smtc = conn.getString("smtc");
+			String args = conn.getString("args");
+			try {
+				addSemantics(tabl, pk, smtc, args);
+			} catch (SemanticException e) {
 				// some configuration error
 				// continue
 				Utils.warn(e.getMessage());
 			}
+//			DASemantics s = ss.get(tabl);
+//			if (s == null) {
+//				s = new DASemantics(tabl, conn.getString("pk"));
+//				ss.put(tabl, s);
+//			}
+//			try {s.addHandler(conn.getString("smtc"), args); }
+//			catch (SemanticException e) {
+//				// some configuration error
+//				// continue
+//				Utils.warn(e.getMessage());
+//			}
 		}
 		return ss;
 	}
 
+	@Override
+	public void addSemantics(String tabl, String pk, String smtcs, String args) throws SemanticException {
+		DASemantics s = ss.get(tabl);
+		if (s == null) {
+			s = new DASemantics(tabl, "pk");
+			ss.put(tabl, s);
+		}
+		s.addHandler(smtcs, args);
+	}
 
 	/**When inserting, replace inserting values in 'AUTO' columns, e.g. generate auto PK for rec-id.
 	 * @see io.odysz.semantics.ISemantext#onInsert(io.odysz.transact.sql.Insert, java.lang.String, java.util.List)
 	 */
 	@Override
 	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> valuesNv) {
-//		callerStatement = insert;
 		if (valuesNv != null)
 			for (ArrayList<Object[]> value : valuesNv) {
 				Map<String, Integer> cols = insert.getColumns();
@@ -103,7 +132,6 @@ public class DASemantext implements ISemantext {
 			}
 		return this;
 	}
-	
 
 	private void replaceAuto(ArrayList<Object[]> nvs, String tabl, Map<String, Integer> cols) throws SQLException, TransException {
 		if (nvs != null) {
@@ -117,8 +145,12 @@ public class DASemantext implements ISemantext {
 					// set results
 					if (resolvedIds == null)
 						resolvedIds = new SemanticObject();
-					resolvedIds.put(tabl, new SemanticObject());
-					((SemanticObject) resolvedIds.get(tabl)).add("new-ids", nv[1]);
+					SemanticObject tabl_ids = (SemanticObject) resolvedIds.get(tabl);
+					if (tabl_ids == null) {
+						tabl_ids = new SemanticObject();
+						resolvedIds.put(tabl, tabl_ids);
+					}
+					tabl_ids.add("new-ids", nv[1]);
 				}
 			}
 		}
@@ -242,10 +274,14 @@ end;
 		if (dt == dbtype.oracle)
 			sql = String.format("select f_incSeq2('%s.%s', '%s') newId from dual", target, idField, subCate);
 		else
+			// bugs here
 			sql = String.format("select f_incSeq2('%s.%s', '%s') newId", target, idField, subCate);
 
 		SResultset rs = null;
 		rs = Connects.select(connId, sql);
+		if (rs.getRowCount() <= 0)
+			throw new TransException("Can't find auot seq of %s, you may check where oz_autoseq.seq and table %s are existing?",
+					idField, target);
 
 		rs.beforeFirst().next();
 		int newInt = rs.getInt("newId");
@@ -292,6 +328,10 @@ end;
 					.where("=", "sid", String.format("'%s.%s'", target, idF))
 					.rs();
 		} finally { lock.unlock();}
+		
+		if (rs.getRowCount() <= 0)
+			throw new TransException("Can't find auot seq of %s, you may check where oz_autoseq.seq and table %s are existing?",
+					idF, target);
 		rs.beforeFirst().next();
 
 		return Radix64.toString(rs.getInt("seq"));

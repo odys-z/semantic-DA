@@ -42,7 +42,7 @@ public class TestUser implements IUser {
 		
 		ISemantext semt;
 		try {
-			semt = new DASemantext("local", "src/test/res/semantic-log.xml");
+			semt = new DASemantext(DASemantextTest.connId, "src/test/res/semantic-log.xml");
 			logSemantic = new DATranscxt(semt); 
 		} catch (SemanticException | SAXException | IOException e) {
 			e.printStackTrace();
