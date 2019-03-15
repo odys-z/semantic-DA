@@ -14,4 +14,8 @@ Semantic-DA is a building block of a future framework project, semantic-jserv. W
 In short, semantic-transact handling sql structure, ISemantics handling data modification, semantic-DA glue this together, based on JDBC connection(s).
 
 ## Quick Start, Hello Word, Docs/Wiki, ...
-comming soon. Sorry about that.
+This quickest way is check DASemantextTest.
+![DASemantextTest junit result](https://raw.githubusercontent.com/odys-z/semantic-DA/master/misc/imgs/002-tut-DASemantextTest-02.png)
+![a_functions](https://raw.githubusercontent.com/odys-z/semantic-DA/master/misc/imgs/002-tut-DASemantextTest-01.png)
+
+Details is comming soon. Sorry about that.
