@@ -102,13 +102,14 @@ public class DASemantext implements ISemantext {
 	}
 
 	@Override
-	public void addSemantics(String tabl, String pk, String smtcs, String args) throws SemanticException {
+	public ISemantext addSemantics(String tabl, String pk, String smtcs, String args) throws SemanticException {
 		DASemantics s = ss.get(tabl);
 		if (s == null) {
 			s = new DASemantics(tabl, "pk");
 			ss.put(tabl, s);
 		}
 		s.addHandler(smtcs, args);
+		return this;
 	}
 
 	/**When inserting, replace inserting values in 'AUTO' columns, e.g. generate auto PK for rec-id.
