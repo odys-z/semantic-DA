@@ -23,19 +23,17 @@ import io.odysz.module.rs.SResultset;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.common.dbtype;
-import io.odysz.semantic.DA.Mappings;
 import io.odysz.semantic.DA.OracleLob;
 import io.odysz.semantics.meta.ColumnMeta;
 import io.odysz.semantics.meta.DbMeta;
 import io.odysz.semantics.meta.TableMeta;
 // Deprecated. Use java.sql.Clob interface for declaration instead of using concrete class oracle.sql.CLOB.
 // see https://docs.oracle.com/database/121/JAJDB/oracle/sql/CLOB.html 
-import oracle.sql.CLOB;
+import java.sql.Clob;
 
 /**
- * @author ody
+ * @author odys-z@github.com
  */
-@SuppressWarnings("deprecation")
 public class CpSrc {
 	@SuppressWarnings("serial")
 	public static final HashSet<String> orclKeywords = new HashSet<String>() {{add("level");}};
@@ -88,7 +86,7 @@ public class CpSrc {
 	private HashMap<String, HashMap<String, ColumnMeta>> tablCols;
 	private DataSource ds;
 	/**[table-id(logic/bump name), [upper-case-col, bump-case-col]] */
-	private HashMap<String, HashMap<String, String>> mappings;
+//	private HashMap<String, HashMap<String, String>> mappings;
 
 	/**Managing connection and ds for mysql, oracle, ...
 	 * @param srcId
@@ -100,7 +98,7 @@ public class CpSrc {
 	 */
 	CpSrc (String srcId, dbtype driverType, LinkedHashMap<String, XMLTable> mappings, DbMeta spec, HashMap<String, TableMeta> tables,
 			HashMap<String, HashMap<String, ColumnMeta>> tablCols, boolean printSql) throws SAXException {
-		this.mappings = Mappings.convertMap(mappings);
+//		this.mappings = Mappings.convertMap(mappings);
 		this.srcId = "java:/comp/env/" + srcId;
 		this.driverType = driverType;
 		if (dbtype.oracle == driverType) {
@@ -266,7 +264,7 @@ public class CpSrc {
 			boolean foundClob = false;
 			for (int ci = 1; ci <= rs.getColCount(); ci++) {
 				Object obj = rs.getObject(ci);
-				if (obj instanceof CLOB) {
+				if (obj instanceof Clob) {
 					foundClob = true;
 					// read
 					OracleLob lob = tablobs.get(rs.getColumnName(ci));
@@ -282,7 +280,7 @@ public class CpSrc {
 
 					lobrs.beforeFirst().next();
 					int len = lobrs.getInt(2);
-					CLOB clob = (CLOB) lobrs.getObject(1); 
+					Clob clob = (Clob) lobrs.getObject(1); 
 					Reader chareader = clob.getCharacterStream();
 					char [] charray = new char [len];
 					@SuppressWarnings("unused")
@@ -383,19 +381,16 @@ public class CpSrc {
 			
 			if(rs.next()){
 				// BLOB rsblob = (BLOB)rs.getBlob(1); rs.getClob(1);
-				CLOB rslob = (CLOB)rs.getClob(1);
+				Clob rslob = (Clob)rs.getClob(1);
 				if (rslob == null) {
 					System.out.println("CLOB " + blobField + " is null. insert '...' first");
 					// System.out.println("insert into myUploadTable(id, filedata) values('id.001', EMPTY_BLOB())");
 					return;
 				}
-				Writer out = rslob.getCharacterOutputStream(); // .getBinaryOutputStream();
+				// 2019.03.15 - not tested
+				// Writer out = rslob.getCharacterOutputStream(); // .getBinaryOutputStream();
+				Writer out = rslob.setCharacterStream(0);
 				
-//				int size = rslob.getBufferSize();
-//				byte[] buffer = new byte[size];
-//				int len;
-				//while((len = inStream.read(buffer)) != -1)
-					// out.write(buffer,0,len);
 				out.write((String)lob.lob());
 				out.close();
 				conn.commit();
@@ -439,33 +434,6 @@ public class CpSrc {
 		        i += skip;
 		    }
 		    return s;
-	}
-
-//	public String pageSql(String sql, int page, int size) {
-//		int r1 = page * size;
-//		int r2 = r1 + size;
-//		if (driverType.equalsIgnoreCase("mysql")) {
-//			String s2 = String.format(
-//					"select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s",
-//					sql, r1, r2);
-//			return s2;
-//		}
-//		else if (driverType.equalsIgnoreCase("orcl") || driverType.equalsIgnoreCase("oracle"))
-//			return String.format("select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s",
-//					sql, r2, r1);
-////			return String.format("select * from (%s) t where rownum > %d and rownum <= %s",
-////					sql, r1, r2);
-//		else if (driverType.equalsIgnoreCase("mssql2k"))
-//			return String.format("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= 1 and rownum <= 2;" + 
-//					sql, r1, r2);
-//		else return sql;
-//	}
-
-	/**Only oracle has the mappings (inited by constructor).
-	 * @return
-	 */
-	public HashMap<String,HashMap<String,String>> mappings() {
-		return mappings;
 	}
 
 	public String getTimestamp() throws SQLException {
