@@ -11,6 +11,7 @@ import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.DATranscxt;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
+import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.parts.condition.Funcall;
@@ -84,8 +85,10 @@ public class DASemantics {
 	 * <b>x. orclob</b>: the field must saved as clob when driver type is orcl;
 	 */
 	public enum smtype {
-		/**"auto" | "ai" | "a-i": Generate auto increased value for the field when inserting */
+		/**"auto" | "ai" | "pk" | "autopk": Generate auto increased value for the field when inserting */
 		autoInc,
+		/**"fk-ins": Referencing generated auto key. When inserting, auto update referencing value */
+		fkIns,
 		/** "f-p" | "fp" | "fullpath":
 		 * when updating, auto update fullpath field according to parent-id and current record id<br>
 		 * Handler: {@link ShFullpath#ShFullpath(String, String, String[])}*/
@@ -115,6 +118,8 @@ public class DASemantics {
 			type = type.toLowerCase().trim();
 			if ("auto".equals(type) || "pk".equals(type) || "a-k".equals(type) || "autopk".equals(type))
 				return autoInc;
+			else if ("fk".equals(type) || "pkref".equals(type))
+				return fkIns;
 			else if ("fullpath".equals(type) || "f-p".equals(type))
 				return fullpath;
 			else if ("pc-del-all".equals(type) || "parent-child-del-all".equals(type) || "parentchildondel".equals(type))
@@ -186,6 +191,8 @@ public class DASemantics {
 		else if (smtype.autoInc == semantic)
 			// addAutoPk(tabl, recId, argss);
 			handler = new ShAutoK(rawTsx, tabl, recId, argss);
+		else if (smtype.fkIns == semantic)
+			handler = new ShFkOnIns(rawTsx, tabl, recId, argss);
 		else if (smtype.parentChildrenOnDel == semantic)
 			// addParentChildren(tabl, recId, argss);
 			handler = new ShPCDelAll(rawTsx, tabl, recId, argss);
@@ -229,11 +236,11 @@ public class DASemantics {
 			throw new SemanticException(String.format("adding semantics for target of diferent id field? %s vs. %s", this.pk, pk));
 	}
 
-	public void onInsert(ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+	public void onInsert(ISemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
 				if (handler.insert)
-					handler.onInsert(row, cols, usr);
+					handler.onInsert(semantx, row, cols, usr);
 	}
 
 	//////////////////////////////// Base Handler //////////////////////////////
@@ -252,8 +259,8 @@ public class DASemantics {
 			idField = pk;
 		}
 
-		void onInsert(ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
-		void onUpdate(ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
+		void onInsert(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
+		void onUpdate(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
 
 		SemanticHandler(Transcxt trxt, smtype fullpath, String tabl, String pk,
 				String[] args) throws SemanticException {
@@ -281,7 +288,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			String sibling = null;
 			try { sibling = (String) row.get(cols.get(args[1]))[1];}
 			catch (Exception e) {}
@@ -337,7 +344,6 @@ public class DASemantics {
 	}
 
 	static class ShAutoK extends SemanticHandler {
-
 		/**
 		 * @param trxt
 		 * @param tabl
@@ -351,7 +357,7 @@ public class DASemantics {
 		}
 		
 		@Override
-		void onInsert(ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			Object[] nv;
 			if (cols.containsKey(args[0]))
 				nv = row.get(cols.get(args[0]));
@@ -366,6 +372,32 @@ public class DASemantics {
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+
+	/**Handle fk referencing resolving when inserting children.
+	 * Args[0]: referencing col, [1]: target table, [2] target pk col
+	 */
+	static class ShFkOnIns extends SemanticHandler {
+		ShFkOnIns(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
+			super(trxt, smtype.fkIns, tabl, pk, args);
+			insert = true;
+			// TODO / FIXME not for updating?
+		}
+
+		@Override
+		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			Object[] nv;
+			if (cols.containsKey(args[0])) { // referencing col
+				nv = row.get(cols.get(args[0]));
+			}
+			else {
+				nv = new String[2];
+				cols.put(args[0], row.size());
+				row.add(nv);
+			}
+			Object refeev = ((SemanticObject) stx.results().get(args[1])).get(args[2]);
+			nv[1] = refeev == null ? nv[1] : refeev; // referee can be null?
 		}
 	}
 
@@ -404,7 +436,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			// operTiem
 			if (args.length > 1 && args[1] != null) {
 				Object[] nvTime;

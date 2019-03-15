@@ -116,16 +116,21 @@ public class DASemantext implements ISemantext {
 		if (valuesNv != null)
 			for (ArrayList<Object[]> value : valuesNv) {
 				Map<String, Integer> cols = insert.getColumns();
-				// replace AUTO
-				try {
-					replaceAuto(value, tabl, cols);
-				} catch (SQLException | TransException e) {
-					e.printStackTrace();
-				}
-				// handle semantics
+//				// replace AUTO
+//				try {
+//					replaceAuto(value, tabl, cols);
+//				} catch (SQLException | TransException e) {
+//					e.printStackTrace();
+//				}
+//				// handle semantics
+//				DASemantics s = ss.get(tabl);
+//				if (s != null)
+//					s.onInsert(value, cols, usr);
+
+				// handle semantics (resolve auto by fkIns handler
 				DASemantics s = ss.get(tabl);
 				if (s != null)
-					s.onInsert(value, cols, usr);
+					s.onInsert(this, value, cols, usr);
 			}
 		return this;
 	}

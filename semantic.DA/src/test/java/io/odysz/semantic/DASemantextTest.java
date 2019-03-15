@@ -21,6 +21,7 @@ import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.Insert;
 import io.odysz.transact.x.TransException;
 
 /**Test basic semantics for semantic-jserv.<br>
@@ -85,7 +86,7 @@ class DASemantextTest {
 					"('a_logs.logId', 0, 'test')");
 			sqls.add("insert into a_functions\n" +
 					"(flags, funcId, funcName, fullpath) " + 
-					"values ( '1911-10-10', '------', 'Sun Yet-sen', '-')");
+					"values ( '1911-10-10', '------', 'Sun Yat-sen', '-')");
 			try { Connects.commit(usr, sqls, Connects.flag_nothing); }
 			catch (Exception e) {
 				Utils.warn("Make sure table oz_autoseq already exists, and only for testing aginst a sqlite DB.");
@@ -100,7 +101,7 @@ class DASemantextTest {
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		SemanticObject r = st.insert("a_functions")
 			.nv("flags", flag)
-			.nv("funcId", "AUTO")
+			.nv("funcId", "AUTO")	// let's support semantics.xml/smtc=pk
 			.nv("funcName", "func - " + flag)
 			.nv("parentId", "------")
 			.commit(sqls);
@@ -127,7 +128,20 @@ class DASemantextTest {
 	}
 
 	@Test
-	void testUpdate() {
+	void testBatch() throws TransException, SQLException {
+		ArrayList<String> sqls = new ArrayList<String>(1);
+		Insert f1 = st.insert("a_role_func")
+				.nv("funcId", "000001");
+		Insert f2 = st.insert("a_rolefunc")
+				.nv("funcId", "000002");
+		Insert newuser = st.insert("a_users")
+				.nv("userId", "AUTO") // TODO test semantics.xml auto k
+				.nv("userName", "Sergey Brin")
+				.post(f1)
+				.post(f2);
+		newuser.commit(sqls);
+		Utils.logi(sqls);
+		Connects.commit(usr , sqls);
 	}
 
 }
