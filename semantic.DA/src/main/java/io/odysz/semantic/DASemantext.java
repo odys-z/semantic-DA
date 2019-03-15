@@ -116,6 +116,7 @@ public class DASemantext implements ISemantext {
 		if (valuesNv != null)
 			for (ArrayList<Object[]> value : valuesNv) {
 				Map<String, Integer> cols = insert.getColumns();
+				TOBO CONTINUED: handle AUTO in semantics.xml
 //				// replace AUTO
 //				try {
 //					replaceAuto(value, tabl, cols);
