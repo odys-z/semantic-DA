@@ -70,10 +70,22 @@ class DASemantextTest {
 					"  seq INTEGER,\n" + 
 					"  remarks text(200),\n" + 
 					"  CONSTRAINT oz_autoseq_pk PRIMARY KEY (sid))");
+			sqls.add("CREATE TABLE a_logs (\n" +
+					"  logId text(20),\n" + 
+					"  funcId text(20),\n" + 
+					"  funcName text(50),\n" + 
+					"  oper text(20),\n" + 
+					"  logTime text(20),\n" + 
+					"  txt text(4000),\n" + 
+					"  CONSTRAINT oz_logs_pk PRIMARY KEY (logId))");
 			sqls.add("insert into oz_autoseq (sid, seq, remarks) values" +
 					"('a_functions.funcId', 0, 'test')," +
 					"('a_roles.roleId', 0, 'test')," + 
-					"('a_users.userId', 0, 'test')");
+					"('a_users.userId', 0, 'test')," +
+					"('a_logs.logId', 0, 'test')");
+			sqls.add("insert into a_functions\n" +
+					"(flags, funcId, funcName, fullpath) " + 
+					"values ( '1911-10-10', '------', 'Sun Yet-sen', '-')");
 			try { Connects.commit(usr, sqls, Connects.flag_nothing); }
 			catch (Exception e) {
 				Utils.warn("Make sure table oz_autoseq already exists, and only for testing aginst a sqlite DB.");
@@ -81,8 +93,6 @@ class DASemantextTest {
 		}
 	}
 
-
-	@SuppressWarnings("unchecked")
 	@Test
 	void testInsert() throws TransException, SQLException {
 		String flag = DateFormat.format(new Date());
@@ -92,6 +102,7 @@ class DASemantextTest {
 			.nv("flags", flag)
 			.nv("funcId", "AUTO")
 			.nv("funcName", "func - " + flag)
+			.nv("parentId", "------")
 			.commit(sqls);
 		
 		Utils.logi(sqls);
@@ -99,8 +110,20 @@ class DASemantextTest {
 		assertNotEquals(r.get("a_functions"), null);
 		
 		Connects.commit(usr , sqls);
-		Utils.logi("New ID for %s:", "a_functions");
-		Utils.logi((ArrayList<String>)((SemanticObject) r.get("a_functions")).get("new-ids"));
+		Utils.logi("New ID for a_functions: %s", st.resolvedVal("a_functions", "funcId"));
+		
+		// level 2
+		r = st.insert("a_functions")
+			.nv("flags", flag)
+			.nv("funcId", "AUTO")
+			.nv("funcName", "func - " + flag)
+			.nv("parentId", st.resolvedVal("a_functions", "funcId"))
+			.commit(sqls);
+		
+		Utils.logi(sqls);
+		Connects.commit(usr , sqls);
+		Utils.logi("New ID for a_functions: %s", st.resolvedVal("a_functions", "funcId"));
+
 	}
 
 	@Test

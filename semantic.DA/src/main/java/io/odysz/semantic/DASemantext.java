@@ -37,12 +37,8 @@ import io.odysz.transact.x.TransException;
  */
 public class DASemantext implements ISemantext {
 
-	private HashMap<Object, Object> autoVals;
+	private SemanticObject autoVals;
 	private static DATranscxt rawst = new DATranscxt(null);
-
-	private SemanticObject resolvedIds;
-	@Override
-	public SemanticObject resolvedNewIds() { return resolvedIds; }
 
 	/**Semantic Configurations */
 	private HashMap<String, DASemantics> ss;
@@ -65,7 +61,7 @@ public class DASemantext implements ISemantext {
 	}
 
 	HashMap<String,DASemantics> init(String filepath) throws SAXException, IOException {
-		HashMap<String, DASemantics> ss = new HashMap<String, DASemantics>();
+		ss = new HashMap<String, DASemantics>();
 		LinkedHashMap<String,XMLTable> xtabs = XMLDataFactoryEx.getXtables(
 				new Log4jWrapper("").setDebugMode(false), filepath, new IXMLStruct() {
 						@Override public String rootTag() { return "semantics"; }
@@ -105,7 +101,7 @@ public class DASemantext implements ISemantext {
 	public ISemantext addSemantics(String tabl, String pk, String smtcs, String args) throws SemanticException {
 		DASemantics s = ss.get(tabl);
 		if (s == null) {
-			s = new DASemantics(tabl, "pk");
+			s = new DASemantics(tabl, pk);
 			ss.put(tabl, s);
 		}
 		s.addHandler(smtcs, args);
@@ -144,14 +140,14 @@ public class DASemantext implements ISemantext {
 					nv[1] = genId(tabl, col);
 					
 					// set results
-					if (resolvedIds == null)
-						resolvedIds = new SemanticObject();
-					SemanticObject tabl_ids = (SemanticObject) resolvedIds.get(tabl);
+					if (autoVals == null)
+						autoVals = new SemanticObject();
+					SemanticObject tabl_ids = (SemanticObject) autoVals.get(tabl);
 					if (tabl_ids == null) {
 						tabl_ids = new SemanticObject();
-						resolvedIds.put(tabl, tabl_ids);
+						autoVals.put(tabl, tabl_ids);
 					}
-					tabl_ids.add("new-ids", nv[1]);
+					tabl_ids.put((String) nv[0], nv[1]);
 				}
 			}
 		}
@@ -159,11 +155,13 @@ public class DASemantext implements ISemantext {
 
 	@Override
 	public ISemantext onUpdate(Update update, String tabl, ArrayList<Object[]> nvs) {
-		// TODO we need semantics here
 		if (nvs != null)
 			for (Object[] nv : nvs)
 				if (nv != null && nv.length > 0 && "AUTO".equals(nv[1]))
-					nv[1] = autoVals == null ? nv[1] : autoVals.get(nv[0]);
+					// resolve AUTO value
+					nv[1] = autoVals != null && autoVals.has(tabl)
+							? ((SemanticObject)autoVals.get(tabl)).get((String)nv[0])
+							: nv[1];
 		return this;
 	}
 
@@ -196,9 +194,8 @@ public class DASemantext implements ISemantext {
 	}
 
 	@Override
-	public SemanticObject results() {
-		return resolvedIds;
-	}
+	public SemanticObject results() { return autoVals; }
+
 	///////////////////////////////////////////////////////////////////////////
 	// auto ID
 	///////////////////////////////////////////////////////////////////////////
@@ -281,7 +278,8 @@ end;
 		SResultset rs = null;
 		rs = Connects.select(connId, sql);
 		if (rs.getRowCount() <= 0)
-			throw new TransException("Can't find auot seq of %s, you may check where oz_autoseq.seq and table %s are existing?",
+			// throw new TransException("Can't find auot seq of %s, you may check where oz_autoseq.seq and table %s are existing?",
+			throw new TransException("Can't find auot seq of %1$s.\nFor performantc reason, DASemantext assumes a record in oz_autoseq.seq (id='%1$s.%2$s') exists.\nMay be you would check where oz_autoseq.seq and table %2$s are existing?",
 					idField, target);
 
 		rs.beforeFirst().next();
@@ -331,7 +329,7 @@ end;
 		} finally { lock.unlock();}
 		
 		if (rs.getRowCount() <= 0)
-			throw new TransException("Can't find auot seq of %s, you may check where oz_autoseq.seq and table %s are existing?",
+			throw new TransException("Can't find auot seq of %1$s.\nFor performantc reason, DASemantext assumes a record in oz_autoseq.seq (id='%1$s.%2$s') exists.\nMay be you would check where oz_autoseq.seq and table %2$s are existing?",
 					idF, target);
 		rs.beforeFirst().next();
 

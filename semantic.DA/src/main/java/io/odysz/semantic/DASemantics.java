@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.odysz.common.LangExt;
+import io.odysz.common.Utils;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.DATranscxt;
 import io.odysz.semantics.ISemantext;
@@ -286,6 +288,10 @@ public class DASemantics {
 			
 			String v = null;
 			try {
+				if (!cols.containsKey(idField) || row.get(cols.get(idField)) == null)
+					throw new TransException("Fullpath configuration wrong: idField = %s, cols: %s",
+							idField, LangExt.toString(cols));
+
 				String id = (String) row.get(cols.get(idField))[1];
 
 				String pid = cols.containsKey(args[0]) ?
@@ -295,23 +301,26 @@ public class DASemantics {
 				// select fullpath where id = $parentId
 				SResultset rs;
 				
-				if (pid == null || "null".equals(pid))
-//					rs = (SResultset) trxt.select(target, "_t0")
-//						.col(args[2])
-//						.where("?0", idField, null)
-//						.rs();
-					v = "";
+				if (pid == null || "null".equals(pid)) {
+					Utils.warn("Fullpath Handling Error\nTo generate fullpath, parentId must configured.\nFound parent col: %s,\nconfigured args = %s,\nhandling cols = %s",
+							pid, LangExt.toString(args), LangExt.toString(cols));
+					v = id;
+				}
 				else {
 					rs = (SResultset) trxt.select(target, "_t0")
 						.col(args[2])
 						.where("=", idField, "'" + pid + "'")
 						.rs();
-					rs.beforeFirst().next();
-					String parentpath = rs.getString(args[2]);
-					v = String.format("%s.%s%s", parentpath,
-						sibling == null ? "" : sibling + " ", id);
+					if (rs.beforeFirst().next()) {
+						String parentpath = rs.getString(args[2]);
+						v = String.format("%s.%s%s", parentpath,
+							sibling == null ? "" : sibling + " ", id);
+					}
+					else
+						v = String.format("%s%s",
+							sibling == null ? "" : sibling + " ", id);
 				}
-			} catch (TransException | SQLException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 

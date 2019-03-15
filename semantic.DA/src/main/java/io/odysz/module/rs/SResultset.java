@@ -281,7 +281,7 @@ for (String coln : colnames.keySet())
 			if (results.get(rowIdx - 1).get(colIndex - 1) == null) return null;
 			else return results.get(rowIdx - 1).get(colIndex - 1).toString();
 		} catch (Exception e) {
-			throw new SQLException(e.getMessage());
+			throw new SQLException(e.getMessage() + " Empty Results?");
 		}
 	}
 	
