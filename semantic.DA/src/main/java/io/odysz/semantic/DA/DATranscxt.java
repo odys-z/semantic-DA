@@ -45,7 +45,7 @@ public class DATranscxt extends Transcxt {
 		super(semantext);
 	}
 
-	public static HashMap<String, DASemantics> init(String connId, String filepath) throws SAXException, IOException {
+	public static HashMap<String, DASemantics> initConfigs(String connId, String filepath) throws SAXException, IOException {
 //		HashMap<String, DASemantics> ss = new HashMap<String, DASemantics>();
 		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
 				new Log4jWrapper("").setDebugMode(false), filepath, new IXMLStruct() {

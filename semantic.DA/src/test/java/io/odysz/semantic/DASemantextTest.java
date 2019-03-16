@@ -64,7 +64,7 @@ DELETE from a_roles;</pre>
 		Connects.init(path);
 
 		st = new DATranscxt(new DASemantext(connId, null));
-		smtcfg = DATranscxt.init(connId, "src/test/res/semantics.xml");
+		smtcfg = DATranscxt.initConfigs(connId, "src/test/res/semantics.xml");
 		
 		SemanticObject jo = new SemanticObject();
 		jo.put("userId", "tester");

@@ -42,7 +42,7 @@ public class TestUser implements IUser {
 		
 		ISemantext semt;
 		try {
-			HashMap<String, DASemantics> ss = DATranscxt.init(DASemantextTest.connId, "src/test/res/semantic-log.xml"); 
+			HashMap<String, DASemantics> ss = DATranscxt.initConfigs(DASemantextTest.connId, "src/test/res/semantic-log.xml"); 
 			semt = new DASemantext(DASemantextTest.connId, ss);
 			logSemantic = new DATranscxt(semt); 
 		} catch (SAXException | IOException e) {
