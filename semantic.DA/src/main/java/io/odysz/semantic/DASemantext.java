@@ -1,32 +1,22 @@
 package io.odysz.semantic;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
-import org.xml.sax.SAXException;
-
-import io.odysz.common.dbtype;
 import io.odysz.common.Radix64;
-import io.odysz.common.Utils;
+import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
-import io.odysz.module.xtable.IXMLStruct;
-import io.odysz.module.xtable.Log4jWrapper;
-import io.odysz.module.xtable.XMLDataFactoryEx;
-import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DA.DATranscxt;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
-import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.x.TransException;
@@ -47,65 +37,10 @@ public class DASemantext implements ISemantext {
 
 	/**Initialize a context for semantics handling.
 	 * This class handling semantics comes form path, usually an xml like test/res/semantics.xml.
-	 * @param connId
-	 * @param path
-	 * @throws SemanticException
-	 * @throws SAXException
-	 * @throws IOException
 	 */
-	public DASemantext(String connId, String path) throws SemanticException, SAXException, IOException {
+	public DASemantext(String connId, HashMap<String, DASemantics> smtcfg) {
 		this.connId = connId;
-		if (path != null && ss == null)
-			ss = init(path);
-		else ss = null;
-	}
-
-	HashMap<String,DASemantics> init(String filepath) throws SAXException, IOException {
-		ss = new HashMap<String, DASemantics>();
-		LinkedHashMap<String,XMLTable> xtabs = XMLDataFactoryEx.getXtables(
-				new Log4jWrapper("").setDebugMode(false), filepath, new IXMLStruct() {
-						@Override public String rootTag() { return "semantics"; }
-						@Override public String tableTag() { return "t"; }
-						@Override public String recordTag() { return "s"; }});
-
-		XMLTable conn = xtabs.get("semantics");
-		conn.beforeFirst();
-		while (conn.next()) {
-			String tabl = conn.getString("tabl");
-			String pk = conn.getString("pk");
-			String smtc = conn.getString("smtc");
-			String args = conn.getString("args");
-			try {
-				addSemantics(tabl, pk, smtc, args);
-			} catch (SemanticException e) {
-				// some configuration error
-				// continue
-				Utils.warn(e.getMessage());
-			}
-//			DASemantics s = ss.get(tabl);
-//			if (s == null) {
-//				s = new DASemantics(tabl, conn.getString("pk"));
-//				ss.put(tabl, s);
-//			}
-//			try {s.addHandler(conn.getString("smtc"), args); }
-//			catch (SemanticException e) {
-//				// some configuration error
-//				// continue
-//				Utils.warn(e.getMessage());
-//			}
-		}
-		return ss;
-	}
-
-	@Override
-	public ISemantext addSemantics(String tabl, String pk, String smtcs, String args) throws SemanticException {
-		DASemantics s = ss.get(tabl);
-		if (s == null) {
-			s = new DASemantics(tabl, pk);
-			ss.put(tabl, s);
-		}
-		s.addHandler(smtcs, args);
-		return this;
+		ss = smtcfg;
 	}
 
 	/**When inserting, replace inserting values in 'AUTO' columns, e.g. generate auto PK for rec-id.
@@ -116,47 +51,11 @@ public class DASemantext implements ISemantext {
 		if (valuesNv != null)
 			for (ArrayList<Object[]> value : valuesNv) {
 				Map<String, Integer> cols = insert.getColumns();
-				TOBO CONTINUED: handle AUTO in semantics.xml
-//				// replace AUTO
-//				try {
-//					replaceAuto(value, tabl, cols);
-//				} catch (SQLException | TransException e) {
-//					e.printStackTrace();
-//				}
-//				// handle semantics
-//				DASemantics s = ss.get(tabl);
-//				if (s != null)
-//					s.onInsert(value, cols, usr);
-
-				// handle semantics (resolve auto by fkIns handler
 				DASemantics s = ss.get(tabl);
 				if (s != null)
 					s.onInsert(this, value, cols, usr);
 			}
 		return this;
-	}
-
-	private void replaceAuto(ArrayList<Object[]> nvs, String tabl, Map<String, Integer> cols) throws SQLException, TransException {
-		if (nvs != null) {
-			for (String col : cols.keySet()) {
-				Integer c = cols.get(col);
-				Object[] nv = nvs.get(c);
-				if (nv != null && nv.length > 1
-					&& nv[1] instanceof String && "AUTO".equals(nv[1])) {
-					nv[1] = genId(tabl, col);
-					
-					// set results
-					if (autoVals == null)
-						autoVals = new SemanticObject();
-					SemanticObject tabl_ids = (SemanticObject) autoVals.get(tabl);
-					if (tabl_ids == null) {
-						tabl_ids = new SemanticObject();
-						autoVals.put(tabl, tabl_ids);
-					}
-					tabl_ids.put((String) nv[0], nv[1]);
-				}
-			}
-		}
 	}
 
 	@Override
@@ -188,25 +87,38 @@ public class DASemantext implements ISemantext {
 
 	private ISemantext clone(DASemantext srctx, IUser... usr) {
 		DASemantext newInst;
-		try {
-			newInst = new DASemantext(connId, null);
-			newInst.ss = srctx.ss;
-			newInst.usr = usr != null && usr.length > 0 ? usr[0] : null;
-			return newInst;
-		} catch (IOException | SemanticException | SAXException e) {
-			e.printStackTrace();
-		}
-		return this;
+		newInst = new DASemantext(connId, null);
+		newInst.ss = srctx.ss;
+		newInst.usr = usr != null && usr.length > 0 ? usr[0] : null;
+		return newInst;
 	}
 
+	/**Find resolved value in results.
+	 * @param table
+	 * @param col
+	 * @return RESULt resoLVED VALue in tabl.col
+	 */
 	@Override
-	public SemanticObject results() { return autoVals; }
+	public Object resulvedVal(String tabl, String col) {
+		return ((SemanticObject) autoVals.get(tabl)).get(col);
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	// auto ID
 	///////////////////////////////////////////////////////////////////////////
-	public static String genId(String tabl, String col) throws SQLException, TransException {
-		return genId(Connects.defltConn(), tabl, col, null);
+	@Override
+	public String genId(String tabl, String col) throws SQLException, TransException {
+		String newv = genId(connId, tabl, col, null);
+
+		if (autoVals == null)
+			autoVals = new SemanticObject();
+		SemanticObject tabl_ids = (SemanticObject) autoVals.get(tabl);
+		if (tabl_ids == null) {
+			tabl_ids = new SemanticObject();
+			autoVals.put(tabl, tabl_ids);
+		}
+		tabl_ids.put(col, newv);
+		return newv;
 	}
 
 	/**Generate new Id with the help of db function f_incSeq(varchar idName)<br>
@@ -331,7 +243,7 @@ end;
 			// rs = Connects.select(conn, select, Connects.flag_nothing);
 			rs = (SResultset) rawst.select("oz_autoseq").col("seq")
 					.where("=", "sid", String.format("'%s.%s'", target, idF))
-					.rs();
+					.rs(rawst.staticContext());
 		} finally { lock.unlock();}
 		
 		if (rs.getRowCount() <= 0)

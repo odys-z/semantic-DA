@@ -1,12 +1,13 @@
 package io.odysz.semantic;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,6 @@ import io.odysz.common.Utils;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DA.DATranscxt;
-import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
@@ -39,7 +39,21 @@ class DASemantextTest {
 	static final String connId = "local-sqlite";
 	private static DATranscxt st;
 	private static IUser usr;
+	private static HashMap<String, DASemantics> smtcfg;
 
+	/**Use this to reset semantic-DA.db ( a sqlite3 db file).<pre>
+drop TABLE a_logs;
+drop TABLE oz_autoseq;
+DELETE FROM a_functions;
+DELETE FROM a_role_func;
+DELETE from a_users;
+DELETE from a_roles;</pre>
+	 * 
+	 * @throws SQLException
+	 * @throws SemanticException
+	 * @throws SAXException
+	 * @throws IOException
+	 */
 	@BeforeAll
 	static void testInit() throws SQLException, SemanticException, SAXException, IOException {
 		Utils.printCaller(false);
@@ -49,8 +63,8 @@ class DASemantextTest {
 		Utils.logi(path);
 		Connects.init(path);
 
-		ISemantext s = new DASemantext(connId, "src/test/res/semantics.xml");
-		st = new DATranscxt(s);
+		st = new DATranscxt(new DASemantext(connId, null));
+		smtcfg = DATranscxt.init(connId, "src/test/res/semantics.xml");
 		
 		SemanticObject jo = new SemanticObject();
 		jo.put("userId", "tester");
@@ -95,53 +109,64 @@ class DASemantextTest {
 	}
 
 	@Test
-	void testInsert() throws TransException, SQLException {
+	void testInsert() throws TransException, SQLException, SAXException, IOException {
 		String flag = DateFormat.format(new Date());
 
+		DASemantext s0 = new DASemantext(connId, smtcfg);
 		ArrayList<String> sqls = new ArrayList<String>(1);
-		SemanticObject r = st.insert("a_functions")
+		st.insert("a_functions")
 			.nv("flags", flag)
 			.nv("funcId", "AUTO")	// let's support semantics.xml/smtc=pk
-			.nv("funcName", "func - " + flag)
+			.nv("funcName", "testInsert A - " + flag)
 			.nv("parentId", "------")
-			.commit(sqls);
+			.commit(s0, sqls);
 		
 		Utils.logi(sqls);
 		
-		assertNotEquals(r.get("a_functions"), null);
-		
-		Connects.commit(usr , sqls);
-		Utils.logi("New ID for a_functions: %s", st.resolvedVal("a_functions", "funcId"));
+		Utils.logi("New ID for a_functions: %s", s0.resulvedVal("a_functions", "funcId"));
 		
 		// level 2
-		r = st.insert("a_functions")
+		DASemantext s1 = new DASemantext(connId, smtcfg);
+		st.insert("a_functions")
 			.nv("flags", flag)
-			.nv("funcId", "AUTO")
-			.nv("funcName", "func - " + flag)
-			.nv("parentId", st.resolvedVal("a_functions", "funcId"))
-			.commit(sqls);
+			.nv("funcId", "AUTO") // TODO comment out and test
+			.nv("funcName", "testInsert B - " + flag)
+			.nv("parentId", s0.resulvedVal("a_functions", "funcId"))
+			.commit(s1, sqls);
 		
 		Utils.logi(sqls);
 		Connects.commit(usr , sqls);
-		Utils.logi("New ID for a_functions: %s", st.resolvedVal("a_functions", "funcId"));
-
+		Utils.logi("New ID for a_functions: %s", s1.resulvedVal("a_functions", "funcId"));
 	}
 
 	@Test
-	void testBatch() throws TransException, SQLException {
+	void testBatch() throws TransException, SQLException, SAXException, IOException {
+		DASemantext s0 = new DASemantext(connId, smtcfg);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		Insert f1 = st.insert("a_role_func")
 				.nv("funcId", "000001");
-		Insert f2 = st.insert("a_rolefunc")
+		Insert f2 = st.insert("a_role_func")
 				.nv("funcId", "000002");
-		Insert newuser = st.insert("a_users")
-				.nv("userId", "AUTO") // TODO test semantics.xml auto k
-				.nv("userName", "Sergey Brin")
+		Insert newuser = st.insert("a_roles")
+				.nv("roleId", "AUTO") // overridden by semantics.xml
+				.nv("roleName", "Co-funder")
 				.post(f1)
 				.post(f2);
-		newuser.commit(sqls);
-		Utils.logi(sqls);
+		newuser.commit(s0, sqls);
 		Connects.commit(usr , sqls);
+		
+		DASemantext s1 = new DASemantext(connId, smtcfg);
+		String newId = (String) s0.resulvedVal("a_roles", "roleId");
+		SResultset slect = (SResultset) st
+				.select("a_role_func", "rf")
+				.col("count(funcId) cnt")
+				.where("=", "rf.roleId", "'" + newId + "'")
+				.where("=", "rf.funcId", "'000001'")
+				.rs(s1);
+		slect.printSomeData(false, 2, "funcId");
+
+		slect.beforeFirst().next();
+		assertEquals(1, slect.getInt("cnt"));
 	}
 
 }

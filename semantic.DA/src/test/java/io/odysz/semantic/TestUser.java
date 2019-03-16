@@ -3,6 +3,7 @@ package io.odysz.semantic;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Disabled;
@@ -13,7 +14,6 @@ import io.odysz.semantic.util.SQLString;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
-import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 @Disabled
@@ -42,9 +42,10 @@ public class TestUser implements IUser {
 		
 		ISemantext semt;
 		try {
-			semt = new DASemantext(DASemantextTest.connId, "src/test/res/semantic-log.xml");
+			HashMap<String, DASemantics> ss = DATranscxt.init(DASemantextTest.connId, "src/test/res/semantic-log.xml"); 
+			semt = new DASemantext(DASemantextTest.connId, ss);
 			logSemantic = new DATranscxt(semt); 
-		} catch (SemanticException | SAXException | IOException e) {
+		} catch (SAXException | IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -73,7 +74,7 @@ public class TestUser implements IUser {
 				.nv("funcName", action.getString("funcName"))
 				.nv("funcId", action.getString("funcId"))
 				.nv("txt", txt(sqls))
-				.ins();
+				.ins(logSemantic.staticContext());
 			//Connects.commitLog(sql); // reporting commit failed in err console
 		} catch (SQLException e) {
 			// failed case must be a bug - commitLog()'s exception already caught.

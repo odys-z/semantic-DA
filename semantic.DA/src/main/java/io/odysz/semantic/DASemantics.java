@@ -8,10 +8,8 @@ import java.util.Map;
 import io.odysz.common.LangExt;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.SResultset;
-import io.odysz.semantic.DA.DATranscxt;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
-import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.parts.condition.Funcall;
@@ -60,14 +58,14 @@ import io.odysz.transact.x.TransException;
  * implementation, implement the interface {@link ISemantext}, or simply initialize {@link io.odysz.transact.sql.Transcxt}
  * with null semantics, which will disable semantic supporting. 
  
- * @author ody
+ * @author odys-z@github.com
  *
  */
 public class DASemantics {
 	/**error code key word*/
 	public static final String ERR_CHK = "err_smtcs";;
 
-	/**<b>0. {@link #autoInc} </b> key-word: "auto" | "ai" | "a-i"<br>
+	/**<b>0. {@link #autoInc} for xml keywords, see {@link #autoInc}, for args, see {@link ShAutoK}<br>
 	 * <b>1. {@link #fullpath} </b> key-word: "fullpath" | "fp" | "f-p"<br>
 	 * <b>2. {@link #parentChildren} </b> key-word: "pc-del-all" | "parent-child-del-all"<br>
 	 * <b>3. {@link #dencrypt} </b> key-word: "d-e" | "de-encrypt" <br>
@@ -85,7 +83,7 @@ public class DASemantics {
 	 * <b>x. orclob</b>: the field must saved as clob when driver type is orcl;
 	 */
 	public enum smtype {
-		/**"auto" | "ai" | "pk" | "autopk": Generate auto increased value for the field when inserting */
+		/**"auto" | "a-k" | "pk" | "autopk": Generate auto increased value for the field when inserting */
 		autoInc,
 		/**"fk-ins": Referencing generated auto key. When inserting, auto update referencing value */
 		fkIns,
@@ -113,6 +111,11 @@ public class DASemantics {
 		/** "clob" | "orclob": the column is a CLOB field, semantic-transact will read/write separately in stream and get final results.*/
 		orclob;
 
+		/**FIXME use enum.valueOf()
+		 * @param type
+		 * @return {@link smtype}
+		 * @throws SemanticException
+		 */
 		public static smtype parse(String type) throws SemanticException {
 			if (type == null) throw new SemanticException("semantics is null");
 			type = type.toLowerCase().trim();
@@ -145,8 +148,10 @@ public class DASemantics {
 	}
 
 	private HashMap<String, DASemantics> ss;
-	/** raw transact context for DB accessing without semantics support */
-	private DATranscxt rawTsx;
+
+	/**Static transact context for DB accessing without semantics support.<br>
+	 * Used to generate auto ID. */
+	private Transcxt staticTsx;
 
 	public DASemantics get(String tabl) {
 		return ss == null ? null : ss.get(tabl);
@@ -157,16 +162,16 @@ public class DASemantics {
 	private String tabl;
 	private String pk;
 
-	public DASemantics(String tabl, String recId) {
+	public DASemantics(Transcxt staticManger, String tabl, String recId) {
 		this.tabl = tabl;
 		this.pk = recId;
-		rawTsx = new DATranscxt(null);
+		// staticTsx = new DATranscxt();
+		staticTsx = staticManger;
 		
 		handlers = new ArrayList<SemanticHandler>();
-		// addSemantics(semantic, args);
 	}
 
-	void addHandler(String semantic, String args) throws SemanticException {
+	public void addHandler(String semantic, String args) throws SemanticException {
 		addHandler(smtype.parse(semantic), tabl, pk, args);
 	}
 	
@@ -186,29 +191,23 @@ public class DASemantics {
 		SemanticHandler handler = null;
 
 		if (smtype.fullpath == semantic)
-			// addFullpath(tabl, recId, argss);
-			handler = new ShFullpath(rawTsx, tabl, recId, argss);
+			handler = new ShFullpath(staticTsx, tabl, recId, argss);
 		else if (smtype.autoInc == semantic)
-			// addAutoPk(tabl, recId, argss);
-			handler = new ShAutoK(rawTsx, tabl, recId, argss);
+			handler = new ShAutoK(staticTsx, tabl, recId, argss);
 		else if (smtype.fkIns == semantic)
-			handler = new ShFkOnIns(rawTsx, tabl, recId, argss);
+			handler = new ShFkOnIns(staticTsx, tabl, recId, argss);
 		else if (smtype.parentChildrenOnDel == semantic)
-			// addParentChildren(tabl, recId, argss);
-			handler = new ShPCDelAll(rawTsx, tabl, recId, argss);
+			handler = new ShPCDelAll(staticTsx, tabl, recId, argss);
 //		else if (smtype.dencrypt == semantic)
 //			addDencrypt(tabl, recId, argss);
 //		else if (smtype.orclob == semantic)
 //			addClob(tabl, recId, argss);
 		else if (smtype.opTime == semantic)
-			// addOperTime(tabl, recId, argss);
-			handler = new ShOperTime(rawTsx, tabl, recId, argss);
+			handler = new ShOperTime(staticTsx, tabl, recId, argss);
 		else if (smtype.checkSqlCountOnDel == semantic)
-			// addCheckSqlCountOnDel(tabl, recId, argss);
-			handler = new ShChkPCDel(rawTsx, tabl, recId, argss);
+			handler = new ShChkPCDel(staticTsx, tabl, recId, argss);
 		else if (smtype.checkSqlCountOnInsert == semantic)
-			// addCheckSqlCountOnInsert(tabl, recId, argss);
-			handler = new ShChkPCInsert(rawTsx, tabl, recId, argss);
+			handler = new ShChkPCInsert(staticTsx, tabl, recId, argss);
 //		else if (smtype.composingCol == semantic)
 //			addComposings(tabl, recId, argss);
 //		else if (smtype.stamp1MoreThanRefee == semantic)
@@ -269,8 +268,6 @@ public class DASemantics {
 			idField = pk;
 			this.args = args;
 		}
-
-
 	}
 	
 	//////////////////////////////// subclasses ////////////////////////////////
@@ -309,15 +306,15 @@ public class DASemantics {
 				SResultset rs;
 				
 				if (pid == null || "null".equals(pid)) {
-					Utils.warn("Fullpath Handling Error\nTo generate fullpath, parentId must configured.\nFound parent col: %s,\nconfigured args = %s,\nhandling cols = %s",
-							pid, LangExt.toString(args), LangExt.toString(cols));
+					Utils.warn("Fullpath Handling Error\nTo generate fullpath, parentId must configured.\nFound parent col: %s,\nconfigured args = %s,\nhandling cols = %s\nrows = %s",
+							pid, LangExt.toString(args), LangExt.toString(cols), LangExt.toString(row));
 					v = id;
 				}
 				else {
 					rs = (SResultset) trxt.select(target, "_t0")
 						.col(args[2])
 						.where("=", idField, "'" + pid + "'")
-						.rs();
+						.rs(stx);
 					if (rs.beforeFirst().next()) {
 						String parentpath = rs.getString(args[2]);
 						v = String.format("%s.%s%s", parentpath,
@@ -343,6 +340,10 @@ public class DASemantics {
 		}
 	}
 
+	/**Auto inc handler.<br>
+	 * on-events: insert<br>
+	 * smtc = "auto" | "ai" | "a-i"<br>
+	 * args = [0: pk-field] */
 	static class ShAutoK extends SemanticHandler {
 		/**
 		 * @param trxt
@@ -353,6 +354,9 @@ public class DASemantics {
 		 */
 		ShAutoK(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.autoInc, tabl, pk, args);
+			if (args == null || args.length == 0 || args[0] == null)
+				throw new SemanticException("AUTO pk semantics configuration not correct. tabl = %s, pk = %s, args: %s",
+						tabl, pk, LangExt.toString(args));
 			insert = true;
 		}
 		
@@ -368,7 +372,8 @@ public class DASemantics {
 			}
 			nv[0] = args[0];
 			try {
-				nv[1] = DASemantext.genId(target, args[0]);
+				// side effect: aput generated auto key alread been put into autoVals, can be referenced later. 
+				nv[1] = stx.genId(target, args[0]);
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();
 			}
@@ -388,16 +393,34 @@ public class DASemantics {
 		@Override
 		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			Object[] nv;
+			// Debug Note:
+			// Don't use pk to find referencing col here, relation table's pk can be null.
+			// Use args[0] instead.
 			if (cols.containsKey(args[0])) { // referencing col
 				nv = row.get(cols.get(args[0]));
 			}
-			else {
-				nv = new String[2];
+			else { // add a semantics required cell if it's absent.
+				nv = new String[] {args[0], null};
 				cols.put(args[0], row.size());
 				row.add(nv);
 			}
-			Object refeev = ((SemanticObject) stx.results().get(args[1])).get(args[2]);
-			nv[1] = refeev == null ? nv[1] : refeev; // referee can be null?
+//			SemanticObject refs = (SemanticObject) stx.results();
+//			if (refs == null || !refs.has(args[1]))
+//				Utils.warn("Trying resolve FK failed. fk = %s.%s, parent = %s.%s,\nFK config args:\t%s,\ndata cols:\t%s,\ndata row:\t%s.\nAlso note that in current version, only auto key can be referenced and auto resolved.",
+//						target, args[0], args[1], args[2],
+//						LangExt.toString(args), LangExt.toString(cols), LangExt.toString(row));
+//			else {
+//				Object refeev = ((SemanticObject) refs.get(args[1])).get(args[2]);
+//				nv[1] = refeev == null ? nv[1] : refeev; // referee can be null?
+//			}
+			try {
+				nv[1] = stx.resulvedVal(args[1], args[2]);
+			}catch (Exception e) {
+				Utils.warn("Trying resolve FK failed. fk = %s.%s, parent = %s.%s,\nFK config args:\t%s,\ndata cols:\t%s,\ndata row:\t%s.\nAlso note that in current version, only auto key can be referenced and auto resolved.",
+						target, args[0], args[1], args[2],
+						LangExt.toString(args), LangExt.toString(cols), LangExt.toString(row));
+			}
+			
 		}
 	}
 
