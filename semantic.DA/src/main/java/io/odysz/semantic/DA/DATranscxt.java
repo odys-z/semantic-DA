@@ -11,6 +11,7 @@ import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
+import io.odysz.semantic.DASemantext;
 import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantics.ISemantext;
@@ -31,7 +32,7 @@ public class DATranscxt extends Transcxt {
 		return smtConfigs.get(conn);
 	}
 
-	private static Transcxt staticInstance = new DATranscxt(statiCtx);
+	private static Transcxt staticInstance = new DATranscxt(basictx);
 
 	@Override
 	public Query select(String tabl, String... alias) {
@@ -48,6 +49,17 @@ public class DATranscxt extends Transcxt {
 
 	public DATranscxt(ISemantext semantext) {
 		super(semantext);
+	}
+
+	/**Create a transact builder with basic DASemantext instance. 
+	 * It's a null configuration, so semantics can be resolved, but can be used to do basic sql operation.
+	 * @param connId
+	public DATranscxt(String connId) {
+		super(new DASemantext(connId, null));
+	}
+	 */
+	public DATranscxt() {
+		super(new DASemantext("", null));
 	}
 
 	public static HashMap<String, DASemantics> initConfigs(String connId, String filepath) throws SAXException, IOException {

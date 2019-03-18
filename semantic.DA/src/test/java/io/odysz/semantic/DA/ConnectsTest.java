@@ -54,7 +54,7 @@ class ConnectsTest {
 			.orderby("fullpath")
 			.orderby("sibling", "desc")
 			.where("=", "flags", "'test00'")
-			.commit(st.staticContext(), sqls); // using static semantext for testing
+			.commit(st.basiContext(), sqls); // using static semantext for testing
 		Utils.logi(sqls);
 
 		rs = Connects.select(sqls.get(0));
@@ -74,7 +74,7 @@ class ConnectsTest {
 			.nv("flags", flag)
 			.nv("funcId", "AUTO")
 			.nv("funcName", "func - " + flag)
-			.commit(st.staticContext(), sqls); // using static semantext for testing
+			.commit(st.basiContext(), sqls); // using static semantext for testing
 		
 		Utils.logi(sqls);
 		

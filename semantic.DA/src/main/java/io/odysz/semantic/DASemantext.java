@@ -28,7 +28,7 @@ import io.odysz.transact.x.TransException;
 public class DASemantext implements ISemantext {
 
 	private SemanticObject autoVals;
-	private static DATranscxt rawst = new DATranscxt(null);
+	private static DATranscxt rawst = new DATranscxt();
 
 	/**Semantic Configurations */
 	private HashMap<String, DASemantics> ss;
@@ -48,7 +48,7 @@ public class DASemantext implements ISemantext {
 	 */
 	@Override
 	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> valuesNv) {
-		if (valuesNv != null)
+		if (valuesNv != null && ss != null)
 			for (ArrayList<Object[]> value : valuesNv) {
 				Map<String, Integer> cols = insert.getColumns();
 				DASemantics s = ss.get(tabl);
@@ -60,7 +60,7 @@ public class DASemantext implements ISemantext {
 
 	@Override
 	public ISemantext onUpdate(Update update, String tabl, ArrayList<Object[]> nvs) {
-		if (nvs != null)
+		if (nvs != null && ss != null)
 			for (Object[] nv : nvs)
 				if (nv != null && nv.length > 0 && "AUTO".equals(nv[1]))
 					// resolve AUTO value
@@ -243,7 +243,7 @@ end;
 			// rs = Connects.select(conn, select, Connects.flag_nothing);
 			rs = (SResultset) rawst.select("oz_autoseq").col("seq")
 					.where("=", "sid", String.format("'%s.%s'", target, idF))
-					.rs(rawst.staticContext());
+					.rs(rawst.basiContext());
 		} finally { lock.unlock();}
 		
 		if (rs.getRowCount() <= 0)
