@@ -12,6 +12,7 @@ import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DASemantics;
+import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
@@ -25,7 +26,11 @@ import io.odysz.transact.sql.Transcxt;
  */
 public class DATranscxt extends Transcxt {
 
-	private static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
+	protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
+	public static HashMap<String, DASemantics> smtCfonfigs(String conn) {
+		return smtConfigs.get(conn);
+	}
+
 	private static Transcxt staticInstance = new DATranscxt(statiCtx);
 
 	@Override
@@ -71,7 +76,13 @@ public class DATranscxt extends Transcxt {
 		return smtConfigs.get(connId);
 	}
 
+		
 	public static void addSemantics(String connId, String tabl, String pk, String smtcs, String args) throws SemanticException {
+		smtype sm = smtype.valueOf(smtcs);
+		addSemantics(connId, tabl, pk, sm, args);
+	}
+
+	public static void addSemantics(String connId, String tabl, String pk, smtype sm, String args) throws SemanticException {
 		if (smtConfigs == null) {
 			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
 		}
@@ -86,6 +97,6 @@ public class DATranscxt extends Transcxt {
 			s = new DASemantics(staticInstance, tabl, pk);
 			ss.put(tabl, s);
 		}
-		s.addHandler(smtcs, args);
+		s.addHandler(sm, tabl, pk, args);
 	}
 }
