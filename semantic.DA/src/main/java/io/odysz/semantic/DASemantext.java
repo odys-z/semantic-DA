@@ -28,7 +28,8 @@ import io.odysz.transact.x.TransException;
 public class DASemantext implements ISemantext {
 
 	private SemanticObject autoVals;
-	private static DATranscxt rawst = new DATranscxt();
+	// private static DATranscxt rawst = new DATranscxt();
+	private static DATranscxt rawst;
 
 	/**Semantic Configurations */
 	private HashMap<String, DASemantics> ss;
@@ -41,6 +42,7 @@ public class DASemantext implements ISemantext {
 	public DASemantext(String connId, HashMap<String, DASemantics> smtcfg) {
 		this.connId = connId;
 		ss = smtcfg;
+		rawst = new DATranscxt(connId);
 	}
 
 	/**When inserting, replace inserting values in 'AUTO' columns, e.g. generate auto PK for rec-id.

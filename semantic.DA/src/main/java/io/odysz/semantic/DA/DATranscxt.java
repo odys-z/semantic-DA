@@ -58,8 +58,8 @@ public class DATranscxt extends Transcxt {
 		super(new DASemantext(connId, null));
 	}
 	 */
-	public DATranscxt() {
-		super(new DASemantext("", null));
+	public DATranscxt(String conn) {
+		super(new DASemantext(conn, null));
 	}
 
 	public static HashMap<String, DASemantics> initConfigs(String connId, String filepath) throws SAXException, IOException {
