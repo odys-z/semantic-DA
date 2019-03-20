@@ -85,7 +85,8 @@ public class DASemantics {
 	public enum smtype {
 		/**"auto" | "a-k" | "pk" | "autopk": Generate auto increased value for the field when inserting */
 		autoInc,
-		/**"fk-ins": Referencing generated auto key. When inserting, auto update referencing value */
+		/**"fk-ins": Referencing generated auto key. When inserting, auto update referencing value.
+		 * args: see {@link ShFkOnIns} */
 		fkIns,
 		/** "f-p" | "fp" | "fullpath":
 		 * when updating, auto update fullpath field according to parent-id and current record id<br>
@@ -380,7 +381,7 @@ public class DASemantics {
 		}
 	}
 
-	/**Handle fk referencing resolving when inserting children.
+	/**Handle fk referencing resolving when inserting children.<br>
 	 * Args[0]: referencing col, [1]: target table, [2] target pk col
 	 */
 	static class ShFkOnIns extends SemanticHandler {

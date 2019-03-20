@@ -53,10 +53,7 @@ public class DATranscxt extends Transcxt {
 
 	/**Create a transact builder with basic DASemantext instance. 
 	 * It's a null configuration, so semantics can be resolved, but can be used to do basic sql operation.
-	 * @param connId
-	public DATranscxt(String connId) {
-		super(new DASemantext(connId, null));
-	}
+	 * @param conn connection Id
 	 */
 	public DATranscxt(String conn) {
 		super(new DASemantext(conn, null));
@@ -90,7 +87,7 @@ public class DATranscxt extends Transcxt {
 
 		
 	public static void addSemantics(String connId, String tabl, String pk, String smtcs, String args) throws SemanticException {
-		smtype sm = smtype.valueOf(smtcs);
+		smtype sm = smtype.parse(smtcs);
 		addSemantics(connId, tabl, pk, sm, args);
 	}
 

@@ -13,11 +13,11 @@ import io.odysz.common.Radix64;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.DA.DATranscxt;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.transact.sql.Insert;
+import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.x.TransException;
 
@@ -29,7 +29,7 @@ public class DASemantext implements ISemantext {
 
 	private SemanticObject autoVals;
 	// private static DATranscxt rawst = new DATranscxt();
-	private static DATranscxt rawst;
+	private static Transcxt rawst;
 
 	/**Semantic Configurations */
 	private HashMap<String, DASemantics> ss;
@@ -42,7 +42,7 @@ public class DASemantext implements ISemantext {
 	public DASemantext(String connId, HashMap<String, DASemantics> smtcfg) {
 		this.connId = connId;
 		ss = smtcfg;
-		rawst = new DATranscxt(connId);
+		rawst = new Transcxt(null);
 	}
 
 	/**When inserting, replace inserting values in 'AUTO' columns, e.g. generate auto PK for rec-id.
