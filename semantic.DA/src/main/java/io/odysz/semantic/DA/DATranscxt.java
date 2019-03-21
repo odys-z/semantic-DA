@@ -51,12 +51,16 @@ public class DATranscxt extends Transcxt {
 		super(semantext);
 	}
 
+	protected String basiconnId;
+	public String basiconnId() { return basiconnId; }
+
 	/**Create a transact builder with basic DASemantext instance. 
 	 * It's a null configuration, so semantics can be resolved, but can be used to do basic sql operation.
 	 * @param conn connection Id
 	 */
 	public DATranscxt(String conn) {
 		super(new DASemantext(conn, null));
+		this.basiconnId = conn;
 	}
 
 	public static HashMap<String, DASemantics> initConfigs(String connId, String filepath) throws SAXException, IOException {
@@ -68,21 +72,26 @@ public class DATranscxt extends Transcxt {
 						@Override public String recordTag() { return "s"; }});
 
 		XMLTable conn = xtabs.get("semantics");
-		conn.beforeFirst();
-		while (conn.next()) {
-			String tabl = conn.getString("tabl");
-			String pk = conn.getString("pk");
-			String smtc = conn.getString("smtc");
-			String args = conn.getString("args");
+		
+		return initConfigs(connId, conn);
+	}
+	
+	public static HashMap<String, DASemantics> initConfigs(String conn, XMLTable xcfg) throws SAXException, IOException {
+		xcfg.beforeFirst();
+		while (xcfg.next()) {
+			String tabl = xcfg.getString("tabl");
+			String pk = xcfg.getString("pk");
+			String smtc = xcfg.getString("smtc");
+			String args = xcfg.getString("args");
 			try {
-				addSemantics(connId, tabl, pk, smtc, args);
+				addSemantics(conn, tabl, pk, smtc, args);
 			} catch (SemanticException e) {
 				// some configuration error
 				// continue
 				Utils.warn(e.getMessage());
 			}
 		}
-		return smtConfigs.get(connId);
+		return smtConfigs.get(conn);
 	}
 
 		

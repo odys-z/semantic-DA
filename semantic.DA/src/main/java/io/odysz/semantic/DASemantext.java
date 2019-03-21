@@ -10,6 +10,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 import io.odysz.common.Radix64;
+import io.odysz.common.Regex;
+import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.Connects;
@@ -35,6 +37,7 @@ public class DASemantext implements ISemantext {
 	private HashMap<String, DASemantics> ss;
 	private IUser usr;
 	private String connId;
+	private Regex refReg;
 
 	/**Initialize a context for semantics handling.
 	 * This class handling semantics comes form path, usually an xml like test/res/semantics.xml.
@@ -43,6 +46,8 @@ public class DASemantext implements ISemantext {
 		this.connId = connId;
 		ss = smtcfg;
 		rawst = new Transcxt(null);
+		
+		refReg = new Regex(ISemantext.refPattern);
 	}
 
 	/**When inserting, replace inserting values in 'AUTO' columns, e.g. generate auto PK for rec-id.
@@ -103,6 +108,21 @@ public class DASemantext implements ISemantext {
 	@Override
 	public Object resulvedVal(String tabl, String col) {
 		return ((SemanticObject) autoVals.get(tabl)).get(col);
+	}
+	
+	@Override
+	public Object resulvedVal(String ref) {
+		if (autoVals == null) {
+			Utils.warn("Value reference can not resolved: %s. autoVals is null", ref);
+			return ref;
+		}
+		ArrayList<String> grps = refReg.findGroups(ref);
+		if (grps == null || grps.size() != 2) {
+			Utils.warn("Value reference can not resolved: %s. Pattern is incorrect.", ref);
+			return ref;
+		}
+		String tabl = grps.get(0);
+		return ((SemanticObject)autoVals.get(tabl)).get(grps.get(1));
 	}
 
 	///////////////////////////////////////////////////////////////////////////
