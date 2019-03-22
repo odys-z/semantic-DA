@@ -15,6 +15,7 @@ import org.xml.sax.SAXException;
 
 import io.odysz.common.DateFormat;
 import io.odysz.common.Utils;
+import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DA.DATranscxt;
@@ -22,6 +23,7 @@ import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
+import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 /**Test basic semantics for semantic-jserv.<br>
@@ -97,6 +99,8 @@ DELETE from a_roles;</pre>
 					"('a_functions.funcId', 0, 'test')," +
 					"('a_roles.roleId', 0, 'test')," + 
 					"('a_users.userId', 0, 'test')," +
+					"('crs_a.aid', 0, 'test')," + 
+					"('crs_b.bid', 8, 'test')," +
 					"('a_logs.logId', 0, 'test')");
 			sqls.add("insert into a_functions\n" +
 					"(flags, funcId, funcName, fullpath) " + 
@@ -167,6 +171,20 @@ DELETE from a_roles;</pre>
 
 		slect.beforeFirst().next();
 		assertEquals(1, slect.getInt("cnt"));
+	}
+	
+	@Test
+	void testCrossAutoK() throws TransException, SQLException {
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr);
+		ArrayList<String> sqls = new ArrayList<String>(1);
+		Insert f1 = st.insert("crs_a")
+				.nv("remarka", Funcall.now(dbtype.sqlite));
+		st.insert("crs_b")
+				.nv("remarkb", Funcall.now(dbtype.sqlite))
+				.post(f1)
+				.commit(s0, sqls);
+	
+		Connects.commit(usr , sqls);
 	}
 
 }

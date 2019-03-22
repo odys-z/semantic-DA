@@ -66,5 +66,34 @@
   		<pk>logId</pk>
   		<args></args>
   	</s>
+  	
+  	<s>
+  		<id>41</id>
+  		<smtc>autopk</smtc>
+  		<tabl>crs_a</tabl>
+  		<pk>aid</pk>
+  		<args>aid</args>
+  	</s>
+  	<s>
+  		<id>42</id>
+  		<smtc>autopk</smtc>
+  		<tabl>crs_b</tabl>
+  		<pk>bid</pk>
+  		<args>bid</args>
+  	</s>
+  	<s>
+  		<id>43</id>
+  		<smtc>pkref</smtc>
+  		<tabl>crs_a</tabl>
+  		<pk>aid</pk>
+  		<args>afk,crs_b,bid</args>
+  	</s>
+  	<s>
+  		<id>44</id>
+  		<smtc>pkref</smtc>
+  		<tabl>crs_b</tabl>
+  		<pk>bid</pk>
+  		<args>bfk,crs_a,aid</args>
+  	</s>
   </t>
 </semantics>

@@ -160,6 +160,8 @@ public class DASemantics {
 
 	///////////////////////////////// container class ///////////////////////////////
 	private ArrayList<SemanticHandler> handlers;
+	private boolean hasAutopk = false;
+
 	private String tabl;
 	private String pk;
 
@@ -194,8 +196,10 @@ public class DASemantics {
 
 		if (smtype.fullpath == semantic)
 			handler = new ShFullpath(staticTsx, tabl, recId, args);
-		else if (smtype.autoInc == semantic)
+		else if (smtype.autoInc == semantic) {
 			handler = new ShAutoK(staticTsx, tabl, recId, args);
+			hasAutopk = true;
+		}
 		else if (smtype.fkIns == semantic)
 			handler = new ShFkOnIns(staticTsx, tabl, recId, args);
 		else if (smtype.parentChildrenOnDel == semantic)
@@ -237,15 +241,27 @@ public class DASemantics {
 			throw new SemanticException(String.format("adding semantics for target of diferent id field? %s vs. %s", this.pk, pk));
 	}
 
+	public boolean isPrepareInsert() {
+		return hasAutopk;
+	}
+
+	public void onInsPrepare(DASemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		if (handlers != null)
+			for (SemanticHandler handler : handlers)
+				if (handler.insert && handler.insPrepare)
+					handler.onPrepare(semantx, row, cols, usr);
+	}
+
 	public void onInsert(ISemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
-				if (handler.insert)
+				if (handler.insert && !handler.insPrepare)
 					handler.onInsert(semantx, row, cols, usr);
 	}
 
 	//////////////////////////////// Base Handler //////////////////////////////
 	abstract static class SemanticHandler {
+		boolean insPrepare = false;
 		boolean insert = false;
 		boolean update = false;
 		String target;
@@ -260,6 +276,7 @@ public class DASemantics {
 			idField = pk;
 		}
 
+		void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
 		void onInsert(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
 		void onUpdate(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
 
@@ -360,10 +377,11 @@ public class DASemantics {
 				throw new SemanticException("AUTO pk semantics configuration not correct. tabl = %s, pk = %s, args: %s",
 						tabl, pk, LangExt.toString(args));
 			insert = true;
+			insPrepare = true;
 		}
 		
 		@Override
-		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			Object[] nv;
 			if (cols.containsKey(args[0]))
 				nv = row.get(cols.get(args[0]));
@@ -418,7 +436,9 @@ public class DASemantics {
 			try {
 				nv[1] = stx.resulvedVal(args[1], args[2]);
 			}catch (Exception e) {
-				Utils.warn("Trying resolve FK failed. child-fk = %s.%s, parent = %s.%s,\nFK config args:\t%s,\ndata cols:\t%s,\ndata row:\t%s.\n%s: %s\nAlso note that in current version, only auto key can be referenced and auto resolved.",
+				Utils.warn("Trying resolve FK failed. child-fk = %s.%s, parent = %s.%s,\n" +
+							"FK config args:\t%s,\ndata cols:\t%s,\ndata row:\t%s.\n%s: %s\n" +
+							"Also note that in current version, only auto key can be referenced and auto resolved.",
 						target, args[0], args[1], args[2],
 						LangExt.toString(args), LangExt.toString(cols), LangExt.toString(row),
 						e.getClass().getName(), e.getMessage());

@@ -53,17 +53,33 @@ public class DASemantext implements ISemantext {
 		this.usr = usr;
 	}
 
+	public ISemantext onPrepare(Insert insert, String tabl, List<ArrayList<Object[]>> row) {
+		if (row != null && ss != null)
+			// first round
+			for (ArrayList<Object[]> value : row) {
+				Map<String, Integer> cols = insert.getColumns();
+				DASemantics s = ss.get(tabl);
+				if (s == null)
+					continue;
+				if (s.isPrepareInsert())
+					s.onInsPrepare(this, value, cols, usr);
+			}
+		return this;
+	}
+
 	/**When inserting, replace inserting values in 'AUTO' columns, e.g. generate auto PK for rec-id.
 	 * @see io.odysz.semantics.ISemantext#onInsert(io.odysz.transact.sql.Insert, java.lang.String, java.util.List)
 	 */
 	@Override
-	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> valuesNv) {
-		if (valuesNv != null && ss != null)
-			for (ArrayList<Object[]> value : valuesNv) {
+	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> row) {
+		if (row != null && ss != null)
+			// second round
+			for (ArrayList<Object[]> value : row) {
 				Map<String, Integer> cols = insert.getColumns();
 				DASemantics s = ss.get(tabl);
-				if (s != null)
-					s.onInsert(this, value, cols, usr);
+				if (s == null)
+					continue;
+				s.onInsert(this, value, cols, usr);
 			}
 		return this;
 	}
