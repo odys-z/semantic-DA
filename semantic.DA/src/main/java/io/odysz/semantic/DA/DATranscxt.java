@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 
 import org.xml.sax.SAXException;
 
+import io.odysz.common.LangExt;
 import io.odysz.common.Utils;
 import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
@@ -59,7 +60,7 @@ public class DATranscxt extends Transcxt {
 	 * @param conn connection Id
 	 */
 	public DATranscxt(String conn) {
-		super(new DASemantext(conn, null));
+		super(new DASemantext(conn, null, null));
 		this.basiconnId = conn;
 	}
 
@@ -78,6 +79,8 @@ public class DATranscxt extends Transcxt {
 	
 	public static HashMap<String, DASemantics> initConfigs(String conn, XMLTable xcfg) throws SAXException, IOException {
 		xcfg.beforeFirst();
+		if (smtConfigs == null)
+			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
 		while (xcfg.next()) {
 			String tabl = xcfg.getString("tabl");
 			String pk = xcfg.getString("pk");
@@ -101,13 +104,17 @@ public class DATranscxt extends Transcxt {
 	}
 
 	public static void addSemantics(String connId, String tabl, String pk, smtype sm, String args) throws SemanticException {
+		addSemantics(connId, tabl, pk, sm, LangExt.split(args, ","));
+	}
+
+	public static void addSemantics(String conn, String tabl, String pk, smtype sm, String[] args) throws SemanticException {
 		if (smtConfigs == null) {
 			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
 		}
-		HashMap<String, DASemantics> ss = smtConfigs.get(connId);
+		HashMap<String, DASemantics> ss = smtConfigs.get(conn);
 		if (ss == null) {
 			ss = new HashMap<String, DASemantics>();
-			smtConfigs.put(connId, ss);
+			smtConfigs.put(conn, ss);
 		}
 
 		DASemantics s = ss.get(tabl);

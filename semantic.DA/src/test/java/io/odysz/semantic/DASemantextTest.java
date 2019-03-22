@@ -63,7 +63,7 @@ DELETE from a_roles;</pre>
 		Utils.logi(path);
 		Connects.init(path);
 
-		st = new DATranscxt(new DASemantext(connId, null));
+		st = new DATranscxt(new DASemantext(connId, null, null));
 		smtcfg = DATranscxt.initConfigs(connId, "src/test/res/semantics.xml");
 		
 		SemanticObject jo = new SemanticObject();
@@ -112,7 +112,7 @@ DELETE from a_roles;</pre>
 	void testInsert() throws TransException, SQLException, SAXException, IOException {
 		String flag = DateFormat.format(new Date());
 
-		DASemantext s0 = new DASemantext(connId, smtcfg);
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_functions")
 			.nv("flags", flag)
@@ -126,7 +126,7 @@ DELETE from a_roles;</pre>
 		Utils.logi("New ID for a_functions: %s", s0.resulvedVal("a_functions", "funcId"));
 		
 		// level 2
-		DASemantext s1 = new DASemantext(connId, smtcfg);
+		DASemantext s1 = new DASemantext(connId, smtcfg, usr);
 		st.insert("a_functions")
 			.nv("flags", flag)
 			.nv("funcId", "AUTO") // TODO comment out and test
@@ -141,7 +141,7 @@ DELETE from a_roles;</pre>
 
 	@Test
 	void testBatch() throws TransException, SQLException, SAXException, IOException {
-		DASemantext s0 = new DASemantext(connId, smtcfg);
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		Insert f1 = st.insert("a_role_func")
 				.nv("funcId", "000001");
@@ -155,7 +155,7 @@ DELETE from a_roles;</pre>
 		newuser.commit(s0, sqls);
 		Connects.commit(usr , sqls);
 		
-		DASemantext s1 = new DASemantext(connId, smtcfg);
+		DASemantext s1 = new DASemantext(connId, smtcfg, usr);
 		String newId = (String) s0.resulvedVal("a_roles", "roleId");
 		SResultset slect = (SResultset) st
 				.select("a_role_func", "rf")

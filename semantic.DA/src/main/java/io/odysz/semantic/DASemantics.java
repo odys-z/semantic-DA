@@ -172,43 +172,44 @@ public class DASemantics {
 		handlers = new ArrayList<SemanticHandler>();
 	}
 
-	public void addHandler(String semantic, String args) throws SemanticException {
-		addHandler(smtype.parse(semantic), tabl, pk, args);
-	}
+//	public void addHandler(String semantic, String args) throws SemanticException {
+//		addHandler(smtype.parse(semantic), tabl, pk, args);
+//	}
 	
 	/**@see {@link Semantics2#Semantics(smtype, String[])}
 	 * @param semantic
 	 * @param tabl
+	 * @param recId
 	 * @param args
-	 * @throws SQLException
+	 * @throws SemanticException
 	 */
-	public void addHandler(smtype semantic, String tabl, String recId, String args) throws SemanticException {
+	public void addHandler(smtype semantic, String tabl, String recId, String[] args) throws SemanticException {
 
-		String[] argss = args.split(",");
-		if (argss.length == 0)
-			argss = new String[] {args};
+//		String[] argss = args.split(",");
+//		if (argss.length == 0)
+//			argss = new String[] {args};
 
 		checkParas(tabl, pk, args);
 		SemanticHandler handler = null;
 
 		if (smtype.fullpath == semantic)
-			handler = new ShFullpath(staticTsx, tabl, recId, argss);
+			handler = new ShFullpath(staticTsx, tabl, recId, args);
 		else if (smtype.autoInc == semantic)
-			handler = new ShAutoK(staticTsx, tabl, recId, argss);
+			handler = new ShAutoK(staticTsx, tabl, recId, args);
 		else if (smtype.fkIns == semantic)
-			handler = new ShFkOnIns(staticTsx, tabl, recId, argss);
+			handler = new ShFkOnIns(staticTsx, tabl, recId, args);
 		else if (smtype.parentChildrenOnDel == semantic)
-			handler = new ShPCDelAll(staticTsx, tabl, recId, argss);
+			handler = new ShPCDelAll(staticTsx, tabl, recId, args);
 //		else if (smtype.dencrypt == semantic)
 //			addDencrypt(tabl, recId, argss);
 //		else if (smtype.orclob == semantic)
 //			addClob(tabl, recId, argss);
 		else if (smtype.opTime == semantic)
-			handler = new ShOperTime(staticTsx, tabl, recId, argss);
+			handler = new ShOperTime(staticTsx, tabl, recId, args);
 		else if (smtype.checkSqlCountOnDel == semantic)
-			handler = new ShChkPCDel(staticTsx, tabl, recId, argss);
+			handler = new ShChkPCDel(staticTsx, tabl, recId, args);
 		else if (smtype.checkSqlCountOnInsert == semantic)
-			handler = new ShChkPCInsert(staticTsx, tabl, recId, argss);
+			handler = new ShChkPCInsert(staticTsx, tabl, recId, args);
 //		else if (smtype.composingCol == semantic)
 //			addComposings(tabl, recId, argss);
 //		else if (smtype.stamp1MoreThanRefee == semantic)
@@ -224,8 +225,8 @@ public class DASemantics {
 	 * @param args
 	 * @throws SemanticException sementic configuration not matching the target or lack of args.
 	 */
-	private void checkParas(String tabl, String pk, String args) throws SemanticException {
-		if (tabl == null || pk == null || args == null || args.trim().length() == 0)
+	private void checkParas(String tabl, String pk, String[] args) throws SemanticException {
+		if (tabl == null || pk == null || args == null || args.length == 0)
 			throw new SemanticException(String.format(
 					"adding semantics with empty targets? %s %s %s",
 					tabl, pk, args));
@@ -334,7 +335,7 @@ public class DASemantics {
 			if (cols.containsKey(args[2]))
 				nv = row.get(cols.get(args[2]));
 			else {
-				nv = new String[] {args[2], v};
+				nv = new Object[] {args[2], v};
 				cols.put(args[2], row.size());
 				row.add(nv);
 			}
@@ -367,7 +368,7 @@ public class DASemantics {
 			if (cols.containsKey(args[0]))
 				nv = row.get(cols.get(args[0]));
 			else {
-				nv = new String[2];
+				nv = new Object[2];
 				cols.put(args[0], row.size());
 				row.add(nv);
 			}
@@ -401,7 +402,7 @@ public class DASemantics {
 				nv = row.get(cols.get(args[0]));
 			}
 			else { // add a semantics required cell if it's absent.
-				nv = new String[] {args[0], null};
+				nv = new Object[] {args[0], null};
 				cols.put(args[0], row.size());
 				row.add(nv);
 			}
@@ -417,9 +418,10 @@ public class DASemantics {
 			try {
 				nv[1] = stx.resulvedVal(args[1], args[2]);
 			}catch (Exception e) {
-				Utils.warn("Trying resolve FK failed. fk = %s.%s, parent = %s.%s,\nFK config args:\t%s,\ndata cols:\t%s,\ndata row:\t%s.\nAlso note that in current version, only auto key can be referenced and auto resolved.",
+				Utils.warn("Trying resolve FK failed. child-fk = %s.%s, parent = %s.%s,\nFK config args:\t%s,\ndata cols:\t%s,\ndata row:\t%s.\n%s: %s\nAlso note that in current version, only auto key can be referenced and auto resolved.",
 						target, args[0], args[1], args[2],
-						LangExt.toString(args), LangExt.toString(cols), LangExt.toString(row));
+						LangExt.toString(args), LangExt.toString(cols), LangExt.toString(row),
+						e.getClass().getName(), e.getMessage());
 			}
 			
 		}
@@ -472,7 +474,7 @@ public class DASemantics {
 					row.add(nvTime);
 				}
 				nvTime[0] =  args[1];
-				nvTime[1] =  Funcall.now();
+				nvTime[1] =  Funcall.now(stx.dbtype());
 			}
 
 			// oper
@@ -480,7 +482,7 @@ public class DASemantics {
 			if (cols.containsKey(args[0]))
 				nvOper = row.get(cols.get(args[0]));
 			else {
-				nvOper = new String[2];
+				nvOper = new Object[2];
 				cols.put(args[0], row.size()); // oper
 				row.add(nvOper);
 			}

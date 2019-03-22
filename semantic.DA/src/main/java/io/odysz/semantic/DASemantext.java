@@ -19,6 +19,7 @@ import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.transact.sql.Insert;
+import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.x.TransException;
@@ -42,12 +43,14 @@ public class DASemantext implements ISemantext {
 	/**Initialize a context for semantics handling.
 	 * This class handling semantics comes form path, usually an xml like test/res/semantics.xml.
 	 */
-	public DASemantext(String connId, HashMap<String, DASemantics> smtcfg) {
+	public DASemantext(String connId, HashMap<String, DASemantics> smtcfg, IUser usr) {
 		this.connId = connId;
 		ss = smtcfg;
 		rawst = new Transcxt(null);
 		
 		refReg = new Regex(ISemantext.refPattern);
+		
+		this.usr = usr;
 	}
 
 	/**When inserting, replace inserting values in 'AUTO' columns, e.g. generate auto PK for rec-id.
@@ -69,7 +72,7 @@ public class DASemantext implements ISemantext {
 	public ISemantext onUpdate(Update update, String tabl, ArrayList<Object[]> nvs) {
 		if (nvs != null && ss != null)
 			for (Object[] nv : nvs)
-				if (nv != null && nv.length > 0 && "AUTO".equals(nv[1]))
+				if (nv != null && nv.length > 0 && "AUTO".equals(nv[1])) // FIXME bug: use ISemantic Regex.
 					// resolve AUTO value
 					nv[1] = autoVals != null && autoVals.has(tabl)
 							? ((SemanticObject)autoVals.get(tabl)).get((String)nv[0])
@@ -94,7 +97,7 @@ public class DASemantext implements ISemantext {
 
 	private ISemantext clone(DASemantext srctx, IUser... usr) {
 		DASemantext newInst;
-		newInst = new DASemantext(connId, null);
+		newInst = new DASemantext(connId, null, usr != null && usr.length > 0 ? usr[0] : null);
 		newInst.ss = srctx.ss;
 		newInst.usr = usr != null && usr.length > 0 ? usr[0] : null;
 		return newInst;
@@ -202,7 +205,7 @@ end;
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public static String genId(String connId, String target, String idField, String subCate) throws SQLException, TransException {
+	public String genId(String connId, String target, String idField, String subCate) throws SQLException, TransException {
 		dbtype dt = Connects.driverType(connId);
 		if (dt == dbtype.sqlite)
 			return genSqliteId(connId, target, idField);
@@ -241,7 +244,7 @@ end;
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	static String genSqliteId(String conn, String target, String idF) throws SQLException, TransException { 
+	String genSqliteId(String conn, String target, String idF) throws SQLException, TransException { 
 		Lock lock;
 		lock = getAutoseqLock(conn, target);
 
@@ -255,6 +258,9 @@ end;
 //		String select = String.format("select seq from oz_autoseq where sid = '%s.%s'", target, idF);
 		SResultset rs = null;
 		
+		Query q = rawst.select("oz_autoseq").col("seq")
+				.where("=", "sid", String.format("'%s.%s'", target, idF));
+
 		// each table has a lock.
 		// lock to prevent concurrency.
 		lock.lock();
@@ -262,10 +268,10 @@ end;
 			// for efficiency
 			Connects.commit(null, sqls, Connects.flag_nothing);
 
-			// rs = Connects.select(conn, select, Connects.flag_nothing);
-			rs = (SResultset) rawst.select("oz_autoseq").col("seq")
-					.where("=", "sid", String.format("'%s.%s'", target, idF))
-					.rs(rawst.basiContext());
+			// don't usr rs(), there is no postOp initialized in rawst, it's only for basice operation - genId() is a basic operation
+			//.rs(rawst.basiContext());
+
+			rs = Connects.select(conn, q.sql(rawst.basiContext()), Connects.flag_nothing);
 		} finally { lock.unlock();}
 		
 		if (rs.getRowCount() <= 0)
@@ -320,5 +326,10 @@ end;
 			return Stream.concat(Stream.concat(
 						Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from ("), s),
 						Stream.of(String.format(") t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s", r1, r2)));
+	}
+
+	@Override
+	public ISemantext clone(IUser usr) {
+		return new DASemantext(connId, ss, usr);
 	}
 }
