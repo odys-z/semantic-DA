@@ -67,7 +67,7 @@ public class DASemantext implements ISemantext {
 		return this;
 	}
 
-	/**When inserting, replace inserting values in 'AUTO' columns, e.g. generate auto PK for rec-id.
+	/**When inserting, process data row with configured semantics, like auto-pk, fk-ins, etc..
 	 * @see io.odysz.semantics.ISemantext#onInsert(io.odysz.transact.sql.Insert, java.lang.String, java.util.List)
 	 */
 	@Override
@@ -287,11 +287,13 @@ end;
 			// don't usr rs(), there is no postOp initialized in rawst, it's only for basice operation - genId() is a basic operation
 			//.rs(rawst.basiContext());
 
-			rs = Connects.select(conn, q.sql(rawst.basiContext()), Connects.flag_nothing);
+			rs = Connects.select(conn, q.sql(rawst.basictx()), Connects.flag_nothing);
 		} finally { lock.unlock();}
 		
 		if (rs.getRowCount() <= 0)
-			throw new TransException("Can't find auot seq of %1$s.\nFor performantc reason, DASemantext assumes a record in oz_autoseq.seq (id='%1$s.%2$s') exists.\nMay be you would check where oz_autoseq.seq and table %2$s are existing?",
+			throw new TransException("Can't find auot seq of %1$s.\n" +
+					"For performance reason and difficulty of implementing sqlite stored process, DASemantext assumes a record in oz_autoseq.seq (id='%1$s.%2$s') exists.\n" +
+					"May be you would check where oz_autoseq.seq and table %2$s are existing?",
 					idF, target);
 		rs.beforeFirst().next();
 

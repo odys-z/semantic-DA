@@ -122,7 +122,7 @@ public class DASemantics {
 			type = type.toLowerCase().trim();
 			if ("auto".equals(type) || "pk".equals(type) || "a-k".equals(type) || "autopk".equals(type))
 				return autoInc;
-			else if ("fk".equals(type) || "pkref".equals(type))
+			else if ("fk".equals(type) || "pkref".equals(type) || "fk-ins".equals(type))
 				return fkIns;
 			else if ("fullpath".equals(type) || "f-p".equals(type))
 				return fullpath;
@@ -174,10 +174,6 @@ public class DASemantics {
 		handlers = new ArrayList<SemanticHandler>();
 	}
 
-//	public void addHandler(String semantic, String args) throws SemanticException {
-//		addHandler(smtype.parse(semantic), tabl, pk, args);
-//	}
-	
 	/**@see {@link Semantics2#Semantics(smtype, String[])}
 	 * @param semantic
 	 * @param tabl
@@ -241,9 +237,7 @@ public class DASemantics {
 			throw new SemanticException(String.format("adding semantics for target of diferent id field? %s vs. %s", this.pk, pk));
 	}
 
-	public boolean isPrepareInsert() {
-		return hasAutopk;
-	}
+	public boolean isPrepareInsert() { return hasAutopk; }
 
 	public void onInsPrepare(DASemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 		if (handlers != null)

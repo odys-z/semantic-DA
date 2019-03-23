@@ -12,7 +12,6 @@ import org.apache.commons.io.FilenameUtils;
 import io.odysz.common.dbtype;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.SResultset;
-import io.odysz.semantic.Semantics;
 import io.odysz.semantic.DA.cp.CpConnect;
 import io.odysz.semantic.DA.drvmnger.Msql2kDriver;
 import io.odysz.semantic.DA.drvmnger.MysqlDriver;
@@ -83,7 +82,7 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 		return new CpConnect(jdbcUrl, type, printSql);
 	}
 
-	HashMap<String, Semantics>  metas;
+//	HashMap<String, Semantics>  metas;
 
 	public abstract SResultset select(String sql, int flags) throws SQLException ;
 
@@ -136,18 +135,18 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 		return tables.get(tablname);
 	}
 	
-	public Semantics getTableSemantics(String tabName) throws SQLException {
-		if (metas == null) throw new SQLException ("not initialized ");
-		return metas.get(tabName);
-	}
-
-	public void reinstallSemantics(HashMap<String, Semantics> semantics) {
-		if (metas != null && metas.size() > 0) {
-			System.err.println("Clear and reinstall semantics of " + drvName);
-			metas.clear();
-		} 
-		metas = semantics;
-	}
+//	public Semantics getTableSemantics(String tabName) throws SQLException {
+//		if (metas == null) throw new SQLException ("not initialized ");
+//		return metas.get(tabName);
+//	}
+//
+//	public void reinstallSemantics(HashMap<String, Semantics> semantics) {
+//		if (metas != null && metas.size() > 0) {
+//			System.err.println("Clear and reinstall semantics of " + drvName);
+//			metas.clear();
+//		} 
+//		metas = semantics;
+//	}
 
 	/**Lock table when generating auto Id.<br>
 	 * [table, lock]

@@ -15,7 +15,6 @@ import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactory;
 import io.odysz.module.xtable.XMLTable;
-import io.odysz.semantic.Semantics;
 import io.odysz.semantic.util.LogFlags;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
@@ -117,16 +116,16 @@ public class Connects {
 		return srcs;
 	}
 
-	public static void installSemantics(HashMap<String, HashMap<String, Semantics>> semantics) {
-		if (semantics != null)
-			for (String conn : semantics.keySet())
-				srcs.get(conn).reinstallSemantics(semantics.get(conn));
-		
-		if (LogFlags.Semantic.config) {
-			Utils.logi("Semanitcs installed: ");
-			Utils.logkeys(semantics);
-		}
-	}
+//	public static void installSemantics(HashMap<String, HashMap<String, DASemantics>> semantics) {
+//		if (semantics != null)
+//			for (String conn : semantics.keySet())
+//				srcs.get(conn).reinstallSemantics(semantics.get(conn));
+//		
+//		if (LogFlags.Semantic.config) {
+//			Utils.logi("Semanitcs installed: ");
+//			Utils.logkeys(semantics);
+//		}
+//	}
 	
 	/////////////////////////////// common helper /////////////////////////////
 	/** If printSql is true or if asking enable, 
