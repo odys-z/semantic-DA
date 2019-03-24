@@ -386,7 +386,7 @@ public class DASemantics {
 			}
 			nv[0] = args[0];
 			try {
-				// side effect: aput generated auto key alread been put into autoVals, can be referenced later. 
+				// side effect: generated auto key already been put into autoVals, can be referenced later. 
 				nv[1] = stx.genId(target, args[0]);
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();

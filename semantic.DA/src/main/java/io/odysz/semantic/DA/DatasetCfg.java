@@ -170,11 +170,11 @@ public class DatasetCfg {
 	}
 
 
-	public static final int drv_mysql = 0;
-	public static final int drv_orcl = 1;
-	public static final int drv_ms2k = 2;
-	public static final int drv_sqlit = 3;
-	public static final int drv_unknow = 4;
+	public static final int ixMysql = 0;
+	public static final int ixOrcl = 1;
+	public static final int ixMs2k = 2;
+	public static final int ixSqlit = 3;
+	public static final int ixUnknow = 4;
 
 	protected static final String tag = "DataSet";
 	protected static final String cfgFile = "dataset.xml";
@@ -218,22 +218,26 @@ public class DatasetCfg {
 				});
 		XMLTable deft = xtabs.get("ds");
 		
-		if (deft != null) {
+		parseConfigs(cfgs, deft);
+	}
+		
+	public static void parseConfigs(HashMap<String, Dataset> cfgs, XMLTable xSmtcs) {
+		if (xSmtcs != null) {
 			try {
-				deft.beforeFirst();
+				xSmtcs.beforeFirst();
 				Dataset ds = null;
-				while (deft.next()) {
+				while (xSmtcs.next()) {
 					String[] sqls = new String[4];
-					sqls[drv_mysql] = deft.getString("mysql");
-					sqls[drv_orcl] = deft.getString("orcl");
-					sqls[drv_sqlit] = deft.getString("sqlit");
-					sqls[drv_ms2k] = deft.getString("ms2k");
+					sqls[ixMysql] = xSmtcs.getString("mysql");
+					sqls[ixOrcl] = xSmtcs.getString("orcl");
+					sqls[ixSqlit] = xSmtcs.getString("sqlit");
+					sqls[ixMs2k] = xSmtcs.getString("ms2k");
 
 					// columns="id,tabls,cols,orcl,mysql,ms2k"
-					ds = new Dataset(deft.getString("sk"), deft.getString("cols"),
-									sqls, deft.getString("s-tree"));
+					ds = new Dataset(xSmtcs.getString("sk"), xSmtcs.getString("cols"),
+									sqls, xSmtcs.getString("s-tree"));
 					if (ds != null)
-						cfgs.put(deft.getString("sk"), ds);
+						cfgs.put(xSmtcs.getString("sk"), ds);
 				}
 			} catch (SAXException e) {
 				e.printStackTrace();
@@ -394,7 +398,7 @@ public class DatasetCfg {
 	
 	/**POJO dataset element as configured in dataset.xml.<br>
 	 * (oracle mapping information also initialized according to mapping file and the "cols" tag.)*/
-	static class Dataset {
+	public static class Dataset {
 		String k;
 
 		/**[key: UPPER-CASE, value: bumpCase] */
@@ -448,13 +452,13 @@ public class DatasetCfg {
 			if (driver == null)
 				return null;
 			if (driver == dbtype.oracle)
-				return sqls[drv_orcl];
+				return sqls[ixOrcl];
 			else if (driver == dbtype.ms2k)
-				return sqls[drv_ms2k];
+				return sqls[ixMs2k];
 			else if (driver == dbtype.sqlite)
-				return sqls[drv_sqlit];
+				return sqls[ixSqlit];
 			else if (driver == dbtype.mysql)
-				return sqls[drv_mysql];
+				return sqls[ixMysql];
 			else
 				throw new SemanticException("unsupported db type: %s", driver);
 		}

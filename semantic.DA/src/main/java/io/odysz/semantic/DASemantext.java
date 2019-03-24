@@ -71,15 +71,17 @@ public class DASemantext implements ISemantext {
 	 * @see io.odysz.semantics.ISemantext#onInsert(io.odysz.transact.sql.Insert, java.lang.String, java.util.List)
 	 */
 	@Override
-	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> row) {
-		if (row != null && ss != null)
+	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> rows) {
+		if (rows != null && ss != null)
 			// second round
-			for (ArrayList<Object[]> value : row) {
+			for (ArrayList<Object[]> row : rows) {
 				Map<String, Integer> cols = insert.getColumns();
 				DASemantics s = ss.get(tabl);
 				if (s == null)
 					continue;
-				s.onInsert(this, value, cols, usr);
+				s.onInsert(this, row, cols, usr);
+				// resulve
+				// resulvedVal(row);
 			}
 		return this;
 	}
@@ -136,12 +138,12 @@ public class DASemantext implements ISemantext {
 			return ref;
 		}
 		ArrayList<String> grps = refReg.findGroups(ref);
-		if (grps == null || grps.size() != 2) {
-			Utils.warn("Value reference can not resolved: %s. Pattern is incorrect.", ref);
+		if (grps == null || grps.size() != 3) {
+			// Utils.warn("Value reference can not resolved: %s. Pattern is incorrect.", ref);
 			return ref;
 		}
-		String tabl = grps.get(0);
-		return ((SemanticObject)autoVals.get(tabl)).get(grps.get(1));
+		String tabl = grps.get(1);
+		return ((SemanticObject)autoVals.get(tabl)).get(grps.get(2));
 	}
 
 	///////////////////////////////////////////////////////////////////////////
