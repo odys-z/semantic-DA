@@ -33,12 +33,12 @@ public class DASemantext implements ISemantext {
 	private SemanticObject autoVals;
 	// private static DATranscxt rawst = new DATranscxt();
 	private static Transcxt rawst;
+	private static Regex refReg;
 
 	/**Semantic Configurations */
 	private HashMap<String, DASemantics> ss;
 	private IUser usr;
 	private String connId;
-	private Regex refReg;
 
 	/**Initialize a context for semantics handling.
 	 * This class handling semantics comes form path, usually an xml like test/res/semantics.xml.
@@ -46,9 +46,10 @@ public class DASemantext implements ISemantext {
 	public DASemantext(String connId, HashMap<String, DASemantics> smtcfg, IUser usr) {
 		this.connId = connId;
 		ss = smtcfg;
-		rawst = new Transcxt(null);
-		
-		refReg = new Regex(ISemantext.refPattern);
+		if (rawst == null) {
+			rawst = new Transcxt(null);
+			refReg = new Regex(ISemantext.refPattern);
+		}
 		
 		this.usr = usr;
 	}

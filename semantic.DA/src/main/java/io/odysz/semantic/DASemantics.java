@@ -64,6 +64,8 @@ import io.odysz.transact.x.TransException;
 public class DASemantics {
 	/**error code key word*/
 	public static final String ERR_CHK = "err_smtcs";;
+	
+	public static boolean debug = true; 
 
 	/**<b>0. {@link #autoInc} for xml keywords, see {@link #autoInc}, for args, see {@link ShAutoK}<br>
 	 * <b>1. {@link #fullpath} </b> key-word: "fullpath" | "fp" | "f-p"<br>
@@ -430,7 +432,12 @@ public class DASemantics {
 			try {
 				nv[1] = stx.resulvedVal(args[1], args[2]);
 			}catch (Exception e) {
-				Utils.warn("Trying resolve FK failed. child-fk = %s.%s, parent = %s.%s,\n" +
+				if (nv[1] != null) {
+					if (debug)
+						Utils.warn("Trying resolve FK failed, but fk value exists. child-fk(%s.%s) = %s, parent = %s.%s",
+								target, args[0], nv[1], args[1], args[2]);
+				}
+				else Utils.warn("Trying resolve FK failed. child-fk = %s.%s, parent = %s.%s,\n" +
 							"FK config args:\t%s,\ndata cols:\t%s,\ndata row:\t%s.\n%s: %s\n" +
 							"Also note that in current version, only auto key can be referenced and auto resolved.",
 						target, args[0], args[1], args[2],
