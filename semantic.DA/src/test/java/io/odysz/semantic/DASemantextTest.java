@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.DateFormat;
@@ -37,7 +37,7 @@ CREATE TABLE oz_autoseq (
  * @author ody
  *
  */
-class DASemantextTest {
+public class DASemantextTest {
 	static final String connId = "local-sqlite";
 	private static DATranscxt st;
 	private static IUser usr;
@@ -56,8 +56,8 @@ DELETE from a_roles;</pre>
 	 * @throws SAXException
 	 * @throws IOException
 	 */
-	@BeforeAll
-	static void testInit() throws SQLException, SemanticException, SAXException, IOException {
+	@Before
+	public void testInit() throws SQLException, SemanticException, SAXException, IOException {
 		Utils.printCaller(false);
 
 		File file = new File("src/test/res");
@@ -113,7 +113,7 @@ DELETE from a_roles;</pre>
 	}
 
 	@Test
-	void testInsert() throws TransException, SQLException, SAXException, IOException {
+	public void testInsert() throws TransException, SQLException, SAXException, IOException {
 		String flag = DateFormat.format(new Date());
 
 		DASemantext s0 = new DASemantext(connId, smtcfg, usr);
@@ -144,7 +144,7 @@ DELETE from a_roles;</pre>
 	}
 
 	@Test
-	void testBatch() throws TransException, SQLException, SAXException, IOException {
+	public void testBatch() throws TransException, SQLException, SAXException, IOException {
 		DASemantext s0 = new DASemantext(connId, smtcfg, usr);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		Insert f1 = st.insert("a_role_func")
@@ -174,7 +174,7 @@ DELETE from a_roles;</pre>
 	}
 	
 	@Test
-	void testCrossAutoK() throws TransException, SQLException {
+	public void testCrossAutoK() throws TransException, SQLException {
 		DASemantext s0 = new DASemantext(connId, smtcfg, usr);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		Insert f1 = st.insert("crs_a")

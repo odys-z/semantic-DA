@@ -1,22 +1,23 @@
 package io.odysz.semantic.DA;
 
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 import io.odysz.common.Utils;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 
-class DatasetCfgTest {
+public class DatasetCfgTest {
 
-	@BeforeAll
-	static void testInit() throws Exception {
+	@Before
+	public void testInit() throws Exception {
 		File file = new File("src/test/res");
 		String path = file.getAbsolutePath();
 		Utils.logi(path);
@@ -26,7 +27,7 @@ class DatasetCfgTest {
 	}
 
 	@Test
-	void testLoadStree() throws SemanticException, SQLException {
+	public void testLoadStree() throws SemanticException, SQLException {
 		List<SemanticObject> t = DatasetCfg.loadStree(
 				"local-sqlite", // expect "01"; for semantic-DA.db, see connects.xml
 				// "local-mysql", // expect "11"

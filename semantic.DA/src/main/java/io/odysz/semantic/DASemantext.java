@@ -42,8 +42,13 @@ public class DASemantext implements ISemantext {
 
 	/**Initialize a context for semantics handling.
 	 * This class handling semantics comes form path, usually an xml like test/res/semantics.xml.
+	 * @param connId
+	 * @param smtcfg semantic configs, usally load by {@link io.odysz.semantic.DA.DATranscxt}.
+	 * <p>sample code: </p>
+	 * DATranscxt.initConfigs("inet", rootINF + "/semantics.xml");
+	 * @param robot
 	 */
-	public DASemantext(String connId, HashMap<String, DASemantics> smtcfg, IUser usr) {
+	public DASemantext(String connId, HashMap<String, DASemantics> smtcfg, IUser robot) {
 		this.connId = connId;
 		ss = smtcfg;
 		if (rawst == null) {
@@ -51,7 +56,7 @@ public class DASemantext implements ISemantext {
 			refReg = new Regex(ISemantext.refPattern);
 		}
 		
-		this.usr = usr;
+		this.usr = robot;
 	}
 
 	public ISemantext onPrepare(Insert insert, String tabl, List<ArrayList<Object[]>> row) {

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.Disabled;
 import org.xml.sax.SAXException;
 
 import io.odysz.semantic.DA.DATranscxt;
@@ -16,7 +15,6 @@ import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.transact.x.TransException;
 
-@Disabled
 public class TestUser implements IUser {
 
 	private DATranscxt logSemantic;

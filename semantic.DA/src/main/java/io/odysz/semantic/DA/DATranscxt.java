@@ -21,6 +21,7 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Transcxt;
+import io.odysz.transact.sql.Update;
 
 /**Statement manager that providing statements with overridden callback methods.
  * @author odys-z@github.com
@@ -46,6 +47,12 @@ public class DATranscxt extends Transcxt {
 		Insert i = super.insert(tabl);
 		i.doneOp(sqls -> Connects.commit(usr, sqls));
 		return i;
+	}
+
+	public Update update(String tabl, IUser usr) {
+		Update u = super.update(tabl);
+		u.doneOp(sqls -> Connects.commit(usr, sqls));
+		return u;
 	}
 
 	public DATranscxt(ISemantext semantext) {
