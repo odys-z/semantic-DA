@@ -154,7 +154,7 @@ public class DASemantics {
 
 	/**Static transact context for DB accessing without semantics support.<br>
 	 * Used to generate auto ID. */
-	private Transcxt staticTsx;
+	private Transcxt basicTsx;
 
 	public DASemantics get(String tabl) {
 		return ss == null ? null : ss.get(tabl);
@@ -167,11 +167,11 @@ public class DASemantics {
 	private String tabl;
 	private String pk;
 
-	public DASemantics(Transcxt staticManger, String tabl, String recId) {
+	public DASemantics(Transcxt basicTx, String tabl, String recId) {
 		this.tabl = tabl;
 		this.pk = recId;
 		// staticTsx = new DATranscxt();
-		staticTsx = staticManger;
+		basicTsx = basicTx;
 		
 		handlers = new ArrayList<SemanticHandler>();
 	}
@@ -184,34 +184,30 @@ public class DASemantics {
 	 * @throws SemanticException
 	 */
 	public void addHandler(smtype semantic, String tabl, String recId, String[] args) throws SemanticException {
-
-//		String[] argss = args.split(",");
-//		if (argss.length == 0)
-//			argss = new String[] {args};
-
 		checkParas(tabl, pk, args);
+		checkSmtcs(tabl, semantic);
 		SemanticHandler handler = null;
 
 		if (smtype.fullpath == semantic)
-			handler = new ShFullpath(staticTsx, tabl, recId, args);
+			handler = new ShFullpath(basicTsx, tabl, recId, args);
 		else if (smtype.autoInc == semantic) {
-			handler = new ShAutoK(staticTsx, tabl, recId, args);
+			handler = new ShAutoK(basicTsx, tabl, recId, args);
 			hasAutopk = true;
 		}
 		else if (smtype.fkIns == semantic)
-			handler = new ShFkOnIns(staticTsx, tabl, recId, args);
+			handler = new ShFkOnIns(basicTsx, tabl, recId, args);
 		else if (smtype.parentChildrenOnDel == semantic)
-			handler = new ShPCDelAll(staticTsx, tabl, recId, args);
+			handler = new ShPCDelAll(basicTsx, tabl, recId, args);
 //		else if (smtype.dencrypt == semantic)
 //			addDencrypt(tabl, recId, argss);
 //		else if (smtype.orclob == semantic)
 //			addClob(tabl, recId, argss);
 		else if (smtype.opTime == semantic)
-			handler = new ShOperTime(staticTsx, tabl, recId, args);
+			handler = new ShOperTime(basicTsx, tabl, recId, args);
 		else if (smtype.checkSqlCountOnDel == semantic)
-			handler = new ShChkPCDel(staticTsx, tabl, recId, args);
+			handler = new ShChkPCDel(basicTsx, tabl, recId, args);
 		else if (smtype.checkSqlCountOnInsert == semantic)
-			handler = new ShChkPCInsert(staticTsx, tabl, recId, args);
+			handler = new ShChkPCInsert(basicTsx, tabl, recId, args);
 //		else if (smtype.composingCol == semantic)
 //			addComposings(tabl, recId, argss);
 //		else if (smtype.stamp1MoreThanRefee == semantic)
@@ -237,6 +233,14 @@ public class DASemantics {
 			throw new SemanticException(String.format("adding semantics for different target? %s vs. %s", this.tabl, tabl));
 		if (this.pk != null && !this.pk.equals(pk))
 			throw new SemanticException(String.format("adding semantics for target of diferent id field? %s vs. %s", this.pk, pk));
+	}
+	
+	private void checkSmtcs(String tabl, smtype newSmtcs) throws SemanticException {
+		if (handlers == null) return;
+		for (SemanticHandler handler : handlers)
+			if (handler.sm == newSmtcs)
+				throw new SemanticException("Found duplicate semantics: %s %s\nDetails: All semantics configuration is merged into 1 static copy. Each table in every connection can only have one instance of the same smtype.",
+						tabl, newSmtcs.name());
 	}
 
 	public boolean isPrepareInsert() { return hasAutopk; }
@@ -265,6 +269,8 @@ public class DASemantics {
 		String[] args;
 		protected Transcxt trxt;
 
+		protected smtype sm;
+
 		SemanticHandler(Transcxt trxt, String semantic, String tabl, String pk,
 				String[] args) throws SemanticException {
 			this.trxt = trxt;
@@ -276,11 +282,12 @@ public class DASemantics {
 		void onInsert(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
 		void onUpdate(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
 
-		SemanticHandler(Transcxt trxt, smtype fullpath, String tabl, String pk,
+		SemanticHandler(Transcxt trxt, smtype sm, String tabl, String pk,
 				String[] args) throws SemanticException {
 			this.trxt = trxt;
 			target = tabl;
 			idField = pk;
+			this.sm = sm;
 			this.args = args;
 		}
 	}

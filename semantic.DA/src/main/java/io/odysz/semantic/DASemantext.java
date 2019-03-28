@@ -40,6 +40,9 @@ public class DASemantext implements ISemantext {
 	private IUser usr;
 	private String connId;
 
+	/** a basic context used for basic sql processing - semantics process built upon this basic processings.*/
+//	private ISemantext basictx;
+
 	/**Initialize a context for semantics handling.
 	 * This class handling semantics comes form path, usually an xml like test/res/semantics.xml.
 	 * @param connId
@@ -57,6 +60,8 @@ public class DASemantext implements ISemantext {
 		}
 		
 		this.usr = robot;
+		// a basic context used for basic sql processing - semantics process built upon this basic processings.
+//		basictx = rawst.instancontxt(usr);
 	}
 
 	public ISemantext onPrepare(Insert insert, String tabl, List<ArrayList<Object[]>> row) {
@@ -118,6 +123,9 @@ public class DASemantext implements ISemantext {
 	public dbtype dbtype() {
 		return Connects.driverType(connId);
 	}
+
+	@Override
+	public String connId() { return connId; }
 
 	private ISemantext clone(DASemantext srctx, IUser... usr) {
 		DASemantext newInst;
@@ -292,10 +300,7 @@ end;
 			// for efficiency
 			Connects.commit(null, sqls, Connects.flag_nothing);
 
-			// don't usr rs(), there is no postOp initialized in rawst, it's only for basice operation - genId() is a basic operation
-			//.rs(rawst.basiContext());
-
-			rs = Connects.select(conn, q.sql(rawst.basictx()), Connects.flag_nothing);
+			rs = Connects.select(conn, q.sql(null), Connects.flag_nothing);
 		} finally { lock.unlock();}
 		
 		if (rs.getRowCount() <= 0)

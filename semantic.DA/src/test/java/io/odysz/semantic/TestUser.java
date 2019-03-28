@@ -31,7 +31,7 @@ public class TestUser implements IUser {
 				@Override public boolean login(Object req) throws TransException { return false; }
 				@Override public String sessionId() { return null; }
 				@Override public void touch() { }
-				@Override public String uid() { return userId; }
+				@Override public String uid() { return "dummy"; }
 				@Override public String get(String prop) { return "prop"; }
 				@Override public IUser set(String prop, Object v) { return this; }
 				@Override public SemanticObject logout() { return null; }
@@ -67,13 +67,14 @@ public class TestUser implements IUser {
 			//	// values ('%s', '%s', '%s', '%s', null, '%s', sysdate, '%s');
 			//	newId, uid, funcName, funcId, cmd, url, String.valueOf(sqls.size()), txt(sqls));
 
-			logSemantic.insert("a_logs", dumbUser)
+			logSemantic.insert("a_logs", dumbUser) // dummy for stop recursive logging
 				.nv("oper", uid)
 				.nv("funcName", action.getString("funcName"))
 				.nv("funcId", action.getString("funcId"))
+				// also sql count if the column exists
+				// .nv("sqlCount", sqls.size())
 				.nv("txt", txt(sqls))
-				.ins(logSemantic.basictx());
-			//Connects.commitLog(sql); // reporting commit failed in err console
+				.ins(logSemantic.instancontxt(this));
 		} catch (SQLException e) {
 			// failed case must be a bug - commitLog()'s exception already caught.
 			e.printStackTrace();

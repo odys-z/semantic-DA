@@ -58,14 +58,14 @@
   		select count(*) cnt from a_rolefunc where roleId = '%s'
   		,cnt</args>
   	</s>
+	<!-- User.log() don't use this configure file, but should be OK - never used
   	<s>
-  		<!-- User.log() don't use this configure file, but should be OK - never used -->
   		<id>34</id>
   		<smtc>o-t</smtc>
   		<tabl>a_logs</tabl>
   		<pk>logId</pk>
   		<args></args>
-  	</s>
+  	</s> -->
   	
   	<s>
   		<id>41</id>

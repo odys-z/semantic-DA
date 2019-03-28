@@ -65,10 +65,11 @@ public class SQLString {
 
 	public static String formatSql(String s) {
 		if (s != null) {
-			String res = s.replace("\n", "\\n");
-			res = res.replace("\t", "\\t");
-			res = res.replace("'", "''");
-			return res;
+			String s1 = s.replace("\n", "\\n");
+			String s2 = s1.replace("\t", "\\t");
+			String s3 = s2.replace("'", "''");
+			return s3;
+			// return res;
 		}
 		return "";
 	}

@@ -103,12 +103,6 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 
 	public abstract int[] commit(IUser usr, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException;
 	
-//	public String formatFieldName(String expr) {
-//		if (_isOrcl  && CpSrc.orclKeywords.contains(expr.trim()))
-//			return String.format("\"%s\"", expr.trim().toUpperCase());
-//		return expr;
-//	}
-
 	private DbMeta spec;
 	public DbMeta getSpec() { return spec; }
 

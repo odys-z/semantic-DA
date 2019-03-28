@@ -116,17 +116,6 @@ public class Connects {
 		return srcs;
 	}
 
-//	public static void installSemantics(HashMap<String, HashMap<String, DASemantics>> semantics) {
-//		if (semantics != null)
-//			for (String conn : semantics.keySet())
-//				srcs.get(conn).reinstallSemantics(semantics.get(conn));
-//		
-//		if (LogFlags.Semantic.config) {
-//			Utils.logi("Semanitcs installed: ");
-//			Utils.logkeys(semantics);
-//		}
-//	}
-	
 	/////////////////////////////// common helper /////////////////////////////
 	/** If printSql is true or if asking enable, 
 	 * then print sqls.
@@ -148,6 +137,11 @@ public class Connects {
 
 	///////////////////////////////////// select ///////////////////////////////
 	public static SResultset select(String conn, String sql, int... flags) throws SQLException {
+		// Print WARN? if conn is not null and srcs doesn't contains, it's probably because of wrong configuration in connects.xml. 
+		if (flags != null && flags.length > 0 && flags[0] == flag_printSql )
+			if (conn != null && !srcs.containsKey(conn))
+				throw new SQLException("Can't find connection: " + conn);
+
 		return srcs.get(conn == null ? defltConn : conn)
 				.select(sql, flags == null || flags.length <= 0 ? flag_nothing : flags[0]);
 	}
@@ -196,6 +190,10 @@ public class Connects {
 	
 	public static int[] commit(IUser usr, ArrayList<String> sqls, ArrayList<Clob> lobs, int... flags) throws SQLException {
 		return srcs.get(defltConn).commit(usr, sqls, lobs, flags.length > 0 ? flags[0] : flag_nothing);
+	}
+
+	public static int[] commit(String conn, IUser usr, ArrayList<String> sqls, int... flags) throws SQLException {
+		return srcs.get(defltConn).commit(usr, sqls, flags.length > 0 ? flags[0] : flag_nothing);
 	}
 
 	@SuppressWarnings("serial")

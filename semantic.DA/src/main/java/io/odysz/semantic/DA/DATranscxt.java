@@ -34,24 +34,30 @@ public class DATranscxt extends Transcxt {
 		return smtConfigs.get(conn);
 	}
 
-	private static Transcxt staticInstance = new DATranscxt(basictx);
+
+	/**User cn use {@link #instancontxt()} to create context without handling user information, like select user when login. */
+//	private IUser dxrobot = new DARobot();
+//
+//	public ISemantext instancontxt() {
+//		return basictx == null ? null : basictx.clone(dxrobot);
+//	}
 
 	@Override
 	public Query select(String tabl, String... alias) {
 		Query q = super.select(tabl, alias);
-		q.doneOp(sqls -> Connects.select(sqls.get(0)));
+		q.doneOp((conn, sqls) -> Connects.select(conn, sqls.get(0)));
 		return q;
 	}
 	
 	public Insert insert(String tabl, IUser usr) {
 		Insert i = super.insert(tabl);
-		i.doneOp(sqls -> Connects.commit(usr, sqls));
+		i.doneOp((conn, sqls) -> Connects.commit(conn, usr, sqls));
 		return i;
 	}
 
 	public Update update(String tabl, IUser usr) {
 		Update u = super.update(tabl);
-		u.doneOp(sqls -> Connects.commit(usr, sqls));
+		u.doneOp((conn, sqls) -> Connects.commit(conn, usr, sqls));
 		return u;
 	}
 
@@ -63,7 +69,7 @@ public class DATranscxt extends Transcxt {
 	public String basiconnId() { return basiconnId; }
 
 	/**Create a transact builder with basic DASemantext instance. 
-	 * It's a null configuration, so semantics can be resolved, but can be used to do basic sql operation.
+	 * It's a null configuration, so semantics can not been resolved, but can be used to do basic sql operation.
 	 * @param conn connection Id
 	 */
 	public DATranscxt(String conn) {
@@ -72,7 +78,6 @@ public class DATranscxt extends Transcxt {
 	}
 
 	public static HashMap<String, DASemantics> initConfigs(String connId, String filepath) throws SAXException, IOException {
-//		HashMap<String, DASemantics> ss = new HashMap<String, DASemantics>();
 		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
 				new Log4jWrapper("").setDebugMode(false), filepath, new IXMLStruct() {
 						@Override public String rootTag() { return "semantics"; }
@@ -126,9 +131,25 @@ public class DATranscxt extends Transcxt {
 
 		DASemantics s = ss.get(tabl);
 		if (s == null) {
-			s = new DASemantics(staticInstance, tabl, pk);
+			// s = new DASemantics(staticInstance, tabl, pk);
+			s = new DASemantics(getBasicTrans(conn), tabl, pk);
 			ss.put(tabl, s);
 		}
 		s.addHandler(sm, tabl, pk, args);
+	}
+
+
+	//////////// basic transact builders for each connection ////////////
+	private static HashMap<String, Transcxt> basicTrxes;
+	private static Transcxt getBasicTrans(String conn) {
+		if (basicTrxes == null)
+			basicTrxes = new HashMap<String, Transcxt>();
+		
+		if (!basicTrxes.containsKey(conn)) {
+			DATranscxt tx = new DATranscxt(conn);
+			basicTrxes.put(conn, tx);
+		}
+		
+		return basicTrxes.get(conn);
 	}
 }
