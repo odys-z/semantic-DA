@@ -3,13 +3,11 @@ package io.odysz.semantic;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import org.xml.sax.SAXException;
 
 import io.odysz.semantic.util.SQLString;
-import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.transact.x.TransException;
@@ -21,7 +19,13 @@ public class LoggingUser implements IUser {
 	private SemanticObject action;
 	public static IUser dumbUser;
 
-	public LoggingUser(String userId, SemanticObject action) {
+	/**
+	 * @param logConn
+	 * @param logCfgPath e.g. "src/test/res/semantic-log.xml"
+	 * @param userId
+	 * @param action
+	 */
+	public LoggingUser(String logConn, String logCfgPath, String userId, SemanticObject action) {
 		this.uid = userId;
 		this.action = action;
 
@@ -35,16 +39,16 @@ public class LoggingUser implements IUser {
 				@Override public IUser set(String prop, Object v) { return this; }
 				@Override public SemanticObject logout() { return null; }
 				@Override public void writeJsonRespValue(Object writer) throws IOException { }
+				@Override public IUser logAct(String funcName, String funcId) { return this; }
 			};
 		
-		ISemantext semt;
 		try {
-			HashMap<String, DASemantics> ss = DATranscxt.initConfigs(DASemantextTest.connId, "src/test/res/semantic-log.xml"); 
-			semt = new DASemantext(DASemantextTest.connId, ss, this);
-			logSemantic = new DATranscxt(semt); 
+			// DATranscxt.initConfigs(logConn, "src/test/res/semantic-log.xml");
+			DATranscxt.initConfigs(logConn, logCfgPath);
+			logSemantic = new DATranscxt(logConn); 
 		} catch (SAXException | IOException e) {
 			e.printStackTrace();
-		}
+		} 
 	}
 
 	@Override
@@ -112,5 +116,12 @@ public class LoggingUser implements IUser {
 
 	@Override
 	public void writeJsonRespValue(Object writer) throws IOException { }
+
+	@Override
+	public IUser logAct(String funcName, String funcId) {
+		set("funcName", funcName);
+		set("funcId", funcId);
+		return this;
+	}
 
 }

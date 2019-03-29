@@ -64,7 +64,8 @@ DELETE from a_roles;</pre>
 		Utils.logi(path);
 		Connects.init(path);
 
-		st = new DATranscxt(new DASemantext(connId, null, null));
+		// st = new DATranscxt(new DASemantext(connId, null, null));
+		st = new DATranscxt(connId);
 		smtcfg = DATranscxt.initConfigs(connId, "src/test/res/semantics.xml");
 		
 		SemanticObject jo = new SemanticObject();
@@ -73,7 +74,7 @@ DELETE from a_roles;</pre>
 		usrAct.put("funcId", "DASemantextTest");
 		usrAct.put("funcName", "test ISemantext implementation");
 		jo.put("usrAct", usrAct);
-		usr = new LoggingUser("tester", jo);
+		usr = new LoggingUser(connId, "src/test/res/semantic-log.xml", "tester", jo);
 		
 		// initialize oz_autoseq - only for sqlite
 		SResultset rs = Connects.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table' and tbl_name = 'oz_autoseq'",

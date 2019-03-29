@@ -193,6 +193,8 @@ public class Connects {
 	}
 
 	public static int[] commit(String conn, IUser usr, ArrayList<String> sqls, int... flags) throws SQLException {
+		if (srcs == null || !srcs.containsKey(conn))
+			throw new SQLException("Can't find connection %s.", conn);
 		return srcs.get(conn).commit(usr, sqls, flags.length > 0 ? flags[0] : flag_nothing);
 	}
 

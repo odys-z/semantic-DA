@@ -66,9 +66,9 @@ public class DATranscxt extends Transcxt {
 		return u;
 	}
 
-	public DATranscxt(ISemantext semantext) {
-		super(semantext);
-	}
+//	public DATranscxt(ISemantext semantext) {
+//		super(new DASemantext(conn, null, null));
+//	}
 
 	protected String basiconnId;
 	public String basiconnId() { return basiconnId; }
@@ -78,7 +78,7 @@ public class DATranscxt extends Transcxt {
 	 * @param conn connection Id
 	 */
 	public DATranscxt(String conn) {
-		super(new DASemantext(conn, null, null));
+		super(new DASemantext(conn, smtConfigs == null ? null : smtConfigs.get(conn), null));
 		this.basiconnId = conn;
 	}
 
