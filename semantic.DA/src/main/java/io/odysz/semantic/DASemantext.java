@@ -31,27 +31,24 @@ import io.odysz.transact.x.TransException;
 public class DASemantext implements ISemantext {
 
 	private SemanticObject autoVals;
-	// private static DATranscxt rawst = new DATranscxt();
 	private static Transcxt rawst;
 	private static Regex refReg;
 
 	/**Semantic Configurations */
 	private HashMap<String, DASemantics> ss;
+
 	private IUser usr;
 	private String connId;
-
-	/** a basic context used for basic sql processing - semantics process built upon this basic processings.*/
-//	private ISemantext basictx;
 
 	/**Initialize a context for semantics handling.
 	 * This class handling semantics comes form path, usually an xml like test/res/semantics.xml.
 	 * @param connId
-	 * @param smtcfg semantic configs, usally load by {@link io.odysz.semantic.DA.DATranscxt}.
+	 * @param smtcfg semantic configs, usally load by {@link io.odysz.semantic.DATranscxt}.
 	 * <p>sample code: </p>
 	 * DATranscxt.initConfigs("inet", rootINF + "/semantics.xml");
-	 * @param robot
+	 * @param usr
 	 */
-	public DASemantext(String connId, HashMap<String, DASemantics> smtcfg, IUser robot) {
+	DASemantext(String connId, HashMap<String, DASemantics> smtcfg, IUser usr) {
 		this.connId = connId;
 		ss = smtcfg;
 		if (rawst == null) {
@@ -59,9 +56,7 @@ public class DASemantext implements ISemantext {
 			refReg = new Regex(ISemantext.refPattern);
 		}
 		
-		this.usr = robot;
-		// a basic context used for basic sql processing - semantics process built upon this basic processings.
-//		basictx = rawst.instancontxt(usr);
+		this.usr = usr;
 	}
 
 	public ISemantext onPrepare(Insert insert, String tabl, List<ArrayList<Object[]>> row) {
@@ -126,6 +121,11 @@ public class DASemantext implements ISemantext {
 
 	@Override
 	public String connId() { return connId; }
+
+	@Override
+	public ISemantext clone(IUser usr) {
+		return new DASemantext(connId, ss, usr);
+	}
 
 	private ISemantext clone(DASemantext srctx, IUser... usr) {
 		DASemantext newInst;
@@ -298,7 +298,7 @@ end;
 		lock.lock();
 		try {
 			// for efficiency
-			Connects.commit(null, sqls, Connects.flag_nothing);
+			Connects.commit(conn, null, sqls, Connects.flag_nothing);
 
 			rs = Connects.select(conn, q.sql(null), Connects.flag_nothing);
 		} finally { lock.unlock();}
@@ -359,8 +359,4 @@ end;
 						Stream.of(String.format(") t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s", r1, r2)));
 	}
 
-	@Override
-	public ISemantext clone(IUser usr) {
-		return new DASemantext(connId, ss, usr);
-	}
 }

@@ -193,7 +193,7 @@ public class Connects {
 	}
 
 	public static int[] commit(String conn, IUser usr, ArrayList<String> sqls, int... flags) throws SQLException {
-		return srcs.get(defltConn).commit(usr, sqls, flags.length > 0 ? flags[0] : flag_nothing);
+		return srcs.get(conn).commit(usr, sqls, flags.length > 0 ? flags[0] : flag_nothing);
 	}
 
 	@SuppressWarnings("serial")
@@ -206,10 +206,10 @@ public class Connects {
 		return srcs.get(conn).driverType();
 	}
 
-	public static void commitLog(String sql) {
-		// TODO Auto-generated method stub
-		
-	}
+//	public static void commitLog(String sql) {
+//		// TODO Auto-generated method stub
+//		
+//	}
 
 
 }

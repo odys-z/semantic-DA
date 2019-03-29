@@ -1,4 +1,4 @@
-package io.odysz.semantic.DA;
+package io.odysz.semantic;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -12,9 +12,8 @@ import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
-import io.odysz.semantic.DASemantext;
-import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DASemantics.smtype;
+import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
@@ -23,24 +22,30 @@ import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 
-/**Statement manager that providing statements with overridden callback methods.
+/**Statement manager that providing statements with overridden callback methods.<br>
+ * This manager can handling semantics configured in xml. See {@link #initConfigs(String, String)}. <br>
+ * Every sql building needing semantics handling must use a context instance created by {@link #instancontxt(IUser)}.
  * @author odys-z@github.com
- *
  */
 public class DATranscxt extends Transcxt {
 
 	protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
+	public static HashMap<String,HashMap<String,DASemantics>> smtConfigs() { return smtConfigs; }
 	public static HashMap<String, DASemantics> smtCfonfigs(String conn) {
 		return smtConfigs.get(conn);
 	}
 
-
-	/**User cn use {@link #instancontxt()} to create context without handling user information, like select user when login. */
-//	private IUser dxrobot = new DARobot();
-//
-//	public ISemantext instancontxt() {
-//		return basictx == null ? null : basictx.clone(dxrobot);
-//	}
+	/**{@link DATranscxt} use a basic context (without semantics handler) for basic sql building.<b>
+	 * Every context used for {@link DASemantics} handling must use this to create a new context instance.
+	 * @see io.odysz.transact.sql.Transcxt#instancontxt(io.odysz.semantics.IUser)
+	 */
+	@Override
+	public ISemantext instancontxt(IUser usr) {
+		if (basictx == null)
+			return null;
+		else
+			return new DASemantext(basiconnId, smtConfigs.get(basiconnId), usr);
+	}
 
 	@Override
 	public Query select(String tabl, String... alias) {
@@ -77,6 +82,13 @@ public class DATranscxt extends Transcxt {
 		this.basiconnId = conn;
 	}
 
+	/**Load semantics configuration from filepath.
+	 * @param connId
+	 * @param filepath
+	 * @return configurations
+	 * @throws SAXException
+	 * @throws IOException
+	 */
 	public static HashMap<String, DASemantics> initConfigs(String connId, String filepath) throws SAXException, IOException {
 		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
 				new Log4jWrapper("").setDebugMode(false), filepath, new IXMLStruct() {
@@ -109,7 +121,6 @@ public class DATranscxt extends Transcxt {
 		return smtConfigs.get(conn);
 	}
 
-		
 	public static void addSemantics(String connId, String tabl, String pk, String smtcs, String args) throws SemanticException {
 		smtype sm = smtype.parse(smtcs);
 		addSemantics(connId, tabl, pk, sm, args);

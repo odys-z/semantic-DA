@@ -8,21 +8,20 @@ import java.util.stream.Collectors;
 
 import org.xml.sax.SAXException;
 
-import io.odysz.semantic.DA.DATranscxt;
 import io.odysz.semantic.util.SQLString;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.transact.x.TransException;
 
-public class TestUser implements IUser {
+public class LoggingUser implements IUser {
 
 	private DATranscxt logSemantic;
 	private String uid;
 	private SemanticObject action;
-	private IUser dumbUser;
+	public static IUser dumbUser;
 
-	public TestUser(String userId, SemanticObject action) {
+	public LoggingUser(String userId, SemanticObject action) {
 		this.uid = userId;
 		this.action = action;
 
@@ -59,6 +58,13 @@ public class TestUser implements IUser {
 
 	@Override
 	public ArrayList<String> dbLog(ArrayList<String> sqls) {
+		return genLog(logSemantic, sqls, this,
+				action.getString("funcName"),
+				action.getString("funcId"));
+	}
+	
+	public static ArrayList<String> genLog(DATranscxt logSemantic, ArrayList<String> sqls,
+			IUser commitUser, String funcName, String funcId) {
 		// no exception can be thrown here, no error message for client if failed.
 		try {
 			// String newId = DASemantext.genId(Connects.defltConn(), "a_logs", "logId", null);
@@ -68,13 +74,15 @@ public class TestUser implements IUser {
 			//	newId, uid, funcName, funcId, cmd, url, String.valueOf(sqls.size()), txt(sqls));
 
 			logSemantic.insert("a_logs", dumbUser) // dummy for stop recursive logging
-				.nv("oper", uid)
-				.nv("funcName", action.getString("funcName"))
-				.nv("funcId", action.getString("funcId"))
+				.nv("oper", commitUser.uid())
+				.nv("funcName", funcName)
+				.nv("funcId", funcId)
+//				.nv("funcName", commitUser.action().getString("funcName"))
+//				.nv("funcId", commitUser.action().getString("funcId"))
 				// also sql count if the column exists
 				// .nv("sqlCount", sqls.size())
 				.nv("txt", txt(sqls))
-				.ins(logSemantic.instancontxt(this));
+				.ins(logSemantic.basictx());
 		} catch (SQLException e) {
 			// failed case must be a bug - commitLog()'s exception already caught.
 			e.printStackTrace();
@@ -84,7 +92,7 @@ public class TestUser implements IUser {
 		return null;
 	}
 
-	private String txt(ArrayList<String> sqls) {
+	private static String txt(ArrayList<String> sqls) {
 		return sqls == null ? null :
 			// FIXME performance problem here
 			sqls.stream().map(e -> SQLString.formatSql(e))

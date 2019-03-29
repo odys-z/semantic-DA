@@ -18,7 +18,6 @@ import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.DA.DATranscxt;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
@@ -74,7 +73,7 @@ DELETE from a_roles;</pre>
 		usrAct.put("funcId", "DASemantextTest");
 		usrAct.put("funcName", "test ISemantext implementation");
 		jo.put("usrAct", usrAct);
-		usr = new TestUser("tester", jo);
+		usr = new LoggingUser("tester", jo);
 		
 		// initialize oz_autoseq - only for sqlite
 		SResultset rs = Connects.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table' and tbl_name = 'oz_autoseq'",

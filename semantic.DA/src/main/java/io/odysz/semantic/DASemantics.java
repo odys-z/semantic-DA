@@ -214,6 +214,8 @@ public class DASemantics {
 //			addUpDownStamp(tabl, recId, argss);
 		else throw new SemanticException("Unsuppported semantics: " + semantic);
 		
+		if (debug)
+			handler.logi();
 		handlers.add(handler);
 	}
 
@@ -276,6 +278,11 @@ public class DASemantics {
 			this.trxt = trxt;
 			target = tabl;
 			idField = pk;
+		}
+
+		public void logi() {
+			Utils.logi("Semantics Handler %s\ntabl %s, pk %s, args %s",
+					sm.name(), target, idField, LangExt.toString(args));
 		}
 
 		void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
