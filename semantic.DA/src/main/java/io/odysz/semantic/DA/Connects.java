@@ -116,6 +116,15 @@ public class Connects {
 		return srcs;
 	}
 
+	public static void close() {
+		if (srcs != null)
+			for (AbsConnect<?> c : srcs.values())
+				try {
+					c.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+	}
 	/////////////////////////////// common helper /////////////////////////////
 	/** If printSql is true or if asking enable, 
 	 * then print sqls.

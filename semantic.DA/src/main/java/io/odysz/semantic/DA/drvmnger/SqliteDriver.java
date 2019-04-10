@@ -26,6 +26,8 @@ import io.odysz.semantics.IUser;
 public class SqliteDriver extends AbsConnect<SqliteDriver> {
 	public static boolean enableSystemout = true;
 	static boolean inited = false;
+	private static JDBC drv;
+
 	static String userName;
 	static String pswd;
 	static String jdbcUrl;
@@ -34,6 +36,7 @@ public class SqliteDriver extends AbsConnect<SqliteDriver> {
 		try {
 			// see answer of Eehol:
 			// https://stackoverflow.com/questions/16725377/no-suitable-driver-found-sqlite
+			drv = new JDBC();
 			DriverManager.registerDriver(new JDBC());
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -45,22 +48,14 @@ public class SqliteDriver extends AbsConnect<SqliteDriver> {
 		drvName = dbtype.sqlite;
 		locks = new HashMap<String, ReentrantLock>();
 	}
+	
+	@Override
+	protected void close() throws SQLException {
+		// This is not correct
+		// https://stackoverflow.com/questions/31530700/static-finally-block-in-java
+		DriverManager.deregisterDriver(drv);
+	}
 
-//	public static void getConnection(String fileName) {
-//		 
-//        String url = "jdbc:sqlite:C:/sqlite/db/" + fileName;
-// 
-//        try (Connection conn = DriverManager.getConnection(url)) {
-//            if (conn != null) {
-//                DatabaseMetaData meta = conn.getMetaData();
-//                System.out.println("The driver name is " + meta.getDriverName());
-//                System.out.println("A new database has been created.");
-//            }
-// 
-//        } catch (SQLException e) {
-//            System.out.println(e.getMessage());
-//        }
-//    }
 	/**This method is only for debug and test, use #{@link SqliteDriver#initConnection(String, String, String, int)} before any function call.
 	 * MUST CLOSE CONNECTION!
 	 * @return
@@ -128,6 +123,9 @@ public class SqliteDriver extends AbsConnect<SqliteDriver> {
 		SResultset icrs = new SResultset(rs);
 		rs.close();
 		stmt.close();
+
+		// What about performance?
+		// https://stackoverflow.com/questions/31530700/static-finally-block-in-java
 		conn.close();
 		
 		return icrs;
@@ -147,82 +145,6 @@ public class SqliteDriver extends AbsConnect<SqliteDriver> {
 		return selectStatic(sql, flag);
 	}
 	
-//	public static void executeBatch(DbLog log, ArrayList<String> sqls) throws SQLException {
-//		Connection conn = getConnection();
-//		excecuteBatch(conn, log, sqls);
-//		conn.close();
-//	}
-//	
-//	/**@deprecated replaced by commit
-//	 * @param conn
-//	 * @param sqls
-//	 * @throws SQLException
-//	 */
-//	public static void excecuteBatch(Connection conn, DbLog log, ArrayList<String> sqls) throws SQLException {
-//		if (enableSystemout)
-//			System.out.println(sqls);
-//
-//		Statement stmt = null;
-//		try {
-//			if (conn != null) {
-//				stmt = conn.createStatement();
-//				try {
-//					// String logs = "";
-//					// boolean noMoreLogs = false;
-//					stmt = conn.createStatement(
-//							ResultSet.TYPE_SCROLL_SENSITIVE,
-//							ResultSet.CONCUR_UPDATABLE);
-//					conn.setAutoCommit(false);
-//
-//					for (String sql : sqls) {
-//						stmt.addBatch(sql);
-//					}
-//
-//					/* not need 
-//					for (String sql : sqls) {
-//						if (enableSystemout) System.out.println(sql + ";");
-//						stmt.addBatch(sql);
-//						if (!noMoreLogs && logs.length() + sql.length() + 1 + "...".length() <= 4000) {
-//							logs += sql.replaceAll("'", "''") + ";";
-//						}
-//						else if (!noMoreLogs && logs.length() + sql.length() + 1 + "...".length() > 4000) {
-//							noMoreLogs = true;
-//							if (logs.length() + "...".length() <= 4000) {
-//								logs += "...";
-//							}
-//						}
-//					}
-//					if (!"".equals(logs)) {
-//						String logsql = String.format("insert into frame_logs(operID, oper, operTime, funcName, sysID, remarks) values " +
-//								"('%s', '%s', to_date('%s', 'yyyy-MM-dd hh24:mi:ss'), '%s', '%s', '%s')", userid, username, operTime, funcName, sysID, logs);
-//						stmt.addBatch(logsql);
-//						if (enableSystemout) System.out.println(logsql);
-//					}*/
-//
-//					stmt.executeBatch();
-//					conn.commit();
-//
-////					logOperations (logs, userid, operTime, funcName, remarks);
-//				} catch (Exception exx) {
-//					conn.rollback();
-//					exx.printStackTrace();
-//					throw new SQLException(exx);
-//				} finally { }
-//			} else {
-//				throw new SQLException("sqlite batch execution failed");
-//			}
-//		} finally {
-//			try {
-//				if (stmt != null)
-//					stmt.close();
-//			} catch (Exception ex) {
-//				ex.printStackTrace();
-//			} finally {
-//				stmt = null;
-//			}
-//		}
-//	}
-
 	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
 		return commitst(sqls, flags);
 	}

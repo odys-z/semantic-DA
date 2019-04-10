@@ -81,6 +81,8 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 			*/
 		return new CpConnect(jdbcUrl, type, printSql);
 	}
+	
+	protected void close() throws SQLException {}
 
 //	HashMap<String, Semantics>  metas;
 
