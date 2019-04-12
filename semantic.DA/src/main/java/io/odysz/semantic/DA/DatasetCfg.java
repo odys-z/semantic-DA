@@ -103,7 +103,6 @@ public class DatasetCfg {
 			treeSmtcs = stree;
 		}
 		
-		
 		public String tabl() {
 			return alias(Ix.tabl);
 		}
@@ -168,7 +167,6 @@ public class DatasetCfg {
 			return expr;
 		}
 	}
-
 
 	public static final int ixMysql = 0;
 	public static final int ixOrcl = 1;
@@ -252,7 +250,7 @@ public class DatasetCfg {
 			sql = Connects.pagingSql(conn, sql, page, size);
 
 		SResultset rs = Connects.select(conn, sql);
-		rs = dss.get(sk).map(conn, rs);	
+		// rs = dss.get(sk).map(conn, rs);	
 		return rs;
 	}
 
@@ -286,6 +284,8 @@ public class DatasetCfg {
 
 		if (sk == null)
 			throw new SemanticException("null semantic key");
+		if (conn == null)
+			conn = Connects.defltConn();
 		return select(conn, sk, page, size, args);
 	}
 
@@ -349,7 +349,6 @@ public class DatasetCfg {
 			String col = rs.getColumnName(i);
 			col = treeSemtcs.alias(col);
 			if (v != null)
-//				if (col.equals(treeSemtcs[Ix.chked]))
 				if (treeSemtcs.isColChecked(col))
 					node.put(col, rs.getBoolean(i));
 				else
@@ -402,7 +401,7 @@ public class DatasetCfg {
 		String k;
 
 		/**[key: UPPER-CASE, value: bumpCase] */
-		HashMap<String, String> colMappings;
+//		HashMap<String, String> colMappings;
 		String[] sqls;
 
 		/**Configuration in dataset.xml/t/c/s-tree.<br>
@@ -428,7 +427,7 @@ public class DatasetCfg {
 				throws SAXException {
 			this.k = k;
 
-			colMappings = cols == null ? null : upper_bumpCase(cols.split(","));
+//			colMappings = cols == null ? null : upper_bumpCase(cols.split(","));
 			this.sqls = sqls;
 			
 			this.treeSemtcs = stree == null ? null
@@ -436,12 +435,12 @@ public class DatasetCfg {
 					: new TreeSemantics(stree);
 		}
 
-		public SResultset map(String conn, SResultset rs) {
-			if (colMappings == null)
-				return rs;
-			else
-				return rs.setColumnCase(colMappings);
-		}
+//		public SResultset map(String conn, SResultset rs) {
+//			if (colMappings == null)
+//				return rs;
+//			else
+//				return rs.setColumnCase(colMappings);
+//		}
 
 		/**
 		 * @param driver drv_orcl, drv_ms2k, drv_sqlit, drv_mysql(default)
@@ -466,7 +465,6 @@ public class DatasetCfg {
 		/**
 		 * @param bumps bump case col names
 		 * @return [key = UPPER-CASE, value = bumpCase]
-		 */
 		private HashMap<String, String> upper_bumpCase(String[] bumps) {
 			if (bumps == null) return null;
 			HashMap<String, String> colMaps = new HashMap<String, String>();
@@ -476,5 +474,6 @@ public class DatasetCfg {
 			}
 			return colMaps;
 		}
+		 */
 	}
 }
