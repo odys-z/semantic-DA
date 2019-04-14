@@ -114,7 +114,7 @@ public class DASemantics {
 		/** "clob" | "orclob": the column is a CLOB field, semantic-transact will read/write separately in stream and get final results.*/
 		orclob;
 
-		/**FIXME use enum.valueOf()
+		/**Note: we don't use enum.valueOf(), because of fault / fuzzy tolerate.
 		 * @param type
 		 * @return {@link smtype}
 		 * @throws SemanticException
