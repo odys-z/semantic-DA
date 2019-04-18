@@ -305,7 +305,10 @@ public class DatasetCfg {
 		SResultset rs = Connects.select(conn, sql);
 		rs = dss.get(sk).map(conn, rs);	
 		*/
-		return buildForest(rs, dss.get(sk).treeSemtcs);
+		TreeSemantics smx = dss.get(sk).treeSemtcs;
+		if (smx == null)
+			throw new SemanticException("sk (%s) desn't configured with a tree semantics", sk);
+		return buildForest(rs, smx);
 	}
 	
 	/**TODO We need a tree's semantics class, for overriding and handling semantic-tree table in xml?
