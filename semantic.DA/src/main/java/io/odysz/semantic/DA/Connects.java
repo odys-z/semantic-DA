@@ -159,7 +159,9 @@ public class Connects {
 		return select(null, sql, flags);
 	}
 
-	/**compose paged sql, e.g. for Oracle: select * from (sql) t where rownum > 0 and row num < 14
+	/**compose paged sql, e.g. for Oracle: select * from (sql) t where rownum > 0 and row num < 14<br>
+	 * <b>Note:</b> this is not efficiency. You should do in appendable or stream style if an AST is available,
+	 * like that one in DASemantext#pagingStream().
 	 * @param sql
 	 * @param page
 	 * @param size
