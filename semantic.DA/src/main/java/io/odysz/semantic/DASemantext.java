@@ -11,7 +11,6 @@ import java.util.stream.Stream;
 
 import io.odysz.common.Radix64;
 import io.odysz.common.Regex;
-import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.Connects;
@@ -148,7 +147,7 @@ public class DASemantext implements ISemantext {
 	@Override
 	public Object resulvedVal(String ref) {
 		if (autoVals == null) {
-			Utils.warn("Value reference can not resolved: %s. autoVals is null", ref);
+			// Utils.warn("Value reference a.k.a autoVals is null");
 			return ref;
 		}
 		ArrayList<String> grps = refReg.findGroups(ref);
@@ -158,6 +157,15 @@ public class DASemantext implements ISemantext {
 		}
 		String tabl = grps.get(1);
 		return ((SemanticObject)autoVals.get(tabl)).get(grps.get(2));
+	}
+
+	/**Get the resolved value in {@link #autoVals}
+	 * a.k.a return value of {@link Update#doneOp(io.odysz.transact.sql.Statement.IPostOperat)}.
+	 * @return {@link #autoVals}
+	 * @see io.odysz.semantics.ISemantext#resulves()
+	 */
+	public SemanticObject resulves() {
+		return autoVals;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
