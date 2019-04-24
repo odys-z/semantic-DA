@@ -10,7 +10,7 @@ package io.odysz.module.xtable;
 	 * (non-Javadoc)
 	 * @see com.infochange.frame.xtable.ILogger#setDebugMode(boolean)
 	 * /
-	@Override
+	@ Override
 	public void setDebugMode(boolean isDebug) {
 		if (!debugging && isDebug)
 			Log.w("Logger", "Toggling Logger from release mode to debug mode.");
@@ -19,29 +19,29 @@ package io.odysz.module.xtable;
 		debugging = isDebug;
 	}
 	
-	@Override
+	@ Override
 	public void d(String tag, String line) { if (debugging) Log.d(tag, line); }
 
-	@Override
+	@ Override
 	public void i(String tag, String line) { if (debugging) Log.i(tag, line); }
 
-	@Override
+	@ Override
 	public void v(String tag, String line) { if (debugging) Log.v(tag, line); }
 
-	@Override
+	@ Override
 	public void e(String tag, String line) { Log.e(tag, line); }
 
-	@Override
+	@ Override
 	public void w(String tag, String line) { Log.w(tag, line); }
 } </pre>
- * @author ody
+ * @author odys-z@github.com
  *
  */
 public interface ILogger {
 	/**Logger can working in debug mode and release mode.
 	 * If in debug mode, i(), d(), v() are disabled.<br/>
 	 * @param isDebug
-	 * @return 
+	 * @return this logger
 	 */
 	ILogger setDebugMode(boolean isDebug);
 	void e(String tag, String msg);
