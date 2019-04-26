@@ -19,6 +19,7 @@ import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
+import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.x.TransException;
@@ -92,7 +93,7 @@ public class DASemantext implements ISemantext {
 	}
 
 	@Override
-	public ISemantext onUpdate(Update update, String tabl, ArrayList<Object[]> nvs) {
+	public ISemantext onUpdate(Statement<?> update, String tabl, ArrayList<Object[]> nvs) {
 		if (nvs != null && ss != null)
 			for (Object[] nv : nvs)
 				if (nv != null && nv.length > 0 && "AUTO".equals(nv[1])) // FIXME bug: use ISemantic Regex.
