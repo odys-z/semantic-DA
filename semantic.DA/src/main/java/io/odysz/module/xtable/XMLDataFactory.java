@@ -37,7 +37,7 @@ public class XMLDataFactory {
 	 * @param fromList
 	 * @param targetFullpath
 	 * @param xmlStruct
-	 * @return
+	 * @return new xml table
 	 */
 	public static XMLTable buildTable(String sourceID, ILogger androidLogger, String newTableID, String fromStructureOfTableID,
 			ArrayList<String[]> fromList, String targetFullpath, IXMLStruct xmlStruct) {
@@ -62,7 +62,7 @@ public class XMLDataFactory {
 		};<br/>
 		ILogger logger = new Logger();<br/>
 		skintable = XMLDataFactory.getTable(logger, configTablename, istr, xmlStruct);<br/>
-	 * @param androidLogger
+	 * @param logger
 	 * @param tableID
 	 * @param fromFullpath
 	 * @param xmlStruct
@@ -99,7 +99,7 @@ public class XMLDataFactory {
 	 * @param androidLogger
 	 * @param tableID
 	 * @param xmlStruct
-	 * @return
+	 * @return xml table
 	 */
 	public static XMLTable getTableReusing(String sourceID, ILogger androidLogger, String tableID, IXMLStruct xmlStruct) {
 		logger = androidLogger;

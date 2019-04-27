@@ -214,9 +214,9 @@ public class CpConnect extends AbsConnect<CpConnect> {
 		return _isOrcl && expr != null && orclKeywords.contains(expr.trim());
 	}
 
-	/**For {@link CpDriver} creating Meta data before Datasource is usable.
+	/**For {@link Connects} creating Meta data before Datasource is usable.
 	 * @param sql
-	 * @return
+	 * @return query results
 	 * @throws SQLException
 	 * @throws NamingException 
 	 */
