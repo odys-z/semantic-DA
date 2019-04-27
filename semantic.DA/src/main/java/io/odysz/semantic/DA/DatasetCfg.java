@@ -37,7 +37,7 @@ public class DatasetCfg {
 	public static class TreeSemantics {
 		static class Ix {
 			public static final int count = 9;
-			/** the boolean field */
+			/** the is-checked boolean field */
 			public static final int chked = 0;
 			public static final int tabl = 1;
 			public static final int recId = 2;
@@ -141,6 +141,12 @@ public class DatasetCfg {
 				: null;
 		}
 
+		/**Is value of <i>col</i> should changed to boolean.<br>
+		 * If the semantics configuration's first field is this col's name,
+		 * the the value should changed into boolean. 
+		 * @param col
+		 * @return true: this column should covert to boolean.
+		 */
 		public boolean isColChecked(String col) {
 			String chk = alias(Ix.chked);
 			if (col == null || chk == null)
