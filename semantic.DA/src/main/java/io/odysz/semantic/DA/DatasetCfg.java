@@ -317,7 +317,7 @@ public class DatasetCfg {
 		return buildForest(rs, smx);
 	}
 	
-	/**TODO We need a tree's semantics class, for overriding and handling semantic-tree table in xml?
+	/**Build forest.
 	 * @param rs
 	 * @param treeSemtcs
 	 * @return built forest
@@ -347,7 +347,7 @@ public class DatasetCfg {
 	 * TODO should this moved to TreeSemantics?
 	 * @param treeSemtcs
 	 * @param rs
-	 * @return
+	 * @return {@link SemanticObject} of node
 	 * @throws SQLException
 	 */
 	private static SemanticObject formatSemanticNode(TreeSemantics treeSemtcs, SResultset rs) throws SQLException {
@@ -373,7 +373,6 @@ public class DatasetCfg {
 			// Don't delete this except the servlet is completed and solved alias configure in xml.
 			// checkSemantics(rs, sm, Ix.parent);
 
-			// String currentParentID = rs.getString(sm[Ix.parent]);
 			String currentParentID = rs.getString(sm.aliasParent());
 			if (currentParentID == null || currentParentID.trim().length() == 0) {
 				// new tree root
@@ -409,8 +408,6 @@ public class DatasetCfg {
 	public static class Dataset {
 		String k;
 
-		/**[key: UPPER-CASE, value: bumpCase] */
-//		HashMap<String, String> colMappings;
 		String[] sqls;
 
 		/**Configuration in dataset.xml/t/c/s-tree.<br>
@@ -436,20 +433,11 @@ public class DatasetCfg {
 				throws SAXException {
 			this.k = k;
 
-//			colMappings = cols == null ? null : upper_bumpCase(cols.split(","));
 			this.sqls = sqls;
 			
 			this.treeSemtcs = stree == null ? null
-		// 			: LangExt.split(stree, ",");
 					: new TreeSemantics(stree);
 		}
-
-//		public SResultset map(String conn, SResultset rs) {
-//			if (colMappings == null)
-//				return rs;
-//			else
-//				return rs.setColumnCase(colMappings);
-//		}
 
 		/**
 		 * @param driver drv_orcl, drv_ms2k, drv_sqlit, drv_mysql(default)
