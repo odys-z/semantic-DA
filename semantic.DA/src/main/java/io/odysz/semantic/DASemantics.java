@@ -10,6 +10,7 @@ import io.odysz.common.Utils;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
+import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.parts.condition.Funcall;
@@ -332,7 +333,6 @@ public class DASemantics {
 							: null;
 			
 				// select fullpath where id = $parentId
-				SResultset rs;
 				
 				if (pid == null || "null".equals(pid)) {
 					Utils.warn("Fullpath Handling Error\nTo generate fullpath, parentId must configured.\nFound parent col: %s,\nconfigured args = %s,\nhandling cols = %s\nrows = %s",
@@ -340,11 +340,13 @@ public class DASemantics {
 					v = id;
 				}
 				else {
-					rs = (SResultset) trxt.select(target, "_t0")
+					SemanticObject res = (SemanticObject) trxt.select(target, "_t0")
 						.col(args[2])
 						.where("=", idField, "'" + pid + "'")
 						.rs(stx);
-					if (rs.beforeFirst().next()) {
+
+					SResultset rs = (SResultset) ((ArrayList<?>) res.get("rs")).get(0);
+					if (rs .beforeFirst().next()) {
 						String parentpath = rs.getString(args[2]);
 						v = String.format("%s.%s%s", parentpath,
 							sibling == null ? "" : sibling + " ", id);

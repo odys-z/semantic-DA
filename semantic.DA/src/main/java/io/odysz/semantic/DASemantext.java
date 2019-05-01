@@ -27,6 +27,13 @@ import io.odysz.transact.x.TransException;
 
 /**A basic semantic context for generating sql.
  * Handling semantics defined in xml file. See path of constructor.
+ * 
+ * <p>{@link #pageSql(String, int, int)} is an example that must handled by context, but not interested by semantic.jserv.
+ * When composing SQL like select statement, if the results needing to be paged at server side,
+ * the paging sql statement is different for different DB.
+ * But semantic-transact don't care DB type or JDBC connection, so it's the context that will handling this.
+ * See the {@link #pageSql(Stream, int, int)}.</p>
+ * 
  * @author odys-z@github.com
  */
 public class DASemantext implements ISemantext {
@@ -368,8 +375,8 @@ end;
 //						Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from ("), s),
 //						Stream.of(String.format(") t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s", r1, r2)));
 //	}
-	public String totalSql(String rawSql, int page, int size) throws TransException {
-		return DASemantext.totalSql(Connects.driverType(connId()), rawSql, page, size);
+	public String totalSql(String rawSql) throws TransException {
+		return DASemantext.totalSql(Connects.driverType(connId()), rawSql);
 	}
 
 	public String pageSql(String rawSql, int page, int size) throws TransException {
@@ -377,6 +384,8 @@ end;
 	}	
 
 	public static String pagingSql(dbtype dt, String sql, int pageIx, int pgSize) throws TransException {
+		if (pageIx < 0 || pgSize <= 0)
+			return sql;
 		String r1 = String.valueOf(pageIx * pgSize);
 		String r2 = String.valueOf(r1 + pgSize);
 		Stream<String> s;
@@ -389,7 +398,7 @@ end;
 			s = Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (", sql,
 						") t) t where rownum >= ", r1, " and rownum <= %s", r2);
 		else if (dt == dbtype.sqlite)
-			throw new TransException("There is no easy way to support sqlite paging. Don't using server side paging for sqlite datasource."); 
+			throw new TransException("There is no easy way to support sqlite paging. Don't use server side paging for sqlite datasource."); 
 		else // mysql
 			// "select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s"
 			s = Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (", sql,
@@ -398,26 +407,9 @@ end;
 		return s.collect(Collectors.joining(" "));
 	}
 
-	public static String totalSql(dbtype dt, String sql, int pageIx, int pgSize) throws TransException {
-		String r1 = String.valueOf(pageIx * pgSize);
-		String r2 = String.valueOf(r1 + pgSize);
-		Stream<String> s;
-		if (dt == dbtype.oracle)
-			// "select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s"
-			s = Stream.of("select * from (select t.*, rownum r_n_ from (", sql,
-						") t WHERE rownum <= ", r1, " order by rownum) t where r_n_ > ", r2);
-		else if (dt == dbtype.ms2k)
-			// "select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= %s and rownum <= %s"
-			s = Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (", sql,
-						") t) t where rownum >= ", r1, " and rownum <= %s", r2);
-		else if (dt == dbtype.sqlite)
-			throw new TransException("There is no easy way to support sqlite paging. Don't using server side paging for sqlite datasource."); 
-		else // mysql
-			// "select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s"
-			s = Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (", sql,
-						") t, (select @ic_num := 0) ic_t) t1 where rnum > ", r1, " and rnum <= ", r2);
-	
-		return s.collect(Collectors.joining(" "));
+	public static String totalSql(dbtype dt, String sql) throws TransException {
+		return Stream.of("select count(*) as total from (", sql)
+				.collect(Collectors.joining("", "", ")"));
 	}
 
 }

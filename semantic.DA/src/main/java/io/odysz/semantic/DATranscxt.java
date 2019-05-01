@@ -53,12 +53,18 @@ public class DATranscxt extends Transcxt {
 	public Query select(String tabl, String... alias) {
 		Query q = super.select(tabl, alias);
 		q.doneOp((sctx, sqls) -> {
-			SResultset total = Connects.select(sctx.connId(),
-					((DASemantext) sctx).totalSql(sqls.get(0), q.page(), q.size()));
+			if (q.page() < 0 || q.size() <= 0) {
+				SResultset rs = Connects.select(sctx.connId(), sqls.get(0));
+				return new SemanticObject().rs(rs, rs.getRowCount());
+			}
+			else {
+				SResultset total = Connects.select(sctx.connId(),
+					((DASemantext) sctx).totalSql(sqls.get(0)));
 
-			SResultset rs = Connects.select(sctx.connId(),
-					((DASemantext) sctx).pageSql(sqls.get(1), q.page(), q.size()));
-			return new SemanticObject().rs(rs, total.getInt(1));
+				SResultset rs = Connects.select(sctx.connId(),
+					((DASemantext) sctx).pageSql(sqls.get(0), q.page(), q.size()));
+				return new SemanticObject().rs(rs, total.getInt(1));
+			}
 		});
 		return q;
 	}
