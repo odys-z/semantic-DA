@@ -24,8 +24,7 @@ import io.odysz.semantic.util.LogFlags;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 
-/**Configured dataset.xml manager and mapping helper.<br>
- * Design Memo: Separating getSql() and mapRs() will separate DA driver dependency
+/**Configured dataset.xml manager and helper.<br>
  * - won't care using CP data source or DB manager (2019.2.28).
  * 
  * @author odys-z@github.com
