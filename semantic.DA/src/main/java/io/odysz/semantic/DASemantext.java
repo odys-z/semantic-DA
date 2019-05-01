@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.odysz.common.Radix64;
@@ -340,32 +341,83 @@ end;
 		return l;
 	}
 
-	@Override
-	public Stream<String> pagingStream(Stream<String> s, int pageIx, int pgSize) throws TransException {
-		dbtype dt = Connects.driverType(connId);
-		return pagingStream(dt, s, pageIx, pgSize);
+//	@Override
+//	public Stream<String> pagingStream(Stream<String> s, int pageIx, int pgSize) throws TransException {
+//		dbtype dt = Connects.driverType(connId);
+//		return pagingStream(dt, s, pageIx, pgSize);
+//	}
+//
+//	public static Stream<String> pagingStream(dbtype dt, Stream<String> s, int pageIx, int pgSize) throws TransException {
+//		int r1 = pageIx * pgSize;
+//		int r2 = r1 + pgSize;
+//		if (dt == dbtype.oracle)
+//			// "select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s"
+//			return Stream.concat(Stream.concat(
+//						Stream.of("select * from (select t.*, rownum r_n_ from ("), s),
+//						Stream.of(String.format(") t WHERE rownum <= %s  order by rownum) t where r_n_ > %s", r1, r2)));
+//		else if (dt == dbtype.ms2k)
+//			// "select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= %s and rownum <= %s"
+//			return Stream.concat(Stream.concat(
+//						Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from ("), s),
+//						Stream.of(String.format(") t) t where rownum >= %s and rownum <= %s", r1, r2)));
+//		else if (dt == dbtype.sqlite)
+//			throw new TransException("There is no easy way to support sqlite paging. Don't using server side paging for sqlite datasource."); 
+//		else // mysql
+//			// "select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s"
+//			return Stream.concat(Stream.concat(
+//						Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from ("), s),
+//						Stream.of(String.format(") t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s", r1, r2)));
+//	}
+	public String totalSql(String rawSql, int page, int size) throws TransException {
+		return DASemantext.totalSql(Connects.driverType(connId()), rawSql, page, size);
 	}
 
-	public static Stream<String> pagingStream(dbtype dt, Stream<String> s, int pageIx, int pgSize) throws TransException {
-		int r1 = pageIx * pgSize;
-		int r2 = r1 + pgSize;
+	public String pageSql(String rawSql, int page, int size) throws TransException {
+		return DASemantext.pagingSql(Connects.driverType(connId()), rawSql, page, size);
+	}	
+
+	public static String pagingSql(dbtype dt, String sql, int pageIx, int pgSize) throws TransException {
+		String r1 = String.valueOf(pageIx * pgSize);
+		String r2 = String.valueOf(r1 + pgSize);
+		Stream<String> s;
 		if (dt == dbtype.oracle)
 			// "select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s"
-			return Stream.concat(Stream.concat(
-						Stream.of("select * from (select t.*, rownum r_n_ from ("), s),
-						Stream.of(String.format(") t WHERE rownum <= %s  order by rownum) t where r_n_ > %s", r1, r2)));
+			s = Stream.of("select * from (select t.*, rownum r_n_ from (", sql,
+						") t WHERE rownum <= ", r1, " order by rownum) t where r_n_ > ", r2);
 		else if (dt == dbtype.ms2k)
 			// "select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= %s and rownum <= %s"
-			return Stream.concat(Stream.concat(
-						Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from ("), s),
-						Stream.of(String.format(") t) t where rownum >= %s and rownum <= %s", r1, r2)));
+			s = Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (", sql,
+						") t) t where rownum >= ", r1, " and rownum <= %s", r2);
 		else if (dt == dbtype.sqlite)
 			throw new TransException("There is no easy way to support sqlite paging. Don't using server side paging for sqlite datasource."); 
 		else // mysql
 			// "select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s"
-			return Stream.concat(Stream.concat(
-						Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from ("), s),
-						Stream.of(String.format(") t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s", r1, r2)));
+			s = Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (", sql,
+						") t, (select @ic_num := 0) ic_t) t1 where rnum > ", r1, " and rnum <= ", r2);
+	
+		return s.collect(Collectors.joining(" "));
+	}
+
+	public static String totalSql(dbtype dt, String sql, int pageIx, int pgSize) throws TransException {
+		String r1 = String.valueOf(pageIx * pgSize);
+		String r2 = String.valueOf(r1 + pgSize);
+		Stream<String> s;
+		if (dt == dbtype.oracle)
+			// "select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s"
+			s = Stream.of("select * from (select t.*, rownum r_n_ from (", sql,
+						") t WHERE rownum <= ", r1, " order by rownum) t where r_n_ > ", r2);
+		else if (dt == dbtype.ms2k)
+			// "select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= %s and rownum <= %s"
+			s = Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (", sql,
+						") t) t where rownum >= ", r1, " and rownum <= %s", r2);
+		else if (dt == dbtype.sqlite)
+			throw new TransException("There is no easy way to support sqlite paging. Don't using server side paging for sqlite datasource."); 
+		else // mysql
+			// "select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s"
+			s = Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (", sql,
+						") t, (select @ic_num := 0) ic_t) t1 where rnum > ", r1, " and rnum <= ", r2);
+	
+		return s.collect(Collectors.joining(" "));
 	}
 
 }

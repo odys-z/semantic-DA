@@ -8,6 +8,7 @@ import org.xml.sax.SAXException;
 
 import io.odysz.common.LangExt;
 import io.odysz.common.Utils;
+import io.odysz.module.rs.SResultset;
 import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactoryEx;
@@ -16,6 +17,7 @@ import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
+import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
@@ -50,25 +52,28 @@ public class DATranscxt extends Transcxt {
 	@Override
 	public Query select(String tabl, String... alias) {
 		Query q = super.select(tabl, alias);
-		q.doneOp((conn, sqls) -> Connects.select(conn, sqls.get(0)));
+		q.doneOp((sctx, sqls) -> {
+			SResultset total = Connects.select(sctx.connId(),
+					((DASemantext) sctx).totalSql(sqls.get(0), q.page(), q.size()));
+
+			SResultset rs = Connects.select(sctx.connId(),
+					((DASemantext) sctx).pageSql(sqls.get(1), q.page(), q.size()));
+			return new SemanticObject().rs(rs, total.getInt(1));
+		});
 		return q;
 	}
-	
+
 	public Insert insert(String tabl, IUser usr) {
 		Insert i = super.insert(tabl);
-		i.doneOp((conn, sqls) -> Connects.commit(conn, usr, sqls));
+		i.doneOp((sctx, sqls) -> Connects.commit(sctx.connId(), usr, sqls));
 		return i;
 	}
 
 	public Update update(String tabl, IUser usr) {
 		Update u = super.update(tabl);
-		u.doneOp((conn, sqls) -> Connects.commit(conn, usr, sqls));
+		u.doneOp((sctx, sqls) -> Connects.commit(sctx.connId(), usr, sqls));
 		return u;
 	}
-
-//	public DATranscxt(ISemantext semantext) {
-//		super(new DASemantext(conn, null, null));
-//	}
 
 	protected String basiconnId;
 	public String basiconnId() { return basiconnId; }
