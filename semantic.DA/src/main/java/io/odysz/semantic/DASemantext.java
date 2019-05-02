@@ -409,7 +409,7 @@ end;
 
 	public static String totalSql(dbtype dt, String sql) throws TransException {
 		return Stream.of("select count(*) as total from (", sql)
-				.collect(Collectors.joining("", "", ")"));
+				.collect(Collectors.joining("", "", ") s_jt"));
 	}
 
 }

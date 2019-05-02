@@ -18,6 +18,7 @@ import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantics.IResults;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
@@ -161,13 +162,12 @@ DELETE from a_roles;</pre>
 		
 		DASemantext s1 = new DASemantext(connId, smtcfg, usr);
 		String newId = (String) s0.resulvedVal("a_roles", "roleId");
-		SemanticObject res = (SemanticObject) st
+		IResults slect = st
 				.select("a_role_func", "rf")
 				.col("count(funcId) cnt")
 				.where("=", "rf.roleId", "'" + newId + "'")
 				.where("=", "rf.funcId", "'000001'")
 				.rs(s1);
-		SResultset slect = (SResultset) res.rs(0);
 		slect.printSomeData(false, 2, "funcId");
 
 		slect.beforeFirst().next();

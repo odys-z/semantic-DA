@@ -8,6 +8,7 @@ import java.util.Map;
 import io.odysz.common.LangExt;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.SResultset;
+import io.odysz.semantics.IResults;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
@@ -340,12 +341,11 @@ public class DASemantics {
 					v = id;
 				}
 				else {
-					SemanticObject res = (SemanticObject) trxt.select(target, "_t0")
+					IResults rs = trxt.select(target, "_t0")
 						.col(args[2])
 						.where("=", idField, "'" + pid + "'")
 						.rs(stx);
 
-					SResultset rs = (SResultset) ((ArrayList<?>) res.get("rs")).get(0);
 					if (rs .beforeFirst().next()) {
 						String parentpath = rs.getString(args[2]);
 						v = String.format("%s.%s%s", parentpath,

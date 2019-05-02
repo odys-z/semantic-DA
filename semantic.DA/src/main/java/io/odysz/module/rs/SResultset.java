@@ -13,14 +13,16 @@ import java.util.Date;
 import java.util.HashMap;
 
 import io.odysz.common.Regex;
+import io.odysz.semantics.IResults;
 
-/**This Resultset used for non-connected manipulation.
+/**This Resultset is used for non-connected manipulation.
  * Rows and Cols are start at 1, the same as {@link java.sql.Resultset}.<br>
  * TODO This will be changed in the future (It's proved starting at 0 is more bug free).
- * @author Odys Zhou
+ * 
+ * @author odys-z@github.com
  *
  */
-public class SResultset {
+public class SResultset implements IResults {
 	private static final boolean debug = true;
 
 	private int colCnt = 0;
@@ -42,6 +44,9 @@ for (String coln : colnames.keySet())
 	private ResultSet rs;
 	private Connection conn;
 	private Statement stmt;
+
+	/**For paged query, this the total row count*/
+	private int total;
 
 	public SResultset(ResultSet rs) throws SQLException {
 		ICRconstructor(rs);
@@ -140,7 +145,8 @@ for (String coln : colnames.keySet())
 	 * @param row
 	 * @return this
 	 */
-	public SResultset appendDeeply(ArrayList<Object> row) {
+	@Override
+	public IResults appendDeeply(ArrayList<Object> row) {
 		ArrayList<Object> newRow = new ArrayList<Object>(row.size());
 		for (int j = 0; j < row.size(); j++) {
 			String v = "";
@@ -154,7 +160,8 @@ for (String coln : colnames.keySet())
 		return this;
 	}
 	
-	public SResultset append(ArrayList<Object> includingRow) {
+	@Override
+	public IResults append(ArrayList<Object> includingRow) {
 		results.add(includingRow);
 		rowCnt++;
 		rowIdx = results.size();
@@ -238,14 +245,17 @@ for (String coln : colnames.keySet())
 	}
 
 	/** @return column names */
+	@Override
 	public HashMap<String, Object[]> getColnames() {
 		return colnames;
 	}
 	
+	@Override
 	public ArrayList<ArrayList<Object>> getRows() {
 		return results;
 	}
 
+	@Override
 	public boolean next() throws SQLException {
 		rowIdx++;
 		if (rs != null) rs.next();
@@ -267,14 +277,16 @@ for (String coln : colnames.keySet())
 		else return true;
 	}
 	
-	public int append(SResultset more) throws SQLException {
+	@Override
+	public int append(IResults more) throws SQLException {
 		// check cols
 		if (colCnt != more.getColCount()) throw new SQLException("Columns not matched.");
-		results.addAll(more.results);
-		rowCnt += more.rowCnt;
+		results.addAll(((SResultset)more).results);
+		rowCnt += ((SResultset)more).rowCnt;
 		return rowCnt;
 	}
 	
+	@Override
 	public String getString(int colIndex) throws SQLException {
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) return null;
@@ -285,6 +297,7 @@ for (String coln : colnames.keySet())
 		}
 	}
 	
+	@Override
 	public String getString(String colName) throws SQLException {
 		if (colName == null) return null;
 		return getString((Integer) (colnames.get(colName.toUpperCase())[0]));
@@ -296,6 +309,7 @@ for (String coln : colnames.keySet())
 	 * @return string value
 	 * @throws SQLException
 	 */
+	@Override
 	public String getString(String colName, SimpleDateFormat sdf) throws SQLException {
 		if (colName == null) return null;
 		return getString((Integer)colnames.get(colName.toUpperCase())[0], sdf);
@@ -307,6 +321,7 @@ for (String coln : colnames.keySet())
 	 * @return string value
 	 * @throws SQLException
 	 */
+	@Override
 	public String getString(int colIndex, SimpleDateFormat sdf) throws SQLException {
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) return null;
@@ -327,6 +342,7 @@ for (String coln : colnames.keySet())
 	 * @return string value
 	 * @throws SQLException
 	 */
+	@Override
 	public String getStringNonull(String colName) throws SQLException {
 		if (colName == null) return "";
 		String s = getString((Integer)colnames.get(colName.toUpperCase())[0]);
@@ -338,6 +354,7 @@ for (String coln : colnames.keySet())
 	 * @return string value
 	 * @throws SQLException
 	 */
+	@Override
 	public boolean getBoolean(int colIndex) throws SQLException {
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) return false;
@@ -370,10 +387,12 @@ for (String coln : colnames.keySet())
 		}
 	}
 	
+	@Override
 	public boolean getBoolean(String colName) throws SQLException {
 		return getBoolean((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
+	@Override
 	public double getDouble(int colIndex) throws SQLException {
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
@@ -384,18 +403,22 @@ for (String coln : colnames.keySet())
 		}
 	}
 	
+	@Override
 	public double getDouble(String colName) throws SQLException {
 		return getDouble((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
+	@Override
 	public BigDecimal getBigDecimal(int colIndex) throws SQLException {
 		return BigDecimal.valueOf(getDouble(colIndex));
 	}
 
+	@Override
 	public BigDecimal getBigDecimal(String colName) throws SQLException {
 		return BigDecimal.valueOf(getDouble((Integer)colnames.get(colName.toUpperCase())[0]));
 	}
 	
+	@Override
 	public Date getDate(int index)throws SQLException{
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
@@ -408,10 +431,12 @@ for (String coln : colnames.keySet())
 		}
 	}
 	
+	@Override
 	public Date getDate(String colName)throws SQLException{
 		return getDate((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
+	@Override
 	public int getInt(int colIndex) throws SQLException {
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
@@ -422,6 +447,7 @@ for (String coln : colnames.keySet())
 		}
 	}
 	
+	@Override
 	public int getInt(String col, int deflt) {
 		try {
 			return getInt(col);
@@ -430,6 +456,7 @@ for (String coln : colnames.keySet())
 		}
 	}
 	
+	@Override
 	public long getLong(int colIndex) throws SQLException {
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
@@ -438,14 +465,17 @@ for (String coln : colnames.keySet())
 		}catch (Exception e) {throw new SQLException(e.getMessage());}
 	}
 
+	@Override
 	public long getLong(String colName) throws SQLException {
 		return getLong((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
+	@Override
 	public int getInt(String colName) throws SQLException {
 		return getInt((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
+	@Override
 	public Blob getBlob(int colIndex) throws SQLException {
 		try {
 			if (rs == null) throw new SQLException("Can not get Blob constructed by OracleHelper.select(). To access Blob, use OracleHelper.selectBlob()");
@@ -455,10 +485,12 @@ for (String coln : colnames.keySet())
 		}catch (Exception e) {throw new SQLException(e.getMessage());}
 	}
 	
+	@Override
 	public Blob getBlob(String colName) throws SQLException {
 		return getBlob((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
+	@Override
 	public Object getObject(int colIndex) throws SQLException {
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
@@ -474,21 +506,25 @@ for (String coln : colnames.keySet())
 	 * The last row indix == getRowCount()
 	 * @return string value
 	 */
+	@Override
 	public int getRow() {
 		if (results == null) return 0;
 		return rowIdx;
 	}
 	
+	@Override
 	public int getColumnCount() {
 		return colCnt;
 	}
 	
+	@Override
 	public void first() throws SQLException {
 		if (getRow() <= 0) throw new SQLException("Resultset out of boundary.");
 		rowIdx = 1;
 		if (rs != null) rs.first();
 	}
 
+	@Override
 	public SResultset beforeFirst() throws SQLException {
 		if (getRow() > 0) rowIdx = 0;
 		if (rs != null) rs.beforeFirst();
@@ -502,12 +538,14 @@ for (String coln : colnames.keySet())
 	 * @return this
 	 * @throws SQLException
 	 */
+	@Override
 	public SResultset before(int idx) throws SQLException {
 		if (rs != null) throw new SQLException("before(int) can't been called when there is an associate java.sql.Resultset.");
 		rowIdx = idx - 1;
 		return this;
 	}
 
+	@Override
 	public void close() throws SQLException {
 		if (rs != null) {
 			rs.close();
@@ -517,6 +555,7 @@ for (String coln : colnames.keySet())
 		}
 	}
 
+	@Override
 	public boolean previous() throws SQLException {
 		rowIdx--;
 		if (rs != null) rs.previous();
@@ -528,6 +567,7 @@ for (String coln : colnames.keySet())
 	 * @param i start at 1
 	 * @return column name or null
 	 */
+	@Override
 	public String getColumnName(int i) {
 		for (String cn : colnames.keySet()) {
 			if (((Integer)colnames.get(cn)[0]) == i)
@@ -540,6 +580,7 @@ for (String coln : colnames.keySet())
 	 * @param i index
 	 * @param n name
 	 */
+	@Override
 	public void setColumnName(int i, String n) {
 		for (String cn : colnames.keySet()) {
 			if (((Integer)colnames.get(cn)[0]) == i) {
@@ -552,7 +593,6 @@ for (String coln : colnames.keySet())
 	/**
 	 * @param upper_bumps [key: UPPER-CASE, value: bumpCase]
 	 * @return this (with column names updated)
-	 */
 	public SResultset setColumnCase(HashMap<String, String> upper_bumps) {
 		if (upper_bumps == null) return this;
 
@@ -565,16 +605,20 @@ for (String coln : colnames.keySet())
 		}
 		return this;
 	}
+	 */
 
+	@Override
 	public int getRowCount() {
 		return rowCnt;
 	}
 
+	@Override
 	public int getColCount() {
 		return colCnt;
 	}
 	
 	/**idx start at 0 */
+	@Override
 	public ArrayList<Object> getRowAt(int idx) throws SQLException {
 		if (results == null || idx < 0 || idx >= results.size()) 
 			throw new SQLException("Row index out of boundary. idx: " + idx);
@@ -584,17 +628,18 @@ for (String coln : colnames.keySet())
 	/**Set value to current row
 	 * @param colIndex
 	 * @param v
-	 * @return true if successed
+	 * @return this
 	 * @throws SQLException 
 	 */
-	public boolean set(int colIndex, String v) throws SQLException {
+	@Override
+	public IResults set(int colIndex, String v) throws SQLException {
 		try {
-			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) return false;
+			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) return this;
 			//if (results.get(rowIdx - 1).get(colIndex - 1) == null) return false;
-			if (results.get(rowIdx - 1).size() < colIndex) return false;
+			if (results.get(rowIdx - 1).size() < colIndex) return this;
 			else {
 				results.get(rowIdx - 1).set(colIndex - 1, v);
-				return true;
+				return this;
 			}
 		} catch (Exception e) {
 			throw new SQLException(e.getMessage());
@@ -604,10 +649,11 @@ for (String coln : colnames.keySet())
 	/**Set value to current row
 	 * @param colName
 	 * @param v
-	 * @return true if successed
+	 * @return this
 	 * @throws SQLException 
 	 */
-	public boolean set (String colName, String v) throws SQLException {
+	@Override
+	public IResults set (String colName, String v) throws SQLException {
 		return set((Integer)colnames.get(colName.toUpperCase())[0], v);
 	}
 
@@ -617,20 +663,24 @@ for (String coln : colnames.keySet())
 	 * @return row index or 0
 	 * @throws SQLException
 	 */
-	public int findFirst(String col, Regex regex) throws SQLException {
+	@Override
+	public int findFirst(String col, String regex) throws SQLException {
 		beforeFirst();
+		Regex regx = new Regex(regex);
 		while(next()) {
 			String target = getString(col);
-			if (regex.match(target))
+			if (regx.match(target))
 				return rowIdx;
 		}
 		return 0;
 	}
 
+	@Override
 	public ArrayList<Object> getRowCells() {
 		return results.get(rowIdx - 1);
 	}
 	
+	@Override
 	public int printSomeData(boolean err, int max, String... includeCols) {
 		try {
 			printHeaders();
@@ -705,16 +755,29 @@ for (String coln : colnames.keySet())
 		return s;
 	}
 
-	public void disableColumns(String... cols2Disable) {
-		if (cols2Disable != null && colnames != null)
-			for (String col2dis : cols2Disable)
-				colnames.remove(col2dis.toUpperCase());
-	}
+//	@Override
+//	public void disableColumns(String... cols2Disable) {
+//		if (cols2Disable != null && colnames != null)
+//			for (String col2dis : cols2Disable)
+//				colnames.remove(col2dis.toUpperCase());
+//	}
 
+	@Override
 	public String getString(int rowix, String idField) {
 		if (results == null || results.size() < rowix)
 			return null;
 		int colix = (Integer) colnames.get(idField.toUpperCase())[0];
 		return results == null ? null : (String) results.get(rowix - 1).get(colix - 1);
+	}
+
+	@Override
+	public int total() {
+		return total;
+	}
+
+	@Override
+	public IResults total(int total) {
+		this.total = total;
+		return this;
 	}
 }

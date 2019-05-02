@@ -17,7 +17,6 @@ import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
-import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
@@ -55,15 +54,18 @@ public class DATranscxt extends Transcxt {
 		q.doneOp((sctx, sqls) -> {
 			if (q.page() < 0 || q.size() <= 0) {
 				SResultset rs = Connects.select(sctx.connId(), sqls.get(0));
-				return new SemanticObject().rs(rs, rs.getRowCount());
+				return rs.total(rs.getRowCount());
 			}
 			else {
 				SResultset total = Connects.select(sctx.connId(),
 					((DASemantext) sctx).totalSql(sqls.get(0)));
+				total.beforeFirst().next();
+				int t = total.getInt(1);
 
 				SResultset rs = Connects.select(sctx.connId(),
 					((DASemantext) sctx).pageSql(sqls.get(0), q.page(), q.size()));
-				return new SemanticObject().rs(rs, total.getInt(1));
+				rs.total(t);
+				return rs;
 			}
 		});
 		return q;
