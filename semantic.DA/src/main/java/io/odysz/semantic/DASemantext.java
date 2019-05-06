@@ -18,6 +18,7 @@ import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
+import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
@@ -82,10 +83,11 @@ public class DASemantext implements ISemantext {
 	}
 
 	/**When inserting, process data row with configured semantics, like auto-pk, fk-ins, etc..
+	 * @throws SemanticException 
 	 * @see io.odysz.semantics.ISemantext#onInsert(io.odysz.transact.sql.Insert, java.lang.String, java.util.List)
 	 */
 	@Override
-	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> rows) {
+	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> rows) throws SemanticException {
 		if (rows != null && ss != null)
 			// second round
 			for (ArrayList<Object[]> row : rows) {
