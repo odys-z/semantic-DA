@@ -96,6 +96,9 @@ public class DASemantics {
 		 * when updating, auto update fullpath field according to parent-id and current record id<br>
 		 * Handler: {@link ShFullpath#ShFullpath(String, String, String[])}*/
 		fullpath,
+		/** "dfltVal" | "dv" | "d-v":
+		 * default value*/
+		defltVal,
 		/** "p-c-del-all" | "parent-child-del-all": delete children before delete parent */
 		parentChildrenOnDel,
 		/** "d-e" | "de-encrypt": decrypt then encrypt (target col cannot be pk or anything other semantics will updated */
@@ -114,9 +117,7 @@ public class DASemantics {
 		/** "s-up1" | "stamp-up1": add 1 more second to down-stamp column and save to up-stamp*/
 		stamp1MoreThanRefee,
 		/** "clob" | "orclob": the column is a CLOB field, semantic-transact will read/write separately in stream and get final results.*/
-		orclob,
-		/** "dfltVal" | "dv" | "d-v"*/
-		defltVal;
+		orclob;
 
 		/**Note: we don't use enum.valueOf(), because of fault / fuzzy tolerate.
 		 * @param type
@@ -132,6 +133,8 @@ public class DASemantics {
 				return fkIns;
 			else if ("fullpath".equals(type) || "f-p".equals(type))
 				return fullpath;
+			else if ("dfltVal".equals(type) || "d-v".equals(type) || "dv".equals(type))
+				return defltVal;
 			else if ("pc-del-all".equals(type) || "parent-child-del-all".equals(type) || "parentchildondel".equals(type))
 				return parentChildrenOnDel;
 			else if ("d-e".equals(type) || "de-encrypt".equals(type) || "dencrypt".equals(type))
@@ -471,14 +474,19 @@ public class DASemantics {
 			super(trxt, smtype.parentChildrenOnDel, tabl, recId, args);
 		}
 
+		@Override
+		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		}
 	}
 
+	/**Handle default value.
+	 * args: [0] value-field, [1] default-value
+	 * @author odys-z@github.com
+	 */
 	static class ShDefaultVal extends SemanticHandler {
 		ShDefaultVal(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
-//			super(trxt, sm, tabl, pk, args);
 			super(trxt, smtype.defltVal, tabl, recId, args);
 		}
-
 	}
 	
 	static class ShChkPCDel extends SemanticHandler {
