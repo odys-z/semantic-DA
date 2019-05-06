@@ -473,10 +473,6 @@ public class DASemantics {
 		public ShPCDelAll(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.parentChildrenOnDel, tabl, recId, args);
 		}
-
-		@Override
-		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-		}
 	}
 
 	/**Handle default value.
@@ -486,6 +482,34 @@ public class DASemantics {
 	static class ShDefaultVal extends SemanticHandler {
 		ShDefaultVal(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.defltVal, tabl, recId, args);
+		}
+
+		@Override
+		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			if (args.length > 1 && args[1] != null) {
+				Object[] nvTime;
+				if (cols.containsKey(args[1]))
+					nvTime = row.get(cols.get(args[1]));
+				else {
+					nvTime = new Object[2];
+					cols.put(args[1], row.size());
+					row.add(nvTime);
+				}
+				nvTime[0] =  args[1];
+				nvTime[1] =  Funcall.now(stx.dbtype());
+			}
+
+			// oper
+			Object[] nvOper;
+			if (cols.containsKey(args[0]))
+				nvOper = row.get(cols.get(args[0]));
+			else {
+				nvOper = new Object[2];
+				cols.put(args[0], row.size()); // oper
+				row.add(nvOper);
+			}
+			nvOper[0] = args[0];
+			nvOper[1] = usr == null ? "sys" : usr.uid();
 		}
 	}
 	
