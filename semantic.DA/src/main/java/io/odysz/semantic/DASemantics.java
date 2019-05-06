@@ -100,19 +100,17 @@ public class DASemantics {
 		 * default value*/
 		defltVal,
 		/** "pc-del-all" | "parent-child-del-all" | "parentchildondel"
-		 * {@link ShChkPCDel}*/
+		 * Handler: {@link ShChkPCDel}*/
 		parentChildrenOnDel,
 		/** "d-e" | "de-encrypt": decrypt then encrypt (target col cannot be pk or anything other semantics will updated */
 		dencrypt,
-		/** "o-t" | "oper-time": oper and operTime that must auto updated when a user updating a record
-		 * Handler: {@link ShOperTime#ShOperTime(Transcxt, String, String, String[])}*/
+		/**xml/smtc = "o-t" | "oper-time" | "optime"<br>
+		 * Handler: {@link ShOperTime}*/
 		opTime,
 		/** "ck-cnt-del" | "check-count-del": check is this record a referee of children records - results from sql.select(count, description-args ...). The record(s) can't been deleted if referenced;*/
 		checkSqlCountOnDel,
 		/** "ck-cnt-ins" | "ck-cnt-insert": check is this record count when inserting - results from sql.select(count, description-args ...). The record(s) can't been inserted if count > 0;*/
 		checkSqlCountOnInsert,
-		/** "ds-cnt-del" | "ds-count-del": check is this record a referee of children records - results from detaset.select(count, description-args ...). This is the oracle adaptive version of checkSqlCountOnDel; */
-		// checkDsCountOnDel,
 		/** "cmp-col" | "compose-col" | "compse-column": compose a column from other columns;*/
 		composingCol,
 		/** "s-up1" | "stamp-up1": add 1 more second to down-stamp column and save to up-stamp*/
@@ -297,7 +295,7 @@ public class DASemantics {
 
 		void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
 		void onInsert(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
-		void onUpdate(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
+		void onUpdate(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
 
 		SemanticHandler(Transcxt trxt, smtype sm, String tabl, String pk,
 				String[] args) throws SemanticException {
@@ -477,7 +475,6 @@ public class DASemantics {
 						LangExt.toString(args), LangExt.toString(cols), LangExt.toString(row),
 						e.getClass().getName(), e.getMessage());
 			}
-			
 		}
 	}
 
@@ -489,7 +486,14 @@ public class DASemantics {
 	static class ShPCDelAll extends SemanticHandler {
 		public ShPCDelAll(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.parentChildrenOnDel, tabl, recId, args);
+			update = true;
 		}
+
+		@Override
+		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+			throw new SemanticException("Sorry TODO...");
+		}
+		
 	}
 
 	/**Handle default value.
@@ -499,6 +503,8 @@ public class DASemantics {
 	static class ShDefltVal extends SemanticHandler {
 		ShDefltVal(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.defltVal, tabl, recId, args);
+			insert = true;
+			update = true;
 		}
 
 		@Override
@@ -521,7 +527,14 @@ public class DASemantics {
 	static class ShChkPCDel extends SemanticHandler {
 		public ShChkPCDel(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.checkSqlCountOnDel, tabl, recId, args);
+			update = true;
 		}
+
+		@Override
+		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+			throw new SemanticException("Sorry TODO...");
+		}
+		
 	}
 	
 	static class ShChkPCInsert extends SemanticHandler {
@@ -537,6 +550,12 @@ public class DASemantics {
 		
 	}
 	
+	/**semantics: automatic operator / time - time is now(), operator is session user id.<br>
+	 * smtyp: {@link smtype#opTime}<br>
+	 * args 0: oper-field, 1: oper-time-field (optional)
+	 * 
+	 * @author odys-z@github.com
+	 */
 	static class ShOperTime extends SemanticHandler {
 		/**
 		 * @param trxt
