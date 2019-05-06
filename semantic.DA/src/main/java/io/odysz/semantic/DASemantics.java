@@ -114,7 +114,9 @@ public class DASemantics {
 		/** "s-up1" | "stamp-up1": add 1 more second to down-stamp column and save to up-stamp*/
 		stamp1MoreThanRefee,
 		/** "clob" | "orclob": the column is a CLOB field, semantic-transact will read/write separately in stream and get final results.*/
-		orclob;
+		orclob,
+		/** "dfltVal" | "dv" | "d-v"*/
+		defltVal;
 
 		/**Note: we don't use enum.valueOf(), because of fault / fuzzy tolerate.
 		 * @param type
@@ -467,6 +469,14 @@ public class DASemantics {
 	static class ShPCDelAll extends SemanticHandler {
 		public ShPCDelAll(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.parentChildrenOnDel, tabl, recId, args);
+		}
+
+	}
+
+	static class ShDefaultVal extends SemanticHandler {
+		ShDefaultVal(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
+//			super(trxt, sm, tabl, pk, args);
+			super(trxt, smtype.defltVal, tabl, recId, args);
 		}
 
 	}
