@@ -67,9 +67,11 @@ public class DASemantics {
 	
 	public static boolean debug = true; 
 
-	/**<b>0. {@link #autoInc} for xml keywords, see {@link #autoInc}, for args, see {@link ShAutoK}<br>
-	 * <b>1. {@link #fullpath} </b> key-word: "fullpath" | "fp" | "f-p"<br>
-	 * <b>2. {@link #parentChildren} </b> key-word: "pc-del-all" | "parent-child-del-all"<br>
+	/**<b>0. {@link #autoInc} for xml keywords and args. handler: {@link ShAutoK}<br>
+	 * <b>1. {@link #fkIns} fk on insert (resolved when referencing auto key). handler: {@link ShChkPCInsert}<br>
+	 * <b>2. {@link #fullpath} tree table fullpath. handler: {@link ShFullpath}<br>
+	 * <b>3. {@link #defltVal} default value column. handler: {@link ShDefltVal}<br>
+	 * <b>4. {@link #parentChildrenOnDel} delete children before deleting parent. handler: {@link ShPCDelAll}<br>
 	 * <b>3. {@link #dencrypt} </b> key-word: "d-e" | "de-encrypt" <br>
 	 * <b>4. {@link #opTime}</b> key-word: "o-t" | "oper-time"<br>
 	 * <b>5. {@link #checkSqlCountOnDel} </b> key-word: "ck-cnt-del" | "check-count-del" <br>
@@ -85,28 +87,30 @@ public class DASemantics {
 	 * <b>x. orclob</b>: the field must saved as clob when driver type is orcl;
 	 */
 	public enum smtype {
-		/**"auto" | "a-k" | "pk" | "autopk": Generate auto increased value for the field when inserting */
+		/**xml/smtc = "auto" | "pk" | "a-k" | "autopk" 
+		 * @see {@link ShAutoK} */
 		autoInc,
-		/**"fk-ins": Referencing generated auto key. When inserting, auto update referencing value.
+		/**xml/smtc = "fk" | "pkref" | "fk-ins"
 		 * args: see {@link ShFkOnIns} */
 		fkIns,
-		/** "f-p" | "fp" | "fullpath":
-		 * when updating, auto update fullpath field according to parent-id and current record id<br>
+		/**xml/smtc = "f-p" | "fp" | "fullpath":
 		 * Handler: {@link ShFullpath#ShFullpath(String, String, String[])}*/
 		fullpath,
-		/** "p-c-del-all" | "parent-child-del-all": delete children before delete parent */
+		/**xml/smtc = "dfltVal" | "dv" | "d-v":
+		 * default value*/
+		defltVal,
+		/** "pc-del-all" | "parent-child-del-all" | "parentchildondel"
+		 * Handler: {@link ShChkPCDel}*/
 		parentChildrenOnDel,
 		/** "d-e" | "de-encrypt": decrypt then encrypt (target col cannot be pk or anything other semantics will updated */
 		dencrypt,
-		/** "o-t" | "oper-time": oper and operTime that must auto updated when a user updating a record
-		 * Handler: {@link ShOperTime#ShOperTime(Transcxt, String, String, String[])}*/
+		/**xml/smtc = "o-t" | "oper-time" | "optime"<br>
+		 * Handler: {@link ShOperTime}*/
 		opTime,
 		/** "ck-cnt-del" | "check-count-del": check is this record a referee of children records - results from sql.select(count, description-args ...). The record(s) can't been deleted if referenced;*/
 		checkSqlCountOnDel,
 		/** "ck-cnt-ins" | "ck-cnt-insert": check is this record count when inserting - results from sql.select(count, description-args ...). The record(s) can't been inserted if count > 0;*/
 		checkSqlCountOnInsert,
-		/** "ds-cnt-del" | "ds-count-del": check is this record a referee of children records - results from detaset.select(count, description-args ...). This is the oracle adaptive version of checkSqlCountOnDel; */
-		// checkDsCountOnDel,
 		/** "cmp-col" | "compose-col" | "compse-column": compose a column from other columns;*/
 		composingCol,
 		/** "s-up1" | "stamp-up1": add 1 more second to down-stamp column and save to up-stamp*/
@@ -126,8 +130,10 @@ public class DASemantics {
 				return autoInc;
 			else if ("fk".equals(type) || "pkref".equals(type) || "fk-ins".equals(type))
 				return fkIns;
-			else if ("fullpath".equals(type) || "f-p".equals(type))
+			else if ("fullpath".equals(type) || "f-p".equals(type) || "fp".equals(type))
 				return fullpath;
+			else if ("dfltVal".equals(type) || "d-v".equals(type) || "dv".equals(type))
+				return defltVal;
 			else if ("pc-del-all".equals(type) || "parent-child-del-all".equals(type) || "parentchildondel".equals(type))
 				return parentChildrenOnDel;
 			else if ("d-e".equals(type) || "de-encrypt".equals(type) || "dencrypt".equals(type))
@@ -136,7 +142,7 @@ public class DASemantics {
 				return opTime;
 			else if ("ck-cnt-del".equals(type) || "check-count-del".equals(type) || "checksqlcountondel".equals(type))
 				return checkSqlCountOnDel;
-			else if ("ck-cnt-del".equals(type) || "check-count-del".equals(type) || "checksqlcountoninsert".equals(type))
+			else if ("ck-cnt-ins".equals(type) || "check-count-ins".equals(type) || "checksqlcountoninsert".equals(type))
 				return checkSqlCountOnInsert;
 //			else if ("ds-cnt-del".equals(type) || "ds-count-del".equals(type) || "checkdscountondel".equals(type))
 //				return checkDsCountOnDel;
@@ -198,6 +204,8 @@ public class DASemantics {
 			handler = new ShFkOnIns(basicTsx, tabl, recId, args);
 		else if (smtype.parentChildrenOnDel == semantic)
 			handler = new ShPCDelAll(basicTsx, tabl, recId, args);
+		else if (smtype.defltVal == semantic)
+			handler = new ShDefltVal(basicTsx, tabl, recId, args);
 //		else if (smtype.dencrypt == semantic)
 //			addDencrypt(tabl, recId, argss);
 //		else if (smtype.orclob == semantic)
@@ -254,7 +262,7 @@ public class DASemantics {
 					handler.onPrepare(semantx, row, cols, usr);
 	}
 
-	public void onInsert(ISemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+	public void onInsert(ISemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
 				if (handler.insert && !handler.insPrepare)
@@ -286,8 +294,8 @@ public class DASemantics {
 		}
 
 		void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
-		void onInsert(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
-		void onUpdate(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
+		void onInsert(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
+		void onUpdate(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
 
 		SemanticHandler(Transcxt trxt, smtype sm, String tabl, String pk,
 				String[] args) throws SemanticException {
@@ -300,6 +308,11 @@ public class DASemantics {
 	}
 	
 	//////////////////////////////// subclasses ////////////////////////////////
+	/**
+	 *When updating, auto update fullpath field according to parent-id and current record id<br>
+	 * args 0: parent Id field, 1: sibling/sort field (optional), 2: fullpath field
+	 * @author odys-z@github.com
+	 */
 	static class ShFullpath extends SemanticHandler {
 		/**
 		 * @param tabl
@@ -331,8 +344,6 @@ public class DASemantics {
 							  (String) row.get(cols.get(args[0]))[1]
 							: null;
 			
-				// select fullpath where id = $parentId
-				
 				if (pid == null || "null".equals(pid)) {
 					Utils.warn("Fullpath Handling Error\nTo generate fullpath, parentId must configured.\nFound parent col: %s,\nconfigured args = %s,\nhandling cols = %s\nrows = %s",
 							pid, LangExt.toString(args), LangExt.toString(cols), LangExt.toString(row));
@@ -357,7 +368,6 @@ public class DASemantics {
 				e.printStackTrace();
 			}
 
-
 			Object[] nv;
 			if (cols.containsKey(args[2]))
 				nv = row.get(cols.get(args[2]));
@@ -367,9 +377,16 @@ public class DASemantics {
 				row.add(nv);
 			}
 		}
+		
+		@Override
+		void onUpdate(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			onInsert(sxt, row, cols, usr);
+		}
 	}
 
-	/**Auto inc handler.<br>
+	/**Auto key handler.<br>
+	 * smtc = "auto" | "a-k" | "pk" | "autopk"<br>
+	 * Generate auto increased value for the field when inserting.<br>
 	 * on-events: insert<br>
 	 * smtc = "auto" | "ai" | "a-i"<br>
 	 * args = [0: pk-field] */
@@ -458,21 +475,66 @@ public class DASemantics {
 						LangExt.toString(args), LangExt.toString(cols), LangExt.toString(row),
 						e.getClass().getName(), e.getMessage());
 			}
-			
 		}
 	}
 
+	/**Delete childeren before delete parent.<br>
+	 * smtype: {@link smtype#parentChildrenOnDel}
+	 * 
+	 * @author odys-z@github.com
+	 */
 	static class ShPCDelAll extends SemanticHandler {
 		public ShPCDelAll(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.parentChildrenOnDel, tabl, recId, args);
+			update = true;
 		}
 
+		@Override
+		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+			throw new SemanticException("Sorry TODO...");
+		}
+		
+	}
+
+	/**Handle default value.
+	 * args: [0] value-field, [1] default-value
+	 * @author odys-z@github.com
+	 */
+	static class ShDefltVal extends SemanticHandler {
+		ShDefltVal(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
+			super(trxt, smtype.defltVal, tabl, recId, args);
+			insert = true;
+			update = true;
+		}
+
+		@Override
+		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			if (args.length > 1 && args[1] != null) {
+				Object[] nv;
+				if (cols.containsKey(args[1]))
+					nv = row.get(cols.get(args[1]));
+				else {
+					nv = new Object[2];
+					cols.put(args[1], row.size());
+					row.add(nv);
+				}
+				nv[0] =  args[1];
+				nv[1] =  args[2];
+			}
+		}
 	}
 	
 	static class ShChkPCDel extends SemanticHandler {
 		public ShChkPCDel(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.checkSqlCountOnDel, tabl, recId, args);
+			update = true;
 		}
+
+		@Override
+		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+			throw new SemanticException("Sorry TODO...");
+		}
+		
 	}
 	
 	static class ShChkPCInsert extends SemanticHandler {
@@ -480,8 +542,20 @@ public class DASemantics {
 			super(trxt, smtype.checkSqlCountOnInsert, tabl, recId, args);
 			insert = true;
 		}
+		
+		@Override
+		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+			throw new SemanticException("fkIns? TODO...");
+		}
+		
 	}
 	
+	/**semantics: automatic operator / time - time is now(), operator is session user id.<br>
+	 * smtyp: {@link smtype#opTime}<br>
+	 * args 0: oper-field, 1: oper-time-field (optional)
+	 * 
+	 * @author odys-z@github.com
+	 */
 	static class ShOperTime extends SemanticHandler {
 		/**
 		 * @param trxt
@@ -491,7 +565,7 @@ public class DASemantics {
 		 * @throws SemanticException
 		 */
 		public ShOperTime(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
-			super(trxt, smtype.checkSqlCountOnInsert, tabl, recId, args);
+			super(trxt, smtype.opTime, tabl, recId, args);
 			insert = true;
 			update = true;
 		}
@@ -523,6 +597,10 @@ public class DASemantics {
 			}
 			nvOper[0] = args[0];
 			nvOper[1] = usr == null ? "sys" : usr.uid();
+		}
+		
+		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			onInsert(stx, row, cols, usr);
 		}
 	}
 }
