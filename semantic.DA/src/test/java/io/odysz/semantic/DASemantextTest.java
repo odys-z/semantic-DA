@@ -164,7 +164,7 @@ DELETE from a_roles;</pre>
 		String newId = (String) s0.resulvedVal("a_roles", "roleId");
 		IResults slect = st
 				.select("a_role_func", "rf")
-				.col("count(funcId) cnt")
+				.col("count(funcId)", "cnt")
 				.where("=", "rf.roleId", "'" + newId + "'")
 				.where("=", "rf.funcId", "'000001'")
 				.rs(s1);
