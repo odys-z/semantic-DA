@@ -6,32 +6,12 @@ import java.util.ArrayList;
 import io.odysz.module.rs.SResultset;
 
 public class SQLString {
-
-	/**@deprecated not used?
-	 * @param format
-	 * @param objects
-	 * @return
-	public static String format(String format, Object ... objects) {
-		Object[] copy = new Object[objects.length];
-		for (int i = 0; i < objects.length; i++) {
-			Object obj = objects[i];
-			if (obj instanceof String) {
-				String str = (String) obj;
-				//copy[i] = str.replaceAll("'", "''");
-				copy[i] = formatSql(str);
-			}
-			else copy[i] = obj;
-		}
-		return String.format(format, copy);
-	}
-	 */
-
-	/**Get sql string "insert into [table]([f1], f[2], f[3], ...) values ([v1], [v2], fd_v[3], ...)"<br>
+	/**@deprecated?
+	 * Get sql string "insert into [table]([f1], f[2], f[3], ...) values ([v1], [v2], fd_v[3], ...)"<br>
 	 * Only varchar2 and date are parsable, tested on mysql.
 	 * @param rs
 	 * @param table
-	 * @param fd_v
-	 * @return
+	 * @return sqls
 	 * @throws SQLException
 	 */
 	public static ArrayList<String> composeInserts(SResultset rs, String table) throws SQLException {
@@ -69,7 +49,6 @@ public class SQLString {
 			String s2 = s1.replace("\t", "\\t");
 			String s3 = s2.replace("'", "''");
 			return s3;
-			// return res;
 		}
 		return "";
 	}
@@ -78,14 +57,14 @@ public class SQLString {
 		p = p.replace("*", "[^\t\n]*");<br>
 		p = p.replace("-", "[-]");
 	 * @param p
-	 * @return
-	 */
+	 * @return escaped string
 	public static String escapeRegex(String p) {
 		String p1 = p.replace(".", "[^\t\n]{1}");
 		p1 = p1.replace("*", "[^\t\n]*");
 		p1 = p1.replace("-", "[-]");
 		return p1;
 	}
+	 */
 
 	/**Get sql string "update [table] set [f1] = [v1], f[2] = [v2], ... where pkv[0] = pkv[1] and pkv[2] = pkv[3] ...",<br>
 	 * where fd_v are user specified field : value pairs.
@@ -135,7 +114,6 @@ select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by 
 	 * @param page
 	 * @param size
 	 * @return
-	 */
 	public String pageSql(String driverType, String sql, int page, int size) {
 		int r1 = page * size;
 		int r2 = r1 + size;
@@ -155,6 +133,7 @@ select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by 
 					sql, r1, r2);
 		else return sql;
 	}
+	 */
 
 
 }

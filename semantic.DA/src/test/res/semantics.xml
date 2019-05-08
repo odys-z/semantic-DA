@@ -95,5 +95,41 @@
   		<pk>bid</pk>
   		<args>bfk,crs_a,aid</args>
   	</s>
+  	
+  	<!-- a_user.userId auto key -->
+  	<s>
+  		<id>50</id>
+  		<smtc>autopk</smtc>
+  		<tabl>a_users</tabl>
+  		<pk>userId</pk>
+  		<args>userId</args>
+  	</s>
+  	<!-- a_user.pswd default value -->
+  	<s>
+  		<id>51</id>
+  		<smtc>dv</smtc>
+  		<tabl>a_users</tabl>
+  		<pk>userId</pk>
+  		<args>pswd,123456</args>
+  	</s>
+	<!-- a_user.userName check same on insert -->
+  	<s>
+  		<id>52</id>
+  		<smtc>ck-cnt-ins</smtc>
+  		<tabl>a_users</tabl>
+  		<pk>userId</pk>
+  		<!--separated by ",".
+  			0, 1, ... : the field name of which it's value will be used for formatting sql;
+  			length - 1: the last one is sql (no ","), and is highly recommend using %[argument_index$] in format string -->
+  		<args>userName,select count(userName) from a_users where userName = '%1$s'</args>
+  	</s>
+	<!-- a_role.roleId - a_role_func delete all children on delete -->
+  	<s>
+  		<id>53</id>
+  		<smtc></smtc>
+  		<tabl>a_users</tabl>
+  		<pk>userId</pk>
+  		<args>userName,select count(userId) from a_users where userName = '%s'</args>
+  	</s>
   </t>
 </semantics>

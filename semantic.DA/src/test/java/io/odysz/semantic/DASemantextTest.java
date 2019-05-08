@@ -1,6 +1,7 @@
 package io.odysz.semantic;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +19,6 @@ import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantics.IResults;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
@@ -126,22 +126,25 @@ DELETE from a_roles;</pre>
 			.nv("parentId", "------")
 			.commit(s0, sqls);
 		
-		Utils.logi(sqls);
+		// Utils.logi(sqls);
 		
-		Utils.logi("New ID for a_functions: %s", s0.resulvedVal("a_functions", "funcId"));
+		// Utils.logi("New ID for a_functions: %s", s0.resulvedVal("a_functions", "funcId"));
+		assertEquals(6, ((String) s0.resulvedVal("a_functions", "funcId")).length());
 		
 		// level 2
 		DASemantext s1 = new DASemantext(connId, smtcfg, usr);
 		st.insert("a_functions")
 			.nv("flags", flag)
-			.nv("funcId", "AUTO") // TODO comment out and test
+			// .nv("funcId", "AUTO")
 			.nv("funcName", "testInsert B - " + flag)
 			.nv("parentId", s0.resulvedVal("a_functions", "funcId"))
 			.commit(s1, sqls);
 		
-		Utils.logi(sqls);
+		// Utils.logi(sqls);
 		Connects.commit(usr , sqls);
-		Utils.logi("New ID for a_functions: %s", s1.resulvedVal("a_functions", "funcId"));
+
+		// Utils.logi("New ID for a_functions: %s", s1.resulvedVal("a_functions", "funcId"));
+		assertEquals(6, ((String) s1.resulvedVal("a_functions", "funcId")).length());
 	}
 
 	@Test
@@ -162,18 +165,26 @@ DELETE from a_roles;</pre>
 		
 		DASemantext s1 = new DASemantext(connId, smtcfg, usr);
 		String newId = (String) s0.resulvedVal("a_roles", "roleId");
-		IResults slect = st
+		SemanticObject s = st
 				.select("a_role_func", "rf")
 				.col("count(funcId)", "cnt")
 				.where("=", "rf.roleId", "'" + newId + "'")
 				.where("=", "rf.funcId", "'000001'")
 				.rs(s1);
+		SResultset slect = (SResultset) s.rs(0);
 		slect.printSomeData(false, 2, "funcId");
 
 		slect.beforeFirst().next();
 		assertEquals(1, slect.getInt("cnt"));
 	}
 	
+	/**Test cross referencing auto k.
+	 * crs_a.aid, crs_b.bid are autok;<br>
+	 * crs_a.afk referencing crs_b.bid,<br>
+	 * crs_b.bfk referencing crs_a.aid,
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	@Test
 	public void testCrossAutoK() throws TransException, SQLException {
 		DASemantext s0 = new DASemantext(connId, smtcfg, usr);
@@ -186,6 +197,64 @@ DELETE from a_roles;</pre>
 				.commit(s0, sqls);
 	
 		Connects.commit(usr , sqls);
+
+		// insert into crs_b  (remarkb, bid, bfk) values (datetime('now'), '000017', '00001K')
+		// insert into crs_a  (remarka, aid, afk) values (datetime('now'), '00001K', '000017')
+		assertEquals("insert into crs_b  (remarkb, bid, bfk) values (",
+					sqls.get(0).substring(0, 47));
+		assertEquals("insert into crs_b  (remarkb, bid, bfk) values (",
+					sqls.get(0).substring(0, 47));
 	}
 
+	/**This is used for testing semantics:<br>
+	 * 1. auto key: a_users.userId<br>
+	 * 2. default val: a_users.pswd<br>
+	 * 3. de-encrypt: a_users.pswd<br>
+	 * 4. parent-child on del: a_user, a_role_func<br>
+	 * 5. check count on insert: a_user.userName<br>
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	@Test
+	public void testSmtxUsers() throws TransException, SQLException {
+		String flag = DateFormat.formatime(new Date());
+		String usrName = "01 " + flag;
+
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr);
+		ArrayList<String> sqls = new ArrayList<String>(1);
+		st.insert("a_users") // with default value: pswd = '123456'
+			.nv("userName", usrName)
+			.nv("roleId", "r01")
+			.nv("orgId", "o-01")
+			.nv("birthday", Funcall.now(dbtype.sqlite))
+			.commit(s0, sqls);
+		Connects.commit(usr , sqls);
+		sqls.clear();
+		
+		String usrId = (String)s0.resulvedVal("a_users", "userId");
+		
+		st.select("a_users", "u")
+			.where("=", "userId", "'" + usrId + "'")
+			.commit(sqls, usr);
+
+		// assert default value pswd = '123456'
+		SResultset rs = Connects.select(sqls.get(0));
+		rs.beforeFirst().next();
+		assertEquals("123456", rs.getString("pswd"));
+		
+		// TODO de-encrypt, ...
+		
+		// 5. check count on insert: a_user.userName<br>
+		sqls.clear();
+		s0.clear();
+		try {
+			st.insert("a_users")
+				.nv("userName", usrName)
+				.commit(s0, sqls);
+			fail("check count on insert: a_user.userName not working");
+		} catch (SemanticException e) {
+			assertEquals("Checking count on a_users.userId",
+					e.getMessage().substring(0, 32));
+		}
+	}
 }

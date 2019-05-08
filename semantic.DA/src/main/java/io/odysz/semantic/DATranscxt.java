@@ -17,6 +17,7 @@ import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
+import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
@@ -54,7 +55,8 @@ public class DATranscxt extends Transcxt {
 		q.doneOp((sctx, sqls) -> {
 			if (q.page() < 0 || q.size() <= 0) {
 				SResultset rs = Connects.select(sctx.connId(), sqls.get(0));
-				return rs.total(rs.getRowCount());
+				rs.total(rs.getRowCount());
+				return new SemanticObject().rs(rs, rs.total());
 			}
 			else {
 				SResultset total = Connects.select(sctx.connId(),
@@ -65,7 +67,7 @@ public class DATranscxt extends Transcxt {
 				SResultset rs = Connects.select(sctx.connId(),
 					((DASemantext) sctx).pageSql(sqls.get(0), q.page(), q.size()));
 				rs.total(t);
-				return rs;
+				return new SemanticObject().rs(rs, t);
 			}
 		});
 		return q;
@@ -73,13 +75,19 @@ public class DATranscxt extends Transcxt {
 
 	public Insert insert(String tabl, IUser usr) {
 		Insert i = super.insert(tabl);
-		i.doneOp((sctx, sqls) -> Connects.commit(sctx.connId(), usr, sqls));
+		i.doneOp((sctx, sqls) -> {
+			int[] r = Connects.commit(sctx.connId(), usr, sqls);
+			return new SemanticObject().addInts("inserted", r).put("resulved", sctx.resulves());
+		});
 		return i;
 	}
 
 	public Update update(String tabl, IUser usr) {
 		Update u = super.update(tabl);
-		u.doneOp((sctx, sqls) -> Connects.commit(sctx.connId(), usr, sqls));
+		u.doneOp((sctx, sqls) -> {
+			int[] r = Connects.commit(sctx.connId(), usr, sqls);
+			return new SemanticObject().addInts("updated", r).put("resulved", sctx.resulves());
+		});
 		return u;
 	}
 
@@ -102,7 +110,9 @@ public class DATranscxt extends Transcxt {
 	 * @throws SAXException
 	 * @throws IOException
 	 */
-	public static HashMap<String, DASemantics> initConfigs(String connId, String filepath) throws SAXException, IOException {
+	public static HashMap<String, DASemantics> initConfigs(String connId, String filepath)
+			throws SAXException, IOException {
+		Utils.logi("Loading Semantics:\n%s", filepath);
 		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
 				new Log4jWrapper("").setDebugMode(false), filepath, new IXMLStruct() {
 						@Override public String rootTag() { return "semantics"; }
@@ -114,7 +124,8 @@ public class DATranscxt extends Transcxt {
 		return initConfigs(connId, conn);
 	}
 	
-	public static HashMap<String, DASemantics> initConfigs(String conn, XMLTable xcfg) throws SAXException, IOException {
+	public static HashMap<String, DASemantics> initConfigs(String conn, XMLTable xcfg)
+			throws SAXException, IOException {
 		xcfg.beforeFirst();
 		if (smtConfigs == null)
 			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
@@ -134,16 +145,19 @@ public class DATranscxt extends Transcxt {
 		return smtConfigs.get(conn);
 	}
 
-	public static void addSemantics(String connId, String tabl, String pk, String smtcs, String args) throws SemanticException {
+	public static void addSemantics(String connId, String tabl, String pk,
+			String smtcs, String args) throws SemanticException {
 		smtype sm = smtype.parse(smtcs);
 		addSemantics(connId, tabl, pk, sm, args);
 	}
 
-	public static void addSemantics(String connId, String tabl, String pk, smtype sm, String args) throws SemanticException {
+	public static void addSemantics(String connId, String tabl, String pk,
+			smtype sm, String args) throws SemanticException {
 		addSemantics(connId, tabl, pk, sm, LangExt.split(args, ","));
 	}
 
-	public static void addSemantics(String conn, String tabl, String pk, smtype sm, String[] args) throws SemanticException {
+	public static void addSemantics(String conn, String tabl, String pk,
+			smtype sm, String[] args) throws SemanticException {
 		if (smtConfigs == null) {
 			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
 		}

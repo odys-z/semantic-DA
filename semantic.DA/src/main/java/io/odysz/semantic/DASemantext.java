@@ -388,8 +388,9 @@ end;
 	public static String pagingSql(dbtype dt, String sql, int pageIx, int pgSize) throws TransException {
 		if (pageIx < 0 || pgSize <= 0)
 			return sql;
-		String r1 = String.valueOf(pageIx * pgSize);
-		String r2 = String.valueOf(r1 + pgSize);
+		int i1 = pageIx * pgSize;
+		String r2 = String.valueOf(i1 + pgSize);
+		String r1 = String.valueOf(i1);
 		Stream<String> s;
 		if (dt == dbtype.oracle)
 			// "select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s"
@@ -412,6 +413,10 @@ end;
 	public static String totalSql(dbtype dt, String sql) throws TransException {
 		return Stream.of("select count(*) as total from (", sql)
 				.collect(Collectors.joining("", "", ") s_jt"));
+	}
+
+	public void clear() {
+		autoVals = null;
 	}
 
 }

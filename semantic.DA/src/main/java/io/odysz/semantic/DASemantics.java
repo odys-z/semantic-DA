@@ -6,10 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.odysz.common.LangExt;
+import io.odysz.common.Regex;
 import io.odysz.common.Utils;
-import io.odysz.semantics.IResults;
+import io.odysz.module.rs.SResultset;
+import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
+import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.parts.condition.Funcall;
@@ -21,45 +24,45 @@ import io.odysz.transact.x.TransException;
  * semantics (processing values). </p>
  * <h3>What's DASemantics for?</h3>
  * <p>Well, the word semantics is a computer science term. The author don't want to redefine this word,
- * but here is some explanation what <i>semantic-transact</i> is trying to support.</p>
+ * but here is some explanation what <i>semantic-DA</i> with <i>semantic-transact</i> is trying to support.</p>
  * <p>In a typical relational database based application, the main operation of data is CRUD.
  * And the most often such data operation can be abstracted to some operation pattern,
  * and they are always organized as a database transaction/batch operation described in SQL.</p>
  * <p>Take "book-author" relation for example, the author's ID is also the parent referenced by
  * book's author FK. If trying to delete an author in DB, there are 2 typical policies can be applied
- * by the application. The first is delete all books by the author accordingly; the second is warn and
- * deny the operation if some books are referencing the author. Both of this must been organized into
+ * by the application. The first is delete all books by the author accordingly; the second is warning and
+ * denying the operation if some books are referencing the author. Both of this must/can been organized into
  * a transact/batch operation, with the second transact as check-then-delete.</p>
  * <p>In this case, you will find the FK relationship can be handled in a generalized operation, through
  * parameterizing some variables like table name, child referencing column name and parent ID.</p>
- * <p>Take the {@link DASemantics.stype#parentChildrenOnDel} for example, it's automatically support
+ * <p>Take the {@link DASemantics.smtype#parentChildrenOnDel} for example, it's automatically support
  * "deleting all children when deleting parent" semantics. What the user (application developer) need to
  * do is configure a semantics item then delete the parent directly.</p>
- * <p>Now you (a developer) will definitely understand what's the "parentChildrenOnDel" for. Semantic-transact
+ * <p>Now you (a developer) will definitely understand what's the "parentChildrenOnDel" for. Semantic-DA
  * abstract and hide these patterns, wrapped them automatically into a transaction. That's what semantic-
- * transact want to do.</p>
+ * DA want to do.</p>
  * <h3>How to Use</h3>
  * <p>To use this function:</p>
  * <p>1. Configure the "semantics.xml". See example in test/resources/semantics.xml.<br>
  * 2. Set the configured semantics as context of {@link io.odysz.transact.sql.Statement}. See example in
- * {@link io.odysz.transact.SemanticsTest}. Then use Statement's subclass's commit() method to generate SQLs</p>
+ * {@link io.odysz.semantic.DASemantextTest}. Then use Statement's subclass's commit() method to generate SQLs</p>
  * <h3>Is this Enough?</h3>
- * <p>The 9 to 10 types of semantics defined in {@link DASemantics.stype} is enough for some enterprise projects.
- * It depends on how abstract the semantics we want to support.</p>
- * </p>Another consideration is that semantic-transact never take supporting all semantics logic as it's goal.
- * It only trying to release burden of daily repeated tasks. Fortunately, such tasks' logic is simple, and the
- * burden is heavy. Let semantic-transact handle these simple logic, that's semantic-transact designed for. If
- * the semantics is complex, use anything you are familiar with.</p>
- * <p>Before doing that, check the semantics-cheapflow workflow engine first, which is based on semantics-transact,
+ * <p>The 9 or 10 types of semantics defined in {@link DASemantics.smtype} is enough for some enterprise projects.
+ * It depends on how abstract the semantics we want to support. But it seems enough for us, at least now.</p>
+ * </p>Another consideration is that semantic-DA never take supporting all semantics logic as it's goal.
+ * It's only trying to release burden of daily repeated tasks. Fortunately, such tasks' logic is simple, and the
+ * burden is heavy. Let semantic-* handle these simple logic, that's semantic-* designed for. If
+ * the semantics is complex, use anything you are familiar with. But in this case semantic-* are still useful
+ * to do this tasks, if users are familiar with the lower level API.</p>
+ * <p>Before doing that, check the semantics-cheapflow workflow engine first, which is based on semantics-*,
  * and can handle typical - not very cheap if by our define - logics all necessary for enterprise applications.
  * It's a good example illustrating that if the semantics is designed carefully, those semantics supported by
- * this class is enough. </p>
- * <p>But it do need the application developers follow some design conventions. If you need you own semantics
+ * this pattern is enough. </p>
+ * <p>But it do needs the application developers follow some design conventions. If you need you own semantics
  * implementation, implement the interface {@link ISemantext}, or simply initialize {@link io.odysz.transact.sql.Transcxt}
- * with null semantics, which will disable semantic supporting. 
+ * with null semantics, which will disable semantic supporting. In that way, it's working as a structured sql composing API. 
  
  * @author odys-z@github.com
- *
  */
 public class DASemantics {
 	/**error code key word*/
@@ -97,7 +100,7 @@ public class DASemantics {
 		 * Handler: {@link ShFullpath#ShFullpath(String, String, String[])}*/
 		fullpath,
 		/**xml/smtc = "dfltVal" | "dv" | "d-v":
-		 * default value*/
+		 * Handler: {@link ShDefltVal} */
 		defltVal,
 		/** "pc-del-all" | "parent-child-del-all" | "parentchildondel"
 		 * Handler: {@link ShChkPCDel}*/
@@ -182,13 +185,6 @@ public class DASemantics {
 		handlers = new ArrayList<SemanticHandler>();
 	}
 
-	/**@see {@link Semantics2#Semantics(smtype, String[])}
-	 * @param semantic
-	 * @param tabl
-	 * @param recId
-	 * @param args
-	 * @throws SemanticException
-	 */
 	public void addHandler(smtype semantic, String tabl, String recId, String[] args) throws SemanticException {
 		checkParas(tabl, pk, args);
 		checkSmtcs(tabl, semantic);
@@ -350,11 +346,12 @@ public class DASemantics {
 					v = id;
 				}
 				else {
-					IResults rs = trxt.select(target, "_t0")
+					SemanticObject s = trxt.select(target, "_t0")
 						.col(args[2])
 						.where("=", idField, "'" + pid + "'")
 						.rs(stx);
 
+					SResultset rs = (SResultset) s.rs(0);
 					if (rs .beforeFirst().next()) {
 						String parentpath = rs.getString(args[2]);
 						v = String.format("%s.%s%s", parentpath,
@@ -501,6 +498,7 @@ public class DASemantics {
 	 * @author odys-z@github.com
 	 */
 	static class ShDefltVal extends SemanticHandler {
+		static Regex regQuot = new Regex("^\\s*'.*'\\s*$");
 		ShDefltVal(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.defltVal, tabl, recId, args);
 			insert = true;
@@ -515,12 +513,19 @@ public class DASemantics {
 					nv = row.get(cols.get(args[1]));
 				else {
 					nv = new Object[2];
-					cols.put(args[1], row.size());
+					cols.put(args[0], row.size());
 					row.add(nv);
 				}
-				nv[0] =  args[1];
-				nv[1] =  args[2];
+				nv[0] =  args[0];
+				nv[1] =  dequot(args[1], stx, row, cols, usr);
 			}
+		}
+
+		private Object dequot(Object dv, ISemantext stx,
+				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			if (dv != null && dv instanceof String && regQuot.match((String)dv))
+				return ((String)dv).replaceAll("^\\s*'", "").replaceFirst("'\\s*$", "");
+			return dv;
 		}
 	}
 	
@@ -545,9 +550,31 @@ public class DASemantics {
 		
 		@Override
 		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
-			throw new SemanticException("fkIns? TODO...");
+			if (args.length > 1 && args[1] != null) {
+				Object[] nv = new Object[args.length - 1];
+				
+				// find values
+				for (int ix = 0; ix < args.length - 1; ix++) {
+					if (cols.containsKey(args[ix])) {
+						Object[] nmval = row.get(cols.get(args[ix]));
+						if (nmval != null && nmval.length > 1 && nmval[1] != null)
+							nv[ix] = nmval[1];
+						else nv[ix] = "";
+					}
+				}
+				String sql = String.format(args[args.length - 1], nv);
+				try {
+					SResultset rs = Connects.select(stx.connId(), sql, Connects.flag_nothing);
+					rs.beforeFirst().next();
+					if (rs.getInt(1) > 0)
+						throw new SemanticException("Checking count on %s.%s (%s = %s ...) failed",
+								target, idField, args[0], nv[0]);
+				} catch (SQLException e) {
+					throw new SemanticException("Can't access db to check count on insertion, check sql configuration: %s", sql);
+				}
+
+			}
 		}
-		
 	}
 	
 	/**semantics: automatic operator / time - time is now(), operator is session user id.<br>
