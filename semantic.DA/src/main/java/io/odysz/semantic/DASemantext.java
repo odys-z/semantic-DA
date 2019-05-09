@@ -18,6 +18,7 @@ import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
+import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
@@ -45,6 +46,7 @@ public class DASemantext implements ISemantext {
 
 	/**Semantic Configurations */
 	private HashMap<String, DASemantics> ss;
+	private HashMap<String, TableMeta> metas;
 
 	private IUser usr;
 	private String connId;
@@ -57,9 +59,11 @@ public class DASemantext implements ISemantext {
 	 * DATranscxt.initConfigs("inet", rootINF + "/semantics.xml");
 	 * @param usr
 	 */
-	DASemantext(String connId, HashMap<String, DASemantics> smtcfg, IUser usr) {
+	DASemantext(String connId, HashMap<String, DASemantics> smtcfg,
+			HashMap<String, TableMeta> metas, IUser usr) {
 		this.connId = connId;
 		ss = smtcfg;
+		this.metas = metas;
 		if (rawst == null) {
 			rawst = new Transcxt(null);
 			refReg = new Regex(ISemantext.refPattern);
@@ -134,14 +138,14 @@ public class DASemantext implements ISemantext {
 
 	@Override
 	public ISemantext clone(IUser usr) {
-		return new DASemantext(connId, ss, usr);
+		return new DASemantext(connId, ss, metas, usr);
 	}
 
 	private ISemantext clone(DASemantext srctx, IUser... usr) {
 		DASemantext newInst;
-		newInst = new DASemantext(connId, null, usr != null && usr.length > 0 ? usr[0] : null);
-		newInst.ss = srctx.ss;
-		newInst.usr = usr != null && usr.length > 0 ? usr[0] : null;
+		newInst = new DASemantext(connId, srctx.ss, srctx.metas, usr != null && usr.length > 0 ? usr[0] : null);
+		// newInst.ss = srctx.ss;
+		// newInst.usr = usr != null && usr.length > 0 ? usr[0] : null;
 		return newInst;
 	}
 
@@ -417,6 +421,11 @@ end;
 
 	public void clear() {
 		autoVals = null;
+	}
+	
+	@Override
+	public TableMeta colType(String tabl) {
+		return metas.get(tabl);
 	}
 
 }

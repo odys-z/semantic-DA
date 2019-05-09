@@ -18,7 +18,9 @@ import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
+import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Transcxt;
@@ -30,6 +32,7 @@ import io.odysz.transact.sql.Update;
  * @author odys-z@github.com
  */
 public class DATranscxt extends Transcxt {
+	static HashMap<String, TableMeta> metas;
 
 	protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
 	public static HashMap<String,HashMap<String,DASemantics>> smtConfigs() { return smtConfigs; }
@@ -46,7 +49,7 @@ public class DATranscxt extends Transcxt {
 		if (basictx == null)
 			return null;
 		else
-			return new DASemantext(basiconnId, smtConfigs.get(basiconnId), usr);
+			return new DASemantext(basiconnId, smtConfigs.get(basiconnId), metas, usr);
 	}
 
 	@Override
@@ -91,6 +94,15 @@ public class DATranscxt extends Transcxt {
 		return u;
 	}
 
+	public Delete delete(String tabl, IUser usr) {
+		Delete d = super.delete(tabl);
+		d.doneOp((sctx, sqls) -> {
+			int[] r = Connects.commit(sctx.connId(), usr, sqls);
+			return new SemanticObject().addInts("deleted", r).put("resulved", sctx.resulves());
+		});
+		return d;
+	}
+
 	protected String basiconnId;
 	public String basiconnId() { return basiconnId; }
 
@@ -99,7 +111,7 @@ public class DATranscxt extends Transcxt {
 	 * @param conn connection Id
 	 */
 	public DATranscxt(String conn) {
-		super(new DASemantext(conn, smtConfigs == null ? null : smtConfigs.get(conn), null));
+		super(new DASemantext(conn, smtConfigs == null ? null : smtConfigs.get(conn), metas, null));
 		this.basiconnId = conn;
 	}
 
