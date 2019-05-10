@@ -1,6 +1,7 @@
 package io.odysz.semantic;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
@@ -32,8 +33,7 @@ import io.odysz.transact.sql.Update;
  * @author odys-z@github.com
  */
 public class DATranscxt extends Transcxt {
-	static HashMap<String, TableMeta> metas;
-
+	static HashMap<String, HashMap<String, TableMeta>> metas;
 	protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
 	public static HashMap<String,HashMap<String,DASemantics>> smtConfigs() { return smtConfigs; }
 	public static HashMap<String, DASemantics> smtCfonfigs(String conn) {
@@ -49,7 +49,7 @@ public class DATranscxt extends Transcxt {
 		if (basictx == null)
 			return null;
 		else
-			return new DASemantext(basiconnId, smtConfigs.get(basiconnId), metas, usr);
+			return new DASemantext(basiconnId, smtConfigs.get(basiconnId), metas.get(basiconnId), usr);
 	}
 
 	@Override
@@ -108,22 +108,38 @@ public class DATranscxt extends Transcxt {
 
 	/**Create a transact builder with basic DASemantext instance. 
 	 * It's a null configuration, so semantics can not been resolved, but can be used to do basic sql operation.
+	 * When creating DATranscxt, db metas can not be null.
+	 * 
 	 * @param conn connection Id
+	 * @param meta
 	 */
-	public DATranscxt(String conn) {
-		super(new DASemantext(conn, smtConfigs == null ? null : smtConfigs.get(conn), metas, null));
+	public DATranscxt(String conn, HashMap<String, TableMeta> meta) {
+		super(new DASemantext(conn, smtConfigs == null ? null : smtConfigs.get(conn),
+				meta, null));
+		if (metas == null)
+			metas = new HashMap<String, HashMap<String, TableMeta>>();
+		metas.put(conn, meta);
 		this.basiconnId = conn;
 	}
 
 	/**Load semantics configuration from filepath.
+	 * This method also initialize table meta by calling {@link Connects}.
 	 * @param connId
-	 * @param filepath
+	 * @param filepath path to semantics.xml 
 	 * @return configurations
 	 * @throws SAXException
 	 * @throws IOException
+	 * @throws SemanticException 
+	 * @throws SQLException 
 	 */
 	public static HashMap<String, DASemantics> initConfigs(String connId, String filepath)
-			throws SAXException, IOException {
+			throws SAXException, IOException, SemanticException, SQLException {
+
+		Utils.logi("Loading database metas...");
+		if (metas == null)
+			metas = new HashMap<String, HashMap<String, TableMeta>>();
+		metas.put(connId, Connects.loadMeta(connId));
+
 		Utils.logi("Loading Semantics:\n%s", filepath);
 		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
 				new Log4jWrapper("").setDebugMode(false), filepath, new IXMLStruct() {
@@ -196,7 +212,7 @@ public class DATranscxt extends Transcxt {
 			basicTrxes = new HashMap<String, Transcxt>();
 		
 		if (!basicTrxes.containsKey(conn)) {
-			DATranscxt tx = new DATranscxt(conn);
+			DATranscxt tx = new DATranscxt(conn, metas.get(conn));
 			basicTrxes.put(conn, tx);
 		}
 		

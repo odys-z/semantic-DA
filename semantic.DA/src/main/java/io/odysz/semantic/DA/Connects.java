@@ -4,6 +4,7 @@ import java.sql.Clob;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 import org.xml.sax.SAXException;
 
@@ -17,8 +18,12 @@ import io.odysz.module.xtable.XMLDataFactory;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.util.LogFlags;
 import io.odysz.semantics.IUser;
+import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 
+/**
+ * @author odys-z@github.com
+ */
 public class Connects {
 	// TODO: separate log switches from semantic flags like adding "''".
 	/** nothing special for commit */
@@ -39,7 +44,7 @@ public class Connects {
 		else if (type.startsWith("sqlit"))
 			return dbtype.sqlite;
 		else
-			throw new SemanticException("Drived type not suppored: %s", type);
+			throw new SemanticException("Driver type not suppored yet: %s", type);
 	}
 
 	private static HashMap<String, AbsConnect<? extends AbsConnect<?>>> srcs;
@@ -64,9 +69,6 @@ public class Connects {
 		
 			if (srcs != null && srcs.size() > 0 && !srcs.containsKey(defltConn))
 				throw new SQLException("Failed initializing, db source must configured with a default source."); 
-
-//			conn.beforeFirst();
-//			DatasetCfg.init(conn, xmlDir, orclMappings);
 
 			if (LogFlags.Semantic.connects)
 				Utils.logi("INFO - JDBC initialized using %s (%s) as default connection.",
@@ -219,10 +221,28 @@ public class Connects {
 		return srcs.get(conn).driverType();
 	}
 
-//	public static void commitLog(String sql) {
-//		// TODO Auto-generated method stub
-//		
-//	}
+	public static Set<String> connIds() {
+		return srcs == null ? null : srcs.keySet();
+	}
 
+	public static HashMap<String, TableMeta> loadMeta(String conn) throws SemanticException, SQLException {
+		dbtype dt = driverType(conn);
 
+		HashMap<String, TableMeta> metas = new HashMap<String, TableMeta>();
+
+		if (dt == null)
+			throw new SemanticException("Drived type not suppored: %s", dt.name());
+		if (dt == dbtype.mysql)
+			metas = MetaBuilder.buildMysql(conn);
+		else if (dt == dbtype.ms2k)
+			metas = MetaBuilder.buildMs2k(conn);
+		else if (dt == dbtype.oracle)
+			metas = MetaBuilder.buildOrcl(conn);
+		else if (dt == dbtype.sqlite)
+			metas = MetaBuilder.buildSqlite(conn);
+		else
+			throw new SemanticException("Drived type not suppored: %s", dt.name());
+
+		return metas;
+	}
 }

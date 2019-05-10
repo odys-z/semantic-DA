@@ -21,6 +21,7 @@ import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
+import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.parts.condition.Funcall;
@@ -42,6 +43,7 @@ public class DASemantextTest {
 	private static DATranscxt st;
 	private static IUser usr;
 	private static HashMap<String, DASemantics> smtcfg;
+	private HashMap<String, TableMeta> metas;
 
 	/**Use this to reset semantic-DA.db ( a sqlite3 db file).<pre>
 drop TABLE a_logs;
@@ -65,8 +67,10 @@ DELETE from a_roles;</pre>
 		Utils.logi(path);
 		Connects.init(path);
 
-		// st = new DATranscxt(new DASemantext(connId, null, null));
-		st = new DATranscxt(connId);
+		// load table metas
+		metas = Connects.loadMeta(connId);
+		st = new DATranscxt(connId, metas);
+		// load semantics
 		smtcfg = DATranscxt.initConfigs(connId, "src/test/res/semantics.xml");
 		
 		SemanticObject jo = new SemanticObject();
@@ -117,7 +121,7 @@ DELETE from a_roles;</pre>
 	public void testInsert() throws TransException, SQLException, SAXException, IOException {
 		String flag = DateFormat.format(new Date());
 
-		DASemantext s0 = new DASemantext(connId, smtcfg, usr);
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_functions")
 			.nv("flags", flag)
@@ -126,13 +130,11 @@ DELETE from a_roles;</pre>
 			.nv("parentId", "------")
 			.commit(s0, sqls);
 		
-		// Utils.logi(sqls);
-		
 		// Utils.logi("New ID for a_functions: %s", s0.resulvedVal("a_functions", "funcId"));
 		assertEquals(6, ((String) s0.resulvedVal("a_functions", "funcId")).length());
 		
 		// level 2
-		DASemantext s1 = new DASemantext(connId, smtcfg, usr);
+		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr);
 		st.insert("a_functions")
 			.nv("flags", flag)
 			// .nv("funcId", "AUTO")
@@ -149,7 +151,7 @@ DELETE from a_roles;</pre>
 
 	@Test
 	public void testBatch() throws TransException, SQLException, SAXException, IOException {
-		DASemantext s0 = new DASemantext(connId, smtcfg, usr);
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		Insert f1 = st.insert("a_role_func")
 				.nv("funcId", "000001");
@@ -163,7 +165,7 @@ DELETE from a_roles;</pre>
 		newuser.commit(s0, sqls);
 		Connects.commit(usr , sqls);
 		
-		DASemantext s1 = new DASemantext(connId, smtcfg, usr);
+		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr);
 		String newId = (String) s0.resulvedVal("a_roles", "roleId");
 		SemanticObject s = st
 				.select("a_role_func", "rf")
@@ -178,32 +180,33 @@ DELETE from a_roles;</pre>
 		assertEquals(1, slect.getInt("cnt"));
 	}
 	
-	/**Test cross referencing auto k.
+	/**Test cross referencing auto k.<br>
 	 * crs_a.aid, crs_b.bid are autok;<br>
 	 * crs_a.afk referencing crs_b.bid,<br>
-	 * crs_b.bfk referencing crs_a.aid,
+	 * crs_b.bfk referencing crs_a.aid.<br>
+	 * Also, test int type's value (crs_a.testInt = 100) not single-quoted.<br>
 	 * @throws TransException
 	 * @throws SQLException
 	 */
 	@Test
 	public void testCrossAutoK() throws TransException, SQLException {
-		DASemantext s0 = new DASemantext(connId, smtcfg, usr);
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		Insert f1 = st.insert("crs_a")
-				.nv("remarka", Funcall.now(dbtype.sqlite));
+				.nv("remarka", Funcall.now(dbtype.sqlite))
+				.nv("testInt", "100"); // testing that int shouldn't quoted
 		st.insert("crs_b")
 				.nv("remarkb", Funcall.now(dbtype.sqlite))
 				.post(f1)
 				.commit(s0, sqls);
 	
 		Connects.commit(usr , sqls);
-
-		// insert into crs_b  (remarkb, bid, bfk) values (datetime('now'), '000017', '00001K')
-		// insert into crs_a  (remarka, aid, afk) values (datetime('now'), '00001K', '000017')
-		assertEquals("insert into crs_b  (remarkb, bid, bfk) values (",
-					sqls.get(0).substring(0, 47));
-		assertEquals("insert into crs_b  (remarkb, bid, bfk) values (",
-					sqls.get(0).substring(0, 47));
+		assertEquals(String.format("insert into crs_a  (remarka, testInt, aid, afk) values (datetime('now'), 100, '%s', '%s')",
+									s0.resulvedVal("crs_a", "aid"), s0.resulvedVal("crs_b", "bid")),
+					sqls.get(1));
+		assertEquals(String.format("insert into crs_b  (remarkb, bid, bfk) values (datetime('now'), '%s', '%s')",
+									s0.resulvedVal("crs_b", "bid"), s0.resulvedVal("crs_a", "aid")),
+					sqls.get(0));
 	}
 
 	/**This is used for testing semantics:<br>
@@ -220,7 +223,7 @@ DELETE from a_roles;</pre>
 		String flag = DateFormat.formatime(new Date());
 		String usrName = "01 " + flag;
 
-		DASemantext s0 = new DASemantext(connId, smtcfg, usr);
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_users") // with default value: pswd = '123456'
 			.nv("userName", usrName)
