@@ -18,9 +18,6 @@ import io.odysz.semantic.DA.drvmnger.MysqlDriver;
 import io.odysz.semantic.DA.drvmnger.OracleDriver;
 import io.odysz.semantic.DA.drvmnger.SqliteDriver;
 import io.odysz.semantics.IUser;
-import io.odysz.semantics.meta.ColumnMeta;
-import io.odysz.semantics.meta.DbMeta;
-import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 
 public abstract class AbsConnect<T extends AbsConnect<T>> {
@@ -105,31 +102,31 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 
 	public abstract int[] commit(IUser usr, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException;
 	
-	private DbMeta spec;
-	public DbMeta getSpec() { return spec; }
+//	private DbMeta spec;
+//	public DbMeta getSpec() { return spec; }
 
-	private HashMap<String, TableMeta> tables;
-	private HashMap<String, HashMap<String, ColumnMeta>> tablCols;	
+//	private HashMap<String, TableMeta> tables;
+//	private HashMap<String, HashMap<String, ColumnMeta>> tablCols;	
 
-	@SuppressWarnings("unchecked")
-	public AbsConnect<T> meta(DbMeta spec, HashMap<String, TableMeta> tables,
-			HashMap<String, HashMap<String, ColumnMeta>> tablCols, int flagPrintsql) {
-		this.spec = spec;
-		this.tables = tables;
-		this.tablCols = tablCols;
-		return (T) this;
-	}
+//	@SuppressWarnings("unchecked")
+//	public AbsConnect<T> meta(DbMeta spec, HashMap<String, TableMeta> tables,
+//			HashMap<String, HashMap<String, ColumnMeta>> tablCols, int flagPrintsql) {
+//		this.spec = spec;
+//		this.tables = tables;
+//		this.tablCols = tablCols;
+//		return (T) this;
+//	}
 
-	public ColumnMeta getColumn(String tabName, String colName) {
-		if(tablCols.containsKey(tabName))
-			return tablCols.get(tabName).get(colName);
-		else
-			return null;
-	}
-
-	public TableMeta getTable(String tablname) {
-		return tables.get(tablname);
-	}
+//	public ColumnMeta getColumn(String tabName, String colName) {
+//		if(tablCols.containsKey(tabName))
+//			return tablCols.get(tabName).get(colName);
+//		else
+//			return null;
+//	}
+//
+//	public TableMeta getTable(String tablname) {
+//		return tables.get(tablname);
+//}
 	
 //	public Semantics getTableSemantics(String tabName) throws SQLException {
 //		if (metas == null) throw new SQLException ("not initialized ");
