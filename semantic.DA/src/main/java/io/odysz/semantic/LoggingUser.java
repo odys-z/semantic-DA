@@ -3,16 +3,13 @@ package io.odysz.semantic;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import org.xml.sax.SAXException;
 
-import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.util.SQLString;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
-import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
@@ -50,9 +47,9 @@ public class LoggingUser implements IUser {
 			// DATranscxt.initConfigs(logConn, "src/test/res/semantic-log.xml");
 			DATranscxt.initConfigs(logConn, logCfgPath);
 
-			HashMap<String, TableMeta> metas = Connects.loadMeta(logConn);
+//			HashMap<String, TableMeta> metas = Connects.loadMeta(logConn);
 
-			logSemantic = new DATranscxt(logConn, metas); 
+			logSemantic = new DATranscxt(logConn, DATranscxt.meta(logConn)); 
 		} catch (SAXException | IOException | SemanticException | SQLException e) {
 			e.printStackTrace();
 		} 

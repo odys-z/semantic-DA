@@ -41,7 +41,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	/**Use this for querying database without help of sql builder (which need query meta data first with this method).
 	 * @param src name that matches context.xml/Resource/name, like 'inet' etc.
 	 * @param sql
-	 * @return
+	 * @return results
 	 * @throws SQLException
 	 */
 	public static SResultset select(String src, String sql) throws SQLException {
@@ -79,13 +79,9 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	private boolean printSql;
 	boolean printSql() { return printSql; }
 	private String srcId;
-//	private JDBCType driverType;
-//	private DbMeta spec;
-//	private HashMap<String, TableMeta> tables;
-//	private HashMap<String, HashMap<String, ColumnMeta>> tablCols;
 	private DataSource ds;
 	/**[table-id(logic/bump name), [upper-case-col, bump-case-col]] */
-	private HashMap<String, HashMap<String, String>> mappings;
+	// private HashMap<String, HashMap<String, String>> mappings;
 
 	/**Managing connection and ds for mysql, oracle, ...
 	 * @param srcId
@@ -155,8 +151,9 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	
 	/** e.g. ["a_logs" ["TXT",  CLOB]]*/
 	private HashMap<String, HashMap<String, OracleLob>> clobMeta;
+
 	/** Get the CLOBs meta data - which is built while initialization.
-	 * @return: [tabl, [field, lob]]*/
+	 * @return: map[tabl, [field, lob]]*/
 	public HashMap<String, HashMap<String, OracleLob>> getlobMeta() { return clobMeta; }
 	
 	private Connection getConnection () throws SQLException {
@@ -453,14 +450,14 @@ public class CpConnect extends AbsConnect<CpConnect> {
 //	}
 
 	/**Only oracle has the mappings (inited by constructor).
-	 * @return
-	 */
+	 * @return mappings
 	public HashMap<String,HashMap<String,String>> mappings() {
 		return mappings;
 	}
+	 */
 
 	/**TODO should this been moved to semantics handling?
-	 * @return
+	 * @return stamp
 	 * @throws SQLException
 	 */
 	public String getTimestamp() throws SQLException {

@@ -19,6 +19,7 @@ import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
@@ -43,8 +44,35 @@ public class DASemantextTest {
 	private static DATranscxt st;
 	private static IUser usr;
 	private static HashMap<String, DASemantics> smtcfg;
-	private HashMap<String, TableMeta> metas;
+	private static HashMap<String, TableMeta> metas;
 
+	static {
+		try {
+			Utils.printCaller(false);
+
+			File file = new File("src/test/res");
+			String path = file.getAbsolutePath();
+			Utils.logi(path);
+			Connects.init(path);
+
+			// load metas, then semantics
+			smtcfg = DATranscxt.initConfigs(connId, "src/test/res/semantics.xml");
+			metas = DATranscxt.meta(connId);
+
+			st = new DATranscxt(connId, metas);
+
+			SemanticObject jo = new SemanticObject();
+			jo.put("userId", "tester");
+			SemanticObject usrAct = new SemanticObject();
+			usrAct.put("funcId", "DASemantextTest");
+			usrAct.put("funcName", "test ISemantext implementation");
+			jo.put("usrAct", usrAct);
+			usr = new LoggingUser(connId, "src/test/res/semantic-log.xml", "tester", jo);
+		} catch (SemanticException | SQLException | SAXException | IOException e) {
+			e.printStackTrace();
+		}
+	
+	}
 	/**Use this to reset semantic-DA.db ( a sqlite3 db file).<pre>
 drop TABLE a_logs;
 drop TABLE oz_autoseq;
@@ -60,27 +88,7 @@ DELETE from a_roles;</pre>
 	 */
 	@Before
 	public void testInit() throws SQLException, SemanticException, SAXException, IOException {
-		Utils.printCaller(false);
-
-		File file = new File("src/test/res");
-		String path = file.getAbsolutePath();
-		Utils.logi(path);
-		Connects.init(path);
-
-		// load table metas
-		metas = Connects.loadMeta(connId);
-		st = new DATranscxt(connId, metas);
-		// load semantics
-		smtcfg = DATranscxt.initConfigs(connId, "src/test/res/semantics.xml");
-		
-		SemanticObject jo = new SemanticObject();
-		jo.put("userId", "tester");
-		SemanticObject usrAct = new SemanticObject();
-		usrAct.put("funcId", "DASemantextTest");
-		usrAct.put("funcName", "test ISemantext implementation");
-		jo.put("usrAct", usrAct);
-		usr = new LoggingUser(connId, "src/test/res/semantic-log.xml", "tester", jo);
-		
+	
 		// initialize oz_autoseq - only for sqlite
 		SResultset rs = Connects.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table' and tbl_name = 'oz_autoseq'",
 				Connects.flag_nothing);
@@ -240,14 +248,14 @@ DELETE from a_roles;</pre>
 			.where("=", "userId", "'" + usrId + "'")
 			.commit(sqls, usr);
 
-		// assert default value pswd = '123456'
+		// assert 2 default value pswd = '123456'
 		SResultset rs = Connects.select(sqls.get(0));
 		rs.beforeFirst().next();
 		assertEquals("123456", rs.getString("pswd"));
 		
-		// TODO de-encrypt, ...
+		// TODO assert 3 de-encrypt, ...
 		
-		// 5. check count on insert: a_user.userName<br>
+		// assert 5. check count on insert: a_user.userName<br>
 		sqls.clear();
 		s0.clear();
 		try {
@@ -259,5 +267,48 @@ DELETE from a_roles;</pre>
 			assertEquals("Checking count on a_users.userId",
 					e.getMessage().substring(0, 32));
 		}
+		
+		testz04(usrId);
+	}
+		
+	private void testz04(String usrId) throws TransException, SQLException {
+		// assert 4. del a_role_funcs
+		String roleId = "role-u" + usrId;
+		Insert rf1 = st.insert("a_role_func")
+			.nv("roleId", roleId)
+			.nv("funcId", "func-" + usrId + " 01");
+		Insert rf2 = st.insert("a_role_func")
+			.nv("roleId", roleId)
+			.nv("funcId", "func-" + usrId + " 02");
+			
+		ISemantext s1 = st.instancontxt(usr);
+		st.insert("a_roles", usr)
+			.nv("roleName", roleId)
+			.post(rf1).post(rf2)
+			.ins(s1);
+		
+		String newRoleId = (String)s1.resulvedVal("a_roles", "roleId");
+		SemanticObject cnt = st.select("a_roles", "r")
+			.col("count(r.roleId)", "cnt")
+			.j("a_role_func", "rf", "rf.roleId = r.roleId")
+			.where_("=", "r.roleId", newRoleId)
+			.rs(st.instancontxt(usr));
+		SResultset rs = (SResultset) cnt.rs(0);
+		rs.beforeFirst().next();
+		// inserted two children
+		assertEquals(2, rs.getInt("cnt"));
+		
+		st.delete("a_roles", usr)
+			.where_("=", "roleId", newRoleId)
+			.d(st.instancontxt(usr));
+		
+		cnt = st.select("a_role_func", "rf")
+				.col("count(*)", "cnt")
+				.where_("=", "rf.roleId", newRoleId)
+				.rs(s1);
+
+		rs = (SResultset) cnt.rs(0);
+		rs.beforeFirst().next();
+		assertEquals(0, rs.getInt("cnt"));
 	}
 }

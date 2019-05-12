@@ -75,7 +75,7 @@ public class JDateFormat {
 
 	/**yyyy-MM-dd
 	 * @param d
-	 * @return
+	 * @return mysdf.format(d)
 	 */
 	public String format(Date d) { return d == null ? " - - " : mysdf.format(d); }
 

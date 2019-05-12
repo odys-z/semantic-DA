@@ -14,8 +14,14 @@ import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.Delete;
+import io.odysz.transact.sql.Query;
+import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
+import io.odysz.transact.sql.parts.Logic;
+import io.odysz.transact.sql.parts.condition.Condit;
 import io.odysz.transact.sql.parts.condition.Funcall;
+import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
 /**<h2>The default semantics used by semantic-DA.</h2>
@@ -103,7 +109,7 @@ public class DASemantics {
 		 * Handler: {@link ShDefltVal} */
 		defltVal,
 		/** "pc-del-all" | "parent-child-del-all" | "parentchildondel"
-		 * Handler: {@link ShChkPCDel}*/
+		 * Handler: {@link ShChkSqlCntDel}*/
 		parentChildrenOnDel,
 		/** "d-e" | "de-encrypt": decrypt then encrypt (target col cannot be pk or anything other semantics will updated */
 		dencrypt,
@@ -118,7 +124,8 @@ public class DASemantics {
 		composingCol,
 		/** "s-up1" | "stamp-up1": add 1 more second to down-stamp column and save to up-stamp*/
 		stamp1MoreThanRefee,
-		/** "clob" | "orclob": the column is a CLOB field, semantic-transact will read/write separately in stream and get final results.*/
+		/** "clob" | "orclob": the column is a CLOB field, semantic-transact will read/write separately in stream and get final results.<br>
+		 * Handler: ? */
 		orclob;
 
 		/**Note: we don't use enum.valueOf(), because of fault / fuzzy tolerate.
@@ -155,7 +162,7 @@ public class DASemantics {
 				return stamp1MoreThanRefee;
 			else if ("clob".equals(type) || "orclob".equals(type))
 				return orclob;
-			else throw new SemanticException("semantics not known: " + type);
+			else throw new SemanticException("semantics not known, type: " + type);
 		}
 	}
 
@@ -209,7 +216,7 @@ public class DASemantics {
 		else if (smtype.opTime == semantic)
 			handler = new ShOperTime(basicTsx, tabl, recId, args);
 		else if (smtype.checkSqlCountOnDel == semantic)
-			handler = new ShChkPCDel(basicTsx, tabl, recId, args);
+			handler = new ShChkSqlCntDel(basicTsx, tabl, recId, args);
 		else if (smtype.checkSqlCountOnInsert == semantic)
 			handler = new ShChkPCInsert(basicTsx, tabl, recId, args);
 //		else if (smtype.composingCol == semantic)
@@ -265,11 +272,27 @@ public class DASemantics {
 					handler.onInsert(semantx, row, cols, usr);
 	}
 
+	public void onUpdate(ISemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+		if (handlers != null)
+			for (SemanticHandler handler : handlers)
+				if (handler.update)
+					handler.onUpdate(semantx, row, cols, usr);
+	}
+
+	public void onDelete(ISemantext semantx, Statement<? extends Statement<?>> stmt,
+			Condit whereCondt, IUser usr) throws TransException {
+		if (handlers != null)
+			for (SemanticHandler handler : handlers)
+				if (handler.delete)
+					handler.onDelete(semantx, stmt, whereCondt, usr);
+	}
 	//////////////////////////////// Base Handler //////////////////////////////
 	abstract static class SemanticHandler {
 		boolean insPrepare = false;
 		boolean insert = false;
 		boolean update = false;
+		boolean delete = false;
+
 		String target;
 		String idField;
 		String[] args;
@@ -284,14 +307,16 @@ public class DASemantics {
 			idField = pk;
 		}
 
+
 		public void logi() {
 			Utils.logi("Semantics Handler %s\ntabl %s, pk %s, args %s",
 					sm.name(), target, idField, LangExt.toString(args));
 		}
 
 		void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
-		void onInsert(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
-		void onUpdate(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
+		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
+		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
+		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit whereCondt, IUser usr) throws TransException { }
 
 		SemanticHandler(Transcxt trxt, smtype sm, String tabl, String pk,
 				String[] args) throws SemanticException {
@@ -476,25 +501,76 @@ public class DASemantics {
 	}
 
 	/**Delete childeren before delete parent.<br>
+	 * args: [0] parent's referee column\s [1] child-table1\s [2] child pk1, // child 1, with comma ending, space separated
+	 * 		 {0] parent's referee column\s [1] child-table2\s [2] child pk2  // child 1, without comma ending, space separated
 	 * smtype: {@link smtype#parentChildrenOnDel}
 	 * 
 	 * @author odys-z@github.com
 	 */
 	static class ShPCDelAll extends SemanticHandler {
+		private String[][] argss;
+
 		public ShPCDelAll(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.parentChildrenOnDel, tabl, recId, args);
-			update = true;
+			delete = true;
+			argss = split(args);
+		}
+		
+		public static String[][] split(String[] ss) {
+			if (ss == null) return null;
+			String[][] argss = new String[ss.length][];
+			for (int ix = 0; ix < ss.length; ix++) {
+				String[] args = LangExt.split(ss[ix], " ");
+				argss[ix] = args;
+			}
+			return argss;
 		}
 
 		@Override
-		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
-			throw new SemanticException("Sorry TODO...");
+		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr) throws TransException {
+			if (argss != null && argss.length > 0)
+				for (String[] args : argss)
+					if (args != null && args.length > 1 && args[1] != null) {
+						stmt.before(delChild(args, stmt, condt, usr));
+						// Design Notes: about multi level children deletion:
+						// If row can't been retrieved here, cascading children deletion can't been supported 
+					}
+		}
+
+		/** genterate sql e.g. delete from child where child_pk = parent.referee
+		 * @param args
+		 * @param stmt
+		 * @param condt 
+		 * @param usr 
+		 * @return {@link Delete}
+		 * @throws TransException 
+		 */
+		private Delete delChild(String[] args, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr) throws TransException {
+			if (condt == null)
+				throw new SemanticException("Parent table %s has a semantics triggering child table (%s) deletion, but the condition is null.",
+						target, args[1]);
+
+			Query s = stmt.transc().select(target)
+					.col(args[0])
+					.where(condt);
+
+			Predicate inCondt = new Predicate(Logic.op.in, args[0], s);
+			Delete d = stmt.transc().delete(args[1])
+					.whereIn(inCondt);
+
+			return d;
+//			if (v != null) 
+//				return s.where_("=", String.format("%s.%s", args[1], args[2]), v);
+//			else 
+//				// return an unresolved value for debugging.
+//				return s.where("=", args[2], String.format("%s.%s", target, args[0]));
 		}
 		
 	}
 
 	/**Handle default value.
-	 * args: [0] value-field, [1] default-value
+	 * args: [0] value-field, [1] default-value<br>
+	 * e.g. pswd,123456 can set pwd = '123456' 
 	 * @author odys-z@github.com
 	 */
 	static class ShDefltVal extends SemanticHandler {
@@ -517,11 +593,11 @@ public class DASemantics {
 					row.add(nv);
 				}
 				nv[0] =  args[0];
-				nv[1] =  dequot(args[1], stx, row, cols, usr);
+				nv[1] =  dequote(args[1], stx, row, cols, usr);
 			}
 		}
 
-		private Object dequot(Object dv, ISemantext stx,
+		private Object dequote(Object dv, ISemantext stx,
 				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			if (dv != null && dv instanceof String && regQuot.match((String)dv))
 				return ((String)dv).replaceAll("^\\s*'", "").replaceFirst("'\\s*$", "");
@@ -529,8 +605,12 @@ public class DASemantics {
 		}
 	}
 	
-	static class ShChkPCDel extends SemanticHandler {
-		public ShChkPCDel(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
+	/**Check with sql before deleting<br>
+	 * args: [0] arg1, [1] arg2, ..., [len -1] sql with "%s" formatter
+	 * @author odys-z@github.com
+	 */
+	static class ShChkSqlCntDel extends SemanticHandler {
+		public ShChkSqlCntDel(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.checkSqlCountOnDel, tabl, recId, args);
 			update = true;
 		}

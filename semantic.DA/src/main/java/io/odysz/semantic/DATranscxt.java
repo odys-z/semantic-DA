@@ -34,6 +34,10 @@ import io.odysz.transact.sql.Update;
  */
 public class DATranscxt extends Transcxt {
 	static HashMap<String, HashMap<String, TableMeta>> metas;
+	protected static HashMap<String, TableMeta> meta(String connId) {
+		return metas.get(connId);
+	}
+
 	protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
 	public static HashMap<String,HashMap<String,DASemantics>> smtConfigs() { return smtConfigs; }
 	public static HashMap<String, DASemantics> smtCfonfigs(String conn) {
@@ -116,10 +120,10 @@ public class DATranscxt extends Transcxt {
 	public DATranscxt(String conn, HashMap<String, TableMeta> meta) {
 		super(new DASemantext(conn, smtConfigs == null ? null : smtConfigs.get(conn),
 				meta, null));
+		this.basiconnId = conn;
 		if (metas == null)
 			metas = new HashMap<String, HashMap<String, TableMeta>>();
 		metas.put(conn, meta);
-		this.basiconnId = conn;
 	}
 
 	/**Load semantics configuration from filepath.

@@ -570,6 +570,7 @@ for (String coln : colnames.keySet())
 	}
 	 */
 
+	/**/
 	public int getRowCount() {
 		return rowCnt;
 	}

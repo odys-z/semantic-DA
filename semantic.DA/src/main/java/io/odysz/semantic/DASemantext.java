@@ -20,11 +20,12 @@ import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
-import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
+import io.odysz.transact.sql.parts.condition.Condit;
 import io.odysz.transact.x.TransException;
 
 /**A basic semantic context for generating sql.
@@ -100,21 +101,28 @@ public class DASemantext implements ISemantext {
 				if (s == null)
 					continue;
 				s.onInsert(this, row, cols, usr);
-				// resulve
-				// resulvedVal(row);
 			}
 		return this;
 	}
 
 	@Override
-	public ISemantext onUpdate(Statement<?> update, String tabl, ArrayList<Object[]> nvs) {
-		if (nvs != null && ss != null)
-			for (Object[] nv : nvs)
-				if (nv != null && nv.length > 0 && "AUTO".equals(nv[1])) // FIXME bug: use ISemantic Regex.
-					// resolve AUTO value
-					nv[1] = autoVals != null && autoVals.has(tabl)
-							? ((SemanticObject)autoVals.get(tabl)).get((String)nv[0])
-							: nv[1];
+	public ISemantext onUpdate(Update update, String tabl, ArrayList<Object[]> nvs) throws SemanticException {
+		if (nvs != null && ss != null) {
+			Map<String, Integer> cols = update.getColumns();
+			DASemantics s = ss.get(tabl);
+			if (s != null)
+				s.onUpdate(this, nvs, cols, usr);
+		}
+		return this;
+	}
+
+	@Override
+	public ISemantext onDelete(Delete update, String tabl, Condit whereCondt) throws TransException {
+		if (ss != null) {
+			DASemantics s = ss.get(tabl);
+			if (s != null)
+				s.onDelete(this, update, whereCondt, usr);
+		}
 		return this;
 	}
 
@@ -354,33 +362,6 @@ end;
 		return l;
 	}
 
-//	@Override
-//	public Stream<String> pagingStream(Stream<String> s, int pageIx, int pgSize) throws TransException {
-//		dbtype dt = Connects.driverType(connId);
-//		return pagingStream(dt, s, pageIx, pgSize);
-//	}
-//
-//	public static Stream<String> pagingStream(dbtype dt, Stream<String> s, int pageIx, int pgSize) throws TransException {
-//		int r1 = pageIx * pgSize;
-//		int r2 = r1 + pgSize;
-//		if (dt == dbtype.oracle)
-//			// "select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s"
-//			return Stream.concat(Stream.concat(
-//						Stream.of("select * from (select t.*, rownum r_n_ from ("), s),
-//						Stream.of(String.format(") t WHERE rownum <= %s  order by rownum) t where r_n_ > %s", r1, r2)));
-//		else if (dt == dbtype.ms2k)
-//			// "select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= %s and rownum <= %s"
-//			return Stream.concat(Stream.concat(
-//						Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from ("), s),
-//						Stream.of(String.format(") t) t where rownum >= %s and rownum <= %s", r1, r2)));
-//		else if (dt == dbtype.sqlite)
-//			throw new TransException("There is no easy way to support sqlite paging. Don't using server side paging for sqlite datasource."); 
-//		else // mysql
-//			// "select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s"
-//			return Stream.concat(Stream.concat(
-//						Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from ("), s),
-//						Stream.of(String.format(") t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s", r1, r2)));
-//	}
 	public String totalSql(String rawSql) throws TransException {
 		return DASemantext.totalSql(Connects.driverType(connId()), rawSql);
 	}
