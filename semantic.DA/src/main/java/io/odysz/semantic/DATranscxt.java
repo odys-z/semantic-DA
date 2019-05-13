@@ -33,7 +33,7 @@ import io.odysz.transact.sql.Update;
  * @author odys-z@github.com
  */
 public class DATranscxt extends Transcxt {
-	static HashMap<String, HashMap<String, TableMeta>> metas;
+	protected static HashMap<String, HashMap<String, TableMeta>> metas;
 	protected static HashMap<String, TableMeta> meta(String connId) {
 		return metas.get(connId);
 	}

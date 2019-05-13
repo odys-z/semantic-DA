@@ -71,7 +71,7 @@ public class LoggingUser implements IUser {
 				action.getString("funcId"));
 	}
 	
-	public static ArrayList<String> genLog(DATranscxt logSemantic, ArrayList<String> sqls,
+	public static ArrayList<String> genLog(DATranscxt logBuilder, ArrayList<String> sqls,
 			IUser commitUser, String funcName, String funcId) {
 		// no exception can be thrown here, no error message for client if failed.
 		try {
@@ -81,16 +81,13 @@ public class LoggingUser implements IUser {
 			//	// values ('%s', '%s', '%s', '%s', null, '%s', sysdate, '%s');
 			//	newId, uid, funcName, funcId, cmd, url, String.valueOf(sqls.size()), txt(sqls));
 
-			logSemantic.insert("a_logs", dumbUser) // dummy for stop recursive logging
+			logBuilder.insert("a_logs", dumbUser) // dummy for stop recursive logging
 				.nv("oper", commitUser.uid())
 				.nv("funcName", funcName)
 				.nv("funcId", funcId)
-//				.nv("funcName", commitUser.action().getString("funcName"))
-//				.nv("funcId", commitUser.action().getString("funcId"))
-				// also sql count if the column exists
-				// .nv("sqlCount", sqls.size())
+				.nv("cnt", sqls.size())
 				.nv("txt", txt(sqls))
-				.ins(logSemantic.basictx());
+				.ins(logBuilder.basictx());
 		} catch (SQLException e) {
 			// failed case must be a bug - commitLog()'s exception already caught.
 			e.printStackTrace();

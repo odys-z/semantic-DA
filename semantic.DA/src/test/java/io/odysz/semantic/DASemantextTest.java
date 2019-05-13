@@ -106,6 +106,7 @@ DELETE from a_roles;</pre>
 					"  funcName text(50),\n" + 
 					"  oper text(20),\n" + 
 					"  logTime text(20),\n" + 
+					"  cnt int,\n" + 
 					"  txt text(4000),\n" + 
 					"  CONSTRAINT oz_logs_pk PRIMARY KEY (logId))");
 			sqls.add("insert into oz_autoseq (sid, seq, remarks) values" +
@@ -193,6 +194,7 @@ DELETE from a_roles;</pre>
 	 * crs_a.afk referencing crs_b.bid,<br>
 	 * crs_b.bfk referencing crs_a.aid.<br>
 	 * Also, test int type's value (crs_a.testInt = 100) not single-quoted.<br>
+	 * Test crs_a.fundDate(sqlite number) is quoted for both insert and update.
 	 * @throws TransException
 	 * @throws SQLException
 	 */
@@ -202,19 +204,27 @@ DELETE from a_roles;</pre>
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		Insert f1 = st.insert("crs_a")
 				.nv("remarka", Funcall.now(dbtype.sqlite))
+				.nv("fundDate", "1777-07-04")
 				.nv("testInt", "100"); // testing that int shouldn't quoted
 		st.insert("crs_b")
 				.nv("remarkb", Funcall.now(dbtype.sqlite))
 				.post(f1)
 				.commit(s0, sqls);
-	
+		
 		Connects.commit(usr , sqls);
-		assertEquals(String.format("insert into crs_a  (remarka, testInt, aid, afk) values (datetime('now'), 100, '%s', '%s')",
+		assertEquals(String.format("insert into crs_a  (remarka, fundDate, testInt, aid, afk) values (datetime('now'), '1777-07-04', 100, '%s', '%s')",
 									s0.resulvedVal("crs_a", "aid"), s0.resulvedVal("crs_b", "bid")),
 					sqls.get(1));
 		assertEquals(String.format("insert into crs_b  (remarkb, bid, bfk) values (datetime('now'), '%s', '%s')",
 									s0.resulvedVal("crs_b", "bid"), s0.resulvedVal("crs_a", "aid")),
 					sqls.get(0));
+
+		st.update("crs_a")
+			.nv("fundDate", "1911-10-10")
+			.where("=", "testInt", "100")
+			.commit(s0, sqls);
+		assertEquals("update crs_a  set fundDate='1911-10-10' where testInt = 100",
+					sqls.get(2));
 	}
 
 	/**This is used for testing semantics:<br>
@@ -271,6 +281,11 @@ DELETE from a_roles;</pre>
 		testz04(usrId);
 	}
 		
+	/**Test 4. parent-child on del
+	 * @param usrId
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	private void testz04(String usrId) throws TransException, SQLException {
 		// assert 4. del a_role_funcs
 		String roleId = "role-u" + usrId;

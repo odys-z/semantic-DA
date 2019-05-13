@@ -170,46 +170,15 @@ public class CpConnect extends AbsConnect<CpConnect> {
         return conn;
 	}
 
-//	JDBCType driverType() {return driverType; }
-	
-//	public DbMeta getSpec() { return spec; }
-//
-//	public TableMeta get(String tablname) {
-//		return get(JDBCType.mysql, tablname);
-//	}
-//
-//	public TableMeta get(JDBCType srcId, String tablname) {
-//		return tables.get(tablname);
-//	}
-//
-//	public HashMap<String, ColumnMeta> getCols(String tabl) {
-//		return tablCols.get(tabl);
-//	}
-//
-//	public ColumnMeta getColumn(String tabName, String colName) {
-//		if(tablCols.containsKey(tabName))
-//			return tablCols.get(tabName).get(colName);
-//		else{
-//			// System.err.println(String.format("%s.%s doesn't exists！", tabName, colName));
-//			return null;
-//		}
-//	}
-
 	public String formatFieldName(String expr) {
 		if (_isOrcl && orclKeywords.contains(expr.trim()))
 			return String.format("\"%s\"", expr.trim().toUpperCase());
 		return expr;
 	}
 
-//	public CustomSql formatNow() {
-//		if (_isOrcl) return new CustomSql("sysdate"); 
-//		else if ("")
-//		else return new CustomSql("now()");
+//	public boolean isKeywords(String expr) {
+//		return _isOrcl && expr != null && orclKeywords.contains(expr.trim());
 //	}
-
-	public boolean isKeywords(String expr) {
-		return _isOrcl && expr != null && orclKeywords.contains(expr.trim());
-	}
 
 	/**For {@link Connects} creating Meta data before Datasource is usable.
 	 * @param sql

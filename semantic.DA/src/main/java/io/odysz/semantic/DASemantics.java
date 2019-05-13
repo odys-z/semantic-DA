@@ -76,19 +76,21 @@ public class DASemantics {
 	
 	public static boolean debug = true; 
 
-	/**<b>0. {@link #autoInc} for xml keywords and args. handler: {@link ShAutoK}<br>
-	 * <b>1. {@link #fkIns} fk on insert (resolved when referencing auto key). handler: {@link ShChkPCInsert}<br>
-	 * <b>2. {@link #fullpath} tree table fullpath. handler: {@link ShFullpath}<br>
-	 * <b>3. {@link #defltVal} default value column. handler: {@link ShDefltVal}<br>
-	 * <b>4. {@link #parentChildrenOnDel} delete children before deleting parent. handler: {@link ShPCDelAll}<br>
-	 * <b>3. {@link #dencrypt} </b> key-word: "d-e" | "de-encrypt" <br>
-	 * <b>4. {@link #opTime}</b> key-word: "o-t" | "oper-time"<br>
-	 * <b>5. {@link #checkSqlCountOnDel} </b> key-word: "ck-cnt-del" | "check-count-del" <br>
-	 * <b>6. {@link #checkSqlCountOnInsert} </b> key-word: "ck-cnt-ins" | "check-count-insert" <br>
-	 * <b>7. {@link #checkDsCountOnDel} </b> key-word: "ds-cnt-ins" | "ds-count-insert" <br>
-	 * <b>8. {@link #composingCol} </b> key-word: "cmp-col" | "compose-col" | "compose-column" <br>
-	 * <b>9. {@link #stampUp1ThanDown} </b> key-word: "stamp-up1" <br>
-	 * <b>10.{@link #orclob} </b> key-word: "clob"<br>
+	/**Semantics type supported by DASemantics.
+	 * For semanticx.xml/s/smtc value, check the individual enum.<br>
+	 * <b>0. {@link #autoInc}</b><br>
+	 * <b>1. {@link #fkIns}</b><br>
+	 * <b>2. {@link #fullpath}</b><br>
+	 * <b>3. {@link #defltVal}</b><br>
+	 * <b>4. {@link #parentChildrenOnDel}</b><br>
+	 * <b>3. {@link #dencrypt}</b><br>
+	 * <b>4. {@link #opTime}</b><br>
+	 * <b>5. {@link #checkSqlCountOnDel} </b><br>
+	 * <b>6. {@link #checkSqlCountOnInsert} </b><br>
+	 * <b>7. {@link #checkDsCountOnDel} </b><br>
+	 * <b>8. {@link #composingCol} TODO</b><br>
+	 * <b>9. {@link #stampUp1ThanDown} TODO</b><br>
+	 * <b>10.{@link #orclob} TODO</b><br>
 	 * UpdateBatch supporting:<br>
 	 * on inserting, up-stamp is the value of increased down stamp, or current time if it's not usable;<br>
 	 * on updating, up-stamp is set as down stamp increased if down stamp value not presented in sql, or,
@@ -96,36 +98,52 @@ public class DASemantics {
 	 * <b>x. orclob</b>: the field must saved as clob when driver type is orcl;
 	 */
 	public enum smtype {
-		/**xml/smtc = "auto" | "pk" | "a-k" | "autopk" 
-		 * @see {@link ShAutoK} */
+		/**Auto Key<br>
+		 * xml/smtc = "auto" | "pk" | "a-k" | "autopk" <br>
+		 * Generate auto increased value for the field when inserting.<br>
+		 * on-events: insert<br>
+		 * smtc = "auto" | "ai" | "a-i"<br>
+		 * args = [0]: pk-field <br>
+		 * Handler: {@link DASemantics.ShAutoK} */
 		autoInc,
-		/**xml/smtc = "fk" | "pkref" | "fk-ins"
-		 * args: see {@link ShFkOnIns} */
+		/**xml/smtc = "fk" | "pkref" | "fk-ins"<br>
+		 * Handler: {@link DASemantics.ShFkOnIns} */
 		fkIns,
-		/**xml/smtc = "f-p" | "fp" | "fullpath":
+		/**xml/smtc = "f-p" | "fp" | "fullpath":<br>
 		 * Handler: {@link ShFullpath#ShFullpath(String, String, String[])}*/
 		fullpath,
-		/**xml/smtc = "dfltVal" | "dv" | "d-v":
+		/**xml/smtc = "dv" | "d-v" | "dfltVal":<br>
 		 * Handler: {@link ShDefltVal} */
 		defltVal,
-		/** "pc-del-all" | "parent-child-del-all" | "parentchildondel"
+		/** "pc-del-all" | "parent-child-del-all" | "parentchildondel"<br>
 		 * Handler: {@link ShChkSqlCntDel}*/
 		parentChildrenOnDel,
-		/** "d-e" | "de-encrypt": decrypt then encrypt (target col cannot be pk or anything other semantics will updated */
+		/** "d-e" | "de-encrypt" | "dencrypt":<br>
+		 * decrypt then encrypt (target col cannot be pk or anything other semantics will updated<br>
+		 * Handler: {@link TODO}*/
 		dencrypt,
 		/**xml/smtc = "o-t" | "oper-time" | "optime"<br>
+		 * Finger printing session user's db updating - record operator / oper-time<br>
 		 * Handler: {@link ShOperTime}*/
 		opTime,
-		/** "ck-cnt-del" | "check-count-del": check is this record a referee of children records - results from sql.select(count, description-args ...). The record(s) can't been deleted if referenced;*/
+		/** "ck-cnt-del" | "check-count-del" | "checksqlcountondel":<br>
+		 * check is this record a referee of children records - results from sql.select(count, description-args ...).
+		 * The record(s) can't been deleted if referenced;<br>
+		 * Handler: {@link ShChkSqlCntDel}*/
 		checkSqlCountOnDel,
-		/** "ck-cnt-ins" | "ck-cnt-insert": check is this record count when inserting - results from sql.select(count, description-args ...). The record(s) can't been inserted if count > 0;*/
+		/** "ck-cnt-ins" | "check-count-ins" | "checksqlcountoninsert":<br>
+		 * Check is this record count when inserting - results from sql.select(count, description-args ...).
+		 * The record(s) can't been inserted if count > 0;<br>
+		 * Handler: {@link ShChkCntInst}*/
 		checkSqlCountOnInsert,
-		/** "cmp-col" | "compose-col" | "compse-column": compose a column from other columns;*/
+		/** "cmp-col" | "compose-col" | "compse-column": compose a column from other columns;<br>
+		 * TODO*/
 		composingCol,
-		/** "s-up1" | "stamp-up1": add 1 more second to down-stamp column and save to up-stamp*/
+		/** "s-up1" | "stamp-up1": add 1 more second to down-stamp column and save to up-stamp<br>
+		 * TODO*/
 		stamp1MoreThanRefee,
 		/** "clob" | "orclob": the column is a CLOB field, semantic-transact will read/write separately in stream and get final results.<br>
-		 * Handler: ? */
+		 * Handler: TODO? */
 		orclob;
 
 		/**Note: we don't use enum.valueOf(), because of fault / fuzzy tolerate.
@@ -140,7 +158,7 @@ public class DASemantics {
 				return autoInc;
 			else if ("fk".equals(type) || "pkref".equals(type) || "fk-ins".equals(type))
 				return fkIns;
-			else if ("fullpath".equals(type) || "f-p".equals(type) || "fp".equals(type))
+			else if ("fp".equals(type) || "f-p".equals(type) || "fullpath".equals(type))
 				return fullpath;
 			else if ("dfltVal".equals(type) || "d-v".equals(type) || "dv".equals(type))
 				return defltVal;
@@ -406,12 +424,9 @@ public class DASemantics {
 		}
 	}
 
-	/**Auto key handler.<br>
-	 * smtc = "auto" | "a-k" | "pk" | "autopk"<br>
-	 * Generate auto increased value for the field when inserting.<br>
-	 * on-events: insert<br>
-	 * smtc = "auto" | "ai" | "a-i"<br>
-	 * args = [0: pk-field] */
+	/**@see smtype#autoInc
+	 * @author odys-z@github.com
+	 */
 	static class ShAutoK extends SemanticHandler {
 		/**
 		 * @param trxt
@@ -612,7 +627,7 @@ public class DASemantics {
 	static class ShChkSqlCntDel extends SemanticHandler {
 		public ShChkSqlCntDel(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.checkSqlCountOnDel, tabl, recId, args);
-			update = true;
+			delete = true;
 		}
 
 		@Override

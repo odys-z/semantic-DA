@@ -52,6 +52,9 @@ public class DASemantext implements ISemantext {
 	private IUser usr;
 	private String connId;
 
+	/**for generating sqlite auto seq */
+	private static IUser sqliteDumyUser;
+
 	/**Initialize a context for semantics handling.
 	 * This class handling semantics comes form path, usually an xml like test/res/semantics.xml.
 	 * @param connId
@@ -318,18 +321,23 @@ end;
 		sqls.add(String.format("update oz_autoseq set seq = seq + 1 where sid = '%s.%s'",
 					target, idF));
 			
-//		String select = String.format("select seq from oz_autoseq where sid = '%s.%s'", target, idF);
 		SResultset rs = null;
 		
 		Query q = rawst.select("oz_autoseq").col("seq")
 				.where("=", "sid", String.format("'%s.%s'", target, idF));
+
+		// dumy user for update oz_autoseq
+		if (sqliteDumyUser == null)
+			sqliteDumyUser = new IUser() {
+				@Override public String uid() { return "sqlite-dumy"; }
+				@Override public IUser logAct(String funcName, String funcId) { return null; } };
 
 		// each table has a lock.
 		// lock to prevent concurrency.
 		lock.lock();
 		try {
 			// for efficiency
-			Connects.commit(conn, null, sqls, Connects.flag_nothing);
+			Connects.commit(conn, sqliteDumyUser, sqls, Connects.flag_nothing);
 
 			rs = Connects.select(conn, q.sql(null), Connects.flag_nothing);
 		} finally { lock.unlock();}

@@ -50,7 +50,7 @@ public class MetaBuilder {
 			int len = 0;
 			try { len = Integer.valueOf(typeLen.get(1)); }
 			catch (Exception e) {}
-			tab.col(rs.getString(1), typeLen.get(0), len == 0 ? null : len);
+			tab.col(rs.getString(1), typeLen.get(0), len);
 		}
 		return tab;
 	}
@@ -83,7 +83,7 @@ public class MetaBuilder {
 		while (rs.next()) {
 			int len = 0;
 			try { len = rs.getInt(3); } catch (Exception e) {}
-			tab.col(rs.getString(1), rs.getString(2), len == 0 ? null : len);
+			tab.col(rs.getString(1), rs.getString(2), len);
 		}
 		return tab;
 	}
@@ -91,7 +91,7 @@ public class MetaBuilder {
 	public static HashMap<String,TableMeta> buildOrcl(String conn) throws SQLException {
 		// https://stackoverflow.com/questions/205736/get-list-of-all-tables-in-oracle
 		// https://stackoverflow.com/questions/1953239/search-an-oracle-database-for-tables-with-specific-column-names
-		SResultset rs = Connects.select(conn, "SELECT table_name, column_name, data_type, data_length FROM cols");
+		SResultset rs = Connects.select(conn, "SELECT table_name, column_name, data_type, data_length \"len\" FROM cols");
 		HashMap<String, TableMeta> tablMeta = new HashMap<String, TableMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		
@@ -103,7 +103,7 @@ public class MetaBuilder {
 					table = new TableMeta(rs.getString("table_name"));
 					tablMeta.put(tn, table);
 				}
-				table.col(rs.getString(2), rs.getString(3), rs.getInt(4));
+				table.col(rs.getString(2), rs.getString(3), rs.getInt("len", 0));
 			}
 		}
 		return tablMeta;
@@ -122,7 +122,6 @@ public class MetaBuilder {
 			}
 		}
 		return tablMeta;
-
 	}
 
 	private static TableMeta metaSqlite(String conn, String tabl) throws SQLException {
