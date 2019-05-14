@@ -163,11 +163,13 @@ public class DASemantext implements ISemantext {
 	/**Find resolved value in results.
 	 * @param table
 	 * @param col
-	 * @return RESULt resoLVED VALue in tabl.col
+	 * @return RESULt resoLVED VALue in tabl.col, or null if not exists.
 	 */
 	@Override
 	public Object resulvedVal(String tabl, String col) {
-		return ((SemanticObject) autoVals.get(tabl)).get(col);
+		return autoVals != null && autoVals.has(tabl) ?
+				((SemanticObject) autoVals.get(tabl)).get(col)
+				: null;
 	}
 	
 	@Override

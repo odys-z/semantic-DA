@@ -455,9 +455,19 @@ public class DASemantics {
 				row.add(nv);
 			}
 			nv[0] = args[0];
+
 			try {
-				// side effect: generated auto key already been put into autoVals, can be referenced later. 
-				nv[1] = stx.genId(target, args[0]);
+
+				Object alreadyResulved = stx.resulvedVal(target, args[0]);
+				if (alreadyResulved != null) {
+					// When cross fk referencing happened, this branch will reached by handling post inserts.
+					Utils.warn("Debug Notes: Found an already resulved value (%s) while handling %s auto-key generation.",
+							alreadyResulved, target);
+					nv[1] = alreadyResulved;
+				}
+				else 
+					// side effect: generated auto key already been put into autoVals, can be referenced later. 
+					nv[1] = stx.genId(target, args[0]);
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();
 			}

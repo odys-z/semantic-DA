@@ -13,6 +13,9 @@ import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
+/**This robot handle logs of table a_log()
+ * @author odys-z@github.com
+ */
 public class LoggingUser implements IUser {
 
 	private DATranscxt logSemantic;
@@ -32,15 +35,9 @@ public class LoggingUser implements IUser {
 
 		dumbUser = new IUser() {
 				@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
-				@Override public boolean login(Object req) throws TransException { return false; }
-				@Override public String sessionId() { return null; }
-				@Override public void touch() { }
 				@Override public String uid() { return "dummy"; }
 				@Override public String get(String prop) { return "prop"; }
-				@Override public IUser set(String prop, Object v) { return this; }
-				@Override public SemanticObject logout() { return null; }
-				@Override public void writeJsonRespValue(Object writer) throws IOException { }
-				@Override public IUser logAct(String funcName, String funcId) { return this; }
+				@Override public IUser logAct(String funcName, String funcId) { return null; }
 			};
 		
 		try {
@@ -87,7 +84,7 @@ public class LoggingUser implements IUser {
 				.nv("funcId", funcId)
 				.nv("cnt", sqls.size())
 				.nv("txt", txt(sqls))
-				.ins(logBuilder.basictx());
+				.ins(logBuilder.basictx().clone(null)); // Note: must cloned, otherwise there are resulved values.
 		} catch (SQLException e) {
 			// failed case must be a bug - commitLog()'s exception already caught.
 			e.printStackTrace();

@@ -34,7 +34,9 @@ import io.odysz.transact.sql.Update;
  */
 public class DATranscxt extends Transcxt {
 	protected static HashMap<String, HashMap<String, TableMeta>> metas;
-	protected static HashMap<String, TableMeta> meta(String connId) {
+	protected static HashMap<String, TableMeta> meta(String connId) throws SemanticException {
+		if (metas == null)
+			throw new SemanticException("DATranscxt need db metas to work. Set metas first."); 
 		return metas.get(connId);
 	}
 
@@ -123,7 +125,14 @@ public class DATranscxt extends Transcxt {
 		this.basiconnId = conn;
 		if (metas == null)
 			metas = new HashMap<String, HashMap<String, TableMeta>>();
-		metas.put(conn, meta);
+		if (meta != null)
+			metas.put(conn, meta);
+	}
+
+	public DATranscxt(String conn) throws SemanticException {
+		super(new DASemantext(conn, smtConfigs == null ? null : smtConfigs.get(conn),
+				meta(conn), null));
+		this.basiconnId = conn;
 	}
 
 	/**Load semantics configuration from filepath.
