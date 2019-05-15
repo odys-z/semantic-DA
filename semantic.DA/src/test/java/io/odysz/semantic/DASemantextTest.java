@@ -1,6 +1,7 @@
 package io.odysz.semantic;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -115,6 +116,7 @@ DELETE from a_roles;</pre>
 					"('a_users.userId', 0, 'test')," +
 					"('crs_a.aid', 0, 'test')," + 
 					"('crs_b.bid', 8, 'test')," +
+					"('a_alarms.alarmId', 0, 'test')," +
 					"('a_logs.logId', 0, 'test')");
 			sqls.add("insert into a_functions\n" +
 					"(flags, funcId, funcName, fullpath) " + 
@@ -325,5 +327,26 @@ DELETE from a_roles;</pre>
 		rs = (SResultset) cnt.rs(0);
 		rs.beforeFirst().next();
 		assertEquals(0, rs.getInt("cnt"));
+	}
+
+	@Test
+	public void testChkOnDel() throws TransException, SQLException {
+		ISemantext s1 = st.instancontxt(usr);
+		String typeId = "0201";		// Device Fault
+		st.insert("a_alarms", usr)	// auto key id = 54
+			.nv("typeId", typeId)
+			.ins(s1);
+
+		try {
+		ISemantext s2 = st.instancontxt(usr);
+		st.delete("a_domain", usr)
+			.where_("=", "domainId", typeId)
+			.d(s2);
+		
+		fail("ck-cnt-del not working");
+		}
+		catch (SemanticException e) {
+			assertTrue(e.getMessage().startsWith("a_domain.checkSqlCountOnDel:"));
+		}
 	}
 }

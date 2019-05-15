@@ -42,6 +42,7 @@
   		<pk>funcId</pk>
   		<args>funcId,a_role_func,funcId</args>
   	</s>
+  	<!-- 
   	<s>
   		<id>23</id>
   		<smtc>ck-cnt-del</smtc>
@@ -50,7 +51,7 @@
   		<args>a_role_func,
   		select count(*) cnt from a_rolefunc where roleId = '%s'
   		,cnt</args>
-  	</s>
+  	</s> -->
 	<!-- User.log() don't use this configure file, but should be OK - never used
   	<s>
   		<id>34</id>
@@ -111,12 +112,11 @@
   		<smtc>ck-cnt-ins</smtc>
   		<tabl>a_users</tabl>
   		<pk>userId</pk>
-  		<!--separated by ",".
-  			0, 1, ... : the field name of which it's value will be used for formatting sql;
-  			length - 1: the last one is sql (no ","), and is highly recommend using %[argument_index$] in format string -->
   		<args>userName,select count(userName) from a_users where userName = '%1$s'</args>
   	</s>
-	<!-- a_role.roleId - a_role_func delete all children on delete -->
+
+	<!-- a_role.roleId - a_role_func parent-child relationship.
+		 delete all children on delete -->
   	<s>
   		<id>53</id>
   		<smtc>pc-del-all</smtc>
@@ -124,13 +124,41 @@
   		<pk>roleId</pk>
   		<!-- 1. delete from a_role_func where roleId = 'roleId' (r-op resulved from request)
   			 2. delete from a_users where a_users.roleId = 'roleId' (r-op resulved from request)
-  			 [0] col or a__roles (a_roles.roleId's value will be used)
+  			 [0] name or child referencing column (a_roles.roleId's value will be used)
   			 [1] child table
   			 [2] child pk (or condition column)
   		 -->
   		<args>roleId a_role_func roleId,
   			roleId a_users roleId
   		</args>
+  	</s>
+  	
+  	<!-- check child count when delete parent -->
+  	<s>
+  		<id>61</id>
+  		<smtc>ck-cnt-del</smtc>
+  		<tabl>a_domain</tabl>
+  		<pk>domainId</pk>
+  		<!-- 1. count from a_orgs where orgtype = 'domainId' (r-op resulved from request)
+  			 2. count from a_users where a_users.roleId = 'roleId' (r-op resulved from request)
+  			 [0] name or child referencing column (a_domain.domainId's value will be used)
+  			 [1] child table
+  			 [2] child pk (or condition column)
+  			 The first sql of the resulting sql:
+  			 select count(orgType) from a_orgs where orgType in (select domainId from a_domain where domainId = '000001')
+  			 where the 'where clause' in select clause is composed from condition ofthe request's where condition.
+  		 -->
+  		<args>domainId a_orgs orgType,
+  			domainId a_alarms typeId
+  		</args>
+  	</s>
+
+  	<s>
+  		<id>6a</id>
+  		<smtc>auto</smtc>
+  		<tabl>a_alarms</tabl>
+  		<pk>alarmId</pk>
+  		<args>alarmId</args>
   	</s>
   </t>
 </semantics>

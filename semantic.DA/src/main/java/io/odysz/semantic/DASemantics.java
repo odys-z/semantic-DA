@@ -77,6 +77,7 @@ public class DASemantics {
 	public static boolean debug = true; 
 
 	/**Semantics type supported by DASemantics.
+	 * For each semantics example, see <a href=''>semantic.DA/test/semantics.xml</a> 
 	 * For semanticx.xml/s/smtc value, check the individual enum.<br>
 	 * <b>0. {@link #autoInc}</b><br>
 	 * <b>1. {@link #fkIns}</b><br>
@@ -116,6 +117,16 @@ public class DASemantics {
 		 * Handler: {@link ShDefltVal} */
 		defltVal,
 		/** "pc-del-all" | "parent-child-del-all" | "parentchildondel"<br>
+		 * <pre>args:
+ [0] name or child referencing column (a_domain.domainId's value will be used)
+ [1] child table
+ [2] child pk (or condition column)
+
+ Example: domainId a_orgs orgType, ...
+
+ The sql of the results shall be:
+ delete from a_orgs where orgType in (select domainId from a_domain where domainId = '000001')
+ where the 'where clause' in select clause is composed from condition of the delete request's where condition.</pre>
 		 * Handler: {@link ShChkSqlCntDel}*/
 		parentChildrenOnDel,
 		/** "d-e" | "de-encrypt" | "dencrypt":<br>
@@ -129,11 +140,23 @@ public class DASemantics {
 		/** "ck-cnt-del" | "check-count-del" | "checksqlcountondel":<br>
 		 * check is this record a referee of children records - results from sql.select(count, description-args ...).
 		 * The record(s) can't been deleted if referenced;<br>
+		 * <pre> [0] name or child referencing column (a_domain.domainId's value will be used)
+ [1] child table
+ [2] child pk (or condition column)
+
+ Example: domainId a_orgs orgType, ...
+
+ The sql of the results shall be:
+ select count(orgType) from a_orgs where orgType in (select domainId from a_domain where domainId = '000001')
+ where the 'where clause' in select clause is composed from condition of the delete request's where condition.</pre>
+		 * where args are column name of parent table.</p>
 		 * Handler: {@link ShChkSqlCntDel}*/
 		checkSqlCountOnDel,
 		/** "ck-cnt-ins" | "check-count-ins" | "checksqlcountoninsert":<br>
-		 * Check is this record count when inserting - results from sql.select(count, description-args ...).
+		 * Check is this record count when inserting - results from sql.select(count-sql, description-args ...).
 		 * The record(s) can't been inserted if count > 0;<br>
+		 * <p>args: [0] arg1, [1] arg2, ..., [len -1] count-sql with "%s" formatter<br>
+		 * where args are column name of parent table.</p>
 		 * Handler: {@link ShChkCntInst}*/
 		checkSqlCountOnInsert,
 		/** "cmp-col" | "compose-col" | "compse-column": compose a column from other columns;<br>
@@ -234,7 +257,7 @@ public class DASemantics {
 		else if (smtype.opTime == semantic)
 			handler = new ShOperTime(basicTsx, tabl, recId, args);
 		else if (smtype.checkSqlCountOnDel == semantic)
-			handler = new ShChkSqlCntDel(basicTsx, tabl, recId, args);
+			handler = new ShChkCntDel(basicTsx, tabl, recId, args);
 		else if (smtype.checkSqlCountOnInsert == semantic)
 			handler = new ShChkPCInsert(basicTsx, tabl, recId, args);
 //		else if (smtype.composingCol == semantic)
@@ -334,6 +357,14 @@ public class DASemantics {
 		void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
 		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
 		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
+
+		/**Handle onDelete event.
+		 * @param stx
+		 * @param stmt
+		 * @param whereCondt delete statement's condition.
+		 * @param usr
+		 * @throws TransException
+		 */
 		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit whereCondt, IUser usr) throws TransException { }
 
 		SemanticHandler(Transcxt trxt, smtype sm, String tabl, String pk,
@@ -447,7 +478,8 @@ public class DASemantics {
 		@Override
 		void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			Object[] nv;
-			if (cols.containsKey(args[0]))
+			if (cols.containsKey(args[0])			// with nv from client
+				&& cols.get(args[0]) < row.size())	// with nv must been generated from semantics
 				nv = row.get(cols.get(args[0]));
 			else {
 				nv = new Object[2];
@@ -481,18 +513,19 @@ public class DASemantics {
 		ShFkOnIns(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.fkIns, tabl, pk, args);
 			insert = true;
-			// TODO / FIXME not for updating?
 		}
 
 		@Override
 		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			Object[] nv;
 			// Debug Note:
-			// Don't use pk to find referencing col here, relation table's pk can be null.
+			// Don't use pk to find referencing col here, related table's pk can be null.
 			// Use args[0] instead.
-			if (cols.containsKey(args[0])) { // referencing col
+			if (cols.containsKey(args[0])			// with nv from client
+				&& cols.get(args[0]) < row.size())	// with nv must been generated from semantics
+//			if (cols.containsKey(args[0])) { // referencing col
 				nv = row.get(cols.get(args[0]));
-			}
+//			}
 			else { // add a semantics required cell if it's absent.
 				nv = new Object[] {args[0], null};
 				cols.put(args[0], row.size());
@@ -565,7 +598,7 @@ public class DASemantics {
 		/** genterate sql e.g. delete from child where child_pk = parent.referee
 		 * @param args
 		 * @param stmt
-		 * @param condt 
+		 * @param condt deleting's condition
 		 * @param usr 
 		 * @return {@link Delete}
 		 * @throws TransException 
@@ -581,7 +614,7 @@ public class DASemantics {
 
 			Predicate inCondt = new Predicate(Logic.op.in, args[0], s);
 			Delete d = stmt.transc().delete(args[1])
-					.whereIn(inCondt);
+					.where(new Condit(inCondt));
 
 			return d;
 //			if (v != null) 
@@ -604,45 +637,85 @@ public class DASemantics {
 			super(trxt, smtype.defltVal, tabl, recId, args);
 			insert = true;
 			update = true;
+			
+			args[1] = dequote(args[1]);
 		}
 
 		@Override
 		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			if (args.length > 1 && args[1] != null) {
 				Object[] nv;
-				if (cols.containsKey(args[1]))
-					nv = row.get(cols.get(args[1]));
+				if (cols.containsKey(args[0])			// with nv from client
+					&& cols.get(args[0]) < row.size())	// with nv must been generated from semantics
+//				if (cols.containsKey(args[1]))
+					nv = row.get(cols.get(args[0]));
 				else {
 					nv = new Object[2];
 					cols.put(args[0], row.size());
 					row.add(nv);
 				}
 				nv[0] =  args[0];
-				nv[1] =  dequote(args[1], stx, row, cols, usr);
+				if (nv[1] == null)
+					nv[1] = args[1];
+				else if ("".equals(nv[1]) && args[1] != null && !args[1].equals(""))
+					// this is not robust but any better way to handle empty json value?
+					nv[1] = args[1];
 			}
 		}
 
-		private Object dequote(Object dv, ISemantext stx,
-				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		private String dequote(String dv) {
 			if (dv != null && dv instanceof String && regQuot.match((String)dv))
 				return ((String)dv).replaceAll("^\\s*'", "").replaceFirst("'\\s*$", "");
-			return dv;
+			return (String) dv;
 		}
 	}
 	
 	/**Check with sql before deleting<br>
-	 * args: [0] arg1, [1] arg2, ..., [len -1] sql with "%s" formatter
+	 * @see smtype#checkSqlCountOnDel
 	 * @author odys-z@github.com
 	 */
-	static class ShChkSqlCntDel extends SemanticHandler {
-		public ShChkSqlCntDel(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
+	static class ShChkCntDel extends SemanticHandler {
+		private String[][] argss;
+
+		public ShChkCntDel(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.checkSqlCountOnDel, tabl, recId, args);
 			delete = true;
+			argss = ShPCDelAll.split(args);
 		}
 
 		@Override
-		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
-			throw new SemanticException("Sorry TODO...");
+		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr) throws TransException {
+			if (argss != null && argss.length > 0)
+				for (String[] args : argss)
+					if (args != null && args.length > 1 && args[1] != null) {
+						// stmt.before(delChild(args, stmt, condt, usr));
+						chkCnt(args, stmt, condt);
+					}
+		}
+
+		private void chkCnt(String[] args, Statement<? extends Statement<?>> stmt, Condit condt) throws TransException {
+			SemanticObject s;
+			try {
+				Query slct = stmt.transc().select(target)
+						.col(args[0])
+						.where(condt);
+
+				Predicate inCondt = new Predicate(Logic.op.in, args[2], slct);
+
+				s = stmt.transc().select(args[1])
+						.col("count("+ args[2] + ")", "cnt")
+						.where(inCondt)
+						.rs(stmt.transc().basictx());
+
+				SResultset rs = (SResultset) s.rs(0);
+				rs.beforeFirst().next();
+
+				if (rs.getInt("cnt") > 0)
+					throw new SemanticException("%s.%s: %s", target, sm.name(), rs.getInt("cnt"));
+			} catch (SQLException e) {
+				e.printStackTrace();
+				throw new TransException(e.getMessage());
+			}
 		}
 		
 	}
