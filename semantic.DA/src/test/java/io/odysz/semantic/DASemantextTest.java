@@ -116,7 +116,9 @@ DELETE from a_roles;</pre>
 					"('a_users.userId', 0, 'test')," +
 					"('crs_a.aid', 0, 'test')," + 
 					"('crs_b.bid', 8, 'test')," +
-					"('a_alarms.alarmId', 0, 'test')," +
+					"('b_alarms.alarmId', 0, 'cascade-ancestor')," +
+					"('b_alarm_logic.logicId', 64 * 4, 'cascade-parent')," +
+					"('b_logic_device.deviceLogId', 64 * 64, 'cascade-child')," +
 					"('a_logs.logId', 0, 'test')");
 			sqls.add("insert into a_functions\n" +
 					"(flags, funcId, funcName, fullpath) " + 
@@ -152,7 +154,7 @@ DELETE from a_roles;</pre>
 			.nv("funcName", "testInsert B - " + flag)
 			.nv("parentId", s0.resulvedVal("a_functions", "funcId"))
 			.commit(s1, sqls);
-		
+	
 		// Utils.logi(sqls);
 		Connects.commit(usr , sqls);
 
@@ -213,20 +215,27 @@ DELETE from a_roles;</pre>
 				.post(f1)
 				.commit(s0, sqls);
 		
+		assertEquals(String.format(
+			"update crs_b  set bfk='%s' where bid = '%s'",
+			s0.resulvedVal("crs_a", "aid"), s0.resulvedVal("crs_b", "bid")),
+			sqls.get(2));
+		assertEquals(String.format(
+			"insert into crs_a  (remarka, fundDate, testInt, aid, afk) values (datetime('now'), '1777-07-04', 100, '%s', '%s')",
+			s0.resulvedVal("crs_a", "aid"), s0.resulvedVal("crs_b", "bid")),
+			sqls.get(1));
+		assertEquals(String.format(
+			"insert into crs_b  (remarkb, bid) values (datetime('now'), '%s')",
+			s0.resulvedVal("crs_b", "bid")),// s0.resulvedVal("crs_a", "aid")),
+			sqls.get(0));
+
 		Connects.commit(usr , sqls);
-		assertEquals(String.format("insert into crs_a  (remarka, fundDate, testInt, aid, afk) values (datetime('now'), '1777-07-04', 100, '%s', '%s')",
-									s0.resulvedVal("crs_a", "aid"), s0.resulvedVal("crs_b", "bid")),
-					sqls.get(1));
-		assertEquals(String.format("insert into crs_b  (remarkb, bid, bfk) values (datetime('now'), '%s', '%s')",
-									s0.resulvedVal("crs_b", "bid"), s0.resulvedVal("crs_a", "aid")),
-					sqls.get(0));
 
 		st.update("crs_a")
 			.nv("fundDate", "1911-10-10")
 			.where("=", "testInt", "100")
 			.commit(s0, sqls);
 		assertEquals("update crs_a  set fundDate='1911-10-10' where testInt = 100",
-					sqls.get(2));
+					sqls.get(3));
 	}
 
 	/**This is used for testing semantics:<br>
@@ -333,7 +342,7 @@ DELETE from a_roles;</pre>
 	public void testChkOnDel() throws TransException, SQLException {
 		ISemantext s1 = st.instancontxt(usr);
 		String typeId = "0201";		// Device Fault
-		st.insert("a_alarms", usr)	// auto key id = 54
+		st.insert("b_alarms", usr)	// auto key id = 54
 			.nv("typeId", typeId)
 			.ins(s1);
 
@@ -348,5 +357,33 @@ DELETE from a_roles;</pre>
 		catch (SemanticException e) {
 			assertTrue(e.getMessage().startsWith("a_domain.checkSqlCountOnDel:"));
 		}
+	}
+	
+	@Test
+	public void testCascadeInsert() throws TransException {
+		testMultiChildInst();
+	}
+	
+	private void testMultiChildInst() throws TransException {
+			ArrayList<String> sqls = new ArrayList<String>(1);
+		String dt = DateFormat.format(new Date());
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr);
+		st.insert("b_alarms")
+				.nv("remarks", Funcall.now(dbtype.sqlite))
+				.nv("typeId", "02-alarm")
+				.post(st.insert("b_alarm_logic")	// child of b_alarms, auto key: logicId
+						.nv("remarks", "R1 " + dt)
+						.post(st.insert("b_alarm_logic")
+								.nv("remarks", "L2 " + dt)
+				)).commit(s0, sqls);
+
+		assertEquals(String.format("insert into b_alarms  (remarks, typeId, alarmId) values (datetime('now'), '02-alarm', '%s')",
+				s0.resulvedVal("b_alarms", "alarmId")),
+				sqls.get(0));
+		// the first insert b_alarm_logic must correct if following is ok.
+		Utils.logi(sqls.get(1));
+		assertEquals(String.format("insert into b_alarm_logic  (remarks, logicId, alarmId) values ('L2 %s', '%s', '%s')",
+				dt, s0.resulvedVal("b_alarm_logic", "logicId"), s0.resulvedVal("b_alarms", "alarmId")),
+				sqls.get(2));
 	}
 }

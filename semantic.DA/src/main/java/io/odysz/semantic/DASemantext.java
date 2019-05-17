@@ -23,6 +23,7 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
+import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.condition.Condit;
@@ -62,11 +63,14 @@ public class DASemantext implements ISemantext {
 	 * <p>sample code: </p>
 	 * DATranscxt.initConfigs("inet", rootINF + "/semantics.xml");
 	 * @param usr
+	 * @throws SemanticException metas is null 
 	 */
 	DASemantext(String connId, HashMap<String, DASemantics> smtcfg,
-			HashMap<String, TableMeta> metas, IUser usr) {
+			HashMap<String, TableMeta> metas, IUser usr) throws SemanticException {
 		this.connId = connId;
 		ss = smtcfg;
+		if (metas == null)
+			throw new SemanticException("DASemantext can not work without DB metas. connId: %s", connId);
 		this.metas = metas;
 		if (rawst == null) {
 			rawst = new Transcxt(null);
@@ -76,19 +80,19 @@ public class DASemantext implements ISemantext {
 		this.usr = usr;
 	}
 
-	public ISemantext onPrepare(Insert insert, String tabl, List<ArrayList<Object[]>> row) {
-		if (row != null && ss != null)
-			// first round
-			for (ArrayList<Object[]> value : row) {
-				Map<String, Integer> cols = insert.getColumns();
-				DASemantics s = ss.get(tabl);
-				if (s == null)
-					continue;
-				if (s.isPrepareInsert())
-					s.onInsPrepare(this, value, cols, usr);
-			}
-		return this;
-	}
+//	public ISemantext onPrepare(Insert insert, String tabl, List<ArrayList<Object[]>> row) {
+//		if (row != null && ss != null)
+//			// first round
+//			for (ArrayList<Object[]> value : row) {
+//				Map<String, Integer> cols = insert.getColumns();
+//				DASemantics s = ss.get(tabl);
+//				if (s == null)
+//					continue;
+//				if (s.isPrepareInsert())
+//					s.onInsPrepare(this, value, cols, usr);
+//			}
+//		return this;
+//	}
 
 	/**When inserting, process data row with configured semantics, like auto-pk, fk-ins, etc..
 	 * @throws SemanticException 
@@ -130,6 +134,19 @@ public class DASemantext implements ISemantext {
 	}
 
 	@Override
+	public ISemantext onPost(Statement<?> stmt, String tabl, ArrayList<Object[]> row, ArrayList<String> sqls) throws TransException {
+		if (row != null && ss != null) {
+			Map<String, Integer> cols = stmt.getColumns();
+			if (cols == null)
+				return this;
+			DASemantics s = ss.get(tabl);
+			if (s != null)
+				s.onPost(this, stmt, row, cols, usr, sqls);
+		}
+		return this;
+	}
+
+	@Override
 	public ISemantext insert(Insert insert, String tabl, IUser... usr) {
 		return clone(this, usr);
 	}
@@ -149,15 +166,25 @@ public class DASemantext implements ISemantext {
 
 	@Override
 	public ISemantext clone(IUser usr) {
-		return new DASemantext(connId, ss, metas, usr);
+		try {
+			return new DASemantext(connId, ss, metas, usr);
+		} catch (SemanticException e) {
+			e.printStackTrace();
+			return null; // meta is null? how could it be?
+		}
 	}
 
 	private ISemantext clone(DASemantext srctx, IUser... usr) {
-		DASemantext newInst;
-		newInst = new DASemantext(connId, srctx.ss, srctx.metas, usr != null && usr.length > 0 ? usr[0] : null);
-		// newInst.ss = srctx.ss;
-		// newInst.usr = usr != null && usr.length > 0 ? usr[0] : null;
-		return newInst;
+		try {
+			DASemantext newInst = new DASemantext(connId,
+					srctx.ss, srctx.metas, usr != null && usr.length > 0 ? usr[0] : null);
+			// newInst.ss = srctx.ss;
+			// newInst.usr = usr != null && usr.length > 0 ? usr[0] : null;
+			return newInst;
+		} catch (SemanticException e) {
+			e.printStackTrace();
+			return null; // meta is null? how could it be?
+		}
 	}
 
 	/**Find resolved value in results.

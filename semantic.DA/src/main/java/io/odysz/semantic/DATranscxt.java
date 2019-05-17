@@ -34,7 +34,7 @@ import io.odysz.transact.sql.Update;
  */
 public class DATranscxt extends Transcxt {
 	protected static HashMap<String, HashMap<String, TableMeta>> metas;
-	protected static HashMap<String, TableMeta> meta(String connId) throws SemanticException {
+	public static HashMap<String, TableMeta> meta(String connId) throws SemanticException {
 		if (metas == null)
 			throw new SemanticException("DATranscxt need db metas to work. Set metas first."); 
 		return metas.get(connId);
@@ -55,7 +55,12 @@ public class DATranscxt extends Transcxt {
 		if (basictx == null)
 			return null;
 		else
-			return new DASemantext(basiconnId, smtConfigs.get(basiconnId), metas.get(basiconnId), usr);
+			try {
+				return new DASemantext(basiconnId, smtConfigs.get(basiconnId), metas.get(basiconnId), usr);
+			} catch (SemanticException e) {
+				e.printStackTrace(); // meta is null? shouldn't happen because this instance is already created
+				return null;
+			}
 	}
 
 	@Override
@@ -118,8 +123,9 @@ public class DATranscxt extends Transcxt {
 	 * 
 	 * @param conn connection Id
 	 * @param meta
+	 * @throws SemanticException meta is null
 	 */
-	public DATranscxt(String conn, HashMap<String, TableMeta> meta) {
+	public DATranscxt(String conn, HashMap<String, TableMeta> meta) throws SemanticException {
 		super(new DASemantext(conn, smtConfigs == null ? null : smtConfigs.get(conn),
 				meta, null));
 		this.basiconnId = conn;
@@ -220,7 +226,13 @@ public class DATranscxt extends Transcxt {
 
 	//////////// basic transact builders for each connection ////////////
 	private static HashMap<String, Transcxt> basicTrxes;
-	private static Transcxt getBasicTrans(String conn) {
+
+	/**Get a basic transact builder (without semantics handling)
+	 * @param conn
+	 * @return the basice transact builder
+	 * @throws SemanticException meta is null (must already reported error somewhere else)
+	 */
+	private static Transcxt getBasicTrans(String conn) throws SemanticException {
 		if (basicTrxes == null)
 			basicTrxes = new HashMap<String, Transcxt>();
 		

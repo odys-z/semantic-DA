@@ -61,30 +61,34 @@
   		<args></args>
   	</s> -->
   	
+  	<!-- see DASemantextTest#testCrossAutoK() -->
   	<s>
-  		<id>41</id>
+  		<id>t-crs-aid</id>
   		<smtc>autopk</smtc>
   		<tabl>crs_a</tabl>
   		<pk>aid</pk>
   		<args>aid</args>
   	</s>
   	<s>
-  		<id>42</id>
+  		<id>t-crs-bid</id>
   		<smtc>autopk</smtc>
   		<tabl>crs_b</tabl>
   		<pk>bid</pk>
   		<args>bid</args>
   	</s>
   	<s>
-  		<id>43</id>
+  		<id>t-crs-child-fk</id>
   		<smtc>pkref</smtc>
   		<tabl>crs_a</tabl>
   		<pk>aid</pk>
   		<args>afk,crs_b,bid</args>
   	</s>
+	<!-- post handle parent fk to a child.
+		This makes cross fk referencing possible but it's not a good design for applications.
+	-->
   	<s>
-  		<id>44</id>
-  		<smtc>pkref</smtc>
+  		<id>t-crs-parent-backref</id>
+  		<smtc>p-f</smtc>
   		<tabl>crs_b</tabl>
   		<pk>bid</pk>
   		<args>bfk,crs_a,aid</args>
@@ -149,16 +153,51 @@
   			 where the 'where clause' in select clause is composed from condition ofthe request's where condition.
   		 -->
   		<args>domainId a_orgs orgType,
-  			domainId a_alarms typeId
+  			domainId b_alarms typeId
   		</args>
   	</s>
 
   	<s>
   		<id>6a</id>
   		<smtc>auto</smtc>
-  		<tabl>a_alarms</tabl>
+  		<tabl>b_alarms</tabl>
   		<pk>alarmId</pk>
   		<args>alarmId</args>
+  	</s>
+  	<s>
+  		<id>6b</id>
+  		<smtc>auto</smtc>
+  		<tabl>b_alarm_logic</tabl>
+  		<pk>logicId</pk>
+  		<args>logicId</args>
+  	</s>
+  	<s>
+  		<id>6c</id>
+  		<smtc>fk</smtc>
+  		<tabl>b_alarm_logic</tabl>
+  		<pk>logicId</pk>
+  		<args>alarmId,b_alarms,alarmId</args>
+  	</s>
+	<s>
+  		<id>6e</id>
+  		<smtc>auto</smtc>
+  		<tabl>b_logic_device</tabl>
+  		<pk>deviceLogId</pk>
+  		<args>deviceLogId</args>
+  	</s>
+	<s>
+  		<id>6f</id>
+  		<smtc>fk</smtc>
+  		<tabl>b_logic_device</tabl>
+  		<pk>deviceLogId</pk>
+  		<args>logicId,b_alarm_logic,logicId</args>
+  	</s>
+	<s>
+  		<id>6g</id>
+  		<smtc>auto</smtc>
+  		<tabl>b_logic_device</tabl>
+  		<pk>deviceLogId</pk>
+  		<args>alarmId,b_alarms,alarmId</args>
   	</s>
   </t>
 </semantics>

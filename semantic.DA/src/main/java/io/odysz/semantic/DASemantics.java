@@ -89,6 +89,7 @@ public class DASemantics {
 	 * <b>5. {@link #checkSqlCountOnDel} </b><br>
 	 * <b>6. {@link #checkSqlCountOnInsert} </b><br>
 	 * <b>7. {@link #checkDsCountOnDel} </b><br>
+	 * <b>8. {@link #postFk}</b><br>
 	 * <b>8. {@link #composingCol} TODO</b><br>
 	 * <b>9. {@link #stampUp1ThanDown} TODO</b><br>
 	 * <b>10.{@link #orclob} TODO</b><br>
@@ -103,15 +104,18 @@ public class DASemantics {
 		 * xml/smtc = "auto" | "pk" | "a-k" | "autopk" <br>
 		 * Generate auto increased value for the field when inserting.<br>
 		 * on-events: insert<br>
-		 * smtc = "auto" | "ai" | "a-i"<br>
-		 * args = [0]: pk-field <br>
+		 * <p>args: [0]: pk-field </p>
+		 * 
 		 * Handler: {@link DASemantics.ShAutoK} */
 		autoInc,
 		/**xml/smtc = "fk" | "pkref" | "fk-ins"<br>
+		 * <p>Automatically fill fk when inserting. Only referenced auto pk can be resolved.</p>
+		 * <p>args: 0 referencing col, 1 parent table, 2 parent pk</p>
 		 * Handler: {@link DASemantics.ShFkOnIns} */
 		fkIns,
 		/**xml/smtc = "f-p" | "fp" | "fullpath":<br>
-		 * Handler: {@link ShFullpath#ShFullpath(String, String, String[])}*/
+		 * <p>args: 0: parent Id field, 1: sibling/sort field (optional), 2: fullpath field</p>
+		 * Handler: {@link ShFullpath}*/
 		fullpath,
 		/**xml/smtc = "dv" | "d-v" | "dfltVal":<br>
 		 * Handler: {@link ShDefltVal} */
@@ -159,6 +163,11 @@ public class DASemantics {
 		 * where args are column name of parent table.</p>
 		 * Handler: {@link ShChkCntInst}*/
 		checkSqlCountOnInsert,
+		/** "p-f" | "p-fk" | "post-fk"<br>
+		 * Post fk wire back - parent has an fk to child (only one child, makes cross refs)
+		 * <p>args: 0 referencing col, 1 target table, 2 target pk(must be an auto key)</p>
+		 * Handler: {@link ShPostFk} */
+		postFk,
 		/** "cmp-col" | "compose-col" | "compse-column": compose a column from other columns;<br>
 		 * TODO*/
 		composingCol,
@@ -195,8 +204,8 @@ public class DASemantics {
 				return checkSqlCountOnDel;
 			else if ("ck-cnt-ins".equals(type) || "check-count-ins".equals(type) || "checksqlcountoninsert".equals(type))
 				return checkSqlCountOnInsert;
-//			else if ("ds-cnt-del".equals(type) || "ds-count-del".equals(type) || "checkdscountondel".equals(type))
-//				return checkDsCountOnDel;
+			else if ("p-f".equals(type) || "p-fk".equals(type) || "post-fk".equals(type))
+				return postFk;
 			else if ("cmp-col".equals(type) || "compose-col".equals(type) || "compse-column".equals(type) || "composingcol".equals(type))
 				return composingCol;
 			else if ("s-up1".equals(type) || type.startsWith("stamp1"))
@@ -223,6 +232,8 @@ public class DASemantics {
 
 	private String tabl;
 	private String pk;
+
+	public static boolean verbose = true;
 
 	public DASemantics(Transcxt basicTx, String tabl, String recId) {
 		this.tabl = tabl;
@@ -260,6 +271,8 @@ public class DASemantics {
 			handler = new ShChkCntDel(basicTsx, tabl, recId, args);
 		else if (smtype.checkSqlCountOnInsert == semantic)
 			handler = new ShChkPCInsert(basicTsx, tabl, recId, args);
+		else if (smtype.postFk == semantic)
+			handler = new ShPostFk(basicTsx, tabl, recId, args);
 //		else if (smtype.composingCol == semantic)
 //			addComposings(tabl, recId, argss);
 //		else if (smtype.stamp1MoreThanRefee == semantic)
@@ -299,12 +312,12 @@ public class DASemantics {
 
 	public boolean isPrepareInsert() { return hasAutopk; }
 
-	public void onInsPrepare(DASemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-		if (handlers != null)
-			for (SemanticHandler handler : handlers)
-				if (handler.insert && handler.insPrepare)
-					handler.onPrepare(semantx, row, cols, usr);
-	}
+//	public void onInsPrepare(DASemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+//		if (handlers != null)
+//			for (SemanticHandler handler : handlers)
+//				if (handler.insert && handler.insPrepare)
+//					handler.onPrepare(semantx, row, cols, usr);
+//	}
 
 	public void onInsert(ISemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 		if (handlers != null)
@@ -327,12 +340,24 @@ public class DASemantics {
 				if (handler.delete)
 					handler.onDelete(semantx, stmt, whereCondt, usr);
 	}
+
+	public void onPost(DASemantext sx, Statement<? extends Statement<?>> stmt,
+			ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr,
+			ArrayList<String> sqlBuf) throws TransException {
+		if (handlers != null)
+			for (SemanticHandler handler : handlers)
+				if (handler.post)
+					handler.onPost(sx, stmt, row, cols, usr, sqlBuf);
+	}
+
 	//////////////////////////////// Base Handler //////////////////////////////
 	abstract static class SemanticHandler {
 		boolean insPrepare = false;
 		boolean insert = false;
 		boolean update = false;
 		boolean delete = false;
+
+		boolean post = false;
 
 		String target;
 		String idField;
@@ -354,7 +379,7 @@ public class DASemantics {
 					sm.name(), target, idField, LangExt.toString(args));
 		}
 
-		void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
+//		void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
 		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
 		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
 
@@ -366,6 +391,9 @@ public class DASemantics {
 		 * @throws TransException
 		 */
 		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit whereCondt, IUser usr) throws TransException { }
+
+		void onPost(DASemantext sm, Statement<? extends Statement<?>> stmt,
+				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr, ArrayList<String> sqlBuf) throws TransException { }
 
 		SemanticHandler(Transcxt trxt, smtype sm, String tabl, String pk,
 				String[] args) throws SemanticException {
@@ -387,7 +415,7 @@ public class DASemantics {
 		/**
 		 * @param tabl
 		 * @param recId
-		 * @param args 0: parent Id field, 1: sibling/sort field (optional), 2: fullpath field
+		 * @param args see {@link smtype#fullpath}
 		 * @throws SemanticException
 		 */
 		public ShFullpath(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
@@ -472,11 +500,12 @@ public class DASemantics {
 				throw new SemanticException("AUTO pk semantics configuration not correct. tabl = %s, pk = %s, args: %s",
 						tabl, pk, LangExt.toString(args));
 			insert = true;
-			insPrepare = true;
+			// insPrepare = true;
 		}
 		
 		@Override
-		void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		// void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			Object[] nv;
 			if (cols.containsKey(args[0])			// with nv from client
 				&& cols.get(args[0]) < row.size())	// with nv must been generated from semantics
@@ -491,15 +520,16 @@ public class DASemantics {
 			try {
 
 				Object alreadyResulved = stx.resulvedVal(target, args[0]);
-				if (alreadyResulved != null) {
+				if (alreadyResulved != null && verbose)
+//				{
 					// When cross fk referencing happened, this branch will reached by handling post inserts.
-					Utils.warn("Debug Notes: Found an already resulved value (%s) while handling %s auto-key generation.",
+					Utils.warn("Debug Notes(verbose): Found an already resulved value (%s) while handling %s auto-key generation. Replacing ...",
 							alreadyResulved, target);
-					nv[1] = alreadyResulved;
-				}
-				else 
+//					nv[1] = alreadyResulved;
+//				}
+//				else 
 					// side effect: generated auto key already been put into autoVals, can be referenced later. 
-					nv[1] = stx.genId(target, args[0]);
+				nv[1] = stx.genId(target, args[0]);
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();
 			}
@@ -507,7 +537,7 @@ public class DASemantics {
 	}
 
 	/**Handle fk referencing resolving when inserting children.<br>
-	 * Args[0]: referencing col, [1]: target table, [2] target pk col
+	 * @see smtype#fkIns
 	 */
 	static class ShFkOnIns extends SemanticHandler {
 		ShFkOnIns(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
@@ -806,6 +836,48 @@ public class DASemantics {
 		
 		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			onInsert(stx, row, cols, usr);
+		}
+	}
+
+
+	static class ShPostFk extends SemanticHandler {
+		ShPostFk(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
+			super(trxt, smtype.postFk, tabl, pk, args);
+			post = true;
+		}
+
+		@Override
+		public void onPost(DASemantext stx, Statement<?> stmt, ArrayList<Object[]> row,
+				Map<String, Integer> cols, IUser usr, ArrayList<String> sqlBuff) throws TransException {
+			Object[] nv;
+			// Debug Note:
+			// Don't use pk to find referencing col here, related table's pk can be null.
+			// Use args[0] instead.
+			if (cols.containsKey(args[0])			// with nv from client
+				&& cols.get(args[0]) < row.size())	// with nv must been generated from semantics
+				nv = row.get(cols.get(args[0]));
+			else { // add a semantics required cell if it's absent.
+				nv = new Object[] {args[0], null};
+			}
+			try {
+				nv[1] = stx.resulvedVal(args[1], args[2]);
+			}catch (Exception e) {
+				throw new SemanticException("Post FK can not resulved: %s, table: %s",
+						smtype.postFk.name(), target);
+			}
+			if (nv[1] == null)
+				throw new SemanticException("Post FK can not resulved: %s, table: %s",
+						smtype.postFk.name(), target);
+			// append a sql
+			Object pk = row.get(cols.get(idField))[1];
+			if (pk instanceof String)
+				((DATranscxt)stmt.transc()).update(target, usr)
+					.nv((String) nv[0], nv[1])
+					.where_("=", idField, (String) pk)
+					// Debug Notes: using null Semantext for no more semantics handling iterating
+					.commit(null, sqlBuff);
+			else throw new SemanticException("Currently DASemantics.ShPostFk can only handle string type id for post update fk. (%s.%s = %s)",
+					target, idField, pk);
 		}
 	}
 }
