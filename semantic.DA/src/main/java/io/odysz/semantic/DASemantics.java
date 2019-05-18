@@ -24,7 +24,7 @@ import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
-/**<h2>The default semantics used by semantic-DA.</h2>
+/**<h2>The default semantics plugin used by semantic-DA.</h2>
  * <p>The {@link DASemantext} use this to manage semantics configuration for resolving data semantics.</p>
  * DASemantics is basically a {@link SemanticHandler}'s container, with subclass handlers handling different
  * semantics (processing values). </p>
@@ -164,9 +164,14 @@ public class DASemantics {
 		 * Handler: {@link ShChkCntInst}*/
 		checkSqlCountOnInsert,
 		/** "p-f" | "p-fk" | "post-fk"<br>
-		 * Post fk wire back - parent has an fk to child (only one child, makes cross refs)
-		 * <p>args: 0 referencing col, 1 target table, 2 target pk(must be an auto key)</p>
-		 * Handler: {@link ShPostFk} */
+		 * <p><b>semantics:</b> post fk wire back - parent has an fk to child (only one child is sensible, like makes cross refs)</p>
+		 * <p><b>Note:</b><br>This semantics works only when previously resolved auto key exists; if the value doesn't exist, will be ignored.<br>
+		 * The former is the case of inserting new child, and parent refer to it;
+		 * the later is the case of updating a child, the parent already has it's pk, nothing should be done. </p>
+		 * <p><b>Further Discussion:</b><br>
+		 * As cross reference is not a good ideal, this semantics sometimes leads to trouble. Any suggestion or comments are welcome.</p>
+		 * <p><b>args:</b> 0 referencing col, 1 target table, 2 target pk(must be an auto key)</p>
+		 * <b>Handler:</b> {@link ShPostFk} */
 		postFk,
 		/** "cmp-col" | "compose-col" | "compse-column": compose a column from other columns;<br>
 		 * TODO*/
@@ -238,7 +243,6 @@ public class DASemantics {
 	public DASemantics(Transcxt basicTx, String tabl, String recId) {
 		this.tabl = tabl;
 		this.pk = recId;
-		// staticTsx = new DATranscxt();
 		basicTsx = basicTx;
 		
 		handlers = new ArrayList<SemanticHandler>();
@@ -305,24 +309,17 @@ public class DASemantics {
 	private void checkSmtcs(String tabl, smtype newSmtcs) throws SemanticException {
 		if (handlers == null) return;
 		for (SemanticHandler handler : handlers)
-			if (handler.sm == newSmtcs)
+			if (handler.sm == newSmtcs && newSmtcs != smtype.fkIns && newSmtcs != smtype.postFk)
 				throw new SemanticException("Found duplicate semantics: %s %s\nDetails: All semantics configuration is merged into 1 static copy. Each table in every connection can only have one instance of the same smtype.",
 						tabl, newSmtcs.name());
 	}
 
 	public boolean isPrepareInsert() { return hasAutopk; }
 
-//	public void onInsPrepare(DASemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-//		if (handlers != null)
-//			for (SemanticHandler handler : handlers)
-//				if (handler.insert && handler.insPrepare)
-//					handler.onPrepare(semantx, row, cols, usr);
-//	}
-
 	public void onInsert(ISemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
-				if (handler.insert && !handler.insPrepare)
+				if (handler.insert)
 					handler.onInsert(semantx, row, cols, usr);
 	}
 
@@ -352,7 +349,6 @@ public class DASemantics {
 
 	//////////////////////////////// Base Handler //////////////////////////////
 	abstract static class SemanticHandler {
-		boolean insPrepare = false;
 		boolean insert = false;
 		boolean update = false;
 		boolean delete = false;
@@ -850,6 +846,17 @@ public class DASemantics {
 		public void onPost(DASemantext stx, Statement<?> stmt, ArrayList<Object[]> row,
 				Map<String, Integer> cols, IUser usr, ArrayList<String> sqlBuff) throws TransException {
 			Object[] nv;
+			Object resulved = null;
+			try {
+				 resulved = stx.resulvedVal(args[1], args[2]);
+			}catch (Exception e) {
+//				throw new SemanticException("Post FK can not resulved: %s, table: %s",
+//						smtype.postFk.name(), target);
+			}
+
+			if (resulved == null)
+				return; // a post wire up can do nothing
+
 			// Debug Note:
 			// Don't use pk to find referencing col here, related table's pk can be null.
 			// Use args[0] instead.
@@ -859,15 +866,17 @@ public class DASemantics {
 			else { // add a semantics required cell if it's absent.
 				nv = new Object[] {args[0], null};
 			}
-			try {
-				nv[1] = stx.resulvedVal(args[1], args[2]);
-			}catch (Exception e) {
-				throw new SemanticException("Post FK can not resulved: %s, table: %s",
-						smtype.postFk.name(), target);
-			}
-			if (nv[1] == null)
-				throw new SemanticException("Post FK can not resulved: %s, table: %s",
-						smtype.postFk.name(), target);
+			nv[1] = resulved;
+//			try {
+//				// nv[1] = stx.resulvedVal(args[1], args[2]);
+//				nv[1] = resulved;
+//			}catch (Exception e) {
+//				throw new SemanticException("Post FK can not resulved: %s, table: %s",
+//						smtype.postFk.name(), target);
+//			}
+//			if (nv[1] == null)
+//				throw new SemanticException("Post FK can not resulved: %s, table: %s",
+//						smtype.postFk.name(), target);
 			// append a sql
 			Object pk = row.get(cols.get(idField))[1];
 			if (pk instanceof String)

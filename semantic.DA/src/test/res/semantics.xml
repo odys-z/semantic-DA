@@ -42,24 +42,6 @@
   		<pk>funcId</pk>
   		<args>funcId,a_role_func,funcId</args>
   	</s>
-  	<!-- 
-  	<s>
-  		<id>23</id>
-  		<smtc>ck-cnt-del</smtc>
-  		<tabl>a_roles</tabl>
-  		<pk>roleId</pk>
-  		<args>a_role_func,
-  		select count(*) cnt from a_rolefunc where roleId = '%s'
-  		,cnt</args>
-  	</s> -->
-	<!-- User.log() don't use this configure file, but should be OK - never used
-  	<s>
-  		<id>34</id>
-  		<smtc>o-t</smtc>
-  		<tabl>a_logs</tabl>
-  		<pk>logId</pk>
-  		<args></args>
-  	</s> -->
   	
   	<!-- see DASemantextTest#testCrossAutoK() -->
   	<s>
@@ -194,7 +176,7 @@
   	</s>
 	<s>
   		<id>6g</id>
-  		<smtc>auto</smtc>
+  		<smtc>fk</smtc>
   		<tabl>b_logic_device</tabl>
   		<pk>deviceLogId</pk>
   		<args>alarmId,b_alarms,alarmId</args>

@@ -157,7 +157,8 @@ public class DATranscxt extends Transcxt {
 		Utils.logi("Loading database metas...");
 		if (metas == null)
 			metas = new HashMap<String, HashMap<String, TableMeta>>();
-		metas.put(connId, Connects.loadMeta(connId));
+		if (!metas.containsKey(connId))
+			metas.put(connId, Connects.loadMeta(connId));
 
 		Utils.logi("Loading Semantics:\n%s", filepath);
 		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(

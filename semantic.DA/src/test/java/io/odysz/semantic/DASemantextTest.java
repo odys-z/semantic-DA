@@ -26,18 +26,14 @@ import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
+import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 /**Test basic semantics for semantic-jserv.<br>
- * To initialize oz_autoseq table:<pre>
-CREATE TABLE oz_autoseq (
-  sid text(50),
-  seq INTEGER,
-  remarks text(200),
-  CONSTRAINT oz_autoseq_pk PRIMARY KEY (sid)
-);</pre>
- * @author ody
+ * This source can be used as examples of how to use semantic-* java API.
+ * 
+ * @author odys-z@github.com
  *
  */
 public class DASemantextTest {
@@ -195,10 +191,14 @@ DELETE from a_roles;</pre>
 	
 	/**Test cross referencing auto k.<br>
 	 * crs_a.aid, crs_b.bid are autok;<br>
-	 * crs_a.afk referencing crs_b.bid,<br>
+	 * crs_a.afk referencing crs_b.bid, (post-fk)<br>
 	 * crs_b.bfk referencing crs_a.aid.<br>
-	 * Also, test int type's value (crs_a.testInt = 100) not single-quoted.<br>
-	 * Test crs_a.fundDate(sqlite number) is quoted for both insert and update.
+	 * <p>Also, test int type's value (crs_a.testInt = 100) not single-quoted.<br>
+	 * Test crs_a.fundDate(sqlite number) is quoted for both insert and update.</p>
+	 * 
+	 * <p>Also, test post-fk.<br>
+	 * As post-fk is a weak wiring up, it should do nothing when updating. </p>
+	 * 
 	 * @throws TransException
 	 * @throws SQLException
 	 */
@@ -215,27 +215,51 @@ DELETE from a_roles;</pre>
 				.post(f1)
 				.commit(s0, sqls);
 		
+		String aid = (String) s0.resulvedVal("crs_a", "aid");
+		String bid = (String) s0.resulvedVal("crs_b", "bid");
+
 		assertEquals(String.format(
 			"update crs_b  set bfk='%s' where bid = '%s'",
-			s0.resulvedVal("crs_a", "aid"), s0.resulvedVal("crs_b", "bid")),
+			aid, bid),
 			sqls.get(2));
 		assertEquals(String.format(
 			"insert into crs_a  (remarka, fundDate, testInt, aid, afk) values (datetime('now'), '1777-07-04', 100, '%s', '%s')",
-			s0.resulvedVal("crs_a", "aid"), s0.resulvedVal("crs_b", "bid")),
+			aid, bid),
 			sqls.get(1));
 		assertEquals(String.format(
 			"insert into crs_b  (remarkb, bid) values (datetime('now'), '%s')",
-			s0.resulvedVal("crs_b", "bid")),// s0.resulvedVal("crs_a", "aid")),
+			bid),// s0.resulvedVal("crs_a", "aid")),
 			sqls.get(0));
 
 		Connects.commit(usr , sqls);
 
+		sqls.clear();
 		st.update("crs_a")
 			.nv("fundDate", "1911-10-10")
 			.where("=", "testInt", "100")
 			.commit(s0, sqls);
 		assertEquals("update crs_a  set fundDate='1911-10-10' where testInt = 100",
-					sqls.get(3));
+					sqls.get(0));
+		
+		sqls.clear();
+		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr);
+		st.insert("crs_b")
+			.nv("remarkb", "1911-10-10")
+			.post(st.update("crs_a")
+					.nv("remarka", "update child")
+					.where("=", "bid", new Resulving("crs_b", "bid")))
+			.commit(s1, sqls);
+
+		// insert into crs_b  (remarkb, bid) values ('1911-10-10', '00000p')
+		// update crs_a  set remarka='update child' where bid = '00000o'
+		bid = (String) s1.resulvedVal("crs_b", "bid");
+		assertEquals(2, sqls.size());
+		assertEquals(String.format(
+				"insert into crs_b  (remarkb, bid) values ('1911-10-10', '%s')",
+				bid), sqls.get(0));
+		assertEquals(String.format(
+				"update crs_a  set remarka='update child' where bid = '%s'",
+				bid), sqls.get(1));
 	}
 
 	/**This is used for testing semantics:<br>
@@ -341,7 +365,7 @@ DELETE from a_roles;</pre>
 	@Test
 	public void testChkOnDel() throws TransException, SQLException {
 		ISemantext s1 = st.instancontxt(usr);
-		String typeId = "0201";		// Device Fault
+		String typeId = "02-fault";		// Device Fault
 		st.insert("b_alarms", usr)	// auto key id = 54
 			.nv("typeId", typeId)
 			.ins(s1);
@@ -359,13 +383,100 @@ DELETE from a_roles;</pre>
 		}
 	}
 	
+	/**Test multiple children auto key ({@link DASemantics.smtype#autoInc})<br>
+	 * Test post-fk ({@link DASemantics.smtype#postFk})<br>
+	 * Test cascading fk on insert ({@link DASemantics.smtype#fkIns};<br>
+	 * using semantics:<pre>
+   	&lt;s&gt;
+  		&lt;id&gt;6a&lt;/id&gt;
+  		&lt;smtc&gt;auto&lt;/smtc&gt;
+  		&lt;tabl&gt;b_alarms&lt;/tabl&gt;
+  		&lt;pk&gt;alarmId&lt;/pk&gt;
+  		&lt;args&gt;alarmId&lt;/args&gt;
+  	&lt;/s&gt;
+  	&lt;s&gt;
+  		&lt;id&gt;6b&lt;/id&gt;
+  		&lt;smtc&gt;auto&lt;/smtc&gt;
+  		&lt;tabl&gt;b_alarm_logic&lt;/tabl&gt;
+  		&lt;pk&gt;logicId&lt;/pk&gt;
+  		&lt;args&gt;logicId&lt;/args&gt;
+  	&lt;/s&gt;
+  	&lt;s&gt;
+  		&lt;id&gt;6c&lt;/id&gt;
+  		&lt;smtc&gt;fk&lt;/smtc&gt;
+  		&lt;tabl&gt;b_alarm_logic&lt;/tabl&gt;
+  		&lt;pk&gt;logicId&lt;/pk&gt;
+  		&lt;args&gt;alarmId,b_alarms,alarmId&lt;/args&gt;
+  	&lt;/s&gt;
+	&lt;s&gt;
+  		&lt;id&gt;6e&lt;/id&gt;
+  		&lt;smtc&gt;auto&lt;/smtc&gt;
+  		&lt;tabl&gt;b_logic_device&lt;/tabl&gt;
+  		&lt;pk&gt;deviceLogId&lt;/pk&gt;
+  		&lt;args&gt;deviceLogId&lt;/args&gt;
+  	&lt;/s&gt;
+	&lt;s&gt;
+  		&lt;id&gt;6f&lt;/id&gt;
+  		&lt;smtc&gt;fk&lt;/smtc&gt;
+  		&lt;tabl&gt;b_logic_device&lt;/tabl&gt;
+  		&lt;pk&gt;deviceLogId&lt;/pk&gt;
+  		&lt;args&gt;logicId,b_alarm_logic,logicId&lt;/args&gt;
+  	&lt;/s&gt;
+	&lt;s&gt;
+  		&lt;id&gt;6g&lt;/id&gt;
+  		&lt;smtc&gt;fk&lt;/smtc&gt;
+  		&lt;tabl&gt;b_logic_device&lt;/tabl&gt;
+  		&lt;pk&gt;deviceLogId&lt;/pk&gt;
+  		&lt;args&gt;alarmId,b_alarms,alarmId&lt;/args&gt;
+  	&lt;/s&gt;
+</pre>
+	 * tested case:<pre>insert into b_alarms  (remarks, typeId, alarmId) values (datetime('now'), '02-alarm', '00000X')
+insert into b_alarm_logic  (remarks, logicId, alarmId) values ('R1 2019-05-17', '00002l', '00000X')
+insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('R1''s device 1.1', '00004Y', '00002l', '00000X')
+insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('R1''s ddevice 1.2', '00004Z', '00002l', '00000X')
+insert into b_alarm_logic  (remarks, logicId, alarmId) values ('L2 2019-05-17', '00002m', '00000X')
+insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2''s device 2.1', '00004a', '00002m', '00000X')
+insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2''s device 2.2', '00004b', '00002m', '00000X')</pre>
+	 * @throws TransException
+	 * @throws SQLException 
+	 */
 	@Test
-	public void testCascadeInsert() throws TransException {
-		testMultiChildInst();
+	public void testCascadeInsert() throws TransException, SQLException {
+		String dt = DateFormat.format(new Date());
+		ISemantext s0 = st.instancontxt(usr);
+		st.insert("b_alarms", usr)
+				.nv("remarks", Funcall.now(dbtype.sqlite))
+				.nv("typeId", "02-alarm")
+
+				.post(st.insert("b_alarm_logic")	// child of b_alarms, auto key: logicId
+						.nv("remarks", "R1 " + dt)
+						.post(st.insert("b_logic_device")
+								.nv("remarks", "R1''s device 1.1"))
+						.post(st.insert("b_logic_device")
+								.nv("remarks", "R1''s ddevice 1.2"))
+
+						.post(st.insert("b_alarm_logic")
+								.nv("remarks", "L2 " + dt)
+								.post(st.insert("b_logic_device")
+										.nv("remarks", "L2''s device 2.1"))
+								.post(st.insert("b_logic_device")
+										.nv("remarks", "L2''s device 2.2"))
+				)).ins(s0);
+
+		// let's findout the last inserted into b_logic_device
+		SemanticObject res = st.select("b_logic_device", "d")
+			.col("max(deviceLogId)", "dlid")
+			.where_("=", "alarmId", s0.resulvedVal("b_alarms", "alarmId"))
+			.rs(st.instancontxt(usr));
+		SResultset rs = (SResultset) res.rs(0);
+		rs.beforeFirst().next();
+		// the max deviceLogId should be in s0.
+		assertEquals(s0.resulvedVal("b_logic_device", "deviceLogId"), rs.getString("dlid"));
 	}
 	
-	private void testMultiChildInst() throws TransException {
-			ArrayList<String> sqls = new ArrayList<String>(1);
+	@Test
+	public void testMultiChildInst() throws TransException {
+		ArrayList<String> sqls = new ArrayList<String>(1);
 		String dt = DateFormat.format(new Date());
 		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr);
 		st.insert("b_alarms")
@@ -386,4 +497,5 @@ DELETE from a_roles;</pre>
 				dt, s0.resulvedVal("b_alarm_logic", "logicId"), s0.resulvedVal("b_alarms", "alarmId")),
 				sqls.get(2));
 	}
+	
 }
