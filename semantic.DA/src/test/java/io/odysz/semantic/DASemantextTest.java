@@ -325,10 +325,10 @@ DELETE from a_roles;</pre>
 		// assert 4. del a_role_funcs
 		String roleId = "role-u" + usrId;
 		Insert rf1 = st.insert("a_role_func")
-			.nv("roleId", roleId)
+			// .nv("roleId", roleId)
 			.nv("funcId", "func-" + usrId + " 01");
 		Insert rf2 = st.insert("a_role_func")
-			.nv("roleId", roleId)
+			// .nv("roleId", roleId)
 			.nv("funcId", "func-" + usrId + " 02");
 			
 		ISemantext s1 = st.instancontxt(usr);
@@ -472,6 +472,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		rs.beforeFirst().next();
 		// the max deviceLogId should be in s0.
 		assertEquals(s0.resulvedVal("b_logic_device", "deviceLogId"), rs.getString("dlid"));
+		Utils.warn("What's about update parent?");
 	}
 	
 	@Test
@@ -493,8 +494,32 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				sqls.get(0));
 		// the first insert b_alarm_logic must correct if following is ok.
 		Utils.logi(sqls.get(1));
+		String alarmId = (String) s0.resulvedVal("b_alarms", "alarmId");
 		assertEquals(String.format("insert into b_alarm_logic  (remarks, logicId, alarmId) values ('L2 %s', '%s', '%s')",
-				dt, s0.resulvedVal("b_alarm_logic", "logicId"), s0.resulvedVal("b_alarms", "alarmId")),
+				dt, s0.resulvedVal("b_alarm_logic", "logicId"), alarmId),
+				sqls.get(2));
+		
+		// test case
+		// because b_alarm is updating, no auto key generated,
+		// so child fk should provided by client, and won't been resulved.
+		sqls.clear();
+		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr);
+		st.update("b_alarms")
+			.nv("remarks", "updated")
+			.where_("=", "alarmId", alarmId)
+			.post(st.delete("b_alarm_logic")
+					.where_("=", "alarmId", alarmId)
+					.post(st.insert("b_alarm_logic")
+							 .nv("remarks", "L3 " + dt)
+							 .nv("alarmId", alarmId))) // because b_alarm is updating, no auto key there.
+			.commit(s1, sqls);
+
+		Utils.logi(sqls);
+		// update b_alarms  set remarks='updated' where alarmId = '000010'
+		// delete from b_alarm_logic where alarmId = '000010'
+		// insert into b_alarm_logic  (remarks, alarmId, logicId) values ('L3 2019-05-20', '000010', '00003N')
+		assertEquals(String.format("insert into b_alarm_logic  (remarks, alarmId, logicId) values ('L3 %s', '%s', '%s')",
+				dt, alarmId, s1.resulvedVal("b_alarm_logic", "logicId")),
 				sqls.get(2));
 	}
 	

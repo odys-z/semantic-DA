@@ -321,8 +321,9 @@ public class DatasetCfg {
 	 * @param treeSemtcs
 	 * @return built forest
 	 * @throws SQLException
+	 * @throws SemanticException data structure can not build  tree / forest 
 	 */
-	public static List<SemanticObject> buildForest(SResultset rs, TreeSemantics treeSemtcs) throws SQLException {
+	public static List<SemanticObject> buildForest(SResultset rs, TreeSemantics treeSemtcs) throws SQLException, SemanticException {
 		// build the tree/forest
 		List<SemanticObject> forest = new ArrayList<SemanticObject>();
 		rs.beforeFirst();
@@ -366,11 +367,11 @@ public class DatasetCfg {
 	}
 
 	private static List<SemanticObject> buildSubTree(TreeSemantics sm,
-			SemanticObject parentNode, String parentId, SResultset rs) throws SQLException {
+			SemanticObject parentNode, String parentId, SResultset rs) throws SQLException, SemanticException {
 		List<SemanticObject> childrenArray  = new ArrayList<SemanticObject>();
 		while (rs.next()) {
-			// Don't delete this except the servlet is completed and solved alias configure in xml.
-			// checkSemantics(rs, sm, Ix.parent);
+			if (parentId == null || parentNode == null)
+				throw new SemanticException("Found children for null parent. Check the data queried by recent committed SQL.");
 
 			String currentParentID = rs.getString(sm.aliasParent());
 			if (currentParentID == null || currentParentID.trim().length() == 0) {

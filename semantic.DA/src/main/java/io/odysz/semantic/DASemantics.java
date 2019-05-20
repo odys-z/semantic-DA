@@ -557,17 +557,10 @@ public class DASemantics {
 				cols.put(args[0], row.size());
 				row.add(nv);
 			}
-//			SemanticObject refs = (SemanticObject) stx.results();
-//			if (refs == null || !refs.has(args[1]))
-//				Utils.warn("Trying resolve FK failed. fk = %s.%s, parent = %s.%s,\nFK config args:\t%s,\ndata cols:\t%s,\ndata row:\t%s.\nAlso note that in current version, only auto key can be referenced and auto resolved.",
-//						target, args[0], args[1], args[2],
-//						LangExt.toString(args), LangExt.toString(cols), LangExt.toString(row));
-//			else {
-//				Object refeev = ((SemanticObject) refs.get(args[1])).get(args[2]);
-//				nv[1] = refeev == null ? nv[1] : refeev; // referee can be null?
-//			}
 			try {
-				nv[1] = stx.resulvedVal(args[1], args[2]);
+				Object v = stx.resulvedVal(args[1], args[2]);
+				if (v != null && (nv[1] == null || LangExt.isblank((String) nv[1])))
+					nv[1] = v;
 			}catch (Exception e) {
 				if (nv[1] != null) {
 					if (debug)
