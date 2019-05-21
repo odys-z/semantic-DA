@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.odysz.common.Radix64;
-import io.odysz.common.Regex;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.Connects;
@@ -44,7 +43,7 @@ public class DASemantext implements ISemantext {
 
 	private SemanticObject autoVals;
 	private static Transcxt rawst;
-	private static Regex refReg;
+//	private static Regex refReg;
 
 	/**Semantic Configurations */
 	private HashMap<String, DASemantics> ss;
@@ -74,7 +73,7 @@ public class DASemantext implements ISemantext {
 		this.metas = metas;
 		if (rawst == null) {
 			rawst = new Transcxt(null);
-			refReg = new Regex(ISemantext.refPattern);
+//			refReg = new Regex(ISemantext.refPattern);
 		}
 		
 		this.usr = usr;
@@ -199,20 +198,20 @@ public class DASemantext implements ISemantext {
 				: null;
 	}
 	
-	@Override
-	public Object resulvedVal(String ref) {
-		if (autoVals == null) {
-			// Utils.warn("Value reference a.k.a autoVals is null");
-			return ref;
-		}
-		ArrayList<String> grps = refReg.findGroups(ref);
-		if (grps == null || grps.size() != 3) {
-			// Utils.warn("Value reference can not resolved: %s. Pattern is incorrect.", ref);
-			return ref;
-		}
-		String tabl = grps.get(1);
-		return ((SemanticObject)autoVals.get(tabl)).get(grps.get(2));
-	}
+//	@Override
+//	public Object resulvedVal(String ref) {
+//		if (autoVals == null) {
+//			// Utils.warn("Value reference a.k.a autoVals is null");
+//			return ref;
+//		}
+//		ArrayList<String> grps = refReg.findGroups(ref);
+//		if (grps == null || grps.size() != 3) {
+//			// Utils.warn("Value reference can not resolved: %s. Pattern is incorrect.", ref);
+//			return ref;
+//		}
+//		String tabl = grps.get(1);
+//		return ((SemanticObject)autoVals.get(tabl)).get(grps.get(2));
+//	}
 
 	/**Get the resolved value in {@link #autoVals}
 	 * a.k.a return value of {@link Update#doneOp(io.odysz.transact.sql.Statement.IPostOperat)}.
