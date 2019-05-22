@@ -799,8 +799,16 @@ public class DASemantics {
 			// operTiem
 			if (args.length > 1 && args[1] != null) {
 				Object[] nvTime;
-				if (cols.containsKey(args[1]))
-					nvTime = row.get(cols.get(args[1]));
+				if (cols.containsKey(args[1])) {
+					int ix = cols.get(args[1]);
+					nvTime = row.get(ix);
+					try {
+						if (debug)
+							Utils.warn("ShOperTime#onInsert(): Found o-t value(%s, %s) exists, replacing...",
+								nvTime[0], nvTime[1]);
+					} catch (Exception e) {e.printStackTrace();}
+					nvTime = new Object[2];
+				}
 				else {
 					nvTime = new Object[2];
 					cols.put(args[1], row.size());

@@ -370,8 +370,11 @@ public class DatasetCfg {
 			SemanticObject parentNode, String parentId, SResultset rs) throws SQLException, SemanticException {
 		List<SemanticObject> childrenArray  = new ArrayList<SemanticObject>();
 		while (rs.next()) {
-			if (parentId == null || parentNode == null)
+			if (parentId == null || parentNode == null) {
+				Utils.warn("Found children for null parent. Parent: %s", parentNode.toString());
+				Utils.warn(rs.getRowAt(rs.getRow()));
 				throw new SemanticException("Found children for null parent. Check the data queried by recent committed SQL.");
+			}
 
 			String currentParentID = rs.getString(sm.aliasParent());
 			if (currentParentID == null || currentParentID.trim().length() == 0) {
