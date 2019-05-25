@@ -233,7 +233,7 @@ public class DASemantics {
 
 	///////////////////////////////// container class ///////////////////////////////
 	private ArrayList<SemanticHandler> handlers;
-	private boolean hasAutopk = false;
+//	private boolean hasAutopk = false;
 
 	private String tabl;
 	private String pk;
@@ -257,7 +257,7 @@ public class DASemantics {
 			handler = new ShFullpath(basicTsx, tabl, recId, args);
 		else if (smtype.autoInc == semantic) {
 			handler = new ShAutoK(basicTsx, tabl, recId, args);
-			hasAutopk = true;
+//			hasAutopk = true;
 		}
 		else if (smtype.fkIns == semantic)
 			handler = new ShFkOnIns(basicTsx, tabl, recId, args);
@@ -314,7 +314,15 @@ public class DASemantics {
 						tabl, newSmtcs.name());
 	}
 
-	public boolean isPrepareInsert() { return hasAutopk; }
+
+	public boolean has(smtype sm) {
+		if (handlers != null)
+			for (SemanticHandler handler : handlers)
+				if (handler.sm == sm)
+					return true;
+		return false;
+	}
+//	public boolean isPrepareInsert() { return hasAutopk; }
 
 	public void onInsert(ISemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 		if (handlers != null)

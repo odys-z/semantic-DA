@@ -193,6 +193,14 @@ public class DATranscxt extends Transcxt {
 		return smtConfigs.get(conn);
 	}
 
+	public static boolean hasSemantics(String conn, String tabl, smtype sm) {
+		if (smtConfigs == null || !smtConfigs.containsKey(conn)
+				|| !smtConfigs.get(conn).containsKey(tabl))
+			return false;
+		DASemantics s = smtConfigs.get(conn).get(tabl);
+		return s != null && s.has(sm);
+	}
+
 	public static void addSemantics(String connId, String tabl, String pk,
 			String smtcs, String args) throws SemanticException {
 		smtype sm = smtype.parse(smtcs);
