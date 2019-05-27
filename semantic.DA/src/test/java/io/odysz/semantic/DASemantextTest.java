@@ -233,6 +233,8 @@ DELETE from a_roles;</pre>
 
 		Connects.commit(usr , sqls);
 
+		// Test Case of Resulving: 
+		// Using Resulving in child table to resulve parent's pk reference
 		sqls.clear();
 		st.update("crs_a")
 			.nv("fundDate", "1911-10-10")
