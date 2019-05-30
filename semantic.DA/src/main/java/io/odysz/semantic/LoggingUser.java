@@ -44,9 +44,7 @@ public class LoggingUser implements IUser {
 			// DATranscxt.initConfigs(logConn, "src/test/res/semantic-log.xml");
 			DATranscxt.initConfigs(logConn, logCfgPath);
 
-//			HashMap<String, TableMeta> metas = Connects.loadMeta(logConn);
-
-			logSemantic = new DATranscxt(logConn, DATranscxt.meta(logConn)); 
+			logSemantic = new DATranscxt(logConn); //, DATranscxt.meta(logConn)); 
 		} catch (SAXException | IOException | SemanticException | SQLException e) {
 			e.printStackTrace();
 		} 

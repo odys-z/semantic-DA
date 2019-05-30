@@ -37,11 +37,10 @@ import io.odysz.transact.sql.Update;
  * @author odys-z@github.com
  */
 public class DATranscxt extends Transcxt {
-	protected static HashMap<String, HashMap<String, TableMeta>> metas;
-	public static HashMap<String, TableMeta> meta(String connId) throws SemanticException {
-		if (metas == null)
-			throw new SemanticException("DATranscxt need db metas to work. Set metas first."); 
-		return metas.get(connId);
+	public static HashMap<String, TableMeta> meta(String connId) throws SemanticException, SQLException {
+//		if (metas == null)
+//			throw new SemanticException("DATranscxt need db metas to work. Set metas first."); 
+		return Connects.getMeta(connId);
 	}
 
 	protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
@@ -60,8 +59,8 @@ public class DATranscxt extends Transcxt {
 			return null;
 		else
 			try {
-				return new DASemantext(basiconnId, smtConfigs.get(basiconnId), metas.get(basiconnId), usr);
-			} catch (SemanticException e) {
+				return new DASemantext(basiconnId, smtConfigs.get(basiconnId), meta(basiconnId), usr);
+			} catch (SemanticException | SQLException e) {
 				e.printStackTrace(); // meta is null? shouldn't happen because this instance is already created
 				return null;
 			}
@@ -160,24 +159,25 @@ public class DATranscxt extends Transcxt {
 	 * When creating DATranscxt, db metas can not be null.
 	 * 
 	 * @param conn connection Id
-	 * @param meta
 	 * @throws SemanticException meta is null
+	 * @throws SQLException 
 	 */
-	public DATranscxt(String conn, HashMap<String, TableMeta> meta) throws SemanticException {
+	public DATranscxt(String conn) throws SemanticException, SQLException {
+	// public DATranscxt(String conn, HashMap<String, TableMeta> meta) throws SemanticException {
 		super(new DASemantext(conn, smtConfigs == null ? null : smtConfigs.get(conn),
-				meta, null));
+				Connects.getMeta(conn), null));
 		this.basiconnId = conn;
-		if (metas == null)
-			metas = new HashMap<String, HashMap<String, TableMeta>>();
-		if (meta != null)
-			metas.put(conn, meta);
+//		if (metas == null)
+//			metas = new HashMap<String, HashMap<String, TableMeta>>();
+//		if (meta != null)
+//			metas.put(conn, meta);
 	}
 
-	public DATranscxt(String conn) throws SemanticException {
-		super(new DASemantext(conn, smtConfigs == null ? null : smtConfigs.get(conn),
-				meta(conn), null));
-		this.basiconnId = conn;
-	}
+//	public DATranscxt(String conn) throws SemanticException {
+//		super(new DASemantext(conn, smtConfigs == null ? null : smtConfigs.get(conn),
+//				meta(conn), null));
+//		this.basiconnId = conn;
+//	}
 
 	/**Load semantics configuration from filepath.
 	 * This method also initialize table meta by calling {@link Connects}.
@@ -193,10 +193,10 @@ public class DATranscxt extends Transcxt {
 			throws SAXException, IOException, SemanticException, SQLException {
 
 		Utils.logi("Loading database metas...");
-		if (metas == null)
-			metas = new HashMap<String, HashMap<String, TableMeta>>();
-		if (!metas.containsKey(connId))
-			metas.put(connId, Connects.loadMeta(connId));
+//		if (metas == null)
+//			metas = new HashMap<String, HashMap<String, TableMeta>>();
+//		if (!metas.containsKey(connId))
+//			metas.put(connId, Connects.getMeta(connId));
 
 		Utils.logi("Loading Semantics:\n%s", filepath);
 		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
@@ -211,7 +211,7 @@ public class DATranscxt extends Transcxt {
 	}
 	
 	public static HashMap<String, DASemantics> initConfigs(String conn, XMLTable xcfg)
-			throws SAXException, IOException {
+			throws SAXException, IOException, SQLException {
 		xcfg.beforeFirst();
 		if (smtConfigs == null)
 			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
@@ -240,18 +240,18 @@ public class DATranscxt extends Transcxt {
 	}
 
 	public static void addSemantics(String connId, String tabl, String pk,
-			String smtcs, String args) throws SemanticException {
+			String smtcs, String args) throws SemanticException, SQLException {
 		smtype sm = smtype.parse(smtcs);
 		addSemantics(connId, tabl, pk, sm, args);
 	}
 
 	public static void addSemantics(String connId, String tabl, String pk,
-			smtype sm, String args) throws SemanticException {
+			smtype sm, String args) throws SemanticException, SQLException {
 		addSemantics(connId, tabl, pk, sm, LangExt.split(args, ","));
 	}
 
 	public static void addSemantics(String conn, String tabl, String pk,
-			smtype sm, String[] args) throws SemanticException {
+			smtype sm, String[] args) throws SemanticException, SQLException {
 		if (smtConfigs == null) {
 			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
 		}
@@ -278,13 +278,14 @@ public class DATranscxt extends Transcxt {
 	 * @param conn
 	 * @return the basice transact builder
 	 * @throws SemanticException meta is null (must already reported error somewhere else)
+	 * @throws SQLException 
 	 */
-	private static Transcxt getBasicTrans(String conn) throws SemanticException {
+	private static Transcxt getBasicTrans(String conn) throws SemanticException, SQLException {
 		if (basicTrxes == null)
 			basicTrxes = new HashMap<String, Transcxt>();
 		
 		if (!basicTrxes.containsKey(conn)) {
-			DATranscxt tx = new DATranscxt(conn, metas.get(conn));
+			DATranscxt tx = new DATranscxt(conn);
 			basicTrxes.put(conn, tx);
 		}
 		

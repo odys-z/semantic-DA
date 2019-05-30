@@ -225,13 +225,13 @@ public class Connects {
 		return srcs == null ? null : srcs.keySet();
 	}
 
-	public static HashMap<String, TableMeta> loadMeta(String conn) throws SemanticException, SQLException {
+	private static HashMap<String, TableMeta> loadMeta(String conn) throws SemanticException, SQLException {
 		dbtype dt = driverType(conn);
 
 		HashMap<String, TableMeta> metas = new HashMap<String, TableMeta>();
 
 		if (dt == null)
-			throw new SemanticException("Drived type not suppored: %s", dt.name());
+			throw new SemanticException("Drived type not suppored: ", conn);
 		if (dt == dbtype.mysql)
 			metas = MetaBuilder.buildMysql(conn);
 		else if (dt == dbtype.ms2k)
@@ -244,5 +244,18 @@ public class Connects {
 			throw new SemanticException("Drived type not suppored: %s", dt.name());
 
 		return metas;
+	}
+
+	protected static HashMap<String, HashMap<String, TableMeta>> metas;
+	public static HashMap<String, TableMeta> getMeta(String connId) throws SemanticException, SQLException {
+		if (metas == null)
+			metas = new HashMap<String, HashMap<String, TableMeta>>(srcs.size());
+
+		if (!metas.containsKey(connId))
+			metas.put(connId, loadMeta(connId));
+		if (!metas.containsKey(connId))
+			metas.put(connId, new HashMap<String, TableMeta>(0));
+		
+		return metas.get(connId);
 	}
 }

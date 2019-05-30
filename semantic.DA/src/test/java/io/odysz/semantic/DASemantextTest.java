@@ -54,9 +54,8 @@ public class DASemantextTest {
 
 			// load metas, then semantics
 			smtcfg = DATranscxt.initConfigs(connId, "src/test/res/semantics.xml");
+			st = new DATranscxt(connId);
 			metas = DATranscxt.meta(connId);
-
-			st = new DATranscxt(connId, metas);
 
 			SemanticObject jo = new SemanticObject();
 			jo.put("userId", "tester");
