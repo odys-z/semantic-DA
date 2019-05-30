@@ -28,6 +28,10 @@ import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 
 /**Statement manager that providing statements with overridden callback methods.<br>
+ * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
+ * For how to use the created statements, see the testing class:
+ * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/java/io/odysz/semantic/DASemantextTest.java'>
+ * DASemantextTest</a>.</p>
  * This manager can handling semantics configured in xml. See {@link #initConfigs(String, String)}. <br>
  * Every sql building needing semantics handling must use a context instance created by {@link #instancontxt(IUser)}.
  * @author odys-z@github.com
@@ -63,6 +67,13 @@ public class DATranscxt extends Transcxt {
 			}
 	}
 
+	/**Create a select statement.
+	 * <p>This statement is the starting points to build a sql transact for querying.<br>
+	 * For how to use the created statements, see the testing class:
+	 * <a href='https://github.com/odys-z/semantic-transact/blob/master/semantic.transact/src/test/java/io/odysz/transact/sql/TestTransc.java'>
+	 * DASemantextTest</a>.</p>
+	 * @see io.odysz.transact.sql.Transcxt#select(java.lang.String, java.lang.String[])
+	 */
 	@Override
 	public Query select(String tabl, String... alias) {
 		Query q = super.select(tabl, alias);
@@ -87,6 +98,15 @@ public class DATranscxt extends Transcxt {
 		return q;
 	}
 
+	/**Create an insert statement.
+	 * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
+	 * For how to use the created statements, see the testing class:
+	 * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/java/io/odysz/semantic/DASemantextTest.java'>
+	 * DASemantextTest</a>.</p>
+	 * @param tabl
+	 * @param usr
+	 * @return the starting statement
+	 */
 	public Insert insert(String tabl, IUser usr) {
 		Insert i = super.insert(tabl);
 		i.doneOp((sctx, sqls) -> {
@@ -96,6 +116,15 @@ public class DATranscxt extends Transcxt {
 		return i;
 	}
 
+	/**Create an update statement.
+	 * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
+	 * For how to use the created statements, see the testing class:
+	 * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/java/io/odysz/semantic/DASemantextTest.java'>
+	 * DASemantextTest</a>.</p>
+	 * @param tabl
+	 * @param usr
+	 * @return the starting statement
+	 */
 	public Update update(String tabl, IUser usr) {
 		Update u = super.update(tabl);
 		u.doneOp((sctx, sqls) -> {
@@ -105,6 +134,15 @@ public class DATranscxt extends Transcxt {
 		return u;
 	}
 
+	/**Create an update statement.
+	 * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
+	 * For how to use the created statements, see the testing class:
+	 * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/java/io/odysz/semantic/DASemantextTest.java'>
+	 * DASemantextTest</a>.</p>
+	 * @param tabl
+	 * @param usr
+	 * @return the starting statement
+	 */
 	public Delete delete(String tabl, IUser usr) {
 		Delete d = super.delete(tabl);
 		d.doneOp((sctx, sqls) -> {
