@@ -100,10 +100,12 @@ public class Connects {
 				String id = conn.getString("id");
 				if (dmCp == DmConn)
 					srcs.put(id, AbsConnect.initDmConnect(xmlDir, type, conn.getString("src"),
-						conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false)));
+						conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false))
+							.prop("smtcs", conn.getString("smtcs")));
 				else
 					srcs.put(id, AbsConnect.initPooledConnect(xmlDir, type, conn.getString("src"),
-						conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false)));
+						conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false))
+							.prop("smtcs", conn.getString("smtcs")));
 
 				if (conn.getBool("isdef", false)) {
 					if (defltConn != null)
@@ -257,5 +259,14 @@ public class Connects {
 			metas.put(connId, new HashMap<String, TableMeta>(0));
 		
 		return metas.get(connId);
+	}
+
+	/**Get the smtcs file path configured in connects.xml.
+	 * @param conn
+	 * @return smtcs (e.g. semantics.xml)
+	 */
+	public static String getSmtcs(String conn) {
+		return srcs == null || !srcs.containsKey(conn) ? null :
+			srcs.get(conn).prop("smtcs");
 	}
 }

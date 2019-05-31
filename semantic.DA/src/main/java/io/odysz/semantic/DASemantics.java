@@ -250,7 +250,8 @@ public class DASemantics {
 
 	public void addHandler(smtype semantic, String tabl, String recId, String[] args) throws SemanticException {
 		checkParas(tabl, pk, args);
-		checkSmtcs(tabl, semantic);
+		if (isDuplicate(tabl, semantic))
+			return;
 		SemanticHandler handler = null;
 
 		if (smtype.fullpath == semantic)
@@ -306,14 +307,23 @@ public class DASemantics {
 			throw new SemanticException(String.format("adding semantics for target of diferent id field? %s vs. %s", this.pk, pk));
 	}
 	
-	private void checkSmtcs(String tabl, smtype newSmtcs) throws SemanticException {
-		if (handlers == null) return;
+	/**Check is the semantics duplicated?
+	 * @param tabl
+	 * @param newSmtcs
+	 * @return false no duplicating, true duplicated
+	 * @throws SemanticException
+	 */
+	private boolean isDuplicate(String tabl, smtype newSmtcs) throws SemanticException {
+		if (handlers == null) return false;
 		for (SemanticHandler handler : handlers)
-			if (handler.sm == newSmtcs && newSmtcs != smtype.fkIns && newSmtcs != smtype.postFk)
-				throw new SemanticException("Found duplicate semantics: %s %s\nDetails: All semantics configuration is merged into 1 static copy. Each table in every connection can only have one instance of the same smtype.",
+			if (handler.sm == newSmtcs && newSmtcs != smtype.fkIns && newSmtcs != smtype.postFk) {
+				Utils.warn("Found duplicate semantics: %s %s\n" +
+						"Details: All semantics configuration is merged into 1 static copy. Each table in every connection can only have one instance of the same smtype.",
 						tabl, newSmtcs.name());
+				return true;
+			}
+		return false;
 	}
-
 
 	public boolean has(smtype sm) {
 		if (handlers != null)
@@ -500,7 +510,7 @@ public class DASemantics {
 		 */
 		ShAutoK(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.autoInc, tabl, pk, args);
-			if (args == null || args.length == 0 || args[0] == null)
+			if (args == null || args.length == 0 || LangExt.isblank(args[0]))
 				throw new SemanticException("AUTO pk semantics configuration not correct. tabl = %s, pk = %s, args: %s",
 						tabl, pk, LangExt.toString(args));
 			insert = true;

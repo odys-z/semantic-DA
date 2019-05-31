@@ -640,25 +640,63 @@ for (String coln : colnames.keySet())
 	public int printSomeData(boolean err, int max, String... includeCols) {
 		try {
 			printHeaders();
-			if (includeCols != null) {
-				beforeFirst();
-				for (int ix = 0; ix <= max; ix++) {
-					if (!next())
-						break;
-					for (String incCol : includeCols) {
-						if (err)
-							System.err.print(String.format("%s : %s  ", incCol, getString(incCol)));
-						else
-							System.out.print(String.format("%s : %s  ", incCol, getString(incCol)));
+			if (includeCols != null && includeCols.length > 0) {
+				if (!"*".equals(includeCols[0])) {
+					for (int ix = 0; ix < includeCols.length; ix++)
+						if (err) System.err.print("\t" + includeCols[ix]);
+						else System.out.print("\t" + includeCols[ix]);
+
+					// line feed
+					if (err) System.err.println("");
+					else System.out.println("");
+
+					beforeFirst();
+					while (next() && getRow() <= max) {
+						for (String incCol : includeCols) 
+							printcell(err, incCol);
+//					for (int ix = 0; ix <= max; ix++) {
+//						if (!next())
+//							break;
+//						for (String incCol : includeCols) {
+//							if (err)
+//								System.err.print(String.format("%s : %s  ", incCol, getString(incCol)));
+//							else
+//								System.out.print(String.format("%s : %s  ", incCol, getString(incCol)));
+//						}
+
+						// end line
+						if (err) System.err.println("");
+						else System.out.println("");
 					}
-					if (err)
-						System.err.println("");
-					else
-						System.out.println("");
+				}
+				else {
+					beforeFirst();
+					while (next() && getRow() <= max) {
+						for (int c = 1; c <= getColCount(); c++) 
+							printcell(err, c);
+				
+						// end line
+						if (err) System.err.println("");
+						else System.out.println("");
+					}
 				}
 			}
 		} catch (Exception e) {}
 		return results == null ? 0 : results.size();
+	}
+
+	private void printcell(boolean err, String c) throws SQLException {
+		if (err)
+			System.err.print("\t" + getString(c));
+		else
+			System.out.print("\t" + getString(c));
+	}
+
+	private void printcell(boolean err, int c) throws SQLException {
+		if (err)
+			System.err.print(String.format("%s : %s  ", c, getString(c)));
+		else
+			System.out.print(String.format("%s : %s  ", c, getString(c)));
 	}
 
 	private void printHeaders() {

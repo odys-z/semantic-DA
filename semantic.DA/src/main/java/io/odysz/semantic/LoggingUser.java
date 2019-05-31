@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.xml.sax.SAXException;
 
+import io.odysz.common.Utils;
 import io.odysz.semantic.util.SQLString;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
@@ -42,7 +43,7 @@ public class LoggingUser implements IUser {
 		
 		try {
 			// DATranscxt.initConfigs(logConn, "src/test/res/semantic-log.xml");
-			DATranscxt.initConfigs(logConn, logCfgPath);
+			DATranscxt.loadSemantics(logConn, logCfgPath);
 
 			logSemantic = new DATranscxt(logConn); //, DATranscxt.meta(logConn)); 
 		} catch (SAXException | IOException | SemanticException | SQLException e) {
@@ -84,6 +85,8 @@ public class LoggingUser implements IUser {
 				.nv("txt", txt(sqls))
 				.ins(logBuilder.basictx().clone(null)); // Note: must cloned, otherwise there are resulved values.
 		} catch (SQLException e) {
+			Utils.warn("Wrong configuration can leads to this failure. Check includes:\n" +
+					"config.xml/k=log-connId value, make sure the connection is the correct for semantics-log.xml.");
 			// failed case must be a bug - commitLog()'s exception already caught.
 			e.printStackTrace();
 		} catch (TransException e) {

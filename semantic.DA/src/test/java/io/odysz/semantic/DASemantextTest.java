@@ -53,7 +53,7 @@ public class DASemantextTest {
 			Connects.init(path);
 
 			// load metas, then semantics
-			smtcfg = DATranscxt.initConfigs(connId, "src/test/res/semantics.xml");
+			smtcfg = DATranscxt.loadSemantics(connId, "src/test/res/semantics.xml");
 			st = new DATranscxt(connId);
 			metas = DATranscxt.meta(connId);
 

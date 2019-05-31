@@ -15,6 +15,7 @@
   		<pswd>test</pswd>
   		<!-- enable sql printing -->
   		<dbg>true</dbg>
+  		<smtcs>src/test/res/semantics.xml</smtcs>
   	</c>
   	
 	<c>
@@ -25,6 +26,7 @@
   		<usr>???</usr>
   		<pswd>*******</pswd>
   		<dbg>true</dbg>
+  		<smtcs>src/test/res/semantics.xml</smtcs>
   	</c>
 
 	<c>
@@ -35,6 +37,7 @@
   		<usr>???</usr>
   		<pswd>*******</pswd>
   		<dbg>true</dbg>
+  		<smtcs>src/test/res/semantics.xml</smtcs>
 	</c>
 
   </t>
@@ -68,6 +71,7 @@
   		<!-- Not used (will be protected in cipher in the future -->
   		<pswd></pswd>
   		<dbg>true</dbg>
+  		<smtcs>src/test/res/semantics.xml</smtcs>
   	</c>
   </t>
 </conns>

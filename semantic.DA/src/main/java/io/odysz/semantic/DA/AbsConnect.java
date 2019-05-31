@@ -146,9 +146,22 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 	 */
 	protected HashMap<String, ReentrantLock> locks;
 
+	private HashMap<String, String> props;
+
 	public Lock getAutoseqLock(String target) throws SQLException {
 //		if (!_isSqlite)
 //			throw new SQLException ("?? Why needing a lock for " + drvName);
 		return locks.get(target);
+	}
+
+	public AbsConnect<? extends AbsConnect<?>> prop(String k, String v) {
+		if (props == null)
+			props = new HashMap<String, String>();
+		props.put(k, v);
+		return this;
+	}
+
+	public String prop(String k) {
+		return props == null ? null : props.get(k);
 	}
 }
