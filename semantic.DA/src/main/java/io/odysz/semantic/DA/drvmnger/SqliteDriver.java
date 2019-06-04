@@ -12,16 +12,20 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.sqlite.JDBC;
 
-import io.odysz.common.Configs;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.IUser;
 
-/**All instance using the same connection.
- * @author ody
- *
+/**All instance using the same connection.<br>
+ * 
+ * Sqlite connection.<br>
+ * SqliteDriver using sigle connection to avoid error:<br>
+ * see <a href='https://stackoverflow.com/questions/13891006/getting-sqlite-busy-database-file-is-locked-with-select-statements'>
+ * StackOverflow: Getting [SQLITE_BUSY] database file is locked with select statements</a>
+ * 
+ * @author odys-z@github.com
  */
 public class SqliteDriver extends AbsConnect<SqliteDriver> {
 	public static boolean enableSystemout = true;
@@ -31,6 +35,14 @@ public class SqliteDriver extends AbsConnect<SqliteDriver> {
 	static String userName;
 	static String pswd;
 	static String jdbcUrl;
+	
+	/**Sqlite connection.<br>
+	 * SqliteDriver using sigle connection to avoid error:<br>
+	 * org.sqlite.SQLiteException: [SQLITE_BUSY]  The database file is locked (database is locked)<br>
+	 * see <a href='https://stackoverflow.com/questions/13891006/getting-sqlite-busy-database-file-is-locked-with-select-statements'>
+	 * StackOverflow: Getting [SQLITE_BUSY] database file is locked with select statements</a>
+	 */
+	private static Connection conn;
 
 	static {
 		try {
@@ -53,6 +65,8 @@ public class SqliteDriver extends AbsConnect<SqliteDriver> {
 	protected void close() throws SQLException {
 		// This is not correct
 		// https://stackoverflow.com/questions/31530700/static-finally-block-in-java
+		if (conn != null)
+			conn.close();
 		DriverManager.deregisterDriver(drv);
 	}
 
@@ -63,25 +77,18 @@ public class SqliteDriver extends AbsConnect<SqliteDriver> {
 	 */
 	protected static Connection getConnection() throws SQLException {
 		if (!inited) {
-			String isTrue = Configs.getCfg("sqlite.printSQL.enable");
-			enableSystemout = isTrue != null && "true".equals(isTrue.toLowerCase());
-			
-			// Hard coded config: This method is only for debug.
-			jdbcUrl = "jdbc:sqlite:/media/sdb/docs/prjs/works/RemoteServ/WebContent/WEB-INF/remote.db";
-			userName = "remote";
-			pswd = "remote";
-			
-			// FIXME decipher pswd
-			// pswd = Encrypt.DecryptPswdImpl(pswd);
-//			try {
-//				Class.forName("org.sqlite.JDBC").newInstance();
-//			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-//				e.printStackTrace();
-//				throw new SQLException(e.getMessage());
-//			}
+//			String isTrue = Configs.getCfg("sqlite.printSQL.enable");
+//			enableSystemout = isTrue != null && "true".equals(isTrue.toLowerCase());
+//			
+//			jdbcUrl = "jdbc:sqlite:/media/sdb/docs/prjs/works/RemoteServ/WebContent/WEB-INF/remote.db";
+//			userName = "remote";
+//			pswd = "remote";
+//			
+//			if (conn == null)
+//				conn = DriverManager.getConnection(jdbcUrl, userName, pswd);
+//			inited = true;
+			throw new SQLException("Sqlite connection not initialized.");
 		}
-		Connection conn = DriverManager.getConnection(jdbcUrl, userName, pswd);
-		inited = true;
 		return conn;
 	}
 	
@@ -110,6 +117,9 @@ public class SqliteDriver extends AbsConnect<SqliteDriver> {
 //				throw new SQLException(e.getMessage());
 //			}
 
+			if (conn == null)
+				conn = DriverManager.getConnection(jdbcUrl, userName, pswd);
+
 			inited = true;
 		}
 		return new SqliteDriver();
@@ -126,22 +136,12 @@ public class SqliteDriver extends AbsConnect<SqliteDriver> {
 
 		// What about performance?
 		// https://stackoverflow.com/questions/31530700/static-finally-block-in-java
-		conn.close();
+		// conn.close();
 		
 		return icrs;
 	}
 
 	public SResultset select(String sql, int flag) throws SQLException {
-//		Connection conn = getConnection();
-//		DA.printSql(enableSystemout, flag, sql);
-//		Statement stmt = conn.createStatement();
-//		ResultSet rs = stmt.executeQuery(sql);
-//		ICResultset icrs = new ICResultset(rs);
-//		rs.close();
-//		stmt.close();
-//		conn.close();
-//		
-//		return icrs;
 		return selectStatic(sql, flag);
 	}
 	

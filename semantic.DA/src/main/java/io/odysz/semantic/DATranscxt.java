@@ -191,7 +191,8 @@ public class DATranscxt extends Transcxt {
 		if (!smtConfigs.containsKey(conn)) {
 			String fpath = Connects.getSmtcs(conn);
 			if (LangExt.isblank(fpath, "\\."))
-				throw new SemanticException("Trying to find semantics of conn %s, but the configuration path is empty.", conn);
+				throw new SemanticException("Trying to find semantics of conn %s, but the configuration path is empty.\n" +
+							"No 'smtcs' configured in connexts.xml?", conn);
 			fpath = FilenameUtils.concat(cfgRoot, fpath);
 			smtConfigs.put(conn, loadSemantics(conn, fpath));
 		}

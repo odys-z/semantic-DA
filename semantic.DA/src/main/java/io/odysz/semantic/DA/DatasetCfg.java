@@ -371,8 +371,9 @@ public class DatasetCfg {
 		List<SemanticObject> childrenArray  = new ArrayList<SemanticObject>();
 		while (rs.next()) {
 			if (parentId == null || parentNode == null) {
-				Utils.warn("Found children for null parent. Parent: %s", parentNode.toString());
+				Utils.warn("Found children for null parent. Parent: %s\n", parentNode.toString());
 				Utils.warn(rs.getRowAt(rs.getRow()));
+				Utils.warn("\n-- -- -- -- This is a common error when tree structure is broken, check data of recently printed sql.");
 				throw new SemanticException("Found children for null parent. Check the data queried by recent committed SQL.");
 			}
 
@@ -461,19 +462,9 @@ public class DatasetCfg {
 			else
 				throw new SemanticException("unsupported db type: %s", driver);
 		}
-		
-		/**
-		 * @param bumps bump case col names
-		 * @return [key = UPPER-CASE, value = bumpCase]
-		private HashMap<String, String> upper_bumpCase(String[] bumps) {
-			if (bumps == null) return null;
-			HashMap<String, String> colMaps = new HashMap<String, String>();
-			for (String bump : bumps) {
-				if (bump == null) continue;
-				colMaps.put(bump.toUpperCase(), bump);
-			}
-			return colMaps;
+
+		public String sk() {
+			return k;
 		}
-		 */
 	}
 }
