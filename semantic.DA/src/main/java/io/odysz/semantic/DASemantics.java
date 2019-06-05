@@ -241,6 +241,8 @@ public class DASemantics {
 				return stamp1MoreThanRefee;
 			else if ("clob".equals(type) || "orclob".equals(type))
 				return orclob;
+			else if ("att".equals(type) || "attaches".equals(type))
+				return attaches;
 			else throw new SemanticException("semantics not known, type: " + type);
 		}
 	}
@@ -257,7 +259,6 @@ public class DASemantics {
 
 	///////////////////////////////// container class ///////////////////////////////
 	private ArrayList<SemanticHandler> handlers;
-//	private boolean hasAutopk = false;
 
 	private String tabl;
 	private String pk;
@@ -280,10 +281,8 @@ public class DASemantics {
 
 		if (smtype.fullpath == semantic)
 			handler = new ShFullpath(basicTsx, tabl, recId, args);
-		else if (smtype.autoInc == semantic) {
+		else if (smtype.autoInc == semantic)
 			handler = new ShAutoK(basicTsx, tabl, recId, args);
-//			hasAutopk = true;
-		}
 		else if (smtype.fkIns == semantic)
 			handler = new ShFkOnIns(basicTsx, tabl, recId, args);
 		else if (smtype.parentChildrenOnDel == semantic)
@@ -302,6 +301,8 @@ public class DASemantics {
 			handler = new ShChkPCInsert(basicTsx, tabl, recId, args);
 		else if (smtype.postFk == semantic)
 			handler = new ShPostFk(basicTsx, tabl, recId, args);
+		else if (smtype.attaches == semantic)
+			handler = new ShAttaches(basicTsx, tabl, recId, args);
 //		else if (smtype.composingCol == semantic)
 //			addComposings(tabl, recId, argss);
 //		else if (smtype.stamp1MoreThanRefee == semantic)
@@ -732,34 +733,56 @@ public class DASemantics {
 	}
 	
 	static class ShAttaches extends SemanticHandler {
+		/* <p>args: [0]: delete old (boolean, not support yet), [1]: root-path,<br>
+		 * [2]: attachment table, [3]: attach-id, [4]: path-field, [5]: client-name (optional)<br>
+		 * [6]: busi-cate, [7]: busi-id,<br>
+		 * [8]: user-id (optinal), [9]: date-time (optional) <br>*/
+		static final int ixDel = 0;
+		static final int ixRoot = 1;
+		static final int ixTabl = 2;
+		static final int ixPk = 3;
+		/**Index of Path field */
+		static final int ixPath = 4;
+		/**Index of client file name */
+		static final int ixFname = 5;
+		static final int ixBcate = 6;
+		static final int ixBfk = 7;
+		static final int ixOp = 8;
+		static final int ixOptime = 9;
+		
+		boolean deleteIfUpdate = false;
+		String rootpath = "";
 
 		ShAttaches(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.attaches, tabl, pk, args);
 			// delete = true;
 			insert = true;
 			// update = true;
+			
+			deleteIfUpdate = Boolean.valueOf(args[ixDel]);
+			rootpath = args[ixRoot];
 		}
 
 		@Override
-		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-			To be continued
-			if (args.length > 1 && args[1] != null) {
-				Object[] nv;
-				if (cols.containsKey(args[0])			// with nv from client
-					&& cols.get(args[0]) < row.size())	// with nv must been generated from semantics
-					nv = row.get(cols.get(args[0]));
-				else {
-					nv = new Object[2];
-					cols.put(args[0], row.size());
-					row.add(nv);
-				}
-				nv[0] =  args[0];
-				if (nv[1] == null)
-					nv[1] = args[1];
-				else if ("".equals(nv[1]) && args[1] != null && !args[1].equals(""))
-					// this is not robust but any better way to handle empty json value?
-					nv[1] = args[1];
-			}
+		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr,
+				ArrayList<String> sqlBuff) {
+//			if (args.length > 1 && args[1] != null) {
+//				Object[] nv;
+//				if (cols.containsKey(args[0])			// with nv from client
+//					&& cols.get(args[0]) < row.size())	// with nv must been generated from semantics
+//					nv = row.get(cols.get(args[0]));
+//				else {
+//					nv = new Object[2];
+//					cols.put(args[0], row.size());
+//					row.add(nv);
+//				}
+//				nv[0] =  args[0];
+//				if (nv[1] == null)
+//					nv[1] = args[1];
+//				else if ("".equals(nv[1]) && args[1] != null && !args[1].equals(""))
+//					// this is not robust but any better way to handle empty json value?
+//					nv[1] = args[1];
+//			}
 		}
 		
 		@Override
