@@ -181,7 +181,31 @@ public class DASemantics {
 		stamp1MoreThanRefee,
 		/** "clob" | "orclob": the column is a CLOB field, semantic-transact will read/write separately in stream and get final results.<br>
 		 * Handler: TODO? */
-		orclob;
+		orclob,
+		/**Attach Attachments to Attaching Table (saving file in file system)<br>
+		 * xml/smtc = "att" | "attaches" <br>
+		 * Take the update statement's attaches field as a separated [file, content] 2d arrays.
+		 * When updating, save it to file system, then add an update/delete-update sql(s) to the batched sqls.<br>
+		 * on-events: insert, update<br>
+		 * <p>args: [0]: delete old (boolean, not support yet), [1]: root-path,<br>
+		 * [2]: attachment table, [3]: attach-id, [4]: path-field, [5]: client-name (optional)<br>
+		 * [6]: busi-cate, [7]: busi-id,<br>
+		 * [8]: user-id (optinal), [9]: date-time (optional) <br>
+		 * e.g. <br>false, uploads, <br>
+		 * attId, attached, subPath,<br>
+		 * recTable, recId, oper, optime</p>
+		 * Handler: {@link DASemantics.ShAutoK} <br>
+		 * Attechment info's table sql (mysql)<pre>CREATE TABLE `a_attaches` (
+	  `attId` varchar(20) COLLATE utf8mb4_bin NOT NULL,
+	  `attName` varchar(50) CHARACTER SET utf8mb4 DEFAULT NULL,
+	  `subPath` varchar(100) COLLATE utf8mb4_bin DEFAULT NULL,
+	  `busiTbl` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+	  `recId` varchar(20) COLLATE utf8mb4_bin DEFAULT NULL,
+	  `oper` varchar(20) COLLATE utf8mb4_bin DEFAULT NULL,
+	  `optime` datetime DEFAULT NULL,
+	  PRIMARY KEY (`attId`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin</pre>*/
+		attaches;
 
 		/**Note: we don't use enum.valueOf(), because of fault / fuzzy tolerate.
 		 * @param type
@@ -673,7 +697,7 @@ public class DASemantics {
 		ShDefltVal(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.defltVal, tabl, recId, args);
 			insert = true;
-			update = true;
+			// update = true;
 			
 			args[1] = dequote(args[1]);
 		}
@@ -704,6 +728,49 @@ public class DASemantics {
 			if (dv != null && dv instanceof String && regQuot.match((String)dv))
 				return ((String)dv).replaceAll("^\\s*'", "").replaceFirst("'\\s*$", "");
 			return (String) dv;
+		}
+	}
+	
+	static class ShAttaches extends SemanticHandler {
+
+		ShAttaches(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
+			super(trxt, smtype.attaches, tabl, pk, args);
+			// delete = true;
+			insert = true;
+			// update = true;
+		}
+
+		@Override
+		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			To be continued
+			if (args.length > 1 && args[1] != null) {
+				Object[] nv;
+				if (cols.containsKey(args[0])			// with nv from client
+					&& cols.get(args[0]) < row.size())	// with nv must been generated from semantics
+					nv = row.get(cols.get(args[0]));
+				else {
+					nv = new Object[2];
+					cols.put(args[0], row.size());
+					row.add(nv);
+				}
+				nv[0] =  args[0];
+				if (nv[1] == null)
+					nv[1] = args[1];
+				else if ("".equals(nv[1]) && args[1] != null && !args[1].equals(""))
+					// this is not robust but any better way to handle empty json value?
+					nv[1] = args[1];
+			}
+		}
+		
+		@Override
+		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			Utils.warn("DASemantics.ShAttaches#onUpdate(): TODO ...");
+		}
+		
+		@Override
+		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt,
+				Condit whereCondt, IUser usr) throws TransException {
+			Utils.warn("DASemantics.ShAttaches#onDelete(): TODO ...");
 		}
 	}
 	

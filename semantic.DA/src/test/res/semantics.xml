@@ -92,9 +92,23 @@
   		<pk>userId</pk>
   		<args>pswd,123456</args>
   	</s>
-	<!-- a_user.userName check same on insert -->
+  	<!-- attachments to a_user -->
   	<s>
   		<id>52</id>
+  		<smtc>att</smtc>
+  		<tabl>a_users</tabl>
+  		<pk>userId</pk>
+  		<!-- try delete, save to WEB-INF/uploads/[busiTbl]/[uri],
+  				in table attches, pk attId, fire-uri, client name, business, busi-id, oper, time
+  			uri rule: busiTbl-recId-attName(.suffix)
+  			see https://odys-z.github.io/javadoc/semantic.DA/io/odysz/semantic/DASemantics.smtype.html
+  				-->
+  		<args>true,uploads,attaches,attId,uri,attName,busiTbl,recId,oper,optime</args>
+  	</s>
+  	
+	<!-- a_user.userName check same on insert -->
+  	<s>
+  		<id>5A</id>
   		<smtc>ck-cnt-ins</smtc>
   		<tabl>a_users</tabl>
   		<pk>userId</pk>
@@ -104,7 +118,7 @@
 	<!-- a_role.roleId - a_role_func parent-child relationship.
 		 delete all children on delete -->
   	<s>
-  		<id>53</id>
+  		<id>5B</id>
   		<smtc>pc-del-all</smtc>
   		<tabl>a_roles</tabl>
   		<pk>roleId</pk>
