@@ -15,11 +15,16 @@ import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Delete;
+import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
+import io.odysz.transact.sql.Update;
+import io.odysz.transact.sql.parts.ExtFile;
 import io.odysz.transact.sql.parts.Logic;
+import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Condit;
+import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
@@ -183,18 +188,13 @@ public class DASemantics {
 		 * Handler: TODO? */
 		orclob,
 		/**Attach Attachments to Attaching Table (saving file in file system)<br>
-		 * xml/smtc = "att" | "attaches" <br>
-		 * Take the update statement's attaches field as a separated [file, content] 2d arrays.
-		 * When updating, save it to file system, then add an update/delete-update sql(s) to the batched sqls.<br>
+		 * xml/smtc = "ef" | "xf" | "ext-file" | "e-f" | "x-f" <br>
+		 * Take the update statement's file field as a separated file clob (base 64 encoded).
+		 * When updating, save it to file system, then replace the nv's v with filename<br>
 		 * on-events: insert, update<br>
-		 * <p>args: [0]: delete old (boolean, not support yet), [1]: root-path,<br>
-		 * [2]: attachment table, [3]: attach-id, [4]: path-field, [5]: client-name (optional)<br>
-		 * [6]: busi-cate, [7]: busi-id,<br>
-		 * [8]: user-id (optinal), [9]: date-time (optional) <br>
-		 * e.g. <br>false, uploads, <br>
-		 * attId, attached, subPath,<br>
-		 * recTable, recId, oper, optime</p>
-		 * Handler: {@link DASemantics.ShAutoK} <br>
+		 * <p>args: [0]: root-path,<br>
+		 * [1]:... TODO
+		 * Handler: {@link DASemantics.ShExtFile} <br>
 		 * Attechment info's table sql (mysql)<pre>CREATE TABLE `a_attaches` (
 	  `attId` varchar(20) COLLATE utf8mb4_bin NOT NULL,
 	  `attName` varchar(50) CHARACTER SET utf8mb4 DEFAULT NULL,
@@ -204,8 +204,18 @@ public class DASemantics {
 	  `oper` varchar(20) COLLATE utf8mb4_bin DEFAULT NULL,
 	  `optime` datetime DEFAULT NULL,
 	  PRIMARY KEY (`attId`)
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin</pre>*/
-		attaches;
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin</pre>
+		 * sqlite:<pre>CREATE TABLE a_attaches (
+	attId TEXT NOT NULL,
+	attName TEXT,
+	uri TEXT,
+	busiTbl TEXT,
+	busiId TEXT,
+	oper TEXT,
+	optime DATETIME,
+	CONSTRAINT a_attaches_PK PRIMARY KEY (attId)) ;</pre>
+		 */
+		extFile;
 
 		/**Note: we don't use enum.valueOf(), because of fault / fuzzy tolerate.
 		 * @param type
@@ -241,8 +251,9 @@ public class DASemantics {
 				return stamp1MoreThanRefee;
 			else if ("clob".equals(type) || "orclob".equals(type))
 				return orclob;
-			else if ("att".equals(type) || "attaches".equals(type))
-				return attaches;
+			else if ("ef".equals(type) || "e-f".equals(type) || "ext-file".equals(type)
+					|| "xf".equals(type) || "x-f".equals(type) )
+				return extFile;
 			else throw new SemanticException("semantics not known, type: " + type);
 		}
 	}
@@ -301,8 +312,8 @@ public class DASemantics {
 			handler = new ShChkPCInsert(basicTsx, tabl, recId, args);
 		else if (smtype.postFk == semantic)
 			handler = new ShPostFk(basicTsx, tabl, recId, args);
-		else if (smtype.attaches == semantic)
-			handler = new ShAttaches(basicTsx, tabl, recId, args);
+		else if (smtype.extFile == semantic)
+			handler = new ShExtFile(basicTsx, tabl, recId, args);
 //		else if (smtype.composingCol == semantic)
 //			addComposings(tabl, recId, argss);
 //		else if (smtype.stamp1MoreThanRefee == semantic)
@@ -357,20 +368,19 @@ public class DASemantics {
 					return true;
 		return false;
 	}
-//	public boolean isPrepareInsert() { return hasAutopk; }
 
-	public void onInsert(ISemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+	public void onInsert(ISemantext semantx, Insert statemt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
 				if (handler.insert)
-					handler.onInsert(semantx, row, cols, usr);
+					handler.onInsert(semantx, statemt, row, cols, usr);
 	}
 
-	public void onUpdate(ISemantext semantx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+	public void onUpdate(ISemantext semantx, Update satemt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
 				if (handler.update)
-					handler.onUpdate(semantx, row, cols, usr);
+					handler.onUpdate(semantx, satemt, row, cols, usr);
 	}
 
 	public void onDelete(ISemantext semantx, Statement<? extends Statement<?>> stmt,
@@ -419,8 +429,8 @@ public class DASemantics {
 		}
 
 //		void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {}
-		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
-		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
+		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
+		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {}
 
 		/**Handle onDelete event.
 		 * @param stx
@@ -464,7 +474,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		void onInsert(ISemantext stx, Insert insert, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			String sibling = null;
 			try { sibling = (String) row.get(cols.get(args[1]))[1];}
 			catch (Exception e) {}
@@ -517,8 +527,9 @@ public class DASemantics {
 		}
 		
 		@Override
-		void onUpdate(ISemantext sxt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-			onInsert(sxt, row, cols, usr);
+		void onUpdate(ISemantext sxt, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			// Design Memo: statement parameter (updt, or insert for onInsert()) is not used
+			onInsert(sxt, null, row, cols, usr);
 		}
 	}
 
@@ -544,7 +555,7 @@ public class DASemantics {
 		
 		@Override
 		// void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			Object[] nv;
 			if (cols.containsKey(args[0])			// with nv from client
 				&& cols.get(args[0]) < row.size())	// with nv must been generated from semantics
@@ -585,7 +596,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			Object[] nv;
 			// Debug Note:
 			// Don't use pk to find referencing col here, related table's pk can be null.
@@ -704,7 +715,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			if (args.length > 1 && args[1] != null) {
 				Object[] nv;
 				if (cols.containsKey(args[0])			// with nv from client
@@ -732,7 +743,10 @@ public class DASemantics {
 		}
 	}
 	
-	static class ShAttaches extends SemanticHandler {
+	/**Save configured nv as file
+	 * @author odys-z@github.com
+	 */
+	static class ShExtFile extends SemanticHandler {
 		/* <p>args: [0]: delete old (boolean, not support yet), [1]: root-path,<br>
 		 * [2]: attachment table, [3]: attach-id, [4]: path-field, [5]: client-name (optional)<br>
 		 * [6]: busi-cate, [7]: busi-id,<br>
@@ -753,8 +767,8 @@ public class DASemantics {
 		boolean deleteIfUpdate = false;
 		String rootpath = "";
 
-		ShAttaches(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
-			super(trxt, smtype.attaches, tabl, pk, args);
+		ShExtFile(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
+			super(trxt, smtype.extFile, tabl, pk, args);
 			// delete = true;
 			insert = true;
 			// update = true;
@@ -764,29 +778,43 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr,
-				ArrayList<String> sqlBuff) {
-//			if (args.length > 1 && args[1] != null) {
-//				Object[] nv;
-//				if (cols.containsKey(args[0])			// with nv from client
-//					&& cols.get(args[0]) < row.size())	// with nv must been generated from semantics
-//					nv = row.get(cols.get(args[0]));
-//				else {
-//					nv = new Object[2];
-//					cols.put(args[0], row.size());
-//					row.add(nv);
-//				}
-//				nv[0] =  args[0];
-//				if (nv[1] == null)
-//					nv[1] = args[1];
-//				else if ("".equals(nv[1]) && args[1] != null && !args[1].equals(""))
-//					// this is not robust but any better way to handle empty json value?
-//					nv[1] = args[1];
-//			}
+		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			if (args.length > 1 && args[1] != null) {
+				Object[] nv;
+				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId
+				if (cols.containsKey(args[1])) {
+					// save file, replace v
+					nv = row.get(cols.get(args[1]));
+					if (nv != null && nv[1] != null
+						&& nv[1] instanceof String && ((String)nv[1]).length() > 0) {
+
+						// find business category
+						String busi = (String) row.get(cols.get(args[2]))[1];
+						try {
+							// save to WEB-INF/uploads/[busiTbl]/[uri]
+							String pth = stx.pathname(args[0], busi);
+
+							// can be a string or an auto resulving
+							Object fn = row.get(cols.get(idField))[1];
+
+							ExtFile f;
+							if (fn instanceof Resulving)
+								f = new ExtFile((Resulving)fn);
+							else // must be a string
+								f = new ExtFile(new ExprPart((String)fn));
+							
+							f.prefixPath(pth).b64((String) nv[1]);
+							nv[1] = f;
+						} catch (TransException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
 		}
 		
 		@Override
-		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			Utils.warn("DASemantics.ShAttaches#onUpdate(): TODO ...");
 		}
 		
@@ -844,7 +872,6 @@ public class DASemantics {
 				throw new TransException(e.getMessage());
 			}
 		}
-		
 	}
 	
 	static class ShChkPCInsert extends SemanticHandler {
@@ -854,7 +881,7 @@ public class DASemantics {
 		}
 		
 		@Override
-		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 			if (args.length > 1 && args[1] != null) {
 				Object[] nv = new Object[args.length - 1];
 				
@@ -903,7 +930,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			// operTiem
 			if (args.length > 1 && args[1] != null) {
 				Object[] nvTime;
@@ -939,8 +966,9 @@ public class DASemantics {
 			nvOper[1] = usr == null ? "sys" : usr.uid();
 		}
 		
-		void onUpdate(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-			onInsert(stx, row, cols, usr);
+		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			// Design Memo: insrt is not used in onInsert
+			onInsert(stx, null, row, cols, usr);
 		}
 	}
 

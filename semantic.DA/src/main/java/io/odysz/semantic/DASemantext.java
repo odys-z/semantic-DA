@@ -106,7 +106,7 @@ public class DASemantext implements ISemantext {
 				DASemantics s = ss.get(tabl);
 				if (s == null)
 					continue;
-				s.onInsert(this, row, cols, usr);
+				s.onInsert(this, insert, row, cols, usr);
 			}
 		return this;
 	}
@@ -117,7 +117,7 @@ public class DASemantext implements ISemantext {
 			Map<String, Integer> cols = update.getColumns();
 			DASemantics s = ss.get(tabl);
 			if (s != null)
-				s.onUpdate(this, nvs, cols, usr);
+				s.onUpdate(this, update, nvs, cols, usr);
 		}
 		return this;
 	}
@@ -443,6 +443,12 @@ end;
 	@Override
 	public TableMeta colType(String tabl) {
 		return metas.get(tabl);
+	}
+
+	@Override
+	public String pathname(String... sub) throws TransException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

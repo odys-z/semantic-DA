@@ -524,4 +524,46 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				sqls.get(2));
 	}
 	
+	@Test
+	public void testExtfile() throws TransException, SQLException {
+		String flag = DateFormat.formatime(new Date());
+		String usrName = "attached " + flag;
+
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr);
+		ArrayList<String> sqls = new ArrayList<String>(1);
+		st.insert("a_users") // with default value: pswd = '123456'
+			.nv("userName", usrName)
+			.nv("roleId", "attach-01")
+			.nv("orgId", "R.C.")
+			.nv("birthday", Funcall.toDate(dbtype.sqlite, "1866-12-12"))
+			.post(st.insert("a_attaches")
+					.nv("attName", "portrait")  // name: portrait
+					.nv("busiTbl", "a_user")
+					.nv("busiId", new Resulving("a_user", "userId"))
+					.nv("uri", readB64("Sun Yet-sen.jpg")))
+			.commit(s0, sqls);
+		Connects.commit(usr , sqls);
+
+		sqls.clear();
+		
+		String attId = (String)s0.resulvedVal("a_attaches", "attId");
+		
+		st.select("a_attaches", "f")
+			.whereEq("attId", attId)
+			.commit(sqls, usr);
+
+		// assert 2 default value pswd = '123456'
+		SResultset rs = Connects.select(sqls.get(0));
+		rs.beforeFirst().next();
+		File f = new File(rs.getString("uri"));
+		assertTrue(f.exists());
+		
+		// TODO test delete files
+	
+	}
+
+	private Object readB64(String string) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
