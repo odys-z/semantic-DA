@@ -1643,4 +1643,18 @@ public class FilenameUtils {
         }
         return true;
     }
+
+	/**Concatenates a fileName to a base path using normal command line style rules.
+	 * @see #concat(String, String)
+	 * @param basePath
+	 * @param sub
+	 * @return the concatenated path, or null if invalid. Null bytes inside string will be removed
+	 */
+	public static String concat(final String basePath, String... sub) {
+		String p = basePath;
+		if (sub != null && sub.length > 0)
+			for (String s : sub)
+				p = concat(p, s);
+		return p;
+	}
 }

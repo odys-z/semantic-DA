@@ -6,6 +6,9 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -15,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 
+import io.odysz.common.AESHelper;
 import io.odysz.common.DateFormat;
 import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
@@ -43,6 +47,8 @@ public class DASemantextTest {
 	private static HashMap<String, DASemantics> smtcfg;
 	private static HashMap<String, TableMeta> metas;
 
+	private static String rtroot = ".";
+
 	static {
 		try {
 			Utils.printCaller(false);
@@ -53,6 +59,7 @@ public class DASemantextTest {
 			Connects.init(path);
 
 			// load metas, then semantics
+			DATranscxt.configRoot(rtroot, rtroot);
 			smtcfg = DATranscxt.loadSemantics(connId, "src/test/res/semantics.xml");
 			st = new DATranscxt(connId);
 			metas = DATranscxt.meta(connId);
@@ -69,6 +76,7 @@ public class DASemantextTest {
 		}
 	
 	}
+
 	/**Use this to reset semantic-DA.db ( a sqlite3 db file).<pre>
 drop TABLE a_logs;
 drop TABLE oz_autoseq;
@@ -106,15 +114,30 @@ DELETE from a_roles;</pre>
 					"  txt text(4000),\n" + 
 					"  CONSTRAINT oz_logs_pk PRIMARY KEY (logId))");
 			sqls.add("insert into oz_autoseq (sid, seq, remarks) values" +
+					"('a_attaches.attId', 0, 'attachements')," +
 					"('a_functions.funcId', 0, 'test')," +
+					"('a_logs.logId', 0, 'test')," +
+					"('a_orgs.orgId', 0, 'test')," + 
 					"('a_roles.roleId', 0, 'test')," + 
 					"('a_users.userId', 0, 'test')," +
-					"('crs_a.aid', 0, 'test')," + 
-					"('crs_b.bid', 8, 'test')," +
-					"('b_alarms.alarmId', 0, 'cascade-ancestor')," +
 					"('b_alarm_logic.logicId', 64 * 4, 'cascade-parent')," +
+					"('b_alarms.alarmId', 0, 'cascade-ancestor')," +
 					"('b_logic_device.deviceLogId', 64 * 64, 'cascade-child')," +
-					"('a_logs.logId', 0, 'test')");
+					"('crs_a.aid', 0, 'test')," + 
+					"('crs_b.bid', 128 * 64, 'test')"
+					);
+			sqls.add("delete from a_attaches");
+			sqls.add("delete from a_functions");
+			sqls.add("delete from a_logs");
+			sqls.add("delete from a_orgs");
+			sqls.add("delete from a_role_func");
+			sqls.add("delete from a_roles");
+			sqls.add("delete from a_users");
+			sqls.add("delete from b_alarm_logic");
+			sqls.add("delete from b_alarms");
+			sqls.add("delete from b_logic_device");
+			sqls.add("delete from crs_a");
+			sqls.add("delete from crs_b");
 			sqls.add("insert into a_functions\n" +
 					"(flags, funcId, funcName, fullpath) " + 
 					"values ( '1911-10-10', '------', 'Sun Yat-sen', '-')");
@@ -129,7 +152,7 @@ DELETE from a_roles;</pre>
 	public void testInsert() throws TransException, SQLException, SAXException, IOException {
 		String flag = DateFormat.format(new Date());
 
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr);
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_functions")
 			.nv("flags", flag)
@@ -142,7 +165,7 @@ DELETE from a_roles;</pre>
 		assertEquals(6, ((String) s0.resulvedVal("a_functions", "funcId")).length());
 		
 		// level 2
-		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr);
+		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
 		st.insert("a_functions")
 			.nv("flags", flag)
 			// .nv("funcId", "AUTO")
@@ -159,7 +182,7 @@ DELETE from a_roles;</pre>
 
 	@Test
 	public void testBatch() throws TransException, SQLException, SAXException, IOException {
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr);
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		Insert f1 = st.insert("a_role_func")
 				.nv("funcId", "000001");
@@ -173,7 +196,7 @@ DELETE from a_roles;</pre>
 		newuser.commit(s0, sqls);
 		Connects.commit(usr , sqls);
 		
-		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr);
+		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
 		String newId = (String) s0.resulvedVal("a_roles", "roleId");
 		SemanticObject s = st
 				.select("a_role_func", "rf")
@@ -203,7 +226,7 @@ DELETE from a_roles;</pre>
 	 */
 	@Test
 	public void testCrossAutoK() throws TransException, SQLException {
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr);
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		Insert f1 = st.insert("crs_a")
 				.nv("remarka", Funcall.now(dbtype.sqlite))
@@ -243,7 +266,7 @@ DELETE from a_roles;</pre>
 					sqls.get(0));
 		
 		sqls.clear();
-		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr);
+		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
 		st.insert("crs_b")
 			.nv("remarkb", "1911-10-10")
 			.post(st.update("crs_a")
@@ -277,7 +300,7 @@ DELETE from a_roles;</pre>
 		String flag = DateFormat.formatime(new Date());
 		String usrName = "01 " + flag;
 
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr);
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_users") // with default value: pswd = '123456'
 			.nv("userName", usrName)
@@ -480,7 +503,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	public void testMultiChildInst() throws TransException {
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		String dt = DateFormat.format(new Date());
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr);
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
 		st.insert("b_alarms")
 				.nv("remarks", Funcall.now(dbtype.sqlite))
 				.nv("typeId", "02-alarm")
@@ -504,7 +527,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// because b_alarm is updating, no auto key generated,
 		// so child fk should provided by client, and won't been resulved.
 		sqls.clear();
-		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr);
+		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
 		st.update("b_alarms")
 			.nv("remarks", "updated")
 			.where_("=", "alarmId", alarmId)
@@ -525,11 +548,11 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	}
 	
 	@Test
-	public void testExtfile() throws TransException, SQLException {
+	public void testExtfile() throws TransException, SQLException, IOException {
 		String flag = DateFormat.formatime(new Date());
 		String usrName = "attached " + flag;
 
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr);
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_users") // with default value: pswd = '123456'
 			.nv("userName", usrName)
@@ -539,8 +562,8 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.post(st.insert("a_attaches")
 					.nv("attName", "portrait")  // name: portrait
 					.nv("busiTbl", "a_user")
-					.nv("busiId", new Resulving("a_user", "userId"))
-					.nv("uri", readB64("Sun Yet-sen.jpg")))
+					.nv("busiId", new Resulving("a_users", "userId"))
+					.nv("uri", readB64("src/test/res/Sun Yet-sen.jpg")))
 			.commit(s0, sqls);
 		Connects.commit(usr , sqls);
 
@@ -562,8 +585,9 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	
 	}
 
-	private Object readB64(String string) {
-		// TODO Auto-generated method stub
-		return null;
+	private String readB64(String filename) throws IOException {
+		Path p = Paths.get(filename);
+		byte[] f = Files.readAllBytes(p);
+		return AESHelper.encode64(f);
 	}
 }

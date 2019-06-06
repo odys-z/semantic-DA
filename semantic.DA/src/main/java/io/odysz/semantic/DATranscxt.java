@@ -38,9 +38,14 @@ import io.odysz.transact.sql.Update;
  * @author odys-z@github.com
  */
 public class DATranscxt extends Transcxt {
-	static String cfgRoot = ""; 
-	public static void configRoot(String rootINF) { cfgRoot = rootINF; }
+	static String cfgroot = ""; 
+	/** configuration's root */
+	public static void configRoot(String cfgRoot, String runtimeRoot) {
+		cfgroot = cfgRoot;
+		runtimepath = runtimeRoot;
+	}
 
+	static String runtimepath = "";
 	/**Get meta of connId
 	 * @param connId
 	 * @return
@@ -56,6 +61,7 @@ public class DATranscxt extends Transcxt {
 
 	/**[conn, [table, DASemantics] */
 	protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
+
 //	public static HashMap<String, HashMap<String,DASemantics>> smtConfigs() { return smtConfigs; }
 //	public static HashMap<String, DASemantics> smtCfonfigs(String conn) {
 //		return smtConfigs.get(conn);
@@ -72,7 +78,7 @@ public class DATranscxt extends Transcxt {
 		else
 			try {
 				// return new DASemantext(basiconnId, smtConfigs.get(basiconnId), meta(basiconnId), usr);
-				return new DASemantext(basiconnId, getSmtcs(basiconnId), meta(basiconnId), usr);
+				return new DASemantext(basiconnId, getSmtcs(basiconnId), meta(basiconnId), usr, runtimepath);
 			} catch (SemanticException | SQLException | SAXException | IOException e) {
 				e.printStackTrace(); // meta is null? shouldn't happen because this instance is already created
 				return null;
@@ -180,7 +186,7 @@ public class DATranscxt extends Transcxt {
 	public DATranscxt(String conn) throws SemanticException, SQLException, SAXException, IOException {
 		// super(new DASemantext(conn, smtConfigs == null ? null : smtConfigs.get(conn),
 		super(new DASemantext(conn, getSmtcs(conn),
-				Connects.getMeta(conn), null));
+				Connects.getMeta(conn), null, runtimepath));
 		this.basiconnId = conn;
 	}
 
@@ -193,7 +199,7 @@ public class DATranscxt extends Transcxt {
 			if (LangExt.isblank(fpath, "\\."))
 				throw new SemanticException("Trying to find semantics of conn %s, but the configuration path is empty.\n" +
 							"No 'smtcs' configured in connexts.xml?", conn);
-			fpath = FilenameUtils.concat(cfgRoot, fpath);
+			fpath = FilenameUtils.concat(cfgroot, fpath);
 			smtConfigs.put(conn, loadSemantics(conn, fpath));
 		}
 		return smtConfigs.get(conn);
@@ -209,7 +215,7 @@ public class DATranscxt extends Transcxt {
 	 * @throws SemanticException 
 	 * @throws SQLException 
 	 */
-	public static HashMap<String, DASemantics> loadSemantics(String connId, String filepath)
+	public static HashMap<String, DASemantics> loadSemantics(String connId, String cfgpath)
 			throws SAXException, IOException, SemanticException, SQLException {
 
 //		Utils.logi("Loading database metas...");
@@ -218,9 +224,9 @@ public class DATranscxt extends Transcxt {
 //		if (!metas.containsKey(connId))
 //			metas.put(connId, Connects.getMeta(connId));
 
-		Utils.logi("Loading Semantics:\n\t%s", filepath);
+		Utils.logi("Loading Semantics:\n\t%s", cfgpath);
 		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
-				new Log4jWrapper("").setDebugMode(false), filepath, new IXMLStruct() {
+				new Log4jWrapper("").setDebugMode(false), cfgpath, new IXMLStruct() {
 						@Override public String rootTag() { return "semantics"; }
 						@Override public String tableTag() { return "t"; }
 						@Override public String recordTag() { return "s"; }});

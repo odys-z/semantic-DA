@@ -10,6 +10,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.io.FilenameUtils;
+
 import io.odysz.common.Radix64;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
@@ -52,6 +54,8 @@ public class DASemantext implements ISemantext {
 	private IUser usr;
 	private String connId;
 
+	private String basePath;
+
 	/**for generating sqlite auto seq */
 	private static IUser sqliteDumyUser;
 
@@ -65,7 +69,7 @@ public class DASemantext implements ISemantext {
 	 * @throws SemanticException metas is null 
 	 */
 	DASemantext(String connId, HashMap<String, DASemantics> smtcfg,
-			HashMap<String, TableMeta> metas, IUser usr) throws SemanticException {
+			HashMap<String, TableMeta> metas, IUser usr, String rtPath) throws SemanticException {
 		this.connId = connId;
 		ss = smtcfg;
 		if (metas == null)
@@ -166,7 +170,7 @@ public class DASemantext implements ISemantext {
 	@Override
 	public ISemantext clone(IUser usr) {
 		try {
-			return new DASemantext(connId, ss, metas, usr);
+			return new DASemantext(connId, ss, metas, usr, basePath);
 		} catch (SemanticException e) {
 			e.printStackTrace();
 			return null; // meta is null? how could it be?
@@ -176,7 +180,7 @@ public class DASemantext implements ISemantext {
 	private ISemantext clone(DASemantext srctx, IUser... usr) {
 		try {
 			DASemantext newInst = new DASemantext(connId,
-					srctx.ss, srctx.metas, usr != null && usr.length > 0 ? usr[0] : null);
+					srctx.ss, srctx.metas, usr != null && usr.length > 0 ? usr[0] : null, basePath);
 			// newInst.ss = srctx.ss;
 			// newInst.usr = usr != null && usr.length > 0 ? usr[0] : null;
 			return newInst;
@@ -447,8 +451,7 @@ end;
 
 	@Override
 	public String pathname(String... sub) throws TransException {
-		// TODO Auto-generated method stub
-		return null;
+		return FilenameUtils.concat(basePath, sub);
 	}
 
 }
