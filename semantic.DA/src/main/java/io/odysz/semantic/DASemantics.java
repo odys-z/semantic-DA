@@ -1,5 +1,6 @@
 package io.odysz.semantic;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -944,14 +945,14 @@ public class DASemantics {
 			if (args.length > 1 && args[1] != null) {
 				Object[] nv;
 				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
-				if (cols.containsKey(args[1])) {
+				if (cols.containsKey(args[ixUri])) {
 					// save file, replace v
-					nv = row.get(cols.get(args[1]));
+					nv = row.get(cols.get(args[ixUri]));
 					if (nv != null && nv[1] != null
 						&& nv[1] instanceof String && ((String) nv[1]).length() > 0) {
 
 						// find business category
-						String busi = (String) row.get(cols.get(args[2]))[1];
+						String busi = (String) row.get(cols.get(args[ixBusiTbl]))[1];
 						try {
 							// save to WEB-INF/uploads/[busiTbl]/[uri]
 							String pth = stx.pathname(args[0], busi);
@@ -990,11 +991,32 @@ public class DASemantics {
 //		}
 
 		@Override
-		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit whereCondt, IUser usr)
+		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
 				throws TransException {
 			// Utils.warn("DASemantics.ShExtFile#onDelete(): TODO ...");
-			stx.addOnOkOperate((c, d) -> {
-				
+			stx.addOnOkOperate((st, sqls) -> {
+				// delete external files when sqls committed
+				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
+				SResultset rs = (SResultset) stmt.transc()
+						.select(target)
+						.col(args[ixUri])
+						.where(condt)
+						.rs(stmt.transc().basictx())
+						.rs(0);
+				rs.beforeFirst();
+
+				while (rs.next()) {
+					try {
+						String uri = rs.getString(args[ixUri]);
+						uri = stx.pathname(uri);
+						File f = new File(uri);
+						f.delete();
+					}
+					catch (Exception ex) {
+						ex.printStackTrace();
+					}
+				}
+				return null;
 			});
 		}
 	}

@@ -131,7 +131,7 @@ public class DATranscxt extends Transcxt {
 			int[] r = Connects.commit(sctx.connId(), usr, sqls);
 			
 			// In semantic.DA 1.0, only deletingl external files here
-			sctx.onOk();
+			sctx.onCommitted(sctx);
 
 			return new SemanticObject().addInts("inserted", r).put("resulved", sctx.resulves());
 		});
@@ -151,6 +151,10 @@ public class DATranscxt extends Transcxt {
 		Update u = super.update(tabl);
 		u.doneOp((sctx, sqls) -> {
 			int[] r = Connects.commit(sctx.connId(), usr, sqls);
+			
+			// In semantic.DA 1.0, only deletingl external files here
+			sctx.onCommitted(sctx);
+
 			return new SemanticObject().addInts("updated", r).put("resulved", sctx.resulves());
 		});
 		return u;
@@ -169,6 +173,10 @@ public class DATranscxt extends Transcxt {
 		Delete d = super.delete(tabl);
 		d.doneOp((sctx, sqls) -> {
 			int[] r = Connects.commit(sctx.connId(), usr, sqls);
+			
+			// In semantic.DA 1.0, only deletingl external files here
+			sctx.onCommitted(sctx);
+
 			return new SemanticObject().addInts("deleted", r).put("resulved", sctx.resulves());
 		});
 		return d;

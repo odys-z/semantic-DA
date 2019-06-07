@@ -1,6 +1,7 @@
 package io.odysz.semantic;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -581,8 +582,11 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		File f = new File(rs.getString("uri"));
 		assertTrue(f.exists());
 		
-		// TODO test delete files
-	
+		st.delete("a_ttaches", usr)
+			.whereEq("attId", attId)
+			.commit(sqls, usr)
+			.d(s0.clone(usr));
+		assertFalse(f.exists());
 	}
 
 	private String readB64(String filename) throws IOException {

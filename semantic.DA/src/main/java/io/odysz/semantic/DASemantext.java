@@ -25,6 +25,7 @@ import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
+import io.odysz.transact.sql.Statement.IPostOperat;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.condition.Condit;
@@ -55,6 +56,7 @@ public class DASemantext implements ISemantext {
 	private String connId;
 
 	private String basePath;
+	private ArrayList<IPostOperat> onOks;
 
 	/**for generating sqlite auto seq */
 	private static IUser sqliteDumyUser;
@@ -454,6 +456,21 @@ end;
 	@Override
 	public String pathname(String... sub) throws TransException {
 		return FilenameUtils.concat(basePath, sub);
+	}
+
+	@Override
+	public void onCommitted(ISemantext ctx) throws TransException, SQLException {
+		if (onOks != null)
+			for (IPostOperat ok : onOks)
+				// onOk handlers shoudn't using sqls, it's already committed
+				ok.op(ctx, null);
+	}
+
+	@Override
+	public void addOnOkOperate(IPostOperat op) {
+		if (onOks == null)
+			onOks = new ArrayList<IPostOperat>();
+		onOks.add(op);
 	}
 
 }
