@@ -47,7 +47,7 @@ public class DASemantextTest {
 	private static HashMap<String, DASemantics> smtcfg;
 	private static HashMap<String, TableMeta> metas;
 
-	private static String rtroot = ".";
+	private static String rtroot = "src/test/res/";
 
 	static {
 		try {

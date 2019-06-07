@@ -309,8 +309,8 @@ public class DASemantics {
 		 * filename<br>
 		 * on-events: insert, update<br>
 		 * <p>
-		 * args: [0]: root-path,<br>
-		 * [1]:... TODO Handler: {@link DASemantics.ShExtFile} <br>
+		 * args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)<br>
+		 * Handler: {@link DASemantics.ShExtFile} <br>
 		 * Attechment info's table sql (mysql)
 		 * 
 		 * <pre>
@@ -912,40 +912,30 @@ public class DASemantics {
 	}
 
 	/**
-	 * Save configured nv as file
+	 * Save configured nv as file.<br>
+	 * args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
 	 * 
 	 * @author odys-z@github.com
 	 */
 	static class ShExtFile extends SemanticHandler {
-		/*
-		 * <p>args: [0]: delete old (boolean, not support yet), [1]: root-path,<br> [2]:
-		 * attachment table, [3]: attach-id, [4]: path-field, [5]: client-name
-		 * (optional)<br> [6]: busi-cate, [7]: busi-id,<br> [8]: user-id (optinal), [9]:
-		 * date-time (optional) <br>
-		 */
-		static final int ixDel = 0;
-		static final int ixRoot = 1;
-		static final int ixTabl = 2;
-		static final int ixPk = 3;
+		/** Saving root.<br>
+		 * The path rooted from return of {@link ISemantext#pathname(String...)}. */
+		static final int ixRoot = 0;
 		/** Index of Path field */
-		static final int ixPath = 4;
+		static final int ixUri = 1;
+		static final int ixBusiTbl = 2;
+		static final int ixBusiId = 3;
 		/** Index of client file name */
-		static final int ixFname = 5;
-		static final int ixBcate = 6;
-		static final int ixBfk = 7;
-		static final int ixOp = 8;
-		static final int ixOptime = 9;
+		static final int ixClientName = 4;
 
-		boolean deleteIfUpdate = false;
 		String rootpath = "";
 
 		ShExtFile(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.extFile, tabl, pk, args);
-			// delete = true;
+			delete = true;
 			insert = true;
 			// update = true;
 
-			deleteIfUpdate = Boolean.valueOf(args[ixDel]);
 			rootpath = args[ixRoot];
 		}
 
@@ -953,11 +943,12 @@ public class DASemantics {
 		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			if (args.length > 1 && args[1] != null) {
 				Object[] nv;
-				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId
+				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
 				if (cols.containsKey(args[1])) {
 					// save file, replace v
 					nv = row.get(cols.get(args[1]));
-					if (nv != null && nv[1] != null && nv[1] instanceof String && ((String) nv[1]).length() > 0) {
+					if (nv != null && nv[1] != null
+						&& nv[1] instanceof String && ((String) nv[1]).length() > 0) {
 
 						// find business category
 						String busi = (String) row.get(cols.get(args[2]))[1];
@@ -973,6 +964,15 @@ public class DASemantics {
 								f = new ExtFile((Resulving) fn);
 							else // must be a string
 								f = new ExtFile(new ExprPart((String) fn));
+							
+							if (args.length >= ixClientName) {
+								String clientname = args[ixClientName];
+								if (cols.containsKey(clientname)) {
+									clientname = (String) row.get(cols.get(clientname))[1];
+									if (clientname != null)
+										f.filename(clientname);
+								}
+							}
 
 							f.prefixPath(pth).b64((String) nv[1]);
 							nv[1] = f;
@@ -984,15 +984,18 @@ public class DASemantics {
 			}
 		}
 
-		@Override
-		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-			Utils.warn("DASemantics.ShAttaches#onUpdate(): TODO ...");
-		}
+//		@Override
+//		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+//			onInsert(stx, null, row, cols, usr);
+//		}
 
 		@Override
 		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit whereCondt, IUser usr)
 				throws TransException {
-			Utils.warn("DASemantics.ShAttaches#onDelete(): TODO ...");
+			// Utils.warn("DASemantics.ShExtFile#onDelete(): TODO ...");
+			stx.addOnOkOperate((c, d) -> {
+				
+			});
 		}
 	}
 

@@ -129,6 +129,10 @@ public class DATranscxt extends Transcxt {
 		Insert i = super.insert(tabl);
 		i.doneOp((sctx, sqls) -> {
 			int[] r = Connects.commit(sctx.connId(), usr, sqls);
+			
+			// In semantic.DA 1.0, only deletingl external files here
+			sctx.onOk();
+
 			return new SemanticObject().addInts("inserted", r).put("resulved", sctx.resulves());
 		});
 		return i;

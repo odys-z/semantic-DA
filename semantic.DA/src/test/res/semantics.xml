@@ -115,7 +115,7 @@
   				filename rule: busiTbl-recId-attName(.suffix)
   			see https://odys-z.github.io/javadoc/semantic.DA/io/odysz/semantic/DASemantics.smtype.html
   				-->
-  		<args>uploads,uri,busiTbl,busiId</args>
+  		<args>uploads,uri,busiTbl,busiId,attName</args>
   	</s>
   	<!-- delete attachments when deleting a user -->
   	<s>

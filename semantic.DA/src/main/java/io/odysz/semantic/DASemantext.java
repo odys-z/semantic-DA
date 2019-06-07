@@ -66,10 +66,12 @@ public class DASemantext implements ISemantext {
 	 * <p>sample code: </p>
 	 * DATranscxt.initConfigs("inet", rootINF + "/semantics.xml");
 	 * @param usr
+	 * @param rtPath runtime root path
 	 * @throws SemanticException metas is null 
 	 */
 	DASemantext(String connId, HashMap<String, DASemantics> smtcfg,
 			HashMap<String, TableMeta> metas, IUser usr, String rtPath) throws SemanticException {
+		basePath = rtPath;
 		this.connId = connId;
 		ss = smtcfg;
 		if (metas == null)
@@ -127,11 +129,11 @@ public class DASemantext implements ISemantext {
 	}
 
 	@Override
-	public ISemantext onDelete(Delete update, String tabl, Condit whereCondt) throws TransException {
+	public ISemantext onDelete(Delete delete, String tabl, Condit whereCondt) throws TransException {
 		if (ss != null) {
 			DASemantics s = ss.get(tabl);
 			if (s != null)
-				s.onDelete(this, update, whereCondt, usr);
+				s.onDelete(this, delete, whereCondt, usr);
 		}
 		return this;
 	}
