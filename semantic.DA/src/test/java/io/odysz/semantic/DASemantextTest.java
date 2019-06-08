@@ -561,7 +561,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.nv("orgId", "R.C.")
 			.nv("birthday", Funcall.toDate(dbtype.sqlite, "1866-12-12"))
 			.post(st.insert("a_attaches")
-					.nv("attName", "portrait")  // name: portrait
+					.nv("attName", "Sun Yet-sen Portrait.jpg")  // name: portrait
 					.nv("busiTbl", "a_user")
 					.nv("busiId", new Resulving("a_users", "userId"))
 					.nv("uri", readB64("src/test/res/Sun Yet-sen.jpg")))
@@ -582,7 +582,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		File f = new File(rs.getString("uri"));
 		assertTrue(f.exists());
 		
-		st.delete("a_ttaches", usr)
+		st.delete("a_attaches", usr)
 			.whereEq("attId", attId)
 			.commit(sqls, usr)
 			.d(s0.clone(usr));

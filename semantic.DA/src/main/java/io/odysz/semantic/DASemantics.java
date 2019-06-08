@@ -590,6 +590,7 @@ public class DASemantics {
 		 *            delete statement's condition.
 		 * @param usr
 		 * @throws TransException
+		 * @throws SQLException 
 		 */
 		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit whereCondt, IUser usr)
 				throws TransException {
@@ -993,31 +994,38 @@ public class DASemantics {
 		@Override
 		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
 				throws TransException {
-			// Utils.warn("DASemantics.ShExtFile#onDelete(): TODO ...");
-			stx.addOnOkOperate((st, sqls) -> {
+
 				// delete external files when sqls committed
 				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
-				SResultset rs = (SResultset) stmt.transc()
-						.select(target)
-						.col(args[ixUri])
-						.where(condt)
-						.rs(stmt.transc().basictx())
-						.rs(0);
-				rs.beforeFirst();
+				SResultset rs;
+				try {
+					rs = (SResultset) stmt.transc()
+							.select(target)
+							.col(args[ixUri])
+							.where(condt)
+							.rs(stmt.transc().basictx())
+							.rs(0);
+					rs.beforeFirst();
 
-				while (rs.next()) {
-					try {
-						String uri = rs.getString(args[ixUri]);
-						uri = stx.pathname(uri);
-						File f = new File(uri);
-						f.delete();
+					while (rs.next()) {
+						try {
+							String uri = rs.getString(args[ixUri]);
+							// uri = stx.pathname(uri);
+							Utils.warn("deleting %s", uri);
+							final String v = uri;
+							stx.addOnOkOperate((st, sqls) -> {
+								File f = new File(v);
+								f.delete();
+								return null;
+							});
+						}
+						catch (Exception ex) {
+							ex.printStackTrace();
+						}
 					}
-					catch (Exception ex) {
-						ex.printStackTrace();
-					}
+				} catch (SQLException e) {
+					e.printStackTrace();
 				}
-				return null;
-			});
 		}
 	}
 
