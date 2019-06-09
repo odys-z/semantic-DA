@@ -144,7 +144,6 @@ public class DASemantics {
 	 * <b>8. {@link #postFk}</b><br>
 	 * <b>8. {@link #composingCol} TODO</b><br>
 	 * <b>9. {@link #stampUp1ThanDown} TODO</b><br>
-	 * <b>10.{@link #orclob} TODO</b><br>
 	 * UpdateBatch supporting:<br>
 	 * on inserting, up-stamp is the value of increased down stamp, or current time
 	 * if it's not usable;<br>
@@ -152,6 +151,8 @@ public class DASemantics {
 	 * presented in sql, or, up stamp will be ignored if down stamp presented. (use
 	 * case of down stamp updating by synchronizer).<br>
 	 * <b>x. orclob</b>: the field must saved as clob when driver type is orcl;
+	 * <b>10.{@link #orclob} TODO</b><br>
+	 * <b>10.{@link #extFile} External file save / delete.</b><br>
 	 */
 	public enum smtype {
 		/**
@@ -285,24 +286,6 @@ public class DASemantics {
 		 */
 		postFk,
 		/**
-		 * "cmp-col" | "compose-col" | "compse-column": compose a column from other
-		 * columns;<br>
-		 * TODO
-		 */
-		composingCol,
-		/**
-		 * "s-up1" | "stamp-up1": add 1 more second to down-stamp column and save to
-		 * up-stamp<br>
-		 * TODO
-		 */
-		stamp1MoreThanRefee,
-		/**
-		 * "clob" | "orclob": the column is a CLOB field, semantic-transact will
-		 * read/write separately in stream and get final results.<br>
-		 * Handler: TODO?
-		 */
-		orclob,
-		/**
 		 * Attach Attachments to Attaching Table (saving file in file system)<br>
 		 * xml/smtc = "ef" | "xf" | "ext-file" | "e-f" | "x-f" <br>
 		 * Take the update statement's file field as a separated file clob (base 64
@@ -312,10 +295,16 @@ public class DASemantics {
 		 * <p>
 		 * args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)<br>
 		 * Handler: {@link DASemantics.ShExtFile} <br>
-		 * Attechment info's table sql (mysql)
 		 * 
-		 * <pre>
-		 * CREATE TABLE `a_attaches` (
+		 * <h5>About Updating Handling</h5>
+		 * <p>On updating external files handler.</p>
+		 * <p>This method only throw an exception currently, applying the semantics predefined as:<br>
+		 * AS all files are treaded as binary file, no file can be modified, only delete then create it makes sense.</p>
+		 * <p>Client should avoid updating an external file will handling business logics.</p>
+		 * <p><b>NOTE:</b><br>This can be changed in the future.</p>
+		 * 
+		 * Attechment info's table sql (mysql)
+		 * <pre>CREATE TABLE `a_attaches` (
 		`attId` varchar(20) COLLATE utf8mb4_bin NOT NULL,
 		`attName` varchar(50) CHARACTER SET utf8mb4 DEFAULT NULL,
 		`subPath` varchar(100) COLLATE utf8mb4_bin DEFAULT NULL,
@@ -341,7 +330,25 @@ public class DASemantics {
 		CONSTRAINT a_attaches_PK PRIMARY KEY (attId)) ;
 		 * </pre>
 		 */
-		extFile;
+		extFile,
+		/**
+		 * "cmp-col" | "compose-col" | "compse-column": compose a column from other
+		 * columns;<br>
+		 * TODO
+		 */
+		composingCol,
+		/**
+		 * "s-up1" | "stamp-up1": add 1 more second to down-stamp column and save to
+		 * up-stamp<br>
+		 * TODO
+		 */
+		stamp1MoreThanRefee,
+		/**
+		 * "clob" | "orclob": the column is a CLOB field, semantic-transact will
+		 * read/write separately in stream and get final results.<br>
+		 * Handler: TODO?
+		 */
+		orclob;
 
 		/**
 		 * Note: we don't use enum.valueOf(), because of fault / fuzzy tolerate.
@@ -986,10 +993,32 @@ public class DASemantics {
 			}
 		}
 
-//		@Override
-//		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-//			onInsert(stx, null, row, cols, usr);
-//		}
+		/**<p>On updating external files handler.</p>
+		 * <p>This method only throw an exception currently, applying the semantics predefined as:<br>
+		 * AS all files are treaded as binary file, no file can be modified, only delete then create it makes sense.</p>
+		 * <p>Client should avoid updating an external file will handling business logics.</p>
+		 * <p><b>NOTE:</b><br>This can be changed in the future.</p>
+		 * @see io.odysz.semantic.DASemantics.SemanticHandler#onUpdate(io.odysz.semantics.ISemantext, io.odysz.transact.sql.Update, java.util.ArrayList, java.util.Map, io.odysz.semantics.IUser)
+		 */
+		@Override
+		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+			// onInsert(stx, null, row, cols, usr);
+			if (args.length > 1 && args[1] != null) {
+				Object[] nv;
+				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
+				if (cols.containsKey(args[ixUri])) {
+					// save file, replace v
+					nv = row.get(cols.get(args[ixUri]));
+					if (nv != null && nv[1] != null
+						&& nv[1] instanceof String && ((String) nv[1]).length() > 0) {
+						throw new SemanticException("Found the extFile value presented in %s, but updating is not supported by extFile. See:\n" +
+								"https://odys-z.github.io/javadoc/semantic.DA/io/odysz/semantic/DASemantics.smtype.html#extFile\n" +
+								"About Updating Handling",
+								args[ixUri]);
+					}
+				}
+			}
+		}
 
 		@Override
 		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
