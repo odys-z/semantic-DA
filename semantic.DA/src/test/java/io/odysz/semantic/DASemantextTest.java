@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
+import org.apache.commons.io.FilenameUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.xml.sax.SAXException;
@@ -576,16 +577,18 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.whereEq("attId", attId)
 			.commit(sqls, usr);
 
-		// assert 2 default value pswd = '123456'
+		// assert 2. verify file exists
 		SResultset rs = Connects.select(sqls.get(0));
-		rs.beforeFirst().next();
-		File f = new File(rs.getString("uri"));
+		rs.beforeFirst().next(); // uri is relative path
+		String fp = FilenameUtils.concat(rtroot, rs.getString("uri"));
+		File f = new File(fp);
 		assertTrue(f.exists());
 		
 		st.delete("a_attaches", usr)
 			.whereEq("attId", attId)
 			.commit(sqls, usr)
 			.d(s0.clone(usr));
+
 		assertFalse(f.exists());
 	}
 

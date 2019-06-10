@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io.FilenameUtils;
+
 import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
@@ -928,7 +930,7 @@ public class DASemantics {
 	 */
 	static class ShExtFile extends SemanticHandler {
 		/** Saving root.<br>
-		 * The path rooted from return of {@link ISemantext#pathname(String...)}. */
+		 * The path rooted from return of {@link ISemantext#relativpath(String...)}. */
 		static final int ixRoot = 0;
 		/** Index of Path field */
 		static final int ixUri = 1;
@@ -963,7 +965,7 @@ public class DASemantics {
 						String busi = (String) row.get(cols.get(args[ixBusiTbl]))[1];
 						try {
 							// save to WEB-INF/uploads/[busiTbl]/[uri]
-							String pth = stx.pathname(args[0], busi);
+							String relatvpth = stx.relativpath(args[0], busi);
 
 							// can be a string or an auto resulving
 							Object fn = row.get(cols.get(idField))[1];
@@ -983,8 +985,12 @@ public class DASemantics {
 								}
 							}
 
-							f.prefixPath(pth).b64((String) nv[1]);
-							nv[1] = f;
+							f.prefixPath(relatvpth)
+								.absPath(stx.containerRoot())
+								.b64((String) nv[1]);
+							// nv[1] = f;
+							nv = new Object[] {nv[0], f};
+							row.set(cols.get(args[ixUri]), nv);
 						} catch (TransException e) {
 							e.printStackTrace();
 						}
@@ -1039,7 +1045,7 @@ public class DASemantics {
 					while (rs.next()) {
 						try {
 							String uri = rs.getString(args[ixUri]);
-							// uri = stx.pathname(uri);
+							uri = FilenameUtils.concat(stx.containerRoot(), uri);
 							Utils.warn("deleting %s", uri);
 							final String v = uri;
 							stx.addOnOkOperate((st, sqls) -> {

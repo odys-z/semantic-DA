@@ -85,9 +85,9 @@ public class LoggingUser implements IUser {
 				.nv("txt", txt(sqls))
 				.ins(logBuilder.basictx().clone(null)); // Note: must cloned, otherwise there are resulved values.
 		} catch (SQLException e) {
-			Utils.warn("Wrong configuration can leads to this failure. Check includes:\n" +
-					"config.xml/k=log-connId value, make sure the connection is the correct for semantics-log.xml.");
 			// failed case must be a bug - commitLog()'s exception already caught.
+			Utils.warn("Wrong configuration can leads to this failure. Check includes:\n" +
+					"config.xml/k=log-connId value, make sure the connection is the correct for the semantics.xml.");
 			e.printStackTrace();
 		} catch (TransException e) {
 			e.printStackTrace();
@@ -97,7 +97,6 @@ public class LoggingUser implements IUser {
 
 	private static String txt(ArrayList<String> sqls) {
 		return sqls == null ? null :
-			// FIXME performance problem here
 			sqls.stream().map(e -> SQLString.formatSql(e))
 				.collect(Collectors.joining(";"));
 	}

@@ -26,6 +26,7 @@ import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Statement.IPostOperat;
+import io.odysz.transact.sql.Statement.IPostSelectOperat;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.condition.Condit;
@@ -57,7 +58,8 @@ public class DASemantext implements ISemantext {
 
 	private String basePath;
 	private ArrayList<IPostOperat> onOks;
-
+	private ArrayList<IPostSelectOperat> onSelecteds;
+	
 	/**for generating sqlite auto seq */
 	private static IUser sqliteDumyUser;
 
@@ -454,16 +456,19 @@ end;
 	}
 
 	@Override
-	public String pathname(String... sub) throws TransException {
-		return FilenameUtils.concat(basePath, sub);
+	public String relativpath(String... sub) throws TransException {
+		return FilenameUtils.concat(".", sub);
 	}
+
+	@Override
+	public String containerRoot() { return basePath; }
 
 	@Override
 	public void onCommitted(ISemantext ctx) throws TransException, SQLException {
 		if (onOks != null)
 			for (IPostOperat ok : onOks)
 				// onOk handlers shoudn't using sqls, it's already committed
-				ok.op(ctx, null);
+				ok.onCommitOk(ctx, null);
 	}
 
 	@Override
@@ -471,6 +476,24 @@ end;
 		if (onOks == null)
 			onOks = new ArrayList<IPostOperat>();
 		onOks.add(op);
+	}
+
+	@Override
+	public void onSelected(Object resultset) throws SQLException, TransException {
+		SResultset rs = (SResultset) resultset;
+		if (rs != null && onOks != null && onOks.size() > 0) {
+			rs.beforeFirst();
+			while (rs.next())
+				for (IPostSelectOperat op : onSelecteds)
+					op.onSelected(this, rs);
+		}
+	}
+
+	@Override
+	public void addOnSelectedOperate(IPostSelectOperat op) {
+		if (onSelecteds == null)
+			onSelecteds = new ArrayList<IPostSelectOperat>();
+		onSelecteds.add(op);
 	}
 
 }

@@ -62,11 +62,6 @@ public class DATranscxt extends Transcxt {
 	/**[conn, [table, DASemantics] */
 	protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
 
-//	public static HashMap<String, HashMap<String,DASemantics>> smtConfigs() { return smtConfigs; }
-//	public static HashMap<String, DASemantics> smtCfonfigs(String conn) {
-//		return smtConfigs.get(conn);
-//	}
-
 	/**{@link DATranscxt} use a basic context (without semantics handler) for basic sql building.<b>
 	 * Every context used for {@link DASemantics} handling must use this to create a new context instance.
 	 * @see io.odysz.transact.sql.Transcxt#instancontxt(io.odysz.semantics.IUser)
@@ -99,6 +94,7 @@ public class DATranscxt extends Transcxt {
 			if (q.page() < 0 || q.size() <= 0) {
 				SResultset rs = Connects.select(sctx.connId(), sqls.get(0));
 				rs.total(rs.getRowCount());
+				sctx.onSelected(rs);
 				return new SemanticObject().rs(rs, rs.total());
 			}
 			else {
@@ -110,6 +106,8 @@ public class DATranscxt extends Transcxt {
 				SResultset rs = Connects.select(sctx.connId(),
 					((DASemantext) sctx).pageSql(sqls.get(0), q.page(), q.size()));
 				rs.total(t);
+
+				sctx.onSelected(rs);
 				return new SemanticObject().rs(rs, t);
 			}
 		});
@@ -175,6 +173,8 @@ public class DATranscxt extends Transcxt {
 			int[] r = Connects.commit(sctx.connId(), usr, sqls);
 			
 			// In semantic.DA 1.0, only deletingl external files here
+			// FIXME if this post operation always happend, this method should been called as an interface,
+			// with default implementation been alwasy called by semantic.transact, and overridden by semantic.DA.
 			sctx.onCommitted(sctx);
 
 			return new SemanticObject().addInts("deleted", r).put("resulved", sctx.resulves());
