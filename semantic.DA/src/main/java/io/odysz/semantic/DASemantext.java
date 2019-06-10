@@ -485,23 +485,23 @@ end;
 			rs.beforeFirst();
 			while (rs.next())
 				for (IPostSelectOperat op : onSelecteds)
-					op.onSelected(this, rs);
+					op.onSelected(this, rs.getRowCells(), rs.getColnames());
 		}
 	}
 
 	@Override
-	public void addOnSelectedOperate(IPostSelectOperat op) {
+	public void addOnSelectedHandler(IPostSelectOperat op) {
 		if (onSelecteds == null)
 			onSelecteds = new ArrayList<IPostSelectOperat>();
 		onSelecteds.add(op);
 	}
 
-	@Override
-	public void setRs(Object result, String col, String v) throws SQLException {
-		if (result != null) {
-			SResultset rs = (SResultset) result;
-			rs.set(col, v);
-		}
-	}
+//	@Override
+//	public void setRs(Object result, String col, String v) throws SQLException {
+//		if (result != null) {
+//			SResultset rs = (SResultset) result;
+//			rs.set(col, v);
+//		}
+//	}
 
 }

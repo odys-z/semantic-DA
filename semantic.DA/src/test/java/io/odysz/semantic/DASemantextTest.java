@@ -573,16 +573,24 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		
 		String attId = (String)s0.resulvedVal("a_attaches", "attId");
 		
-		st.select("a_attaches", "f")
+		SResultset rs = (SResultset) st.select("a_attaches", "f")
+			.col("uri").col("extFile(f.uri)", "b64")
 			.whereEq("attId", attId)
-			.commit(sqls, usr);
+			// .commit(sqls, usr);
+			.rs(new DASemantext(connId, smtcfg, metas, usr, rtroot))
+			.rs(0);
 
 		// assert 2. verify file exists
-		SResultset rs = Connects.select(sqls.get(0));
+		// SResultset rs = Connects.select(sqls.get(0));
+
 		rs.beforeFirst().next(); // uri is relative path
 		String fp = FilenameUtils.concat(rtroot, rs.getString("uri"));
 		File f = new File(fp);
 		assertTrue(f.exists());
+		
+		assertEquals("/9j/4AAQ",
+				rs.getString("b64").substring(0, 8));
+		assertEquals(2652, rs.getString("b64").length());
 		
 		st.delete("a_attaches", usr)
 			.whereEq("attId", attId)
