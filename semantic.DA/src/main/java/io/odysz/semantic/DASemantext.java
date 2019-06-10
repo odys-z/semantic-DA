@@ -481,7 +481,7 @@ end;
 	@Override
 	public void onSelected(Object resultset) throws SQLException, TransException {
 		SResultset rs = (SResultset) resultset;
-		if (rs != null && onOks != null && onOks.size() > 0) {
+		if (rs != null && onSelecteds != null && onSelecteds.size() > 0) {
 			rs.beforeFirst();
 			while (rs.next())
 				for (IPostSelectOperat op : onSelecteds)
@@ -494,6 +494,14 @@ end;
 		if (onSelecteds == null)
 			onSelecteds = new ArrayList<IPostSelectOperat>();
 		onSelecteds.add(op);
+	}
+
+	@Override
+	public void setRs(Object result, String col, String v) throws SQLException {
+		if (result != null) {
+			SResultset rs = (SResultset) result;
+			rs.set(col, v);
+		}
 	}
 
 }
