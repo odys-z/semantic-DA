@@ -598,6 +598,18 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.d(s0.clone(usr));
 
 		assertFalse(f.exists());
+		
+		// by the way, have a test on pc-del-tbl
+		sqls.clear();
+		st.delete("a_users")
+			.whereEq("userId", "fake-userId")
+			.commit(sqls);
+		
+		assertEquals(2, sqls.size());
+		assertEquals("delete from a_attaches where busiId  in ( select busiId from a_users  where userId = 'fake-userId' ) AND busiTbl = 'a_users'",
+				sqls.get(0));
+		assertEquals("delete from a_users where userId = 'fake-userId'",
+				sqls.get(1));
 	}
 
 	private String readB64(String filename) throws IOException {

@@ -120,10 +120,10 @@
   	<!-- delete attachments when deleting a user -->
   	<s>
   		<id>54</id>
-  		<smtc>pc-del-all</smtc>
-  		<tabl>a_user</tabl>
+  		<smtc>pc-del-tbl</smtc>
+  		<tabl>a_users</tabl>
   		<pk>userId</pk>
-  		<args>userId a_attaches attId</args>
+  		<args>busiId a_attaches attId busiTbl</args>
   	</s>
   	<!-- attachments' oper-time -->
   	<s>

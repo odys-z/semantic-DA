@@ -131,30 +131,25 @@ public class DASemantics {
 
 	/**
 	 * Semantics type supported by DASemantics. For each semantics example, see
-	 * <a href=''>semantic.DA/test/semantics.xml</a> For semanticx.xml/s/smtc value,
-	 * check the individual enum.<br>
+	 * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/res/semantics.xml'>
+	 * semantic.DA/test/semantics.xml</a><br>
+	 * For semanticx.xml/s/smtc value, check the individual enum values:<br>
 	 * <b>0. {@link #autoInc}</b><br>
 	 * <b>1. {@link #fkIns}</b><br>
 	 * <b>2. {@link #fullpath}</b><br>
 	 * <b>3. {@link #defltVal}</b><br>
 	 * <b>4. {@link #parentChildrenOnDel}</b><br>
-	 * <b>3. {@link #dencrypt}</b><br>
-	 * <b>4. {@link #opTime}</b><br>
-	 * <b>5. {@link #checkSqlCountOnDel} </b><br>
-	 * <b>6. {@link #checkSqlCountOnInsert} </b><br>
-	 * <b>7. {@link #checkDsCountOnDel} </b><br>
-	 * <b>8. {@link #postFk}</b><br>
-	 * <b>8. {@link #composingCol} TODO</b><br>
-	 * <b>9. {@link #stampUp1ThanDown} TODO</b><br>
-	 * UpdateBatch supporting:<br>
-	 * on inserting, up-stamp is the value of increased down stamp, or current time
-	 * if it's not usable;<br>
-	 * on updating, up-stamp is set as down stamp increased if down stamp value not
-	 * presented in sql, or, up stamp will be ignored if down stamp presented. (use
-	 * case of down stamp updating by synchronizer).<br>
-	 * <b>x. orclob</b>: the field must saved as clob when driver type is orcl;
-	 * <b>10.{@link #orclob} TODO</b><br>
-	 * <b>10.{@link #extFile} External file save / delete.</b><br>
+	 * <b>5. {@link #parentChildrenOnDelByTable}</b><br>
+	 * <b>6. {@link #dencrypt}</b><br>
+	 * <b>7. {@link #opTime}</b><br>
+	 * <b>8. {@link #checkSqlCountOnDel} </b><br>
+	 * <b>9. {@link #checkSqlCountOnInsert} </b><br>
+	 * <b>10.{@link #checkDsCountOnDel} </b><br>
+	 * <b>11.{@link #postFk}</b><br>
+	 * <b>12.{@link #extFile}</b><br>
+	 * <b>13.{@link #composingCol} TODO</b><br>
+	 * <b>14. {@link #stampUp1ThanDown} TODO</b><br>
+	 * <b>15.{@link #orclob} TODO</b><br>
 	 */
 	public enum smtype {
 		/**
@@ -197,11 +192,28 @@ public class DASemantics {
 		/**
 		 * "pc-del-all" | "parent-child-del-all" | "parentchildondel"<br>
 		 * 
-		 * <pre>
-		 * args:
-		[0] name or child referencing column (a_domain.domainId's value will be used)
-		[1] child table
-		[2] child pk (or condition column)
+		 * <pre>args: [pc-define, ...], where pc-define is a space sperated strings:
+		pc-define[0] name or child referencing column, e.g. domainId for a_domain.domainId
+		pc-define[1] child table, e.g. a_orgs
+		pc-define[2] child fk (or condition column), e.g. orgType
+		
+		Example: domainId a_orgs orgType, ...
+		
+		When deleting a_domain, the sql of the results shall be:
+		delete from a_orgs where orgType in (select domainId from a_domain where domainId = '000001')
+		where the 'where clause' in select clause is composed from condition of the delete request's where condition.
+		 * </pre>
+		 * Handler: {@link ShPCDelAll}
+		 */
+		parentChildrenOnDel,
+		/**
+		 * "pc-del-tbl" | "pc-del-by-tbl" | "pc-tbl"<br>
+		 * 
+		 * <pre>args: [pc-define, ...], where pc-define is a space sperated strings:
+		pc-define[0] name or child referencing column (a_domain.domainId's value will be used)
+		pc-define[1] child table
+		pc-define[2] child fk (or condition column)
+		pc-define[3] child cate (e.g. table name)
 		
 		Example: domainId a_orgs orgType, ...
 		
@@ -210,9 +222,9 @@ public class DASemantics {
 		where the 'where clause' in select clause is composed from condition of the delete request's where condition.
 		 * </pre>
 		 * 
-		 * Handler: {@link ShChkSqlCntDel}
+		 * Handler: {@link ShPCDelByTbl}
 		 */
-		parentChildrenOnDel,
+		parentChildrenOnDelByTabl,
 		/**
 		 * "d-e" | "de-encrypt" | "dencrypt":<br>
 		 * decrypt then encrypt (target col cannot be pk or anything other semantics
@@ -340,9 +352,15 @@ public class DASemantics {
 		 */
 		composingCol,
 		/**
+		 * TODO
 		 * "s-up1" | "stamp-up1": add 1 more second to down-stamp column and save to
 		 * up-stamp<br>
-		 * TODO
+		 * UpdateBatch supporting:<br>
+		 * on inserting, up-stamp is the value of increased down stamp, or current time
+		 * if it's not usable;<br>
+		 * on updating, up-stamp is set as down stamp increased if down stamp value not
+		 * presented in sql, or, up stamp will be ignored if down stamp presented. (use
+		 * case of down stamp updating by synchronizer).<br>
 		 */
 		stamp1MoreThanRefee,
 		/**
@@ -374,6 +392,9 @@ public class DASemantics {
 			else if ("pc-del-all".equals(type) || "parent-child-del-all".equals(type)
 					|| "parentchildondel".equals(type))
 				return parentChildrenOnDel;
+			else if ("pc-del-tbl".equals(type) || "pc-del-by-tabl".equals(type)
+					|| "pc-tbl".equals(type))
+				return parentChildrenOnDelByTabl;
 			else if ("d-e".equals(type) || "de-encrypt".equals(type) || "dencrypt".equals(type))
 				return dencrypt;
 			else if ("o-t".equals(type) || "oper-time".equals(type) || "optime".equals(type))
@@ -443,6 +464,8 @@ public class DASemantics {
 			handler = new ShFkOnIns(basicTsx, tabl, recId, args);
 		else if (smtype.parentChildrenOnDel == semantic)
 			handler = new ShPCDelAll(basicTsx, tabl, recId, args);
+		else if (smtype.parentChildrenOnDelByTabl == semantic)
+			handler = new ShPCDelByTbl(basicTsx, tabl, recId, args);
 		else if (smtype.defltVal == semantic)
 			handler = new ShDefltVal(basicTsx, tabl, recId, args);
 		// else if (smtype.dencrypt == semantic)
@@ -811,7 +834,7 @@ public class DASemantics {
 	 * @author odys-z@github.com
 	 */
 	static class ShPCDelAll extends SemanticHandler {
-		private String[][] argss;
+		protected String[][] argss;
 
 		public ShPCDelAll(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.parentChildrenOnDel, tabl, recId, args);
@@ -838,8 +861,7 @@ public class DASemantics {
 					if (args != null && args.length > 1 && args[1] != null) {
 						stmt.before(delChild(args, stmt, condt, usr));
 						// Design Notes: about multi level children deletion:
-						// If row can't been retrieved here, cascading children deletion can't been
-						// supported
+						// If row can't been retrieved here, cascading children deletion can't been supported
 					}
 		}
 
@@ -854,7 +876,7 @@ public class DASemantics {
 		 * @return {@link Delete}
 		 * @throws TransException
 		 */
-		private Delete delChild(String[] args, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected Delete delChild(String[] args, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
 				throws TransException {
 			if (condt == null)
 				throw new SemanticException(
@@ -867,13 +889,22 @@ public class DASemantics {
 			Delete d = stmt.transc().delete(args[1]).where(new Condit(inCondt));
 
 			return d;
-			// if (v != null)
-			// return s.where_("=", String.format("%s.%s", args[1], args[2]), v);
-			// else
-			// // return an unresolved value for debugging.
-			// return s.where("=", args[2], String.format("%s.%s", target, args[0]));
 		}
 
+	}
+
+	static class ShPCDelByTbl extends ShPCDelAll {
+
+		public ShPCDelByTbl(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
+			super(trxt, tabl, recId, args);
+		}
+
+		@Override
+		protected Delete delChild(String[] args, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+				throws TransException {
+			return super.delChild(args, stmt, condt, usr)
+						.whereEq(args[3], target);
+		}
 	}
 
 	/**
@@ -1045,12 +1076,22 @@ public class DASemantics {
 					while (rs.next()) {
 						try {
 							String uri = rs.getString(args[ixUri]);
+							if (LangExt.isblank(uri, "\\.*", "\\**", "\\s*"))
+								continue;
+
 							uri = FilenameUtils.concat(stx.containerRoot(), uri);
-							Utils.warn("deleting %s", uri);
+
+							if (verbose)
+								Utils.warn("deleting %s", uri);
+
 							final String v = uri;
 							stx.addOnOkOperate((st, sqls) -> {
 								File f = new File(v);
-								f.delete();
+								if (!f.isDirectory())
+									f.delete();
+								else 
+									Utils.warn("ShExtHandler#onDelete(): Ignoring deleting directory %s", v);
+
 								return null;
 							});
 						}
