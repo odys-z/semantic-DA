@@ -123,11 +123,23 @@
   		<smtc>pc-del-tbl</smtc>
   		<tabl>a_users</tabl>
   		<pk>userId</pk>
+  		<!-- 0 child fk; 1 child table; 2 child pk; 3 business cate (table name) [, ...]  -->
   		<args>busiId a_attaches attId busiTbl</args>
+  	</s>
+  	<s>
+  		<id>55</id>
+  		<smtc>fk-ins-cate</smtc>
+  		<tabl>a_attaches</tabl>
+  		<pk>attId</pk>
+  		<!-- 0 business cate (table name); 1 merged child fk; 2 parent table, 3 parent referee [, ...]  -->
+  		<args>
+  		busiTbl busiId a_users userId,
+  		busiTbl busiId a_user_fake fakeId
+  		</args>
   	</s>
   	<!-- attachments' oper-time -->
   	<s>
-  		<id>55</id>
+  		<id>56</id>
   		<smtc>o-t</smtc>
   		<tabl>a_attaches</tabl>
   		<pk>attId</pk>

@@ -64,7 +64,8 @@ public class DASemantextTest {
 			DATranscxt.configRoot(rtroot, rtroot);
 			smtcfg = DATranscxt.loadSemantics(connId, "src/test/res/semantics.xml");
 			st = new DATranscxt(connId);
-			metas = DATranscxt.meta(connId);
+			// metas = DATranscxt.meta(connId);
+			metas = Connects.getMeta(connId);
 
 			SemanticObject jo = new SemanticObject();
 			jo.put("userId", "tester");
@@ -212,7 +213,7 @@ DELETE from a_roles;</pre>
 		slect.beforeFirst().next();
 		assertEquals(1, slect.getInt("cnt"));
 	}
-	
+
 	/**Test cross referencing auto k.<br>
 	 * crs_a.aid, crs_b.bid are autok;<br>
 	 * crs_a.afk referencing crs_b.bid, (post-fk)<br>
@@ -564,9 +565,19 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.post(st.insert("a_attaches")
 					.nv("attName", "Sun Yet-sen Portrait.jpg")  // name: portrait
 					.nv("busiTbl", "a_user")
-					.nv("busiId", new Resulving("a_users", "userId"))
+					// .nv("busiId", new Resulving("a_users", "userId"))
 					.nv("uri", readB64("src/test/res/Sun Yet-sen.jpg")))
 			.commit(s0, sqls);
+
+		// insert into a_users  (userName, roleId, orgId, birthday, userId, pswd) values ('attached 2019-06-12 18:20:33', 'attach-01', 'R.C.', datetime('1866-12-12'), '00001R', '123456')
+		// insert into a_attaches  (attName, busiTbl, uri, attId, busiId, optime, oper)
+		// values ('Sun Yet-sen Portrait.jpg', 'a_user', 'uploads/a_user/00001C Sun Yet-sen Portrait.jpg', '00001C', '00001R', datetime('now'), 'tester')
+		assertEquals(String.format(
+				"insert into a_attaches  (attName, busiTbl, uri, attId, busiId, optime, oper) " +
+				"values ('Sun Yet-sen Portrait.jpg', 'a_user', 'uploads/a_user/%1$s Sun Yet-sen Portrait.jpg', '%1$s', '%2$s', datetime('now'), 'tester')",
+				s0.resulvedVal("a_attaches", "attId"),
+				s0.resulvedVal("a_users", "userId")),
+				sqls.get(1));
 		Connects.commit(usr , sqls);
 
 		sqls.clear();
@@ -606,7 +617,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.commit(sqls);
 		
 		assertEquals(2, sqls.size());
-		assertEquals("delete from a_attaches where busiId  in ( select busiId from a_users  where userId = 'fake-userId' ) AND busiTbl = 'a_users'",
+		assertEquals("delete from a_attaches where busiId  in ( select userId from a_users  where userId = 'fake-userId' ) AND busiTbl = 'a_users'",
 				sqls.get(0));
 		assertEquals("delete from a_users where userId = 'fake-userId'",
 				sqls.get(1));
