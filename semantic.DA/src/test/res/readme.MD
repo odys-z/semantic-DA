@@ -10,15 +10,15 @@ JDBC connection configurations.
 
 This file configured a few connects:
 
-1. local-sqlite
+(1). local-sqlite
 
 A sqlite connection using file ./semantic-DA.db
 
-2. local-mysql
+(2). local-mysql
 
 A connection to mysql. If you are using a servlet container like tomcat, you need configure the connection pool.
 
-3. inet
+(3). inet
 
 Another connection to mysql.
 
@@ -34,4 +34,4 @@ A sqlite database file for testing all the semantics handled by DASemantics.
 
 - Sun Yet-sen.jpg
 
-A jpg file for test extFile semantics, which will create a sub-folder here named "uploads/a_user".
+A jpg file for test extFile semantics. It will create a sub-folder here named "uploads/a_user".

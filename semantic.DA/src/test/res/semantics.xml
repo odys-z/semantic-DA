@@ -145,7 +145,7 @@
   		<pk>attId</pk>
   		<args>oper,optime</args>
   	</s>
-  	
+ 
 	<!-- a_user.userName check same on insert -->
   	<s>
   		<id>5A</id>
@@ -172,7 +172,7 @@
   			roleId a_users roleId
   		</args>
   	</s>
-  	
+ 
   	<!-- check child count when delete parent -->
   	<s>
   		<id>61</id>

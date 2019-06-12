@@ -136,20 +136,21 @@ public class DASemantics {
 	 * For semanticx.xml/s/smtc value, check the individual enum values:<br>
 	 * <b>0. {@link #autoInc}</b><br>
 	 * <b>1. {@link #fkIns}</b><br>
-	 * <b>2. {@link #fullpath}</b><br>
-	 * <b>3. {@link #defltVal}</b><br>
-	 * <b>4. {@link #parentChildrenOnDel}</b><br>
-	 * <b>5. {@link #parentChildrenOnDelByTable}</b><br>
-	 * <b>6. {@link #dencrypt}</b><br>
-	 * <b>7. {@link #opTime}</b><br>
-	 * <b>8. {@link #checkSqlCountOnDel} </b><br>
-	 * <b>9. {@link #checkSqlCountOnInsert} </b><br>
-	 * <b>10.{@link #checkDsCountOnDel} </b><br>
-	 * <b>11.{@link #postFk}</b><br>
-	 * <b>12.{@link #extFile}</b><br>
-	 * <b>13.{@link #composingCol} TODO</b><br>
-	 * <b>14. {@link #stampUp1ThanDown} TODO</b><br>
-	 * <b>15.{@link #orclob} TODO</b><br>
+	 * <b>2. {@link #fkCateIns}</b><br>
+	 * <b>3. {@link #fullpath}</b><br>
+	 * <b>4. {@link #defltVal}</b><br>
+	 * <b>5. {@link #parentChildrenOnDel}</b><br>
+	 * <b>6. {@link #parentChildrenOnDelByTable}</b><br>
+	 * <b>7. {@link #dencrypt}</b><br>
+	 * <b>8. {@link #opTime}</b><br>
+	 * <b>9. {@link #checkSqlCountOnDel} </b><br>
+	 * <b>10.{@link #checkSqlCountOnInsert} </b><br>
+	 * <b>11.{@link #checkDsCountOnDel} </b><br>
+	 * <b>12.{@link #postFk}</b><br>
+	 * <b>13.{@link #extFile}</b><br>
+	 * <b>14.{@link #composingCol} TODO</b><br>
+	 * <b>15. {@link #stampUp1ThanDown} TODO</b><br>
+	 * <b>16.{@link #orclob} TODO</b><br>
 	 */
 	public enum smtype {
 		/**
@@ -183,14 +184,14 @@ public class DASemantics {
 		 * <p>About Merged Child Table:<br>
 		 * Take the <i>attachements</i> table for external file's information for example,
 		 * the a_attaches(See
-		 * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/res/semantic-DA.db'>
+		 * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/res'>
 		 * sqlite test DB</a>) has a field, named 'busiId', referencing multiple parent table.
 		 * The parent table is distinguished with filed busiTbl.
 		 * </p>
 		 * <p>args: 0 business cate (table name); 1 merged child fk; 2 parent table, 3 parent referee [, ...]</p>
 		 * Handler: {@link DASemantics.ShFkOnIns}
 		 */
-		fkInsBusiCate,
+		fkCateIns,
 		/**
 		 * xml/smtc = "f-p" | "fp" | "fullpath":<br>
 		 * <p>
@@ -401,7 +402,7 @@ public class DASemantics {
 			else if ("fk".equals(type) || "pkref".equals(type) || "fk-ins".equals(type))
 				return fkIns;
 			else if ("fk-ins-cate".equals(type) || "f-i-c".equals(type) || "fkc".equals(type))
-				return fkInsBusiCate;
+				return fkCateIns;
 			else if ("fp".equals(type) || "f-p".equals(type) || "fullpath".equals(type))
 				return fullpath;
 			else if ("dfltVal".equals(type) || "d-v".equals(type) || "dv".equals(type))
@@ -479,12 +480,12 @@ public class DASemantics {
 			handler = new ShAutoK(basicTsx, tabl, recId, args);
 		else if (smtype.fkIns == semantic)
 			handler = new ShFkOnIns(basicTsx, tabl, recId, args);
-		else if (smtype.fkInsBusiCate == semantic)
+		else if (smtype.fkCateIns == semantic)
 			handler = new ShFkCates(basicTsx, tabl, recId, args);
 		else if (smtype.parentChildrenOnDel == semantic)
 			handler = new ShPCDelAll(basicTsx, tabl, recId, args);
 		else if (smtype.parentChildrenOnDelByTabl == semantic)
-			handler = new ShPCDelByTbl(basicTsx, tabl, recId, args);
+			handler = new ShPCDelByCate(basicTsx, tabl, recId, args);
 		else if (smtype.defltVal == semantic)
 			handler = new ShDefltVal(basicTsx, tabl, recId, args);
 		// else if (smtype.dencrypt == semantic)
@@ -916,9 +917,9 @@ public class DASemantics {
 
 	}
 
-	static class ShPCDelByTbl extends ShPCDelAll {
+	static class ShPCDelByCate extends ShPCDelAll {
 
-		public ShPCDelByTbl(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
+		public ShPCDelByCate(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, tabl, recId, args);
 			super.sm = smtype.parentChildrenOnDelByTabl;
 		}
@@ -941,7 +942,7 @@ public class DASemantics {
 		private int ixparentpk = 3;
 
 		public ShFkCates(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
-			super(trxt, smtype.fkInsBusiCate, tabl, recId, args);
+			super(trxt, smtype.fkCateIns, tabl, recId, args);
 			argss = split(args);
 			insert = true;
 		}
@@ -950,7 +951,7 @@ public class DASemantics {
 		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 			for (String[] argus : argss) {
-				// busiTbl for fk-ins-busi must known
+				// busiTbl for fk-ins-cate must known
 				if (cols == null ||
 						!cols.containsKey(argus[ixbusiTbl]) || cols.get(argus[ixbusiTbl]) == null) {
 					Utils.warn("Can't handle fk-busi without column %s", argus[ixbusiTbl]);
@@ -959,29 +960,65 @@ public class DASemantics {
 				// <!-- 0 business cate (table name); 1 merged child fk; 2 parent table, 3 parent referee [, ...]  -->
 				Object[] nvBusiTbl = row.get(cols.get(argus[ixbusiTbl]));
 				if (nvBusiTbl == null || LangExt.isblank((String)nvBusiTbl[1])) {
-					Utils.warn("Can't generate fk-busi without business cate, the value of %s", argus[ixbusiTbl]);
+					Utils.warn("Can't generate value of %s.%s without business cate, the value of %s not provided",
+							target, argus[ixbusiId], argus[ixbusiTbl]);
+				}
+				else if (!nvBusiTbl[1].equals(argus[ixparentbl])){
+					// if the value is not for this cate (busiTbl), ignore it
+					continue;
 				}
 	
 				Object bid; 
-				String busiId = argus[ixbusiId];
-				if (cols.containsKey(busiId)
-						&& cols.get(busiId) > 0 && cols.get(busiId) < row.size()) {
-					bid = row.get(cols.get(busiId))[1];
-					if (!LangExt.isblank(bid))
-						// already provided by client, do nothing
-						return;
+				bid = stx.resulvedVal(argus[ixparentbl], argus[ixparentpk]);
+				Object[] rowBid; 
+
+				String fBusiId = argus[ixbusiId]; // field name, e.g. (a_attaches.)busiId
+
+				if (cols.containsKey(fBusiId)
+						&& cols.get(fBusiId) >= 0 && cols.get(fBusiId) < row.size()) {
+					rowBid = row.get(cols.get(fBusiId));
+					if (rowBid != null) {
+						// already provided by client, override it if possible
+						if (bid != null)
+							rowBid[1] = bid;
+						continue;
+					}
+					// otherwise it may be an Resulving()
 				}
 	
 				// add a semantics required cell if it's absent.
 				String vbusiTbl = (String) nvBusiTbl[1];
+				Object[] rowBusiTbl = row.get(cols.get(argus[ixbusiTbl]));
+
+				if (rowBusiTbl == null) {
+					Utils.warn("%s is a semantics that is intend to use a table name as business cate, but date to handled doesn't provide the business cate (by %s) .\n" +
+							sm.name(), argus[ixbusiTbl], vbusiTbl, target);
+					continue;
+				}
+
+				if (LangExt.isblank(vbusiTbl, "'\\s*'")
+					|| vbusiTbl.equals(rowBusiTbl[0]))
+					// not for this semantics
+					continue;
+
 				if (stx.colType(vbusiTbl) == null)
-					Utils.warn("fk-busi is a semantics that is intend to use a table name as business cate, but table %s can't been found.\n" +
+					Utils.warn("%s is a semantics that is intend to use a table name as business cate, but table %s can't been found.\n" +
 							"Deleting the records of table %s or %s will result in logical error.",
-							ixbusiTbl, vbusiTbl, target);
+							sm.name(), argus[ixbusiTbl], vbusiTbl, target);
 					
-				bid = stx.resulvedVal(argus[ixparentbl], argus[ixparentpk]);
-				cols.put(busiId, row.size());
-				row.add(new Object[] {argus[ixbusiId], bid});
+//				// bid = stx.resulvedVal(argus[ixparentbl], argus[ixparentpk]);
+//				if (bid == null) {
+//					// bid is null - can't resulve, not providen
+//					utils.warn("%s is a semantics that is intend create an fk to %s.%s, but resulve the value.\n" +
+//						"it must be an auto-key field, or the client must provide the actual value.",
+//						sm.name(), vbusitbl, target);
+//					continue;
+//				}
+//				else {
+					// bid is not provided
+					cols.put(fBusiId, row.size());
+					row.add(new Object[] {argus[ixbusiId], bid});
+//				}
 			}
 		}
 	}

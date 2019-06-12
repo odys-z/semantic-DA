@@ -564,7 +564,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.nv("birthday", Funcall.toDate(dbtype.sqlite, "1866-12-12"))
 			.post(st.insert("a_attaches")
 					.nv("attName", "Sun Yet-sen Portrait.jpg")  // name: portrait
-					.nv("busiTbl", "a_user")
+					.nv("busiTbl", "a_users")
 					// .nv("busiId", new Resulving("a_users", "userId"))
 					.nv("uri", readB64("src/test/res/Sun Yet-sen.jpg")))
 			.commit(s0, sqls);
@@ -574,7 +574,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// values ('Sun Yet-sen Portrait.jpg', 'a_user', 'uploads/a_user/00001C Sun Yet-sen Portrait.jpg', '00001C', '00001R', datetime('now'), 'tester')
 		assertEquals(String.format(
 				"insert into a_attaches  (attName, busiTbl, uri, attId, busiId, optime, oper) " +
-				"values ('Sun Yet-sen Portrait.jpg', 'a_user', 'uploads/a_user/%1$s Sun Yet-sen Portrait.jpg', '%1$s', '%2$s', datetime('now'), 'tester')",
+				"values ('Sun Yet-sen Portrait.jpg', 'a_users', 'uploads/a_users/%1$s Sun Yet-sen Portrait.jpg', '%1$s', '%2$s', datetime('now'), 'tester')",
 				s0.resulvedVal("a_attaches", "attId"),
 				s0.resulvedVal("a_users", "userId")),
 				sqls.get(1));
