@@ -72,8 +72,10 @@ public class DATranscxt extends Transcxt {
 	/**[conn, [table, DASemantics] */
 	protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
 
-	/**{@link DATranscxt} use a basic context (without semantics handler) for basic sql building.<b>
+	/**Create a new semantext instance with the static resources.<br>
+	 * {@link DATranscxt} use a basic context (without semantics handler) for basic sql building.<br>
 	 * Every context used for {@link DASemantics} handling must use this to create a new context instance.
+	 * @see ISemantext 
 	 * @see io.odysz.transact.sql.Transcxt#instancontxt(io.odysz.semantics.IUser)
 	 */
 	@Override
@@ -86,7 +88,8 @@ public class DATranscxt extends Transcxt {
 				return new DASemantext(basiconnId, getSmtcs(basiconnId),
 						Connects.getMeta(basiconnId), usr, runtimepath);
 			} catch (SemanticException | SQLException | SAXException | IOException e) {
-				e.printStackTrace(); // meta is null? shouldn't happen because this instance is already created
+				// meta is null? shouldn't happen because this instance is already created
+				e.printStackTrace();
 				return null;
 			}
 	}
