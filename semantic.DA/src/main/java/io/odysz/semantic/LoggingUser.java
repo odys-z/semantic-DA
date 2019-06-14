@@ -81,7 +81,7 @@ public class LoggingUser implements IUser {
 				.nv("oper", commitUser.uid())
 				.nv("funcName", funcName)
 				.nv("funcId", funcId)
-				.nv("cnt", sqls.size())
+				.nv("cnt", String.valueOf(sqls.size()))
 				.nv("txt", txt(sqls))
 				.ins(logBuilder.basictx().clone(null)); // Note: must cloned, otherwise there are resulved values.
 		} catch (SQLException e) {

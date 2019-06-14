@@ -18,6 +18,7 @@
   		<smtcs>src/test/res/semantics.xml</smtcs>
   	</c>
   	
+  	<!-- 
 	<c>
   		<id>local-mysql</id>
   		<type>mysql</type>
@@ -38,7 +39,7 @@
   		<pswd>*******</pswd>
   		<dbg>true</dbg>
   		<smtcs>src/test/res/semantics.xml</smtcs>
-	</c>
+	</c> -->
 
   </t>
 

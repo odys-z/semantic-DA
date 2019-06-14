@@ -23,6 +23,7 @@ import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
+import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.ExtFile;
 import io.odysz.transact.sql.parts.Logic;
 import io.odysz.transact.sql.parts.Resulving;
@@ -711,7 +712,8 @@ public class DASemantics {
 
 				String id = (String) row.get(cols.get(pkField))[1];
 
-				String pid = cols.containsKey(args[0]) ? (String) row.get(cols.get(args[0]))[1] : null;
+				// String pid = cols.containsKey(args[0]) ? (String) row.get(cols.get(args[0]))[1] : null;
+				Object pid = cols.containsKey(args[0]) ? row.get(cols.get(args[0]))[1] : null;
 
 				if (pid == null || "null".equals(pid)) {
 					Utils.warn(
@@ -1439,10 +1441,17 @@ public class DASemantics {
 			Object pk = row.get(cols.get(pkField))[1];
 			if (pk instanceof String)
 				try {
-					((DATranscxt) stmt.transc()).update(target, usr).nv((String) nv[0], nv[1])
-							.where_("=", pkField, (String) pk)
-							// Debug Notes: using null Semantext for no more semantics handling iterating
-							.commit(null, sqlBuff);
+					Update u = ((DATranscxt) stmt.transc()).update(target, usr)
+							//.nv((String) nv[0], nv[1])
+							.where_("=", pkField, (String) pk);
+
+					if (nv[1] instanceof AbsPart)
+						u.nv((String)nv[0], (AbsPart)nv[1]);
+					else
+						u.nv((String)nv[0], (String)nv[1]);
+
+					// Debug Notes: using null Semantext for no more semantics handling iterating
+					u.commit(null, sqlBuff);
 				} catch (TransException e) {
 					e.printStackTrace();
 					throw new SemanticException(e.getMessage());

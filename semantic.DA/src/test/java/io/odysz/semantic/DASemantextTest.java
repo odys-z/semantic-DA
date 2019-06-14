@@ -173,7 +173,7 @@ DELETE from a_roles;</pre>
 			.nv("flags", flag)
 			// .nv("funcId", "AUTO")
 			.nv("funcName", "testInsert B - " + flag)
-			.nv("parentId", s0.resulvedVal("a_functions", "funcId"))
+			.nv("parentId", (String)s0.resulvedVal("a_functions", "funcId"))
 			.commit(s1, sqls);
 	
 		// Utils.logi(sqls);

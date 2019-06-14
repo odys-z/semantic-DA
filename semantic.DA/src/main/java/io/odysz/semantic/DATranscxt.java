@@ -59,11 +59,17 @@ public class DATranscxt extends Transcxt {
 //		return Connects.getMeta(connId);
 //	}
 	
-	public TableMeta tableMeta(String t) throws SemanticException, SQLException {
+	public TableMeta tableMeta(String t) throws SemanticException {
 		for (String cnn : Connects.connIds()) {
-			HashMap<String, TableMeta> metas = Connects.getMeta(cnn);
-			if (metas != null && metas.containsKey(t))
-				return metas.get(t);
+			HashMap<String, TableMeta> metas;
+			try {
+				metas = Connects.getMeta(cnn);
+				if (metas != null && metas.containsKey(t))
+					return metas.get(t);
+			} catch (SQLException e) {
+				e.printStackTrace();
+				throw new SemanticException(e.getMessage());
+			}
 		}
 		return null;
 
