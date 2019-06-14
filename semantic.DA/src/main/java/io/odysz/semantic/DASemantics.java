@@ -704,13 +704,13 @@ public class DASemantics {
 			} catch (Exception e) {
 			}
 
-			String v = null;
+			Object v = null;
 			try {
 				if (!cols.containsKey(pkField) || row.get(cols.get(pkField)) == null)
 					throw new SemanticException("Fullpath configuration wrong: idField = %s, cols: %s", pkField,
 							LangExt.toString(cols));
 
-				String id = (String) row.get(cols.get(pkField))[1];
+				Object id = row.get(cols.get(pkField))[1];
 
 				// String pid = cols.containsKey(args[0]) ? (String) row.get(cols.get(args[0]))[1] : null;
 				Object pid = cols.containsKey(args[0]) ? row.get(cols.get(args[0]))[1] : null;
@@ -775,8 +775,6 @@ public class DASemantics {
 		}
 
 		@Override
-		// void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer>
-		// cols, IUser usr) {
 		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			Object[] nv;
 			if (cols.containsKey(args[0]) // with nv from client
@@ -793,18 +791,14 @@ public class DASemantics {
 
 				Object alreadyResulved = stx.resulvedVal(target, args[0]);
 				if (alreadyResulved != null && verbose)
-					// {
-					// When cross fk referencing happened, this branch will reached by handling post
-					// inserts.
+					// When cross fk referencing happened, this branch will
+					// reached by handling post inserts.
 					Utils.warn(
 							"Debug Notes(verbose): Found an already resulved value (%s) while handling %s auto-key generation. Replacing ...",
 							alreadyResulved, target);
-				// nv[1] = alreadyResulved;
-				// }
-				// else
-				// side effect: generated auto key already been put into autoVals, can be
-				// referenced later.
-				nv[1] = stx.genId(target, args[0]);
+				// side effect: generated auto key already been put into autoVals,
+				// which can be referenced later.
+				nv[1] = ExprPart.constStr(stx.genId(target, args[0]));
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();
 			}
@@ -961,7 +955,7 @@ public class DASemantics {
 				}
 				// <!-- 0 business cate (table name); 1 merged child fk; 2 parent table, 3 parent referee [, ...]  -->
 				Object[] nvBusiTbl = row.get(cols.get(argus[ixbusiTbl]));
-				if (nvBusiTbl == null || LangExt.isblank((String)nvBusiTbl[1])) {
+				if (nvBusiTbl == null || LangExt.isblank(nvBusiTbl[1])) {
 					Utils.warn("Can't generate value of %s.%s without business cate, the value of %s not provided",
 							target, argus[ixbusiId], argus[ixbusiTbl]);
 				}
@@ -1057,10 +1051,12 @@ public class DASemantics {
 				}
 				nv[0] = args[0];
 				if (nv[1] == null)
-					nv[1] = args[1];
+					//nv[1] = args[1];
+					nv[1] = ExprPart.constStr(args[1]);
 				else if ("".equals(nv[1]) && args[1] != null && !args[1].equals(""))
 					// this is not robust but any better way to handle empty json value?
-					nv[1] = args[1];
+					// nv[1] = args[1];
+					nv[1] = ExprPart.constStr(args[1]);
 			}
 		}
 
@@ -1099,7 +1095,7 @@ public class DASemantics {
 			rootpath = args[ixRoot];
 
 //			try {
-				if (LangExt.isblank(args[2]))
+				if (LangExt.isblank(args[ixBusiTbl]))
 					Utils.warn("ShExtFile handling special attachment table semantics, which is needing a business category filed in the table.\n" +
 						"But the configuration on the target table (%s) doesn't provide the semantics (business table name field not specified)",
 						target);
@@ -1119,13 +1115,13 @@ public class DASemantics {
 					// save file, replace v
 					nv = row.get(cols.get(args[ixUri]));
 					if (nv != null && nv[1] != null
-						&& nv[1] instanceof String && ((String) nv[1]).length() > 0) {
+						&& (nv[1] instanceof String && !LangExt.isblank(nv[1]) || nv[1] instanceof ExprPart)) {
 
 						// find business category
-						String busi = (String) row.get(cols.get(args[ixBusiTbl]))[1];
+						Object busi = row.get(cols.get(args[ixBusiTbl]))[1];
 						try {
 							// save to WEB-INF/uploads/[busiTbl]/[uri]
-							String relatvpth = stx.relativpath(args[0], busi);
+							String relatvpth = stx.relativpath(args[ixRoot], busi.toString());
 
 							// can be a string or an auto resulving
 							Object fn = row.get(cols.get(pkField))[1];
@@ -1134,12 +1130,13 @@ public class DASemantics {
 							if (fn instanceof Resulving)
 								f = new ExtFile((Resulving) fn);
 							else // must be a string
-								f = new ExtFile(new ExprPart((String) fn));
+								f = fn instanceof String ? new ExtFile(new ExprPart((String) fn))
+										: new ExtFile((ExprPart)fn);
 							
 							if (args.length >= ixClientName) {
 								String clientname = args[ixClientName];
 								if (cols.containsKey(clientname)) {
-									clientname = (String) row.get(cols.get(clientname))[1];
+									clientname = row.get(cols.get(clientname))[1].toString();
 									if (clientname != null)
 										f.filename(clientname);
 								}
@@ -1147,7 +1144,7 @@ public class DASemantics {
 
 							f.prefixPath(relatvpth)
 								.absPath(stx.containerRoot())
-								.b64((String) nv[1]);
+								.b64(nv[1].toString()); // performance problem here
 							// nv[1] = f;
 							nv = new Object[] {nv[0], f};
 							row.set(cols.get(args[ixUri]), nv);
@@ -1362,7 +1359,7 @@ public class DASemantics {
 					nvTime = row.get(ix);
 					try {
 						if (debug)
-							Utils.warn("ShOperTime#onInsert(): Found o-t value(%s, %s) exists, replacing...", nvTime[0],
+							Utils.warn("[DASemantics.debug] ShOperTime#onInsert(): Found o-t value(%s, %s) exists, replacing...", nvTime[0],
 									nvTime[1]);
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -1387,7 +1384,7 @@ public class DASemantics {
 				row.add(nvOper);
 			}
 			nvOper[0] = args[0];
-			nvOper[1] = usr == null ? "sys" : usr.uid();
+			nvOper[1] = ExprPart.constStr(usr == null ? "sys" : usr.uid());
 		}
 
 		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
