@@ -29,6 +29,7 @@ import io.odysz.transact.sql.Statement.IPostOperat;
 import io.odysz.transact.sql.Statement.IPostSelectOperat;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
+import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.condition.Condit;
 import io.odysz.transact.x.TransException;
 
@@ -496,12 +497,12 @@ end;
 		onSelecteds.add(op);
 	}
 
-//	@Override
-//	public void setRs(Object result, String col, String v) throws SQLException {
-//		if (result != null) {
-//			SResultset rs = (SResultset) result;
-//			rs.set(col, v);
-//		}
-//	}
+	@Override
+	public AbsPart composeVal(Object v, String tabl, String col) {
+		if (v instanceof AbsPart)
+			return (AbsPart) v;
 
+		TableMeta mt = colType(tabl);
+		return Statement.composeVal(v, mt, tabl, col);
+	}
 }

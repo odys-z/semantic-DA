@@ -190,7 +190,7 @@ public class DASemantics {
 		 * The parent table is distinguished with filed busiTbl.
 		 * </p>
 		 * <p>args: 0 business cate (table name); 1 merged child fk; 2 parent table, 3 parent referee [, ...]</p>
-		 * Handler: {@link DASemantics.ShFkOnIns}
+		 * Handler: {@link DASemantics.ShFkInsCates}
 		 */
 		fkCateIns,
 		/**
@@ -482,7 +482,7 @@ public class DASemantics {
 		else if (smtype.fkIns == semantic)
 			handler = new ShFkOnIns(basicTsx, tabl, recId, args);
 		else if (smtype.fkCateIns == semantic)
-			handler = new ShFkCates(basicTsx, tabl, recId, args);
+			handler = new ShFkInsCates(basicTsx, tabl, recId, args);
 		else if (smtype.parentChildrenOnDel == semantic)
 			handler = new ShPCDelAll(basicTsx, tabl, recId, args);
 		else if (smtype.parentChildrenOnDelByTabl == semantic)
@@ -701,8 +701,7 @@ public class DASemantics {
 			String sibling = null;
 			try {
 				sibling = (String) row.get(cols.get(args[1]))[1];
-			} catch (Exception e) {
-			}
+			} catch (Exception e) { }
 
 			Object v = null;
 			try {
@@ -715,7 +714,8 @@ public class DASemantics {
 				// String pid = cols.containsKey(args[0]) ? (String) row.get(cols.get(args[0]))[1] : null;
 				Object pid = cols.containsKey(args[0]) ? row.get(cols.get(args[0]))[1] : null;
 
-				if (pid == null || "null".equals(pid)) {
+				// if (pid == null || "null".equals(pid)) {
+				if (LangExt.isblank(pid, "null")) {
 					Utils.warn(
 							"Fullpath Handling Error\nTo generate fullpath, parentId must configured.\nFound parent col: %s,\nconfigured args = %s,\nhandling cols = %s\nrows = %s",
 							pid, LangExt.toString(args), LangExt.toString(cols), LangExt.toString(row));
@@ -739,7 +739,8 @@ public class DASemantics {
 			if (cols.containsKey(args[2]))
 				nv = row.get(cols.get(args[2]));
 			else {
-				nv = new Object[] { args[2], v };
+				// nv = new Object[] { args[2], v };
+				nv = new Object[] { args[2], stx.composeVal(v, target, args[2]) };
 				cols.put(args[2], row.size());
 				row.add(nv);
 			}
@@ -752,7 +753,8 @@ public class DASemantics {
 		}
 	}
 
-	/**
+	/**Auto Pk Handler.<br>
+	 * Generate a radix 64, 6 bit of string representation of integer.
 	 * @see smtype#autoInc
 	 * @author odys-z@github.com
 	 */
@@ -761,8 +763,7 @@ public class DASemantics {
 		 * @param trxt
 		 * @param tabl
 		 * @param pk
-		 * @param args
-		 *            0: auto field
+		 * @param args 0: auto field
 		 * @throws SemanticException
 		 */
 		ShAutoK(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
@@ -771,7 +772,6 @@ public class DASemantics {
 				throw new SemanticException("AUTO pk semantics configuration not correct. tabl = %s, pk = %s, args: %s",
 						tabl, pk, LangExt.toString(args));
 			insert = true;
-			// insPrepare = true;
 		}
 
 		@Override
@@ -798,7 +798,8 @@ public class DASemantics {
 							alreadyResulved, target);
 				// side effect: generated auto key already been put into autoVals,
 				// which can be referenced later.
-				nv[1] = ExprPart.constStr(stx.genId(target, args[0]));
+				// nv[1] = ExprPart.constStr(stx.genId(target, args[0]));
+				nv[1] = stx.composeVal(stx.genId(target, args[0]), target, args[0]);
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();
 			}
@@ -835,7 +836,8 @@ public class DASemantics {
 			try {
 				Object v = stx.resulvedVal(args[1], args[2]);
 				if (v != null && (nv[1] == null || LangExt.isblank((String) nv[1])))
-					nv[1] = v;
+					// nv[1] = v;
+					nv[1] = stx.composeVal(v, target, (String)nv[0]);
 			} catch (Exception e) {
 				if (nv[1] != null) {
 					if (debug)
@@ -900,7 +902,7 @@ public class DASemantics {
 						"Parent table %s has a semantics triggering child table (%s) deletion, but the condition is null.",
 						target, args[1]);
 			try {
-			Query s = stmt.transc().select(target)
+				Query s = stmt.transc().select(target)
 					.col(pkField)	// parent's referee
 					.where(condt);
 				Predicate inCondt = new Predicate(Logic.op.in, args[0], s);
@@ -910,7 +912,6 @@ public class DASemantics {
 				throw new SemanticException(e.getMessage());
 			}
 		}
-
 	}
 
 	static class ShPCDelByCate extends ShPCDelAll {
@@ -928,7 +929,7 @@ public class DASemantics {
 		}
 	}
 	
-	static class ShFkCates extends SemanticHandler {
+	static class ShFkInsCates extends SemanticHandler {
 		protected String[][] argss;
 
 		/** configured field of busi-tbl, e.g. busiTbl for a_attaches */
@@ -937,7 +938,7 @@ public class DASemantics {
 		private int ixparentbl = 2;
 		private int ixparentpk = 3;
 
-		public ShFkCates(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
+		public ShFkInsCates(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.fkCateIns, tabl, recId, args);
 			argss = split(args);
 			insert = true;
@@ -970,51 +971,47 @@ public class DASemantics {
 
 				String fBusiId = argus[ixbusiId]; // field name, e.g. (a_attaches.)busiId
 
+				// A client provided busi-id
 				if (cols.containsKey(fBusiId)
 						&& cols.get(fBusiId) >= 0 && cols.get(fBusiId) < row.size()) {
 					rowBid = row.get(cols.get(fBusiId));
 					if (rowBid != null) {
 						// already provided by client, override it if possible
 						if (bid != null)
-							rowBid[1] = bid;
+							// rowBid[1] = bid;
+							rowBid[1] = stx.composeVal(bid, target, fBusiId);
+					}
+					// otherwise it may be a Resulving()
+				}
+				// B busi-id is not provided, create it
+				else {
+					// add a semantics required cell if it's absent.
+					String vbusiTbl = (String) nvBusiTbl[1];
+					Object[] rowBusiTbl = row.get(cols.get(argus[ixbusiTbl]));
+	
+					// e.g. not "a_users" presented in row
+					if (rowBusiTbl == null) {
+						Utils.warn("%s is a semantics that is intend to use a table name as business cate, but date to handled doesn't provide the business cate (by %s) .\n" +
+								sm.name(), argus[ixbusiTbl], vbusiTbl, target);
 						continue;
 					}
-					// otherwise it may be an Resulving()
-				}
 	
-				// add a semantics required cell if it's absent.
-				String vbusiTbl = (String) nvBusiTbl[1];
-				Object[] rowBusiTbl = row.get(cols.get(argus[ixbusiTbl]));
-
-				if (rowBusiTbl == null) {
-					Utils.warn("%s is a semantics that is intend to use a table name as business cate, but date to handled doesn't provide the business cate (by %s) .\n" +
-							sm.name(), argus[ixbusiTbl], vbusiTbl, target);
-					continue;
-				}
-
-				if (LangExt.isblank(vbusiTbl, "'\\s*'")
-					|| vbusiTbl.equals(rowBusiTbl[0]))
-					// not for this semantics
-					continue;
-
-				if (stx.colType(vbusiTbl) == null)
-					Utils.warn("%s is a semantics that is intend to use a table name as business cate, but table %s can't been found.\n" +
-							"Deleting the records of table %s or %s will result in logical error.",
-							sm.name(), argus[ixbusiTbl], vbusiTbl, target);
-					
-//				// bid = stx.resulvedVal(argus[ixparentbl], argus[ixparentpk]);
-//				if (bid == null) {
-//					// bid is null - can't resulve, not providen
-//					utils.warn("%s is a semantics that is intend create an fk to %s.%s, but resulve the value.\n" +
-//						"it must be an auto-key field, or the client must provide the actual value.",
-//						sm.name(), vbusitbl, target);
-//					continue;
-//				}
-//				else {
-					// bid is not provided
+					// e.g. this handler only handling records for a_users's children.
+					if (LangExt.isblank(vbusiTbl, "'\\s*'")
+						|| vbusiTbl.equals(rowBusiTbl[0]))
+						// not for this semantics
+						continue;
+	
+					// e.g. no table "a_user2" exists as appointed by row's data.
+					if (stx.colType(vbusiTbl) == null)
+						Utils.warn("%s is a semantics that is intend to use a table name as business cate, but table %s can't been found.\n" +
+								"Deleting the records of table %s or %s will result in logical error.",
+								sm.name(), argus[ixbusiTbl], vbusiTbl, target);
+						
+					// e.g recId = user001
 					cols.put(fBusiId, row.size());
-					row.add(new Object[] {argus[ixbusiId], bid});
-//				}
+					row.add(new Object[] {argus[ixbusiId], stx.composeVal(bid, target, argus[ixbusiId])});
+				}
 			}
 		}
 	}
@@ -1052,11 +1049,11 @@ public class DASemantics {
 				nv[0] = args[0];
 				if (nv[1] == null)
 					//nv[1] = args[1];
-					nv[1] = ExprPart.constStr(args[1]);
+					nv[1] = stx.composeVal(args[1], target, (String)nv[0]);
 				else if ("".equals(nv[1]) && args[1] != null && !args[1].equals(""))
 					// this is not robust but any better way to handle empty json value?
 					// nv[1] = args[1];
-					nv[1] = ExprPart.constStr(args[1]);
+					nv[1] = stx.composeVal(args[1], target, (String)nv[0]);
 			}
 		}
 
@@ -1094,16 +1091,10 @@ public class DASemantics {
 
 			rootpath = args[ixRoot];
 
-//			try {
-				if (LangExt.isblank(args[ixBusiTbl]))
-					Utils.warn("ShExtFile handling special attachment table semantics, which is needing a business category filed in the table.\n" +
-						"But the configuration on the target table (%s) doesn't provide the semantics (business table name field not specified)",
-						target);
-//			}catch(TransException e) {
-//					throw new SemanticException("Can't find table %s, which defined by semantics on table %s.\n" +
-//						"It's is required to delete the external file's records.",
-////						target, args[2]);
-//			}
+			if (LangExt.isblank(args[ixBusiTbl]))
+				Utils.warn("ShExtFile handling special attachment table semantics, which is needing a business category filed in the table.\n" +
+					"But the configuration on the target table (%s) doesn't provide the semantics (business table name field not specified)",
+					target);
 		}
 
 		@Override
@@ -1115,7 +1106,7 @@ public class DASemantics {
 					// save file, replace v
 					nv = row.get(cols.get(args[ixUri]));
 					if (nv != null && nv[1] != null
-						&& (nv[1] instanceof String && !LangExt.isblank(nv[1]) || nv[1] instanceof ExprPart)) {
+						&& (nv[1] instanceof String && !LangExt.isblank(nv[1]) || nv[1] instanceof AbsPart)) {
 
 						// find business category
 						Object busi = row.get(cols.get(args[ixBusiTbl]))[1];
@@ -1129,9 +1120,8 @@ public class DASemantics {
 							ExtFile f;
 							if (fn instanceof Resulving)
 								f = new ExtFile((Resulving) fn);
-							else // must be a string
-								f = fn instanceof String ? new ExtFile(new ExprPart((String) fn))
-										: new ExtFile((ExprPart)fn);
+							else
+								f = new ExtFile(new ExprPart(fn.toString()));
 							
 							if (args.length >= ixClientName) {
 								String clientname = args[ixClientName];
@@ -1144,7 +1134,8 @@ public class DASemantics {
 
 							f.prefixPath(relatvpth)
 								.absPath(stx.containerRoot())
-								.b64(nv[1].toString()); // performance problem here
+								// FIXME performance problem here, add a class for binary value?
+								.b64(nv[1].toString());
 							// nv[1] = f;
 							nv = new Object[] {nv[0], f};
 							row.set(cols.get(args[ixUri]), nv);
@@ -1266,14 +1257,17 @@ public class DASemantics {
 					}
 		}
 
-		private void chkCnt(String[] args, Statement<? extends Statement<?>> stmt, Condit condt) throws SemanticException {
+		private void chkCnt(String[] args, Statement<? extends Statement<?>> stmt, Condit condt)
+				throws SemanticException {
 			SemanticObject s;
 			try {
 				Query slct = stmt.transc().select(target).col(args[0]).where(condt);
 
 				Predicate inCondt = new Predicate(Logic.op.in, args[2], slct);
 
-				s = stmt.transc().select(args[1]).col("count(" + args[2] + ")", "cnt").where(inCondt)
+				s = stmt.transc().select(args[1])
+						.col("count(" + args[2] + ")", "cnt")
+						.where(inCondt)
 						.rs(stmt.transc().basictx());
 
 				SResultset rs = (SResultset) s.rs(0);
@@ -1321,7 +1315,6 @@ public class DASemantics {
 					throw new SemanticException(
 							"Can't access db to check count on insertion, check sql configuration: %s", sql);
 				}
-
 			}
 		}
 	}
@@ -1384,7 +1377,8 @@ public class DASemantics {
 				row.add(nvOper);
 			}
 			nvOper[0] = args[0];
-			nvOper[1] = ExprPart.constStr(usr == null ? "sys" : usr.uid());
+			// nvOper[1] = ExprPart.constStr(usr == null ? "sys" : usr.uid());
+			nvOper[1] = stx.composeVal(usr == null ? "sys" : usr.uid(), target, args[0]);
 		}
 
 		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
@@ -1423,24 +1417,16 @@ public class DASemantics {
 			else { // add a semantics required cell if it's absent.
 				nv = new Object[] { args[0], null };
 			}
-			nv[1] = resulved;
-			// try {
-			// // nv[1] = stx.resulvedVal(args[1], args[2]);
 			// nv[1] = resulved;
-			// }catch (Exception e) {
-			// throw new SemanticException("Post FK can not resulved: %s, table: %s",
-			// smtype.postFk.name(), target);
-			// }
-			// if (nv[1] == null)
-			// throw new SemanticException("Post FK can not resulved: %s, table: %s",
-			// smtype.postFk.name(), target);
+			nv[1] = stx.composeVal(resulved, target, args[0]);
+
 			// append a sql
 			Object pk = row.get(cols.get(pkField))[1];
-			if (pk instanceof String)
+//			if (pk instanceof String)
 				try {
 					Update u = ((DATranscxt) stmt.transc()).update(target, usr)
 							//.nv((String) nv[0], nv[1])
-							.where_("=", pkField, (String) pk);
+							.whereEq(pkField, pk);
 
 					if (nv[1] instanceof AbsPart)
 						u.nv((String)nv[0], (AbsPart)nv[1]);
@@ -1453,10 +1439,10 @@ public class DASemantics {
 					e.printStackTrace();
 					throw new SemanticException(e.getMessage());
 				}
-			else
-				throw new SemanticException(
-						"Currently DASemantics.ShPostFk can only handle string type id for post update fk. (%s.%s = %s)",
-						target, pkField, pk);
+//			else
+//				throw new SemanticException(
+//						"Currently DASemantics.ShPostFk can only handle string type id for post update fk. (%s.%s = %s)",
+//						target, pkField, pk);
 		}
 	}
 }

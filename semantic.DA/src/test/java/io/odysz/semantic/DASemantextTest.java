@@ -208,7 +208,7 @@ DELETE from a_roles;</pre>
 				.where("=", "rf.funcId", "'000001'")
 				.rs(s1);
 		SResultset slect = (SResultset) s.rs(0);
-		slect.printSomeData(false, 2, "funcId");
+		slect.printSomeData(false, 2, "cnt");
 
 		slect.beforeFirst().next();
 		assertEquals(1, slect.getInt("cnt"));
@@ -565,7 +565,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.post(st.insert("a_attaches")
 					.nv("attName", "Sun Yet-sen Portrait.jpg")  // name: portrait
 					.nv("busiTbl", "a_users")
-					// .nv("busiId", new Resulving("a_users", "userId"))
+					.nv("busiId", new Resulving("a_users", "userId"))
 					.nv("uri", readB64("src/test/res/Sun Yet-sen.jpg")))
 			.commit(s0, sqls);
 
@@ -573,10 +573,10 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// insert into a_attaches  (attName, busiTbl, uri, attId, busiId, optime, oper)
 		// values ('Sun Yet-sen Portrait.jpg', 'a_user', 'uploads/a_user/00001C Sun Yet-sen Portrait.jpg', '00001C', '00001R', datetime('now'), 'tester')
 		assertEquals(String.format(
-				"insert into a_attaches  (attName, busiTbl, uri, attId, busiId, optime, oper) " +
-				"values ('Sun Yet-sen Portrait.jpg', 'a_users', 'uploads/a_users/%1$s Sun Yet-sen Portrait.jpg', '%1$s', '%2$s', datetime('now'), 'tester')",
-				s0.resulvedVal("a_attaches", "attId"),
-				s0.resulvedVal("a_users", "userId")),
+				"insert into a_attaches  (attName, busiTbl, busiId, uri, attId, optime, oper) " +
+				"values ('Sun Yet-sen Portrait.jpg', 'a_users', '%1$s', 'uploads/a_users/%2$s Sun Yet-sen Portrait.jpg', '%2$s', datetime('now'), 'tester')",
+				s0.resulvedVal("a_users", "userId"),
+				s0.resulvedVal("a_attaches", "attId")),
 				sqls.get(1));
 		Connects.commit(usr , sqls);
 
