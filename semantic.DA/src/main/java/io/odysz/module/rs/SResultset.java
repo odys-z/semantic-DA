@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
+import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
 
 /**This Resultset is used for non-connected manipulation.
@@ -46,6 +47,8 @@ for (String coln : colnames.keySet())
 
 	/**For paged query, this the total row count*/
 	private int total = 0;
+
+	private HashMap<Class<?>,String> stringFormats;
 
 	public SResultset(ResultSet rs) throws SQLException {
 		ICRconstructor(rs);
@@ -245,6 +248,11 @@ for (String coln : colnames.keySet())
 	public HashMap<String, Object[]> getColnames() {
 		return colnames;
 	}
+
+	public boolean hasCol(String c) {
+		return LangExt.isblank(c) ? false
+				: getColnames().containsKey(c.trim().toUpperCase());
+	}
 	
 	public ArrayList<ArrayList<Object>> getRows() {
 		return results;
@@ -279,11 +287,28 @@ for (String coln : colnames.keySet())
 		return rowCnt;
 	}
 	
+	/**Add a formatter to type of clz when converting to String.
+	 * @param clz
+	 * @param format
+	 * @return this
+	 */
+	public SResultset stringFormat(Class<?> clz, String format) {
+		if (stringFormats == null)
+			stringFormats = new HashMap<Class<?>, String>();
+		stringFormats.put(clz, format);
+		return this;
+	}
+	
 	public String getString(int colIndex) throws SQLException {
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) return null;
 			if (results.get(rowIdx - 1).get(colIndex - 1) == null) return null;
-			else return results.get(rowIdx - 1).get(colIndex - 1).toString();
+			// else return results.get(rowIdx - 1).get(colIndex - 1).toString();
+			else {
+				Object v = results.get(rowIdx - 1).get(colIndex - 1);
+				return stringFormats != null && stringFormats.containsKey(v.getClass()) ?
+						String.format(stringFormats.get(v.getClass()), v) : v.toString();
+			}
 		} catch (Exception e) {
 			throw new SQLException(e.getMessage() + " Empty Results?");
 		}
@@ -319,7 +344,11 @@ for (String coln : colnames.keySet())
 				Object obj = results.get(rowIdx - 1).get(colIndex - 1);
 				if (obj instanceof Date)
 					return sdf.format(obj);
-				return results.get(rowIdx - 1).get(colIndex - 1).toString();
+
+				// return results.get(rowIdx - 1).get(colIndex - 1).toString();
+				Object v = results.get(rowIdx - 1).get(colIndex - 1);
+				return stringFormats != null && stringFormats.containsKey(v.getClass()) ?
+						String.format(stringFormats.get(v.getClass()), v) : v.toString();
 			}
 		} catch (Exception e) {
 			throw new SQLException(e.getMessage());
@@ -749,17 +778,12 @@ for (String coln : colnames.keySet())
 		return s;
 	}
 
-//	public void disableColumns(String... cols2Disable) {
-//		if (cols2Disable != null && colnames != null)
-//			for (String col2dis : cols2Disable)
-//				colnames.remove(col2dis.toUpperCase());
-//	}
-
-	public String getString(int rowix, String idField) {
+	public String getString(int rowix, String field) throws SQLException {
 		if (results == null || results.size() < rowix)
 			return null;
-		int colix = (Integer) colnames.get(idField.toUpperCase())[0];
-		return results == null ? null : (String) results.get(rowix - 1).get(colix - 1);
+		int colix = (Integer) colnames.get(field.toUpperCase())[0];
+		// return results == null ? null : (String) results.get(rowix - 1).get(colix - 1);
+		return getString(colix);
 	}
 
 	public int total() {

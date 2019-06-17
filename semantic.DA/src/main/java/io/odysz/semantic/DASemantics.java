@@ -195,9 +195,8 @@ public class DASemantics {
 		fkCateIns,
 		/**
 		 * xml/smtc = "f-p" | "fp" | "fullpath":<br>
-		 * <p>
-		 * args: 0: parent Id field, 1: sibling/sort field (optional), 2: fullpath field
-		 * </p>
+		 * <p>args: 0: parent Id field, 1: sibling/sort field (optional), 2: fullpath field, 3: sort size (optional, default 2)
+		 * <br>where sort size is the digital length for formatting fullpath string.</p>
 		 * Handler: {@link ShFullpath}
 		 */
 		fullpath,
@@ -683,6 +682,10 @@ public class DASemantics {
 	 * @author odys-z@github.com
 	 */
 	static class ShFullpath extends SemanticHandler {
+		private static String faqPage = "https://odys-z.github.io/notes/semantics/best-practices.html#semantic-DA-howtos";
+
+		private int siblingSize;
+
 		/**
 		 * @param tabl
 		 * @param recId
@@ -694,20 +697,31 @@ public class DASemantics {
 			super(trxt, smtype.fullpath, tabl, recId, args);
 			insert = true;
 			update = true;
+			
+			siblingSize = 2;
+			if (args.length >= 4)
+				try {siblingSize = Integer.valueOf(args[3]);}
+				catch (Exception e) {}
 		}
 
 		@Override
-		void onInsert(ISemantext stx, Insert insert, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-			String sibling = null;
+		void onInsert(ISemantext stx, Insert insert, ArrayList<Object[]> row,
+				Map<String, Integer> cols, IUser usr) throws SemanticException {
+			String sibling;
 			try {
-				sibling = (String) row.get(cols.get(args[1]))[1];
-			} catch (Exception e) { }
+				String s = String.valueOf(row.get(cols.get(args[1]))[1]);
+				sibling = LangExt.leftPad(s, siblingSize, '0');
+			} catch (Exception e) {
+				sibling = LangExt.leftPad("", siblingSize, "0");
+			}
 
 			Object v = null;
 			try {
 				if (!cols.containsKey(pkField) || row.get(cols.get(pkField)) == null)
-					throw new SemanticException("Fullpath configuration wrong: idField = %s, cols: %s", pkField,
-							LangExt.toString(cols));
+					throw new SemanticException("Fullpath configuration wrong: idField = %s,\nargs:%s,\ncols: %s" +
+							"\nSee %s ",
+							pkField, LangExt.toString(args), LangExt.toString(cols),
+							faqPage);
 
 				Object id = row.get(cols.get(pkField))[1];
 
@@ -727,12 +741,16 @@ public class DASemantics {
 					SResultset rs = (SResultset) s.rs(0);
 					if (rs.beforeFirst().next()) {
 						String parentpath = rs.getString(args[2]);
-						v = String.format("%s.%s%s", parentpath, sibling == null ? "" : sibling + " ", id);
+						v = String.format("%s.%s %s",
+								LangExt.isblank(parentpath, "null") ? "" : parentpath,
+								sibling, id);
 					} else
-						v = String.format("%s%s", sibling == null ? "" : sibling + " ", id);
+						v = String.format("%s %s", sibling, id);
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				if ( !(e instanceof TransException) )
+					e.printStackTrace();
+				throw new SemanticException(e.getMessage());
 			}
 
 			Object[] nv;
@@ -747,7 +765,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onUpdate(ISemantext sxt, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		void onUpdate(ISemantext sxt, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 			// Design Memo: statement parameter (updt, or insert for onInsert()) is not used
 			onInsert(sxt, null, row, cols, usr);
 		}

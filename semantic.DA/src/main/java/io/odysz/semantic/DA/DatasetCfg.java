@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FilenameUtils;
 import org.xml.sax.SAXException;
 
+import io.odysz.common.LangExt;
 import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
@@ -329,6 +330,12 @@ public class DatasetCfg {
 		rs.beforeFirst();
 		while (rs.next()) {
 			SemanticObject root  = formatSemanticNode(treeSemtcs, rs);
+
+			// sometimes error results from inconsistent data is confusing, so report an error here - it's debug experience.
+			// if (!rs.getColnames().containsKey(treeSemtcs.dbRecId()))
+			if (!rs.hasCol(treeSemtcs.dbRecId()))
+				throw new SemanticException("Building s-tree requires column '%s'(configured id). You'd better check the query request and the semantics configuration:\n%s",
+						treeSemtcs.dbRecId(), LangExt.toString(treeSemtcs.treeSmtcs()));
 
 			// checkSemantics(rs, semanticss, Ix.recId);
 			List<SemanticObject> children = buildSubTree(treeSemtcs, root,
