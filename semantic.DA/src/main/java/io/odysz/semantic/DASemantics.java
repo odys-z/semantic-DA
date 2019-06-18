@@ -978,7 +978,7 @@ public class DASemantics {
 					Utils.warn("Can't generate value of %s.%s without business cate, the value of %s not provided",
 							target, argus[ixbusiId], argus[ixbusiTbl]);
 				}
-				else if (!nvBusiTbl[1].equals(argus[ixparentbl])){
+				else if (!nvBusiTbl[1].toString().equals(argus[ixparentbl])){
 					// if the value is not for this cate (busiTbl), ignore it
 					continue;
 				}
