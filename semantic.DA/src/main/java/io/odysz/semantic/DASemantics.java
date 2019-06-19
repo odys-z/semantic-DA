@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
 
+import io.odysz.common.AESHelper;
 import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
@@ -245,7 +246,7 @@ public class DASemantics {
 		 * "d-e" | "de-encrypt" | "dencrypt":<br>
 		 * decrypt then encrypt (target col cannot be pk or anything other semantics
 		 * will updated<br>
-		 * Handler: {@link TODO}
+		 * Handler: {@link ShDencrypt}
 		 */
 		dencrypt,
 		/**
@@ -488,8 +489,8 @@ public class DASemantics {
 			handler = new ShPCDelByCate(basicTsx, tabl, recId, args);
 		else if (smtype.defltVal == semantic)
 			handler = new ShDefltVal(basicTsx, tabl, recId, args);
-		// else if (smtype.dencrypt == semantic)
-		// addDencrypt(tabl, recId, argss);
+		else if (smtype.dencrypt == semantic)
+			handler = new ShDencrypt(basicTsx, tabl, recId, args);
 		// else if (smtype.orclob == semantic)
 		// addClob(tabl, recId, argss);
 		else if (smtype.opTime == semantic)
@@ -1004,7 +1005,7 @@ public class DASemantics {
 				// B busi-id is not provided, create it
 				else {
 					// add a semantics required cell if it's absent.
-					String vbusiTbl = (String) nvBusiTbl[1];
+					Object vbusiTbl = nvBusiTbl[1];
 					Object[] rowBusiTbl = row.get(cols.get(argus[ixbusiTbl]));
 	
 					// e.g. not "a_users" presented in row
@@ -1021,7 +1022,7 @@ public class DASemantics {
 						continue;
 	
 					// e.g. no table "a_user2" exists as appointed by row's data.
-					if (stx.colType(vbusiTbl) == null)
+					if (stx.colType(vbusiTbl.toString()) == null)
 						Utils.warn("%s is a semantics that is intend to use a table name as business cate, but table %s can't been found.\n" +
 								"Deleting the records of table %s or %s will result in logical error.",
 								sm.name(), argus[ixbusiTbl], vbusiTbl, target);
@@ -1334,6 +1335,54 @@ public class DASemantics {
 							"Can't access db to check count on insertion, check sql configuration: %s", sql);
 				}
 			}
+		}
+	}
+
+	static class ShDencrypt extends SemanticHandler {
+		String colIv;
+		String colCipher;
+		
+		ShDencrypt(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
+			super(trxt, smtype.dencrypt, tabl, pk, args);
+			insert = true;
+			update = true;
+			colIv = args[1];
+			colCipher = args[0];
+		}
+
+		@Override
+		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols,
+				IUser usr) throws SemanticException {
+			if (cols.containsKey(colIv)) {
+				Object[] ivB64 = row.get(cols.get(colIv));
+				Object[] cipherB64 = row.get(cols.get(colCipher));
+				if (ivB64 != null && !LangExt.isblank(ivB64[1])) {
+					// cipher col
+					Object[] civ = dencrypt(insrt, cipherB64[1].toString(), ivB64[1].toString(), usr);
+					// [0] cipher, [1] iv
+					cipherB64[1] = stx.composeVal(civ[0], target, colCipher);
+					ivB64[1] = stx.composeVal(civ[1], target, colIv);
+				}
+				// else: the client don't like to touch this sensitive field
+			}
+		}
+
+		private Object[] dencrypt(Statement<?> stx, String pB64, String ivB64, IUser usr) throws SemanticException {
+			try {
+				// String decryptK = (String) usr.sessionKey();
+				String decryptK = usr.sessionId(); // FIXME
+
+				String rootK = DATranscxt.key("user-pswd");
+				return AESHelper.dencrypt(pB64, decryptK, ivB64, rootK);
+			} catch (Throwable e) {
+				e.printStackTrace();
+				throw new SemanticException (e.getMessage()); 
+			}
+		}
+
+		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols,
+				IUser usr) throws SemanticException {
+			onInsert(stx, null, row, cols, usr);
 		}
 	}
 

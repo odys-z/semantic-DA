@@ -92,6 +92,13 @@
   		<pk>userId</pk>
   		<args>pswd,123456</args>
   	</s>
+  	<s>
+  		<id>51.user-pswd</id>
+  		<smtc>dencrypt</smtc>
+  		<tabl>a_users</tabl>
+  		<pk>userId</pk>
+  		<args>pswd,iv</args>
+  	</s>
 
   	<!-- image attachments to a_user: auto pk -->
   	<s>

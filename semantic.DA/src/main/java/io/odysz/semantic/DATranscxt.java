@@ -39,13 +39,14 @@ import io.odysz.transact.sql.Update;
  */
 public class DATranscxt extends Transcxt {
 	static String cfgroot = ""; 
+	static String runtimepath = "";
+
 	/** configuration's root */
 	public static void configRoot(String cfgRoot, String runtimeRoot) {
 		cfgroot = cfgRoot;
 		runtimepath = runtimeRoot;
 	}
 
-	static String runtimepath = "";
 //	/**Get meta of connId
 //	 * @param connId
 //	 * @return
@@ -331,6 +332,7 @@ public class DATranscxt extends Transcxt {
 
 	//////////// basic transact builders for each connection ////////////
 	private static HashMap<String, Transcxt> basicTrxes;
+	private static HashMap<String, String> keys;
 
 	/**Get a basic transact builder (without semantics handling)
 	 * @param conn
@@ -351,5 +353,19 @@ public class DATranscxt extends Transcxt {
 		}
 		
 		return basicTrxes.get(conn);
+	}
+
+	/**Set a key.
+	 * @param name
+	 * @param key
+	 */
+	public static void key(String name, String key) {
+		if (keys == null)
+			keys = new HashMap<String, String>();
+		keys.put(name, key);
+	}
+	
+	public static String key(String name) {
+		return keys == null ? null : keys.get(name);
 	}
 }

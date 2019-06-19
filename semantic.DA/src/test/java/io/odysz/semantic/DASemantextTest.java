@@ -2,6 +2,7 @@ package io.odysz.semantic;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -62,6 +64,9 @@ public class DASemantextTest {
 
 			// load metas, then semantics
 			DATranscxt.configRoot(rtroot, rtroot);
+			String rootkey = System.getProperty("rootkey");
+			DATranscxt.key("user-pswd", rootkey);
+
 			smtcfg = DATranscxt.loadSemantics(connId, "src/test/res/semantics.xml");
 			st = new DATranscxt(connId);
 			// metas = DATranscxt.meta(connId);
@@ -95,7 +100,6 @@ DELETE from a_roles;</pre>
 	 */
 	@Before
 	public void testInit() throws SQLException, SemanticException, SAXException, IOException {
-	
 		// initialize oz_autoseq - only for sqlite
 		SResultset rs = Connects.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table' and tbl_name = 'oz_autoseq'",
 				Connects.flag_nothing);
@@ -297,9 +301,11 @@ DELETE from a_roles;</pre>
 	 * 5. check count on insert: a_user.userName<br>
 	 * @throws TransException
 	 * @throws SQLException
+	 * @throws IOException 
+	 * @throws GeneralSecurityException 
 	 */
 	@Test
-	public void testSmtxUsers() throws TransException, SQLException {
+	public void testSmtxUsers() throws TransException, SQLException, GeneralSecurityException, IOException {
 		String flag = DateFormat.formatime(new Date());
 		String usrName = "01 " + flag;
 
@@ -320,12 +326,10 @@ DELETE from a_roles;</pre>
 			.where("=", "userId", "'" + usrId + "'")
 			.commit(sqls, usr);
 
-		// assert 2 default value pswd = '123456'
+		// assert 2 default value pswd = '123456' (iv = null)
 		SResultset rs = Connects.select(sqls.get(0));
 		rs.beforeFirst().next();
 		assertEquals("123456", rs.getString("pswd"));
-		
-		// TODO assert 3 de-encrypt, ...
 		
 		// assert 5. check count on insert: a_user.userName<br>
 		sqls.clear();
@@ -339,7 +343,65 @@ DELETE from a_roles;</pre>
 			assertEquals("Checking count on a_users.userId",
 					e.getMessage().substring(0, 32));
 		}
+
+		// assert 3 de-encrypt, (dencrypt with iv)
+		// 3.1 insert with iv
+		String clientKey = "odys-z.github.io";
+		String rootK = DATranscxt.key("user-pswd");
+
+		byte[] iv = AESHelper.getRandom();
+		String iv64 = AESHelper.encode64(iv);
+		String pswdCipher = AESHelper.encrypt("abc123", clientKey, iv);
+		usr.sessionKey("odys-z.github.io");
+
+		ISemantext s2 = st.instancontxt(usr);
+		st.insert("a_users", usr)
+			.nv("userName", "dencrypt " + flag)
+			.nv("iv", iv64)
+			.nv("pswd", pswdCipher)
+			.ins(s2);
 		
+		String usr3 = (String) s2.resulvedVal("a_users", "userId");
+		rs = (SResultset) st.select("a_users", "u")
+			.col("pswd")
+			.col("iv")
+			.whereEq("userId", usr3)
+			.rs(st.basictx())	// in case the semantics handler will decrypt it
+			.rs(0);
+
+		rs.beforeFirst().next();
+		String pswd = rs.getString("pswd");
+		assertNotEquals("abc123", pswd);
+
+		iv = AESHelper.decode64(rs.getString("iv"));
+		assertEquals("abc123", AESHelper.decrypt(pswd, rootK, iv));
+
+		// 3.2 update with iv
+		iv = AESHelper.getRandom();
+		iv64 = AESHelper.encode64(iv);
+		pswdCipher = AESHelper.encrypt("xyz999", clientKey, iv);
+
+		ISemantext s3 = st.instancontxt(usr);
+		st.update("a_users", usr)
+			.nv("userName", "dencrypt 2 " + flag)
+			.nv("iv", iv64)
+			.nv("pswd", pswdCipher)
+			.whereEq("userId", usr3)
+			.u(s3);
+
+		rs = (SResultset) st.select("a_users", "u")
+			.col("pswd")
+			.col("iv")
+			.whereEq("userId", usr3)
+			.rs(st.basictx())	// in case the semantics handler will decrypt it
+			.rs(0);
+
+		rs.beforeFirst().next();
+		pswd = rs.getString("pswd");
+		iv = AESHelper.decode64(rs.getString("iv"));
+		assertNotEquals("abc123", AESHelper.decrypt(pswd, rootK, iv));
+		assertEquals("xyz999", AESHelper.decrypt(pswd, rootK, iv));
+
 		testz04(usrId);
 	}
 		

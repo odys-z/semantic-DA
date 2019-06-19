@@ -54,11 +54,11 @@ public class LoggingUser implements IUser {
 	@Override
 	public String uid() { return uid; }
 
-	@Override
-	public String get(String prop) { return "prop"; }
+//	@Override
+//	public String get(String prop) { return "prop"; }
 
-	@Override
-	public IUser set(String prop, Object v) { return this; }
+//	@Override
+//	public IUser set(String prop, Object v) { return this; }
 
 	@Override
 	public ArrayList<String> dbLog(ArrayList<String> sqls) {

@@ -90,20 +90,6 @@ public class DASemantext implements ISemantext {
 		this.usr = usr;
 	}
 
-//	public ISemantext onPrepare(Insert insert, String tabl, List<ArrayList<Object[]>> row) {
-//		if (row != null && ss != null)
-//			// first round
-//			for (ArrayList<Object[]> value : row) {
-//				Map<String, Integer> cols = insert.getColumns();
-//				DASemantics s = ss.get(tabl);
-//				if (s == null)
-//					continue;
-//				if (s.isPrepareInsert())
-//					s.onInsPrepare(this, value, cols, usr);
-//			}
-//		return this;
-//	}
-
 	/**When inserting, process data row with configured semantics, like auto-pk, fk-ins, etc..
 	 * @throws SemanticException 
 	 * @see io.odysz.semantics.ISemantext#onInsert(io.odysz.transact.sql.Insert, java.lang.String, java.util.List)
