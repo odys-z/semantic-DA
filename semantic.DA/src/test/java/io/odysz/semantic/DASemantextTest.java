@@ -348,6 +348,10 @@ DELETE from a_roles;</pre>
 		// 3.1 insert with iv
 		String clientKey = "odys-z.github.io";
 		String rootK = DATranscxt.key("user-pswd");
+		if (rootK == null) {
+			// mvn clean test -Drootkey=*******
+			fail("Please set rootkey!\nFor maven testing: mvn test -Drootkey=*******");
+		}
 
 		byte[] iv = AESHelper.getRandom();
 		String iv64 = AESHelper.encode64(iv);

@@ -1358,22 +1358,29 @@ public class DASemantics {
 				Object[] cipherB64 = row.get(cols.get(colCipher));
 				if (ivB64 != null && !LangExt.isblank(ivB64[1])) {
 					// cipher col
-					Object[] civ = dencrypt(insrt, cipherB64[1].toString(), ivB64[1].toString(), usr);
+					String decryptK = usr.sessionKey();
+					Object[] civ = dencrypt(insrt, cipherB64[1].toString(), ivB64[1].toString(), decryptK);
 					// [0] cipher, [1] iv
-					cipherB64[1] = stx.composeVal(civ[0], target, colCipher);
-					ivB64[1] = stx.composeVal(civ[1], target, colIv);
+					if (civ != null) {
+						cipherB64[1] = stx.composeVal(civ[0], target, colCipher);
+						ivB64[1] = stx.composeVal(civ[1], target, colIv);
+					}
+					else Utils.warn("Decrypt then ecrypt failed. target %s, col: %s, client key: %s",
+							target, colCipher, decryptK);
 				}
 				// else: the client don't like to touch this sensitive field
 			}
 		}
 
-		private Object[] dencrypt(Statement<?> stx, String pB64, String ivB64, IUser usr) throws SemanticException {
+		private Object[] dencrypt(Statement<?> stx, String pB64, String ivB64, String decryptK) throws SemanticException {
 			try {
 				// String decryptK = (String) usr.sessionKey();
-				String decryptK = usr.sessionId(); // FIXME
-
-				String rootK = DATranscxt.key("user-pswd");
-				return AESHelper.dencrypt(pB64, decryptK, ivB64, rootK);
+				if (decryptK != null) {
+					// mvn test -Drootkey=********
+					String rootK = DATranscxt.key("user-pswd");
+					return AESHelper.dencrypt(pB64, decryptK, ivB64, rootK);
+				}
+				return null;
 			} catch (Throwable e) {
 				e.printStackTrace();
 				throw new SemanticException (e.getMessage()); 
