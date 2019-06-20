@@ -14,19 +14,16 @@ import io.odysz.module.xtable.XMLTable;
 /**Load path/config.xml, use {@link #getCfg(String)} to access the configured value (String).<br>
  * A servlet constext must been registed by LeisureFactory before Messages is inited */
 public class Configs {
-	protected static ILogger log; // = HelperFactory.getLogger("com.ic.frame.util.config");
+	protected static ILogger log;
 	protected static final String tag = "CFG";
 	protected static String cfgFile = "config.xml";
 	protected static final String deftId = "default";
 	protected static HashMap<String, HashMap<String, String>> cfgs;
 	
 	static {
-		// init(cfgFile);
 		log = new Log4jWrapper("Configs");
 
 		cfgs = new HashMap<String, HashMap<String, String>>(3);
-
-		// load(cfgs, deftId);
 	}
 
 	/**For redirect path of config.xml
