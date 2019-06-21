@@ -1356,7 +1356,7 @@ public class DASemantics {
 			if (cols.containsKey(colIv)) {
 				Object[] ivB64 = row.get(cols.get(colIv));
 				Object[] cipherB64 = row.get(cols.get(colCipher));
-				if (ivB64 != null && !LangExt.isblank(ivB64[1])) {
+				if (ivB64 != null && !AbsPart.isblank(ivB64[1])) {
 					// cipher col
 					String decryptK = usr.sessionKey();
 					Object[] civ = dencrypt(insrt, cipherB64[1].toString(), ivB64[1].toString(), decryptK);
