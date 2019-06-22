@@ -36,6 +36,7 @@ import io.odysz.transact.sql.Update;
  * This manager can handling semantics configured in xml. See {@link #loadSemantics(String, String)}. <br>
  * Every sql building needing semantics handling must use a context instance created by {@link #instancontxt(IUser)}.
  * @author odys-z@github.com
+ *
  */
 public class DATranscxt extends Transcxt {
 	static String cfgroot = ""; 
@@ -47,19 +48,6 @@ public class DATranscxt extends Transcxt {
 		runtimepath = runtimeRoot;
 	}
 
-//	/**Get meta of connId
-//	 * @param connId
-//	 * @return
-//	 * @throws SemanticException
-//	 * @throws SQLException
-//	 */
-//	public static HashMap<String, TableMeta> meta(String connId)
-//			throws SemanticException, SQLException {
-////		if (metas == null)
-////			throw new SemanticException("DATranscxt need db metas to work. Set metas first."); 
-//		return Connects.getMeta(connId);
-//	}
-	
 	public TableMeta tableMeta(String t) throws SemanticException {
 		for (String cnn : Connects.connIds()) {
 			HashMap<String, TableMeta> metas;
@@ -230,8 +218,9 @@ public class DATranscxt extends Transcxt {
 		if (!smtConfigs.containsKey(conn)) {
 			String fpath = Connects.getSmtcs(conn);
 			if (LangExt.isblank(fpath, "\\."))
-				throw new SemanticException("Trying to find semantics of conn %s, but the configuration path is empty.\n" +
-							"No 'smtcs' configured in connexts.xml?", conn);
+				throw new SemanticException(
+					"Trying to find semantics of conn %1$s, but the configuration path is empty.\n" +
+					"No 'smtcs' configured in connects.xml for connection %1$s?", conn);
 			fpath = FilenameUtils.concat(cfgroot, fpath);
 			smtConfigs.put(conn, loadSemantics(conn, fpath));
 		}
@@ -250,13 +239,6 @@ public class DATranscxt extends Transcxt {
 	 */
 	public static HashMap<String, DASemantics> loadSemantics(String connId, String cfgpath)
 			throws SAXException, IOException, SQLException, SemanticException {
-
-//		Utils.logi("Loading database metas...");
-//		if (metas == null)
-//			metas = new HashMap<String, HashMap<String, TableMeta>>();
-//		if (!metas.containsKey(connId))
-//			metas.put(connId, Connects.getMeta(connId));
-
 		Utils.logi("Loading Semantics:\n\t%s", cfgpath);
 		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
 				new Log4jWrapper("").setDebugMode(false), cfgpath, new IXMLStruct() {

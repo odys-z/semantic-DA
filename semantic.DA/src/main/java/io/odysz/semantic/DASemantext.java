@@ -48,7 +48,6 @@ public class DASemantext implements ISemantext {
 
 	private SemanticObject autoVals;
 	private static Transcxt rawst;
-//	private static Regex refReg;
 
 	/**Semantic Configurations */
 	private HashMap<String, DASemantics> ss;
@@ -195,21 +194,6 @@ public class DASemantext implements ISemantext {
 				: null;
 	}
 	
-//	@Override
-//	public Object resulvedVal(String ref) {
-//		if (autoVals == null) {
-//			// Utils.warn("Value reference a.k.a autoVals is null");
-//			return ref;
-//		}
-//		ArrayList<String> grps = refReg.findGroups(ref);
-//		if (grps == null || grps.size() != 3) {
-//			// Utils.warn("Value reference can not resolved: %s. Pattern is incorrect.", ref);
-//			return ref;
-//		}
-//		String tabl = grps.get(1);
-//		return ((SemanticObject)autoVals.get(tabl)).get(grps.get(2));
-//	}
-
 	/**Get the resolved value in {@link #autoVals}
 	 * a.k.a return value of {@link Update#doneOp(io.odysz.transact.sql.Statement.IPostOperat)}.
 	 * @return {@link #autoVals}
@@ -355,7 +339,11 @@ end;
 		if (sqliteDumyUser == null)
 			sqliteDumyUser = new IUser() {
 				@Override public String uid() { return "sqlite-dumy"; }
-				@Override public IUser logAct(String funcName, String funcId) { return null; } };
+				@Override public IUser logAct(String funcName, String funcId) { return null; }
+				@Override public String sessionKey() { return null; }
+				@Override public IUser sessionKey(String skey) { return null; }
+				@Override public IUser notify(Object note) throws TransException { return null; }
+				@Override public List<Object> notifies() { return null; } };
 
 		// each table has a lock.
 		// lock to prevent concurrency.

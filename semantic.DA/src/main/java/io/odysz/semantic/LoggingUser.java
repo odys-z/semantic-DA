@@ -3,6 +3,7 @@ package io.odysz.semantic;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.xml.sax.SAXException;
@@ -22,6 +23,7 @@ public class LoggingUser implements IUser {
 	private DATranscxt logSemantic;
 	private String uid;
 	private SemanticObject action;
+
 	public static IUser dumbUser;
 
 	/**
@@ -37,8 +39,11 @@ public class LoggingUser implements IUser {
 		dumbUser = new IUser() {
 				@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
 				@Override public String uid() { return "dummy"; }
-				@Override public String get(String prop) { return "prop"; }
 				@Override public IUser logAct(String funcName, String funcId) { return null; }
+				@Override public String sessionKey() { return null; }
+				@Override public IUser sessionKey(String skey) { return null; }
+				@Override public IUser notify(Object note) throws TransException { return null; }
+				@Override public List<Object> notifies() { return null; }
 			};
 		
 		try {
@@ -56,7 +61,7 @@ public class LoggingUser implements IUser {
 
 //	@Override
 //	public String get(String prop) { return "prop"; }
-
+//
 //	@Override
 //	public IUser set(String prop, Object v) { return this; }
 
@@ -117,9 +122,29 @@ public class LoggingUser implements IUser {
 
 	@Override
 	public IUser logAct(String funcName, String funcId) {
-		set("funcName", funcName);
-		set("funcId", funcId);
+//		set("funcName", funcName);
+//		set("funcId", funcId);
 		return this;
+	}
+
+	@Override
+	public String sessionKey() {
+		return null;
+	}
+
+	@Override
+	public IUser sessionKey(String skey) {
+		return null;
+	}
+
+	@Override
+	public IUser notify(Object note) throws TransException {
+		return null;
+	}
+
+	@Override
+	public List<Object> notifies() {
+		return null;
 	}
 
 }
