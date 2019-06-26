@@ -464,15 +464,15 @@ DELETE from a_roles;</pre>
 			.ins(s1);
 
 		try {
-		ISemantext s2 = st.instancontxt(usr);
-		st.delete("a_domain", usr)
-			.where_("=", "domainId", typeId)
-			.d(s2);
-		
-		fail("ck-cnt-del not working");
+			ISemantext s2 = st.instancontxt(usr);
+			st.delete("a_domain", usr)
+				.where_("=", "domainId", typeId)
+				.d(s2);
+			
+			fail("ck-cnt-del not working");
 		}
 		catch (SemanticException e) {
-			assertTrue(e.getMessage().startsWith("a_domain.checkSqlCountOnDel:"));
+			assertTrue(e.getMessage().startsWith("a_domain.checkSqlCountOnDel: b_alarms "));
 		}
 	}
 	

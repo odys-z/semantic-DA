@@ -1293,7 +1293,7 @@ public class DASemantics {
 				rs.beforeFirst().next();
 
 				if (rs.getInt("cnt") > 0)
-					throw new SemanticException("%s.%s: %s", target, sm.name(), rs.getInt("cnt"));
+					throw new SemanticException("%s.%s: %s %s", target, sm.name(), args[1], rs.getInt("cnt"));
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();
 				throw new SemanticException(e.getMessage());
