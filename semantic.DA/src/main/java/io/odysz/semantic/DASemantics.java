@@ -293,8 +293,9 @@ public class DASemantics {
 		/**
 		 * "p-f" | "p-fk" | "post-fk"<br>
 		 * <p>
-		 * <b>semantics:</b> post fk wire back - parent has an fk to child (only one
-		 * child is sensible, like makes cross refs)
+		 * <b>semantics:</b><br>
+		 * post fk wire back - parent has an fk to child (only one
+		 * child makes sense, like making cross refs)
 		 * </p>
 		 * <p>
 		 * <b>Note:</b><br>
@@ -440,6 +441,8 @@ public class DASemantics {
 		}
 	}
 
+	/**[table, DASeamtnics]<br>
+	 * This is not static because there are many connections */
 	private HashMap<String, DASemantics> ss;
 
 	/**
@@ -469,7 +472,8 @@ public class DASemantics {
 		handlers = new ArrayList<SemanticHandler>();
 	}
 
-	public void addHandler(smtype semantic, String tabl, String recId, String[] args) throws SemanticException, SQLException {
+	public void addHandler(smtype semantic, String tabl, String recId, String[] args)
+			throws SemanticException, SQLException {
 		checkParas(tabl, pk, args);
 		if (isDuplicate(tabl, semantic))
 			return;
@@ -513,6 +517,16 @@ public class DASemantics {
 		if (debug)
 			handler.logi();
 		handlers.add(handler);
+	}
+
+	public SemanticHandler handler(smtype sm) {
+		if (handlers == null)
+			return null;
+		for (SemanticHandler h : handlers) {
+			if (h.is(sm))
+				return h;
+		}
+		return null;
 	}
 
 	/**
@@ -670,6 +684,10 @@ public class DASemantics {
 				argss[ix] = args;
 			}
 			return argss;
+		}
+
+		public boolean is(smtype sm) {
+			return this.sm == sm;
 		}
 
 	}

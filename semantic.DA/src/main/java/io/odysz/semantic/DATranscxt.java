@@ -311,7 +311,6 @@ public class DATranscxt extends Transcxt {
 		s.addHandler(sm, tabl, pk, args);
 	}
 
-
 	//////////// basic transact builders for each connection ////////////
 	private static HashMap<String, Transcxt> basicTrxes;
 	private static HashMap<String, String> keys;
