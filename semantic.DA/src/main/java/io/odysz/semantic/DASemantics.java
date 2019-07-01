@@ -1311,8 +1311,16 @@ public class DASemantics {
 				rs.beforeFirst().next();
 
 				if (rs.getInt("cnt") > 0)
-					throw new SemanticException("%s.%s: %s %s", target, sm.name(), args[1], rs.getInt("cnt"));
+					throw new SemanticException("%s.%s: %s %s",
+							target, sm.name(), args[1], rs.getInt("cnt"))
+							.ex(new SemanticObject()
+								.put("sm", sm.name())
+								.put("tbl", target)
+								.put("childTbl", args[1])
+								.put("cnt", rs.getInt("cnt")));
 			} catch (SQLException | TransException e) {
+				if (e instanceof SemanticException)
+					throw (SemanticException)e;
 				e.printStackTrace();
 				throw new SemanticException(e.getMessage());
 			}
@@ -1346,8 +1354,13 @@ public class DASemantics {
 					SResultset rs = Connects.select(stx.connId(), sql, Connects.flag_nothing);
 					rs.beforeFirst().next();
 					if (rs.getInt(1) > 0)
-						throw new SemanticException("Checking count on %s.%s (%s = %s ...) failed", target, pkField,
-								args[0], nv[0]);
+						throw new SemanticException("Checking count on %s.%s (%s = %s ...) failed",
+								target, pkField, args[0], nv[0])
+								.ex(new SemanticObject()
+									.put("sm", sm.name())
+									.put("tbl", target)
+									.put("childTbl", args[0])
+									.put("childField", nv[0]));
 				} catch (SQLException e) {
 					throw new SemanticException(
 							"Can't access db to check count on insertion, check sql configuration: %s", sql);

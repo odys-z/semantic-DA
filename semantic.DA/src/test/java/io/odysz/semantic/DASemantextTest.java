@@ -248,7 +248,7 @@ DELETE from a_roles;</pre>
 		String bid = (String) s0.resulvedVal("crs_b", "bid");
 
 		assertEquals(String.format(
-			"update crs_b  set bfk='%s' where bid = '%s'",
+			"update  crs_b  set bfk='%s' where bid = '%s' ",
 			aid, bid),
 			sqls.get(2));
 		assertEquals(String.format(
@@ -269,7 +269,7 @@ DELETE from a_roles;</pre>
 			.nv("fundDate", "1911-10-10")
 			.where("=", "testInt", "100")
 			.commit(s0, sqls);
-		assertEquals("update crs_a  set fundDate='1911-10-10' where testInt = 100",
+		assertEquals("update  crs_a  set fundDate='1911-10-10' where testInt = 100 ",
 					sqls.get(0));
 		
 		sqls.clear();
@@ -289,7 +289,7 @@ DELETE from a_roles;</pre>
 				"insert into crs_b  (remarkb, bid) values ('1911-10-10', '%s')",
 				bid), sqls.get(0));
 		assertEquals(String.format(
-				"update crs_a  set remarka='update child' where bid = '%s'",
+				"update  crs_a  set remarka='update child' where bid = '%s' ",
 				bid), sqls.get(1));
 	}
 
