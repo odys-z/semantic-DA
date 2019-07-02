@@ -680,7 +680,7 @@ public class DASemantics {
 				return null;
 			String[][] argss = new String[ss.length][];
 			for (int ix = 0; ix < ss.length; ix++) {
-				String[] args = LangExt.split(ss[ix], " ");
+				String[] args = LangExt.split(ss[ix], "\\s+");
 				argss[ix] = args;
 			}
 			return argss;

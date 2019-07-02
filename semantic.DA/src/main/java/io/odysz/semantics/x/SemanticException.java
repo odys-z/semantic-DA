@@ -9,9 +9,6 @@ import io.odysz.transact.x.TransException;
 
 	public SemanticException(String format, Object... args) {
 		super(format, args);
-//		if (args != null && args.length > 0
-//			&& args[args.length - 1] instanceof SemanticObject)
-//			ex = (SemanticObject) args[args.length - 1];
 	}
 
 	/**Get the exception message object that can be serialized to json and send to client.
@@ -26,8 +23,4 @@ import io.odysz.transact.x.TransException;
 		return this;
 	}
 	
-//	public SemanticException put(String p, Object v) {
-//		ex.put(p, v);
-//		return this;
-//	}
 }
