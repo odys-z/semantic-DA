@@ -12,6 +12,7 @@ import io.odysz.common.Utils;
 import io.odysz.semantic.util.SQLString;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
+import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
@@ -37,6 +38,7 @@ public class LoggingUser implements IUser {
 		this.action = action;
 
 		dumbUser = new IUser() {
+				@Override public TableMeta meta() { return null; }
 				@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
 				@Override public String uid() { return "dummy"; }
 				@Override public IUser logAct(String funcName, String funcId) { return null; }
@@ -55,6 +57,8 @@ public class LoggingUser implements IUser {
 			e.printStackTrace();
 		} 
 	}
+
+	@Override public TableMeta meta() { return null; }
 
 	@Override
 	public String uid() { return uid; }
@@ -146,5 +150,4 @@ public class LoggingUser implements IUser {
 	public List<Object> notifies() {
 		return null;
 	}
-
 }

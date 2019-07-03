@@ -338,6 +338,7 @@ end;
 		// dumy user for update oz_autoseq
 		if (sqliteDumyUser == null)
 			sqliteDumyUser = new IUser() {
+				@Override public TableMeta meta() { return null; }
 				@Override public String uid() { return "sqlite-dumy"; }
 				@Override public IUser logAct(String funcName, String funcId) { return null; }
 				@Override public String sessionKey() { return null; }
