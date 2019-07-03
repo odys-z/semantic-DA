@@ -1,8 +1,5 @@
 package io.odysz.semantic.DA.cp;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,7 +8,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -19,6 +15,7 @@ import javax.sql.DataSource;
 
 import org.xml.sax.SAXException;
 
+import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.SResultset;
 import io.odysz.semantic.DA.AbsConnect;
@@ -27,15 +24,10 @@ import io.odysz.semantic.DA.OracleLob;
 import io.odysz.semantics.IUser;
 // Deprecated. Use java.sql.Clob interface for declaration instead of using concrete class oracle.sql.CLOB.
 // see https://docs.oracle.com/database/121/JAJDB/oracle/sql/CLOB.html 
-import oracle.sql.CLOB;
+//import oracle.sql.CLOB;
 
-/**
- * @author ody
- */
-@SuppressWarnings("deprecation")
 public class CpConnect extends AbsConnect<CpConnect> {
-	@SuppressWarnings("serial")
-	public static final HashSet<String> orclKeywords = new HashSet<String>() {{add("level");}};
+//	public static final HashSet<String> orclKeywords = new HashSet<String>() {{add("level");}};
 
 	
 	/**Use this for querying database without help of sql builder (which need query meta data first with this method).
@@ -56,8 +48,10 @@ public class CpConnect extends AbsConnect<CpConnect> {
             con = ds.getConnection();
             con.setAutoCommit(false);
 
-        	System.out.println(con.getMetaData().getURL());
-            System.out.println(sql);
+        	// System.out.println(con.getMetaData().getURL());
+            // System.out.println(sql);
+            Utils.logi(con.getMetaData().getURL());
+            Utils.logi(sql);
 
             pstmt = con.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
@@ -66,8 +60,10 @@ public class CpConnect extends AbsConnect<CpConnect> {
             con.commit();
             pstmt.close();
         } catch (Exception e) {
-        	System.err.println("ERROR - " + src);
-        	System.err.println("      - " + sql);
+        	// System.err.println("ERROR - " + src);
+        	// System.err.println("      - " + sql);
+        	Utils.warn("ERROR - " + src);
+        	Utils.warn("      - " + sql);
 			e.printStackTrace();
 			throw new SQLException(e.getMessage());
 		} finally {
@@ -145,9 +141,9 @@ public class CpConnect extends AbsConnect<CpConnect> {
 //		return lobMetas;
 //	}
 
-	private boolean _isOrcl;
-	
-	public boolean isOracle() { return _isOrcl; }
+//	private boolean _isOrcl;
+//	
+//	public boolean isOracle() { return _isOrcl; }
 	
 	/** e.g. ["a_logs" ["TXT",  CLOB]]*/
 	private HashMap<String, HashMap<String, OracleLob>> clobMeta;
@@ -170,14 +166,10 @@ public class CpConnect extends AbsConnect<CpConnect> {
         return conn;
 	}
 
-	public String formatFieldName(String expr) {
-		if (_isOrcl && orclKeywords.contains(expr.trim()))
-			return String.format("\"%s\"", expr.trim().toUpperCase());
-		return expr;
-	}
-
-//	public boolean isKeywords(String expr) {
-//		return _isOrcl && expr != null && orclKeywords.contains(expr.trim());
+//	public String formatFieldName(String expr) {
+//		if (_isOrcl && orclKeywords.contains(expr.trim()))
+//			return String.format("\"%s\"", expr.trim().toUpperCase());
+//		return expr;
 //	}
 
 	/**For {@link Connects} creating Meta data before Datasource is usable.
@@ -209,50 +201,50 @@ public class CpConnect extends AbsConnect<CpConnect> {
         return icrs;
 	}
 
-	public void readClob(SResultset rs, String[] tabls) throws SQLException, IOException {
-		if (tabls == null) return;
-		for (String tabl : tabls) {
-			readClob(rs, clobMeta.get(tabl));
-		}
-	}
+//	public void readClob(SResultset rs, String[] tabls) throws SQLException, IOException {
+//		if (tabls == null) return;
+//		for (String tabl : tabls) {
+//			readClob(rs, clobMeta.get(tabl));
+//		}
+//	}
 
-	private void readClob(SResultset rs, HashMap<String, OracleLob> tablobs) throws SQLException, IOException {
-		if (rs == null || tablobs == null) return;
-		rs.beforeFirst();
-		while (rs.next()) {
-			boolean foundClob = false;
-			for (int ci = 1; ci <= rs.getColCount(); ci++) {
-				Object obj = rs.getObject(ci);
-				if (obj instanceof CLOB) {
-					foundClob = true;
-					// read
-					OracleLob lob = tablobs.get(rs.getColumnName(ci));
-					if (lob == null) {
-						System.err.println("Can't find CLOB field: " + rs.getColumnName(ci));
-						System.err.println("Table CLOBs: " + tablobs.keySet().toString());
-						System.err.println("Tips:\n\tDon't use alais for a CLOB/text field. Can't handle this.");
-						continue;
-					}
-					SResultset lobrs = select(String.format("select %s, length(%s) from %s where %s = '%s'",
-							lob.lobField(), lob.lobField(), lob.tabl(), lob.idField(), rs.getString(lob.idField())),
-							Connects.flag_nothing);
-
-					lobrs.beforeFirst().next();
-					int len = lobrs.getInt(2);
-					CLOB clob = (CLOB) lobrs.getObject(1); 
-					Reader chareader = clob.getCharacterStream();
-					char [] charray = new char [len];
-					@SuppressWarnings("unused")
-					int bytes_read = chareader.read(charray, 0, len);
-					//conn.close();
-					rs.set(ci, String.valueOf(charray));
-				}
-			}
-			if (!foundClob) break;
-		}
-		
-		rs.beforeFirst();
-	}
+//	private void readClob(SResultset rs, HashMap<String, OracleLob> tablobs) throws SQLException, IOException {
+//		if (rs == null || tablobs == null) return;
+//		rs.beforeFirst();
+//		while (rs.next()) {
+//			boolean foundClob = false;
+//			for (int ci = 1; ci <= rs.getColCount(); ci++) {
+//				Object obj = rs.getObject(ci);
+//				if (obj instanceof CLOB) {
+//					foundClob = true;
+//					// read
+//					OracleLob lob = tablobs.get(rs.getColumnName(ci));
+//					if (lob == null) {
+//						System.err.println("Can't find CLOB field: " + rs.getColumnName(ci));
+//						System.err.println("Table CLOBs: " + tablobs.keySet().toString());
+//						System.err.println("Tips:\n\tDon't use alais for a CLOB/text field. Can't handle this.");
+//						continue;
+//					}
+//					SResultset lobrs = select(String.format("select %s, length(%s) from %s where %s = '%s'",
+//							lob.lobField(), lob.lobField(), lob.tabl(), lob.idField(), rs.getString(lob.idField())),
+//							Connects.flag_nothing);
+//
+//					lobrs.beforeFirst().next();
+//					int len = lobrs.getInt(2);
+//					CLOB clob = (CLOB) lobrs.getObject(1); 
+//					Reader chareader = clob.getCharacterStream();
+//					char [] charray = new char [len];
+//					@SuppressWarnings("unused")
+//					int bytes_read = chareader.read(charray, 0, len);
+//					//conn.close();
+//					rs.set(ci, String.valueOf(charray));
+//				}
+//			}
+//			if (!foundClob) break;
+//		}
+//		
+//		rs.beforeFirst();
+//	}
 
 	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
 		Connects.printSql(printSql, flags, sqls);
@@ -304,67 +296,67 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	}
 	
 	//////////////////////////////// oracle the hateful ///////////////////////////////////////
-	public void updateLobs(ArrayList<OracleLob> lobs) throws SQLException {
-		if (!_isOrcl && lobs != null && lobs.size() > 0)
-			throw new SQLException(" Why updating lobs to a non oracle db ? ");
-
-		for (OracleLob lb : lobs) {
-			try { updateClob(lb); }
-			catch (Exception e) {
-				e.printStackTrace();
-				String msg = lb.lob() == null ? "" : lb.lob().toString();
-				msg = msg.length() > 30 ? msg.substring(0, 30) : msg;
-				System.err.println(String.format(
-					"ERROR - ignoring clob updating error on %s.%s = '%s', lob = %s ...",
-					lb.tabl(), lb.idField(), lb.recId(), msg));
-			}
-		}
-	}
-
-	private void updateClob(OracleLob lob) throws Exception {
-		String blobField = lob.lobField();
-	// private void insert_updateClob(String blobTable, String idField, String blobField, String recID, String v) throws Exception {
-		Connection conn = getConnection();
-		try{
-			conn.setAutoCommit(false);
-			
-			Statement stmt=conn.createStatement();
-//			if (insertSql != null) {
-//				if (enableSystemout) System.out.println("insert sql: " + insertSql);
-//				stmt.executeUpdate(insertSql);
+//	public void updateLobs(ArrayList<OracleLob> lobs) throws SQLException {
+//		if (!_isOrcl && lobs != null && lobs.size() > 0)
+//			throw new SQLException(" Why updating lobs to a non oracle db ? ");
+//
+//		for (OracleLob lb : lobs) {
+//			try { updateClob(lb); }
+//			catch (Exception e) {
+//				e.printStackTrace();
+//				String msg = lb.lob() == null ? "" : lb.lob().toString();
+//				msg = msg.length() > 30 ? msg.substring(0, 30) : msg;
+//				System.err.println(String.format(
+//					"ERROR - ignoring clob updating error on %s.%s = '%s', lob = %s ...",
+//					lb.tabl(), lb.idField(), lb.recId(), msg));
 //			}
-			
-			String sql = String.format("SELECT %s FROM %s WHERE %s = '%s' FOR UPDATE",
-					blobField, lob.tabl(), lob.idField(), lob.recId());
-			ResultSet rs=stmt.executeQuery(sql);
-			
-			if(rs.next()){
-				// BLOB rsblob = (BLOB)rs.getBlob(1); rs.getClob(1);
-				CLOB rslob = (CLOB)rs.getClob(1);
-				if (rslob == null) {
-					System.out.println("CLOB " + blobField + " is null. insert '...' first");
-					// System.out.println("insert into myUploadTable(id, filedata) values('id.001', EMPTY_BLOB())");
-					return;
-				}
-				Writer out = rslob.getCharacterOutputStream(); // .getBinaryOutputStream();
-				
-//				int size = rslob.getBufferSize();
-//				byte[] buffer = new byte[size];
-//				int len;
-				//while((len = inStream.read(buffer)) != -1)
-					// out.write(buffer,0,len);
-				out.write((String)lob.lob());
-				out.close();
-				conn.commit();
-				if (printSql) System.out.println("blob updated.");
-			}
-		}
-		catch(Exception ex){
-			conn.rollback();
-			throw ex;
-		}
-		finally {conn.close();}
-	}
+//		}
+//	}
+
+//	private void updateClob(OracleLob lob) throws Exception {
+//		String blobField = lob.lobField();
+//	// private void insert_updateClob(String blobTable, String idField, String blobField, String recID, String v) throws Exception {
+//		Connection conn = getConnection();
+//		try{
+//			conn.setAutoCommit(false);
+//			
+//			Statement stmt=conn.createStatement();
+////			if (insertSql != null) {
+////				if (enableSystemout) System.out.println("insert sql: " + insertSql);
+////				stmt.executeUpdate(insertSql);
+////			}
+//			
+//			String sql = String.format("SELECT %s FROM %s WHERE %s = '%s' FOR UPDATE",
+//					blobField, lob.tabl(), lob.idField(), lob.recId());
+//			ResultSet rs=stmt.executeQuery(sql);
+//			
+//			if(rs.next()){
+//				// BLOB rsblob = (BLOB)rs.getBlob(1); rs.getClob(1);
+//				CLOB rslob = (CLOB)rs.getClob(1);
+//				if (rslob == null) {
+//					System.out.println("CLOB " + blobField + " is null. insert '...' first");
+//					// System.out.println("insert into myUploadTable(id, filedata) values('id.001', EMPTY_BLOB())");
+//					return;
+//				}
+//				Writer out = rslob.getCharacterOutputStream(); // .getBinaryOutputStream();
+//				
+////				int size = rslob.getBufferSize();
+////				byte[] buffer = new byte[size];
+////				int len;
+//				//while((len = inStream.read(buffer)) != -1)
+//					// out.write(buffer,0,len);
+//				out.write((String)lob.lob());
+//				out.close();
+//				conn.commit();
+//				if (printSql) System.out.println("blob updated.");
+//			}
+//		}
+//		catch(Exception ex){
+//			conn.rollback();
+//			throw ex;
+//		}
+//		finally {conn.close();}
+//	}
 
 	public static String truncatUtf8(String s, int maxBytes) {
 		    int b = 0;
@@ -450,6 +442,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 
 	@Override
 	public int[] commit(IUser log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
-		return null;
+		// return null;
+		throw new SQLException ("Shouldn't reach here!");
 	}
 }

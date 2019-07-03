@@ -29,22 +29,6 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	 */
 	protected static Connection getConnection() throws SQLException {
 		if (!inited) {
-//			String isTrue = Configs.getCfg("MySql.printSQL.enable");
-//			printSql = isTrue != null && "true".equals(isTrue.toLowerCase());
-//			
-//			connect = Configs.getCfg("com.ic.DA.MySql.connect");
-//			userName = Configs.getCfg("com.ic.DA.MySql.username");
-//			pswd = Configs.getCfg("com.ic.DA.MySql.password");
-//			// FIXME decipher pswd
-//			// pswd = Encrypt.DecryptPswdImpl(pswd);
-//			try {
-//				Class.forName("com.mysql.jdbc.Driver").newInstance();
-//			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-//				e.printStackTrace();
-//				throw new SQLException(e.getMessage());
-//			}
-//			inited = true;
-
 			throw new SQLException("connection must explicitly initialized first - call initConnection()");
 		}
 

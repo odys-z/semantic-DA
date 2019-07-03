@@ -16,7 +16,7 @@ import io.odysz.semantic.DA.cp.CpConnect;
 import io.odysz.semantic.DA.drvmnger.Msql2kDriver;
 import io.odysz.semantic.DA.drvmnger.MysqlDriver;
 import io.odysz.semantic.DA.drvmnger.OracleDriver;
-import io.odysz.semantic.DA.drvmnger.SqliteDriver;
+import io.odysz.semantic.DA.drvmnger.SqliteDriver2;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
 
@@ -35,7 +35,7 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 					usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else if (type == dbtype.sqlite) {
-			return SqliteDriver.initConnection(String.format("jdbc:sqlite:%s", FilenameUtils.concat(xmlDir, jdbcUrl)),
+			return SqliteDriver2.initConnection(String.format("jdbc:sqlite:%s", FilenameUtils.concat(xmlDir, jdbcUrl)),
 				usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else if (type == dbtype.ms2k) {
