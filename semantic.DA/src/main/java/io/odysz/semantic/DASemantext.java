@@ -83,7 +83,6 @@ public class DASemantext implements ISemantext {
 		this.metas = metas;
 		if (rawst == null) {
 			rawst = new Transcxt(null);
-//			refReg = new Regex(ISemantext.refPattern);
 		}
 		
 		this.usr = usr;
