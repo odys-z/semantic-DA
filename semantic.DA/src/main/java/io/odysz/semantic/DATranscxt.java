@@ -27,6 +27,7 @@ import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
+import io.odysz.transact.x.TransException;
 
 /**Statement manager that providing statements with overridden callback methods.<br>
  * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
@@ -70,11 +71,16 @@ public class DATranscxt extends Transcxt {
 	/**Create a new semantext instance with the static resources.<br>
 	 * {@link DATranscxt} use a basic context (without semantics handler) for basic sql building.<br>
 	 * Every context used for {@link DASemantics} handling must use this to create a new context instance.
+	 * @param connId
+	 * @param usr
 	 * @see ISemantext 
 	 * @see io.odysz.transact.sql.Transcxt#instancontxt(io.odysz.semantics.IUser)
+	 * @return semantext
+	 * @throws TransException 
 	 */
 	@Override
-	public ISemantext instancontxt(IUser usr) {
+	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
+		/*
 		if (basictx == null)
 			return null;
 		else
@@ -87,6 +93,16 @@ public class DATranscxt extends Transcxt {
 				e.printStackTrace();
 				return null;
 			}
+		*/
+		try {
+			String conn = LangExt.isblank(connId) ? basiconnId : connId; 
+			return new DASemantext(conn, getSmtcs(conn),
+				Connects.getMeta(conn), usr, runtimepath);
+		} catch (SemanticException | SQLException | SAXException | IOException e) {
+			// meta is null? shouldn't happen because this instance is already created
+			e.printStackTrace();
+			throw new TransException(e.getMessage());
+		}
 	}
 
 	/**Create a select statement.

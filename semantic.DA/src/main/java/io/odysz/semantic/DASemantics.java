@@ -1004,6 +1004,15 @@ public class DASemantics {
 	
 				Object bid; 
 				bid = stx.resulvedVal(argus[ixparentbl], argus[ixparentpk]);
+				if (LangExt.isblank(bid, "''")) {
+					// can't resulve, try if client provided
+					if (cols.containsKey(argus[ixbusiId]))
+						bid = row.get(cols.get(argus[ixbusiId]))[1];
+				}
+
+				if (LangExt.isblank(bid, "''"))
+					throw new SemanticException("Semantics %s can't been handled without business record Id - resulving failed: %s.%s",
+							sm.name(), argus[ixparentbl], argus[ixparentpk]);
 				Object[] rowBid; 
 
 				String fBusiId = argus[ixbusiId]; // field name, e.g. (a_attaches.)busiId

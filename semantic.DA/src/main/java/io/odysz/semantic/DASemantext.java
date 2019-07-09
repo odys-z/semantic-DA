@@ -159,6 +159,12 @@ public class DASemantext implements ISemantext {
 	public String connId() { return connId; }
 
 	@Override
+	public ISemantext connId(String conn) {
+		connId = conn;
+		return this;
+	}
+
+	@Override
 	public ISemantext clone(IUser usr) {
 		try {
 			return new DASemantext(connId, ss, metas, usr, basePath);

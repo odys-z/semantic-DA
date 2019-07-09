@@ -358,7 +358,7 @@ DELETE from a_roles;</pre>
 		String pswdCipher = AESHelper.encrypt("abc123", clientKey, iv);
 		usr.sessionKey("odys-z.github.io");
 
-		ISemantext s2 = st.instancontxt(usr);
+		ISemantext s2 = st.instancontxt(connId, usr);
 		st.insert("a_users", usr)
 			.nv("userName", "dencrypt " + flag)
 			.nv("iv", iv64)
@@ -385,7 +385,7 @@ DELETE from a_roles;</pre>
 		iv64 = AESHelper.encode64(iv);
 		pswdCipher = AESHelper.encrypt("xyz999", clientKey, iv);
 
-		ISemantext s3 = st.instancontxt(usr);
+		ISemantext s3 = st.instancontxt(connId, usr);
 		st.update("a_users", usr)
 			.nv("userName", "dencrypt 2 " + flag)
 			.nv("iv", iv64)
@@ -424,7 +424,7 @@ DELETE from a_roles;</pre>
 			// .nv("roleId", roleId)
 			.nv("funcId", "func-" + usrId + " 02");
 			
-		ISemantext s1 = st.instancontxt(usr);
+		ISemantext s1 = st.instancontxt(connId, usr);
 		st.insert("a_roles", usr)
 			.nv("roleName", roleId)
 			.post(rf1).post(rf2)
@@ -435,7 +435,7 @@ DELETE from a_roles;</pre>
 			.col("count(r.roleId)", "cnt")
 			.j("a_role_func", "rf", "rf.roleId = r.roleId")
 			.where_("=", "r.roleId", newRoleId)
-			.rs(st.instancontxt(usr));
+			.rs(st.instancontxt(connId, usr));
 		SResultset rs = (SResultset) cnt.rs(0);
 		rs.beforeFirst().next();
 		// inserted two children
@@ -443,7 +443,7 @@ DELETE from a_roles;</pre>
 		
 		st.delete("a_roles", usr)
 			.where_("=", "roleId", newRoleId)
-			.d(st.instancontxt(usr));
+			.d(st.instancontxt(connId, usr));
 		
 		cnt = st.select("a_role_func", "rf")
 				.col("count(*)", "cnt")
@@ -457,14 +457,14 @@ DELETE from a_roles;</pre>
 
 	@Test
 	public void testChkOnDel() throws TransException, SQLException {
-		ISemantext s1 = st.instancontxt(usr);
+		ISemantext s1 = st.instancontxt(connId, usr);
 		String typeId = "02-fault";		// Device Fault
 		st.insert("b_alarms", usr)	// auto key id = 54
 			.nv("typeId", typeId)
 			.ins(s1);
 
 		try {
-			ISemantext s2 = st.instancontxt(usr);
+			ISemantext s2 = st.instancontxt(connId, usr);
 			st.delete("a_domain", usr)
 				.where_("=", "domainId", typeId)
 				.d(s2);
@@ -536,7 +536,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	@Test
 	public void testCascadeInsert() throws TransException, SQLException {
 		String dt = DateFormat.format(new Date());
-		ISemantext s0 = st.instancontxt(usr);
+		ISemantext s0 = st.instancontxt(connId, usr);
 		st.insert("b_alarms", usr)
 				.nv("remarks", Funcall.now(dbtype.sqlite))
 				.nv("typeId", "02-alarm")
@@ -560,7 +560,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		SemanticObject res = st.select("b_logic_device", "d")
 			.col("max(deviceLogId)", "dlid")
 			.where_("=", "alarmId", s0.resulvedVal("b_alarms", "alarmId"))
-			.rs(st.instancontxt(usr));
+			.rs(st.instancontxt(connId, usr));
 		SResultset rs = (SResultset) res.rs(0);
 		rs.beforeFirst().next();
 		// the max deviceLogId should be in s0.
