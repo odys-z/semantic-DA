@@ -483,6 +483,6 @@ end;
 			return (AbsPart) v;
 
 		TableMeta mt = colType(tabl);
-		return Statement.composeVal(v, mt, tabl, col);
+		return Statement.composeVal(v, mt, col);
 	}
 }
