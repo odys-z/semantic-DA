@@ -293,10 +293,9 @@ end;
 		if (subCate == null) subCate = "";
 		String sql;
 		if (dt == dbtype.oracle)
-			sql = String.format("select oz_fIncSeq('%s.%s', '%s') newId from dual", target, idField, subCate);
+			sql = String.format("select \"oz_fIncSeq\"('%s.%s', '%s') newId from dual", target, idField, subCate);
 		else
-			// TODO rename the function name - legacy of engcosts 
-			sql = String.format("select f_incSeq2('%s.%s', '%s') newId", target, idField, subCate);
+			sql = String.format("select oz_fIncSeq('%s.%s', '%s') newId", target, idField, subCate);
 
 		SResultset rs = null;
 		rs = Connects.select(connId, sql);

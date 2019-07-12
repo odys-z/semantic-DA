@@ -462,7 +462,7 @@ public class DASemantics {
 	private String tabl;
 	private String pk;
 
-	public static boolean verbose = true;
+	public static boolean verbose = false;
 
 	public DASemantics(Transcxt basicTx, String tabl, String recId) {
 		this.tabl = tabl;
@@ -686,6 +686,26 @@ public class DASemantics {
 			return argss;
 		}
 
+		/**Expand the row to the size of cols - in case the cols expanded by semantics handling
+		 * @param row row to expand
+		 * @param cols column index
+		 * @return the row expanded
+		 */
+		static ArrayList<Object[]> expandRow(ArrayList<Object[]> row, Map<String, Integer> cols) {
+			if (row == null || cols == null || row.size() >= cols.size())
+				return row;
+			
+			int size0 = row.size();
+			
+			for (int cx = size0; cx < cols.size(); cx ++)
+				row.add(new Object[] { null, null});
+
+			for (String col : cols.keySet())
+				if (cols.get(col) >= size0)
+					row.set(cols.get(col), new Object[] { col, null});
+			return row;
+		}
+
 		public boolean is(smtype sm) {
 			return this.sm == sm;
 		}
@@ -773,12 +793,25 @@ public class DASemantics {
 			}
 
 			Object[] nv;
-			if (cols.containsKey(args[2]))
+			// When second row is arriving, the col's index exists, but nv can not been got.
+			// Try multi row insertion for fullpath.
+			if (cols.containsKey(args[2])) {
+				// in the second row, cols contains the name, but row is not the same size
+				// if (row.size() < cols.size()) -- triggerring as necessary
+				if (row.size() <= cols.get(args[2]))
+					row = expandRow(row, cols);
+
 				nv = row.get(cols.get(args[2]));
+			}
 			else {
 				// nv = new Object[] { args[2], v };
 				nv = new Object[] { args[2], stx.composeVal(v, target, args[2]) };
 				cols.put(args[2], row.size());
+
+				// FIXME This is a bug:
+				// If therer are two more fields of fullpath,
+				// the second row's field order is not the same as it been handled in the first row,
+				// so "add()" is not enough.
 				row.add(nv);
 			}
 		}
@@ -827,9 +860,9 @@ public class DASemantics {
 			try {
 
 				Object alreadyResulved = stx.resulvedVal(target, args[0]);
-				if (alreadyResulved != null && verbose)
-					// When cross fk referencing happened, this branch will
-					// reached by handling post inserts.
+				if (verbose && alreadyResulved != null)
+					// 1. When cross fk referencing happened, this branch will reached by handling post inserts.
+					// 2. When multiple children inserting, this happens
 					Utils.warn(
 							"Debug Notes(verbose): Found an already resulved value (%s) while handling %s auto-key generation. Replacing ...",
 							alreadyResulved, target);
@@ -872,7 +905,7 @@ public class DASemantics {
 			}
 			try {
 				Object v = stx.resulvedVal(args[1], args[2]);
-				if (v != null && (nv[1] == null || LangExt.isblank((String) nv[1])))
+				if (v != null && (nv[1] == null || LangExt.isblank(nv[1])))
 					// nv[1] = v;
 					nv[1] = stx.composeVal(v, target, (String)nv[0]);
 			} catch (Exception e) {

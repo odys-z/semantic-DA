@@ -25,7 +25,6 @@ import io.odysz.semantics.x.SemanticException;
  * @author odys-z@github.com
  */
 public class Connects {
-	// TODO: separate log switches from semantic flags like adding "''".
 	/** nothing special for commit */
 	public static final int flag_nothing = 0;
 	public static final int flag_printSql = 1;
