@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
-import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io_odysz.FilenameUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.xml.sax.SAXException;
