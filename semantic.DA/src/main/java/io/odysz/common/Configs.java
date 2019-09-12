@@ -2,7 +2,7 @@ package io.odysz.common;
 
 import java.util.HashMap;
 
-import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io_odysz.FilenameUtils;
 import org.xml.sax.SAXException;
 
 import io.odysz.module.xtable.ILogger;
