@@ -34,6 +34,7 @@ import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
+import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
@@ -350,7 +351,7 @@ DELETE from a_roles;</pre>
 		String rootK = DATranscxt.key("user-pswd");
 		if (rootK == null) {
 			// mvn clean test -Drootkey=*******
-			fail("Please set rootkey!\nFor maven testing: mvn test -Drootkey=*******");
+			fail("Please set a 16 bytes rootkey!\nFor maven testing: mvn test -Drootkey=*******");
 		}
 
 		byte[] iv = AESHelper.getRandom();
@@ -650,10 +651,15 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		
 		String attId = (String)s0.resulvedVal("a_attaches", "attId");
 		
+		// v0.9.8 also test select union with extFile
+		Query q = st.select("a_attaches", "f2")
+			.col("uri").col("extFile(f2.uri)", "b64")
+			.whereEq("attId", "union test")
+			;
 		SResultset rs = (SResultset) st.select("a_attaches", "f")
 			.col("uri").col("extFile(f.uri)", "b64")
 			.whereEq("attId", attId)
-			// .commit(sqls, usr);
+			.union(q)
 			.rs(new DASemantext(connId, smtcfg, metas, usr, rtroot))
 			.rs(0);
 

@@ -3,6 +3,7 @@ package io.odysz.semantic;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -58,7 +59,7 @@ public class DASemantext implements ISemantext {
 
 	private String basePath;
 	private ArrayList<IPostOperat> onOks;
-	private ArrayList<IPostSelectOperat> onSelecteds;
+	private LinkedHashMap<String,IPostSelectOperat> onSelecteds;
 	
 	/**for generating sqlite auto seq */
 	private static IUser sqliteDumyUser;
@@ -459,21 +460,26 @@ end;
 	}
 
 	@Override
+	public boolean hasOnSelectedHandler(String name) {
+		return onSelecteds != null && onSelecteds.containsKey(name);
+	}
+
+	@Override
 	public void onSelected(Object resultset) throws SQLException, TransException {
 		SResultset rs = (SResultset) resultset;
 		if (rs != null && onSelecteds != null && onSelecteds.size() > 0) {
 			rs.beforeFirst();
 			while (rs.next())
-				for (IPostSelectOperat op : onSelecteds)
+				for (IPostSelectOperat op : onSelecteds.values())
 					op.onSelected(this, rs.getRowCells(), rs.getColnames());
 		}
 	}
 
 	@Override
-	public void addOnSelectedHandler(IPostSelectOperat op) {
+	public void addOnSelectedHandler(String name, IPostSelectOperat op) {
 		if (onSelecteds == null)
-			onSelecteds = new ArrayList<IPostSelectOperat>();
-		onSelecteds.add(op);
+			onSelecteds = new LinkedHashMap<String, IPostSelectOperat>();
+		onSelecteds.put(name, op);
 	}
 
 	@Override

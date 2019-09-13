@@ -24,6 +24,7 @@ public class LoggingUser implements IUser {
 	private DATranscxt logSemantic;
 	private String uid;
 	private SemanticObject action;
+	private String sessionKey;
 
 	public static IUser dumbUser;
 
@@ -62,12 +63,6 @@ public class LoggingUser implements IUser {
 
 	@Override
 	public String uid() { return uid; }
-
-//	@Override
-//	public String get(String prop) { return "prop"; }
-//
-//	@Override
-//	public IUser set(String prop, Object v) { return this; }
 
 	@Override
 	public ArrayList<String> dbLog(ArrayList<String> sqls) {
@@ -125,20 +120,15 @@ public class LoggingUser implements IUser {
 	public void writeJsonRespValue(Object writer) throws IOException { }
 
 	@Override
-	public IUser logAct(String funcName, String funcId) {
-//		set("funcName", funcName);
-//		set("funcId", funcId);
-		return this;
-	}
+	public IUser logAct(String funcName, String funcId) { return this; }
 
 	@Override
-	public String sessionKey() {
-		return null;
-	}
+	public String sessionKey() { return sessionKey; }
 
 	@Override
 	public IUser sessionKey(String skey) {
-		return null;
+		this.sessionKey = skey; 
+		return this;
 	}
 
 	@Override
@@ -147,7 +137,5 @@ public class LoggingUser implements IUser {
 	}
 
 	@Override
-	public List<Object> notifies() {
-		return null;
-	}
+	public List<Object> notifies() { return null; }
 }
