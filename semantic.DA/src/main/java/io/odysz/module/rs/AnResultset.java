@@ -263,7 +263,6 @@ for (String coln : colnames.keySet())
 	/**For older version compatibility, will be removed if SResultset is removed.
 	 * @param rs
 	 * @throws SQLException 
-	 */
 	public AnResultset(SResultset icrs) throws SQLException {
 		results = new ArrayList<ArrayList<Object>>();
 		if (icrs == null) return;
@@ -287,6 +286,7 @@ for (String coln : colnames.keySet())
 			results.add(row);
 		}
 	}
+	 */
 
 	/** @return column names */
 	public HashMap<String, Object[]> getColnames() {

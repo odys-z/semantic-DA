@@ -10,7 +10,7 @@ import org.xml.sax.SAXException;
 
 import io.odysz.common.LangExt;
 import io.odysz.common.Utils;
-import io.odysz.module.rs.SResultset;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactoryEx;
@@ -117,18 +117,18 @@ public class DATranscxt extends Transcxt {
 		Query q = super.select(tabl, alias);
 		q.doneOp((sctx, sqls) -> {
 			if (q.page() < 0 || q.size() <= 0) {
-				SResultset rs = Connects.select(sctx.connId(), sqls.get(0));
+				AnResultset rs = Connects.select(sctx.connId(), sqls.get(0));
 				rs.total(rs.getRowCount());
 				sctx.onSelected(rs);
 				return new SemanticObject().rs(rs, rs.total());
 			}
 			else {
-				SResultset total = Connects.select(sctx.connId(),
+				AnResultset total = Connects.select(sctx.connId(),
 					((DASemantext) sctx).totalSql(sqls.get(0)));
 				total.beforeFirst().next();
 				int t = total.getInt(1);
 
-				SResultset rs = Connects.select(sctx.connId(),
+				AnResultset rs = Connects.select(sctx.connId(),
 					((DASemantext) sctx).pageSql(sqls.get(0), q.page(), q.size()));
 				rs.total(t);
 

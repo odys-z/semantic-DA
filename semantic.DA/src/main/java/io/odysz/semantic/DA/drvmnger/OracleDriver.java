@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import javax.sql.DataSource;
 
 import io.odysz.common.dbtype;
-import io.odysz.module.rs.SResultset;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DA.OracleLob;
@@ -104,7 +104,7 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 //		return username;
 //	}
 
-	public static SResultset select(String sql) throws SQLException {
+	public static AnResultset select(String sql) throws SQLException {
 		if (enableSystemout) System.out.println(sql);
 		Connection conn = getConnection();
 //		try {
@@ -115,7 +115,7 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 //		Connection conn = DriverManager.getConnection( "jdbc:oracle:thin:@192.168.1.101:1521:emergenc", "emergency", "emergency" );
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery(sql);
-		SResultset icrs = new SResultset(rs);
+		AnResultset icrs = new AnResultset(rs);
 		rs.close();
 		stmt.close();
 		conn.close();
@@ -295,12 +295,12 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 	 * @return
 	 * @throws SQLException 
 	 */
-	public static SResultset selectBlob(String sql) throws SQLException {
+	public static AnResultset selectBlob(String sql) throws SQLException {
 		if (enableSystemout) System.out.println(sql);
 		Connection conn = getConnection();
 		Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		ResultSet rs = stmt.executeQuery(sql);
-		SResultset icrs = new SResultset(rs, conn, stmt);
+		AnResultset icrs = new AnResultset(rs, conn, stmt);
 		return icrs;
 	}
 
@@ -328,12 +328,12 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 	}
 
 	@Override
-	public SResultset select(String sql, int flags) throws SQLException {
+	public AnResultset select(String sql, int flags) throws SQLException {
 		Connection conn = getConnection();
 		Connects.printSql(enableSystemout, flags, sql);
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery(sql);
-		SResultset icrs = new SResultset(rs);
+		AnResultset icrs = new AnResultset(rs);
 		rs.close();
 		stmt.close();
 		conn.close();

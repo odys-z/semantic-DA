@@ -9,9 +9,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.io_odysz.FilenameUtils;
 
-import io.odysz.common.dbtype;
 import io.odysz.common.Utils;
-import io.odysz.module.rs.SResultset;
+import io.odysz.common.dbtype;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.cp.CpConnect;
 import io.odysz.semantic.DA.drvmnger.Msql2kDriver;
 import io.odysz.semantic.DA.drvmnger.MysqlDriver;
@@ -57,7 +57,7 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 	
 	protected void close() throws SQLException {}
 
-	public abstract SResultset select(String sql, int flags) throws SQLException ;
+	public abstract AnResultset select(String sql, int flags) throws SQLException ;
 
 	protected abstract int[] commit(ArrayList<String> sqls, int flags) throws SQLException;
 

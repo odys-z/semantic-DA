@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import io.odysz.common.dbtype;
-import io.odysz.module.rs.SResultset;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantics.IUser;
 
@@ -20,7 +20,7 @@ public class Msql2kDriver extends AbsConnect<Msql2kDriver> {
 	}
 
 	@Override
-	public SResultset select(String sql, int flags) throws SQLException {
+	public AnResultset select(String sql, int flags) throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
 	}

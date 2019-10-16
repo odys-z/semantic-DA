@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import io.odysz.common.Regex;
-import io.odysz.module.rs.SResultset;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.semantics.meta.TableMeta;
 
 
@@ -19,7 +19,7 @@ public class MetaBuilder {
 	 * @throws SAXException
 	 */
 	public static HashMap<String, TableMeta> buildMysql(String conn) throws SQLException {
-		SResultset rs = Connects.select(conn, "show tables");
+		AnResultset rs = Connects.select(conn, "show tables");
 		HashMap<String, TableMeta> tablMeta = new HashMap<String, TableMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		while (rs.next()) {
@@ -41,7 +41,7 @@ public class MetaBuilder {
 
 	static Regex regexMysqlCol = new Regex("(\\w+)");
 	private static TableMeta metaMysql(String conn, String tabl) throws SQLException {
-		SResultset rs = Connects.select(conn, "show columns from " + tabl);
+		AnResultset rs = Connects.select(conn, "show columns from " + tabl);
 		rs.beforeFirst();
 		TableMeta tab = new TableMeta(tabl);
 		while (rs.next()) {
@@ -57,7 +57,7 @@ public class MetaBuilder {
 
 	public static HashMap<String,TableMeta> buildMs2k(String conn) throws SQLException {
 		// https://stackoverflow.com/questions/175415/how-do-i-get-list-of-all-tables-in-a-database-using-tsql
-		SResultset rs = Connects.select(conn, "SELECT s.name FROM sysobjects s WHERE s.xtype = 'U' or s.xtype = 'V'");
+		AnResultset rs = Connects.select(conn, "SELECT s.name FROM sysobjects s WHERE s.xtype = 'U' or s.xtype = 'V'");
 		HashMap<String, TableMeta> tablMeta = new HashMap<String, TableMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		while (rs.next()) {
@@ -77,7 +77,7 @@ public class MetaBuilder {
 			"LEFT OUTER JOIN sys.index_columns ic ON ic.object_id = c.object_id AND ic.column_id = c.column_id " +
 			"LEFT OUTER JOIN sys.indexes i ON ic.object_id = i.object_id AND ic.index_id = i.index_id " +
 			"WHERE c.object_id = OBJECT_ID('%s')", tabl);
-		SResultset rs = Connects.select(srcName, sql);
+		AnResultset rs = Connects.select(srcName, sql);
 		TableMeta tab = new TableMeta(tabl);
 		rs.beforeFirst();
 		while (rs.next()) {
@@ -91,7 +91,7 @@ public class MetaBuilder {
 	public static HashMap<String,TableMeta> buildOrcl(String conn) throws SQLException {
 		// https://stackoverflow.com/questions/205736/get-list-of-all-tables-in-oracle
 		// https://stackoverflow.com/questions/1953239/search-an-oracle-database-for-tables-with-specific-column-names
-		SResultset rs = Connects.select(conn, "SELECT table_name, column_name, data_type, data_length \"len\" FROM cols");
+		AnResultset rs = Connects.select(conn, "SELECT table_name, column_name, data_type, data_length \"len\" FROM cols");
 		HashMap<String, TableMeta> tablMeta = new HashMap<String, TableMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		
@@ -110,7 +110,7 @@ public class MetaBuilder {
 	}
 
 	public static HashMap<String, TableMeta> buildSqlite(String conn) throws SQLException {
-		SResultset rs = Connects.select(conn, "select distinct tbl_name from sqlite_master  where type = 'table'");
+		AnResultset rs = Connects.select(conn, "select distinct tbl_name from sqlite_master  where type = 'table'");
 		HashMap<String, TableMeta> tablMeta = new HashMap<String, TableMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		
@@ -132,7 +132,7 @@ public class MetaBuilder {
 		// 2   |afk     |TEXT |0       |           |0  |
 		// 3   |testInt |INTEGER |0    |           |0  |
 		String sql = String.format("pragma table_info(%s)", tabl);
-		SResultset rs = Connects.select(conn, sql);
+		AnResultset rs = Connects.select(conn, sql);
 		TableMeta tab = new TableMeta(tabl);
 		rs.beforeFirst();
 		while (rs.next()) {

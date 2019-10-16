@@ -15,7 +15,7 @@ import org.apache.commons.io_odysz.FilenameUtils;
 
 import io.odysz.common.Radix64;
 import io.odysz.common.dbtype;
-import io.odysz.module.rs.SResultset;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -298,7 +298,7 @@ end;
 		else
 			sql = String.format("select oz_fIncSeq('%s.%s', '%s') newId", target, idField, subCate);
 
-		SResultset rs = null;
+		AnResultset rs = null;
 		rs = Connects.select(connId, sql);
 		if (rs.getRowCount() <= 0)
 			// throw new TransException("Can't find auot seq of %s, you may check where oz_autoseq.seq and table %s are existing?",
@@ -335,7 +335,7 @@ end;
 		sqls.add(String.format("update oz_autoseq set seq = seq + 1 where sid = '%s.%s'",
 					target, idF));
 			
-		SResultset rs = null;
+		AnResultset rs = null;
 		
 		Query q = rawst.select("oz_autoseq").col("seq")
 				.where("=", "sid", String.format("'%s.%s'", target, idF));
@@ -466,7 +466,7 @@ end;
 
 	@Override
 	public void onSelected(Object resultset) throws SQLException, TransException {
-		SResultset rs = (SResultset) resultset;
+		AnResultset rs = (AnResultset) resultset;
 		if (rs != null && onSelecteds != null && onSelecteds.size() > 0) {
 			rs.beforeFirst();
 			while (rs.next())

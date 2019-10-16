@@ -12,7 +12,7 @@ import io.odysz.common.AESHelper;
 import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
-import io.odysz.module.rs.SResultset;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -777,7 +777,7 @@ public class DASemantics {
 					SemanticObject s = trxt.select(target, "_t0").col(args[2]).where("=", pkField, "'" + pid + "'")
 							.rs(stx);
 
-					SResultset rs = (SResultset) s.rs(0);
+					AnResultset rs = (AnResultset) s.rs(0);
 					if (rs.beforeFirst().next()) {
 						String parentpath = rs.getString(args[2]);
 						v = String.format("%s.%s %s",
@@ -1259,14 +1259,14 @@ public class DASemantics {
 
 				// delete external files when sqls committed
 				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
-				SResultset rs;
+				AnResultset rs;
 				try {
 //					if (trxt.tableMeta(args[2]) == null)
 //						throw new SemanticException("Can't find table %s, which defined by semantics on table %s.\n" +
 //							"It's is required to delete the external file's records.",
 //							target, args[2]);
 
-					rs = (SResultset) stmt.transc()
+					rs = (AnResultset) stmt.transc()
 							.select(target)
 							.col(args[ixUri])
 							.where(condt)
@@ -1349,7 +1349,7 @@ public class DASemantics {
 						.where(inCondt)
 						.rs(stmt.transc().basictx());
 
-				SResultset rs = (SResultset) s.rs(0);
+				AnResultset rs = (AnResultset) s.rs(0);
 				rs.beforeFirst().next();
 
 				if (rs.getInt("cnt") > 0)
@@ -1393,7 +1393,7 @@ public class DASemantics {
 				}
 				String sql = String.format(args[args.length - 1], nv);
 				try {
-					SResultset rs = Connects.select(stx.connId(), sql, Connects.flag_nothing);
+					AnResultset rs = Connects.select(stx.connId(), sql, Connects.flag_nothing);
 					rs.beforeFirst().next();
 					if (rs.getInt(1) > 0)
 						throw new SemanticException("Checking count on %s.%s (%s = %s ...) failed",

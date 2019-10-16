@@ -22,7 +22,7 @@ import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
-import io.odysz.semantic.DA.DatasetCfg.TreeSemantics.Ix;
+import io.odysz.semantic.DA.DatasetCfgV11.TreeSemantics.Ix;
 import io.odysz.semantic.util.LogFlags;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
@@ -196,6 +196,10 @@ public class DatasetCfgV11 {
 		public AnTreeNode put(String k, Object v) {
 			node.put(k, v);
 			return this;
+		}
+
+		public Object get(String k) {
+			return node == null ? null : node.get(k);
 		}
 	}
 

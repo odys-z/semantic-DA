@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import io.odysz.common.DateFormat;
 import io.odysz.common.Utils;
-import io.odysz.module.rs.SResultset;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.x.TransException;
 
@@ -39,7 +39,7 @@ public class ConnectsTest {
 		('test00', '0002', 'Portal', 'views/portal.html', '0001', '1', '0 0001.1 0002'),
 		('test00', '0003', 'User Info', 'views/user-info.html', '0001', '2', '0 0001.2 0003');
 		*/
-		SResultset rs = Connects.select("select * from a_functions where flags='test00' order by fullpath, sibling", Connects.flag_nothing);
+		AnResultset rs = Connects.select("select * from a_functions where flags='test00' order by fullpath, sibling", Connects.flag_nothing);
 		rs.printSomeData(false, 3, "funcId", "funcName", "fullpath");
 		assertEquals(rs.getRowCount(), 0);
 		

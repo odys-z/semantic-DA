@@ -17,7 +17,7 @@ import org.xml.sax.SAXException;
 
 import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
-import io.odysz.module.rs.SResultset;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DA.OracleLob;
@@ -36,10 +36,10 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	 * @return results
 	 * @throws SQLException
 	 */
-	public static SResultset select(String src, String sql) throws SQLException {
+	public static AnResultset select(String src, String sql) throws SQLException {
         Connection con = null;
         PreparedStatement pstmt;
-        SResultset icrs = null; 
+        AnResultset icrs = null; 
         try {
         	InitialContext ctx = new InitialContext();
         	// DataSource ds = (DataSource)ctx.lookup("java:/comp/env/jdbc/frameDs");
@@ -55,7 +55,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 
             pstmt = con.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
-            icrs = new SResultset(rs);
+            icrs = new AnResultset(rs);
 
             con.commit();
             pstmt.close();
@@ -178,10 +178,10 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	 * @throws SQLException
 	 * @throws NamingException 
 	 */
-	public SResultset select(String sql, int flags) throws SQLException {
+	public AnResultset select(String sql, int flags) throws SQLException {
 		Connection con = null;
         PreparedStatement pstmt;
-        SResultset icrs = null; 
+        AnResultset icrs = null; 
         try {
         	// if (printSql) System.out.println(sql);
         	Connects.printSql(printSql, flags, sql);
@@ -190,7 +190,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
             con.setAutoCommit(false);
             pstmt = con.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
-            icrs = new SResultset(rs);
+            icrs = new AnResultset(rs);
 
             con.commit();
             pstmt.close();
@@ -201,14 +201,14 @@ public class CpConnect extends AbsConnect<CpConnect> {
         return icrs;
 	}
 
-//	public void readClob(SResultset rs, String[] tabls) throws SQLException, IOException {
+//	public void readClob(AnResultset rs, String[] tabls) throws SQLException, IOException {
 //		if (tabls == null) return;
 //		for (String tabl : tabls) {
 //			readClob(rs, clobMeta.get(tabl));
 //		}
 //	}
 
-//	private void readClob(SResultset rs, HashMap<String, OracleLob> tablobs) throws SQLException, IOException {
+//	private void readClob(AnResultset rs, HashMap<String, OracleLob> tablobs) throws SQLException, IOException {
 //		if (rs == null || tablobs == null) return;
 //		rs.beforeFirst();
 //		while (rs.next()) {
@@ -225,7 +225,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 //						System.err.println("Tips:\n\tDon't use alais for a CLOB/text field. Can't handle this.");
 //						continue;
 //					}
-//					SResultset lobrs = select(String.format("select %s, length(%s) from %s where %s = '%s'",
+//					AnResultset lobrs = select(String.format("select %s, length(%s) from %s where %s = '%s'",
 //							lob.lobField(), lob.lobField(), lob.tabl(), lob.idField(), rs.getString(lob.idField())),
 //							Connects.flag_nothing);
 //
@@ -433,7 +433,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 //		else if (driverType == JDBCType.sqlite)
 //			sql = "select DATETIME('now')";
 //		
-//		SResultset rs = select(sql, Connects.flag_nothing);
+//		AnResultset rs = select(sql, Connects.flag_nothing);
 //		if (rs.next())
 //			return rs.getString(1);
 //		else

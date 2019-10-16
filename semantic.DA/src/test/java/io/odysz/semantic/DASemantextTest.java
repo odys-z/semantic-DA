@@ -26,7 +26,7 @@ import io.odysz.common.AESHelper;
 import io.odysz.common.DateFormat;
 import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
-import io.odysz.module.rs.SResultset;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -102,7 +102,7 @@ DELETE from a_roles;</pre>
 	@Before
 	public void testInit() throws SQLException, SemanticException, SAXException, IOException {
 		// initialize oz_autoseq - only for sqlite
-		SResultset rs = Connects.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table' and tbl_name = 'oz_autoseq'",
+		AnResultset rs = Connects.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table' and tbl_name = 'oz_autoseq'",
 				Connects.flag_nothing);
 		if (rs.getRowCount() == 0) {
 			// create oz_autoseq
@@ -212,7 +212,7 @@ DELETE from a_roles;</pre>
 				.where("=", "rf.roleId", "'" + newId + "'")
 				.where("=", "rf.funcId", "'000001'")
 				.rs(s1);
-		SResultset slect = (SResultset) s.rs(0);
+		AnResultset slect = (AnResultset) s.rs(0);
 		slect.printSomeData(false, 2, "cnt");
 
 		slect.beforeFirst().next();
@@ -328,7 +328,7 @@ DELETE from a_roles;</pre>
 			.commit(sqls, usr);
 
 		// assert 2 default value pswd = '123456' (iv = null)
-		SResultset rs = Connects.select(sqls.get(0));
+		AnResultset rs = Connects.select(sqls.get(0));
 		rs.beforeFirst().next();
 		assertEquals("123456", rs.getString("pswd"));
 		
@@ -367,7 +367,7 @@ DELETE from a_roles;</pre>
 			.ins(s2);
 		
 		String usr3 = (String) s2.resulvedVal("a_users", "userId");
-		rs = (SResultset) st.select("a_users", "u")
+		rs = (AnResultset) st.select("a_users", "u")
 			.col("pswd")
 			.col("iv")
 			.whereEq("userId", usr3)
@@ -394,7 +394,7 @@ DELETE from a_roles;</pre>
 			.whereEq("userId", usr3)
 			.u(s3);
 
-		rs = (SResultset) st.select("a_users", "u")
+		rs = (AnResultset) st.select("a_users", "u")
 			.col("pswd")
 			.col("iv")
 			.whereEq("userId", usr3)
@@ -437,7 +437,7 @@ DELETE from a_roles;</pre>
 			.j("a_role_func", "rf", "rf.roleId = r.roleId")
 			.where_("=", "r.roleId", newRoleId)
 			.rs(st.instancontxt(connId, usr));
-		SResultset rs = (SResultset) cnt.rs(0);
+		AnResultset rs = (AnResultset) cnt.rs(0);
 		rs.beforeFirst().next();
 		// inserted two children
 		assertEquals(2, rs.getInt("cnt"));
@@ -451,7 +451,7 @@ DELETE from a_roles;</pre>
 				.where_("=", "rf.roleId", newRoleId)
 				.rs(s1);
 
-		rs = (SResultset) cnt.rs(0);
+		rs = (AnResultset) cnt.rs(0);
 		rs.beforeFirst().next();
 		assertEquals(0, rs.getInt("cnt"));
 	}
@@ -562,7 +562,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.col("max(deviceLogId)", "dlid")
 			.where_("=", "alarmId", s0.resulvedVal("b_alarms", "alarmId"))
 			.rs(st.instancontxt(connId, usr));
-		SResultset rs = (SResultset) res.rs(0);
+		AnResultset rs = (AnResultset) res.rs(0);
 		rs.beforeFirst().next();
 		// the max deviceLogId should be in s0.
 		assertEquals(s0.resulvedVal("b_logic_device", "deviceLogId"), rs.getString("dlid"));
@@ -656,7 +656,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.col("uri").col("extFile(f2.uri)", "b64")
 			.whereEq("attId", "union test")
 			;
-		SResultset rs = (SResultset) st.select("a_attaches", "f")
+		AnResultset rs = (AnResultset) st.select("a_attaches", "f")
 			.col("uri").col("extFile(f.uri)", "b64")
 			.whereEq("attId", attId)
 			.union(q)
@@ -664,7 +664,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.rs(0);
 
 		// assert 2. verify file exists
-		// SResultset rs = Connects.select(sqls.get(0));
+		// AnResultset rs = Connects.select(sqls.get(0));
 
 		rs.beforeFirst().next(); // uri is relative path
 		String fp = FilenameUtils.concat(rtroot, rs.getString("uri"));

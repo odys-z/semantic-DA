@@ -10,7 +10,7 @@ import org.xml.sax.SAXException;
 
 import io.odysz.common.dbtype;
 import io.odysz.common.Utils;
-import io.odysz.module.rs.SResultset;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.module.xtable.ILogger;
 import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
@@ -148,7 +148,7 @@ public class Connects {
 	}
 
 	///////////////////////////////////// select ///////////////////////////////
-	public static SResultset select(String conn, String sql, int... flags) throws SQLException {
+	public static AnResultset select(String conn, String sql, int... flags) throws SQLException {
 		// Print WARN? if conn is not null and srcs doesn't contains, it's probably because of wrong configuration in connects.xml. 
 		if (flags != null && flags.length > 0 && flags[0] == flag_printSql )
 			if (conn != null && !srcs.containsKey(conn))
@@ -158,7 +158,7 @@ public class Connects {
 				.select(sql, flags == null || flags.length <= 0 ? flag_nothing : flags[0]);
 	}
 
-	public static SResultset select(String sql, int... flags) throws SQLException {
+	public static AnResultset select(String sql, int... flags) throws SQLException {
 		return select(null, sql, flags);
 	}
 
