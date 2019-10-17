@@ -237,11 +237,11 @@ DELETE from a_roles;</pre>
 		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		Insert f1 = st.insert("crs_a")
-				.nv("remarka", Funcall.now(dbtype.sqlite))
+				.nv("remarka", Funcall.now())
 				.nv("fundDate", "1777-07-04")
 				.nv("testInt", "100"); // testing that int shouldn't quoted
 		st.insert("crs_b")
-				.nv("remarkb", Funcall.now(dbtype.sqlite))
+				.nv("remarkb", Funcall.now())
 				.post(f1)
 				.commit(s0, sqls);
 		
@@ -316,7 +316,7 @@ DELETE from a_roles;</pre>
 			.nv("userName", usrName)
 			.nv("roleId", "r01")
 			.nv("orgId", "o-01")
-			.nv("birthday", Funcall.now(dbtype.sqlite))
+			.nv("birthday", Funcall.now())
 			.commit(s0, sqls);
 		Connects.commit(usr , sqls);
 		sqls.clear();
@@ -539,7 +539,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		String dt = DateFormat.format(new Date());
 		ISemantext s0 = st.instancontxt(connId, usr);
 		st.insert("b_alarms", usr)
-				.nv("remarks", Funcall.now(dbtype.sqlite))
+				.nv("remarks", Funcall.now())
 				.nv("typeId", "02-alarm")
 
 				.post(st.insert("b_alarm_logic")	// child of b_alarms, auto key: logicId
@@ -575,7 +575,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		String dt = DateFormat.format(new Date());
 		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
 		st.insert("b_alarms")
-				.nv("remarks", Funcall.now(dbtype.sqlite))
+				.nv("remarks", Funcall.now())
 				.nv("typeId", "02-alarm")
 				.post(st.insert("b_alarm_logic")	// child of b_alarms, auto key: logicId
 						.nv("remarks", "R1 " + dt)

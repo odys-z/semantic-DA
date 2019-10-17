@@ -1511,7 +1511,7 @@ public class DASemantics {
 					row.add(nvTime);
 				}
 				nvTime[0] = args[1];
-				nvTime[1] = Funcall.now(stx.dbtype());
+				nvTime[1] = Funcall.now();
 			}
 
 			// oper
