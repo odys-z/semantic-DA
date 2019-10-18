@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io_odysz.FilenameUtils;
@@ -22,7 +23,6 @@ import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
-import io.odysz.semantic.DA.DatasetCfgV11.TreeSemantics.Ix;
 import io.odysz.semantic.util.LogFlags;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
@@ -174,18 +174,37 @@ public class DatasetCfgV11 {
 				}
 			return expr;
 		}
-
-
-		/**Build tree node from rs's current row - call this method in while(rs.next()) loop.
-		 * @param rs
-		 * @return node strings indexed as {@link Ix}
-		public AnTreeNode formatNode(AnResultset rs) {
-			AnTreeNode n = new AnTreeNode();
-			return n;
-		}
-		 */
 	}
 
+	/**<p>Representing each tree node.</p>
+	 * TODO Chinese here!
+	 * What easy ui tree control expected is this:<pre>
+[{"children":[
+  		{"fullpath":"01.0101",
+  		 "checked":true,
+  		 "text":"users","sort":"0101", "value":"0101", "parentId":"01" },
+  		{"fullpath":"01.0102",
+  		 "checked":true,
+  		 "text":"roles","sort":"0102","value":"0102","parentId":"01" },
+  		{"fullpath":"01.0103",
+  		 "checked":true,
+  		 "text":"sys log","sort":"0103","value":"0103","parentId":"01" } ],
+  "fullpath":"01",
+  "checked":true,
+  "text":"system","sort":"01","value":"01","parentId":""
+ },
+ {"children":[
+ 		{"fullpath":"03.0301",
+ 		 "checked":true,
+ 		 "text":"FUNC 0301","sort":"0301","value":"0301","parentId":"03"} ],
+  "fullpath":"03",
+  "checked":true,
+  "text":"web contents","sort":"03","value":"03"
+ }
+]</pre>
+	 * @author odys-z@github.com
+	 */
+	/*
 	public static class AnTreeNode extends Anson {
 		HashMap<String, Object> node;
 
@@ -201,7 +220,7 @@ public class DatasetCfgV11 {
 		public Object get(String k) {
 			return node == null ? null : node.get(k);
 		}
-	}
+	}*/
 
 	public static final int ixMysql = 0;
 	public static final int ixOrcl = 1;
@@ -323,7 +342,7 @@ public class DatasetCfgV11 {
 		return select(conn, sk, page, size, args);
 	}
 
-	public static List<AnTreeNode> loadStree(String conn, String sk,
+	public static List<?> loadStree(String conn, String sk,
 			int page, int size, String... args)
 			throws SemanticException, SQLException {
 		if (dss == null || !dss.containsKey(sk))
@@ -352,13 +371,13 @@ public class DatasetCfgV11 {
 	 * @throws SQLException
 	 * @throws SemanticException data structure can not build  tree / forest 
 	 */
-	public static List<AnTreeNode> buildForest(AnResultset rs, TreeSemantics treeSemtcs)
+	public static List<?> buildForest(AnResultset rs, TreeSemantics treeSemtcs)
 			throws SQLException, SemanticException {
 		// build the tree/forest
-		List<AnTreeNode> forest = new ArrayList<AnTreeNode>();
+		List<Object> forest = new ArrayList<Object>();
 		rs.beforeFirst();
 		while (rs.next()) {
-			AnTreeNode root  = formatSemanticNode(treeSemtcs, rs);
+			Map<String, Object> root  = formatSemanticNode(treeSemtcs, rs);
 
 			// sometimes error results from inconsistent data is confusing, so report an error here - it's debug experience.
 			// if (!rs.getColnames().containsKey(treeSemtcs.dbRecId()))
@@ -367,12 +386,12 @@ public class DatasetCfgV11 {
 						treeSemtcs.dbRecId(), LangExt.toString(treeSemtcs.treeSmtcs()));
 
 			// checkSemantics(rs, semanticss, Ix.recId);
-			List<AnTreeNode> children = buildSubTree(treeSemtcs, root,
+			List<Object> children = buildSubTree(treeSemtcs, root,
 					// rs.getString(treeSemtcs[Ix.recId] == null ? treeSemtcs[Ix.recId] : treeSemtcs[Ix.recId]),
 					rs.getString(treeSemtcs.dbRecId()),
 					rs);
 			if (children.size() > 0)
-				root.put("children", children);
+				root.put("childre", children);
 			forest.add(root);
 		}
 
@@ -386,25 +405,29 @@ public class DatasetCfgV11 {
 	 * @return {@link SemanticObject} of node
 	 * @throws SQLException
 	 */
-	private static AnTreeNode formatSemanticNode(TreeSemantics treeSemtcs, AnResultset rs) throws SQLException {
-		AnTreeNode node = new AnTreeNode();
+	private static Map<String, Object> formatSemanticNode(TreeSemantics treeSemtcs,
+			AnResultset rs) throws SQLException {
+		Map<String, Object> node = new HashMap<String, Object>();
 
 		for (int i = 1;  i <= rs.getColCount(); i++) {
 			String v = rs.getString(i);
 			String col = rs.getColumnName(i);
 			col = treeSemtcs.alias(col);
 			if (v != null)
+				/*
 				if (treeSemtcs.isColChecked(col))
 					node.put(col, rs.getBoolean(i));
 				else
 					node.put(col, v);
+				*/
+				node.put(col,  v);
 		}
 		return node;
 	}
 
-	private static List<AnTreeNode> buildSubTree(TreeSemantics sm,
-			AnTreeNode root, String parentId, AnResultset rs) throws SQLException, SemanticException {
-		List<AnTreeNode> childrenArray  = new ArrayList<AnTreeNode>();
+	private static List<Object> buildSubTree(TreeSemantics sm, Map<String, Object> root,
+			String parentId, AnResultset rs) throws SQLException, SemanticException {
+		List<Object> childrenArray  = new ArrayList<Object>();
 		while (rs.next()) {
 			if (parentId == null || root == null) {
 				Utils.warn("Found children for null parent. Parent: %s\n", root.toString());
@@ -429,9 +452,9 @@ public class DatasetCfgV11 {
 				return childrenArray;
 			}
 
-			AnTreeNode child = formatSemanticNode(sm, rs);
+			Map<String, Object> child = formatSemanticNode(sm, rs);
 
-			List<AnTreeNode> subOrg = buildSubTree(sm, child,
+			List<Object> subOrg = buildSubTree(sm, child,
 					// rs.getString(sm[Ix.recId]), rs);
 					rs.getString(sm.dbRecId()), rs);
 
