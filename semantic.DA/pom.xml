@@ -5,22 +5,40 @@
   <artifactId>semantic.DA</artifactId>
   <version>1.0.0</version>
   <packaging>jar</packaging>
-
   <name>semantic.DA</name>
+  <description>JDBC Data Access with Semantics Support</description>
   <url>http://maven.apache.org</url>
 
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Odys Zhou</name>
+      <email>odys.zhou@gmail.com</email>
+      <organization>odysz.github.io</organization>
+      <organizationUrl>https://odysz.github.io</organizationUrl>
+    </developer>
+  </developers>
+  
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	<maven.compiler.source>1.8</maven.compiler.source>
 	<maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
+  <!-- 
   <repositories>
   	<repository>
   		<id>sonatype-snapshots</id>
   		<url>https://oss.sonatype.org/content/repositories/snapshots</url>
   	</repository>
   </repositories>
+   --> 
 
   <dependencies>
 	<dependency>
@@ -135,14 +153,13 @@
 		<version>1.6.7</version>
 		<extensions>true</extensions>
 		<configuration>
-			<serverId>odys-z</serverId>
+			<serverId>ossrh</serverId>
 			<nexusUrl>https://oss.sonatype.org/</nexusUrl>
 			<autoReleaseAfterClose>true</autoReleaseAfterClose>
 		</configuration>
 	  </plugin>
 
-	  <!-- JavaDoc and source attachment
-	   -->
+	  <!-- JavaDoc and source attachment -->
 	  <plugin>
 	      <groupId>org.apache.maven.plugins</groupId>
 	      <artifactId>maven-source-plugin</artifactId>
