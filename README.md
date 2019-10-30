@@ -1,24 +1,102 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.odys-z/semantics.DA/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.odys-z/semantics.DA/)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
-# semantic-DA
+# About
 
-## About
-semantic-DA is a data access layer based on Semantic-Transact.
+Semantic-DA is a JDBC data access layer based on [Semantic-Transact](https://github.com/odys-z/semantic-transact),
+providing a high level DA API.
 
-Semantic-DA can emit sql AST building / traveling events that let users have chances to organize updating data to inject the business semantics.
+More importantly, semantic-DA also handling data integration according to configured
+semantics, in config file like
 
-The semantics is abstracted into a few patterns, which is handled by the implementation of a interface. This interface define the events that the DA layer firing.
+~~~
+    <web-app>/WEB-INF/semantics.xml
+~~~
 
-The final data is used to build the SQL statement(s). In this way, a typical database application's business processing are abstracted into some semantics pattern and supported automatically, with semantics configuration.
+Frequently used data relationships like automatic key and it's reference are handled,
+largely improved the developement efficiency.
 
-Semantic-DA is a building block of a future framework project, semantic-jserv. With semantic-DA, typical CRUD semantics handling should been sported via semantics patterns.
+For complete semantics types, see the [semantics type java API doc](https://odys-z.github.io/javadoc/semantic.DA/io/odysz/semantic/DASemantics.smtype.html).
 
-In short, semantic-transact handling sql structure, ISemantics handling data modification, semantic-DA glue this together, based on JDBC connection(s).
+# Quick Start
 
-## Quick Start, Hello Word, Docs/Wiki, ...
-This quickest way is check DASemantextTest.
+Semantic-DA is an important compnent used by semantic-\*, which can't work independantly.
+If you are interesting in what kinde of semantics it can handle, just download or
+clone the source,
+
+~~~
+    git clone https://github.com/odys-z/semantic-DA
+~~~
+
+then import the Eclipse project, and run the test cases.
+
+The test cases come with a sqlite3 db file and necessary config files. See files in
+
+~~~
+    <project>/src/test/res
+~~~
+
+The sqlite3 connection is configured in "connects.xml":
+
+~~~
+<t id="drvmnger" pk="id" columns="id,type,isdef,src,usr,pswd,dbg,smtcs">
+	<c>
+	  <id>local-sqlite</id>
+	  <type>sqlite</type>
+	  <isdef>true</isdef>
+	  <!-- For sqlite, src = relative path from this configure file.
+		  So connection string can be: jdbc:sqlite:WEB-INF/remote.db -->
+	  <src>semantic-DA.db</src>
+	  <usr>test</usr>
+	  <pswd>test</pswd>
+	  <!-- enable sql printing -->
+	  <dbg>true</dbg>
+	  <smtcs>src/test/res/semantics.xml</smtcs>
+	</c>
+</t>
+~~~
+
+Where the connection id, "local-sqlite" is the reference id in tests code.
+
+The file configured in <smtcs/> is the samantics that can handled by semantic-DA.
+
+~~~
+    <smtcs>src/test/res/semantics.xml</smtcs>
+~~~
+
+If you really want to have a maven project depends on semantic-DA, in pom.xml:
+
+~~~
+	<dependency>
+		<groupId>io.github.odys-z</groupId>
+		<artifactId>semantic.DA</artifactId>
+		<version>1.0.0</version>
+	</dependency>
+~~~
+
+## Extending Semantics
+
+Semantic-DA can emit sql AST building / traveling events that let users have chances
+to organize updating data to inject the business semantics.
+
+The semantics is abstracted into a few patterns, which is handled by the implementation
+of a interface. This interface define the events that the DA layer firing.
+
+The final data is used to build the SQL statement(s). In this way, a typical database
+application's business processing are abstracted into some semantics pattern and
+supported semantics plugins.
+
+In short, semantic-transact handling sql structure, ISemantics handling data
+modification, semantic-DA glue this together, based on JDBC connection(s).
+
+TODO: Docs
+
+## Additional Docs
+
+The quickest way is checking the DASemantextTest test cases.
+
 ![DASemantextTest junit result](https://raw.githubusercontent.com/odys-z/semantic-DA/master/misc/imgs/002-tut-DASemantextTest-02.png)
+
 ![a_functions](https://raw.githubusercontent.com/odys-z/semantic-DA/master/misc/imgs/002-tut-DASemantextTest-01.png)
 
 Details is comming soon. Sorry about that.
