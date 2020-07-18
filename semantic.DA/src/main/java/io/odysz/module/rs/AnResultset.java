@@ -710,6 +710,12 @@ for (String coln : colnames.keySet())
 		return results.get(rowIdx - 1);
 	}
 	
+	/**Print ResutSet in System.out or System.err.
+	 * @param err weather output in "out" or "err" 
+	 * @param max mas rows to print
+	 * @param includeCols include column of names.
+	 * @return
+	 */
 	public int printSomeData(boolean err, int max, String... includeCols) {
 		try {
 			printHeaders();
@@ -727,16 +733,6 @@ for (String coln : colnames.keySet())
 					while (next() && getRow() <= max) {
 						for (String incCol : includeCols) 
 							printcell(err, incCol);
-//					for (int ix = 0; ix <= max; ix++) {
-//						if (!next())
-//							break;
-//						for (String incCol : includeCols) {
-//							if (err)
-//								System.err.print(String.format("%s : %s  ", incCol, getString(incCol)));
-//							else
-//								System.out.print(String.format("%s : %s  ", incCol, getString(incCol)));
-//						}
-
 						// end line
 						if (err) System.err.println("");
 						else System.out.println("");

@@ -30,6 +30,11 @@ public class Connects {
 	public static final int flag_printSql = 1;
 	public static final int flag_disableSql = 2;
 
+	/**Convert names like "sqlit" to {@link dbtype}.
+	 * @param type
+	 * @return
+	 * @throws SemanticException
+	 */
 	public static dbtype parseDrvType(String type) throws SemanticException {
 		if (type == null || type.trim().length() == 0)
 			throw new SemanticException("Drived type not suppored: %s", type);
@@ -67,7 +72,7 @@ public class Connects {
 			srcs = loadConnects(srcs, "dbcp", CpConn, logger, xmlDir);
 		
 			if (srcs != null && srcs.size() > 0 && !srcs.containsKey(defltConn))
-				throw new SQLException("Failed initializing, db source must configured with a default source."); 
+				throw new SQLException("Found connection configruations, bud initialization failed. DB source must configured with a default source."); 
 
 			if (LogFlags.Semantic.connects)
 				Utils.logi("INFO - JDBC initialized using %s (%s) as default connection.",
@@ -128,6 +133,7 @@ public class Connects {
 					e.printStackTrace();
 				}
 	}
+	
 	/////////////////////////////// common helper /////////////////////////////
 	/** If printSql is true or if asking enable, 
 	 * then print sqls.
