@@ -24,6 +24,7 @@ public class TestRobot implements IUser {
 	@Override public String sessionId() { return null; }
 
 	@Override public void touch() { touched = System.currentTimeMillis(); } 
+
 	@Override public long touchedMs() { return touched; } 
 
 	@Override public String uid() { return "jrobot"; }
