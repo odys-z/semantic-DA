@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
+import javax.naming.NamingException;
+
 import org.xml.sax.SAXException;
 
 import io.odysz.common.dbtype;
@@ -20,6 +22,7 @@ import io.odysz.semantic.util.LogFlags;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.x.TransException;
 
 /**
  * @author odys-z@github.com
@@ -160,8 +163,13 @@ public class Connects {
 			if (conn != null && !srcs.containsKey(conn))
 				throw new SQLException("Can't find connection: " + conn);
 
-		return srcs.get(conn == null ? defltConn : conn)
-				.select(sql, flags == null || flags.length <= 0 ? flag_nothing : flags[0]);
+		String connId = conn == null ? defltConn : conn;
+		try {
+			return srcs.get(connId)
+					.select(sql, flags == null || flags.length <= 0 ? flag_nothing : flags[0]);
+		} catch (NamingException e) {
+			throw new SQLException("Can't find connection, id=" + connId);
+		}
 	}
 
 	public static AnResultset select(String sql, int... flags) throws SQLException {
@@ -198,28 +206,36 @@ public class Connects {
 		else if (driverType == dbtype.sqlite)
 			// DON'T COMMENT THIS OUT
 			// Reaching here means your code has bugs
-			// To stop paging from html, don't enable a html pager
+			// To stop paging from html, don't enable a html pager for a sqlite data source.
 			throw new SQLException("How to page in sqlite?");
 		else return sql;
 	}
 
 	/////////////////////////////////// update /////////////////////////////
-	public static int[] commit(IUser usr, ArrayList<String> sqls, int... flags) throws SQLException {
-		return srcs.get(defltConn).commit(usr, sqls, flags.length > 0 ? flags[0] : flag_nothing);
+	public static int[] commit(IUser usr, ArrayList<String> sqls, int... flags) throws SQLException, TransException {
+		try {
+			return srcs.get(defltConn).commit(usr, sqls, flags.length > 0 ? flags[0] : flag_nothing);
+		} catch (NamingException e) {
+			throw new TransException("Can't find connection, id=" + defltConn);
+		}	
 	}
 	
 	public static int[] commit(IUser usr, ArrayList<String> sqls, ArrayList<Clob> lobs, int... flags) throws SQLException {
 		return srcs.get(defltConn).commit(usr, sqls, lobs, flags.length > 0 ? flags[0] : flag_nothing);
 	}
 
-	public static int[] commit(String conn, IUser usr, ArrayList<String> sqls, int... flags) throws SQLException {
+	public static int[] commit(String conn, IUser usr, ArrayList<String> sqls, int... flags) throws SQLException, TransException {
 		if (srcs == null || !srcs.containsKey(conn))
 			throw new SQLException("Can't find connection %s.", conn);
-		return srcs.get(conn).commit(usr, sqls, flags.length > 0 ? flags[0] : flag_nothing);
+		try {
+			return srcs.get(conn).commit(usr, sqls, flags.length > 0 ? flags[0] : flag_nothing);
+		} catch (NamingException e) {
+			throw new TransException("Can't find connection, id=" + defltConn);
+		}
 	}
 
 	@SuppressWarnings("serial")
-	public static int[] commit(IUser usr, final String sql) throws SQLException {
+	public static int[] commit(IUser usr, final String sql) throws SQLException, TransException {
 		return commit(usr, new ArrayList<String> () { {add(sql);} });
 	}
 

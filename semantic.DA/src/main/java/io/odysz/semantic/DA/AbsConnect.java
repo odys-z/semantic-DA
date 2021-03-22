@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.naming.NamingException;
+
 import org.apache.commons.io_odysz.FilenameUtils;
 
 import io.odysz.common.Utils;
@@ -57,11 +59,11 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 	
 	protected void close() throws SQLException {}
 
-	public abstract AnResultset select(String sql, int flags) throws SQLException ;
+	public abstract AnResultset select(String sql, int flags) throws SQLException, NamingException ;
 
-	protected abstract int[] commit(ArrayList<String> sqls, int flags) throws SQLException;
+	protected abstract int[] commit(ArrayList<String> sqls, int flags) throws SQLException, NamingException;
 
-	public final int[] commit(IUser usr, ArrayList<String> sqls, int flags) throws SQLException {
+	public final int[] commit(IUser usr, ArrayList<String> sqls, int flags) throws SQLException, NamingException {
 		int[] c = commit(sqls, flags);
 		if (usr != null) {
 			try {

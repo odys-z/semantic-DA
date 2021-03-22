@@ -88,11 +88,6 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	public CpConnect (String srcId, dbtype driverType, boolean printSql) {
 		super(driverType);
 		this.srcId = "java:/comp/env/" + srcId;
-//		this.driverType = driverType;
-//		if (JDBCType.oracle == driverType) {
-//			_isOrcl = true;
-//			clobMeta = buildClobMeta(mappings);
-//		}
 		this.printSql = printSql;
 	}
 	
@@ -152,15 +147,20 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	 * @return: map[tabl, [field, lob]]*/
 	public HashMap<String, HashMap<String, OracleLob>> getlobMeta() { return clobMeta; }
 	
-	private Connection getConnection () throws SQLException {
+	/**Get Connection
+	 * @return
+	 * @throws SQLException database access error occurs while get connection. See {@link DataSource#getConnection()}.
+	 * @throws NamingException lookup connection failed
+	 */
+	protected Connection getConnection () throws SQLException, NamingException {
 		if (ds == null) {
 			InitialContext ctx;
-			try {
+//			try {
 				ctx = new InitialContext();
 				ds = (DataSource)ctx.lookup(srcId);
-			} catch (NamingException e) {
-				throw new SQLException(e.getMessage());
-			}
+//			} catch (NamingException e) {
+//				throw new SQLException(e.getMessage());
+//			}
 		}
         Connection conn = ds.getConnection();
         return conn;
@@ -178,7 +178,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	 * @throws SQLException
 	 * @throws NamingException 
 	 */
-	public AnResultset select(String sql, int flags) throws SQLException {
+	public AnResultset select(String sql, int flags) throws SQLException, NamingException {
 		Connection con = null;
         PreparedStatement pstmt;
         AnResultset icrs = null; 
@@ -246,7 +246,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 //		rs.beforeFirst();
 //	}
 
-	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
+	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException, NamingException {
 		Connects.printSql(printSql, flags, sqls);
 
 		int[] ret = null;
