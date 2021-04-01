@@ -301,7 +301,8 @@ public class DatasetCfg {
 					@Override public String tableTag() { return "t"; } 
 					@Override public String recordTag() { return "c"; }
 				});
-		XMLTable deft = xtabs.get("ds");
+	
+		XMLTable deft = xtabs.get(deftId); 	// FIXME no multiple tables?
 		
 		parseConfigs(cfgs, deft);
 	}
@@ -544,6 +545,10 @@ public class DatasetCfg {
 		public String sk() {
 			return k;
 		}
+	}
+
+	public static AnResultset loadDataset(String conn, String sk) throws SemanticException, SQLException {
+		return loadDataset(conn, sk, -1, -1, "");
 	}
 
 }

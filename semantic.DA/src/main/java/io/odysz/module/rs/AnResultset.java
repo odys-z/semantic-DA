@@ -834,4 +834,21 @@ for (String coln : colnames.keySet())
 		this.total = total;
 		return this;
 	}
+
+	/**Try in-place convert all values to integer elements
+	 * - expensive, especially with many non-integers.
+	 * @return
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public ArrayList<?> getRowsInt() {
+		for (ArrayList row : results) {
+			for (int i = 0, sz = getColumnCount(); i < sz; i++) {
+				try {
+					row.set(i, Integer.valueOf((String) row.get(i)));
+				}
+				catch (Exception e) {}
+			};
+		}
+		return results;
+	}
 }
