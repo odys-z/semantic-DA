@@ -47,6 +47,7 @@ public class LoggingUser implements IUser {
 				@Override public IUser sessionKey(String skey) { return null; }
 				@Override public IUser notify(Object note) throws TransException { return null; }
 				@Override public List<Object> notifies() { return null; }
+				@Override public long touchedMs() { return 0; }
 			};
 		
 		try {
@@ -138,4 +139,7 @@ public class LoggingUser implements IUser {
 
 	@Override
 	public List<Object> notifies() { return null; }
+
+	@Override
+	public long touchedMs() { return 0; }
 }
