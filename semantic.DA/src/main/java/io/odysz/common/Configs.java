@@ -19,7 +19,7 @@ public class Configs {
 	protected static String cfgFile = "config.xml";
 	protected static final String deftId = "default";
 	protected static HashMap<String, HashMap<String, String>> cfgs;
-	
+
 	static {
 		log = new Log4jWrapper("Configs");
 
@@ -33,7 +33,7 @@ public class Configs {
 		cfgFile = FilenameUtils.concat(xmlDir, cfgFile);
 		load(cfgs, deftId);
 	}
-		
+
 	protected static void load(HashMap<String, HashMap<String, String>> cfgs, String tid) {
 		// String messageFile = null;
 		// String fullpath = HelperFactory.getRealPath(cfgFile);
@@ -41,13 +41,13 @@ public class Configs {
 
 		XMLTable deft = XMLDataFactory.getTable("config.xml", log, tid, cfgFile, new IXMLStruct(){
 			@Override public String rootTag() { return "configs"; }
-			@Override public String tableTag() { return "t"; } 
+			@Override public String tableTag() { return "t"; }
 			@Override public String recordTag() { return "c"; }
 		});
-		
+
 		if (deft != null) {
 			try {
-				HashMap<String, String> defaults = new HashMap<String, String>(deft.getRowCount()); 
+				HashMap<String, String> defaults = new HashMap<String, String>(deft.getRowCount());
 				deft.beforeFirst();
 				while (deft.next()) {
 					String k = deft.getString("k");
@@ -65,19 +65,19 @@ public class Configs {
 	public static String getCfg(String key) {
 		return cfgs.get(deftId).get(key);
 	}
-	
+
 	public static String getCfg(String tid, String k) {
 		if (!cfgs.containsKey(tid)) load(cfgs, tid);
 		return cfgs.get(tid).get(k);
 	}
-	
+
 	public static boolean getBoolean(String key) {
 		String isTrue = Configs.getCfg(key);
 		if (isTrue == null) return false;
 		isTrue = isTrue.trim().toLowerCase();
 		return "true".equals(isTrue) || "1".equals(isTrue) || "y".equals(isTrue) || "yes".equals(isTrue);
 	}
-	
+
 	public static int getInt(String key, int deflt) {
 		String str = Configs.getCfg(key);
 		if (str == null) return deflt;
@@ -90,7 +90,7 @@ public class Configs {
 			return deflt;
 		}
 	}
-	
+
 	public static boolean hasCfg(String key) {
 		return hasCfg(deftId, key);
 	}
