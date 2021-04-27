@@ -10,7 +10,7 @@ import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.x.TransException;
 
 /**This robot is only used for test.
- * If you are implementin a servlet without login, subclassing a {@link io.odysz.semantic.jserv.jsession.JUser JUser} instead.
+ * If you are implementin a servlet without login, subclassing a {@link io.odysz.semantic.jsession.JUser JUser} instead.
  * @author odys-z@github.com
  */
 public class TestRobot implements IUser {
@@ -33,9 +33,9 @@ public class TestRobot implements IUser {
 
 	@Override public IUser logAct(String funcName, String funcId) { return this; }
 
-	@Override public String sessionId() { return null; }
+	@Override public String sessionKey() { return null; }
 
-	@Override public IUser sessionId(String skey) { return null; }
+	@Override public IUser sessionKey(String skey) { return null; }
 
 	@Override public IUser notify(Object note) throws TransException { return null; }
 

@@ -24,7 +24,7 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	
 	/**
 	 * IMPORTANT: Caller must close connection!
-	 * @return
+	 * @return connection
 	 * @throws SQLException
 	 */
 	protected static Connection getConnection() throws SQLException {
@@ -42,8 +42,8 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	 * @param conn
 	 * @param user
 	 * @param psword
-	 * @param dbg 
-	 * @return 
+	 * @param flags 
+	 * @return driver instance 
 	 * @throws SQLException
 	 */
 	public static MysqlDriver initConnection(String conn, String user, String psword, int flags) throws SQLException {
@@ -66,23 +66,6 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 		return new MysqlDriver();
 	}
  
-	/**Not used. Reserved for encrypting db password?
-	 * @param pswd
-	 * @param userName
-	 * @return
-	@SuppressWarnings("unused")
-	private static String DecryptPswd(String pswd, String userName) {
-		if (pswd == null) return ""; 
-		BASE64Decoder decoder = new BASE64Decoder(); 
-		try { 
-			byte[] b = decoder.decodeBuffer(pswd);
-			return new String(b);
-		} catch (Exception e) {
-			return "";
-		}
-	}
-	 */
-	
 	public static AnResultset selectStatic(String sql, int flags) throws SQLException {
 		Connection conn = getConnection();
 		Connects.printSql(printSql, flags, sql);

@@ -73,7 +73,7 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 
 	/**This method is only for debug and test, use #{@link SqliteDriver2#initConnection(String, String, String, int)} before any function call.
 	 * MUST CLOSE CONNECTION!
-	 * @return
+	 * @return connection
 	 * @throws SQLException
 	 */
 	protected Connection getConnection() throws SQLException {
@@ -99,7 +99,7 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 * @param user
 	 * @param psword
 	 * @param flags 
-	 * @return 
+	 * @return dirver instance
 	 * @throws SQLException
 	 */
 	public static SqliteDriver2 initConnection(String jdbc, String user, String psword, int flags) throws SQLException {

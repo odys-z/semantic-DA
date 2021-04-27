@@ -357,7 +357,7 @@ DELETE from a_roles;</pre>
 		byte[] iv = AESHelper.getRandom();
 		String iv64 = AESHelper.encode64(iv);
 		String pswdCipher = AESHelper.encrypt("abc123", clientKey, iv);
-		usr.sessionId("odys-z.github.io");
+		usr.sessionKey("odys-z.github.io");
 
 		ISemantext s2 = st.instancontxt(connId, usr);
 		st.insert("a_users", usr)

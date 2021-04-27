@@ -714,7 +714,7 @@ for (String coln : colnames.keySet())
 	 * @param err weather output in "out" or "err" 
 	 * @param max mas rows to print
 	 * @param includeCols include column of names.
-	 * @return
+	 * @return size
 	 */
 	public int printSomeData(boolean err, int max, String... includeCols) {
 		try {
@@ -837,7 +837,7 @@ for (String coln : colnames.keySet())
 
 	/**Try in-place convert all values to integer elements
 	 * - expensive, especially with many non-integers.
-	 * @return
+	 * @return list
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public ArrayList<?> getRowsInt() {

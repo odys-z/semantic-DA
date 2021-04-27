@@ -189,7 +189,7 @@ public class DASemantext implements ISemantext {
 	}
 
 	/**Find resolved value in results.
-	 * @param table
+	 * @param tabl
 	 * @param col
 	 * @return RESULt resoLVED VALue in tabl.col, or null if not exists.
 	 */
@@ -282,7 +282,7 @@ end;
 	 * @param target target table
 	 * @param idField table id column (no multi-column id supported)
 	 * @param subCate
-	 * @return new Id (shortened in radix 64 by {@link com.infochange.frame.util.Radix64})
+	 * @return new Id (shortened in radix 64 by {@link Radix64})
 	 * @throws SQLException
 	 * @throws TransException
 	 */
@@ -348,16 +348,9 @@ end;
 				@Override public IUser logAct(String funcName, String funcId) { return null; }
 				@Override public IUser notify(Object note) throws TransException { return null; }
 				@Override public List<Object> notifies() { return null; }
-				@Override
-				public long touchedMs() {
-					// TODO Auto-generated method stub
-					return 0;
-				}
-				@Override
-				public IUser sessionId(String ssId) {
-					// TODO Auto-generated method stub
-					return null;
-				} };
+				@Override public long touchedMs() { return 0; }
+				@Override public IUser sessionKey(String ssId) { return null; }
+				@Override public String sessionKey() { return null; } };
 
 		// each table has a lock.
 		// lock to prevent concurrency.

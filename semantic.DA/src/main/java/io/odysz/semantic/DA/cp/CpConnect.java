@@ -27,9 +27,6 @@ import io.odysz.semantics.IUser;
 //import oracle.sql.CLOB;
 
 public class CpConnect extends AbsConnect<CpConnect> {
-//	public static final HashSet<String> orclKeywords = new HashSet<String>() {{add("level");}};
-
-	
 	/**Use this for querying database without help of sql builder (which need query meta data first with this method).
 	 * @param src name that matches context.xml/Resource/name, like 'inet' etc.
 	 * @param sql
@@ -144,11 +141,11 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	private HashMap<String, HashMap<String, OracleLob>> clobMeta;
 
 	/** Get the CLOBs meta data - which is built while initialization.
-	 * @return: map[tabl, [field, lob]]*/
+	 * @return map[tabl, [field, lob]]*/
 	public HashMap<String, HashMap<String, OracleLob>> getlobMeta() { return clobMeta; }
 	
 	/**Get Connection
-	 * @return
+	 * @return connection
 	 * @throws SQLException database access error occurs while get connection. See {@link DataSource#getConnection()}.
 	 * @throws NamingException lookup connection failed
 	 */
@@ -165,12 +162,6 @@ public class CpConnect extends AbsConnect<CpConnect> {
         Connection conn = ds.getConnection();
         return conn;
 	}
-
-//	public String formatFieldName(String expr) {
-//		if (_isOrcl && orclKeywords.contains(expr.trim()))
-//			return String.format("\"%s\"", expr.trim().toUpperCase());
-//		return expr;
-//	}
 
 	/**For {@link Connects} creating Meta data before Datasource is usable.
 	 * @param sql
