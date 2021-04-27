@@ -24,6 +24,7 @@ public class LoggingUser implements IUser {
 	private DATranscxt logSemantic;
 	private String uid;
 	private SemanticObject action;
+	@SuppressWarnings("unused")
 	private String sessionKey;
 
 	public static IUser dumbUser;
@@ -43,10 +44,11 @@ public class LoggingUser implements IUser {
 				@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
 				@Override public String uid() { return "dummy"; }
 				@Override public IUser logAct(String funcName, String funcId) { return null; }
-				@Override public String sessionKey() { return null; }
-				@Override public IUser sessionKey(String skey) { return null; }
+				@Override public String sessionId() { return null; }
+				@Override public IUser sessionId(String skey) { return null; }
 				@Override public IUser notify(Object note) throws TransException { return null; }
 				@Override public List<Object> notifies() { return null; }
+				@Override public long touchedMs() { return 0; }
 			};
 		
 		try {
@@ -123,10 +125,7 @@ public class LoggingUser implements IUser {
 	public IUser logAct(String funcName, String funcId) { return this; }
 
 	@Override
-	public String sessionKey() { return sessionKey; }
-
-	@Override
-	public IUser sessionKey(String skey) {
+	public IUser sessionId(String skey) {
 		this.sessionKey = skey; 
 		return this;
 	}
@@ -138,4 +137,7 @@ public class LoggingUser implements IUser {
 
 	@Override
 	public List<Object> notifies() { return null; }
+
+	@Override
+	public long touchedMs() { return System.currentTimeMillis(); }
 }
