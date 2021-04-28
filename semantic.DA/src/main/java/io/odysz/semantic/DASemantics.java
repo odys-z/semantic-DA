@@ -1431,7 +1431,7 @@ public class DASemantics {
 				Object[] cipherB64 = row.get(cols.get(colCipher));
 				if (ivB64 != null && !AbsPart.isblank(ivB64[1])) {
 					// cipher col
-					String decryptK = usr.sessionKey();
+					String decryptK = usr.sessionId();
 					Object[] civ = dencrypt(insrt, cipherB64[1].toString(), ivB64[1].toString(), decryptK);
 					// [0] cipher, [1] iv
 					if (civ != null) {

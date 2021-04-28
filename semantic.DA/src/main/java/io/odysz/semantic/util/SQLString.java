@@ -6,42 +6,42 @@ import java.util.ArrayList;
 import io.odysz.module.rs.AnResultset;
 
 public class SQLString {
-	/**@deprecated?
-	 * Get sql string "insert into [table]([f1], f[2], f[3], ...) values ([v1], [v2], fd_v[3], ...)"<br>
-	 * Only varchar2 and date are parsable, tested on mysql.
-	 * @param rs
-	 * @param table
-	 * @return sqls
-	 * @throws SQLException
-	 */
-	public static ArrayList<String> composeInserts(AnResultset rs, String table) throws SQLException {
-		if (rs == null) return null;
-		
-		String fields = null;
-		for (int c = 1; c <= rs.getColCount(); c++) { // col-index start at 1
-			if (fields == null)
-				fields = rs.getColumnName(c);
-			else fields += ", " + rs.getColumnName(c);
-		}
-
-		ArrayList<String> sqls = new ArrayList<String>(rs.getRowCount());
-		rs.beforeFirst();
-
-		while (rs.next()) {
-			String values = null;
-			for (int c = 1; c <= rs.getColCount(); c++) {
-				String v = rs.getString(c);
-				if (values == null)
-					values = String.format("'%s'", v == null ? "" : v);
-				else values += String.format(", '%s'", v == null ? "" : v);
-			}
-
-			String sql = String.format("insert into %s(%s) values(%s)",
-				table, fields, values);
-			sqls.add(sql);
-		}
-		return sqls;
-	}
+//	/**
+//	 * Get sql string "insert into [table]([f1], f[2], f[3], ...) values ([v1], [v2], fd_v[3], ...)"<br>
+//	 * Only varchar2 and date are parsable, tested on mysql.
+//	 * @param rs
+//	 * @param table
+//	 * @return sqls
+//	 * @throws SQLException
+//	 */
+//	public static ArrayList<String> composeInserts(AnResultset rs, String table) throws SQLException {
+//		if (rs == null) return null;
+//		
+//		String fields = null;
+//		for (int c = 1; c <= rs.getColCount(); c++) { // col-index start at 1
+//			if (fields == null)
+//				fields = rs.getColumnName(c);
+//			else fields += ", " + rs.getColumnName(c);
+//		}
+//
+//		ArrayList<String> sqls = new ArrayList<String>(rs.getRowCount());
+//		rs.beforeFirst();
+//
+//		while (rs.next()) {
+//			String values = null;
+//			for (int c = 1; c <= rs.getColCount(); c++) {
+//				String v = rs.getString(c);
+//				if (values == null)
+//					values = String.format("'%s'", v == null ? "" : v);
+//				else values += String.format(", '%s'", v == null ? "" : v);
+//			}
+//
+//			String sql = String.format("insert into %s(%s) values(%s)",
+//				table, fields, values);
+//			sqls.add(sql);
+//		}
+//		return sqls;
+//	}
 
 	public static String formatSql(String s) {
 		if (s != null) {

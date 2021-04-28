@@ -24,6 +24,7 @@ public class LoggingUser implements IUser {
 	private DATranscxt logSemantic;
 	private String uid;
 	private SemanticObject action;
+	@SuppressWarnings("unused")
 	private String sessionKey;
 
 	public static IUser dumbUser;
@@ -49,15 +50,15 @@ public class LoggingUser implements IUser {
 				@Override public List<Object> notifies() { return null; }
 				@Override public long touchedMs() { return 0; }
 			};
-		
+
 		try {
 			// DATranscxt.initConfigs(logConn, "src/test/res/semantic-log.xml");
 			DATranscxt.loadSemantics(logConn, logCfgPath);
 
-			logSemantic = new DATranscxt(logConn); //, DATranscxt.meta(logConn)); 
+			logSemantic = new DATranscxt(logConn); //, DATranscxt.meta(logConn));
 		} catch (SAXException | IOException | SemanticException | SQLException e) {
 			e.printStackTrace();
-		} 
+		}
 	}
 
 	@Override public TableMeta meta() { return null; }
@@ -71,7 +72,7 @@ public class LoggingUser implements IUser {
 				action.getString("funcName"),
 				action.getString("funcId"));
 	}
-	
+
 	public static ArrayList<String> genLog(DATranscxt logBuilder, ArrayList<String> sqls,
 			IUser commitUser, String funcName, String funcId) {
 		// no exception can be thrown here, no error message for client if failed.
@@ -124,11 +125,8 @@ public class LoggingUser implements IUser {
 	public IUser logAct(String funcName, String funcId) { return this; }
 
 	@Override
-	public String sessionKey() { return sessionKey; }
-
-	@Override
 	public IUser sessionKey(String skey) {
-		this.sessionKey = skey; 
+		this.sessionKey = skey;
 		return this;
 	}
 
@@ -141,5 +139,8 @@ public class LoggingUser implements IUser {
 	public List<Object> notifies() { return null; }
 
 	@Override
-	public long touchedMs() { return 0; }
+	public long touchedMs() { return System.currentTimeMillis(); }
+
+	@Override
+	public String sessionKey() { return null; }
 }

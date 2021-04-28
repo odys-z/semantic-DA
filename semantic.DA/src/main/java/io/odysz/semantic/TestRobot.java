@@ -10,7 +10,7 @@ import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.x.TransException;
 
 /**This robot is only used for test.
- * If you are implementin a servlet without login, subclassing a {@link io.odysz.semantic.jserv.jsession.JUser JUser} instead.
+ * If you are implementin a servlet without login, subclassing a {@link io.odysz.semantic.jsession.JUser JUser} instead.
  * @author odys-z@github.com
  */
 public class TestRobot implements IUser {
@@ -20,8 +20,6 @@ public class TestRobot implements IUser {
 	@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
 
 	@Override public boolean login(Object request) throws TransException { return true; }
-
-	@Override public String sessionId() { return null; }
 
 	@Override public void touch() { touched = System.currentTimeMillis(); } 
 

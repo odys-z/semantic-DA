@@ -12,7 +12,7 @@ import io.odysz.transact.x.TransException;
 	}
 
 	/**Get the exception message object that can be serialized to json and send to client.
-	 * @return
+	 * @return ex object
 	 */
 	public SemanticObject ex() {
 		return ex;

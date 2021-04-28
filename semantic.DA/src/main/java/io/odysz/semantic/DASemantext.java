@@ -36,13 +36,13 @@ import io.odysz.transact.x.TransException;
 
 /**A basic semantic context for generating sql.
  * Handling semantics defined in xml file. See path of constructor.
- * 
+ *
  * <p>{@link #pageSql(String, int, int)} is an example that must handled by context, but not interested by semantic.jserv.
  * When composing SQL like select statement, if the results needing to be paged at server side,
  * the paging sql statement is different for different DB.
  * But semantic-transact don't care DB type or JDBC connection, so it's the context that will handling this.
  * See the {@link #pageSql(Stream, int, int)}.</p>
- * 
+ *
  * @author odys-z@github.com
  */
 public class DASemantext implements ISemantext {
@@ -60,7 +60,7 @@ public class DASemantext implements ISemantext {
 	private String basePath;
 	private ArrayList<IPostOperat> onOks;
 	private LinkedHashMap<String,IPostSelectOperat> onSelecteds;
-	
+
 	/**for generating sqlite auto seq */
 	private static IUser sqliteDumyUser;
 
@@ -72,7 +72,7 @@ public class DASemantext implements ISemantext {
 	 * DATranscxt.initConfigs("inet", rootINF + "/semantics.xml");
 	 * @param usr
 	 * @param rtPath runtime root path
-	 * @throws SemanticException metas is null 
+	 * @throws SemanticException metas is null
 	 */
 	DASemantext(String connId, HashMap<String, DASemantics> smtcfg,
 			HashMap<String, TableMeta> metas, IUser usr, String rtPath) throws SemanticException {
@@ -85,12 +85,12 @@ public class DASemantext implements ISemantext {
 		if (rawst == null) {
 			rawst = new Transcxt(null);
 		}
-		
+
 		this.usr = usr;
 	}
 
 	/**When inserting, process data row with configured semantics, like auto-pk, fk-ins, etc..
-	 * @throws SemanticException 
+	 * @throws SemanticException
 	 * @see io.odysz.semantics.ISemantext#onInsert(io.odysz.transact.sql.Insert, java.lang.String, java.util.List)
 	 */
 	@Override
@@ -189,7 +189,7 @@ public class DASemantext implements ISemantext {
 	}
 
 	/**Find resolved value in results.
-	 * @param table
+	 * @param tabl
 	 * @param col
 	 * @return RESULt resoLVED VALue in tabl.col, or null if not exists.
 	 */
@@ -199,7 +199,7 @@ public class DASemantext implements ISemantext {
 				((SemanticObject) autoVals.get(tabl)).get(col)
 				: null;
 	}
-	
+
 	/**Get the resolved value in {@link #autoVals}
 	 * a.k.a return value of {@link Update#doneOp(io.odysz.transact.sql.Statement.IPostOperat)}.
 	 * @return {@link #autoVals}
@@ -234,18 +234,18 @@ create FUNCTION f_incSeq2 (seqId varchar(100), prefix varchar(4)) RETURNS int(11
 begin
 	DECLARE seqName varchar(100);
 	DECLARE cnt INT DEFAULT 0;
-	
+
 	if prefix = '' then set seqName = seqId;
 	else set seqName = concat(seqId, '.', prefix);
 	end if;
-	
+
 	select count(seq) into cnt from ir_autoSeqs where sid = seqName;
 
 	if cnt = 0
 	then
 		insert into ir_autoSeqs(sid, seq, remarks) values (seqName, 0, now());
 	end if;
-	
+
 	select seq into cnt from ir_autoSeqs where sid = seqName;
 	update ir_autoSeqs set seq = cnt + 1 where sid = seqName;
 	return cnt;
@@ -261,7 +261,7 @@ begin
 	if prefix = '' then seqName := seqId;
 	else seqName := concat(concat(seqId, '.'), prefix);
 	end if;
-	
+
 	select count(seq) into cnt from ir_autoSeqs where sid = seqName;
 
 	if cnt = 0
@@ -269,7 +269,7 @@ begin
 		insert into ir_autoSeqs(sid, seq, remarks) values (seqName, 0, to_char(sysdate, 'MM-DD-YYYY HH24:MI:SS'));
 		commit;
 	end if;
-	
+
 	select seq into cnt from ir_autoSeqs where sid = seqName;
 	update ir_autoSeqs set seq = cnt + 1, remarks = to_char(sysdate, 'MM-DD-YYYY HH24:MI:SS') where sid = seqName;
 	commit;
@@ -277,12 +277,12 @@ begin
 end;
 	 </pre>
 	 * select f_incSeq2('%s.%s', '%s') newId from dual
-	 * <p>auto ID for sqlite is handled by {@link #genSqliteId(String, String, String)} - needing table initialization.</p> 
+	 * <p>auto ID for sqlite is handled by {@link #genSqliteId(String, String, String)} - needing table initialization.</p>
 	 * @param connId
 	 * @param target target table
 	 * @param idField table id column (no multi-column id supported)
 	 * @param subCate
-	 * @return new Id (shortened in radix 64 by {@link com.infochange.frame.util.Radix64})
+	 * @return new Id (shortened in radix 64 by {@link Radix64})
 	 * @throws SQLException
 	 * @throws TransException
 	 */
@@ -307,13 +307,13 @@ end;
 
 		rs.beforeFirst().next();
 		int newInt = rs.getInt("newId");
-		
+
 		if (subCate == null || subCate.equals(""))
 			return Radix64.toString(newInt);
 		else
 			return String.format("%1$s_%2$6s", subCate, Radix64.toString(newInt));
 	}
-	
+
 	/**Generate auto id in sqlite.<br>
 	 * All auto ids are recorded in oz_autoseq table.<br>
 	 * See {@link DASemantextTest} for how to initialize oz_autoseq.
@@ -324,7 +324,7 @@ end;
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	String genSqliteId(String conn, String target, String idF) throws SQLException, TransException { 
+	String genSqliteId(String conn, String target, String idF) throws SQLException, TransException {
 		Lock lock;
 		lock = getAutoseqLock(conn, target);
 
@@ -334,9 +334,9 @@ end;
 		ArrayList<String> sqls = new ArrayList<String>();
 		sqls.add(String.format("update oz_autoseq set seq = seq + 1 where sid = '%s.%s'",
 					target, idF));
-			
+
 		AnResultset rs = null;
-		
+
 		Query q = rawst.select("oz_autoseq").col("seq")
 				.where("=", "sid", String.format("'%s.%s'", target, idF));
 
@@ -346,12 +346,11 @@ end;
 				@Override public TableMeta meta() { return null; }
 				@Override public String uid() { return "sqlite-dumy"; }
 				@Override public IUser logAct(String funcName, String funcId) { return null; }
-				@Override public String sessionKey() { return null; }
-				@Override public IUser sessionKey(String skey) { return null; }
 				@Override public IUser notify(Object note) throws TransException { return null; }
 				@Override public List<Object> notifies() { return null; }
 				@Override public long touchedMs() { return 0; }
-			};
+				@Override public IUser sessionKey(String ssId) { return null; }
+				@Override public String sessionKey() { return null; } };
 
 		// each table has a lock.
 		// lock to prevent concurrency.
@@ -362,7 +361,7 @@ end;
 
 			rs = Connects.select(conn, q.sql(null), Connects.flag_nothing);
 		} finally { lock.unlock();}
-		
+
 		if (rs.getRowCount() <= 0)
 			throw new TransException("Can't find auot seq of %1$s.\n" +
 					"For performance reason and difficulty of implementing sqlite stored process, DASemantext assumes a record in oz_autoseq.seq (id='%1$s.%2$s') exists.\n" +
@@ -397,7 +396,7 @@ end;
 
 	public String pageSql(String rawSql, int page, int size) throws TransException {
 		return DASemantext.pagingSql(Connects.driverType(connId()), rawSql, page, size);
-	}	
+	}
 
 	public static String pagingSql(dbtype dt, String sql, int pageIx, int pgSize) throws TransException {
 		if (pageIx < 0 || pgSize <= 0)
@@ -415,12 +414,12 @@ end;
 			s = Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (", sql,
 						") t) t where rownum >= ", r1, " and rownum <= %s", r2);
 		else if (dt == dbtype.sqlite)
-			throw new TransException("There is no easy way to support sqlite paging. Don't use server side paging for sqlite datasource."); 
+			throw new TransException("There is no easy way to support sqlite paging. Don't use server side paging for sqlite datasource.");
 		else // mysql
 			// "select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s"
 			s = Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (", sql,
 						") t, (select @ic_num := 0) ic_t) t1 where rnum > ", r1, " and rnum <= ", r2);
-	
+
 		return s.collect(Collectors.joining(" "));
 	}
 
@@ -432,7 +431,7 @@ end;
 	public void clear() {
 		autoVals = null;
 	}
-	
+
 	@Override
 	public TableMeta colType(String tabl) {
 		return metas.get(tabl);
