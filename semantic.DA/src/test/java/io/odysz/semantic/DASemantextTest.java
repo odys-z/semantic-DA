@@ -221,13 +221,13 @@ DELETE from a_roles;</pre>
 
 	/**Test cross referencing auto k.<br>
 	 * crs_a.aid, crs_b.bid are autok;<br>
-	 * crs_a.afk referencing crs_b.bid, (post-fk)<br>
+	 * crs_a.afk referencing crs_b.bid, (pkref)<br>
 	 * crs_b.bfk referencing crs_a.aid.<br>
 	 * <p>Also, test int type's value (crs_a.testInt = 100) not single-quoted.<br>
 	 * Test crs_a.fundDate(sqlite number) is quoted for both insert and update.</p>
 	 * 
 	 * <p>Also, test post-fk.<br>
-	 * As post-fk is a weak wiring up, it should do nothing when updating. </p>
+	 * As pkref is a weak wiring up, it should do nothing when updating. </p>
 	 * 
 	 * @throws TransException
 	 * @throws SQLException
@@ -238,7 +238,7 @@ DELETE from a_roles;</pre>
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		Insert f1 = st.insert("crs_a")
 				.nv("remarka", Funcall.now())
-				.nv("fundDate", "1777-07-04")
+				.nv("fundDate", "1776-07-04")
 				.nv("testInt", "100"); // testing that int shouldn't quoted
 		st.insert("crs_b")
 				.nv("remarkb", Funcall.now())
@@ -253,7 +253,7 @@ DELETE from a_roles;</pre>
 			aid, bid),
 			sqls.get(2));
 		assertEquals(String.format(
-			"insert into crs_a  (remarka, fundDate, testInt, aid, afk) values (datetime('now'), '1777-07-04', 100, '%s', '%s')",
+			"insert into crs_a  (remarka, fundDate, testInt, aid, afk) values (datetime('now'), '1776-07-04', 100, '%s', '%s')",
 			aid, bid),
 			sqls.get(1));
 		assertEquals(String.format(
