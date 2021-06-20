@@ -49,6 +49,7 @@ for (String coln : colnames.keySet())
 	@AnsonField(valType="[Ljava.lang.Object;")
 	private HashMap<String, Object[]> colnames;
 
+	/** In cs version, it's Datatable */
 	@AnsonField(ignoreTo = true)
 	private ResultSet rs;
 
