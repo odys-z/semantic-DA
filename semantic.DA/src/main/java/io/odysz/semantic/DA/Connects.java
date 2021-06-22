@@ -8,6 +8,7 @@ import java.util.Set;
 
 import javax.naming.NamingException;
 
+import org.apache.commons.io_odysz.FilenameUtils;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.dbtype;
@@ -57,6 +58,7 @@ public class Connects {
 	private static HashMap<String, AbsConnect<? extends AbsConnect<?>>> srcs;
 
 	private static String defltConn;
+	private static String workingDir;
 	public static String defltConn() { return defltConn; }
 
 	private static final int DmConn = 1;
@@ -67,6 +69,7 @@ public class Connects {
 	 * @param xmlDir
 	 */
 	public static void init(String xmlDir) {
+		workingDir = xmlDir;
 		if (srcs != null) return;
 		srcs = new HashMap<String, AbsConnect<? extends AbsConnect<?>>>();
 		try{
@@ -287,7 +290,8 @@ public class Connects {
 	 * @return smtcs (e.g. semantics.xml)
 	 */
 	public static String getSmtcs(String conn) {
-		return srcs == null || !srcs.containsKey(conn) ? null :
-			srcs.get(conn).prop("smtcs");
+		return FilenameUtils.concat(workingDir,
+				srcs == null || !srcs.containsKey(conn) ? null
+				: srcs.get(conn).prop("smtcs"));
 	}
 }
