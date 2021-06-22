@@ -86,7 +86,7 @@ public class DASemantextTest {
 	
 	}
 
-	/**Use this to reset semantic-DA.db ( a sqlite3 db file).<pre>
+	/**Initializing testing DB (use this to reset semantic-DA.db - a sqlite3 db file).<pre>
 drop TABLE a_logs;
 drop TABLE oz_autoseq;
 DELETE FROM a_functions;
@@ -414,7 +414,7 @@ DELETE from a_roles;</pre>
 		testz04(usrId);
 	}
 		
-	/**Test 4. parent-child on del
+	/**Test: parent-child on del
 	 * @param usrId
 	 * @throws TransException
 	 * @throws SQLException
@@ -460,6 +460,10 @@ DELETE from a_roles;</pre>
 		assertEquals(0, rs.getInt("cnt"));
 	}
 
+	/**Test: parent-child on del check should working.
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	@Test
 	public void testChkOnDel() throws TransException, SQLException {
 		ISemantext s1 = st.instancontxt(connId, usr);
@@ -597,6 +601,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				dt, s0.resulvedVal("b_alarm_logic", "logicId"), alarmId),
 				sqls.get(2));
 		
+		// Note Jun 21, 2021, FIXME can we support this?
 		// test case
 		// because b_alarm is updating, no auto key generated,
 		// so child fk should provided by client, and won't been resulved.
