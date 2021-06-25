@@ -236,7 +236,9 @@ public class DATranscxt extends Transcxt {
 			if (LangExt.isblank(fpath, "\\."))
 				throw new SemanticException(
 					"Trying to find semantics of conn %1$s, but the configuration path is empty.\n" +
-					"No 'smtcs' configured in connects.xml for connection %1$s?", conn);
+					"No 'smtcs' configured in connects.xml for connection %1$s?\n" +
+					"Looking in path: %2$s",
+					conn, fpath);
 			fpath = FilenameUtils.concat(cfgroot, fpath);
 			smtConfigs.put(conn, loadSemantics(conn, fpath));
 		}
@@ -255,7 +257,7 @@ public class DATranscxt extends Transcxt {
 	 */
 	public static HashMap<String, DASemantics> loadSemantics(String connId, String cfgpath)
 			throws SAXException, IOException, SQLException, SemanticException {
-		Utils.logi("Loading Semantics:\n\t%s", cfgpath);
+		Utils.logi("Loading Semantics (fullpath):\n\t%s", cfgpath);
 		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
 				new Log4jWrapper("").setDebugMode(false), cfgpath, new IXMLStruct() {
 						@Override public String rootTag() { return "semantics"; }
