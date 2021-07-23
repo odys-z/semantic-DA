@@ -216,14 +216,16 @@ public class DatasetCfg {
 	public static class AnTreeNode extends Anson {
 		HashMap<String, Object> node;
 		String id;
+		int level;
 		String parent;
 
 		// Only for Anson parser
 		public AnTreeNode() { }
 
-		public AnTreeNode(String id, String parent) {
+		public AnTreeNode(String id, String parent, int level) {
 			this.id = id;
 			this.parent = parent;
+			this.level = level;
 			node = new HashMap<String, Object>(TreeSemantics.Ix.count);
 		}
 		
@@ -404,11 +406,9 @@ public class DatasetCfg {
 		List<Object> forest = new ArrayList<Object>();
 		rs.beforeFirst();
 		while (rs.next()) {
-			// Map<String, Object> root  = formatSemanticNode(treeSemtcs, rs);
-			AnTreeNode root = formatSemanticNode(treeSemtcs, rs);
+			AnTreeNode root = formatSemanticNode(treeSemtcs, rs, 0);
 
 			// sometimes error results from inconsistent data is confusing, so report an error here - it's debug experience.
-			// if (!rs.getColnames().containsKey(treeSemtcs.dbRecId()))
 			if (!rs.hasCol(treeSemtcs.dbRecId()))
 				throw new SemanticException("Building s-tree requires column '%s'(configured id). You'd better check the query request and the semantics configuration:\n%s",
 						treeSemtcs.dbRecId(), LangExt.toString(treeSemtcs.treeSmtcs()));
@@ -417,7 +417,7 @@ public class DatasetCfg {
 			List<Object> children = buildSubTree(treeSemtcs, root,
 					// rs.getString(treeSemtcs[Ix.recId] == null ? treeSemtcs[Ix.recId] : treeSemtcs[Ix.recId]),
 					rs.getString(treeSemtcs.dbRecId()),
-					rs);
+					rs, 0);
 			if (children.size() > 0)
 				root.children(children);
 			forest.add(root);
@@ -430,14 +430,15 @@ public class DatasetCfg {
 	 * TODO should this moved to TreeSemantics?
 	 * @param treeSemtcs
 	 * @param rs
+	 * @param level
 	 * @return {@link SemanticObject} of node
 	 * @throws SQLException
 	 */
 	private static AnTreeNode formatSemanticNode(TreeSemantics treeSemtcs,
-			AnResultset rs) throws SQLException {
+			AnResultset rs, int level) throws SQLException {
 		// Map<String, Object> node = new HashMap<String, Object>();
 		AnTreeNode node = new AnTreeNode(rs.getString(TreeSemantics.Ix.recId),
-								rs.getString(TreeSemantics.Ix.parent));
+								rs.getString(TreeSemantics.Ix.parent), level);
 
 		for (int i = 1;  i <= rs.getColCount(); i++) {
 			String v = rs.getString(i);
@@ -450,7 +451,7 @@ public class DatasetCfg {
 	}
 
 	private static List<Object> buildSubTree(TreeSemantics sm, AnTreeNode root,
-			String parentId, AnResultset rs) throws SQLException, SemanticException {
+			String parentId, AnResultset rs, int level) throws SQLException, SemanticException {
 		List<Object> childrenArray  = new ArrayList<Object>();
 		while (rs.next()) {
 			if (parentId == null || root == null) {
@@ -476,10 +477,10 @@ public class DatasetCfg {
 				return childrenArray;
 			}
 
-			AnTreeNode child = formatSemanticNode(sm, rs);
+			AnTreeNode child = formatSemanticNode(sm, rs, level + 1);
 
 			List<Object> subOrg = buildSubTree(sm, child,
-					rs.getString(sm.dbRecId()), rs);
+					rs.getString(sm.dbRecId()), rs, level + 1);
 
 			if (subOrg.size() > 0)
 				root.children(childrenArray);
