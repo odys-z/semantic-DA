@@ -151,7 +151,7 @@ public class DASemantics {
 	 * <b>12.{@link #postFk}</b><br>
 	 * <b>13.{@link #extFile}</b><br>
 	 * <b>14.{@link #composingCol} TODO</b><br>
-	 * <b>15. {@link #stampUp1ThanDown} TODO</b><br>
+	 * <b>15. {@link #stamp1MoreThanRefee} TODO</b><br>
 	 * <b>16.{@link #orclob} TODO</b><br>
 	 */
 	public enum smtype {
@@ -301,8 +301,8 @@ public class DASemantics {
 		 * <b>Note:</b><br>
 		 * This semantics works only when previously resolved auto key exists; if the
 		 * value doesn't exist, will be ignored.<br>
-		 * The former is the case of inserting new child, and parent refer to it; the
-		 * later is the case of updating a child, the parent already has it's pk,
+		 * The former is the case of inserting new child, and parent refer to it;<br>
+		 * the later is the case of updating a child, the parent already has it's pk,
 		 * nothing should be done.
 		 * </p>
 		 * <p>
