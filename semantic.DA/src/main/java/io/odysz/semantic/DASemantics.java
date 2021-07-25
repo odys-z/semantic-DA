@@ -1331,7 +1331,6 @@ public class DASemantics {
 			if (argss != null && argss.length > 0)
 				for (String[] args : argss)
 					if (args != null && args.length > 1 && args[1] != null) {
-						// stmt.before(delChild(args, stmt, condt, usr));
 						chkCnt(args, stmt, condt);
 					}
 		}

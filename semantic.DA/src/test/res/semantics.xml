@@ -193,7 +193,7 @@
   			 [2] child pk (or condition column)
   			 The first sql of the resulting sql:
   			 select count(orgType) from a_orgs where orgType in (select domainId from a_domain where domainId = '000001')
-  			 where the 'where clause' in select clause is composed from condition ofthe request's where condition.
+  			 where the 'where clause' in select clause is composed from condition of the request's where condition.
   		 -->
   		<args>domainId a_orgs orgType,
   			domainId b_alarms typeId

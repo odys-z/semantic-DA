@@ -18,6 +18,11 @@ import io.odysz.transact.x.TransException;
 		return ex;
 	}
 
+	/**Set object for details of exception
+	 * 
+	 * @param ex
+	 * @return this
+	 */
 	public SemanticException ex(SemanticObject ex) {
 		this.ex = ex;
 		return this;
