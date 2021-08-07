@@ -1,15 +1,15 @@
 package io.odysz.semantic.DA;
 
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import io.odysz.common.DateFormat;
 import io.odysz.common.Utils;
@@ -21,8 +21,8 @@ public class ConnectsTest {
 
 	private static Transcxt st;
 
-	@Before
-	public void testInit() {
+	@BeforeAll
+	public static void testInit() {
 		File file = new File("src/test/res");
 		String path = file.getAbsolutePath();
 		Utils.logi(path);
@@ -52,7 +52,7 @@ public class ConnectsTest {
 			.orderby("sibling", "desc")
 			.where("=", "flags", "'test00'")
 			.commit(st.instancontxt(null, null), sqls); // using static semantext for testing
-		Utils.logi(sqls);
+		// Utils.logi(sqls);
 
 		rs = Connects.select(sqls.get(0));
 		rs.printSomeData(false, 3, "funcId", "text", "fullpath");
@@ -73,6 +73,6 @@ public class ConnectsTest {
 			.nv("funcName", "func - " + flag)
 			.commit(st.instancontxt(null, null), sqls); // using static semantext for testing
 		
-		Utils.logi(sqls);
+		// Utils.logi(sqls);
 	}
 }

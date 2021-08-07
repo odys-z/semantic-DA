@@ -71,7 +71,8 @@ public class DATranscxt extends Transcxt {
 	/**Create a new semantext instance with the static resources.<br>
 	 * {@link DATranscxt} use a basic context (without semantics handler) for basic sql building.<br>
 	 * Every context used for {@link DASemantics} handling must use this to create a new context instance.
-	 * @param connId
+	 * @param connId deprecated: since v1.2, connId is configured in connects.xml, which will mapping
+	 * req.a (func uri) to connId. It's planned that datasource can be setup by online requests in the future.
 	 * @param usr
 	 * @see ISemantext 
 	 * @see io.odysz.transact.sql.Transcxt#instancontxt(io.odysz.semantics.IUser)
@@ -95,9 +96,9 @@ public class DATranscxt extends Transcxt {
 			}
 		*/
 		try {
-			String conn = LangExt.isblank(connId) ? basiconnId : connId; 
-			return new DASemantext(conn, getSmtcs(conn),
-				Connects.getMeta(conn), usr, runtimepath);
+			// String conn = LangExt.isblank(connId) ? basiconnId : connId; 
+			return new DASemantext(connId, getSmtcs(connId),
+				Connects.getMeta(connId), usr, runtimepath);
 		} catch (SemanticException | SQLException | SAXException | IOException e) {
 			// meta is null? shouldn't happen because this instance is already created
 			e.printStackTrace();
@@ -207,8 +208,11 @@ public class DATranscxt extends Transcxt {
 		return d;
 	}
 
-	protected String basiconnId;
-	public String basiconnId() { return basiconnId; }
+//	protected String basiconnId;
+//	public String basiconnId() { return basiconnId; }
+	protected String sysConnId;
+	public String sessionConnId() { return sysConnId; }
+	public String getConnId(String funcUri) { return "TODO ..."; }
 
 	/**Create a transact builder with basic DASemantext instance. 
 	 * It's a null configuration, so semantics can not been resolved, but can be used to do basic sql operation.
@@ -224,7 +228,7 @@ public class DATranscxt extends Transcxt {
 		// super(new DASemantext(conn, smtConfigs == null ? null : smtConfigs.get(conn),
 		super(new DASemantext(conn, getSmtcs(conn),
 				Connects.getMeta(conn), null, runtimepath));
-		this.basiconnId = conn;
+//		this.basiconnId = conn;
 	}
 
 	private static HashMap<String, DASemantics> getSmtcs(String conn)

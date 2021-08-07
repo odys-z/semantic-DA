@@ -14,7 +14,7 @@
   		<usr>test</usr>
   		<pswd>test</pswd>
   		<!-- enable sql printing -->
-  		<dbg>true</dbg>
+  		<dbg></dbg>
   		<smtcs>src/test/res/semantics.xml</smtcs>
   	</c>
   	
@@ -71,7 +71,7 @@
   		<usr></usr>
   		<!-- Not used (will be protected in cipher in the future -->
   		<pswd></pswd>
-  		<dbg>true</dbg>
+  		<dbg></dbg>
   		<smtcs>src/test/res/semantics.xml</smtcs>
   	</c>
   </t>

@@ -1,10 +1,6 @@
 package io.odysz.semantic;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,8 +14,8 @@ import java.util.Date;
 import java.util.HashMap;
 
 import org.apache.commons.io_odysz.FilenameUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.AESHelper;
@@ -99,8 +95,8 @@ DELETE from a_roles;</pre>
 	 * @throws SAXException
 	 * @throws IOException
 	 */
-	@Before
-	public void testInit() throws SQLException, SemanticException, SAXException, IOException {
+	@BeforeAll
+	public static void testInit() throws SQLException, SemanticException, SAXException, IOException {
 		// initialize oz_autoseq - only for sqlite
 		AnResultset rs = Connects.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table' and tbl_name = 'oz_autoseq'",
 				Connects.flag_nothing);
