@@ -4,6 +4,7 @@ import java.sql.Clob;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Set;
 
 import javax.naming.NamingException;
@@ -60,7 +61,7 @@ public class Connects {
 	private static HashMap<String, AbsConnect<? extends AbsConnect<?>>> srcs;
 
 	/** Component URI - connection mappings */
-	private static HashMap<Regex, String> conn_uri;
+	private static LinkedHashMap<Regex, String> conn_uri;
 
 	private static String defltConn;
 	private static String workingDir;
@@ -137,15 +138,19 @@ public class Connects {
 		return srcs;
 	}
 
-	private static HashMap<Regex, String> loadConnUri(String tablId, ILogger logger, String xmlDir) throws SAXException {
+	private static LinkedHashMap<Regex, String> loadConnUri(String tablId, ILogger logger, String xmlDir) throws SAXException, SemanticException {
 		if (conn_uri == null)
-			conn_uri = new HashMap<Regex, String>();
+			conn_uri = new LinkedHashMap<Regex, String>();
 
 		XMLTable conn = XMLDataFactory.getTable(logger , tablId, xmlDir + "/connects.xml",
 						new IXMLStruct() {
 							@Override public String rootTag() { return "conns"; }
 							@Override public String tableTag() { return "t"; }
 							@Override public String recordTag() { return "c"; }});
+		
+		if (conn == null)
+			throw new SemanticException("Since v1.3.0, connects.xml/t[id='conn-uri' is necessary.");
+
 		conn.beforeFirst();
 			
 		while (conn.next()) {
