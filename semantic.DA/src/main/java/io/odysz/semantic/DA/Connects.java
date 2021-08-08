@@ -12,6 +12,7 @@ import org.apache.commons.io_odysz.FilenameUtils;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.dbtype;
+import io.odysz.common.Regex;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.module.xtable.ILogger;
@@ -55,7 +56,11 @@ public class Connects {
 			throw new SemanticException("Driver type not suppored yet: %s", type);
 	}
 
+	/** Connection (data sources) */
 	private static HashMap<String, AbsConnect<? extends AbsConnect<?>>> srcs;
+
+	/** Component URI - connection mappings */
+	private static HashMap<Regex, String> conn_uri;
 
 	private static String defltConn;
 	private static String workingDir;
@@ -76,6 +81,8 @@ public class Connects {
 			ILogger logger = new Log4jWrapper("xtabl");
 			srcs = loadConnects(srcs, "drvmnger", DmConn, logger, xmlDir);
 			srcs = loadConnects(srcs, "dbcp", CpConn, logger, xmlDir);
+
+			conn_uri = loadConnUri("conn-uri", logger, xmlDir);
 		
 			if (srcs != null && srcs.size() > 0 && !srcs.containsKey(defltConn))
 				throw new SQLException("Found connection configruations, bud initialization failed. DB source must configured with a default source."); 
@@ -128,6 +135,31 @@ public class Connects {
 			}
 		}
 		return srcs;
+	}
+
+	private static HashMap<Regex, String> loadConnUri(String tablId, ILogger logger, String xmlDir) throws SAXException {
+		if (conn_uri == null)
+			conn_uri = new HashMap<Regex, String>();
+
+		XMLTable conn = XMLDataFactory.getTable(logger , tablId, xmlDir + "/connects.xml",
+						new IXMLStruct() {
+							@Override public String rootTag() { return "conns"; }
+							@Override public String tableTag() { return "t"; }
+							@Override public String recordTag() { return "c"; }});
+		conn.beforeFirst();
+			
+		while (conn.next()) {
+			try {
+				String uriReg = conn.getString("uri");
+				String connId = conn.getString("conn");
+
+				conn_uri.put(new Regex(uriReg), connId);
+			} catch (Exception e) {
+				e.printStackTrace();
+				continue;
+			}
+		}
+		return conn_uri;
 	}
 
 	public static void close() {
@@ -294,5 +326,12 @@ public class Connects {
 		return FilenameUtils.concat(workingDir,
 				srcs == null || !srcs.containsKey(conn) ? null
 				: srcs.get(conn).prop("smtcs"));
+	}
+
+	public static String uri2conn(String uri) {
+		for (Regex reg : conn_uri.keySet())
+			if (reg.match(uri))
+				return conn_uri.get(reg);
+		return defltConn;
 	}
 }

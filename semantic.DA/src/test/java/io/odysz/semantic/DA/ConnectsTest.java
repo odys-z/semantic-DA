@@ -32,7 +32,7 @@ public class ConnectsTest {
 		Utils.logi(path);
 		Connects.init(path);
 
-		Utils.logi("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+		Utils.logi("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n+++\n+++\n+++\n+++");
 		st = new Transcxt(null);
 	}
 
@@ -76,5 +76,19 @@ public class ConnectsTest {
 			.nv("funcId", "AUTO")
 			.nv("funcName", "func - " + flag)
 			.commit(st.instancontxt(null, null), sqls); // using static semantext for testing
+	}
+	
+	@Test
+	public void testUri2Conn() {
+		assertEquals("sys-sqlite", Connects.uri2conn("session"));
+		assertEquals("local-sqlite", Connects.uri2conn(""));
+
+		assertEquals("sys-sqlite", Connects.uri2conn("/sys/roles"));
+		assertEquals("sys-sqlite", Connects.uri2conn("/sys/users"));
+
+		assertEquals("north", Connects.uri2conn("/n/indicators"));
+		assertEquals("north", Connects.uri2conn("/n/dashboard"));
+
+		assertEquals("quiz", Connects.uri2conn("quiz/view"));
 	}
 }
