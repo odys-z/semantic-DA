@@ -1,14 +1,13 @@
 package io.odysz.semantic.DA;
 
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.common.DateFormat;
@@ -21,13 +20,19 @@ public class ConnectsTest {
 
 	private static Transcxt st;
 
+	/* FIXME
+	 * FIXME but why @BeforeAll won't working here?
+	 * FIXME but why @BeforeAll won't working here?
 	@BeforeAll
 	public static void testInit() {
+	*/
+	static {
 		File file = new File("src/test/res");
 		String path = file.getAbsolutePath();
 		Utils.logi(path);
 		Connects.init(path);
 
+		Utils.logi("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 		st = new Transcxt(null);
 	}
 
@@ -52,7 +57,6 @@ public class ConnectsTest {
 			.orderby("sibling", "desc")
 			.where("=", "flags", "'test00'")
 			.commit(st.instancontxt(null, null), sqls); // using static semantext for testing
-		// Utils.logi(sqls);
 
 		rs = Connects.select(sqls.get(0));
 		rs.printSomeData(false, 3, "funcId", "text", "fullpath");
@@ -72,7 +76,5 @@ public class ConnectsTest {
 			.nv("funcId", "AUTO")
 			.nv("funcName", "func - " + flag)
 			.commit(st.instancontxt(null, null), sqls); // using static semantext for testing
-		
-		// Utils.logi(sqls);
 	}
 }

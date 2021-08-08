@@ -168,17 +168,8 @@ public class Connects {
 
 		String connId = conn == null ? defltConn : conn;
 		try {
-			Utils.logi("======================");
-			Utils.logi(connId);
-			Utils.logi(srcs.get(connId).toString());
-			Utils.logi("----------------------");
-			Utils.logi("----------------------");
-			Utils.logi("----------------------");
-			Utils.logi("----------------------");
-			Utils.logi("----------------------");
-
-
-			return srcs.get(connId)
+			return srcs
+					.get(connId)
 					.select(sql, flags == null || flags.length <= 0 ? flag_nothing : flags[0]);
 		} catch (NamingException e) {
 			throw new SQLException("Can't find connection, id=" + connId);
