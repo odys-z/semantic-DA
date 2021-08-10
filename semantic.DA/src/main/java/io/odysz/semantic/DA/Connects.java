@@ -13,6 +13,7 @@ import org.apache.commons.io_odysz.FilenameUtils;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.dbtype;
+import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
@@ -333,7 +334,9 @@ public class Connects {
 				: srcs.get(conn).prop("smtcs"));
 	}
 
-	public static String uri2conn(String uri) {
+	public static String uri2conn(String uri) throws SemanticException {
+		if (LangExt.isblank(uri))
+			throw new SemanticException("Function uri can not be null! Which is used for connect datasource.");
 		for (Regex reg : conn_uri.keySet())
 			if (reg.match(uri))
 				return conn_uri.get(reg);

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import io.odysz.common.DateFormat;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.x.TransException;
 
@@ -79,7 +80,7 @@ public class ConnectsTest {
 	}
 	
 	@Test
-	public void testUri2Conn() {
+	public void testUri2Conn() throws SemanticException {
 		assertEquals("sys-sqlite", Connects.uri2conn("session"));
 		assertEquals("local-sqlite", Connects.uri2conn(""));
 
