@@ -60,6 +60,9 @@ public class Connects {
 
 	/** Connection (data sources) */
 	private static HashMap<String, AbsConnect<? extends AbsConnect<?>>> srcs;
+	public static Set<String> getAllConnIds() {
+		return srcs == null ? null : srcs.keySet();
+	}
 
 	/** Component URI - connection mappings */
 	private static LinkedHashMap<Regex, String> conn_uri;
@@ -328,7 +331,7 @@ public class Connects {
 	 * @param conn
 	 * @return smtcs (e.g. semantics.xml)
 	 */
-	public static String getSmtcs(String conn) {
+	public static String getSmtcsPath(String conn) {
 		return FilenameUtils.concat(workingDir,
 				srcs == null || !srcs.containsKey(conn) ? null
 				: srcs.get(conn).prop("smtcs"));

@@ -52,7 +52,6 @@ public class LoggingUser implements IUser {
 			};
 
 		try {
-			// DATranscxt.initConfigs(logConn, "src/test/res/semantic-log.xml");
 			DATranscxt.loadSemantics(logConn, logCfgPath);
 
 			logSemantic = new DATranscxt(logConn); //, DATranscxt.meta(logConn));
@@ -68,12 +67,12 @@ public class LoggingUser implements IUser {
 
 	@Override
 	public ArrayList<String> dbLog(ArrayList<String> sqls) {
-		return genLog(logSemantic, sqls, this,
+		return genLog(logSemantic, "a_logs", sqls, this,
 				action.getString("funcName"),
 				action.getString("funcId"));
 	}
 
-	public static ArrayList<String> genLog(DATranscxt logBuilder, ArrayList<String> sqls,
+	public static ArrayList<String> genLog(DATranscxt logBuilder, String logTabl, ArrayList<String> sqls,
 			IUser commitUser, String funcName, String funcId) {
 		// no exception can be thrown here, no error message for client if failed.
 		try {
@@ -83,7 +82,8 @@ public class LoggingUser implements IUser {
 			//	// values ('%s', '%s', '%s', '%s', null, '%s', sysdate, '%s');
 			//	newId, uid, funcName, funcId, cmd, url, String.valueOf(sqls.size()), txt(sqls));
 
-			logBuilder.insert("a_logs", dumbUser) // dummy for stop recursive logging
+			logBuilder.insert(logTabl, dumbUser) // dummy for stop recursive logging
+			// logBuilder.insert("a_logs", dumbUser) // dummy for stop recursive logging
 				.nv("oper", commitUser.uid())
 				.nv("funcName", funcName)
 				.nv("funcId", funcId)

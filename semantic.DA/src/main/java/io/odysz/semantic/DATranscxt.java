@@ -40,7 +40,7 @@ import io.odysz.transact.x.TransException;
  *
  */
 public class DATranscxt extends Transcxt {
-	static String cfgroot = ""; 
+	protected static String cfgroot = ""; 
 	static String runtimepath = "";
 
 	/** configuration's root */
@@ -65,7 +65,7 @@ public class DATranscxt extends Transcxt {
 
 	}
 
-	/**[conn, [table, DASemantics] */
+	/**[conn, [table, DASemantics]] */
 	protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
 
 	/**Create a new semantext instance with the static resources.<br>
@@ -211,11 +211,13 @@ public class DATranscxt extends Transcxt {
 //	protected String basiconnId;
 //	public String basiconnId() { return basiconnId; }
 	protected String sysConnId;
-	public String sessionConnId() { return sysConnId; }
+	public String getSysConnId() { return sysConnId; }
 	public String getConnId(String funcUri) { return "TODO ..."; }
 
-	/**Create a transact builder with basic DASemantext instance. 
-	 * It's a null configuration, so semantics can not been resolved, but can be used to do basic sql operation.
+	/**<p>Create a transact builder with basic DASemantext instance.</p>
+	 * <p>If it's a null configuration, the semantics can not be used to resulving semantics between records,
+	 * but can be used to do basic sql operation. (resulving is a special concept of semantic-*, see docs)</p>
+	 * 
 	 * When creating DATranscxt, db metas can not be null.
 	 * 
 	 * @param conn connection Id
@@ -225,10 +227,8 @@ public class DATranscxt extends Transcxt {
 	 * @throws SemanticException 
 	 */
 	public DATranscxt(String conn) throws SQLException, SAXException, IOException, SemanticException {
-		// super(new DASemantext(conn, smtConfigs == null ? null : smtConfigs.get(conn),
 		super(new DASemantext(conn, getSmtcs(conn),
 				Connects.getMeta(conn), null, runtimepath));
-//		this.basiconnId = conn;
 	}
 
 	private static HashMap<String, DASemantics> getSmtcs(String conn)
@@ -236,7 +236,7 @@ public class DATranscxt extends Transcxt {
 		if (smtConfigs == null)
 			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
 		if (!smtConfigs.containsKey(conn)) {
-			String fpath = Connects.getSmtcs(conn);
+			String fpath = Connects.getSmtcsPath(conn);
 			if (LangExt.isblank(fpath, "\\."))
 				throw new SemanticException(
 					"Trying to find semantics of conn %1$s, but the configuration path is empty.\n" +
@@ -244,7 +244,8 @@ public class DATranscxt extends Transcxt {
 					"Looking in path: %2$s",
 					conn, fpath);
 			fpath = FilenameUtils.concat(cfgroot, fpath);
-			smtConfigs.put(conn, loadSemantics(conn, fpath));
+			// smtConfigs.put(conn, loadSemantics(conn, fpath));
+			loadSemantics(conn, fpath);
 		}
 		return smtConfigs.get(conn);
 	}
@@ -268,9 +269,9 @@ public class DATranscxt extends Transcxt {
 						@Override public String tableTag() { return "t"; }
 						@Override public String recordTag() { return "s"; }});
 
-		XMLTable conn = xtabs.get("semantics");
+		XMLTable xconn = xtabs.get("semantics");
 		
-		return initConfigs(connId, conn);
+		return initConfigs(connId, xconn);
 	}
 	
 	protected static HashMap<String, DASemantics> initConfigs(String conn, XMLTable xcfg)
