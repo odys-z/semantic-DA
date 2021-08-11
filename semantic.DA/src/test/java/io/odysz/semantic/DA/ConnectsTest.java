@@ -82,7 +82,7 @@ public class ConnectsTest {
 	@Test
 	public void testUri2Conn() throws SemanticException {
 		assertEquals("sys-sqlite", Connects.uri2conn("session"));
-		assertEquals("local-sqlite", Connects.uri2conn(""));
+		assertEquals("local-sqlite", Connects.uri2conn("/"));
 
 		assertEquals("sys-sqlite", Connects.uri2conn("/sys/roles"));
 		assertEquals("sys-sqlite", Connects.uri2conn("/sys/users"));
