@@ -230,6 +230,10 @@ public class DATranscxt extends Transcxt {
 		super(new DASemantext(conn, getSmtcs(conn),
 				Connects.getMeta(conn), null, runtimepath));
 	}
+	
+	public static boolean alreadyLoaded(String connId) {
+		return smtConfigs != null && smtConfigs.containsKey(connId);
+	}
 
 	private static HashMap<String, DASemantics> getSmtcs(String conn)
 			throws SAXException, IOException, SQLException, SemanticException {
@@ -244,7 +248,7 @@ public class DATranscxt extends Transcxt {
 					"Looking in path: %2$s",
 					conn, fpath);
 			fpath = FilenameUtils.concat(cfgroot, fpath);
-			// smtConfigs.put(conn, loadSemantics(conn, fpath));
+
 			loadSemantics(conn, fpath);
 		}
 		return smtConfigs.get(conn);
@@ -263,15 +267,21 @@ public class DATranscxt extends Transcxt {
 	public static HashMap<String, DASemantics> loadSemantics(String connId, String cfgpath)
 			throws SAXException, IOException, SQLException, SemanticException {
 		Utils.logi("Loading Semantics (fullpath):\n\t%s", cfgpath);
-		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
+		if (cfgpath == null) {
+			Utils.warn("\nConnect's semantics configuration file can't be found:\n%s\n", connId);
+			return null;
+		}
+		else {
+			LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
 				new Log4jWrapper("").setDebugMode(false), cfgpath, new IXMLStruct() {
 						@Override public String rootTag() { return "semantics"; }
 						@Override public String tableTag() { return "t"; }
 						@Override public String recordTag() { return "s"; }});
 
-		XMLTable xconn = xtabs.get("semantics");
-		
-		return initConfigs(connId, xconn);
+			XMLTable xconn = xtabs.get("semantics");
+			
+			return initConfigs(connId, xconn);
+		}
 	}
 	
 	protected static HashMap<String, DASemantics> initConfigs(String conn, XMLTable xcfg)
