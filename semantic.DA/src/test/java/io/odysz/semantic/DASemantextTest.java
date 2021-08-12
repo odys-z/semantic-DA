@@ -20,6 +20,7 @@ import org.xml.sax.SAXException;
 
 import io.odysz.common.AESHelper;
 import io.odysz.common.DateFormat;
+import io.odysz.common.Regex;
 import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
@@ -213,6 +214,46 @@ DELETE from a_roles;</pre>
 
 		slect.beforeFirst().next();
 		assertEquals(1, slect.getInt("cnt"));
+	}
+
+	@Test
+	public void testFullpath() throws TransException, SQLException {
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		ArrayList<String> sqls = new ArrayList<String>(1);
+		st.insert("a_functions")
+			.nv("funcId", "AUTO")
+			.nv("funcName", "testInsert A - ")
+			.nv("parentId", "------")
+			.commit(s0, sqls);
+
+		Connects.commit(usr , sqls); // must insert - parent exists when compose children's fullpaths
+		
+		String parentId = (String) s0.resulvedVal("a_functions", "funcId");
+
+		st.insert("a_functions")
+			.nv("funcId", "AUTO")
+			.nv("funcName", "testInsert A - ")
+			.nv("parentId", parentId)
+			.nv("sibling", "1")
+			.commit(s0, sqls);
+
+		st.insert("a_functions")
+			.nv("funcId", "AUTO")
+			.nv("funcName", "testInsert A - ")
+			.nv("parentId", parentId)
+			.nv("sibling", "2")
+			.commit(s0, sqls);
+
+		// "insert into a_functions  (funcId, funcName, parentId, fullpath) values ('00006k', 'testInsert A - ', '------', '000 000')"
+		Regex reg = new Regex("insert into a_functions  \\(funcId, funcName, parentId, fullpath\\) values \\('.{6}', 'testInsert A - ', '------', '000'\\)");
+		// assertEquals("insert into a_functions  (funcId, funcName, parentId, fullpath) values ('00006k', 'testInsert A - ', '------', '000')", sqls.get(0));
+		assertTrue(reg.match(sqls.get(0)));
+
+		// insert into a_functions  (funcId, funcName, parentId, sibling, fullpath) values ('00009Z', 'testInsert A - ', '00009Y', 1, '000.001')
+		reg = new Regex(".*000.001'\\)");
+		assertTrue(reg.match(sqls.get(1)));
+		reg = new Regex(".*000.002'\\)");
+		assertTrue(reg.match(sqls.get(2)));
 	}
 
 	/**Test cross referencing auto k.<br>

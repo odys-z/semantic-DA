@@ -737,7 +737,7 @@ public class DASemantics {
 			insert = true;
 			update = true;
 			
-			siblingSize = 2;
+			siblingSize = 3;
 			if (args.length >= 4)
 				try {siblingSize = Integer.valueOf(args[3]);}
 				catch (Exception e) {}
@@ -756,23 +756,24 @@ public class DASemantics {
 
 			Object v = null;
 			try {
+				/* fix in v1.3.0:
+				 * full path no longer generated from rec-id (which requires rec Id but can't always be got when updating)
+				 * TODO FIXME this ruined the re-forest function !
 				if (!cols.containsKey(pkField) || row.get(cols.get(pkField)) == null)
 					throw new SemanticException("Fullpath configuration wrong: idField = %s,\nargs:%s,\ncols: %s" +
 							"\nSee %s ",
 							pkField, LangExt.toString(args), LangExt.toString(cols),
 							faqPage);
-
 				Object id = row.get(cols.get(pkField))[1];
+			     */
 
-				// String pid = cols.containsKey(args[0]) ? (String) row.get(cols.get(args[0]))[1] : null;
 				Object pid = cols.containsKey(args[0]) ? row.get(cols.get(args[0]))[1] : null;
 
-				// if (pid == null || "null".equals(pid)) {
 				if (LangExt.isblank(pid, "null")) {
 					Utils.warn(
 							"Fullpath Handling Error\nTo generate fullpath, parentId must configured.\nFound parent col: %s,\nconfigured args = %s,\nhandling cols = %s\nrows = %s",
 							pid, LangExt.toString(args), LangExt.toString(cols), LangExt.toString(row));
-					v = id;
+					// v1.3.0 v = id;
 				} else {
 					SemanticObject s = trxt.select(target, "_t0").col(args[2]).where("=", pkField, "'" + pid + "'")
 							.rs(stx);
@@ -780,11 +781,17 @@ public class DASemantics {
 					AnResultset rs = (AnResultset) s.rs(0);
 					if (rs.beforeFirst().next()) {
 						String parentpath = rs.getString(args[2]);
+						/* v1.3.0
 						v = String.format("%s.%s %s",
 								LangExt.isblank(parentpath, "null") ? "" : parentpath,
 								sibling, id);
+						*/
+						v = String.format("%s.%s", parentpath, sibling);
 					} else
+						/* v1.3.0
 						v = String.format("%s %s", sibling, id);
+						*/
+						v = sibling;
 				}
 			} catch (Exception e) {
 				if ( !(e instanceof TransException) )
@@ -812,6 +819,7 @@ public class DASemantics {
 				// If therer are two more fields of fullpath,
 				// the second row's field order is not the same as it been handled in the first row,
 				// so "add()" is not enough.
+				// -- should have been fixed in v1.3.0
 				row.add(nv);
 			}
 		}
@@ -1523,7 +1531,6 @@ public class DASemantics {
 				row.add(nvOper);
 			}
 			nvOper[0] = args[0];
-			// nvOper[1] = ExprPart.constStr(usr == null ? "sys" : usr.uid());
 			nvOper[1] = stx.composeVal(usr == null ? "sys" : usr.uid(), target, args[0]);
 		}
 
@@ -1563,12 +1570,10 @@ public class DASemantics {
 			else { // add a semantics required cell if it's absent.
 				nv = new Object[] { args[0], null };
 			}
-			// nv[1] = resulved;
 			nv[1] = stx.composeVal(resulved, target, args[0]);
 
 			// append a sql
 			Object pk = row.get(cols.get(pkField))[1];
-//			if (pk instanceof String)
 				try {
 					Update u = ((DATranscxt) stmt.transc()).update(target, usr)
 							//.nv((String) nv[0], nv[1])
@@ -1585,10 +1590,6 @@ public class DASemantics {
 					e.printStackTrace();
 					throw new SemanticException(e.getMessage());
 				}
-//			else
-//				throw new SemanticException(
-//						"Currently DASemantics.ShPostFk can only handle string type id for post update fk. (%s.%s = %s)",
-//						target, pkField, pk);
 		}
 	}
 }
