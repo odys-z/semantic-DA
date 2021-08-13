@@ -286,6 +286,8 @@ public class Connects {
 
 	public static dbtype driverType(String conn) {
 		conn = conn == null ? defltConn : conn;
+		if (!srcs.containsKey(conn))
+			throw new NullPointerException("Can't find datasourse: " + conn);
 		return srcs.get(conn).driverType();
 	}
 
