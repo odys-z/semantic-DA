@@ -322,7 +322,8 @@ public class DatasetCfg {
 					sqls[ixMs2k] = xSmtcs.getString("ms2k");
 
 					// columns="id,tabls,cols,orcl,mysql,ms2k"
-					ds = new Dataset(xSmtcs.getString("sk"), xSmtcs.getString("cols"),
+					ds = new Dataset(xSmtcs.getString("sk"), xSmtcs.getString("conn"),
+									xSmtcs.getString("cols"),
 									sqls, xSmtcs.getString("s-tree"));
 					if (ds != null)
 						cfgs.put(xSmtcs.getString("sk"), ds);
@@ -351,7 +352,11 @@ public class DatasetCfg {
 
 		if (conn == null) conn = Connects.defltConn();
 
-		String sql = dss.get(k).getSql(Connects.driverType(conn));
+		// v1.3.0
+		// String sql = dss.get(k).getSql(Connects.driverType(conn));
+		Dataset ds = dss.get(k);
+		String sql = ds.getSql(Connects.driverType(ds.conn == null ? conn : ds.conn));
+
 		if (sql == null)
 			throw new SemanticException("Sql not found for sk=%s, type = %s",
 					k, Connects.driverType(conn));
@@ -493,6 +498,8 @@ public class DatasetCfg {
 	 * (oracle mapping information also initialized according to mapping file and the "cols" tag.)*/
 	public static class Dataset {
 		String k;
+		/**Overriding conn id */
+		String conn;
 
 		String[] sqls;
 
@@ -508,15 +515,16 @@ public class DatasetCfg {
 		/**Create a dataset, with mapping prepared according with mapping file.
 		 * @param k
 		 * @param cols
+		 * @param connId 
 		 * @param sqls
 		 * @param stree
 		 * @param orclMappings mappings from mapping the file.
 		 * @throws SAXException 
 		 */
-		public Dataset(String k, String cols, String[] sqls, String stree)
+		public Dataset(String k, String cols, String connId, String[] sqls, String stree)
 				throws SAXException {
 			this.k = k;
-
+			this.conn = connId;
 			this.sqls = sqls;
 			
 			this.treeSemtcs = stree == null ? null
