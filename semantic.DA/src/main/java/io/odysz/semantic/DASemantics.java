@@ -913,7 +913,9 @@ public class DASemantics {
 			}
 			try {
 				Object v = stx.resulvedVal(args[1], args[2]);
-				if (v != null && (nv[1] == null || LangExt.isblank(nv[1])))
+				if (v != null && (nv[1] == null || LangExt.isblank(nv[1])
+						// v1.3.0 this must a bug introduced by previous modification?
+						|| nv[1] instanceof ExprPart && ((ExprPart)nv[1]).isNull()))
 					// nv[1] = v;
 					nv[1] = stx.composeVal(v, target, (String)nv[0]);
 			} catch (Exception e) {
