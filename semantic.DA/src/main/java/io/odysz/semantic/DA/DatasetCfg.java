@@ -322,8 +322,8 @@ public class DatasetCfg {
 					sqls[ixMs2k] = xSmtcs.getString("ms2k");
 
 					// columns="id,tabls,cols,orcl,mysql,ms2k"
-					ds = new Dataset(xSmtcs.getString("sk"), xSmtcs.getString("conn"),
-									xSmtcs.getString("cols"),
+					ds = new Dataset(xSmtcs.getString("sk"),
+									xSmtcs.getString("cols"), xSmtcs.getString("conn"),
 									sqls, xSmtcs.getString("s-tree"));
 					if (ds != null)
 						cfgs.put(xSmtcs.getString("sk"), ds);
@@ -340,6 +340,9 @@ public class DatasetCfg {
 		if (page >= 0 && size > 0)
 			sql = Connects.pagingSql(conn, sql, page, size);
 
+		// v1.3.0 overriding uri->conn with xml/conn
+		if (!LangExt.isblank(dss.get(sk).conn))
+			conn = dss.get(sk).conn;
 		AnResultset rs = new AnResultset(Connects.select(conn, sql));
 		return rs;
 	}
