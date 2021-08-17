@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
@@ -851,5 +852,19 @@ for (String coln : colnames.keySet())
 			};
 		}
 		return results;
+	}
+
+	/**Convert results to an 1D array with elements from <i>col<i>
+	 * @param col column name
+	 * @return
+	 * @throws SQLException 
+	 */
+	public List<String> toArr(String col) throws SQLException {
+		List<String> res = new ArrayList<String>(results.size());
+		beforeFirst();
+		while(next()) {
+			res.add(getString(col));
+		}
+		return res;
 	}
 }
