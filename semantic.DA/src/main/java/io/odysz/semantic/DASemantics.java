@@ -721,7 +721,8 @@ public class DASemantics {
 	 * @author odys-z@github.com
 	 */
 	static class ShFullpath extends SemanticHandler {
-		private static String faqPage = "https://odys-z.github.io/notes/semantics/best-practices.html#DA-concept-fullpath";
+		// v1.3.0 no longer needed
+		// private static String faqPage = "https://odys-z.github.io/notes/semantics/best-practices.html#DA-concept-fullpath";
 
 		private int siblingSize;
 
