@@ -81,20 +81,6 @@ public class DATranscxt extends Transcxt {
 	 */
 	@Override
 	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
-		/*
-		if (basictx == null)
-			return null;
-		else
-			try {
-				// return new DASemantext(basiconnId, smtConfigs.get(basiconnId), meta(basiconnId), usr);
-				return new DASemantext(basiconnId, getSmtcs(basiconnId),
-						Connects.getMeta(basiconnId), usr, runtimepath);
-			} catch (SemanticException | SQLException | SAXException | IOException e) {
-				// meta is null? shouldn't happen because this instance is already created
-				e.printStackTrace();
-				return null;
-			}
-		*/
 		try {
 			return new DASemantext(connId, getSmtcs(connId),
 				Connects.getMeta(connId), usr, runtimepath);
