@@ -96,7 +96,6 @@ public class DATranscxt extends Transcxt {
 			}
 		*/
 		try {
-			// String conn = LangExt.isblank(connId) ? basiconnId : connId; 
 			return new DASemantext(connId, getSmtcs(connId),
 				Connects.getMeta(connId), usr, runtimepath);
 		} catch (SemanticException | SQLException | SAXException | IOException e) {
