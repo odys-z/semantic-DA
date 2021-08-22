@@ -208,6 +208,12 @@ public class DASemantext implements ISemantext {
 	public SemanticObject resulves() {
 		return autoVals;
 	}
+	
+	public ISemantext reset() {
+		if (autoVals != null)
+			autoVals.clear();
+		return this;
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	// auto ID
