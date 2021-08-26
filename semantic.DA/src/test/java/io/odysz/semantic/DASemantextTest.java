@@ -654,7 +654,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 							 .nv("alarmId", alarmId))) // because b_alarm is updating, no auto key there.
 			.commit(s1, sqls);
 
-		Utils.logi(sqls);
+		// Utils.logi(sqls);
 		// update b_alarms  set remarks='updated' where alarmId = '000010'
 		// delete from b_alarm_logic where alarmId = '000010'
 		// insert into b_alarm_logic  (remarks, alarmId, logicId) values ('L3 2019-05-20', '000010', '00003N')
@@ -663,6 +663,28 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				sqls.get(2));
 	}
 	
+	@SuppressWarnings("serial")
+	@Test
+	public void testMuiltiRowsInsert() throws TransException, SQLException, IOException {
+		ArrayList<String> sqls = new ArrayList<String>(1);
+		String dt = DateFormat.format(new Date());
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		st.insert("b_alarms")
+				.nv("remarks", Funcall.now())
+				.nv("typeId", "02-alarm")
+				.post(st.insert("b_alarm_logic")	// child of b_alarms, auto key: logicId
+						.value(new ArrayList<Object[]>() { {add(new String[] {"remarks", "R1 " + dt});} })
+						.value(new ArrayList<Object[]>() { {add(new String[] {"remarks", "R2 " + dt});} })
+						.post(st.insert("b_alarm_logic")
+								.nv("remarks", "L2 " + dt)
+				)).commit(s0, sqls);
+
+		assertEquals(String.format("insert into b_alarms  (remarks, typeId, alarmId) values (datetime('now'), '02-alarm', '%s')",
+				s0.resulvedVal("b_alarms", "alarmId")),
+				sqls.get(0));
+		Utils.logi(sqls);
+	}
+
 	@Test
 	public void testExtfile() throws TransException, SQLException, IOException {
 		String flag = DateFormat.formatime(new Date());
