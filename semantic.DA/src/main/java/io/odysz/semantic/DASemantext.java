@@ -301,7 +301,7 @@ end;
 		String sql;
 		if (dt == dbtype.oracle)
 			sql = String.format("select \"oz_fIncSeq\"('%s.%s', '%s') newId from dual", target, idField, subCate);
-		else
+		else // mysql, etc.
 			sql = String.format("select oz_fIncSeq('%s.%s', '%s') newId", target, idField, subCate);
 
 		AnResultset rs = null;
