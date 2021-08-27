@@ -515,7 +515,7 @@ DELETE from a_roles;</pre>
 				.where_("=", "domainId", typeId)
 				.d(s2);
 			
-//			fail("ck-cnt-del not working");
+			fail("ck-cnt-del not working");
 		}
 		catch (SemanticException e) {
 			assertTrue(e.getMessage().startsWith("a_domain.checkSqlCountOnDel: b_alarms "));
