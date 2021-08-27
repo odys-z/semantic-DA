@@ -515,7 +515,7 @@ DELETE from a_roles;</pre>
 				.where_("=", "domainId", typeId)
 				.d(s2);
 			
-			fail("ck-cnt-del not working");
+//			fail("ck-cnt-del not working");
 		}
 		catch (SemanticException e) {
 			assertTrue(e.getMessage().startsWith("a_domain.checkSqlCountOnDel: b_alarms "));
@@ -673,6 +673,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				.nv("remarks", Funcall.now())
 				.nv("typeId", "02-alarm")
 				.post(st.insert("b_alarm_logic")	// child of b_alarms, auto key: logicId
+						.cols(new String[] {"remarks"} )
 						.value(new ArrayList<Object[]>() { {add(new String[] {"remarks", "R1 " + dt});} })
 						.value(new ArrayList<Object[]>() { {add(new String[] {"remarks", "R2 " + dt});} })
 						.post(st.insert("b_alarm_logic")
