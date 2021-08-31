@@ -386,6 +386,14 @@ public class DatasetCfg {
 		return select(conn, sk, page, size, args);
 	}
 
+	public static AnResultset loadDataset(String conn, String sk) throws SemanticException, SQLException {
+		return loadDataset(conn, sk, -1, -1, "");
+	}
+
+	public static AnResultset loadDataset(String conn, String sk, String... args) throws SemanticException, SQLException {
+		return loadDataset(conn, sk, -1, -1, args);
+	}
+
 	public static List<?> loadStree(String conn, String sk,
 			int page, int size, String... args)
 			throws SemanticException, SQLException {
@@ -557,10 +565,6 @@ public class DatasetCfg {
 		public String sk() {
 			return k;
 		}
-	}
-
-	public static AnResultset loadDataset(String conn, String sk) throws SemanticException, SQLException {
-		return loadDataset(conn, sk, -1, -1, "");
 	}
 
 }
