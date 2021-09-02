@@ -515,6 +515,8 @@ DELETE from a_roles;</pre>
 				.where_("=", "domainId", typeId)
 				.d(s2);
 			
+			Utils.warn("ever deleted d_domain table? fix with this:\n%s",
+					"insert into a_domain(domainId, domainName, domainValue, sort, fullpath) values('02-fault', 'test: testChkOnDel()', null, 99, '99 02-fault')");
 			fail("ck-cnt-del not working");
 		}
 		catch (SemanticException e) {
