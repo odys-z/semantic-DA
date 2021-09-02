@@ -548,6 +548,9 @@ public class DatasetCfg {
 		 * @throws SemanticException can't find correct sql version 
 		 */
 		public String getSql(dbtype driver) throws SemanticException {
+			/* v1.3.0 change: tolerate configuration as mysql the defalt sql
+			 * Don't delete this until tested with oracle
+			 * TODO doc task
 			if (driver == null)
 				return null;
 			if (driver == dbtype.oracle)
@@ -560,6 +563,23 @@ public class DatasetCfg {
 				return sqls[ixMysql];
 			else
 				throw new SemanticException("unsupported db type: %s", driver);
+			*/
+
+			// v1.3.0 change: tolerate configuration as mysql the defalt sql
+			if (driver == null)
+				return null;
+			if (driver == dbtype.oracle)
+				return sqls[ixOrcl] == null ? sqls[ixMysql] : sqls[ixOrcl];
+			else if (driver == dbtype.ms2k)
+				return sqls[ixMs2k] == null ? sqls[ixMysql] : sqls[ixMs2k];
+			else if (driver == dbtype.sqlite)
+				return sqls[ixSqlit] == null ? sqls[ixMysql] : sqls[ixSqlit];
+			else if (driver == dbtype.mysql)
+				return sqls[ixMysql];
+			else
+				throw new SemanticException("unsupported db type: %s", driver);
+
+
 		}
 
 		public String sk() {
