@@ -35,7 +35,7 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 	
 	/**
 	 * MUST CLOSE CONNECTION!
-	 * @return
+	 * @return Connection
 	 * @throws SQLException
 	 */
 	public static Connection getConnection() throws SQLException {
@@ -292,7 +292,7 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 
 	/**
 	 * @param sql
-	 * @return
+	 * @return result set
 	 * @throws SQLException 
 	 */
 	public static AnResultset selectBlob(String sql) throws SQLException {

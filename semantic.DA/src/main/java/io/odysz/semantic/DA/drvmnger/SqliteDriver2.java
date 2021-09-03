@@ -31,8 +31,6 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	private static JDBC drv;
 	public static boolean enableSystemout = true;
 
-//	boolean inited = false;
-
 	String userName;
 	String pswd;
 	String jdbcUrl;
@@ -78,16 +76,16 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 */
 	protected Connection getConnection() throws SQLException {
 //		if (!inited) {
-////			String isTrue = Configs.getCfg("sqlite.printSQL.enable");
-////			enableSystemout = isTrue != null && "true".equals(isTrue.toLowerCase());
-////			
-////			jdbcUrl = "jdbc:sqlite:/media/sdb/docs/prjs/works/RemoteServ/WebContent/WEB-INF/remote.db";
-////			userName = "remote";
-////			pswd = "remote";
-////			
-////			if (conn == null)
-////				conn = DriverManager.getConnection(jdbcUrl, userName, pswd);
-////			inited = true;
+//			String isTrue = Configs.getCfg("sqlite.printSQL.enable");
+//			enableSystemout = isTrue != null && "true".equals(isTrue.toLowerCase());
+//			
+//			jdbcUrl = "jdbc:sqlite:/media/sdb/docs/prjs/works/RemoteServ/WebContent/WEB-INF/remote.db";
+//			userName = "remote";
+//			pswd = "remote";
+//			
+//			if (conn == null)
+//				conn = DriverManager.getConnection(jdbcUrl, userName, pswd);
+//			inited = true;
 //			throw new SQLException("Sqlite connection not initialized.");
 //		}
 		return conn;
@@ -104,18 +102,6 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 */
 	public static SqliteDriver2 initConnection(String jdbc, String user, String psword, int flags) throws SQLException {
 		SqliteDriver2 inst = new SqliteDriver2();
-//		if (!inited) {
-//			enableSystemout = (flags & Connects.flag_printSql) > 0;
-//			
-//			jdbcUrl = jdbc;
-//			userName = user;
-//			pswd = psword;
-//
-//			if (conn == null)
-//				conn = DriverManager.getConnection(jdbcUrl, userName, pswd);
-//
-//			inited = true;
-//		}
 			enableSystemout = (flags & Connects.flag_printSql) > 0;
 			inst.jdbcUrl = jdbc;
 			inst.userName = user;

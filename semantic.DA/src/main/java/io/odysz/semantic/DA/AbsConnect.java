@@ -11,6 +11,7 @@ import javax.naming.NamingException;
 
 import org.apache.commons.io_odysz.FilenameUtils;
 
+import io.odysz.common.EnvHelper;
 import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
@@ -37,8 +38,10 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 					usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else if (type == dbtype.sqlite) {
-			return SqliteDriver2.initConnection(String.format("jdbc:sqlite:%s", FilenameUtils.concat(xmlDir, jdbcUrl)),
-				usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+			// Since docker volume can not be mounted in tomcat webapps' sub-folder, file path handling will be replaced with environment variables, 
+			return SqliteDriver2.initConnection(String.format("jdbc:sqlite:%s", FilenameUtils.concat(xmlDir,
+					EnvHelper.isRelativePath(jdbcUrl) ? jdbcUrl : EnvHelper.replace(jdbcUrl))),
+					usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else if (type == dbtype.ms2k) {
 			return Msql2kDriver.initConnection(jdbcUrl,

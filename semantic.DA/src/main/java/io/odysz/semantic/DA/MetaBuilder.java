@@ -9,7 +9,6 @@ import io.odysz.common.Regex;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantics.meta.TableMeta;
 
-
 public class MetaBuilder {
 	private static HashSet<String> ignorTabls;
 	/**Build mysql table metas

@@ -410,7 +410,7 @@ end;
 	 * @param sql
 	 * @param pageIx
 	 * @param pgSize
-	 * @return
+	 * @return pagination wrapped sql
 	 * @throws TransException
 	 */
 	public static String pagingSql(dbtype dt, String sql, int pageIx, int pgSize) throws TransException {

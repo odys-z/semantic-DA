@@ -144,7 +144,7 @@ public class DatasetCfg {
 		
 		/**Get column name, if there is an alias, get alias, otherwise get the db field name.
 		 * @param ix
-		 * @return
+		 * @return alias in semantics configuration
 		 */
 		String alias(int ix) {
 			return  treeSmtcs != null && treeSmtcs.length > ix ?

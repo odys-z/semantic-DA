@@ -39,7 +39,7 @@ public class Connects {
 
 	/**Convert names like "sqlit" to {@link dbtype}.
 	 * @param type
-	 * @return
+	 * @return db type
 	 * @throws SemanticException
 	 */
 	public static dbtype parseDrvType(String type) throws SemanticException {
@@ -227,7 +227,7 @@ public class Connects {
 	 * @param sql
 	 * @param page
 	 * @param size
-	 * @return
+	 * @return sql
 	 * @throws SQLException 
 	 */
 	public static String pagingSql(String conn, String sql, int page, int size) throws SQLException {
