@@ -127,11 +127,13 @@ public class DatasetCfg {
 		}
 		
 		public String dbParent() {
-			return alias(Ix.parent);
+			// return alias(Ix.parent);
+			return exp(Ix.parent)[0];
 		}
 		
 		public String dbFullpath() {
-			return alias(Ix.fullpath);
+			// return alias(Ix.fullpath);
+			return exp(Ix.fullpath)[0];
 		}
 		
 		public String dbSort() {
@@ -477,7 +479,8 @@ public class DatasetCfg {
 				throw new SemanticException("Found children for null parent. Check the data queried by recent committed SQL.");
 			}
 
-			String currentParentID = rs.getString(sm.aliasParent());
+//			String currentParentID = rs.getString(sm.aliasParent());
+			String currentParentID = rs.getString(sm.dbParent());
 			if (currentParentID == null || currentParentID.trim().length() == 0) {
 				// new tree root
 				rs.previous();

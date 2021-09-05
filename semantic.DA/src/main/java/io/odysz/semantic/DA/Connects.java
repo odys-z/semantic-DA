@@ -269,6 +269,11 @@ public class Connects {
 		return srcs.get(defltConn).commit(usr, sqls, lobs, flags.length > 0 ? flags[0] : flag_nothing);
 	}
 
+	@SuppressWarnings("serial")
+	public static int[] commit(String conn, IUser usr, String sql, int... flags) throws SQLException, TransException {
+		return commit(conn, usr, new ArrayList<String>() { {add(sql);} }, flags.length > 0 ? flags[0] : flag_nothing);
+	}
+	
 	public static int[] commit(String conn, IUser usr, ArrayList<String> sqls, int... flags) throws SQLException, TransException {
 		if (srcs == null || !srcs.containsKey(conn))
 			throw new SQLException("Can't find connection %s.", conn);
