@@ -424,11 +424,12 @@ end;
 		if (dt == dbtype.oracle)
 			// "select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s"
 			s = Stream.of("select * from (select t.*, rownum r_n_ from (", sql,
-						") t WHERE rownum >= ", r1, " order by rownum) t where r_n_ < ", r2);
+						") t order by rownum) t where rownum > ", r1, " and r_n_ <= ", r2);
 		else if (dt == dbtype.ms2k)
 			// "select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= %s and rownum <= %s"
 			s = Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (", sql,
-						") t) t where rownum >= ", r1, " and rownum <= %s", r2);
+						") t) t where rownum > ", r1, " and rownum <= %s", r2);
+						// v1.3.0 Sep.6 2021 ">=" to ">"
 		else if (dt == dbtype.sqlite)
 			throw new TransException("There is no easy way to support sqlite paging. Don't use server side paging for sqlite datasource.");
 		else // mysql
