@@ -305,7 +305,8 @@ end;
 			sql = String.format("select oz_fIncSeq('%s.%s', '%s') newId", target, idField, subCate);
 
 		AnResultset rs = null;
-		rs = Connects.select(connId, sql);
+		// v1.3.0: user sys default conn to generate log-id
+		rs = Connects.select(Connects.defltConn(), sql);
 		if (rs.getRowCount() <= 0)
 			// throw new TransException("Can't find auot seq of %s, you may check where oz_autoseq.seq and table %s are existing?",
 			throw new TransException("Can't find auot seq of %1$s.\nFor performantc reason, DASemantext assumes a record in oz_autoseq.seq (id='%1$s.%2$s') exists.\nMay be you would check where oz_autoseq.seq and table %2$s are existing?",
