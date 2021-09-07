@@ -424,7 +424,7 @@ end;
 		if (dt == dbtype.oracle)
 			// "select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s"
 			s = Stream.of("select * from (select t.*, rownum r_n_ from (", sql,
-						") t order by rownum) t where rownum > ", r1, " and r_n_ <= ", r2);
+						") t order by rownum) t where r_n_ > ", r1, " and r_n_ <= ", r2);
 		else if (dt == dbtype.ms2k)
 			// "select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= %s and rownum <= %s"
 			s = Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (", sql,

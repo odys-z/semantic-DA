@@ -613,7 +613,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		rs.beforeFirst().next();
 		// the max deviceLogId should be in s0.
 		assertEquals(s0.resulvedVal("b_logic_device", "deviceLogId"), rs.getString("dlid"));
-		Utils.warn("What's about update parent?");
+		// Utils.warn("What's about update parent?");
 	}
 	
 	@Test
@@ -634,7 +634,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				s0.resulvedVal("b_alarms", "alarmId")),
 				sqls.get(0));
 		// the first insert b_alarm_logic must correct if following is ok.
-		Utils.logi(sqls.get(1));
+		// Utils.logi(sqls.get(1));
 		String alarmId = (String) s0.resulvedVal("b_alarms", "alarmId");
 		assertEquals(String.format("insert into b_alarm_logic  (remarks, logicId, alarmId) values ('L2 %s', '%s', '%s')",
 				dt, s0.resulvedVal("b_alarm_logic", "logicId"), alarmId),
