@@ -134,8 +134,10 @@ for (String coln : colnames.keySet())
 	
 	/**Construct an empty set, used for appending rows.
 	 * @param colnames
+	 * @param rows 
 	 */
-	public AnResultset(HashMap<String, Integer> colnames) {
+	@SafeVarargs
+	public AnResultset(HashMap<String, Integer> colnames, ArrayList<ArrayList<Object>>... rows) {
 		results = new ArrayList<ArrayList<Object>>();
 		colCnt = colnames.size();
 		this.colnames = new HashMap<String, Object[]>(colCnt);
@@ -144,6 +146,12 @@ for (String coln : colnames.keySet())
 		}
 		rowIdx = 0;
 		rowCnt = 0;
+		
+		if (rows != null && rows[0] != null) {
+			results = rows[0];
+			rowIdx = 0;
+			rowCnt = results.size();
+		}
 	}
 
 	/**Construct an empty set, used for appending rows.
@@ -613,6 +621,15 @@ for (String coln : colnames.keySet())
 				return (String) colnames.get(cn)[1];
 		}
 		return null;
+	}
+
+
+	/**Get col index
+	 * @param colName
+	 * @return col index
+	 */
+	public int getColumex(String colName) {
+		return (int) colnames.get(colName.toUpperCase())[0];
 	}
 
 	/**Set column raw name.
