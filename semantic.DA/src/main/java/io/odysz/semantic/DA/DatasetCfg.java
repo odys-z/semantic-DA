@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io_odysz.FilenameUtils;
@@ -278,6 +279,10 @@ public class DatasetCfg {
 			load(dss, path);
 			inited = true;
 		}
+	}
+	
+	public static Set<String> sks() {
+		return dss.keySet();
 	}
 
 	/**Load all dataset.xml into the argument cfgs.<br>
