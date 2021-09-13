@@ -1501,7 +1501,10 @@ public class DASemantics {
 
 		@Override
 		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-			// operTiem
+			/* v1.3.0 change log:
+			 * since multiple rows are expanded one by one, once the first rows have cols expended,
+			 * following rows should expanded automatically.
+			 * operTiem
 			if (args.length > 1 && args[1] != null) {
 				Object[] nvTime;
 				if (cols.containsKey(args[1])) {
@@ -1528,6 +1531,59 @@ public class DASemantics {
 			Object[] nvOper;
 			if (cols.containsKey(args[0]))
 				nvOper = row.get(cols.get(args[0]));
+			else {
+				nvOper = new Object[2];
+				cols.put(args[0], row.size()); // oper
+				row.add(nvOper);
+			}
+			nvOper[0] = args[0];
+			nvOper[1] = stx.composeVal(usr == null ? "sys" : usr.uid(), target, args[0]);
+			*/
+			if (args.length > 1 && args[1] != null) {
+				Object[] nvTime;
+				if (cols.containsKey(args[1])) {
+					int ix = cols.get(args[1]);
+					if (row.size() <= ix) {
+						// this row need to be expanded - happens when handling following rows after 1st row expanded cols wiht oper & optime.
+						nvTime = new Object[2];
+						int adding = ix - row.size() + 1;
+						while (adding > 0) {
+							adding--;
+							row.add(new Object[2]);
+						}
+						row.set(ix, nvTime);
+					}
+					else
+						nvTime = row.get(ix);
+				} else {
+					// this happens in the first row
+					nvTime = new Object[2];
+					cols.put(args[1], row.size());
+					row.add(nvTime);
+				}
+				nvTime[0] = args[1];
+				nvTime[1] = Funcall.now();
+			}
+
+			// oper
+			Object[] nvOper;
+			if (cols.containsKey(args[0])) {
+				int jx = cols.get(args[0]);
+//				nvOper = row.get(cols.get(args[0]));
+
+				if (row.size() <= jx) {
+					// this row need to be expanded - happens when handling following rows after 1st row expanded cols wiht oper & optime.
+					nvOper = new Object[2];
+					int adding = jx - row.size() + 1;
+					while (adding > 0) {
+						adding--;
+						row.add(new Object[2]);
+					}
+					row.set(jx, nvOper);
+				}
+				else
+					nvOper = row.get(jx);
+			}
 			else {
 				nvOper = new Object[2];
 				cols.put(args[0], row.size()); // oper

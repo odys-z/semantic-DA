@@ -685,7 +685,42 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		assertEquals(String.format("insert into b_alarms  (remarks, typeId, alarmId) values (datetime('now'), '02-alarm', '%s')",
 				s0.resulvedVal("b_alarms", "alarmId")),
 				sqls.get(0));
-		Utils.logi(sqls);
+	}
+
+
+	@SuppressWarnings("serial")
+	@Test
+	public void testMuiltiInsOpertime() throws TransException, SQLException, IOException {
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		ArrayList<String> sqls = new ArrayList<String>(1);
+
+		ArrayList<Object[]> r0 = (new ArrayList<Object[]>() { {
+			add(new Object[] {"attName", "att0"});
+			add(new Object[] {"busiTbl", "test 0"});
+			add(new Object[] {"busiId", "deleting"}); }
+		});
+		ArrayList<Object[]> r1 = (new ArrayList<Object[]>() { {
+			add(new Object[] {"attName", "att1"});
+			add(new Object[] {"busiTbl", "test 1"});
+			add(new Object[] {"busiId", "deleting"}); }
+		});
+		ArrayList<Object[]> r2 = (new ArrayList<Object[]>() { {
+			add(new Object[] {"attName", "att2"});
+			add(new Object[] {"busiTbl", "test 2"});
+			add(new Object[] {"busiId", "deleting"}); }
+		});
+
+		st.insert("a_attaches")
+			.cols("attName", "check optime", "busiTbl", "busiId")
+			//.nv("uri", readB64("src/test/res/Sun Yet-sen.jpg"));
+			.value(r0).value(r1).value(r2)
+			.commit(s0, sqls);
+
+		// FIXME not all auto-key can be resulved (not reported, lost all other than the last one)
+		// insert into a_attaches  (attName, check optime, busiTbl, busiId, attId, optime, oper) values ('att0', null, 'test 0', 'deleting', '%s', datetime('now'), 'tester'), ('att1', null, 'test 1', 'deleting', '%s', datetime('now'), 'tester'), ('att2', null, 'test 2', 'deleting', '%s', datetime('now'), 'tester')
+		assertTrue(sqls.get(0).endsWith(String.format(
+				"datetime('now'), 'tester'), ('att2', null, 'test 2', 'deleting', '%s', datetime('now'), 'tester')",
+				s0.resulvedVal("a_attaches", "attId"))));
 	}
 
 	@Test
