@@ -249,6 +249,16 @@ public class DASemantics {
 		 * Handler: {@link ShDencrypt}
 		 */
 		dencrypt,
+
+		/**
+		 * "d-e.r" | "de-encrypt.r" | "dencrypt.r":<br>
+		 * TODO
+		 * TODO
+		 * TODO Add new semantics handler: de-encrypt field on reading (in case client
+		 * requiring read plain password etc. by accident.
+		 */
+		dencryptOnRead,
+		
 		/**
 		 * xml/smtc = "o-t" | "oper-time" | "optime"<br>
 		 * Finger printing session user's db updating - record operator / oper-time<br>
@@ -1177,7 +1187,7 @@ public class DASemantics {
 			super(trxt, smtype.extFile, tabl, pk, args);
 			delete = true;
 			insert = true;
-			// update = true;
+			update = true;
 
 			rootpath = args[ixRoot];
 
@@ -1239,7 +1249,7 @@ public class DASemantics {
 
 		/**<p>On updating external files handler.</p>
 		 * <p>This method only throw an exception currently, applying the semantics predefined as:<br>
-		 * AS all files are treaded as binary file, no file can be modified, only delete then create it makes sense.</p>
+		 * AS all files are treated as binary file, no file can be modified, only delete then create it makes sense.</p>
 		 * <p>Client should avoid updating an external file will handling business logics.</p>
 		 * <p><b>NOTE:</b><br>This can be changed in the future.</p>
 		 * @see io.odysz.semantic.DASemantics.SemanticHandler#onUpdate(io.odysz.semantics.ISemantext, io.odysz.transact.sql.Update, java.util.ArrayList, java.util.Map, io.odysz.semantics.IUser)
@@ -1253,8 +1263,9 @@ public class DASemantics {
 				if (cols.containsKey(args[ixUri])) {
 					// save file, replace v
 					nv = row.get(cols.get(args[ixUri]));
-					if (nv != null && nv[1] != null
-						&& nv[1] instanceof String && ((String) nv[1]).length() > 0) {
+					if (nv != null && nv[1] != null &&
+						(  nv[1] instanceof String && ((String) nv[1]).length() > 0
+						|| nv[1] instanceof ExprPart && !((ExprPart) nv[1]).isNull() )) {
 						throw new SemanticException("Found the extFile value presented in %s, but updating is not supported by extFile. See:\n" +
 								"https://odys-z.github.io/javadoc/semantic.DA/io/odysz/semantic/DASemantics.smtype.html#extFile\n" +
 								"About Updating Handling",
