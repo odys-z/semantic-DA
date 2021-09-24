@@ -573,7 +573,7 @@ public class DASemantics {
 			return false;
 		for (SemanticHandler handler : handlers)
 			if (handler.sm == newSmtcs && newSmtcs != smtype.fkIns && newSmtcs != smtype.postFk) {
-				Utils.warn("Found duplicate semantics: %s %s\n"
+				Utils.warn("Found duplicate semantics: %s %s\\n"
 						+ "Details: All semantics configuration is merged into 1 static copy. Each table in every connection can only have one instance of the same smtype.",
 						tabl, newSmtcs.name());
 				return true;
@@ -644,7 +644,7 @@ public class DASemantics {
 		}
 
 		public void logi() {
-			Utils.logi("Semantics Handler %s\ntabl %s, pk %s, args %s", sm.name(), target, pkField,
+			Utils.logi("Semantics Handler %s\\ntabl %s, pk %s, args %s", sm.name(), target, pkField,
 					LangExt.toString(args));
 		}
 
@@ -782,7 +782,7 @@ public class DASemantics {
 
 				if (LangExt.isblank(pid, "null")) {
 					Utils.warn(
-							"Fullpath Handling Error\nTo generate fullpath, parentId must configured.\nFound parent col: %s,\nconfigured args = %s,\nhandling cols = %s\nrows = %s",
+							"Fullpath Handling Error\\nTo generate fullpath, parentId must configured.\\nFound parent col: %s,\\nconfigured args = %s,\\nhandling cols = %s\\nrows = %s",
 							pid, LangExt.toString(args), LangExt.toString(cols), LangExt.toString(row));
 					// v1.3.0 v = id;
 				} else {
@@ -936,8 +936,8 @@ public class DASemantics {
 								"Trying resolve FK failed, but fk value exists. child-fk(%s.%s) = %s, parent = %s.%s",
 								target, args[0], nv[1], args[1], args[2]);
 				} else
-					Utils.warn("Trying resolve FK failed. child-fk = %s.%s, parent = %s.%s,\n"
-							+ "FK config args:\t%s,\ndata cols:\t%s,\ndata row:\t%s.\n%s: %s\n"
+					Utils.warn("Trying resolve FK failed. child-fk = %s.%s, parent = %s.%s,\\n"
+							+ "FK config args:\t%s,\\ndata cols:\t%s,\\ndata row:\t%s.\\n%s: %s\\n"
 							+ "Also note that in current version, only auto key can be referenced and auto resolved.",
 							target, args[0], args[1], args[2], LangExt.toString(args), LangExt.toString(cols),
 							LangExt.toString(row), e.getClass().getName(), e.getMessage());
@@ -1091,7 +1091,7 @@ public class DASemantics {
 	
 					// e.g. not "a_users" presented in row
 					if (rowBusiTbl == null) {
-						Utils.warn("%s is a semantics that is intend to use a table name as business cate, but date to handled doesn't provide the business cate (by %s) .\n" +
+						Utils.warn("%s is a semantics that is intend to use a table name as business cate, but date to handled doesn't provide the business cate (by %s) .\\n" +
 								sm.name(), argus[ixbusiTbl], vbusiTbl, target);
 						continue;
 					}
@@ -1104,7 +1104,7 @@ public class DASemantics {
 	
 					// e.g. no table "a_user2" exists as appointed by row's data.
 					if (stx.colType(vbusiTbl.toString()) == null)
-						Utils.warn("%s is a semantics that is intend to use a table name as business cate, but table %s can't been found.\n" +
+						Utils.warn("%s is a semantics that is intend to use a table name as business cate, but table %s can't been found.\\n" +
 								"Deleting the records of table %s or %s will result in logical error.",
 								sm.name(), argus[ixbusiTbl], vbusiTbl, target);
 						
@@ -1192,7 +1192,7 @@ public class DASemantics {
 			rootpath = args[ixRoot];
 
 			if (LangExt.isblank(args[ixBusiTbl]))
-				Utils.warn("ShExtFile handling special attachment table semantics, which is needing a business category filed in the table.\n" +
+				Utils.warn("ShExtFile handling special attachment table semantics, which is needing a business category filed in the table.\\n" +
 					"But the configuration on the target table (%s) doesn't provide the semantics (business table name field not specified)",
 					target);
 		}
@@ -1266,8 +1266,8 @@ public class DASemantics {
 					if (nv != null && nv[1] != null &&
 						(  nv[1] instanceof String && ((String) nv[1]).length() > 0
 						|| nv[1] instanceof ExprPart && !((ExprPart) nv[1]).isNull() )) {
-						throw new SemanticException("Found the extFile value presented in %s, but updating is not supported by extFile. See:\n" +
-								"https://odys-z.github.io/javadoc/semantic.DA/io/odysz/semantic/DASemantics.smtype.html#extFile\n" +
+						throw new SemanticException("Found the extFile value presented in %s, but updating is not supported by extFile. See:\\n" +
+								"https://odys-z.github.io/javadoc/semantic.DA/io/odysz/semantic/DASemantics.smtype.html#extFile\\n" +
 								"About Updating Handling",
 								args[ixUri]);
 					}
