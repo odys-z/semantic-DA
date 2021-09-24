@@ -1283,18 +1283,13 @@ public class DASemantics {
 				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
 				AnResultset rs;
 				try {
-//					if (trxt.tableMeta(args[2]) == null)
-//						throw new SemanticException("Can't find table %s, which defined by semantics on table %s.\n" +
-//							"It's is required to delete the external file's records.",
-//							target, args[2]);
-
 					rs = (AnResultset) stmt.transc()
 							.select(target)
 							.col(args[ixUri])
 							.where(condt)
-							// This is a special condition guards that only records for attached table's are deleted
-							// .whereEq(args[2], target) - wrong: this only triggered when a_attaches is being deleted
-							.rs(stmt.transc().basictx())
+							// v1.3.0: basictx() created a connection not the same as the visiting one 
+							// .rs(stmt.transc().basictx())
+							.rs(stmt.transc().instancontxt(stx.connId(), usr))
 							.rs(0);
 					rs.beforeFirst();
 
@@ -1353,11 +1348,11 @@ public class DASemantics {
 			if (argss != null && argss.length > 0)
 				for (String[] args : argss)
 					if (args != null && args.length > 1 && args[1] != null) {
-						chkCnt(args, stmt, condt);
+						chkCnt(stx, args, stmt, condt, usr);
 					}
 		}
 
-		private void chkCnt(String[] args, Statement<? extends Statement<?>> stmt, Condit condt)
+		private void chkCnt(ISemantext stx, String[] args, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
 				throws SemanticException {
 			SemanticObject s;
 			try {
@@ -1368,7 +1363,9 @@ public class DASemantics {
 				s = stmt.transc().select(args[1])
 						.col("count(" + args[2] + ")", "cnt")
 						.where(inCondt)
-						.rs(stmt.transc().basictx());
+						// v1.3.0: basictx() created a connection not the same as the visiting one 
+						// .rs(stmt.transc().basictx());
+						.rs(stmt.transc().instancontxt(stx.connId(), usr));
 
 				AnResultset rs = (AnResultset) s.rs(0);
 				rs.beforeFirst().next();
