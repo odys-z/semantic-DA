@@ -343,34 +343,10 @@ public class DASemantics {
 		 * <p>This method only throw an exception currently, applying the semantics predefined as:<br>
 		 * AS all files are treaded as binary file, no file can be modified, only delete then create it makes sense.</p>
 		 * <p>Client should avoid updating an external file will handling business logics.</p>
-		 * <p><b>NOTE:</b><br>This can be changed in the future.</p>
 		 * 
-		 * Attechment info's table sql (mysql)
-		 * <pre>CREATE TABLE `a_attaches` (
-		`attId` varchar(20) COLLATE utf8mb4_bin NOT NULL,
-		`attName` varchar(50) CHARACTER SET utf8mb4 DEFAULT NULL,
-		`subPath` varchar(100) COLLATE utf8mb4_bin DEFAULT NULL,
-		`busiTbl` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
-		`recId` varchar(20) COLLATE utf8mb4_bin DEFAULT NULL,
-		`oper` varchar(20) COLLATE utf8mb4_bin DEFAULT NULL,
-		`optime` datetime DEFAULT NULL,
-		PRIMARY KEY (`attId`)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
-		 * </pre>
+		 * <p><b>NOTE: </b>This semantics only guard the data for updating.</p>
+		 * <p>To replace uri back into file when selecting, use "extfile(uri)" (js) or {@link io.odysz.transact.sql.parts.condition.Funcall#sqlExtFile(ISemantext, String[]) sqlExtFile(uri)} in java. </p>
 		 * 
-		 * sqlite:
-		 * 
-		 * <pre>
-		 * CREATE TABLE a_attaches (
-		attId TEXT NOT NULL,
-		attName TEXT,
-		uri TEXT,
-		busiTbl TEXT,
-		busiId TEXT,
-		oper TEXT,
-		optime DATETIME,
-		CONSTRAINT a_attaches_PK PRIMARY KEY (attId)) ;
-		 * </pre>
 		 */
 		extFile,
 		/**
