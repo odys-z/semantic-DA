@@ -42,7 +42,7 @@ public class DatasetCfg {
 		 */
 		static class Ix {
 			/** filed count: 9 */
-			public static final int count = 9;
+			public static final int count = 10;
 			/** the is-checked boolean field */
 			public static final int chked = 0;
 			/** main table name */
@@ -59,6 +59,9 @@ public class DatasetCfg {
 			public static final int text = 6;
 			/** paging by server */
 			public static final int pageByServer = 8;
+
+			/** tag col: all subtree tag with same label. re-tagged by SmanticTree helper */
+			public static final int tagcol = 9;
 		}
 
 		/**parse tree semantics like ",checked,table,recId id,parentId,itemName text,fullpath,siblingSort,false" to 2d array.
@@ -139,6 +142,10 @@ public class DatasetCfg {
 		
 		public String dbSort() {
 			return alias(Ix.sort);
+		}
+
+		public String dbTagCol() {
+			return alias(Ix.tagcol);
 		}
 		
 		private String[] exp(int ix) {

@@ -393,7 +393,7 @@ public class DASemantics {
 				return fkCateIns;
 			else if ("fp".equals(type) || "f-p".equals(type) || "fullpath".equals(type))
 				return fullpath;
-			else if ("dfltVal".equals(type) || "d-v".equals(type) || "dv".equals(type))
+			else if ("dfltval".equals(type) || "d-v".equals(type) || "dv".equals(type))
 				return defltVal;
 			else if ("pc-del-all".equals(type) || "parent-child-del-all".equals(type)
 					|| "parentchildondel".equals(type))
@@ -1124,11 +1124,12 @@ public class DASemantics {
 				}
 				nv[0] = args[0];
 				if (nv[1] == null)
-					//nv[1] = args[1];
 					nv[1] = stx.composeVal(args[1], target, (String)nv[0]);
 				else if ("".equals(nv[1]) && args[1] != null && !args[1].equals(""))
 					// this is not robust but any better way to handle empty json value?
 					// nv[1] = args[1];
+					nv[1] = stx.composeVal(args[1], target, (String)nv[0]);
+				else if ((nv[1] instanceof ExprPart) && ((ExprPart)nv[1]).isNull())
 					nv[1] = stx.composeVal(args[1], target, (String)nv[0]);
 			}
 		}
