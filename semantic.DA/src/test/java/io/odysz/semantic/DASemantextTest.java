@@ -25,6 +25,7 @@ import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.DASemantics.ShExtFile;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
@@ -721,6 +722,27 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		assertTrue(sqls.get(0).endsWith(String.format(
 				"datetime('now'), 'tester'), ('att2', null, 'test 2', 'deleting', '%s', datetime('now'), 'tester')",
 				s0.resulvedVal("a_attaches", "attId"))));
+	}
+
+	@Test
+	public void testExtfilePathHanler() throws SQLException, TransException {
+		System.setProperty("VOLUME_HOME", "/home/ody/volume");
+
+		String[] args = "$VOLUME_HOME/shares,uri,userId,cate,docName".split(",");
+		
+		// update
+		ShExtFile extfile = new ShExtFile(st, "n_docs", "docId", args);
+		assertEquals(extfile.getAbspath(), "/home/ody/volume/shares");
+		
+		// select
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		ArrayList<String> sqls = new ArrayList<String>(1);
+		st.select("n_docs", "d")
+				.col(Funcall.extFile("uri"), "content")
+				.commit(s0, sqls);
+
+		assertEquals("select uri content from n_docs d", sqls.get(0));
+		// FIXME but post select hanler not tested
 	}
 
 	@Test

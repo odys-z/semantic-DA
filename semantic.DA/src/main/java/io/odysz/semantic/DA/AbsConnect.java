@@ -38,10 +38,12 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 					usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else if (type == dbtype.sqlite) {
-			// Since docker volume can not be mounted in tomcat webapps' sub-folder, file path handling will be replaced with environment variables, 
-			String dbpath = FilenameUtils.concat(xmlDir, EnvHelper.isRelativePath(jdbcUrl) ?
-														jdbcUrl : EnvHelper.replace(jdbcUrl));
-			Utils.logi("Using sqlite db: %s", dbpath);
+			// Since docker volume can not be mounted in tomcat webapps' sub-folder, file path handling can be replaced with environment variables now.
+			Utils.logi("Resolving sqlite db: %s ...", jdbcUrl);
+			String dbpath = FilenameUtils.concat(xmlDir,
+							EnvHelper.isRelativePath(jdbcUrl) ? jdbcUrl : EnvHelper.replaceEnv(jdbcUrl));
+			Utils.logi("\tUsing sqlite db: %s", dbpath);
+
 			return SqliteDriver2.initConnection(String.format("jdbc:sqlite:%s", dbpath),
 					usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}

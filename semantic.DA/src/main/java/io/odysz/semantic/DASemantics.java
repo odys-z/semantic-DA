@@ -9,6 +9,7 @@ import java.util.Map;
 import org.apache.commons.io_odysz.FilenameUtils;
 
 import io.odysz.common.AESHelper;
+import io.odysz.common.EnvHelper;
 import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
@@ -335,14 +336,16 @@ public class DASemantics {
 		 * filename<br>
 		 * on-events: insert, update<br>
 		 * <p>
-		 * args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)<br>
+		 * args<br> 
+		 * 0: uploads (relative or start with $env_var),<br>
+		 * 1: uri,<br>2: busiTbl,<br>3: busiId,<br>4: client-name (optional)<br>
 		 * Handler: {@link DASemantics.ShExtFile} <br>
 		 * 
 		 * <h5>About Updating Handling</h5>
 		 * <p>On updating external files handler.</p>
 		 * <p>This method only throw an exception currently, applying the semantics predefined as:<br>
 		 * AS all files are treaded as binary file, no file can be modified, only delete then create it makes sense.</p>
-		 * <p>Client should avoid updating an external file will handling business logics.</p>
+		 * <p>Client should avoid updating an external file while handling business logics.</p>
 		 * 
 		 * <p><b>NOTE: </b>This semantics only guard the data for updating.</p>
 		 * <p>To replace uri back into file when selecting, use "extfile(uri)" (js) or {@link io.odysz.transact.sql.parts.condition.Funcall#sqlExtFile(ISemantext, String[]) sqlExtFile(uri)} in java. </p>
@@ -1147,7 +1150,7 @@ public class DASemantics {
 	 * 
 	 * @author odys-z@github.com
 	 */
-	static class ShExtFile extends SemanticHandler {
+	static public class ShExtFile extends SemanticHandler {
 		/** Saving root.<br>
 		 * The path rooted from return of {@link ISemantext#relativpath(String...)}. */
 		static final int ixRoot = 0;
@@ -1158,15 +1161,20 @@ public class DASemantics {
 		/** Index of client file name */
 		static final int ixClientName = 4;
 
-		String rootpath = "";
+		String abspath = "";
+		public String getAbspath() { return abspath; }
 
-		ShExtFile(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException, SQLException {
+		public ShExtFile(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException, SQLException {
 			super(trxt, smtype.extFile, tabl, pk, args);
 			delete = true;
 			insert = true;
 			update = true;
 
-			rootpath = args[ixRoot];
+			abspath = args[ixRoot];
+			abspath = EnvHelper.isRelativePath(abspath) ?
+					trxt.basictx().containerRoot() : EnvHelper.replaceEnv(abspath);
+
+			Utils.logi("External file absolute path %s.%s:\n\t%s", tabl, pk, getAbspath());
 
 			if (LangExt.isblank(args[ixBusiTbl]))
 				Utils.warn("ShExtFile handling special attachment table semantics, which is needing a business category filed in the table.\\n" +
@@ -1187,38 +1195,35 @@ public class DASemantics {
 
 						// find business category
 						Object busi = row.get(cols.get(args[ixBusiTbl]))[1];
-						try {
-							// save to WEB-INF/uploads/[busiTbl]/[uri]
-							String relatvpth = stx.relativpath(args[ixRoot], busi.toString());
+						String subpath = busi.toString();
+						if (EnvHelper.isRelativePath(args[ixRoot]))
+							subpath = FilenameUtils.concat(args[ixRoot], busi.toString());
 
-							// can be a string or an auto resulving
-							Object fn = row.get(cols.get(pkField))[1];
+						// can be a string or an auto resulving
+						Object fn = row.get(cols.get(pkField))[1];
 
-							ExtFile f;
-							if (fn instanceof Resulving)
-								f = new ExtFile((Resulving) fn);
-							else
-								f = new ExtFile(new ExprPart(fn.toString()));
-							
-							if (args.length >= ixClientName) {
-								String clientname = args[ixClientName];
-								if (cols.containsKey(clientname)) {
-									clientname = row.get(cols.get(clientname))[1].toString();
-									if (clientname != null)
-										f.filename(clientname);
-								}
+						ExtFile f;
+						if (fn instanceof Resulving)
+							f = new ExtFile((Resulving) fn);
+						else
+							f = new ExtFile(new ExprPart(fn.toString()));
+						
+						if (args.length >= ixClientName) {
+							String clientname = args[ixClientName];
+							if (cols.containsKey(clientname)) {
+								clientname = row.get(cols.get(clientname))[1].toString();
+								if (clientname != null)
+									f.filename(clientname);
 							}
-
-							f.prefixPath(relatvpth)
-								.absPath(stx.containerRoot())
-								// FIXME performance problem here, add a class for binary value?
-								.b64(nv[1].toString());
-							// nv[1] = f;
-							nv = new Object[] {nv[0], f};
-							row.set(cols.get(args[ixUri]), nv);
-						} catch (TransException e) {
-							e.printStackTrace();
 						}
+
+						f.prefixPath(subpath)
+							.absRootPath(abspath)
+							// FIXME performance problem here, add a class for binary value?
+							.b64(nv[1].toString());
+						// nv[1] = f;
+						nv = new Object[] {nv[0], f};
+						row.set(cols.get(args[ixUri]), nv);
 					}
 				}
 			}
@@ -1276,7 +1281,9 @@ public class DASemantics {
 							if (LangExt.isblank(uri, "\\.*", "\\**", "\\s*"))
 								continue;
 
-							uri = FilenameUtils.concat(stx.containerRoot(), uri);
+							if (EnvHelper.isRelativePath(args[ixRoot]))
+								uri = FilenameUtils.concat(stx.containerRoot(), uri);
+							else uri = EnvHelper.unreplaceEnv(uri, args[ixRoot]);
 
 							if (verbose)
 								Utils.warn("deleting %s", uri);
