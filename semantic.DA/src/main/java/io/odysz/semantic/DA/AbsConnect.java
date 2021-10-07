@@ -11,7 +11,7 @@ import javax.naming.NamingException;
 
 import org.apache.commons.io_odysz.FilenameUtils;
 
-import io.odysz.common.EnvHelper;
+import io.odysz.common.EnvPath;
 import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
@@ -40,8 +40,9 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 		else if (type == dbtype.sqlite) {
 			// Since docker volume can not be mounted in tomcat webapps' sub-folder, file path handling can be replaced with environment variables now.
 			Utils.logi("Resolving sqlite db: %s ...", jdbcUrl);
-			String dbpath = FilenameUtils.concat(xmlDir,
-							EnvHelper.isRelativePath(jdbcUrl) ? jdbcUrl : EnvHelper.replaceEnv(jdbcUrl));
+//			String dbpath = FilenameUtils.concat(xmlDir,
+//							EnvHelper.isRelativePath(jdbcUrl) ? jdbcUrl : EnvHelper.replaceEnv(jdbcUrl));
+			String dbpath = FilenameUtils.concat(xmlDir, EnvPath.replaceEnv(jdbcUrl));
 			Utils.logi("\tUsing sqlite db: %s", dbpath);
 
 			return SqliteDriver2.initConnection(String.format("jdbc:sqlite:%s", dbpath),

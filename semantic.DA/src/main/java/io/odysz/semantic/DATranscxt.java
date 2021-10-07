@@ -43,7 +43,10 @@ public class DATranscxt extends Transcxt {
 	protected static String cfgroot = ""; 
 	static String runtimepath = "";
 
-	/** configuration's root */
+	/** configuration's root
+	 * @param cfgRoot
+	 * @param runtimeRoot absolute path to current dir (test) or container root (web app)
+	 */
 	public static void configRoot(String cfgRoot, String runtimeRoot) {
 		cfgroot = cfgRoot;
 		runtimepath = runtimeRoot;
@@ -195,9 +198,10 @@ public class DATranscxt extends Transcxt {
 
 //	protected String basiconnId;
 //	public String basiconnId() { return basiconnId; }
-	protected String sysConnId;
-	public String getSysConnId() { return sysConnId; }
-	public String getConnId(String funcUri) { return "TODO ..."; }
+	// protected String sysConnId;
+	public String getSysConnId() { return Connects.defltConn(); }
+
+	// public String getConnId(String funcUri) { return "TODO ..."; }
 
 	/**<p>Create a transact builder with basic DASemantext instance.</p>
 	 * <p>If it's a null configuration, the semantics can not be used to resulving semantics between records,

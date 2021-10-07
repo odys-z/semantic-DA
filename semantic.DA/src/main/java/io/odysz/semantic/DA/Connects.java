@@ -276,7 +276,7 @@ public class Connects {
 	
 	public static int[] commit(String conn, IUser usr, ArrayList<String> sqls, int... flags) throws SQLException, TransException {
 		if (srcs == null || !srcs.containsKey(conn))
-			throw new SQLException("Can't find connection %s.", conn);
+			throw new SemanticException("Can't find connection %s.", conn);
 		try {
 			return srcs.get(conn).commit(usr, sqls, flags.length > 0 ? flags[0] : flag_nothing);
 		} catch (NamingException e) {
@@ -326,6 +326,8 @@ public class Connects {
 		if (metas == null)
 			metas = new HashMap<String, HashMap<String, TableMeta>>(srcs.size());
 
+		if (connId == null)
+			connId = defltConn;
 		if (!metas.containsKey(connId))
 			metas.put(connId, loadMeta(connId));
 		if (!metas.containsKey(connId))
@@ -339,6 +341,8 @@ public class Connects {
 	 * @return smtcs (e.g. semantics.xml)
 	 */
 	public static String getSmtcsPath(String conn) {
+		if (conn == null)
+			conn = defltConn;
 		return FilenameUtils.concat(workingDir,
 				srcs == null || !srcs.containsKey(conn) ? null
 				: srcs.get(conn).prop("smtcs"));

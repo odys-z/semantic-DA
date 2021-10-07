@@ -6,10 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.io_odysz.FilenameUtils;
-
 import io.odysz.common.AESHelper;
-import io.odysz.common.EnvHelper;
+import io.odysz.common.EnvPath;
 import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
@@ -1153,7 +1151,7 @@ public class DASemantics {
 	static public class ShExtFile extends SemanticHandler {
 		/** Saving root.<br>
 		 * The path rooted from return of {@link ISemantext#relativpath(String...)}. */
-		static final int ixRoot = 0;
+		public static final int ixRoot = 0;
 		/** Index of Path field */
 		static final int ixUri = 1;
 		static final int ixBusiTbl = 2;
@@ -1161,8 +1159,8 @@ public class DASemantics {
 		/** Index of client file name */
 		static final int ixClientName = 4;
 
-		String abspath = "";
-		public String getAbspath() { return abspath; }
+//		String abspath = "";
+//		public String getAbspath() { return abspath; }
 
 		public ShExtFile(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException, SQLException {
 			super(trxt, smtype.extFile, tabl, pk, args);
@@ -1170,11 +1168,11 @@ public class DASemantics {
 			insert = true;
 			update = true;
 
-			abspath = args[ixRoot];
-			abspath = EnvHelper.isRelativePath(abspath) ?
-					trxt.basictx().containerRoot() : EnvHelper.replaceEnv(abspath);
+//			abspath = args[ixRoot];
+//			abspath = EnvHelper.isRelativePath(abspath) ?
+//					trxt.basictx().containerRoot() : EnvHelper.replaceEnv(abspath);
 
-			Utils.logi("External file absolute path %s.%s:\n\t%s", tabl, pk, getAbspath());
+//			Utils.logi("External file absolute path %s.%s:\n\t%s", tabl, pk, getAbspath());
 
 			if (LangExt.isblank(args[ixBusiTbl]))
 				Utils.warn("ShExtFile handling special attachment table semantics, which is needing a business category filed in the table.\\n" +
@@ -1196,17 +1194,17 @@ public class DASemantics {
 						// find business category
 						Object busi = row.get(cols.get(args[ixBusiTbl]))[1];
 						String subpath = busi.toString();
-						if (EnvHelper.isRelativePath(args[ixRoot]))
-							subpath = FilenameUtils.concat(args[ixRoot], busi.toString());
+//						if (EnvHelper.isRelativePath(args[ixRoot]))
+//							subpath = FilenameUtils.concat(args[ixRoot], busi.toString());
 
-						// can be a string or an auto resulving
+						// can be a string or an auto resulving (fk is handled before extfile)
 						Object fn = row.get(cols.get(pkField))[1];
 
 						ExtFile f;
 						if (fn instanceof Resulving)
-							f = new ExtFile((Resulving) fn);
+							f = new ExtFile((Resulving) fn, args[ixRoot], stx.containerRoot());
 						else
-							f = new ExtFile(new ExprPart(fn.toString()));
+							f = new ExtFile(new ExprPart(fn.toString()), args[ixRoot], stx.containerRoot());
 						
 						if (args.length >= ixClientName) {
 							String clientname = args[ixClientName];
@@ -1217,8 +1215,8 @@ public class DASemantics {
 							}
 						}
 
-						f.prefixPath(subpath)
-							.absRootPath(abspath)
+						f	.prefixPath(subpath)
+//							.absRootPath(abspath)
 							// FIXME performance problem here, add a class for binary value?
 							.b64(nv[1].toString());
 						// nv[1] = f;
@@ -1281,9 +1279,10 @@ public class DASemantics {
 							if (LangExt.isblank(uri, "\\.*", "\\**", "\\s*"))
 								continue;
 
-							if (EnvHelper.isRelativePath(args[ixRoot]))
-								uri = FilenameUtils.concat(stx.containerRoot(), uri);
-							else uri = EnvHelper.unreplaceEnv(uri, args[ixRoot]);
+//							if (EnvHelper.isRelativePath(args[ixRoot]))
+//								uri = FilenameUtils.concat(stx.containerRoot(), uri);
+//							else uri = EnvHelper.unreplaceEnv(uri, args[ixRoot]);
+							uri = EnvPath.decodeUri(stx.containerRoot(), uri);
 
 							if (verbose)
 								Utils.warn("deleting %s", uri);
@@ -1428,7 +1427,10 @@ public class DASemantics {
 		@Override
 		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols,
 				IUser usr) throws SemanticException {
-			if (cols.containsKey(colIv)) {
+			if (cols.containsKey(colCipher)) {
+				if (!cols.containsKey(colIv))
+					throw new SemanticException("Can't find IV columm: %s", colIv);
+
 				Object[] ivB64 = row.get(cols.get(colIv));
 				Object[] cipherB64 = row.get(cols.get(colCipher));
 				if (ivB64 != null && !AbsPart.isblank(ivB64[1])) {
@@ -1447,6 +1449,14 @@ public class DASemantics {
 			}
 		}
 
+		/**Decrypt with decryptK, then protect with my root key.
+		 * @param stx
+		 * @param pB64
+		 * @param ivB64
+		 * @param decryptK
+		 * @return cipher of null for failed
+		 * @throws SemanticException
+		 */
 		private Object[] dencrypt(Statement<?> stx, String pB64, String ivB64, String decryptK) throws SemanticException {
 			try {
 				// String decryptK = (String) usr.sessionKey();

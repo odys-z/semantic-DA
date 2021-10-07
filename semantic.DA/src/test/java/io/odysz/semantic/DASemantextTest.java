@@ -20,6 +20,7 @@ import org.xml.sax.SAXException;
 
 import io.odysz.common.AESHelper;
 import io.odysz.common.DateFormat;
+import io.odysz.common.EnvPath;
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
@@ -51,18 +52,19 @@ public class DASemantextTest {
 	private static HashMap<String, TableMeta> metas;
 
 	private static String rtroot = "src/test/res/";
+	private static String runtimepath;
 
 	static {
 		try {
 			Utils.printCaller(false);
 
 			File file = new File("src/test/res");
-			String path = file.getAbsolutePath();
-			Utils.logi(path);
-			Connects.init(path);
+			runtimepath = file.getAbsolutePath();
+			Utils.logi(runtimepath);
+			Connects.init(runtimepath);
 
 			// load metas, then semantics
-			DATranscxt.configRoot(rtroot, rtroot);
+			DATranscxt.configRoot(rtroot, runtimepath);
 			String rootkey = System.getProperty("rootkey");
 			DATranscxt.key("user-pswd", rootkey);
 
@@ -725,23 +727,49 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	}
 
 	@Test
-	public void testExtfilePathHanler() throws SQLException, TransException {
+	public void testExtfilePathHandler() throws SQLException, TransException {
 		System.setProperty("VOLUME_HOME", "/home/ody/volume");
 
 		String[] args = "$VOLUME_HOME/shares,uri,userId,cate,docName".split(",");
 		
 		// update
-		ShExtFile extfile = new ShExtFile(st, "n_docs", "docId", args);
-		assertEquals(extfile.getAbspath(), "/home/ody/volume/shares");
-		
-		// select
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
-		ArrayList<String> sqls = new ArrayList<String>(1);
-		st.select("n_docs", "d")
-				.col(Funcall.extFile("uri"), "content")
-				.commit(s0, sqls);
+//		ShExtFile extfile = new ShExtFile(st, "n_docs", "docId", args);
+//		assertEquals(extfile.getAbspath(), "/home/ody/volume/shares");
 
-		assertEquals("select uri content from n_docs d", sqls.get(0));
+		String encoded = EnvPath.encodeUri(args[ShExtFile.ixRoot], "ody", "000001 f.txt");
+		Utils.logi(encoded);
+		assertEquals("$VOLUME_HOME/shares/ody/000001 f.txt", encoded);
+
+		String abspath = EnvPath.decodeUri(null, encoded);
+		Utils.logi(abspath);
+		assertEquals("/home/ody/volume/shares/ody/000001 f.txt", abspath);
+		
+		args = "upload,uri,userId,cate,docName".split(",");
+		encoded = EnvPath.encodeUri(args[ShExtFile.ixRoot], "admin", "000002 f.txt");
+		Utils.logi(encoded);
+		assertEquals("upload/admin/000002 f.txt", encoded);
+
+		abspath = EnvPath.decodeUri(rtroot, encoded);
+		Utils.logi(abspath);
+		assertEquals("src/test/res/upload/admin/000002 f.txt", abspath);
+
+		args = "/home/ody/upload,uri,userId,cate,docName".split(",");
+		encoded = EnvPath.encodeUri(args[ShExtFile.ixRoot], "admin", "000003 f.txt");
+		Utils.logi(encoded);
+		assertEquals("/home/ody/upload/admin/000003 f.txt", encoded);
+
+		abspath = EnvPath.decodeUri(rtroot, encoded);
+		Utils.logi(abspath);
+		assertEquals("/home/ody/upload/admin/000003 f.txt", abspath);
+
+//		// select
+//		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+//		ArrayList<String> sqls = new ArrayList<String>(1);
+//		st.select("n_docs", "d")
+//				.col(Funcall.extFile("uri"), "content")
+//				.commit(s0, sqls);
+//
+//		assertEquals("select uri content from n_docs d", sqls.get(0));
 		// FIXME but post select hanler not tested
 	}
 
@@ -750,7 +778,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		String flag = DateFormat.formatime(new Date());
 		String usrName = "attached " + flag;
 
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, runtimepath);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_users") // with default value: pswd = '123456'
 			.nv("userName", usrName)
@@ -795,7 +823,10 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// AnResultset rs = Connects.select(sqls.get(0));
 
 		rs.beforeFirst().next(); // uri is relative path
-		String fp = FilenameUtils.concat(rtroot, rs.getString("uri"));
+
+		String fp = EnvPath.decodeUri(rtroot, rs.getString("uri"));
+		assertEquals(FilenameUtils.concat(rtroot, rs.getString("uri")), fp);
+
 		File f = new File(fp);
 		assertTrue(f.exists());
 		
