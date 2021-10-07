@@ -732,44 +732,26 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 
 		String[] args = "$VOLUME_HOME/shares,uri,userId,cate,docName".split(",");
 		
-		// update
-//		ShExtFile extfile = new ShExtFile(st, "n_docs", "docId", args);
-//		assertEquals(extfile.getAbspath(), "/home/ody/volume/shares");
-
 		String encoded = EnvPath.encodeUri(args[ShExtFile.ixRoot], "ody", "000001 f.txt");
-		Utils.logi(encoded);
 		assertEquals("$VOLUME_HOME/shares/ody/000001 f.txt", encoded);
 
 		String abspath = EnvPath.decodeUri(null, encoded);
-		Utils.logi(abspath);
 		assertEquals("/home/ody/volume/shares/ody/000001 f.txt", abspath);
 		
 		args = "upload,uri,userId,cate,docName".split(",");
 		encoded = EnvPath.encodeUri(args[ShExtFile.ixRoot], "admin", "000002 f.txt");
-		Utils.logi(encoded);
 		assertEquals("upload/admin/000002 f.txt", encoded);
 
 		abspath = EnvPath.decodeUri(rtroot, encoded);
-		Utils.logi(abspath);
 		assertEquals("src/test/res/upload/admin/000002 f.txt", abspath);
 
 		args = "/home/ody/upload,uri,userId,cate,docName".split(",");
 		encoded = EnvPath.encodeUri(args[ShExtFile.ixRoot], "admin", "000003 f.txt");
-		Utils.logi(encoded);
 		assertEquals("/home/ody/upload/admin/000003 f.txt", encoded);
 
 		abspath = EnvPath.decodeUri(rtroot, encoded);
-		Utils.logi(abspath);
 		assertEquals("/home/ody/upload/admin/000003 f.txt", abspath);
 
-//		// select
-//		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
-//		ArrayList<String> sqls = new ArrayList<String>(1);
-//		st.select("n_docs", "d")
-//				.col(Funcall.extFile("uri"), "content")
-//				.commit(s0, sqls);
-//
-//		assertEquals("select uri content from n_docs d", sqls.get(0));
 		// FIXME but post select hanler not tested
 	}
 

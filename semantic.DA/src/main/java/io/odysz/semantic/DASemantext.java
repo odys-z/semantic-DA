@@ -41,7 +41,7 @@ import io.odysz.transact.x.TransException;
  * When composing SQL like select statement, if the results needing to be paged at server side,
  * the paging sql statement is different for different DB.
  * But semantic-transact don't care DB type or JDBC connection, so it's the context that will handling this.
- * See the {@link #pageSql(Stream, int, int)}.</p>
+ * See the {@link #pageSql(String, int, int)}.</p>
  *
  * @author odys-z@github.com
  */

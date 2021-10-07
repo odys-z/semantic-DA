@@ -1429,23 +1429,25 @@ public class DASemantics {
 				IUser usr) throws SemanticException {
 			if (cols.containsKey(colCipher)) {
 				if (!cols.containsKey(colIv))
-					throw new SemanticException("Can't find IV columm: %s", colIv);
+					Utils.warn("Can't find IV columm: %s (for encrypt column %s)\n\t- possible 1. wrong iv config; 2. configured default encrypted column value.",
+							colIv, colCipher);
 
-				Object[] ivB64 = row.get(cols.get(colIv));
-				Object[] cipherB64 = row.get(cols.get(colCipher));
-				if (ivB64 != null && !AbsPart.isblank(ivB64[1])) {
-					// cipher col
-					String decryptK = usr.sessionId();
-					Object[] civ = dencrypt(insrt, cipherB64[1].toString(), ivB64[1].toString(), decryptK);
-					// [0] cipher, [1] iv
-					if (civ != null) {
-						cipherB64[1] = stx.composeVal(civ[0], target, colCipher);
-						ivB64[1] = stx.composeVal(civ[1], target, colIv);
+				else {
+					Object[] ivB64 = row.get(cols.get(colIv));
+					Object[] cipherB64 = row.get(cols.get(colCipher));
+					if (ivB64 != null && !AbsPart.isblank(ivB64[1])) {
+						// cipher col
+						String decryptK = usr.sessionId();
+						Object[] civ = dencrypt(insrt, cipherB64[1].toString(), ivB64[1].toString(), decryptK);
+						// [0] cipher, [1] iv
+						if (civ != null) {
+							cipherB64[1] = stx.composeVal(civ[0], target, colCipher);
+							ivB64[1] = stx.composeVal(civ[1], target, colIv);
+						}
+						else Utils.warn("Decrypt then ecrypt failed. target %s, col: %s, (client) decipher key: %s",
+								target, colCipher, decryptK);
 					}
-					else Utils.warn("Decrypt then ecrypt failed. target %s, col: %s, client key: %s",
-							target, colCipher, decryptK);
 				}
-				// else: the client don't like to touch this sensitive field
 			}
 		}
 
