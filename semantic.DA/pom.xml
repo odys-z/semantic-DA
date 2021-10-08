@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.odys-z</groupId>
   <artifactId>semantic.DA</artifactId>
-  <version>1.3.1-SNAPSHOT</version>
+  <version>1.3.1</version>
   <packaging>jar</packaging>
   <name>semantic.DA</name>
   <description>JDBC Data Access with Semantics Support</description>
@@ -54,7 +54,7 @@
 			to update immediately. -->
 	    <groupId>io.github.odys-z</groupId>
 	    <artifactId>semantics.transact</artifactId>
-	    <version>1.2.1-SNAPSHOT</version>
+	    <version>1.2.1</version>
 	</dependency>
 
 	<dependency>
