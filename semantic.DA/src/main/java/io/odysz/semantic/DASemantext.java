@@ -353,10 +353,10 @@ end;
 				@Override public TableMeta meta() { return null; }
 				@Override public String uid() { return "sqlite-dumy"; }
 				@Override public IUser logAct(String funcName, String funcId) { return null; }
-				@Override public IUser notify(Object note) throws TransException { return null; }
+				@Override public IUser notify(Object note) throws TransException { return this; }
 				@Override public List<Object> notifies() { return null; }
 				@Override public long touchedMs() { return 0; }
-				@Override public IUser sessionKey(String ssId) { return null; }
+				@Override public IUser sessionKey(String ssId) { return this; }
 				@Override public String sessionKey() { return null; } };
 
 		// each table has a lock.
