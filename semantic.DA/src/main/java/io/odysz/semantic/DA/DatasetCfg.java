@@ -262,6 +262,9 @@ public class DatasetCfg {
 			return node == null ? null : ((List<?>) node.get("children")).get(cx);
 		}
 
+		/** node: { children: arrChildren&lt;List&gt; }
+		 * @param arrChildren
+		 */
 		public void children(List<Object> arrChildren) {
 			put("children", arrChildren);
 		}
@@ -458,22 +461,24 @@ public class DatasetCfg {
 
 	/**Create a SemanticObject for tree node with current rs row.<br>
 	 * TODO should this moved to TreeSemantics?
-	 * @param treeSemtcs
+	 * @param treeSmx
 	 * @param rs
 	 * @param level
 	 * @return {@link SemanticObject} of node
 	 * @throws SQLException
 	 */
-	private static AnTreeNode formatSemanticNode(TreeSemantics treeSemtcs,
+	private static AnTreeNode formatSemanticNode(TreeSemantics treeSmx,
 			AnResultset rs, int level) throws SQLException {
 		// Map<String, Object> node = new HashMap<String, Object>();
-		AnTreeNode node = new AnTreeNode(rs.getString(TreeSemantics.Ix.recId),
-								rs.getString(TreeSemantics.Ix.parent), level);
+//		AnTreeNode node = new AnTreeNode(rs.getString(TreeSemantics.Ix.recId),
+//								rs.getString(TreeSemantics.Ix.parent), level);
+		AnTreeNode node = new AnTreeNode(rs.getString(treeSmx.dbRecId()),
+								rs.getString(treeSmx.dbParent()), level);
 
 		for (int i = 1;  i <= rs.getColCount(); i++) {
 			String v = rs.getString(i);
 			String col = rs.getColumnName(i);
-			col = treeSemtcs.alias(col);
+			col = treeSmx.alias(col);
 			if (v != null)
 				node.put(col,  v);
 		}
@@ -508,14 +513,19 @@ public class DatasetCfg {
 				return childrenArray;
 			}
 
+			// next child & it's subtree
 			AnTreeNode child = formatSemanticNode(sm, rs, level + 1);
-
 			List<Object> subOrg = buildSubTree(sm, child,
 					rs.getString(sm.dbRecId()), rs, level + 1);
 
 			if (subOrg.size() > 0)
-				root.children(childrenArray);
+				child.children(subOrg);
+
+//			if (childrenArray.size() > 0)
+//				root.children(childrenArray);
 			childrenArray.add(child);
+
+			root.children(childrenArray);
 		}
 		return childrenArray;
 	}
@@ -563,24 +573,7 @@ public class DatasetCfg {
 		 * @throws SemanticException can't find correct sql version 
 		 */
 		public String getSql(dbtype driver) throws SemanticException {
-			/* v1.3.0 change: tolerate configuration as mysql the defalt sql
-			 * Don't delete this until tested with oracle
-			 * TODO doc task
-			if (driver == null)
-				return null;
-			if (driver == dbtype.oracle)
-				return sqls[ixOrcl];
-			else if (driver == dbtype.ms2k)
-				return sqls[ixMs2k];
-			else if (driver == dbtype.sqlite)
-				return sqls[ixSqlit];
-			else if (driver == dbtype.mysql)
-				return sqls[ixMysql];
-			else
-				throw new SemanticException("unsupported db type: %s", driver);
-			*/
-
-			// v1.3.0 change: tolerate configuration as mysql the defalt sql
+			// v1.3.0 change: tolerate configuration as mysql the defalt sql (oracle brach tested)
 			if (driver == null)
 				return null;
 			if (driver == dbtype.oracle)
@@ -593,8 +586,6 @@ public class DatasetCfg {
 				return sqls[ixMysql];
 			else
 				throw new SemanticException("unsupported db type: %s", driver);
-
-
 		}
 
 		public String sk() {

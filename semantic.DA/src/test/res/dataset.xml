@@ -28,7 +28,16 @@
   		<sqlit>SELECT domainId id, parentId, domainName, domainValue, sort, "others", fullpath, stamp, upstamp
   			FROM a_domain order by fullpath;
   		</sqlit>
-  		<s-tree>checked,ir_workflow,id idVue,parentId,text,,,false</s-tree>
+  		<s-tree>checked,a_domain,id,parentId,fullpath,sort,domainName text,children,false</s-tree>
 	</c>
+	
+	<c>
+		<sk>tree-org</sk>
+  		<orcl>select t.orgid "orgId",t.PARENTID "parentId",t.sort "sort",t.orgName "orgName",SUBSTR(t.full_path,2) "fullpath" from (SELECT a.ORGID,a.ORGNAME,a.SORT, a.PARENTID,SYS_CONNECT_BY_PATH(a.ORGID, '.') full_path	
+			from D_ORG a start with a.PARENTID is null connect by prior a.ORGID=a.PARENTID) t ORDER BY full_path
+  		</orcl>
+  		<sqlit>select t.orgId, t.parent, t.sort, t.orgName, fullpath from a_orgs t order by fullpath</sqlit>
+  		<s-tree>,d_orgs,orgId nodeId,parent,fullpath,sort,orgName text,childen,false</s-tree>
+  	</c>
 </t>
 </dataset>
