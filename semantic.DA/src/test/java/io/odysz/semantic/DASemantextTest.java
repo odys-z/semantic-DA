@@ -23,7 +23,6 @@ import io.odysz.common.DateFormat;
 import io.odysz.common.EnvPath;
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
-import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DASemantics.ShExtFile;
@@ -766,7 +765,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.nv("userName", usrName)
 			.nv("roleId", "attach-01")
 			.nv("orgId", "R.C.")
-			.nv("birthday", Funcall.toDate(dbtype.sqlite, "1866-12-12"))
+			.nv("birthday", Funcall.toDate("1866-12-12"))
 			.post(st.insert("a_attaches")
 					.nv("attName", "Sun Yet-sen Portrait.jpg")  // name: portrait
 					.nv("busiTbl", "a_users")
