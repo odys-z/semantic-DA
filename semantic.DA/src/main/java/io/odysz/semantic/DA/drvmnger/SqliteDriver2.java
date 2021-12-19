@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.sqlite.JDBC;
+import org.sqlite.SQLiteConfig;
 
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
@@ -106,7 +107,11 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 			inst.jdbcUrl = jdbc;
 			inst.userName = user;
 			inst.pswd = psword;
-			inst.conn = DriverManager.getConnection(jdbc, user, psword);
+//			inst.conn = DriverManager.getConnection(jdbc, user, psword);
+			
+			SQLiteConfig cfg = new SQLiteConfig();
+			cfg.setEncoding(SQLiteConfig.Encoding.UTF8);
+			inst.conn = DriverManager.getConnection(jdbc, cfg.toProperties());
 			return inst;
 	}
 	
