@@ -354,59 +354,8 @@ public class CpConnect extends AbsConnect<CpConnect> {
 		    return s;
 	}
 
-//	public String pageSql(String sql, int page, int size) {
-//		int r1 = page * size;
-//		int r2 = r1 + size;
-//		if (driverType.equalsIgnoreCase("mysql")) {
-//			String s2 = String.format(
-//					"select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s",
-//					sql, r1, r2);
-//			return s2;
-//		}
-//		else if (driverType.equalsIgnoreCase("orcl") || driverType.equalsIgnoreCase("oracle"))
-//			return String.format("select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s",
-//					sql, r2, r1);
-////			return String.format("select * from (%s) t where rownum > %d and rownum <= %s",
-////					sql, r1, r2);
-//		else if (driverType.equalsIgnoreCase("mssql2k"))
-//			return String.format("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= 1 and rownum <= 2;" + 
-//					sql, r1, r2);
-//		else return sql;
-//	}
-
-	/**Only oracle has the mappings (inited by constructor).
-	 * @return mappings
-	public HashMap<String,HashMap<String,String>> mappings() {
-		return mappings;
-	}
-	 */
-
-	/**TODO should this been moved to semantics handling?
-	 * @return stamp
-	 * @throws SQLException
-	public String getTimestamp() throws SQLException {
-//		String sql = null;
-//		if (driverType == JDBCType.mysql) {
-//			sql = "select now()";
-//		}
-//		else if (driverType == JDBCType.oracle)
-//			sql = "select sysDate";
-//		else if (driverType == JDBCType.ms2k)
-//			sql = "select now()";
-//		else if (driverType == JDBCType.sqlite)
-//			sql = "select DATETIME('now')";
-//		
-//		AnResultset rs = select(sql, Connects.flag_nothing);
-//		if (rs.next())
-//			return rs.getString(1);
-//		else
-			return null;
-	}
-	 */
-
 	@Override
 	public int[] commit(IUser log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
-		// return null;
 		throw new SQLException ("Shouldn't reach here!");
 	}
 }
