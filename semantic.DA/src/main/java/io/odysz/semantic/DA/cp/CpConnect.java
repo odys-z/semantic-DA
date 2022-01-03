@@ -26,6 +26,11 @@ import io.odysz.semantics.IUser;
 // see https://docs.oracle.com/database/121/JAJDB/oracle/sql/CLOB.html 
 //import oracle.sql.CLOB;
 
+
+/**Pooled connection manager.
+ * @author Ody
+ *
+ */
 public class CpConnect extends AbsConnect<CpConnect> {
 	/**Use this for querying database without help of sql builder (which need query meta data first with this method).
 	 * @param src name that matches context.xml/Resource/name, like 'inet' etc.
@@ -88,55 +93,6 @@ public class CpConnect extends AbsConnect<CpConnect> {
 		this.printSql = printSql;
 	}
 	
-//	/**Scanning map file, collect any text field: [tabl, [field, lob]]
-//	 * @param mappings
-//	 * @return
-//	 * @throws SAXException
-//	 */
-//	private static HashMap<String, HashMap<String, OracleLob>> buildClobMeta(LinkedHashMap<String, XMLTable> mappings) throws SAXException {
-//		if (mappings == null) return null;
-//		HashMap<String, HashMap<String, OracleLob>> lobMetas = new HashMap<String, HashMap<String, OracleLob>>();
-//		XMLTable mainxt = mappings.get("tabls");
-//		mainxt.beforeFirst();
-//		while (mainxt.next()) {
-//			String tid = mainxt.getString("u");
-//			String logictid = mainxt.getString("b");
-//			String pk = null;
-//			XMLTable xt = mappings.get(tid);
-//			xt.beforeFirst();
-//			ArrayList<String> lobCols = null;
-//			while (xt.next()) {
-//				// 0; idfield, 1; lobfield
-//				if ("text".equals(xt.getString("tn").toLowerCase())) {
-//					if (lobCols == null)
-//						lobCols = new ArrayList<String>(1); 
-//					lobCols.add(xt.getString("f"));
-//				}
-//				else if ("PRI".equals(xt.getString("k"))) {
-//					pk = xt.getString("f");
-//				}
-//			}
-//			if (lobCols != null) {
-//				for (String lobCol : lobCols) {
-//					HashMap<String, OracleLob> tabMeta = lobMetas.get(tid);
-//					if (tabMeta == null) {
-//						tabMeta = new HashMap<String, OracleLob>(1);
-//						lobMetas.put(logictid, tabMeta);
-//					}
-//					OracleLob orclob = OracleLob.template(tid, pk, lobCol); 
-//					tabMeta.put(lobCol, orclob);
-//				}
-//			}
-//			xt.beforeFirst();
-//		}
-//		mainxt.beforeFirst();
-//		return lobMetas;
-//	}
-
-//	private boolean _isOrcl;
-//	
-//	public boolean isOracle() { return _isOrcl; }
-	
 	/** e.g. ["a_logs" ["TXT",  CLOB]]*/
 	private HashMap<String, HashMap<String, OracleLob>> clobMeta;
 
@@ -145,19 +101,35 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	public HashMap<String, HashMap<String, OracleLob>> getlobMeta() { return clobMeta; }
 	
 	/**Get Connection
+	 * 
+	 * <h4>Issue with Mysql 8.0.2:</h4>
+	 * For mysql 8.0.0, the SSL connection is enabled by default. And got SSL connection exception:<pre>
+	 javax.net.ssl.SSLHandshakeException: Remote host closed connection during handshake
+	 Caused by: java.io.EOFException: SSL peer shut down incorrectly</pre>
+	 * Probable caused by no certificate?<br>
+	 * To solve this temporarily, for pooled connect, in server.xml (tomcat), set connectionProperties="useSSL=false",<pre>
+	 &lt;Resource auth="Container" 
+	   	connectionProperties="useUnicode=yes;characterEncoding=utf8;autoReconnect=true;autoReconnectForPools=true;useSSL=false;enabledTLSProtocols=TLSv1,TLSv1.1,TLSv1.2"
+  		driverClassName="com.mysql.cj.jdbc.Driver"
+  		maxActive="10" maxIdle="3" maxWait="10000"
+  		global="jdbc/db-name"
+  		name="jdbc/db-name" password="..."
+  		type="javax.sql.DataSource"
+  		url="jdbc:mysql://host:3306/db-name"
+  		username="..."/&gt;</pre>
+	 * 
+	 * 
 	 * @return connection
 	 * @throws SQLException database access error occurs while get connection. See {@link DataSource#getConnection()}.
 	 * @throws NamingException lookup connection failed
 	 */
 	protected Connection getConnection () throws SQLException, NamingException {
 		if (ds == null) {
-			InitialContext ctx;
-//			try {
-				ctx = new InitialContext();
-				ds = (DataSource)ctx.lookup(srcId);
-//			} catch (NamingException e) {
-//				throw new SQLException(e.getMessage());
-//			}
+			System.out.print(srcId);
+			System.setProperty("https.protocols", "TLSv1 TLSv1.1 TLSv1.2 TLSv1.3");
+			
+			InitialContext ctx = new InitialContext();
+			ds = (DataSource)ctx.lookup(srcId);
 		}
         Connection conn = ds.getConnection();
         return conn;
