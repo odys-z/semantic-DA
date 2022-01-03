@@ -118,6 +118,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
   		url="jdbc:mysql://host:3306/db-name"
   		username="..."/&gt;</pre>
 	 * 
+	 * See <a href='https://stackoverflow.com/a/51365287/7362888'>This</a>.
 	 * 
 	 * @return connection
 	 * @throws SQLException database access error occurs while get connection. See {@link DataSource#getConnection()}.
@@ -383,7 +384,6 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	/**TODO should this been moved to semantics handling?
 	 * @return stamp
 	 * @throws SQLException
-	 */
 	public String getTimestamp() throws SQLException {
 //		String sql = null;
 //		if (driverType == JDBCType.mysql) {
@@ -402,6 +402,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 //		else
 			return null;
 	}
+	 */
 
 	@Override
 	public int[] commit(IUser log, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
