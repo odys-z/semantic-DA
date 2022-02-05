@@ -39,8 +39,8 @@ import io.odysz.transact.x.TransException;
  * The {@link DASemantext} use this to manage semantics configuration for
  * resolving data semantics.
  * </p>
- * DASemantics is basically a {@link SemanticHandler}'s container, with subclass
- * handlers handling different semantics (processing values).
+ * DASemantics is basically a semantics handler, {@link SemanticHandler} 's container,
+ * with subclass handlers handling different semantics (processing values).
  * </p>
  * <h3>What's DASemantics for?</h3>
  * <p>
@@ -184,7 +184,7 @@ public class DASemantics {
 		 * Only referenced auto pk can be resolved.</p>
 		 * <p>About Merged Child Table:<br>
 		 * Take the <i>attachements</i> table for external file's information for example,
-		 * the a_attaches(See
+		 * the a_attaShExtFileches(See
 		 * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/res'>
 		 * sqlite test DB</a>) has a field, named 'busiId', referencing multiple parent table.
 		 * The parent table is distinguished with filed busiTbl.
@@ -211,7 +211,7 @@ public class DASemantics {
 		 * <pre>args: [pc-define, ...], where pc-define is a space sperated strings:
 		pc-define[0] name or child referencing column, e.g. domainId for a_domain.domainId
 		pc-define[1] child table, e.g. a_orgs
-		pc-define[2] child fk (or condition column), e.g. orgType
+		pc-define[2] child fk (or condition columnr), e.g. orgType
 		
 		Example: domainId a_orgs orgType, ...
 		
@@ -251,9 +251,7 @@ public class DASemantics {
 
 		/**
 		 * "d-e.r" | "de-encrypt.r" | "dencrypt.r":<br>
-		 * TODO
-		 * TODO
-		 * TODO Add new semantics handler: de-encrypt field on reading (in case client
+		 * @deprecated to be implemented: new semantics handler: de-encrypt field on reading (in case client
 		 * requiring read plain password etc. by accident.
 		 */
 		dencryptOnRead,
@@ -314,7 +312,7 @@ public class DASemantics {
 		 * the later is the case of updating a child, the parent already has it's pk,
 		 * nothing should be done.
 		 * </p>
-		 * <p>
+		 * <p>r
 		 * <b>Further Discussion:</b><br>
 		 * As cross reference is not a good ideal, this semantics sometimes leads to
 		 * trouble. Any suggestion or comments are welcome.
@@ -337,7 +335,7 @@ public class DASemantics {
 		 * args<br> 
 		 * 0: uploads (relative or start with $env_var),<br>
 		 * 1: uri,<br>2: busiTbl,<br>3: busiId,<br>4: client-name (optional)<br>
-		 * Handler: {@link DASemantics.ShExtFile} <br>
+		 * See handler for args' details: {@link DASemantics.ShExtFile} <br>
 		 * 
 		 * <h5>About Updating Handling</h5>
 		 * <p>On updating external files handler.</p>
@@ -449,6 +447,9 @@ public class DASemantics {
 	private String tabl;
 	private String pk;
 
+	/**This special samantics handler will share uploading file root */
+	// private HashMap<String, ShExtFile> h_extfiles;
+
 	public static boolean verbose = false;
 
 	public DASemantics(Transcxt basicTx, String tabl, String recId) {
@@ -505,7 +506,7 @@ public class DASemantics {
 			handler.logi();
 		handlers.add(handler);
 	}
-
+	
 	public SemanticHandler handler(smtype sm) {
 		if (handlers == null)
 			return null;
@@ -599,7 +600,7 @@ public class DASemantics {
 	}
 
 	//////////////////////////////// Base Handler //////////////////////////////
-	abstract static class SemanticHandler {
+	public abstract static class SemanticHandler {
 		boolean insert = false;
 		boolean update = false;
 		boolean delete = false;
@@ -1105,7 +1106,6 @@ public class DASemantics {
 		ShDefltVal(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.defltVal, tabl, recId, args);
 			insert = true;
-			// update = true;
 
 			args[1] = dequote(args[1]);
 		}
@@ -1116,7 +1116,6 @@ public class DASemantics {
 				Object[] nv;
 				if (cols.containsKey(args[0]) // with nv from client
 						&& cols.get(args[0]) < row.size()) // with nv must been generated from semantics
-					// if (cols.containsKey(args[1]))
 					nv = row.get(cols.get(args[0]));
 				else {
 					nv = new Object[2];
@@ -1128,7 +1127,6 @@ public class DASemantics {
 					nv[1] = stx.composeVal(args[1], target, (String)nv[0]);
 				else if ("".equals(nv[1]) && args[1] != null && !args[1].equals(""))
 					// this is not robust but any better way to handle empty json value?
-					// nv[1] = args[1];
 					nv[1] = stx.composeVal(args[1], target, (String)nv[0]);
 				else if ((nv[1] instanceof ExprPart) && ((ExprPart)nv[1]).isNull())
 					nv[1] = stx.composeVal(args[1], target, (String)nv[0]);
@@ -1144,14 +1142,24 @@ public class DASemantics {
 
 	/**
 	 * Save configured nv as file.<br>
-	 * args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
+	 * args<br>
+	 * 0: uploads,<br>
+	 * 1: uri - uri field,<br>
+	 * 2: busiTbl - sub-folder,<br>
+	 * 3: busiId - not used,<br>
+	 * 4: client-name (optional) for saving readable file name<br>
+	 * 
+	 * <h5>Note</h5>
+	 * <p>For large file, use stream asynchronous mode, otherwise it's performance problem here.</p>
+	 * <p>Stream mode file up down loading is an business tier operation by semantic-jserv.
+	 * See Anclient.jave/album test for example.</p>
 	 * 
 	 * @author odys-z@github.com
 	 */
 	static public class ShExtFile extends SemanticHandler {
 		/** Saving root.<br>
 		 * The path rooted from return of {@link ISemantext#relativpath(String...)}. */
-		public static final int ixRoot = 0;
+		public static final int ixExtRoot = 0;
 		/** Index of Path field */
 		static final int ixUri = 1;
 		static final int ixBusiTbl = 2;
@@ -1159,25 +1167,21 @@ public class DASemantics {
 		/** Index of client file name */
 		static final int ixClientName = 4;
 
-//		String abspath = "";
-//		public String getAbspath() { return abspath; }
-
 		public ShExtFile(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException, SQLException {
 			super(trxt, smtype.extFile, tabl, pk, args);
 			delete = true;
 			insert = true;
 			update = true;
 
-//			abspath = args[ixRoot];
-//			abspath = EnvHelper.isRelativePath(abspath) ?
-//					trxt.basictx().containerRoot() : EnvHelper.replaceEnv(abspath);
-
-//			Utils.logi("External file absolute path %s.%s:\n\t%s", tabl, pk, getAbspath());
 
 			if (LangExt.isblank(args[ixBusiTbl]))
 				Utils.warn("ShExtFile handling special attachment table semantics, which is needing a business category filed in the table.\\n" +
 					"But the configuration on the target table (%s) doesn't provide the semantics (business table name field not specified)",
 					target);
+		}
+
+		public String getFileRoot() {
+			return args[ixExtRoot];
 		}
 
 		@Override
@@ -1194,17 +1198,17 @@ public class DASemantics {
 						// find business category
 						Object busi = row.get(cols.get(args[ixBusiTbl]))[1];
 						String subpath = busi.toString();
-//						if (EnvHelper.isRelativePath(args[ixRoot]))
-//							subpath = FilenameUtils.concat(args[ixRoot], busi.toString());
 
 						// can be a string or an auto resulving (fk is handled before extfile)
 						Object fn = row.get(cols.get(pkField))[1];
 
 						ExtFile f;
 						if (fn instanceof Resulving)
-							f = new ExtFile((Resulving) fn, args[ixRoot], stx.containerRoot());
+							// f = new ExtFile((Resulving) fn, arargs[ixRoot]gs[ixRoot], stx.containerRoot());
+							f = new ExtFile((Resulving) fn, getFileRoot(), stx);
 						else
-							f = new ExtFile(new ExprPart(fn.toString()), args[ixRoot], stx.containerRoot());
+							// f = new ExtFile(new ExprPart(fn.toString()), args[ixRoot], stx.containerRoot());
+							f = new ExtFile(new ExprPart(fn.toString()), getFileRoot(), stx);
 						
 						if (args.length >= ixClientName) {
 							String clientname = args[ixClientName];
@@ -1215,11 +1219,8 @@ public class DASemantics {
 							}
 						}
 
-						f	.prefixPath(subpath)
-//							.absRootPath(abspath)
-							// FIXME performance problem here, add a class for binary value?
+						f.prefixPath(subpath)
 							.b64(nv[1].toString());
-						// nv[1] = f;
 						nv = new Object[] {nv[0], f};
 						row.set(cols.get(args[ixUri]), nv);
 					}
@@ -1279,10 +1280,7 @@ public class DASemantics {
 							if (LangExt.isblank(uri, "\\.*", "\\**", "\\s*"))
 								continue;
 
-//							if (EnvHelper.isRelativePath(args[ixRoot]))
-//								uri = FilenameUtils.concat(stx.containerRoot(), uri);
-//							else uri = EnvHelper.unreplaceEnv(uri, args[ixRoot]);
-							uri = EnvPath.decodeUri(stx.containerRoot(), uri);
+							uri = EnvPath.decodeUri(stx, uri);
 
 							if (verbose)
 								Utils.warn("deleting %s", uri);
@@ -1573,7 +1571,6 @@ public class DASemantics {
 			Object[] nvOper;
 			if (cols.containsKey(args[0])) {
 				int jx = cols.get(args[0]);
-//				nvOper = row.get(cols.get(args[0]));
 
 				if (row.size() <= jx) {
 					// this row need to be expanded - happens when handling following rows after 1st row expanded cols wiht oper & optime.

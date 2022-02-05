@@ -15,6 +15,7 @@ import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
+import io.odysz.semantic.DASemantics.SemanticHandler;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
@@ -246,7 +247,7 @@ public class DATranscxt extends Transcxt {
 	/**Load semantics configuration from filepath.
 	 * This method also initialize table meta by calling {@link Connects}.
 	 * @param connId
-	 * @param full path to semantics.xml (path and name) 
+	 * @param cfgpath full path to semantics.xml (path and name) 
 	 * @return configurations
 	 * @throws SAXException
 	 * @throws IOException
@@ -300,6 +301,14 @@ public class DATranscxt extends Transcxt {
 			return false;
 		DASemantics s = smtConfigs.get(conn).get(tabl);
 		return s != null && s.has(sm);
+	}
+	
+	public static SemanticHandler getHandler(String conn, String tabl, smtype sm) {
+		if (smtConfigs == null || !smtConfigs.containsKey(conn)
+				|| !smtConfigs.get(conn).containsKey(tabl))
+			return null;
+		DASemantics s = smtConfigs.get(conn).get(tabl);
+		return s.handler(sm);
 	}
 
 	public static void addSemantics(String connId, String tabl, String pk,

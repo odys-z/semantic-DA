@@ -554,7 +554,6 @@ public class DatasetCfg {
 		 * @param connId 
 		 * @param sqls
 		 * @param stree
-		 * @param orclMappings mappings from mapping the file.
 		 * @throws SAXException 
 		 */
 		public Dataset(String k, String cols, String connId, String[] sqls, String stree)

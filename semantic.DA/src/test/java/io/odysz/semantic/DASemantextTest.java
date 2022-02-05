@@ -730,28 +730,27 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		System.setProperty("VOLUME_HOME", "/home/ody/volume");
 
 		String[] args = "$VOLUME_HOME/shares,uri,userId,cate,docName".split(",");
+		String extroot = args[ShExtFile.ixExtRoot];
 		
-		String encoded = EnvPath.encodeUri(args[ShExtFile.ixRoot], "ody", "000001 f.txt");
+		String encoded = EnvPath.encodeUri(extroot, "ody", "000001 f.txt");
 		assertEquals("$VOLUME_HOME/shares/ody/000001 f.txt", encoded);
 
-		String abspath = EnvPath.decodeUri(null, encoded);
+		String abspath = EnvPath.decodeUri("", encoded);
 		assertEquals("/home/ody/volume/shares/ody/000001 f.txt", abspath);
 		
 		args = "upload,uri,userId,cate,docName".split(",");
-		encoded = EnvPath.encodeUri(args[ShExtFile.ixRoot], "admin", "000002 f.txt");
+		encoded = EnvPath.encodeUri(extroot, "admin", "000002 f.txt");
 		assertEquals("upload/admin/000002 f.txt", encoded);
 
 		abspath = EnvPath.decodeUri(rtroot, encoded);
 		assertEquals("src/test/res/upload/admin/000002 f.txt", abspath);
 
 		args = "/home/ody/upload,uri,userId,cate,docName".split(",");
-		encoded = EnvPath.encodeUri(args[ShExtFile.ixRoot], "admin", "000003 f.txt");
+		encoded = EnvPath.encodeUri(extroot, "admin", "000003 f.txt");
 		assertEquals("/home/ody/upload/admin/000003 f.txt", encoded);
 
 		abspath = EnvPath.decodeUri(rtroot, encoded);
 		assertEquals("/home/ody/upload/admin/000003 f.txt", abspath);
-
-		// FIXME but post select hanler not tested
 	}
 
 	@Test
