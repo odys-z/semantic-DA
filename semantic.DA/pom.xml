@@ -57,14 +57,6 @@
 	    <version>[1.2.1,)</version>
 	</dependency>
 
-	<!-- 
-	<dependency>
-	    <groupId>io.github.odys-z</groupId>
-	    <artifactId>antson</artifactId>
-	    <version>[0.9.10,)</version>
-	</dependency>
-	 -->
-
 	<!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
 	<dependency>
 	    <groupId>org.xerial</groupId>

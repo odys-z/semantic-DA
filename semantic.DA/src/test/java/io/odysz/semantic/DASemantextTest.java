@@ -740,17 +740,20 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		
 		args = "upload,uri,userId,cate,docName".split(",");
 		encoded = EnvPath.encodeUri(extroot, "admin", "000002 f.txt");
-		assertEquals("upload/admin/000002 f.txt", encoded);
+		assertEquals("$VOLUME_HOME/shares/admin/000002 f.txt", encoded);
 
 		abspath = EnvPath.decodeUri(rtroot, encoded);
-		assertEquals("src/test/res/upload/admin/000002 f.txt", abspath);
+		// assertEquals("src/test/res/upload/admin/000002 f.txt", abspath);
+		assertEquals("/home/ody/volume/shares/admin/000002 f.txt", abspath);
 
 		args = "/home/ody/upload,uri,userId,cate,docName".split(",");
 		encoded = EnvPath.encodeUri(extroot, "admin", "000003 f.txt");
-		assertEquals("/home/ody/upload/admin/000003 f.txt", encoded);
+		// assertEquals("/home/ody/upload/admin/000003 f.txt", encoded);
+		assertEquals("$VOLUME_HOME/shares/admin/000003 f.txt", encoded);
 
 		abspath = EnvPath.decodeUri(rtroot, encoded);
-		assertEquals("/home/ody/upload/admin/000003 f.txt", abspath);
+		// assertEquals("/home/ody/upload/admin/000003 f.txt", abspath);
+		assertEquals("/home/ody/volume/shares/admin/000003 f.txt", abspath);
 	}
 
 	@Test
@@ -768,7 +771,10 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.post(st.insert("a_attaches")
 					.nv("attName", "Sun Yet-sen Portrait.jpg")  // name: portrait
 					.nv("busiTbl", "a_users")
-					.nv("busiId", new Resulving("a_users", "userId"))
+					// Debug Note: FIXME change to be verified
+					// Since attached file pattern no longer supported in DA v1.3.3, "busiId" are only used for sub folder and not for resulving FK.
+					// .nv("busiId", new Resulving("a_users", "userId"))
+					.nv("busiId", "res")
 					.nv("uri", readB64("src/test/res/Sun Yet-sen.jpg")))
 			.commit(s0, sqls);
 
@@ -777,8 +783,9 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// values ('Sun Yet-sen Portrait.jpg', 'a_user', 'uploads/a_user/00001C Sun Yet-sen Portrait.jpg', '00001C', '00001R', datetime('now'), 'tester')
 		assertEquals(String.format(
 				"insert into a_attaches  (attName, busiTbl, busiId, uri, attId, optime, oper) " +
-				"values ('Sun Yet-sen Portrait.jpg', 'a_users', '%1$s', 'uploads/a_users/%2$s Sun Yet-sen Portrait.jpg', '%2$s', datetime('now'), 'tester')",
+				"values ('Sun Yet-sen Portrait.jpg', 'a_users', '%1$s', 'uploads/a_users/%2$s/%3$s Sun Yet-sen Portrait.jpg', '%3$s', datetime('now'), 'tester')",
 				s0.resulvedVal("a_users", "userId"),
+				"res",
 				s0.resulvedVal("a_attaches", "attId")),
 				sqls.get(1));
 		Connects.commit(usr , sqls);

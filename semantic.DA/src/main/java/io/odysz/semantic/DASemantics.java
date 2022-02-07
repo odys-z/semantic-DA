@@ -141,17 +141,16 @@ public class DASemantics {
 	 * <b>3. {@link #fullpath}</b><br>
 	 * <b>4. {@link #defltVal}</b><br>
 	 * <b>5. {@link #parentChildrenOnDel}</b><br>
-	 * <b>6. {@link #parentChildrenOnDelByTable}</b><br>
+	 * <b>6. {@link #parentChildrenOnDelByTabl}</b><br>
 	 * <b>7. {@link #dencrypt}</b><br>
 	 * <b>8. {@link #opTime}</b><br>
 	 * <b>9. {@link #checkSqlCountOnDel} </b><br>
 	 * <b>10.{@link #checkSqlCountOnInsert} </b><br>
-	 * <b>11.{@link #checkDsCountOnDel} </b><br>
-	 * <b>12.{@link #postFk}</b><br>
-	 * <b>13.{@link #extFile}</b><br>
-	 * <b>14.{@link #composingCol} TODO</b><br>
-	 * <b>15. {@link #stamp1MoreThanRefee} TODO</b><br>
-	 * <b>16.{@link #orclob} TODO</b><br>
+	 * <b>11.{@link #postFk}</b><br>
+	 * <b>12.{@link #extFile}</b><br>
+	 * <b>13.{@link #composingCol} TODO</b><br>
+	 * <b>14. {@link #stamp1MoreThanRefee} TODO</b><br>
+	 * <b>15.{@link #orclob} TODO</b><br>
 	 */
 	public enum smtype {
 		/**
@@ -1162,8 +1161,8 @@ public class DASemantics {
 		public static final int ixExtRoot = 0;
 		/** Index of Path field */
 		static final int ixUri = 1;
-		static final int ixBusiTbl = 2;
-		static final int ixBusiId = 3;
+		static final int ixBusiCate = 2;
+		static final int ixSubCate = 3;
 		/** Index of client file name */
 		static final int ixClientName = 4;
 
@@ -1174,7 +1173,7 @@ public class DASemantics {
 			update = true;
 
 
-			if (LangExt.isblank(args[ixBusiTbl]))
+			if (LangExt.isblank(args[ixBusiCate]))
 				Utils.warn("ShExtFile handling special attachment table semantics, which is needing a business category filed in the table.\\n" +
 					"But the configuration on the target table (%s) doesn't provide the semantics (business table name field not specified)",
 					target);
@@ -1195,9 +1194,15 @@ public class DASemantics {
 					if (nv != null && nv[1] != null
 						&& (nv[1] instanceof String && !LangExt.isblank(nv[1]) || nv[1] instanceof AbsPart)) {
 
-						// find business category
-						Object busi = row.get(cols.get(args[ixBusiTbl]))[1];
-						String subpath = busi.toString();
+						// find business category - this arg can not be is optional, eavery file has it's unique uri
+						Object busicat = row.get(cols.get(args[ixBusiCate]))[1];
+						String subpath = busicat.toString();
+						
+						// TODO to be tested everywhere: sub-cate is optional
+						String subpath2 = "";
+						if (cols.containsKey(args[ixSubCate]))
+							subpath2 = row.get(cols.get(args[ixSubCate]))[1].toString();
+
 
 						// can be a string or an auto resulving (fk is handled before extfile)
 						Object fn = row.get(cols.get(pkField))[1];
@@ -1219,7 +1224,7 @@ public class DASemantics {
 							}
 						}
 
-						f.prefixPath(subpath)
+						f.prefixPath(subpath, subpath2)
 							.b64(nv[1].toString());
 						nv = new Object[] {nv[0], f};
 						row.set(cols.get(args[ixUri]), nv);
