@@ -134,11 +134,23 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	public AnResultset select(String sql, int flag) throws SQLException {
 		return selectStatic(sql, flag);
 	}
-	
+
+	/**Commit statement
+	 * @param sqls
+	 * @param flags
+	 * @return The update counts in order of commands
+	 * @throws SQLException
+	 */
 	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
 		return commitst(sqls, flags);
 	}
 
+	/**Commit statement
+	 * @param sqls
+	 * @param flags
+	 * @return The update counts in order of commands
+	 * @throws SQLException
+	 */
 	int[] commitst(ArrayList<String> sqls, int flags) throws SQLException {
 		Connects.printSql(enableSystemout, flags, sqls);;
 
