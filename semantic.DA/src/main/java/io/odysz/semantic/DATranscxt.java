@@ -150,6 +150,11 @@ public class DATranscxt extends Transcxt {
 		});
 		return i;
 	}
+	
+	@SuppressWarnings("unchecked")
+	public String findResulved(SemanticObject rslt, String tabl, String pk) {
+		return ((HashMap<String, String>) ((SemanticObject) rslt.get("resulved")).get(tabl)).get(pk);
+	}
 
 	/**Create an update statement.
 	 * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>

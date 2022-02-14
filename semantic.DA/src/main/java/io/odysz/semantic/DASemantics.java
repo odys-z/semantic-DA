@@ -621,8 +621,8 @@ public class DASemantics {
 		}
 
 		public void logi() {
-			Utils.logi("Semantics Handler %s\\ntabl %s, pk %s, args %s", sm.name(), target, pkField,
-					LangExt.toString(args));
+			Utils.logi("Semantics Handler [%s]\ntabl: %s,\tpk: %s,\targs: %s",
+						sm.name(), target, pkField, LangExt.toString(args));
 		}
 
 		// void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer>
