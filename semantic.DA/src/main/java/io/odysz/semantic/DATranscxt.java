@@ -36,7 +36,7 @@ import io.odysz.transact.x.TransException;
  * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/java/io/odysz/semantic/DASemantextTest.java'>
  * DASemantextTest</a>.</p>
  * This manager can handling semantics configured in xml. See {@link #loadSemantics(String, String)}. <br>
- * Every sql building needing semantics handling must use a context instance created by {@link #instancontxt(IUser)}.
+ * Every sql building needing semantics handling must use a context instance created by {@link DATranscxt#instancontxt(IUser)}.
  * @author odys-z@github.com
  *
  */
@@ -79,7 +79,6 @@ public class DATranscxt extends Transcxt {
 	 * req.a (func uri) to connId. It's planned that datasource can be setup by online requests in the future.
 	 * @param usr
 	 * @see ISemantext 
-	 * @see io.odysz.transact.sql.Transcxt#instancontxt(io.odysz.semantics.IUser)
 	 * @return semantext
 	 * @throws TransException 
 	 */

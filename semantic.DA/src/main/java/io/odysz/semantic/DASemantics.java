@@ -141,7 +141,7 @@ public class DASemantics {
 	 * <b>3. {@link #fullpath}</b><br>
 	 * <b>4. {@link #defltVal}</b><br>
 	 * <b>5. {@link #parentChildrenOnDel}</b><br>
-	 * <b>6. {@link #parentChildrenOnDelByTabl}</b><br>
+	 * <b>6. {@link #parentChildrenOnDelByCate}</b><br>
 	 * <b>7. {@link #dencrypt}</b><br>
 	 * <b>8. {@link #opTime}</b><br>
 	 * <b>9. {@link #checkSqlCountOnDel} </b><br>
@@ -196,12 +196,12 @@ public class DASemantics {
 		 * xml/smtc = "f-p" | "fp" | "fullpath":<br>
 		 * <p>args: 0: parent Id field, 1: sibling/sort field (optional), 2: fullpath field, 3: sort size (optional, default 2)
 		 * <br>where sort size is the digital length for formatting fullpath string.</p>
-		 * Handler: {@link ShFullpath}
+		 * Handler: {@link DASemantics.ShFullpath}
 		 */
 		fullpath,
 		/**
 		 * xml/smtc = "dv" | "d-v" | "dfltVal":<br>
-		 * Handler: {@link ShDefltVal}
+		 * Handler: {@link DASemantics.ShDefltVal}
 		 */
 		defltVal,
 		/**
@@ -218,7 +218,7 @@ public class DASemantics {
 		delete from a_orgs where orgType in (select domainId from a_domain where domainId = '000001')
 		where the 'where clause' in select clause is composed from condition of the delete request's where condition.
 		 * </pre>
-		 * Handler: {@link ShPCDelAll}
+		 * Handler: {@link DASemantics.ShPCDelAll}
 		 */
 		parentChildrenOnDel,
 		/**
@@ -237,14 +237,14 @@ public class DASemantics {
 		where the 'where clause' in select clause is composed from condition of the delete request's where condition.
 		 * </pre>
 		 * 
-		 * Handler: {@link ShPCDelByTbl}
+		 * Handler: {@link DASemantics.ShPCDelByCate}
 		 */
-		parentChildrenOnDelByTabl,
+		parentChildrenOnDelByCate,
 		/**
 		 * "d-e" | "de-encrypt" | "dencrypt":<br>
 		 * decrypt then encrypt (target col cannot be pk or anything other semantics
 		 * will updated<br>
-		 * Handler: {@link ShDencrypt}
+		 * Handler: {@link DASemantics.ShDencrypt}
 		 */
 		dencrypt,
 
@@ -258,7 +258,7 @@ public class DASemantics {
 		/**
 		 * xml/smtc = "o-t" | "oper-time" | "optime"<br>
 		 * Finger printing session user's db updating - record operator / oper-time<br>
-		 * Handler: {@link ShOperTime}
+		 * Handler: {@link DASemantics.ShOperTime}
 		 */
 		opTime,
 		/**
@@ -281,7 +281,7 @@ public class DASemantics {
 		 * 
 		 * where args are column name of parent table.
 		 * </p>
-		 * Handler: {@link ShChkSqlCntDel}
+		 * Handler: {@link DASemantics.ShChkCntDel}
 		 */
 		checkSqlCountOnDel,
 		/**
@@ -293,7 +293,7 @@ public class DASemantics {
 		 * args: [0] arg1, [1] arg2, ..., [len -1] count-sql with "%s" formatter<br>
 		 * where args are column name of parent table.
 		 * </p>
-		 * Handler: {@link ShChkCntInst}
+		 * Handler: {@link DASemantics.ShChkCntInst}
 		 */
 		checkSqlCountOnInsert,
 		/**
@@ -320,7 +320,7 @@ public class DASemantics {
 		 * <b>args:</b> 0 referencing col, 1 target table, 2 target pk(must be an auto
 		 * key)
 		 * </p>
-		 * <b>Handler:</b> {@link ShPostFk}
+		 * <b>Handler:</b> {@link DASemantics.ShPostFk}
 		 */
 		postFk,
 		/**
@@ -398,7 +398,7 @@ public class DASemantics {
 				return parentChildrenOnDel;
 			else if ("pc-del-tbl".equals(type) || "pc-del-by-tabl".equals(type)
 					|| "pc-tbl".equals(type))
-				return parentChildrenOnDelByTabl;
+				return parentChildrenOnDelByCate;
 			else if ("d-e".equals(type) || "de-encrypt".equals(type) || "dencrypt".equals(type))
 				return dencrypt;
 			else if ("o-t".equals(type) || "oper-time".equals(type) || "optime".equals(type))
@@ -476,7 +476,7 @@ public class DASemantics {
 			handler = new ShFkInsCates(basicTsx, tabl, recId, args);
 		else if (smtype.parentChildrenOnDel == semantic)
 			handler = new ShPCDelAll(basicTsx, tabl, recId, args);
-		else if (smtype.parentChildrenOnDelByTabl == semantic)
+		else if (smtype.parentChildrenOnDelByCate == semantic)
 			handler = new ShPCDelByCate(basicTsx, tabl, recId, args);
 		else if (smtype.defltVal == semantic)
 			handler = new ShDefltVal(basicTsx, tabl, recId, args);
@@ -986,7 +986,7 @@ public class DASemantics {
 
 		public ShPCDelByCate(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, tabl, recId, args);
-			super.sm = smtype.parentChildrenOnDelByTabl;
+			super.sm = smtype.parentChildrenOnDelByCate;
 		}
 
 		@Override
