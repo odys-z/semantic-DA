@@ -3,11 +3,12 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.odys-z</groupId>
   <artifactId>semantic.DA</artifactId>
-  <version>1.3.3-SNAPSHOT</version>
+  <version>1.3.6</version>
   <packaging>jar</packaging>
+
   <name>semantic.DA</name>
   <description>JDBC Data Access with Semantics Support</description>
-  <url>http://maven.apache.org</url>
+  <url>http://github.com/odys-z/semantic-DA</url>
 
   <licenses>
     <license>
@@ -54,7 +55,7 @@
 			to update immediately. -->
 	    <groupId>io.github.odys-z</groupId>
 	    <artifactId>semantics.transact</artifactId>
-	    <version>[1.2.1,)</version>
+	    <version>[1.3.7,)</version>
 	</dependency>
 
 	<!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
@@ -77,7 +78,7 @@
 
 	<!-- ojdbc7.jar
 		Since oracle JDBC driver package needing license agreement, you need install ojdbc.jar like this:
-		mvn install:install-file -Dfile=lib/ojdbc7.jar -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=12.1.0.1 -Dpackaging=jar
+		mvn install:install-file -Dfile=lib/o-SNAPSHOTjdbc7.jar -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=12.1.0.1 -Dpackaging=jar
 	-->
 	<dependency>
 	    <groupId>com.oracle</groupId>

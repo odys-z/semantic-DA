@@ -113,8 +113,6 @@ public class LoggingUser implements IUser {
 	@Override
 	public String sessionId() { return null; }
 
-	@Override public IUser touch() { return this; }
-
 	@Override
 	public SemanticObject logout() { return null; }
 
