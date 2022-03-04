@@ -51,6 +51,9 @@ public class DATranscxt extends Transcxt {
 	public static void configRoot(String cfgRoot, String runtimeRoot) {
 		cfgroot = cfgRoot;
 		runtimepath = runtimeRoot;
+		
+		Utils.logi("Configuration root path: %s", cfgRoot);
+		Utils.logi("Runtime root path: %s", runtimeRoot);
 	}
 
 	public TableMeta tableMeta(String t) throws SemanticException {
