@@ -336,7 +336,7 @@ end;
 	 */
 	public static String radix64_32(long v) {
 		if (file_sys == 0)
-			file_sys = "windows".equals(Configs.getCfg(keys.filesys)) ? 1 : 2;
+			file_sys = "windows".equals(Configs.getCfg(keys.fileSys)) ? 1 : 2;
 		if (file_sys == 2)
 			return Radix64.toString(v, Configs.getInt(keys.idLen, 6));
 		else

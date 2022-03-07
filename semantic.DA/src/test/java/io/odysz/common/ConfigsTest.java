@@ -41,18 +41,18 @@ public class ConfigsTest {
 
 	@Test
 	public void testGetBase32() {
-		String filesys = Configs.getCfg(keys.filesys);
+		String filesys = Configs.getCfg(keys.fileSys);
 		assertEquals(filesys, "windows");
 		assertEquals("0000010", DASemantext.radix64_32(32));
 		assertEquals("000010", Radix64.toString(64, 6));
 		
-		Configs.cfgs.get(keys.deftXTableId).remove(keys.filesys);
+		Configs.cfgs.get(keys.deftXTableId).remove(keys.fileSys);
 		assertEquals("000020", Radix32.toString(64, 6));
 		assertEquals("0000010", DASemantext.radix64_32(32));
 		
 		DASemantext.file_sys = 0;
 		Configs.cfgs.get(keys.deftXTableId).put(keys.idLen, "4");
-		Configs.cfgs.get(keys.deftXTableId).put(keys.filesys, "linux");
+		Configs.cfgs.get(keys.deftXTableId).put(keys.fileSys, "linux");
 		assertEquals("000-", DASemantext.radix64_32(63));
 		assertEquals("----", DASemantext.radix64_32(16777215));
 

@@ -22,7 +22,7 @@ public class Configs {
 	public static class keys {
 		/** Default xtable id, configs.xml/t[id="default"] */
 		public static final String deftXTableId = "default";
-		public static final String filesys = "file-sys";
+		public static final String fileSys = "file-sys";
 		public static final String irUser = "IrUser";
 		public static final String treeSemantics = "tree-semantics";
 		public static final String timeoutMin = "ss-timeout-min";

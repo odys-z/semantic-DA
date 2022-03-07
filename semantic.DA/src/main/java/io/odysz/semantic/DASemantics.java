@@ -1252,9 +1252,7 @@ public class DASemantics {
 					if (nv != null && nv[1] != null &&
 						(  nv[1] instanceof String && ((String) nv[1]).length() > 0
 						|| nv[1] instanceof ExprPart && !((ExprPart) nv[1]).isNull() )) {
-						throw new SemanticException("Found the extFile value presented in %s, but updating is not supported by extFile. See:\\n" +
-								"https://odys-z.github.io/javadoc/semantic.DA/io/odysz/semantic/DASemantics.smtype.html#extFile\\n" +
-								"About Updating Handling",
+						throw new SemanticException("Found the extFile value presented in %s, but updating is not supported by extFile.",
 								args[ixUri]);
 					}
 				}
