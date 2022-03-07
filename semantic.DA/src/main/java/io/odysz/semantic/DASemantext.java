@@ -13,6 +13,9 @@ import java.util.stream.Stream;
 
 import org.apache.commons.io_odysz.FilenameUtils;
 
+import io.odysz.common.Configs;
+import io.odysz.common.Configs.keys;
+import io.odysz.common.Radix32;
 import io.odysz.common.Radix64;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
@@ -313,14 +316,33 @@ end;
 					idField, target);
 
 		rs.beforeFirst().next();
-		int newInt = rs.getInt("newId");
+		long newInt = rs.getLong("newId");
 
 		if (subCate == null || subCate.equals(""))
-			return Radix64.toString(newInt);
+			// return Radix64.toString(newInt);
+			return radix64_32(newInt);
 		else
-			return String.format("%1$s_%2$6s", subCate, Radix64.toString(newInt));
+			return String.format("%1$s_%2$6s", subCate,
+					// Radix64.toString(newInt));
+					radix64_32(newInt));
 	}
 
+	public static int file_sys = 0; 
+	/**Try generate a radix 64 string of v.
+	 * String length is controlled by connfigs.xml/k=db-len.
+	 * If configs.xml/k=filesys is "windows", then generate a radix 32 string.
+	 * @param v
+	 * @return radix 64/32
+	 */
+	public static String radix64_32(long v) {
+		if (file_sys == 0)
+			file_sys = "windows".equals(Configs.getCfg(keys.filesys)) ? 1 : 2;
+		if (file_sys == 2)
+			return Radix64.toString(v, Configs.getInt(keys.idLen, 6));
+		else
+			return Radix32.toString(v, Configs.getInt(keys.idLen, 8));
+	}
+	
 	/**Generate auto id in sqlite.<br>
 	 * All auto ids are recorded in oz_autoseq table.<br>
 	 * See {@link DASemantextTest} for how to initialize oz_autoseq.
@@ -376,7 +398,11 @@ end;
 					idF, target);
 		rs.beforeFirst().next();
 
-		return Radix64.toString(rs.getInt("seq"));
+//		return "windows".equals(Configs.getCfg(keys.filesys)) ?
+//				Radix32.toString(rs.getLong("seq"), Configs.getInt(keys.idLen, 12)) :
+//				Radix64.toString(rs.getLong("seq"), Configs.getInt(keys.idLen, 6)) ;
+		return radix64_32(rs.getLong("seq"));
+					
 	}
 
 	static Lock lockOflocks = new ReentrantLock();

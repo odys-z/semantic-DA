@@ -15,9 +15,19 @@ import io.odysz.module.xtable.XMLTable;
  * A servlet constext must been registed by LeisureFactory before Messages is inited */
 public class Configs {
 	protected static ILogger log;
-	protected static final String tag = "CFG";
+//	protected static final String tag = "CFG";
 	protected static String cfgFile = "config.xml";
+	/** @deprecated replaced by {@link keys#deftXTableId} */
 	protected static final String deftId = "default";
+	public static class keys {
+		/** Default xtable id, configs.xml/t[id="default"] */
+		public static final String deftXTableId = "default";
+		public static final String filesys = "file-sys";
+		public static final String irUser = "IrUser";
+		public static final String treeSemantics = "tree-semantics";
+		public static final String timeoutMin = "ss-timeout-min";
+		public static final String idLen = "id-len";
+	}
 	protected static HashMap<String, HashMap<String, String>> cfgs;
 
 	static {
@@ -52,7 +62,7 @@ public class Configs {
 				while (deft.next()) {
 					String k = deft.getString("k");
 					if (defaults.containsKey(k))
-						log.e(tag, "duplicate key found: " + k);
+						log.e("Configs", "duplicate key found: " + k);
 					defaults.put(k, deft.getString("v"));
 				}
 				cfgs.put(tid, defaults);

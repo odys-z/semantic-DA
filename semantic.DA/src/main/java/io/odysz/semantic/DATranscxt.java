@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
-import org.apache.commons.io_odysz.FilenameUtils;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.LangExt;
@@ -69,7 +68,6 @@ public class DATranscxt extends Transcxt {
 			}
 		}
 		return null;
-
 	}
 
 	/**[conn, [table, DASemantics]] */
@@ -204,12 +202,7 @@ public class DATranscxt extends Transcxt {
 		return d;
 	}
 
-//	protected String basiconnId;
-//	public String basiconnId() { return basiconnId; }
-	// protected String sysConnId;
 	public String getSysConnId() { return Connects.defltConn(); }
-
-	// public String getConnId(String funcUri) { return "TODO ..."; }
 
 	/**<p>Create a transact builder with basic DASemantext instance.</p>
 	 * <p>If it's a null configuration, the semantics can not be used to resulving semantics between records,
@@ -236,6 +229,7 @@ public class DATranscxt extends Transcxt {
 			throws SAXException, IOException, SQLException, SemanticException {
 		if (smtConfigs == null)
 			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
+
 		if (!smtConfigs.containsKey(conn)) {
 			String fpath = Connects.getSmtcsPath(conn);
 			if (LangExt.isblank(fpath, "\\."))
@@ -244,7 +238,7 @@ public class DATranscxt extends Transcxt {
 					"No 'smtcs' configured in connects.xml for connection %1$s?\n" +
 					"Looking in path: %2$s",
 					conn, fpath);
-			fpath = FilenameUtils.concat(cfgroot, fpath);
+			// fpath = FilenameUtils.concat(cfgroot, fpath);
 
 			loadSemantics(conn, fpath);
 		}

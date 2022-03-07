@@ -2,6 +2,14 @@
 <!DOCTYPE xml>
 <configs>
   <t id="default" pk="k" columns="k,v">
+    <c>
+    	<k>file-sys</k>
+    	<v>windows</v>
+    </c>
+    <c>
+    	<k>id-len</k>
+    	<v>7</v>
+    </c>
 	<c>
 		<k>IrUser</k>
 		<v>Class name of SUser Implementation</v>
