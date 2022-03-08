@@ -516,6 +516,7 @@ end;
 			while (rs.next())
 				for (IPostSelectOperat op : onSelecteds.values())
 					op.onSelected(this, rs.getRowCells(), rs.getColnames());
+			rs.beforeFirst(); // makes caller less error prone
 		}
 	}
 

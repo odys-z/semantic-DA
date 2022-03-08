@@ -336,14 +336,18 @@ public class DASemantics {
 		 * <p>
 		 * args<br> 
 		 * 0: uploads (relative or start with $env_var),<br>
-		 * 1: uri,<br>2: busiTbl,<br>3: busiId,<br>4: client-name (optional)<br>
+		 * 1: uri,<br>
+		 * 2: busiTbl, the folder name, e.g. "a_users", or "month"<br>
+		 * 3: busiId, the recored value used for sub folder<br>
+		 * 4: client-name (optional)<br>
 		 * See handler for args' details: {@link DASemantics.ShExtFile} <br>
 		 * 
 		 * <h5>About Updating Handling</h5>
 		 * <p>On updating external files handler.</p>
-		 * <p>This method only throw an exception currently, applying the semantics predefined as:<br>
+		 * <p>This method throw an exception if the uri provided, applying the semantics predefined as:<br>
 		 * AS all files are treaded as binary file, no file can be modified, only delete then create it makes sense.</p>
-		 * <p>Client should avoid updating an external file while handling business logics.</p>
+		 * <p>Client should avoid updating an external file while handling business logics.
+		 * However, since v1.3.9, the updating file path is suppored via {@link ExtFileUpdate}.</p>
 		 * 
 		 * <p><b>NOTE: </b>This semantics only guard the data for updating.</p>
 		 * <p>To replace uri back into file when selecting, use "extfile(uri)" (js) or {@link io.odysz.transact.sql.parts.condition.Funcall#sqlExtFile(ISemantext, String[]) sqlExtFile(uri)} in java. </p>
@@ -1280,7 +1284,7 @@ public class DASemantics {
 					row.set(cols.get(args[ixUri]), nv);
 				}
 				else {
-					// save file, replace v
+					// save file, replace v - throw exception
 					nv = row.get(cols.get(args[ixUri]));
 					if (nv != null && nv[1] != null &&
 						(  nv[1] instanceof String && ((String) nv[1]).length() > 0

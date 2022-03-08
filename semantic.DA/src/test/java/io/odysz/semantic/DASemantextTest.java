@@ -815,8 +815,9 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 
 		rs.beforeFirst().next(); // uri is relative path
 
-		String fp = EnvPath.decodeUri(rtroot, rs.getString("uri"));
-		assertEquals(FilenameUtils.concat(rtroot, rs.getString("uri")), fp);
+		String uri1 = rs.getString("uri");
+		String fp = EnvPath.decodeUri(rtroot, uri1);
+		assertEquals(FilenameUtils.concat(rtroot, uri1), fp);
 
 		File f = new File(fp);
 		assertTrue(f.exists());
@@ -830,9 +831,9 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		  .nv("attName", "Sun Yet-sen Portrait.jpg")
 		  .nv("busiTbl", "a_folder2")
 		  .nv("busiId", "res")
-		  .nv("uri", rs.getString("uri"))
+		  .nv("uri", uri1)
 		  .whereEq("attId", attId)
-		  .commit(sqls, usr)
+		  // .commit(sqls, usr)
 		  .u(s0.clone(usr));
 		
 		assertFalse(f.exists());
@@ -843,6 +844,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				.rs(new DASemantext(connId, smtcfg, metas, usr, rtroot))
 				.rs(0);
 			
+		rs.next();
 		fp = EnvPath.decodeUri(rtroot, rs.getString("uri"));
 
 		f = new File(fp);
