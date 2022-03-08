@@ -62,5 +62,7 @@ public class ConfigsTest {
 		Configs.cfgs.get(keys.deftXTableId).remove(keys.idLen);
 		assertEquals("------", DASemantext.radix64_32(68719476735L));
 
+		Configs.cfgs.get(keys.deftXTableId).put(keys.idLen, "2");
+		assertEquals("--", DASemantext.radix64_32(16777215));
 	}
 }

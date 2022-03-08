@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.AESHelper;
+import io.odysz.common.Configs;
 import io.odysz.common.DateFormat;
 import io.odysz.common.EnvPath;
 import io.odysz.common.Regex;
@@ -60,6 +61,7 @@ public class DASemantextTest {
 			File file = new File("src/test/res");
 			runtimepath = file.getAbsolutePath();
 			Utils.logi(runtimepath);
+			Configs.init(runtimepath);
 			Connects.init(runtimepath);
 
 			// load metas, then semantics
@@ -396,7 +398,7 @@ DELETE from a_roles;</pre>
 		byte[] iv = AESHelper.getRandom();
 		String iv64 = AESHelper.encode64(iv);
 		String pswdCipher = AESHelper.encrypt("abc123", clientKey, iv);
-		usr.sessionKey("odys-z.github.io");
+		// usr.sessionKey("odys-z.github.io");
 
 		ISemantext s2 = st.instancontxt(connId, usr);
 		st.insert("a_users", usr)
@@ -763,6 +765,8 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 
 		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, runtimepath);
 		ArrayList<String> sqls = new ArrayList<String>(1);
+
+		// 1
 		st.insert("a_users") // with default value: pswd = '123456'
 			.nv("userName", usrName)
 			.nv("roleId", "attach-01")
@@ -821,6 +825,30 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				rs.getString("b64").substring(0, 8));
 		assertEquals(2652, rs.getString("b64").length());
 		
+		// 2
+		st.update("a_attaches", usr)
+		  .nv("attName", "Sun Yet-sen Portrait.jpg")
+		  .nv("busiTbl", "a_folder2")
+		  .nv("busiId", "res")
+		  .nv("uri", rs.getString("uri"))
+		  .whereEq("attId", attId)
+		  .commit(sqls, usr)
+		  .u(s0.clone(usr));
+		
+		assertFalse(f.exists());
+
+		rs = (AnResultset) st.select("a_attaches", "f")
+				.col("uri").col("extFile(f.uri)", "b64")
+				.whereEq("attId", attId)
+				.rs(new DASemantext(connId, smtcfg, metas, usr, rtroot))
+				.rs(0);
+			
+		fp = EnvPath.decodeUri(rtroot, rs.getString("uri"));
+
+		f = new File(fp);
+		assertTrue(f.exists());
+
+		// 3
 		st.delete("a_attaches", usr)
 			.whereEq("attId", attId)
 			.commit(sqls, usr)

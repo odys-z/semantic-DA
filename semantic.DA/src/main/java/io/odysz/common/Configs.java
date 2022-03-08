@@ -73,7 +73,7 @@ public class Configs {
 	}
 
 	public static String getCfg(String key) {
-		return cfgs.get(deftId).get(key);
+		return cfgs.get(keys.deftXTableId).get(key);
 	}
 
 	public static String getCfg(String tid, String k) {

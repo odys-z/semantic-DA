@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io_odysz.FilenameUtils;
+
 import io.odysz.common.AESHelper;
 import io.odysz.common.EnvPath;
 import io.odysz.common.LangExt;
@@ -24,7 +26,8 @@ import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.AbsPart;
-import io.odysz.transact.sql.parts.ExtFile;
+import io.odysz.transact.sql.parts.ExtFileInsert;
+import io.odysz.transact.sql.parts.ExtFileUpdate;
 import io.odysz.transact.sql.parts.Logic;
 import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Condit;
@@ -1207,13 +1210,13 @@ public class DASemantics {
 						// can be a string or an auto resulving (fk is handled before extfile)
 						Object fn = row.get(cols.get(pkField))[1];
 
-						ExtFile f;
+						ExtFileInsert f;
 						if (fn instanceof Resulving)
 							// f = new ExtFile((Resulving) fn, arargs[ixRoot]gs[ixRoot], stx.containerRoot());
-							f = new ExtFile((Resulving) fn, getFileRoot(), stx);
+							f = new ExtFileInsert((Resulving) fn, getFileRoot(), stx);
 						else
 							// f = new ExtFile(new ExprPart(fn.toString()), args[ixRoot], stx.containerRoot());
-							f = new ExtFile(new ExprPart(fn.toString()), getFileRoot(), stx);
+							f = new ExtFileInsert(new ExprPart(fn.toString()), getFileRoot(), stx);
 						
 						if (args.length >= ixClientName) {
 							String clientname = args[ixClientName];
@@ -1224,7 +1227,7 @@ public class DASemantics {
 							}
 						}
 
-						f.prefixPath(subpath, subpath2)
+						f.prefixPath(subpath, subpath2) // e.g. "a_users", "ody"
 							.b64(nv[1].toString());
 						nv = new Object[] {nv[0], f};
 						row.set(cols.get(args[ixUri]), nv);
@@ -1246,6 +1249,7 @@ public class DASemantics {
 			if (args.length > 1 && args[1] != null) {
 				Object[] nv;
 				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
+				/*
 				if (cols.containsKey(args[ixUri])) {
 					// save file, replace v
 					nv = row.get(cols.get(args[ixUri]));
@@ -1256,6 +1260,36 @@ public class DASemantics {
 								args[ixUri]);
 					}
 				}
+				*/
+				if (cols.containsKey(args[ixSubCate]) || cols.containsKey(args[ixBusiCate]) || cols.containsKey(args[ixClientName])) {
+					if ( !cols.containsKey(args[ixUri]) || !cols.containsKey(args[ixSubCate])
+					  || !cols.containsKey(args[ixBusiCate]) || !cols.containsKey(args[ixClientName]) )
+						throw new SemanticException("To update (move file) %s.%s, all fields must values provided by user. Old uri value is required, and fields reqired: %s, %s, %s.",
+									target, args[ixUri], args[ixBusiCate], args[ixSubCate], args[ixClientName]);
+					
+					String folder = row.get(cols.get(args[ixBusiCate]))[1].toString();
+					String subpath2 = row.get(cols.get(args[ixSubCate]))[1].toString();
+					String oldUri = row.get(cols.get(args[ixUri]))[1].toString();
+					String oldName = FilenameUtils.getName(oldUri);
+
+					ExtFileUpdate f = new ExtFileUpdate(oldName, getFileRoot(), stx)
+							.oldUri(oldUri)
+							.prefixPath(folder, subpath2);
+					nv = row.get(cols.get(args[ixUri]));
+					nv = new Object[] { nv[0], f };
+					row.set(cols.get(args[ixUri]), nv);
+				}
+				else {
+					// save file, replace v
+					nv = row.get(cols.get(args[ixUri]));
+					if (nv != null && nv[1] != null &&
+						(  nv[1] instanceof String && ((String) nv[1]).length() > 0
+						|| nv[1] instanceof ExprPart && !((ExprPart) nv[1]).isNull() )) {
+						throw new SemanticException("Found the extFile value presented in %s.%s, but updating is configured as semantics.",
+									target, args[ixUri]);
+					}
+				}
+
 			}
 		}
 

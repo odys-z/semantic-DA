@@ -116,7 +116,7 @@
   		<smtc>ef</smtc>
   		<tabl>a_attaches</tabl>
   		<pk>attId</pk>
-  		<!-- try delete, save to WEB-INF/uploads/[busiTbl]/[uri],
+  		<!-- try delete, save to ./uploads/[busiTbl]/[uri],
   				in table attches, pk attId,
   				row's value in uri will replaced with a file,
   				handled for business table, fk to busi-id,
