@@ -15,10 +15,11 @@ import io.odysz.module.xtable.XMLTable;
  * A servlet constext must been registed by LeisureFactory before Messages is inited */
 public class Configs {
 	protected static ILogger log;
-//	protected static final String tag = "CFG";
 	protected static String cfgFile = "config.xml";
 	/** @deprecated replaced by {@link keys#deftXTableId} */
-	protected static final String deftId = "default";
+	// protected static final String deftId = "default";
+
+	/** * */
 	public static class keys {
 		/** Default xtable id, configs.xml/t[id="default"] */
 		public static final String deftXTableId = "default";
@@ -41,15 +42,19 @@ public class Configs {
 	 */
 	public static void init(String xmlDir) {
 		cfgFile = FilenameUtils.concat(xmlDir, cfgFile);
-		load(cfgs, deftId);
+		load(cfgs, keys.deftXTableId);
+	}
+	
+	protected static void load(HashMap<String, HashMap<String, String>> cfgs, String tid) {
+		load(cfgs, cfgFile, tid);
 	}
 
-	protected static void load(HashMap<String, HashMap<String, String>> cfgs, String tid) {
+	public static void load(HashMap<String, HashMap<String, String>> cfgs, String xml, String tid) {
 		// String messageFile = null;
 		// String fullpath = HelperFactory.getRealPath(cfgFile);
-		Utils.logi("config file : %s", cfgFile);
+		Utils.logi("config file : %s", xml);
 
-		XMLTable deft = XMLDataFactory.getTable("config.xml", log, tid, cfgFile, new IXMLStruct(){
+		XMLTable deft = XMLDataFactory.getTable(xml, log, tid, xml, new IXMLStruct(){
 			@Override public String rootTag() { return "configs"; }
 			@Override public String tableTag() { return "t"; }
 			@Override public String recordTag() { return "c"; }
@@ -102,7 +107,7 @@ public class Configs {
 	}
 
 	public static boolean hasCfg(String key) {
-		return hasCfg(deftId, key);
+		return hasCfg(keys.deftXTableId, key);
 	}
 
 	public static boolean hasCfg(String tid, String key) {

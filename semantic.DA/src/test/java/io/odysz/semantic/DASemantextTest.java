@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,6 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.io_odysz.FilenameUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -728,8 +730,8 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	}
 
 	@Test
-	public void testExtfilePathHandler() throws SQLException, TransException {
-		System.setProperty("VOLUME_HOME", "/home/ody/volume");
+	public void testExtfilePathHandler() throws Exception {
+		setEnv2("VOLUME_HOME", "/home/ody/volume");
 
 		String[] args = "$VOLUME_HOME/shares,uri,userId,cate,docName".split(",");
 		String extroot = args[ShExtFile.ixExtRoot];
@@ -756,6 +758,30 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		abspath = EnvPath.decodeUri(rtroot, encoded);
 		// assertEquals("/home/ody/upload/admin/000003 f.txt", abspath);
 		assertEquals("/home/ody/volume/shares/admin/000003 f.txt", abspath);
+		
+		// Override
+		System.setProperty("VOLUME_HOME", "/home/alice/vol");
+		abspath = EnvPath.decodeUri(rtroot, encoded);
+		assertEquals("/home/alice/vol/shares/admin/000003 f.txt", abspath);
+	}
+	
+	/**Only Linux/MacOs
+	 * https://stackoverflow.com/a/40682052/7362888
+	 * @param newenv
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public static void setEnv2(String key, String value) {
+	    try {
+	        Map<String, String> env = System.getenv();
+	        Class<?> cl = env.getClass();
+	        Field field = cl.getDeclaredField("m");
+	        field.setAccessible(true);
+	        Map<String, String> writableEnv = (Map<String, String>) field.get(env);
+	        writableEnv.put(key, value);
+	    } catch (Exception e) {
+	        throw new IllegalStateException("Failed to set environment variable", e);
+	    }
 	}
 
 	@Test

@@ -33,7 +33,7 @@ public class ConnectsTest {
 		Utils.logi(path);
 		Connects.init(path);
 
-		Utils.logi("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n+++\n+++\n+++\n+++");
+		// Utils.logi("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n+++\n+++\n+++\n+++");
 		st = new Transcxt(null);
 	}
 
