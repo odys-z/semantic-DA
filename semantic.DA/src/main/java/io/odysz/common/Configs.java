@@ -1,5 +1,6 @@
 package io.odysz.common;
 
+import java.io.File;
 import java.util.HashMap;
 
 import org.apache.commons.io_odysz.FilenameUtils;
@@ -16,8 +17,6 @@ import io.odysz.module.xtable.XMLTable;
 public class Configs {
 	protected static ILogger log;
 	protected static String cfgFile = "config.xml";
-	/** @deprecated replaced by {@link keys#deftXTableId} */
-	// protected static final String deftId = "default";
 
 	/** * */
 	public static class keys {
@@ -50,11 +49,10 @@ public class Configs {
 	}
 
 	public static void load(HashMap<String, HashMap<String, String>> cfgs, String xml, String tid) {
-		// String messageFile = null;
-		// String fullpath = HelperFactory.getRealPath(cfgFile);
-		Utils.logi("config file : %s", xml);
+		String absPath = FilenameUtils.concat(xml);
+		Utils.logi("config file : %s", new File(absPath).getAbsolutePath());
 
-		XMLTable deft = XMLDataFactory.getTable(xml, log, tid, xml, new IXMLStruct(){
+		XMLTable deft = XMLDataFactory.getTable(xml, log, tid, absPath, new IXMLStruct(){
 			@Override public String rootTag() { return "configs"; }
 			@Override public String tableTag() { return "t"; }
 			@Override public String recordTag() { return "c"; }

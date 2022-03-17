@@ -1,5 +1,6 @@
 package io.odysz.semantic.DA;
 
+import java.io.File;
 import java.sql.Clob;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -108,7 +109,10 @@ public class Connects {
 		if (srcs == null)
 			srcs = new HashMap<String, AbsConnect<? extends AbsConnect<?>>>();
 
-		XMLTable conn = XMLDataFactory.getTable(logger , tablId, xmlDir + "/connects.xml",
+		String absPath = FilenameUtils.concat(xmlDir, "connects.xml");
+		Utils.logi(new File(absPath).getAbsolutePath());
+
+		XMLTable conn = XMLDataFactory.getTable(logger , tablId, absPath, // xmlDir + "/connects.xml",
 						new IXMLStruct() {
 							@Override public String rootTag() { return "conns"; }
 							@Override public String tableTag() { return "t"; }
@@ -143,11 +147,16 @@ public class Connects {
 		return srcs;
 	}
 
-	private static LinkedHashMap<Regex, String> loadConnUri(String tablId, ILogger logger, String xmlDir) throws SAXException, SemanticException {
+	private static LinkedHashMap<Regex, String> loadConnUri(String tablId, ILogger logger, String xmlDir)
+			throws SAXException, SemanticException {
+
 		if (conn_uri == null)
 			conn_uri = new LinkedHashMap<Regex, String>();
 
-		XMLTable conn = XMLDataFactory.getTable(logger , tablId, xmlDir + "/connects.xml",
+		String absPath = FilenameUtils.concat(xmlDir, "connects.xml");
+		Utils.logi(new File(absPath).getAbsolutePath());
+
+		XMLTable conn = XMLDataFactory.getTable(logger , tablId, absPath, //xmlDir + "/connects.xml",
 						new IXMLStruct() {
 							@Override public String rootTag() { return "conns"; }
 							@Override public String tableTag() { return "t"; }
