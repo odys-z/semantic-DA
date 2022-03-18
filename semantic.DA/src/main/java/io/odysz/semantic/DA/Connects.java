@@ -79,6 +79,7 @@ public class Connects {
 	 * @param xmlDir
 	 */
 	public static void init(String xmlDir) {
+		Utils.logi("Initializing connects with path to %s", xmlDir);
 		workingDir = xmlDir;
 		if (srcs != null) return;
 		srcs = new HashMap<String, AbsConnect<? extends AbsConnect<?>>>();

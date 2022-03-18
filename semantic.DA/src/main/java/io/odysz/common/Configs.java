@@ -16,10 +16,8 @@ import io.odysz.module.xtable.XMLTable;
 public class Configs {
 	protected static ILogger log;
 	protected static String cfgFile = "config.xml";
-	/** @deprecated replaced by {@link keys#deftXTableId} */
-	// protected static final String deftId = "default";
 
-	/** * */
+	/** Handled keys for config.xml */
 	public static class keys {
 		/** Default xtable id, configs.xml/t[id="default"] */
 		public static final String deftXTableId = "default";
@@ -50,8 +48,6 @@ public class Configs {
 	}
 
 	public static void load(HashMap<String, HashMap<String, String>> cfgs, String xml, String tid) {
-		// String messageFile = null;
-		// String fullpath = HelperFactory.getRealPath(cfgFile);
 		Utils.logi("config file : %s", xml);
 
 		XMLTable deft = XMLDataFactory.getTable(xml, log, tid, xml, new IXMLStruct(){
