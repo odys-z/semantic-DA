@@ -1,5 +1,6 @@
 package io.odysz.common;
 
+import java.io.File;
 import java.util.HashMap;
 
 import org.apache.commons.io_odysz.FilenameUtils;
@@ -48,9 +49,10 @@ public class Configs {
 	}
 
 	public static void load(HashMap<String, HashMap<String, String>> cfgs, String xml, String tid) {
-		Utils.logi("config file : %s", xml);
+		String absPath = FilenameUtils.concat(xml);
+		Utils.logi("config file : %s", new File(absPath).getAbsolutePath());
 
-		XMLTable deft = XMLDataFactory.getTable(xml, log, tid, xml, new IXMLStruct(){
+		XMLTable deft = XMLDataFactory.getTable(xml, log, tid, absPath, new IXMLStruct(){
 			@Override public String rootTag() { return "configs"; }
 			@Override public String tableTag() { return "t"; }
 			@Override public String recordTag() { return "c"; }
