@@ -140,7 +140,7 @@ public class Connects {
 					defltConn = id;
 				}
 			} catch (Exception e) {
-				Utils.warn("ERROR: Connection intiialization failed: %s, default connection can be null.", (Object)conn.getStrings("type"));
+				Utils.warn("ERROR: Connection intiialization failed: %s. (default connection can be null.)", (Object)conn.getStrings("type"));
 				e.printStackTrace();
 				continue;
 			}
