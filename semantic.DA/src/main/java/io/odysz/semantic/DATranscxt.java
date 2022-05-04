@@ -236,10 +236,7 @@ public class DATranscxt extends Transcxt {
 				throw new SemanticException(
 					"Trying to find semantics of conn %1$s, but the configuration path is empty.\n" +
 					"No 'smtcs' configured in connects.xml for connection %1$s?\n" +
-					"Looking in path: %2$s",
-					conn, fpath);
-			// fpath = FilenameUtils.concat(cfgroot, fpath);
-
+					"Looking in path: %2$s", conn, fpath);
 			loadSemantics(conn, fpath);
 		}
 		return smtConfigs.get(conn);
