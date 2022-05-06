@@ -1233,6 +1233,14 @@ public class DASemantics {
 
 						f.prefixPath(subpath, subpath2) // e.g. "a_users", "ody"
 							.b64(nv[1].toString());
+						
+						if (debug)
+							try {
+								Utils.logi("[io.odysz.semantic.DASemantics.debug] :\n\t%s", f.absolutePath(stx));
+							} catch (TransException e) {
+								e.printStackTrace();
+							}
+
 						nv = new Object[] {nv[0], f};
 						row.set(cols.get(args[ixUri]), nv);
 					}
