@@ -152,7 +152,7 @@ public class DATranscxt extends Transcxt {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public String findResulved(SemanticObject rslt, String tabl, String pk) {
+	public static String findResulved(SemanticObject rslt, String tabl, String pk) {
 		return ((HashMap<String, String>) ((SemanticObject) rslt.get("resulved")).get(tabl)).get(pk);
 	}
 
