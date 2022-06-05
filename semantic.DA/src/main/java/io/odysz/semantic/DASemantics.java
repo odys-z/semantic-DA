@@ -1192,7 +1192,8 @@ public class DASemantics {
 
 		@Override
 		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-			if (args.length > 1 && args[1] != null) {
+			// if (args.length > 1 && args[1] != null) {
+			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
 				Object[] nv;
 				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
 				if (cols.containsKey(args[ixUri])) {
@@ -1258,21 +1259,9 @@ public class DASemantics {
 		@Override
 		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 			// onInsert(stx, null, row, cols, usr);
-			if (args.length > 1 && args[1] != null) {
+			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
+			// if (args.length > 1 && args[1] != null) {
 				Object[] nv;
-				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
-				/*
-				if (cols.containsKey(args[ixUri])) {
-					// save file, replace v
-					nv = row.get(cols.get(args[ixUri]));
-					if (nv != null && nv[1] != null &&
-						(  nv[1] instanceof String && ((String) nv[1]).length() > 0
-						|| nv[1] instanceof ExprPart && !((ExprPart) nv[1]).isNull() )) {
-						throw new SemanticException("Found the extFile value presented in %s, but updating is not supported by extFile.",
-								args[ixUri]);
-					}
-				}
-				*/
 				if (cols.containsKey(args[ixSubCate]) || cols.containsKey(args[ixBusiCate]) || cols.containsKey(args[ixClientName])) {
 					if ( !cols.containsKey(args[ixUri]) || !cols.containsKey(args[ixSubCate])
 					  || !cols.containsKey(args[ixBusiCate]) || !cols.containsKey(args[ixClientName]) )
@@ -1301,7 +1290,6 @@ public class DASemantics {
 									target, args[ixUri]);
 					}
 				}
-
 			}
 		}
 
