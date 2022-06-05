@@ -1250,7 +1250,7 @@ public class DASemantics {
 		}
 
 		/**<p>On updating external files handler.</p>
-		 * <p>This method only throw an exception currently, applying the semantics predefined as:<br>
+		 * <p>This method only moves the file with new uri & client name, applying the semantics predefined as:<br>
 		 * AS all files are treated as binary file, no file can be modified, only delete then create it makes sense.</p>
 		 * <p>Client should avoid updating an external file will handling business logics.</p>
 		 * <p><b>NOTE:</b><br>This can be changed in the future.</p>
