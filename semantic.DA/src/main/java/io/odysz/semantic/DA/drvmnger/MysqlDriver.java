@@ -39,14 +39,16 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	
 	/**Use this to init connection without using servlet context for retrieving configured strings.<br>
 	 * This is the typical scenario when running test from "main" thread.
+	 * 
 	 * @param conn
 	 * @param user
 	 * @param psword
-	 * @param flags 
-	 * @return driver instance 
+	 * @param log
+	 * @param flags
+	 * @return new MysqlDriver
 	 * @throws SQLException
 	 */
-	public static MysqlDriver initConnection(String conn, String user, String psword, int flags) throws SQLException {
+	public static MysqlDriver initConnection(String conn, String user, String psword, boolean log, int flags) throws SQLException {
 		if (!inited) {
 			printSql = (flags & Connects.flag_printSql) > 0;
 			
@@ -63,7 +65,7 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 			}
 			inited = true;
 		}
-		return new MysqlDriver();
+		return new MysqlDriver(log);
 	}
  
 	public static AnResultset selectStatic(String sql, int flags) throws SQLException {
@@ -79,8 +81,8 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 		return icrs;
 	}
 
-	public MysqlDriver() {
-		super(dbtype.mysql);
+	public MysqlDriver(boolean log) {
+		super(dbtype.mysql, log);
 	}
 
 	public AnResultset select(String sql, int flags) throws SQLException {

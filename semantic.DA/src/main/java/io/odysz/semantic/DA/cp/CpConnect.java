@@ -13,8 +13,6 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-import org.xml.sax.SAXException;
-
 import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
@@ -78,17 +76,17 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	boolean printSql() { return printSql; }
 	private String srcId;
 	private DataSource ds;
-	/**[table-id(logic/bump name), [upper-case-col, bump-case-col]] */
-	// private HashMap<String, HashMap<String, String>> mappings;
 
-	/**Managing connection and ds for mysql, oracle, ...
+	/**
+	 * Managing connection and ds for mysql, oracle, ...
+	 * 
 	 * @param srcId
 	 * @param driverType
 	 * @param printSql
-	 * @throws SAXException
+	 * @param log
 	 */
-	public CpConnect (String srcId, dbtype driverType, boolean printSql) {
-		super(driverType);
+	public CpConnect (String srcId, dbtype driverType, boolean printSql, boolean log) {
+		super(driverType, log);
 		this.srcId = "java:/comp/env/" + srcId;
 		this.printSql = printSql;
 	}

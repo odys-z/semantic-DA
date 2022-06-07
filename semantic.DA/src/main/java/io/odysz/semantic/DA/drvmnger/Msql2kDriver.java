@@ -11,11 +11,11 @@ import io.odysz.semantics.IUser;
 
 public class Msql2kDriver extends AbsConnect<Msql2kDriver> {
 
-	public Msql2kDriver(dbtype drvName) {
-		super(drvName);
+	public Msql2kDriver(dbtype drvName, boolean log) {
+		super(drvName, log);
 	}
 
-	public static Msql2kDriver initConnection(String string, String string2, String string3, int i) {
+	public static Msql2kDriver initConnection(String string, String string2, String string3, boolean log, int i) {
 		return null;
 	}
 

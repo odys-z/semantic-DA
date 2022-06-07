@@ -125,13 +125,16 @@ public class Connects {
 				// columns="type,id,isdef,conn,usr,pswd,dbg"
 				dbtype type = parseDrvType(conn.getString("type"));
 				String id = conn.getString("id");
+				boolean log = conn.getBool("log", false);
 				if (dmCp == DmConn)
 					srcs.put(id, AbsConnect.initDmConnect(xmlDir, type, conn.getString("src"),
-						conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false))
+						conn.getString("usr"), conn.getString("pswd"),
+						conn.getBool("dbg", false), conn.getBool("log", false))
 							.prop("smtcs", conn.getString("smtcs")));
 				else
 					srcs.put(id, AbsConnect.initPooledConnect(xmlDir, type, conn.getString("src"),
-						conn.getString("usr"), conn.getString("pswd"), conn.getBool("dbg", false))
+						conn.getString("usr"), conn.getString("pswd"),
+						conn.getBool("dbg", false), conn.getBool("log", false))
 							.prop("smtcs", conn.getString("smtcs")));
 
 				if (conn.getBool("isdef", false)) {

@@ -66,7 +66,7 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 		return conn;
 	}
 
-	public static OracleDriver initConnection(String conn, String user, String psword, int flag) throws SQLException {
+	public static OracleDriver initConnection(String conn, String user, String psword, boolean log, int flag) throws SQLException {
 		if (!inited) {
 			enableSystemout = true;
 			
@@ -84,7 +84,7 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 			}
 			inited = true;
 		}
-		return new OracleDriver();
+		return new OracleDriver(log);
 	}	
 	/*
 	public static Connection getSQLConnection() throws Exception {
@@ -323,8 +323,8 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 		}
 	}
 
-	public OracleDriver() {
-		super(dbtype.oracle);
+	public OracleDriver(boolean log) {
+		super(dbtype.oracle, log);
 	}
 
 	@Override

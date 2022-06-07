@@ -55,8 +55,8 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 		}
 	}
 
-	SqliteDriver2() {
-		super(dbtype.sqlite);
+	SqliteDriver2(boolean log) {
+		super(dbtype.sqlite, log);
 		drvName = dbtype.sqlite;
 		locks = new HashMap<String, ReentrantLock>();
 	}
@@ -94,20 +94,21 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	
 	/**Use this to init connection without using servlet context for retrieving configured strings.<br>
 	 * This is the typical scenario when running test from "main" thread.
+	 * 
 	 * @param jdbc
 	 * @param user
 	 * @param psword
-	 * @param flags 
-	 * @return dirver instance
+	 * @param log
+	 * @param flags
+	 * @return SqliteDriver2 instance
 	 * @throws SQLException
 	 */
-	public static SqliteDriver2 initConnection(String jdbc, String user, String psword, int flags) throws SQLException {
-		SqliteDriver2 inst = new SqliteDriver2();
+	public static SqliteDriver2 initConnection(String jdbc, String user, String psword, boolean log, int flags) throws SQLException {
+		SqliteDriver2 inst = new SqliteDriver2(log);
 			enableSystemout = (flags & Connects.flag_printSql) > 0;
 			inst.jdbcUrl = jdbc;
 			inst.userName = user;
 			inst.pswd = psword;
-//			inst.conn = DriverManager.getConnection(jdbc, user, psword);
 			
 			SQLiteConfig cfg = new SQLiteConfig();
 			cfg.setEncoding(SQLiteConfig.Encoding.UTF8);

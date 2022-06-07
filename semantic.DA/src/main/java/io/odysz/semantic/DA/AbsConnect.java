@@ -25,18 +25,20 @@ import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
 
 public abstract class AbsConnect<T extends AbsConnect<T>> {
+	protected boolean log;
 	protected dbtype drvName;
 	public dbtype driverType() { return drvName; }
 
-	public AbsConnect (dbtype drvName) {
+	public AbsConnect (dbtype drvName, boolean log) {
 		this.drvName = drvName;
+		this.log = log;
 	}
 	
 	public static AbsConnect<?> initDmConnect(String xmlDir, dbtype type, String jdbcUrl,
-			String usr, String pswd, boolean printSql) throws SQLException, SemanticException {
+			String usr, String pswd, boolean printSql, boolean log) throws SQLException, SemanticException {
 		if (type == dbtype.mysql) {
 			return MysqlDriver.initConnection(jdbcUrl,
-					usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else if (type == dbtype.sqlite) {
 			// Since docker volume can not be mounted in tomcat webapps' sub-folder, file path handling can be replaced with environment variables now.
@@ -50,23 +52,23 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 				throw new SQLException("DB file doesn't exit.");
 
 			return SqliteDriver2.initConnection(String.format("jdbc:sqlite:%s", dbpath),
-					usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else if (type == dbtype.ms2k) {
 			return Msql2kDriver.initConnection(jdbcUrl,
-				usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+				usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else if (type == dbtype.oracle) {
 			return OracleDriver.initConnection(jdbcUrl,
-				usr, pswd, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+				usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else
 			throw new SemanticException("The configured DB type %s is not supported yet.", type);
 	}
 
 	public static AbsConnect<? extends AbsConnect<?>> initPooledConnect(String xmlDir, dbtype type,
-			String jdbcUrl, String usr, String pswd, boolean printSql) {
-		return new CpConnect(jdbcUrl, type, printSql);
+			String jdbcUrl, String usr, String pswd, boolean printSql, boolean log) {
+		return new CpConnect(jdbcUrl, type, printSql, log);
 	}
 	
 	protected void close() throws SQLException {}
@@ -79,15 +81,18 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 		int[] c = commit(sqls, flags);
 		if (usr != null) {
 			try {
-				sqls = usr.dbLog(sqls);
-				if (sqls != null)
-					commit(null, sqls, Connects.flag_nothing);
+				if (log) {
+					sqls = usr.dbLog(sqls);
+
+					if (sqls != null)
+						commit(null, sqls, Connects.flag_nothing);
+				}
 			}
 			catch (Exception ex) {
 				ex.printStackTrace();
 			}
 		}
-		else {
+		else if (log) {
 			Utils.warn("Some db commitment not logged:", sqls);
 		}
 		return c;
