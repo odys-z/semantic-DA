@@ -203,6 +203,7 @@ public class DATranscxt extends Transcxt {
 	}
 
 	public String getSysConnId() { return Connects.defltConn(); }
+	public boolean getSysDebug() { return Connects.getDebug(Connects.defltConn()); }
 
 	/**<p>Create a transact builder with basic DASemantext instance.</p>
 	 * <p>If it's a null configuration, the semantics can not be used to resulving semantics between records,
@@ -237,7 +238,7 @@ public class DATranscxt extends Transcxt {
 					"Trying to find semantics of conn %1$s, but the configuration path is empty.\n" +
 					"No 'smtcs' configured in connects.xml for connection %1$s?\n" +
 					"Looking in path: %2$s", conn, fpath);
-			loadSemantics(conn, fpath);
+			loadSemantics(conn, fpath, Connects.getDebug(conn));
 		}
 		return smtConfigs.get(conn);
 	}
@@ -246,13 +247,14 @@ public class DATranscxt extends Transcxt {
 	 * This method also initialize table meta by calling {@link Connects}.
 	 * @param connId
 	 * @param cfgpath full path to semantics.xml (path and name) 
+	 * @param debug 
 	 * @return configurations
 	 * @throws SAXException
 	 * @throws IOException
 	 * @throws SQLException 
 	 * @throws SemanticException 
 	 */
-	public static HashMap<String, DASemantics> loadSemantics(String connId, String cfgpath)
+	public static HashMap<String, DASemantics> loadSemantics(String connId, String cfgpath, boolean debug)
 			throws SAXException, IOException, SQLException, SemanticException {
 		Utils.logi("Loading Semantics (fullpath):\n\t%s", cfgpath);
 		if (cfgpath == null) {
@@ -268,11 +270,11 @@ public class DATranscxt extends Transcxt {
 
 			XMLTable xconn = xtabs.get("semantics");
 			
-			return initConfigs(connId, xconn);
+			return initConfigs(connId, xconn, debug);
 		}
 	}
 	
-	protected static HashMap<String, DASemantics> initConfigs(String conn, XMLTable xcfg)
+	protected static HashMap<String, DASemantics> initConfigs(String conn, XMLTable xcfg, boolean debug)
 			throws SAXException, IOException, SQLException, SemanticException {
 		xcfg.beforeFirst();
 		if (smtConfigs == null)
@@ -283,7 +285,7 @@ public class DATranscxt extends Transcxt {
 			String smtc = xcfg.getString("smtc");
 			String args = xcfg.getString("args");
 			try {
-				addSemantics(conn, tabl, pk, smtc, args);
+				addSemantics(conn, tabl, pk, smtc, args, debug);
 			} catch (SemanticException e) {
 				// some configuration error
 				// continue
@@ -310,18 +312,18 @@ public class DATranscxt extends Transcxt {
 	}
 
 	public static void addSemantics(String connId, String tabl, String pk,
-			String smtcs, String args) throws SQLException, SAXException, IOException, SemanticException {
+			String smtcs, String args, boolean debug) throws SQLException, SAXException, IOException, SemanticException {
 		smtype sm = smtype.parse(smtcs);
-		addSemantics(connId, tabl, pk, sm, args);
+		addSemantics(connId, tabl, pk, sm, args, debug);
 	}
 
 	public static void addSemantics(String connId, String tabl, String pk,
-			smtype sm, String args) throws SQLException, SAXException, IOException, SemanticException {
-		addSemantics(connId, tabl, pk, sm, LangExt.split(args, ","));
+			smtype sm, String args, boolean debug) throws SQLException, SAXException, IOException, SemanticException {
+		addSemantics(connId, tabl, pk, sm, LangExt.split(args, ","), debug);
 	}
 
 	public static void addSemantics(String conn, String tabl, String pk,
-			smtype sm, String[] args) throws SQLException, SAXException, IOException, SemanticException {
+			smtype sm, String[] args, boolean debug) throws SQLException, SAXException, IOException, SemanticException {
 		if (smtConfigs == null) {
 			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
 		}
@@ -334,7 +336,7 @@ public class DATranscxt extends Transcxt {
 		DASemantics s = ss.get(tabl);
 		if (s == null) {
 			// s = new DASemantics(staticInstance, tabl, pk);
-			s = new DASemantics(getBasicTrans(conn), tabl, pk);
+			s = new DASemantics(getBasicTrans(conn), tabl, pk, debug);
 			ss.put(tabl, s);
 		}
 		s.addHandler(sm, tabl, pk, args);

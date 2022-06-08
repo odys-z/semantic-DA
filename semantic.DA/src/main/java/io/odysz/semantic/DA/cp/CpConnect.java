@@ -42,14 +42,11 @@ public class CpConnect extends AbsConnect<CpConnect> {
         AnResultset icrs = null; 
         try {
         	InitialContext ctx = new InitialContext();
-        	// DataSource ds = (DataSource)ctx.lookup("java:/comp/env/jdbc/frameDs");
         	DataSource ds = (DataSource)ctx.lookup("java:/comp/env/" + src);
-        	// apache told us use 
+        	// apache told us use this
             con = ds.getConnection();
             con.setAutoCommit(false);
 
-        	// System.out.println(con.getMetaData().getURL());
-            // System.out.println(sql);
             Utils.logi(con.getMetaData().getURL());
             Utils.logi(sql);
 
@@ -60,8 +57,6 @@ public class CpConnect extends AbsConnect<CpConnect> {
             con.commit();
             pstmt.close();
         } catch (Exception e) {
-        	// System.err.println("ERROR - " + src);
-        	// System.err.println("      - " + sql);
         	Utils.warn("ERROR - " + src);
         	Utils.warn("      - " + sql);
 			e.printStackTrace();
@@ -72,8 +67,8 @@ public class CpConnect extends AbsConnect<CpConnect> {
         return icrs;
 	}
 
-	private boolean printSql;
-	boolean printSql() { return printSql; }
+	// private boolean printSql;
+	boolean printSql() { return enableSystemout; }
 	private String srcId;
 	private DataSource ds;
 
@@ -88,7 +83,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	public CpConnect (String srcId, dbtype driverType, boolean printSql, boolean log) {
 		super(driverType, log);
 		this.srcId = "java:/comp/env/" + srcId;
-		this.printSql = printSql;
+		this.enableSystemout = printSql;
 	}
 	
 	/** e.g. ["a_logs" ["TXT",  CLOB]]*/
@@ -145,8 +140,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
         PreparedStatement pstmt;
         AnResultset icrs = null; 
         try {
-        	// if (printSql) System.out.println(sql);
-        	Connects.printSql(printSql, flags, sql);
+        	Connects.printSql(enableSystemout, flags, sql);
 
         	con = getConnection();
             con.setAutoCommit(false);
@@ -209,7 +203,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 //	}
 
 	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException, NamingException {
-		Connects.printSql(printSql, flags, sqls);
+		Connects.printSql(enableSystemout, flags, sqls);
 
 		int[] ret = null;
         Connection conn = null;

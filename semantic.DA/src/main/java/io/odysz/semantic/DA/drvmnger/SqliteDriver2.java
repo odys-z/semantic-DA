@@ -30,7 +30,6 @@ import io.odysz.semantics.IUser;
  */
 public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	private static JDBC drv;
-	public static boolean enableSystemout = true;
 
 	String userName;
 	String pswd;
@@ -105,15 +104,16 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 */
 	public static SqliteDriver2 initConnection(String jdbc, String user, String psword, boolean log, int flags) throws SQLException {
 		SqliteDriver2 inst = new SqliteDriver2(log);
-			enableSystemout = (flags & Connects.flag_printSql) > 0;
-			inst.jdbcUrl = jdbc;
-			inst.userName = user;
-			inst.pswd = psword;
-			
-			SQLiteConfig cfg = new SQLiteConfig();
-			cfg.setEncoding(SQLiteConfig.Encoding.UTF8);
-			inst.conn = DriverManager.getConnection(jdbc, cfg.toProperties());
-			return inst;
+
+		inst.enableSystemout = (flags & Connects.flag_printSql) > 0;
+		inst.jdbcUrl = jdbc;
+		inst.userName = user;
+		inst.pswd = psword;
+		
+		SQLiteConfig cfg = new SQLiteConfig();
+		cfg.setEncoding(SQLiteConfig.Encoding.UTF8);
+		inst.conn = DriverManager.getConnection(jdbc, cfg.toProperties());
+		return inst;
 	}
 	
 	AnResultset selectStatic(String sql, int flag) throws SQLException {
@@ -125,10 +125,6 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 		rs.close();
 		stmt.close();
 
-		// What about performance?
-		// https://stackoverflow.com/questions/31530700/static-finally-block-in-java
-		// conn.close();
-		
 		return icrs;
 	}
 

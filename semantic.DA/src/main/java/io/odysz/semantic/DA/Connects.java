@@ -362,6 +362,12 @@ public class Connects {
 				: srcs.get(conn).prop("smtcs"));
 	}
 
+	public static boolean getDebug(String conn) {
+		if (conn == null)
+			conn = defltConn;
+		return srcs.get(conn).enableSystemout;
+	}
+
 	public static String uri2conn(String uri) throws SemanticException {
 		if (LangExt.isblank(uri))
 			throw new SemanticException("Function's uri can not be null! Which is used for connecting datasource.");

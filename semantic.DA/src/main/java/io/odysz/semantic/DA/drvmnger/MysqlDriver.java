@@ -15,7 +15,6 @@ import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.IUser;
 
 public class MysqlDriver extends AbsConnect<MysqlDriver> {
-	public static boolean printSql = true;
 	static boolean inited = false;
 	static String userName;
 	static String pswd;
@@ -50,7 +49,6 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	 */
 	public static MysqlDriver initConnection(String conn, String user, String psword, boolean log, int flags) throws SQLException {
 		if (!inited) {
-			printSql = (flags & Connects.flag_printSql) > 0;
 			
 			connect = conn;
 			userName = user;
@@ -65,12 +63,14 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 			}
 			inited = true;
 		}
-		return new MysqlDriver(log);
+		MysqlDriver inst = new MysqlDriver(log);
+		inst.enableSystemout = (flags & Connects.flag_printSql) > 0;
+		return inst;
 	}
  
 	public static AnResultset selectStatic(String sql, int flags) throws SQLException {
 		Connection conn = getConnection();
-		Connects.printSql(printSql, flags, sql);
+		Connects.printSql(false, flags, sql);
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery(sql);
 		AnResultset icrs = new AnResultset(rs);
@@ -91,7 +91,7 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	
 	@Override
 	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
-		Connects.printSql(printSql, flags, sqls);
+		Connects.printSql(enableSystemout, flags, sqls);
 		
 		int[] ret;
 		Connection conn = getConnection();
@@ -114,7 +114,7 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 
 					ret = stmt.executeBatch();
 					conn.commit();
-					if (printSql) System.out.println("mysql batch execute successfully.");
+					if (enableSystemout) System.out.println("mysql batch execute successfully.");
 				} catch (Exception exx) {
 					conn.rollback();
 					exx.printStackTrace();

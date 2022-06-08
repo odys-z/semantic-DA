@@ -26,9 +26,15 @@ import io.odysz.semantics.x.SemanticException;
 
 public abstract class AbsConnect<T extends AbsConnect<T>> {
 	protected boolean log;
+	public boolean enableSystemout = true;
+
 	protected dbtype drvName;
 	public dbtype driverType() { return drvName; }
 
+	/**
+	 * @param drvName
+	 * @param log enable logging user action
+	 */
 	public AbsConnect (dbtype drvName, boolean log) {
 		this.drvName = drvName;
 		this.log = log;

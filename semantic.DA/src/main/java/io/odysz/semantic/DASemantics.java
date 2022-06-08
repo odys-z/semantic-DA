@@ -131,7 +131,7 @@ public class DASemantics {
 	/** error code key word */
 	public static final String ERR_CHK = "err_smtcs";;
 
-	public static boolean debug = true;
+	public boolean verbose = true;
 
 	/**
 	 * Semantics type supported by DASemantics. For each semantics example, see
@@ -453,15 +453,12 @@ public class DASemantics {
 	private String tabl;
 	private String pk;
 
-	/**This special samantics handler will share uploading file root */
-	// private HashMap<String, ShExtFile> h_extfiles;
-
-	public static boolean verbose = false;
-
-	public DASemantics(Transcxt basicTx, String tabl, String recId) {
+	public DASemantics(Transcxt basicTx, String tabl, String recId, boolean verbose) {
 		this.tabl = tabl;
 		this.pk = recId;
 		basicTsx = basicTx;
+		
+		this.verbose = verbose;
 
 		handlers = new ArrayList<SemanticHandler>();
 	}
@@ -508,7 +505,7 @@ public class DASemantics {
 		else
 			throw new SemanticException("Unsuppported semantics: " + semantic);
 
-		if (debug)
+		if (verbose)
 			handler.logi();
 		handlers.add(handler);
 	}
@@ -620,11 +617,14 @@ public class DASemantics {
 
 		protected smtype sm;
 
-		SemanticHandler(Transcxt trxt, String semantic, String tabl, String pk, String[] args)
+		boolean verbose;
+
+		SemanticHandler(Transcxt trxt, String semantic, String tabl, String pk, String[] args, boolean verbose)
 				throws SemanticException {
 			this.trxt = trxt;
 			target = tabl;
 			pkField = pk;
+			this.verbose = verbose;
 		}
 
 		public void logi() {
@@ -915,7 +915,7 @@ public class DASemantics {
 					nv[1] = stx.composeVal(v, target, (String)nv[0]);
 			} catch (Exception e) {
 				if (nv[1] != null) {
-					if (debug)
+					if (verbose)
 						Utils.warn(
 								"Trying resolve FK failed, but fk value exists. child-fk(%s.%s) = %s, parent = %s.%s",
 								target, args[0], nv[1], args[1], args[2]);
@@ -1235,7 +1235,7 @@ public class DASemantics {
 						f.prefixPath(subpath, subpath2) // e.g. "a_users", "ody"
 							.b64(nv[1].toString());
 						
-						if (debug)
+						if (verbose)
 							try {
 								Utils.logi("[io.odysz.semantic.DASemantics.debug] :\n\t%s", f.absolutePath(stx));
 							} catch (TransException e) {
@@ -1463,9 +1463,11 @@ public class DASemantics {
 		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols,
 				IUser usr) throws SemanticException {
 			if (cols.containsKey(colCipher)) {
-				if (!cols.containsKey(colIv))
-					Utils.warn("Can't find IV columm: %s (for encrypt column %s)\n\t- possible 1. wrong iv config; 2. configured default encrypted column value.",
+				if (!cols.containsKey(colIv)) {
+					if (verbose)
+						Utils.warn("Can't find IV columm: %s (for encrypt column %s)\n\t- possible 1. wrong iv config;\n2. configured default encrypted column value.\n3.reset user password to plain text as intial tocken",
 							colIv, colCipher);
+				}
 
 				else {
 					Object[] ivB64 = row.get(cols.get(colIv));

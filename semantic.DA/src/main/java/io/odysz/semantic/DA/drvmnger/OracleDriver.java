@@ -68,7 +68,7 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 
 	public static OracleDriver initConnection(String conn, String user, String psword, boolean log, int flag) throws SQLException {
 		if (!inited) {
-			enableSystemout = true;
+			enableSystemout = (flag & Connects.flag_printSql) > 0;
 			
 			connect = conn;
 			userName = user;
@@ -86,33 +86,10 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 		}
 		return new OracleDriver(log);
 	}	
-	/*
-	public static Connection getSQLConnection() throws Exception {
-		/* Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
-		Connection connSQL=DriverManager.getConnection("jdbc:odbc:V4Alarm");* /
-		// String url = Configs.getCfg("com.infochange.frameleisure.DA.Sqlserver.connect");
-		String url = "jdbc:oracle:thin:@118.122.251.196:1521:orcl";
-		
-		Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-		Connection connSQL = DriverManager.getConnection(url);
-
-
-	    return connSQL;
-	}*/
-	
-//	private static String decryptDBpswd(String cipher, String username) {
-//		return username;
-//	}
 
 	public static AnResultset select(String sql) throws SQLException {
 		if (enableSystemout) System.out.println(sql);
 		Connection conn = getConnection();
-//		try {
-//			Class.forName( "oracle.jdbc.driver.OracleDriver" );
-//		} catch (ClassNotFoundException e) {
-//			e.printStackTrace();
-//		}
-//		Connection conn = DriverManager.getConnection( "jdbc:oracle:thin:@192.168.1.101:1521:emergenc", "emergency", "emergency" );
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery(sql);
 		AnResultset icrs = new AnResultset(rs);
