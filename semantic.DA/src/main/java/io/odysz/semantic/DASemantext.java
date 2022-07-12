@@ -457,7 +457,10 @@ end;
 						") t) t where rownum > ", r1, " and rownum <= %s", r2);
 						// v1.3.0 Sep.6 2021 ">=" to ">"
 		else if (dt == dbtype.sqlite)
-			throw new TransException("There is no easy way to support sqlite paging. Don't use server side paging for sqlite datasource.");
+			// throw new TransException("There is no easy way to support sqlite paging. Don't use server side paging for sqlite datasource.");
+
+			// https://stackoverflow.com/a/51380906
+			s = Stream.of("select * from (", sql, ") limit ", String.valueOf(pgSize), " offset ", r1);
 		else // mysql
 			// "select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s"
 			s = Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (", sql,
