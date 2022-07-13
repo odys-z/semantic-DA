@@ -427,7 +427,7 @@ end;
 		return DASemantext.totalSql(Connects.driverType(connId()), rawSql);
 	}
 
-	public String pageSql(String rawSql, int page, int size) throws TransException {
+	public String pageSql(String rawSql, long page, long size) throws TransException {
 		return DASemantext.pagingSql(Connects.driverType(connId()), rawSql, page, size);
 	}
 
@@ -440,10 +440,10 @@ end;
 	 * @return pagination wrapped sql
 	 * @throws TransException
 	 */
-	public static String pagingSql(dbtype dt, String sql, int pageIx, int pgSize) throws TransException {
+	public static String pagingSql(dbtype dt, String sql, long pageIx, long pgSize) throws TransException {
 		if (pageIx < 0 || pgSize <= 0)
 			return sql;
-		int i1 = pageIx * pgSize;
+		long i1 = pageIx * pgSize;
 		String r2 = String.valueOf(i1 + pgSize);
 		String r1 = String.valueOf(i1);
 		Stream<String> s;
