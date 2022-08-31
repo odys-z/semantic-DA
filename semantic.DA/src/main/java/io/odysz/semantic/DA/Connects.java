@@ -314,7 +314,15 @@ public class Connects {
 		return srcs == null ? null : srcs.keySet();
 	}
 
-	private static HashMap<String, TableMeta> loadMeta(String conn) throws SemanticException, SQLException {
+	/**
+	 * <p>Build database tables' meta.</p>
+	 * 
+	 * @param conn
+	 * @return metas
+	 * @throws SemanticException
+	 * @throws SQLException
+	 */
+	static HashMap<String, TableMeta> loadMeta(String conn) throws SemanticException, SQLException {
 		dbtype dt = driverType(conn);
 
 		HashMap<String, TableMeta> metas = new HashMap<String, TableMeta>();

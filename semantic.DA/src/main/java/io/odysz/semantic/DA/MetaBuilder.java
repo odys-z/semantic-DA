@@ -11,7 +11,10 @@ import io.odysz.semantics.meta.TableMeta;
 
 public class MetaBuilder {
 	private static HashSet<String> ignorTabls;
-	/**Build mysql table metas
+
+	/**
+	 * <p>Build mysql table metas.</p>
+	 * 
 	 * @param conn
 	 * @return table metas for the conn.
 	 * @throws SQLException
