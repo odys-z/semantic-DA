@@ -442,9 +442,9 @@ public class DASemantics {
 	 */
 	private Transcxt basicTsx;
 
-	public DASemantics get(String tabl) {
-		return ss == null ? null : ss.get(tabl);
-	}
+//	public DASemantics get(String tabl) {
+//		return ss == null ? null : ss.get(tabl);
+//	}
 
 	///////////////////////////////// container class
 	///////////////////////////////// ///////////////////////////////
