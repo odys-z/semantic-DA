@@ -65,7 +65,8 @@ public class Configs {
 				while (deft.next()) {
 					String k = deft.getString("k");
 					if (defaults.containsKey(k))
-						log.e("Configs", "duplicate key found: " + k);
+						// log.e("Configs", "duplicate key found: " + k);
+						Utils.warn("Configs: duplicate key found: %s", k);
 					defaults.put(k, deft.getString("v"));
 				}
 				cfgs.put(tid, defaults);

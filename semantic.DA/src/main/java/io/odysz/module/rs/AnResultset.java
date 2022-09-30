@@ -15,6 +15,7 @@ import java.util.List;
 
 import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
+import io.odysz.common.DateFormat;
 import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
 
@@ -489,7 +490,12 @@ for (String coln : colnames.keySet())
 			if (results.get(rowIdx - 1).get(index - 1) == null) return null;
 			// Oracle Datetime, Mysql Date, datetime can safely cast to date.
 			// If your debugging arrived here, you may first check you database column type.
-			else return (Date)results.get(rowIdx - 1).get(index - 1);
+			else try {
+				return (Date)results.get(rowIdx - 1).get(index - 1);
+			} catch (ClassCastException e) {
+				// tolerate text date
+				return DateFormat.parse((String)results.get(rowIdx - 1).get(index - 1));
+			}
 		} catch (Exception e) {
 			throw new SQLException(e.getMessage());
 		}
