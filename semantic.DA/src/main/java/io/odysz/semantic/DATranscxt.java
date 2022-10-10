@@ -55,6 +55,9 @@ public class DATranscxt extends Transcxt {
 		Utils.logi("Runtime root path: %s", runtimeRoot);
 	}
 
+	/**
+	 * @deprecated replaced by {@link #tableMeta(String, String)}
+	 */
 	public TableMeta tableMeta(String t) throws SemanticException {
 		for (String cnn : Connects.connIds()) {
 			HashMap<String, TableMeta> metas;
@@ -68,6 +71,19 @@ public class DATranscxt extends Transcxt {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public TableMeta tableMeta(String conn, String tabl) throws SemanticException {
+		try {
+			HashMap<String, TableMeta> metas = Connects.getMeta(conn);
+			if (metas != null && metas.containsKey(tabl))
+				return metas.get(tabl);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new SemanticException(e.getMessage());
+		}
+		throw new SemanticException("Can't find table meta: %s : %s", conn, tabl);
 	}
 
 	/**[conn, [table, DASemantics]] */

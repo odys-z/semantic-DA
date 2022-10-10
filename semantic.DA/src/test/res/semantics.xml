@@ -3,7 +3,7 @@
 <semantics>
   <t id="semantics" pk="id" columns="id,smtc,tabl,pk,args">
   <!-- smtc: semantics type, e.g. auto: auto increase key.
-  			see javadoc: https://odys-z.github.io/javadoc/semantic.DA/io/odysz/semantic/DASemantics.smtype.html 
+  			see javadoc: https://odys-z.github.io/javadoc/semantic.DA/io/odysz/semantic/DASemantics.smtype.html
   		tabl: database table name
   		pk:
   		args: arguments for sementics handlers. For args for different handlers, see above javadoc link.
@@ -43,7 +43,7 @@
   		<pk>funcId</pk>
   		<args>funcId,a_role_func,funcId</args>
   	</s>
-  	
+
   	<!-- see DASemantextTest#testCrossAutoK() -->
   	<s>
   		<id>t-crs-aid</id>
@@ -76,7 +76,7 @@
   		<pk>bid</pk>
   		<args>bfk,crs_a,aid</args>
   	</s>
-  	
+
   	<!-- a_user.userId auto key -->
   	<s>
   		<id>50</id>
@@ -125,6 +125,23 @@
   				-->
   		<args>uploads,uri,busiTbl,busiId,attName</args>
   	</s>
+
+  	<s>
+  		<id>50.ak</id>
+  		<smtc>autopk</smtc>
+  		<tabl>h_photos</tabl>
+  		<pk>pid</pk>
+  		<args>pid</args>
+  	</s>
+
+	<s>
+  		<id>53.2</id>
+  		<smtc>ef2.0</smtc>
+  		<tabl>h_photos</tabl>
+  		<pk>pid</pk>
+  		<args>uploads,uri,family,shareby,folder,pname</args>
+  	</s>
+
   	<!-- delete attachments when deleting a user -->
   	<s>
   		<id>54</id>
@@ -153,7 +170,7 @@
   		<pk>attId</pk>
   		<args>oper,optime</args>
   	</s>
- 
+
 	<!-- a_user.userName check same on insert -->
   	<s>
   		<id>5A</id>
@@ -180,7 +197,7 @@
   			roleId a_users roleId
   		</args>
   	</s>
- 
+
   	<!-- check child count when delete parent -->
   	<s>
   		<id>61</id>

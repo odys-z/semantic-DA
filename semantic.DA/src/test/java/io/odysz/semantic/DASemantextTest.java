@@ -896,6 +896,89 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				sqls.get(1));
 	}
 
+	@Test
+	public void testExtfilev2() throws TransException, SQLException, IOException {
+
+		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, runtimepath);
+		ArrayList<String> sqls = new ArrayList<String>(1);
+
+		// 1
+		// <args>uploads,uri,family,shareby,month,pname</args>
+
+		st.insert("h_photos")
+			.nv("family", "zsu.ua")
+			.nv("shareby", "ody")
+			.nv("folder", "2022-10")
+			.nv("pname", "Sun Yet-sen.jpg")
+			.nv("uri", readB64("src/test/res/Sun Yet-sen.jpg"))
+			.commit(s0, sqls);
+
+		assertEquals(String.format(
+				"insert into h_photos  (family, shareby, folder, pname, uri, pid) " +
+				"values ('zsu.ua', 'ody', '2022-10', 'Sun Yet-sen.jpg', " +
+				"'uploads/zsu.ua/ody/2022-10/%1$s Sun Yet-sen.jpg', " +
+				"'%1$s')",
+				s0.resulvedVal("h_photos", "pid")),
+				sqls.get(0));
+		Connects.commit(usr , sqls);
+
+		sqls.clear();
+		
+		String pid = (String)s0.resulvedVal("h_photos", "pid");
+		
+		AnResultset rs = (AnResultset) st
+			.select("h_photos", "f2")
+			.col("uri").col("extFile(f2.uri)", "b64")
+			.whereEq("pid", pid)
+			.rs(new DASemantext(connId, smtcfg, metas, usr, rtroot))
+			.rs(0);
+
+		rs.beforeFirst().next(); // uri is relative path
+
+		String uri1 = rs.getString("b64");
+		assertEquals("/9j/4AAQ",
+				rs.getString("b64").substring(0, 8));
+		assertEquals(2652, uri1.length());
+		
+		String fp1 = EnvPath.decodeUri(rtroot, rs.getString("uri"));
+		File f1 = new File(fp1);
+		assertTrue(f1.exists(), fp1);
+
+		// 2 move
+		st.update("h_photos", usr)
+		  .nv("pname", "Volodymyr Zelensky.jpg")
+		  .nv("family", "zsu.ua")
+		  .nv("folder", "2022-10")
+		  .nv("shareby", "Zelensky")
+		  // .nv("uri", uri1)
+		  .whereEq("pid", pid)
+		  .u(s0.clone(usr));
+		
+		rs = (AnResultset) st.select("h_photos", "f")
+				.col("uri").col("extFile(f.uri)", "b64")
+				.whereEq("pid", pid)
+				.rs(new DASemantext(connId, smtcfg, metas, usr, rtroot))
+				.rs(0);
+			
+		rs.next();
+		String fp2 = EnvPath.decodeUri(rtroot, rs.getString("uri"));
+
+		assertFalse(f1.exists(), fp1);
+		File f2 = new File(fp2);
+		assertTrue(f2.exists(), fp2);
+
+		// 3
+		st.delete("h_photos", usr)
+			.whereEq("pid", pid)
+			.commit(sqls, usr)
+			.d(s0.clone(usr));
+
+		assertFalse(f2.exists());
+		
+		assertEquals(String.format("delete from h_photos where pid = '%s'", pid),
+				sqls.get(0));
+	}
+	
 	private String readB64(String filename) throws IOException {
 		Path p = Paths.get(filename);
 		byte[] f = Files.readAllBytes(p);
