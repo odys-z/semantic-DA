@@ -355,6 +355,7 @@ public class DASemantics {
 		 * <p><b>NOTE: </b>This semantics only guard the data for updating.</p>
 		 * <p>To replace uri back into file when selecting, use "extfile(uri)" (js) or {@link io.odysz.transact.sql.parts.condition.Funcall#sqlExtFile(ISemantext, String[]) sqlExtFile(uri)} in java. </p>
 		 * 
+		 * @deprecated replaced by {@link #extFilev2} 
 		 */
 		extFile,
 		/**
