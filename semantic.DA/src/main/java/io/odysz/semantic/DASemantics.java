@@ -1385,7 +1385,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 			// if (args.length > 1 && args[1] != null) {
 			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
 				Object[] nv;
@@ -1429,7 +1429,13 @@ public class DASemantics {
 						f.b64(nv[1].toString());
 						
 						for (int i = ixUri + 1; i < args.length - 1; i++) {
-							f.appendSubFolder(row.get(cols.get(args[i]))[1]);
+							if (!cols.containsKey(args[i])) 
+								throw new SemanticException("To insert (create file) %s.%s, all required fields must be provided by user (missing %s).\nConfigured fields: %s.\nGot cols: %s",
+										target, args[ixUri], args[i],
+										Stream.of(args).skip(2).collect(Collectors.joining(", ")),
+										cols.keySet().stream().collect(Collectors.joining(", ")));
+							else
+								f.appendSubFolder(row.get(cols.get(args[i]))[1]);
 						}
 
 						if (verbose)
