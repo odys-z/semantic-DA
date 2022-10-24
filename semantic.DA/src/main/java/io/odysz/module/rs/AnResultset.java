@@ -93,7 +93,7 @@ for (String coln : colnames.keySet())
 			String colName = rsMeta.getColumnLabel(i).toUpperCase();
 			if (colnames.containsKey(colName)) {
 				if (debug)
-					System.err.println("WARN: Duplicated col name found, only the last one's index reserved: " + colName);
+					System.err.println("WARN: As duplicated col name been found, only the last one's index is reserved: " + colName);
 			}
 			colnames.put(colName, new Object[] {i, rsMeta.getColumnLabel(i)});
 		}
@@ -828,8 +828,20 @@ for (String coln : colnames.keySet())
 		if (results == null || results.size() < rowix)
 			return null;
 		int colix = (Integer) colnames.get(field.toUpperCase())[0];
-		// return results == null ? null : (String) results.get(rowix - 1).get(colix - 1);
-		return getString(colix);
+		// return getString(colix);
+
+		try {
+			if (rowix <= 0 || results == null || results.get(rowix - 1) == null) return null;
+			if (results.get(rowix - 1).get(colix - 1) == null) return null;
+			else {
+				Object v = results.get(rowix - 1).get(colix - 1);
+				return stringFormats != null && stringFormats.containsKey(v.getClass()) ?
+						String.format(stringFormats.get(v.getClass()), v) : v.toString();
+			}
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage() + " Empty Results?");
+		}
+
 	}
 
 	public int total() {
