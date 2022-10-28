@@ -1161,6 +1161,7 @@ public class DASemantics {
 	}
 
 	/**
+	 * @deprecated replaced with ShExtFilev2
 	 * Save configured nv as file.<br>
 	 * args<br>
 	 * 0: uploads,<br>
@@ -1396,7 +1397,7 @@ public class DASemantics {
 					if (nv != null && nv[1] != null
 						&& (nv[1] instanceof String && !LangExt.isblank(nv[1]) || nv[1] instanceof AbsPart)) {
 
-						// find business category - this arg can not be is optional, every file has it's unique uri
+						// find business category - this arg can not be optional, every file has it's unique uri
 						// Object busicat = row.get(cols.get(args[ixBusiCate]))[1];
 						// String subpath = busicat.toString();
 						
@@ -1414,15 +1415,12 @@ public class DASemantics {
 						else
 							f = new ExtFileInsert(new ExprPart(fn.toString()), getFileRoot(), stx);
 						
-						// if (args.length >= ixClientName) {
-						//	String clientname = args[ixClientName];
-							String clientname = args[args.length - 1];
-							if (cols.containsKey(clientname)) {
-								clientname = row.get(cols.get(clientname))[1].toString();
-								if (clientname != null)
-									f.filename(clientname);
-							}
-						// }
+						String clientname = args[args.length - 1];
+						if (cols.containsKey(clientname)) {
+							clientname = row.get(cols.get(clientname))[1].toString();
+							if (clientname != null)
+								f.filename(clientname);
+						}
 
 						// f.prefixPath(subpath, subpath2) // e.g. "a_users", "ody"
 						// 	.b64(nv[1].toString());

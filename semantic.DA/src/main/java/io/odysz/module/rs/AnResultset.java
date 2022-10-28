@@ -531,6 +531,11 @@ for (String coln : colnames.keySet())
 		}catch (Exception e) {throw new SQLException(e.getMessage());}
 	}
 
+	public long getLong(String size, long empty) {
+		try {return getLong(size);}
+		catch (Exception e) { return empty; }
+	}
+
 	public long getLong(String colName) throws SQLException {
 		return getLong((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
