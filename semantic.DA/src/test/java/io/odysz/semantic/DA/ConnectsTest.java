@@ -4,15 +4,20 @@ package io.odysz.semantic.DA;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 
 import org.junit.jupiter.api.Test;
+import org.xml.sax.SAXException;
 
+import io.odysz.common.Configs;
 import io.odysz.common.DateFormat;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DASemantextTest;
+import io.odysz.semantic.DATranscxt;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.x.TransException;
@@ -28,13 +33,19 @@ public class ConnectsTest {
 	public static void testInit() {
 	*/
 	static {
-		File file = new File("src/test/res");
-		String path = file.getAbsolutePath();
-		Utils.logi(path);
-		Connects.init(path);
+		File file = new File(DASemantextTest.rtroot);
+		String abspath = file.getAbsolutePath();
+		Utils.logi(abspath);
+		Configs.init(abspath);
+		Connects.init(abspath);
 
 		// Utils.logi("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n+++\n+++\n+++\n+++");
-		st = new Transcxt(null);
+		try {
+			DATranscxt.configRoot(null, abspath);
+			st = new DATranscxt(DASemantextTest.connId);
+		} catch (SemanticException | SQLException | SAXException | IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Test

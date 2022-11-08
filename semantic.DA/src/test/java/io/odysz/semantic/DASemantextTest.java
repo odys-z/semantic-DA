@@ -27,8 +27,8 @@ import io.odysz.common.EnvPath;
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.DASemantics.ShExtFile;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
@@ -47,20 +47,21 @@ import io.odysz.transact.x.TransException;
  *
  */
 public class DASemantextTest {
-	static final String connId = "local-sqlite";
+	public static final String connId = "local-sqlite";
 	private static DATranscxt st;
 	private static IUser usr;
 	private static HashMap<String, DASemantics> smtcfg;
 	private static HashMap<String, TableMeta> metas;
 
-	private static String rtroot = "src/test/res/";
+	public static final String rtroot = "src/test/res/";
 	private static String runtimepath;
 
 	static {
 		try {
 			Utils.printCaller(false);
 
-			File file = new File("src/test/res");
+			// File file = new File("src/test/res");
+			File file = new File(rtroot);
 			runtimepath = file.getAbsolutePath();
 			Utils.logi(runtimepath);
 			Configs.init(runtimepath);
@@ -733,7 +734,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		setEnv2("VOLUME_HOME", "/home/ody/volume");
 
 		String[] args = "$VOLUME_HOME/shares,uri,userId,cate,docName".split(",");
-		String extroot = args[ShExtFile.ixExtRoot];
+		String extroot = args[ShExtFilev2.ixExtRoot];
 		
 		String encoded = EnvPath.encodeUri(extroot, "ody", "000001 f.txt");
 		assertEquals("$VOLUME_HOME/shares/ody/000001 f.txt", encoded);
