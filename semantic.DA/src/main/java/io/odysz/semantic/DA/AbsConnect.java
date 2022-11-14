@@ -55,7 +55,7 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 			
 			File f = new File(dbpath);
 			if (!f.exists())
-				throw new SQLException("DB file doesn't exit.");
+				throw new SQLException("Can't find DB file.");
 
 			return SqliteDriver2.initConnection(String.format("jdbc:sqlite:%s", dbpath),
 					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
