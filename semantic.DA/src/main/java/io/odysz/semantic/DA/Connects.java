@@ -266,6 +266,12 @@ public class Connects {
 			// DON'T COMMENT THIS OUT
 			// Reaching here means your code has bugs
 			// To stop paging from html, don't enable a html pager for a sqlite data source.
+			
+			// FIXME let's fix this sqlite pagination problem
+			// FIXME let's fix this sqlite pagination problem
+			// FIXME let's fix this sqlite pagination problem
+			// FIXME let's fix this sqlite pagination problem
+			// FIXME let's fix this sqlite pagination problem
 			throw new SQLException("How to page in sqlite?");
 		else return sql;
 	}

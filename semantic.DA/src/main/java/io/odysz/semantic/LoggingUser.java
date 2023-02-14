@@ -66,24 +66,27 @@ public class LoggingUser implements IUser {
 	public String uid() { return uid; }
 
 	@Override
-	public ArrayList<String> dbLog(ArrayList<String> sqls) {
+	public ArrayList<String> dbLog(final ArrayList<String> sqls) {
 		return genLog(logSemantic, "a_logs", sqls, this,
 				action.getString("funcName"),
 				action.getString("funcId"));
 	}
 
-	public static ArrayList<String> genLog(DATranscxt logBuilder, String logTabl, ArrayList<String> sqls,
-			IUser commitUser, String funcName, String funcId) {
-		// no exception can be thrown here, no error message for client if failed.
+	/**
+	 * Generate sqls for db logging.
+	 * No exception can be thrown here, no error message for client if failed.
+	 * @param logBuilder
+	 * @param logTabl
+	 * @param sqls
+	 * @param commitUser
+	 * @param funcName
+	 * @param funcId
+	 * @return
+	 */
+	public static ArrayList<String> genLog(DATranscxt logBuilder, String logTabl,
+			final ArrayList<String> sqls, IUser commitUser, String funcName, String funcId) {
 		try {
-			// String newId = DASemantext.genId(Connects.defltConn(), "a_logs", "logId", null);
-			// String sql = DatasetCfg.getSqlx(Connects.defltConn(), "log-template",
-			//	// insert into a_logs(logId, oper, funcName, funcId, cmd, url, operDate, txt)
-			//	// values ('%s', '%s', '%s', '%s', null, '%s', sysdate, '%s');
-			//	newId, uid, funcName, funcId, cmd, url, String.valueOf(sqls.size()), txt(sqls));
-
 			logBuilder.insert(logTabl, dumbUser) // dummy for stop recursive logging
-			// logBuilder.insert("a_logs", dumbUser) // dummy for stop recursive logging
 				.nv("oper", commitUser.uid())
 				.nv("funcName", funcName)
 				.nv("funcId", funcId)

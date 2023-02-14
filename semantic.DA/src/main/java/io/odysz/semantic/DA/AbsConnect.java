@@ -95,11 +95,12 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 				}
 			}
 			catch (Exception ex) {
+				Utils.warn("Logging db failed with %s#dbLog(sqls).", usr.getClass().getName());
 				ex.printStackTrace();
 			}
 		}
 		else if (log) {
-			Utils.warn("Some db commitment not logged:", sqls);
+			Utils.warn("Some db commitment not logged because usr is null:", sqls);
 		}
 		return c;
 	}
