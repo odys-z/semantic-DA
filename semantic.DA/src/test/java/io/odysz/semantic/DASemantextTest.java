@@ -980,6 +980,11 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				sqls.get(0));
 	}
 	
+	@Test
+	public void testStampByNode() throws TransException, SQLException, IOException {
+		fail("testing table wise stamps ...");
+	}
+
 	private String readB64(String filename) throws IOException {
 		Path p = Paths.get(filename);
 		byte[] f = Files.readAllBytes(p);
