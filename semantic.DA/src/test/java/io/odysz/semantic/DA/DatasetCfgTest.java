@@ -16,6 +16,7 @@ import io.odysz.anson.x.AnsonException;
 import io.odysz.common.Utils;
 import io.odysz.semantic.DA.DatasetCfg.AnTreeNode;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.x.TransException;
 
 public class DatasetCfgTest {
 
@@ -46,13 +47,13 @@ orgId  |parent |orgName       |orgType |sort |fullpath             |
 00000Y |00000W |Yunlong conty |01      |1    |000000.00000W.00000Y |
 00000b |00000W |test          |01      |2    |000000.00000W.00000b |
 	 * </pre>
-	 * @throws SemanticException
 	 * @throws SQLException
 	 * @throws AnsonException
 	 * @throws IOException
+	 * @throws TransException 
 	 */
 	@Test
-	public void testLoadStree() throws SemanticException, SQLException, AnsonException, IOException {
+	public void testLoadStree() throws SQLException, AnsonException, IOException, TransException {
 		List<?> t = DatasetCfg.loadStree(
 				"local-sqlite", // expect "01"; for semantic-DA.db, see connects.xml
 				"test.tree", -1, 0, "admin");

@@ -3,7 +3,6 @@ package io.odysz.semantic;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -446,7 +445,7 @@ public class DASemantics {
 
 	/**[table, DASeamtnics]<br>
 	 * This is not static because there are many connections */
-	private HashMap<String, DASemantics> ss;
+	// private HashMap<String, DASemantics> ss;
 
 	/**
 	 * Static transact context for DB accessing without semantics support.<br>

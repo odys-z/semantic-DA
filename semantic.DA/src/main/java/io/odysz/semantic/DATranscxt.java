@@ -208,9 +208,6 @@ public class DATranscxt extends Transcxt {
 		d.doneOp((sctx, sqls) -> {
 			int[] r = Connects.commit(sctx.connId(), usr, sqls);
 			
-			// In semantic.DA 1.0, only deletingl external files here
-			// FIXME if this post operation always happend, this method should been called as an interface,
-			// with default implementation been alwasy called by semantic.transact, and overridden by semantic.DA.
 			sctx.onCommitted(sctx);
 
 			return new SemanticObject().addInts("deleted", r).put("resulved", sctx.resulves());

@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.naming.NamingException;
 
@@ -243,7 +245,6 @@ public class Connects {
 	 * @param size
 	 * @return sql
 	 * @throws SQLException 
-	 */
 	public static String pagingSql(String conn, String sql, int page, int size) throws SQLException {
 		conn = conn == null ? defltConn : conn;
 		dbtype driverType = srcs.get(conn).driverType();
@@ -266,14 +267,46 @@ public class Connects {
 			// DON'T COMMENT THIS OUT
 			// Reaching here means your code has bugs
 			// To stop paging from html, don't enable a html pager for a sqlite data source.
-			
-			// FIXME let's fix this sqlite pagination problem
-			// FIXME let's fix this sqlite pagination problem
-			// FIXME let's fix this sqlite pagination problem
-			// FIXME let's fix this sqlite pagination problem
-			// FIXME let's fix this sqlite pagination problem
 			throw new SQLException("How to page in sqlite?");
 		else return sql;
+	}
+	 * @throws TransException 
+	 */
+	public static String pagingSql(String conn, String sql, int page, int size)
+			throws SQLException, TransException {
+		conn = conn == null ? defltConn : conn;
+		dbtype driverType = srcs.get(conn).driverType();
+		return pagingSql(driverType, sql, page, size);
+	}
+
+	public static String pagingSql(dbtype dt, String sql, long pageIx, long pgSize)
+			throws TransException {
+		if (pageIx < 0 || pgSize <= 0)
+			return sql;
+		long i1 = pageIx * pgSize;
+		String r2 = String.valueOf(i1 + pgSize);
+		String r1 = String.valueOf(i1);
+		Stream<String> s;
+		if (dt == dbtype.oracle)
+			// "select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s"
+			s = Stream.of("select * from (select t.*, rownum r_n_ from (", sql,
+						") t order by rownum) t where r_n_ > ", r1, " and r_n_ <= ", r2);
+		else if (dt == dbtype.ms2k)
+			// "select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= %s and rownum <= %s"
+			s = Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (", sql,
+						") t) t where rownum > ", r1, " and rownum <= %s", r2);
+						// v1.3.0 Sep.6 2021 ">=" to ">"
+		else if (dt == dbtype.sqlite)
+			// throw new TransException("There is no easy way to support sqlite paging. Don't use server side paging for sqlite datasource.");
+
+			// https://stackoverflow.com/a/51380906
+			s = Stream.of("select * from (", sql, ") limit ", String.valueOf(pgSize), " offset ", r1);
+		else // mysql
+			// "select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s"
+			s = Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (", sql,
+						") t, (select @ic_num := 0) ic_t) t1 where rnum > ", r1, " and rnum <= ", r2);
+
+		return s.collect(Collectors.joining(" "));
 	}
 
 	/////////////////////////////////// update /////////////////////////////

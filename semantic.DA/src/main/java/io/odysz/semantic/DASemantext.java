@@ -439,7 +439,6 @@ end;
 	 * @param pgSize
 	 * @return pagination wrapped sql
 	 * @throws TransException
-	 */
 	public static String pagingSql(dbtype dt, String sql, long pageIx, long pgSize) throws TransException {
 		if (pageIx < 0 || pgSize <= 0)
 			return sql;
@@ -468,7 +467,18 @@ end;
 
 		return s.collect(Collectors.joining(" "));
 	}
+	@deprecated replaced by {@link Connects#pagingSql(dbtype, String, long, long)}
+	 */
+	public static String pagingSql(dbtype dt, String sql, long pageIx, long pgSize) throws TransException {
+		return Connects.pagingSql(dt, sql, pageIx, pgSize);
+	}
 
+	/**
+	 * @param dt
+	 * @param sql
+	 * @return SQL: select count(*) as total from [sql]
+	 * @throws TransException
+	 */
 	public static String totalSql(dbtype dt, String sql) throws TransException {
 		return Stream.of("select count(*) as total from (", sql)
 				.collect(Collectors.joining("", "", ") s_jt"));

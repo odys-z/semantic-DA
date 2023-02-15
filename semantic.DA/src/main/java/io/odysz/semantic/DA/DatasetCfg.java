@@ -26,6 +26,7 @@ import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.util.LogFlags;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.x.TransException;
 
 /**Configured dataset.xml manager and helper.<br>
  * - won't care using CP data source or DB manager (2019.2.28).
@@ -352,7 +353,7 @@ public class DatasetCfg {
 	}
 
 	public static AnResultset select(String conn, String sk,
-			int page, int size, String... args) throws SemanticException, SQLException {
+			int page, int size, String... args) throws SQLException, TransException {
 		String sql = getSql(conn, sk, args);
 		if (page >= 0 && size > 0)
 			sql = Connects.pagingSql(conn, sql, page, size);
@@ -394,7 +395,7 @@ public class DatasetCfg {
 	
 	public static AnResultset loadDataset(String conn, String sk,
 			int page, int size, String... args)
-			throws SemanticException, SQLException {
+			throws SQLException, TransException {
 
 		if (sk == null)
 			throw new SemanticException("null semantic key");
@@ -403,17 +404,17 @@ public class DatasetCfg {
 		return select(conn, sk, page, size, args);
 	}
 
-	public static AnResultset loadDataset(String conn, String sk) throws SemanticException, SQLException {
+	public static AnResultset loadDataset(String conn, String sk) throws SQLException, TransException {
 		return loadDataset(conn, sk, -1, -1, "");
 	}
 
-	public static AnResultset loadDataset(String conn, String sk, String... args) throws SemanticException, SQLException {
+	public static AnResultset loadDataset(String conn, String sk, String... args) throws SQLException, TransException {
 		return loadDataset(conn, sk, -1, -1, args);
 	}
 
 	public static List<?> loadStree(String conn, String sk,
 			int page, int size, String... args)
-			throws SemanticException, SQLException {
+			throws SQLException, TransException {
 		if (dss == null || !dss.containsKey(sk))
 			throw new SemanticException("Can't find tree semantics, dss %s, sk = %s. Check configuration.",
 					dss == null ? "null" : dss.size(), sk);
