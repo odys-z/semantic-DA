@@ -61,8 +61,10 @@ public class DASemantext implements ISemantext {
 	private String connId;
 
 	private String basePath;
-	private ArrayList<IPostOperat> onOks;
+	private ArrayList<IPostOperat> onRowsOk;
 	private LinkedHashMap<String,IPostSelectOperat> onSelecteds;
+
+	private LinkedHashMap<String, IPostOperat> onTableOk;
 
 	/**for generating sqlite auto seq */
 	private static IUser sqliteDumyUser;
@@ -503,17 +505,33 @@ end;
 
 	@Override
 	public void onCommitted(ISemantext ctx) throws TransException, SQLException {
-		if (onOks != null)
-			for (IPostOperat ok : onOks)
+		if (onRowsOk != null)
+			for (IPostOperat ok : onRowsOk)
 				// onOk handlers shoudn't using sqls, it's already committed
+				ok.onCommitOk(ctx, null);
+		if (onTableOk != null)
+			for (IPostOperat ok : onTableOk.values())
 				ok.onCommitOk(ctx, null);
 	}
 
 	@Override
-	public void addOnOkOperate(IPostOperat op) {
-		if (onOks == null)
-			onOks = new ArrayList<IPostOperat>();
-		onOks.add(op);
+	public void addOnRowsCommitted(IPostOperat op) {
+		if (onRowsOk == null)
+			onRowsOk = new ArrayList<IPostOperat>();
+		onRowsOk.add(op);
+	}
+	
+	@Override
+	public void addOnTableCommitted(String tabl, IPostOperat op) {
+		if (onTableOk == null)
+			onTableOk = new LinkedHashMap<String, IPostOperat>();
+		
+		onTableOk.put(tabl, op);
+	}
+
+	@Override
+	public IPostOperat onTableCommittedHandler(String tabl) {
+		return onTableOk == null ? null : onTableOk.get(tabl);
 	}
 
 	@Override

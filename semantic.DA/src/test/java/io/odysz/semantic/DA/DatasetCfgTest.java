@@ -15,12 +15,10 @@ import org.junit.jupiter.api.Test;
 import io.odysz.anson.x.AnsonException;
 import io.odysz.common.Utils;
 import io.odysz.semantic.DA.DatasetCfg.AnTreeNode;
-import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 public class DatasetCfgTest {
 
-//	public void testInit() throws Exception {
 	static {
 		File file = new File("src/test/res");
 		String path = file.getAbsolutePath();

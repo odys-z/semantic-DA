@@ -127,7 +127,7 @@
   	</s>
 
   	<s>
-  		<id>50.ak</id>
+  		<id>54</id>
   		<smtc>autopk</smtc>
   		<tabl>h_photos</tabl>
   		<pk>pid</pk>
@@ -135,7 +135,7 @@
   	</s>
 
 	<s>
-  		<id>53.2</id>
+  		<id>55</id>
   		<smtc>ef2.0</smtc>
   		<tabl>h_photos</tabl>
   		<pk>pid</pk>
@@ -144,7 +144,7 @@
 
   	<!-- delete attachments when deleting a user -->
   	<s>
-  		<id>54</id>
+  		<id>56</id>
   		<smtc>pc-del-tbl</smtc>
   		<tabl>a_users</tabl>
   		<pk>userId</pk>
@@ -152,7 +152,7 @@
   		<args>busiId a_attaches attId busiTbl</args>
   	</s>
   	<s>
-  		<id>55</id>
+  		<id>57</id>
   		<smtc>fk-ins-cate</smtc>
   		<tabl>a_attaches</tabl>
   		<pk>attId</pk>
@@ -164,12 +164,24 @@
   	</s>
   	<!-- attachments' oper-time -->
   	<s>
-  		<id>56</id>
+  		<id>58</id>
   		<smtc>o-t</smtc>
   		<tabl>a_attaches</tabl>
   		<pk>attId</pk>
   		<args>oper,optime</args>
   	</s>
+  	
+
+	<!-- syn_stamp -->
+  	<s>
+  		<id>59</id>
+  		<smtc>stamp</smtc>
+  		<tabl>h_photos</tabl>
+  		<pk>pid</pk>
+  		<args>syn_node,tabl,synode,syncstamp,crud,recount</args>
+  	</s>
+
+
 
 	<!-- a_user.userName check same on insert -->
   	<s>

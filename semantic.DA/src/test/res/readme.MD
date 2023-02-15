@@ -34,4 +34,4 @@ A sqlite database file for testing all the semantics handled by DASemantics.
 
 - Sun Yet-sen.jpg
 
-A jpg file for test extFile semantics. It will create a sub-folder here named "uploads/a_user".
+A jpg file for test extFile semantics. It will create a sub-folder here named "uploads/[user-id]".

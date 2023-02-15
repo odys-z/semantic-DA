@@ -1,14 +1,20 @@
 package io.odysz.semantic;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io_odysz.FilenameUtils;
+import org.xml.sax.SAXException;
 
+import io.odysz.anson.AnsonResultset;
 import io.odysz.common.AESHelper;
 import io.odysz.common.EnvPath;
 import io.odysz.common.LangExt;
@@ -19,11 +25,13 @@ import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
+import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
+import io.odysz.transact.sql.Statement.IPostOperat;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.AbsPart;
@@ -36,6 +44,9 @@ import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
+
+import static io.odysz.common.LangExt.split;
+import static io.odysz.common.LangExt.isblank;
 
 /**
  * <h2>The default semantics plugin used by semantic-DA.</h2>
@@ -153,8 +164,8 @@ public class DASemantics {
 	 * <b>11.{@link #postFk}</b><br>
 	 * <b>12.{@link #extFile}</b><br>
 	 * <b>13.{@link #extFilev2}</b><br>
-	 * <b>14.{@link #composingCol} TODO</b><br>
-	 * <b>15. {@link #stamp1MoreThanRefee} TODO</b><br>
+	 * <b>14. {@link #stampByNode}</b><br>
+	 * <b>15.{@link #composingCol} TODO</b><br>
 	 * <b>16.{@link #orclob} TODO</b><br>
 	 */
 	public enum smtype {
@@ -362,12 +373,32 @@ public class DASemantics {
 		 * Similar to {@link #extFile}, but can handle more subfolder (configered in xml as field name of data table).
 		 */
 		extFilev2,
+		
+		/**
+		 * <p>Stamp table updating / insertion, update the last stamp into a logging table. </p>
+		 * <p><b>Note: This semantics is handled in table wise style.</b><br>
+		 * Updating with post or sub insertion etc. may also has an incorrect recorded count number.</p>
+		 * <p>xml key: "stamp"</p> 
+		 * <p>xml args:<br>
+		 * 0. stamp table name, e.g. syn_node<br>
+		 * 1. target table field, e.g. 'tabl'<br>
+		 * 2. remote node id field, e.g. synode<br>
+		 * 3. crud<br>
+		 * 4. rec-count<br>
+		 * 5. stamp, optional. If no presented, will use {@link Funcall#now()}.<br>
+		 * </p>
+		 * <p>For performance reason, this semantic handler has a device finger print (a hash-set)
+		 * for each DB table, which makes the handler not suitable for large group with many devices.</p>
+		 */
+		stampByNode,
+
 		/**
 		 * "cmp-col" | "compose-col" | "compse-column": compose a column from other
 		 * columns;<br>
 		 * TODO
 		 */
 		composingCol,
+
 		/**
 		 * TODO
 		 * "s-up1" | "stamp-up1": add 1 more second to down-stamp column and save to
@@ -379,15 +410,18 @@ public class DASemantics {
 		 * presented in sql, or, up stamp will be ignored if down stamp presented. (use
 		 * case of down stamp updating by synchronizer).<br>
 		 */
-		stamp1MoreThanRefee,
+		// stamp1MoreThanRefee,
 		/**
 		 * "clob" | "orclob": the column is a CLOB field, semantic-transact will
 		 * read/write separately in stream and get final results.<br>
 		 * Handler: TODO?
+		orclob
 		 */
-		orclob;
+		;
 
 		/**
+		 * Convert string key to {@link smtype}.
+		 * 
 		 * Note: we don't use enum.valueOf(), because of fault / fuzzy tolerate.
 		 * 
 		 * @param type
@@ -425,19 +459,23 @@ public class DASemantics {
 				return checkSqlCountOnInsert;
 			else if ("p-f".equals(type) || "p-fk".equals(type) || "post-fk".equals(type))
 				return postFk;
+			else if ("ef2.0".equals(type) || "e-f2.0".equals(type) || "ext-file2.0".equals(type)
+					|| "xf2.0".equals(type) || "x-f2.0".equals(type))
+				return extFilev2;
+			else if ("stamp".equals(type))
+				return stampByNode;
 			else if ("cmp-col".equals(type) || "compose-col".equals(type) || "compse-column".equals(type)
 					|| "composingcol".equals(type))
 				return composingCol;
 			else if ("s-up1".equals(type) || type.startsWith("stamp1"))
-				return stamp1MoreThanRefee;
+				// return stamp1MoreThanRefee;
+				throw new SemanticException("Semantic type stamp1MoreThanRefee is deprecated.");
 			else if ("clob".equals(type) || "orclob".equals(type))
-				return orclob;
+				// return orclob;
+				throw new SemanticException("Since v1.4.12, orclob is no longer supported.");
 			else if ("ef".equals(type) || "e-f".equals(type) || "ext-file".equals(type)
 					|| "xf".equals(type) || "x-f".equals(type))
 				return extFile;
-			else if ("ef2.0".equals(type) || "e-f2.0".equals(type) || "ext-file2.0".equals(type)
-					|| "xf2.0".equals(type) || "x-f2.0".equals(type))
-				return extFilev2;
 			else
 				throw new SemanticException("semantics not known, type: " + type);
 		}
@@ -452,10 +490,6 @@ public class DASemantics {
 	 * Used to generate auto ID.
 	 */
 	private Transcxt basicTsx;
-
-//	public DASemantics get(String tabl) {
-//		return ss == null ? null : ss.get(tabl);
-//	}
 
 	///////////////////////////////// container class
 	///////////////////////////////// ///////////////////////////////
@@ -511,6 +545,8 @@ public class DASemantics {
 			handler = new ShExtFile(basicTsx, tabl, recId, args);
 		else if (smtype.extFilev2 == semantic)
 			handler = new ShExtFilev2(basicTsx, tabl, recId, args);
+		else if (smtype.stampByNode == semantic)
+			handler = new ShStampByNode(basicTsx, tabl, recId, args);
 		// else if (smtype.composingCol == semantic)
 		// addComposings(tabl, recId, argss);
 		// else if (smtype.stamp1MoreThanRefee == semantic)
@@ -682,16 +718,16 @@ public class DASemantics {
 			this.args = args;
 		}
 
-		public static String[][] split(String[] ss) {
-			if (ss == null)
-				return null;
-			String[][] argss = new String[ss.length][];
-			for (int ix = 0; ix < ss.length; ix++) {
-				String[] args = LangExt.split(ss[ix], "\\s+");
-				argss[ix] = args;
-			}
-			return argss;
-		}
+//		public static String[][] split(String[] ss) {
+//			if (ss == null)
+//				return null;
+//			String[][] argss = new String[ss.length][];
+//			for (int ix = 0; ix < ss.length; ix++) {
+//				String[] args = LangExt.split(ss[ix], "\\s+");
+//				argss[ix] = args;
+//			}
+//			return argss;
+//		}
 
 		/**Expand the row to the size of cols - in case the cols expanded by semantics handling
 		 * @param row row to expand
@@ -1171,7 +1207,7 @@ public class DASemantics {
 	 * 
 	 * <h5>Note</h5>
 	 * <p>For large file, use stream asynchronous mode, otherwise it's performance problem here.</p>
-	 * <p>Stream mode file up down loading is an business tier operation by semantic-jserv.
+	 * <p>Whether uses or not a stream mode file up down loading is a business tier decision by semantic-jserv.
 	 * See Anclient.jave/album test for example.</p>
 	 * 
 	 * @author odys-z@github.com
@@ -1337,7 +1373,7 @@ public class DASemantics {
 								Utils.warn("deleting %s", uri);
 
 							final String v = uri;
-							stx.addOnOkOperate((st, sqls) -> {
+							stx.addOnRowsCommitted((st, sqls) -> {
 								File f = new File(v);
 								if (!f.isDirectory())
 									f.delete();
@@ -1359,11 +1395,29 @@ public class DASemantics {
 		}
 	}
 
+	/**
+	 * Save configured nv as file.<br>
+	 * <p>args<br>
+	 * 0: uploads,<br>
+	 * 1: uri - uri field,<br>
+	 * 2: sub-folder level 0,<br>
+	 * 3: sub-folder level 1,<br>
+	 * ... ,<br>
+	 *-1: client-name for saving readable file name<br></p>
+	 * At least one level of subfolder is recommended.
+	 * 
+	 * <h5>Note</h5>
+	 * <p>For large file, use stream asynchronous mode, otherwise it's performance problem here.</p>
+	 * <p>Whether uses or not a stream mode file up down loading is a business tier decision by semantic-jserv.
+	 * See Anclient.jave/album test for example.</p>
+	 * 
+	 * @author odys-z@github.com
+	 */
 	static public class ShExtFilev2 extends SemanticHandler {
 		/** Saving root.<br>
 		 * The path rooted from return of {@link ISemantext#relativpath(String...)}. */
 		public static final int ixExtRoot = 0;
-		/** Index of Path field */
+		/** Index of URI field */
 		static final int ixUri = 1;
 
 		public ShExtFilev2(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException, SQLException {
@@ -1576,7 +1630,7 @@ public class DASemantics {
 								Utils.warn("deleting %s", uri);
 
 							final String v = uri;
-							stx.addOnOkOperate((st, sqls) -> {
+							stx.addOnRowsCommitted((st, sqls) -> {
 								File f = new File(v);
 								if (!f.isDirectory())
 									f.delete();
@@ -1595,6 +1649,162 @@ public class DASemantics {
 				} catch (TransException e) {
 					throw new SemanticException(e.getMessage());
 				}
+		}
+	}
+
+	/**
+	 * 
+	 * <p>args<br>
+	 * see {@link smtype#stampByNode}
+	 * 
+	 * @author odys-z@github.com
+	 *
+	 */
+	public class ShStampByNode extends SemanticHandler {
+		/** 0. stamp table name, e.g. syn_node */
+		public static final int ixLogTabl = 0;
+		/** 1. target table field, e.g. 'tabl' */
+		public static final int ixSynTbl = 1;
+		/** 2. remote node id field, e.g. synode */
+		public static final int ixSynode = 2;
+		/** 3. crud */
+		public static final int ixCrud = 3;
+		/** 4. rec-count */
+		public static final int ixRecount = 4;
+		/** 5. stamp, optional. If no presented, will use Funcall.now(). */
+		public static final int ixStamp = 5;
+
+		private int cnt;
+		private DATranscxt shSt;
+
+		private Set<String> devices;
+
+		public ShStampByNode(Transcxt basicTsx, String tabl, String recId, String[] args) throws SemanticException {
+			super(basicTsx, smtype.stampByNode, tabl, recId, args);
+
+			insert = true;
+			delete = true;
+			update = true;
+			
+			cnt = 0;
+			try {
+				shSt = new DATranscxt(null);
+				
+				IUser dumbUser = new IUser() {
+					@Override public TableMeta meta() { return null; }
+					@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
+					@Override public String uid() { return "dummy"; }
+					@Override public IUser logAct(String funcName, String funcId) { return this; }
+					@Override public String sessionKey() { return null; }
+					@Override public IUser sessionKey(String skey) { return null; }
+					@Override public IUser notify(Object note) throws TransException { return this; }
+					@Override public List<Object> notifies() { return null; }
+					@Override public long touchedMs() { return 0; }
+				};
+
+				AnsonResultset rs = (AnsonResultset) shSt
+					.select(args[ixLogTabl], "s")
+					.col(args[ixSynode], "n")
+					.whereEq(args[ixSynTbl], target)
+					.groupby(args[ixSynode])
+					.rs(basicTsx.instancontxt(null, dumbUser))
+					.rs(0);
+
+				devices = new HashSet<String>();
+				
+				while (rs.next()) {
+					devices.add(rs.getString("n"));
+				}
+
+			} catch (SQLException | SAXException | IOException | TransException e) {
+				// Fatal Error
+				e.printStackTrace();
+				throw new SemanticException(e.getMessage());
+			}
+		}
+
+		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+				throws SemanticException {
+			
+			if (isblank(usr.deviceId()))
+				throw new SemanticException(
+						"Table %s's stampByNode semantics requires user provide device id. But it is empty (user-id = %s).",
+						target, usr.uid());
+
+			IPostOperat op = stx.onTableCommittedHandler(target);
+			ShStampByNode that = this;
+
+			if (op == null) {
+				that.cnt = 1;
+				op = devices.contains(usr.deviceId()) ?
+					(st, sqls) -> {
+						Update u = shSt.update(args[ixLogTabl], usr)
+							.nv(args[ixRecount], that.cnt)
+							.nv(args[ixCrud], CRUD.C)
+							.whereEq(args[ixSynTbl], target)
+							.whereEq(args[ixSynode], usr.deviceId());
+						
+						if (ixStamp > args.length || isblank(args[ixStamp]))
+							u.nv(args[5], Funcall.now());
+						u.u(st);
+						return null;
+					}
+					: (st, sqls) -> {
+						// not likely a concurrency problem as the device won't update with multiple threads.
+						that.devices.add(usr.deviceId());
+
+						Insert i = shSt.insert(args[ixLogTabl], usr)
+							.nv(args[ixRecount], that.cnt)
+							.nv(args[ixCrud], CRUD.C)
+							.nv(args[ixSynTbl], target)
+							.nv(args[ixSynode], usr.deviceId());
+						
+						if (ixStamp > args.length || isblank(args[ixStamp]))
+							i.nv(args[5], Funcall.now());
+						i.ins(st);
+						
+						return null;
+					};
+				stx.addOnTableCommitted("", op);
+			}
+			else cnt++;
+		}
+
+		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+				throws SemanticException {
+			onInsert(stx, null, row, cols, usr);
+		}
+
+		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+				throws SemanticException {
+			if (isblank(usr.deviceId()))
+				throw new SemanticException(
+						"Table %s's stampByNode semantics requires user provide device id. But it is empty (user-id = %s, delete).",
+						target, usr.uid());
+
+			IPostOperat op = stx.onTableCommittedHandler(target);
+			ShStampByNode that = this;
+
+			if (op == null) {
+				that.cnt = 1;
+				op = (st, sqls) -> {
+					that.cnt = 1;
+					Update u = shSt.update(args[ixLogTabl], usr)
+						.nv(args[ixRecount], that.cnt)
+						.nv(args[ixCrud], CRUD.C)
+						.whereEq(args[ixSynTbl], target)
+						.whereEq(args[ixSynode], usr.deviceId());
+					
+					if (ixStamp > args.length || isblank(args[ixStamp]))
+						u.nv(args[5], Funcall.now());
+						
+					u.u(st);
+					return null;
+				};
+			}
+			else cnt++;
+
+			stx.addOnTableCommitted("", op);
 		}
 	}
 	
@@ -1944,4 +2154,5 @@ public class DASemantics {
 				}
 		}
 	}
+
 }
