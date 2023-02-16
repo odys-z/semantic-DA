@@ -505,6 +505,37 @@ for (String coln : colnames.keySet())
 		return getDate((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
+	/**
+	 * TODO to be tested on Mysql & Oracle.
+	 * @param index
+	 * @return
+	 * @throws SQLException
+	 */
+	public Date getDateTime(int index)throws SQLException{
+		try {
+			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
+			if (results.get(rowIdx - 1).get(index - 1) == null) return null;
+			// Oracle Datetime, Mysql Date, datetime can safely cast to date.
+			else try {
+				return (Date)results.get(rowIdx - 1).get(index - 1);
+			} catch (ClassCastException e) {
+				return DateFormat.parseDateTime((String)results.get(rowIdx - 1).get(index - 1));
+			}
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		}
+	}
+	
+	/**
+	 * TODO to be tested on Mysql & Oracle.
+	 * @param colName
+	 * @return
+	 * @throws SQLException
+	 */
+	public Date getDateTime(String colName)throws SQLException{
+		return getDateTime((Integer)colnames.get(colName.toUpperCase())[0]);
+	}
+
 	public int getInt(int colIndex) throws SQLException {
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");

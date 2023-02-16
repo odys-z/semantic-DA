@@ -1,5 +1,5 @@
-package io.odysz.semantic.DA;
-
-public class DbMeta {
-
-}
+//package io.odysz.semantic.DA;
+//
+//public class DbMeta {
+//
+//}

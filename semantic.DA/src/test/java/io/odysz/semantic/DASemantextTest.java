@@ -422,9 +422,6 @@ DELETE from a_roles;</pre>
 		assertNotEquals("abc123", pswd);
 
 		iv = AESHelper.decode64(rs.getString("iv"));
-		// FIXME Preset password is not correct?
-		// FIXME I don't remember how to set original password
-		// assertEquals("abc123", AESHelper.decrypt(pswd, rootK, iv));
 
 		// 3.2 update with iv
 		iv = AESHelper.getRandom();
@@ -450,9 +447,6 @@ DELETE from a_roles;</pre>
 		pswd = rs.getString("pswd");
 		iv = AESHelper.decode64(rs.getString("iv"));
 		assertNotEquals("abc123", AESHelper.decrypt(pswd, rootK, iv));
-		// FIXME Preset password is not correct?
-		// FIXME I don't remember how to set original password
-		// assertEquals("xyz999", AESHelper.decrypt(pswd, rootK, iv));
 
 		testz04(usrId);
 	}
@@ -693,7 +687,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				sqls.get(0));
 	}
 
-
 	@SuppressWarnings("serial")
 	@Test
 	public void testMuiltiInsOpertime() throws TransException, SQLException, IOException {
@@ -722,8 +715,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.value(r0).value(r1).value(r2)
 			.commit(s0, sqls);
 
-		// FIXME not all auto-key can be resulved (not reported, lost all other than the last one)
-		// insert into a_attaches  (attName, check optime, busiTbl, busiId, attId, optime, oper) values ('att0', null, 'test 0', 'deleting', '%s', datetime('now'), 'tester'), ('att1', null, 'test 1', 'deleting', '%s', datetime('now'), 'tester'), ('att2', null, 'test 2', 'deleting', '%s', datetime('now'), 'tester')
 		assertTrue(sqls.get(0).endsWith(String.format(
 				"datetime('now'), 'tester'), ('att2', null, 'test 2', 'deleting', '%s', datetime('now'), 'tester')",
 				s0.resulvedVal("a_attaches", "attId"))));
@@ -784,6 +775,12 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	    }
 	}
 
+	/**
+	 * @deprecated
+	 * @throws TransException
+	 * @throws SQLException
+	 * @throws IOException
+	 */
 	@Test
 	public void testExtfile() throws TransException, SQLException, IOException {
 		String flag = DateFormat.formatime(new Date());
@@ -801,7 +798,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.post(st.insert("a_attaches")
 					.nv("attName", "Sun Yet-sen Portrait.jpg")  // name: portrait
 					.nv("busiTbl", "a_users")
-					// Debug Note: FIXME change to be verified
 					// Since attached file pattern no longer supported in DA v1.3.3, "busiId" are only used for sub folder and not for resulving FK.
 					// .nv("busiId", new Resulving("a_users", "userId"))
 					.nv("busiId", "res")
@@ -982,7 +978,93 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	
 	@Test
 	public void testStampByNode() throws TransException, SQLException, IOException {
-		fail("testing table wise stamps ...");
+		final long diffsnd = 300 * 1000;
+		final SyncRobot usr = new SyncRobot("robot").device("test");
+
+		// C
+		SemanticObject res = (SemanticObject) st
+				.insert("h_photos", usr)
+				.nv("family", "ECY.ua")
+				.nv("shareby", "ody")
+				.nv("folder", "test-stamp")
+				.nv("pname", "Sun Yet-sen.jpg")
+				.nv("uri", "") // suppress uri handling
+				.nv("sync", "hub")
+				.ins(st.instancontxt(connId, usr));
+
+  		// <args>,syn_stamp,tabl,synode,crud,recount,syncstamp</args>
+		String synode = usr.deviceId();
+		int recount = res.total();
+		String pid = res.resulve("h_photos", "pid");
+		
+		AnResultset rs = (AnResultset) st.select("syn_stamp", "s")
+				.whereEq("tabl", "h_photos")
+				.whereEq("synode", synode)
+				.rs(st.instancontxt(connId, usr))
+				.rs(0)
+				;
+		
+		rs.next();
+		assertEquals(recount, rs.getInt("recount"));
+		
+		Date d = rs.getDateTime("syncstamp");
+		long now = st.now(connId).getTime();
+		Utils.logi("%d", now - d.getTime());
+		assertTrue(now - d.getTime() < diffsnd);
+		
+		// U
+		res = (SemanticObject) st
+				.update("h_photos", usr)
+				.nv("family", "zsu.ua")
+				.nv("sync", "jnode")
+				.u(st.instancontxt(connId, usr));
+
+  		// <args>syn_stamp,tabl,synode,crud,recount,syncstamp</args>
+		synode = usr.deviceId();
+		recount = res.total();
+		
+		rs = (AnResultset) st.select("syn_stamp", "s")
+				.whereEq("tabl", "h_photos")
+				.whereEq("synode", synode)
+				.rs(st.instancontxt(synode, usr))
+				.rs(0)
+				;
+		
+		rs.next();
+		assertEquals(recount, rs.getInt("recount"));
+		
+		d = rs.getDate("syncstamp");
+		assertTrue(st.now(connId).getTime() - d.getTime() < diffsnd);
+
+		// D
+		res = (SemanticObject) st
+				.delete("h_photos", usr)
+				.whereEq("pid", pid)
+				.d(st.instancontxt(connId, usr));
+
+  		// <args>syn_stamp,tabl,synode,crud,recount,syncstamp</args>
+		synode = usr.deviceId();
+		assertEquals(1, res.total());
+		
+		rs = (AnResultset) st.select("syn_stamp", "s")
+				.whereEq("tabl", "h_photos")
+				.whereEq("synode", synode)
+				.rs(st.instancontxt(synode, usr))
+				.rs(0)
+				;
+		
+		rs.next();
+		assertEquals(1, rs.getInt("recount"));
+		
+		d = rs.getDateTime("syncstamp");
+		assertTrue(st.now(connId).getTime() - d.getTime() < diffsnd);
+		
+		// Clean up for test both handling branches that branched from device fingerprint.
+		// see ShStampHandler.onInsert()
+		st.delete("syn_stamp", usr)
+			.whereEq("tabl", "h_photos")
+			.whereEq("synode", synode)
+			.d(st.instancontxt(connId, usr));
 	}
 
 	private String readB64(String filename) throws IOException {

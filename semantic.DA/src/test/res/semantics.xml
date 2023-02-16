@@ -171,17 +171,14 @@
   		<args>oper,optime</args>
   	</s>
   	
-
 	<!-- syn_stamp -->
   	<s>
   		<id>59</id>
   		<smtc>stamp</smtc>
   		<tabl>h_photos</tabl>
   		<pk>pid</pk>
-  		<args>syn_node,tabl,synode,syncstamp,crud,recount</args>
+  		<args>,syn_stamp,tabl,synode,crud,recount,syncstamp</args>
   	</s>
-
-
 
 	<!-- a_user.userName check same on insert -->
   	<s>

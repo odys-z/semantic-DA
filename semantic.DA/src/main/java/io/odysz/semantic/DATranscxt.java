@@ -2,12 +2,13 @@ package io.odysz.semantic;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import org.xml.sax.SAXException;
 
-import io.odysz.common.LangExt;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.module.xtable.IXMLStruct;
@@ -27,7 +28,10 @@ import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
+import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
+
+import static io.odysz.common.LangExt.*;
 
 /**Statement manager that providing statements with overridden callback methods.<br>
  * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
@@ -56,8 +60,7 @@ public class DATranscxt extends Transcxt {
 	}
 
 	/**
-	 * @deprecated replaced by {@link #tableMeta(String, String)}
-	 */
+	 * @ deprecated replaced by {@link #tableMeta(String, String)}
 	public TableMeta tableMeta(String t) throws SemanticException {
 		for (String cnn : Connects.connIds()) {
 			HashMap<String, TableMeta> metas;
@@ -72,7 +75,11 @@ public class DATranscxt extends Transcxt {
 		}
 		return null;
 	}
+	 */
 
+	/* (non-Javadoc)
+	 * @see io.odysz.transact.sql.Transcxt#tableMeta(java.lang.String, java.lang.String)
+	 */
 	@Override
 	public TableMeta tableMeta(String conn, String tabl) throws SemanticException {
 		try {
@@ -145,7 +152,7 @@ public class DATranscxt extends Transcxt {
 		return q;
 	}
 
-	/**Create an insert statement.
+	/**Create an insert statement that will report affected rows as data entry "total".
 	 * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
 	 * For how to use the created statements, see the testing class:
 	 * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/java/io/odysz/semantic/DASemantextTest.java'>
@@ -160,9 +167,10 @@ public class DATranscxt extends Transcxt {
 			int[] r = Connects.commit(sctx.connId(), usr, sqls);
 			
 			// In semantic.DA 1.0, only deletingl external files here
-			sctx.onCommitted(sctx);
+			sctx.onCommitted(sctx, tabl);
 
-			return new SemanticObject().addInts("inserted", r).put("resulved", sctx.resulves());
+			// return new SemanticObject().addInts("inserted", r).put("resulved", sctx.resulves());
+			return new SemanticObject().addInts("total", r).put("resulved", sctx.resulves());
 		});
 		return i;
 	}
@@ -172,7 +180,7 @@ public class DATranscxt extends Transcxt {
 		return ((HashMap<String, String>) ((SemanticObject) rslt.get("resulved")).get(tabl)).get(pk);
 	}
 
-	/**Create an update statement.
+	/**Create an update statement that will report affected rows as data entry "total".
 	 * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
 	 * For how to use the created statements, see the testing class:
 	 * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/java/io/odysz/semantic/DASemantextTest.java'>
@@ -187,14 +195,15 @@ public class DATranscxt extends Transcxt {
 			int[] r = Connects.commit(sctx.connId(), usr, sqls);
 			
 			// In semantic.DA 1.0, only deletingl external files here
-			sctx.onCommitted(sctx);
+			sctx.onCommitted(sctx, tabl);
 
-			return new SemanticObject().addInts("updated", r).put("resulved", sctx.resulves());
+			// return new SemanticObject().addInts("updated", r).put("resulved", sctx.resulves());
+			return new SemanticObject().addInts("total", r).put("resulved", sctx.resulves());
 		});
 		return u;
 	}
 
-	/**Create an update statement.
+	/**Create a delete statement that will report affected rows as data entry "total".
 	 * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
 	 * For how to use the created statements, see the testing class:
 	 * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/java/io/odysz/semantic/DASemantextTest.java'>
@@ -208,9 +217,10 @@ public class DATranscxt extends Transcxt {
 		d.doneOp((sctx, sqls) -> {
 			int[] r = Connects.commit(sctx.connId(), usr, sqls);
 			
-			sctx.onCommitted(sctx);
+			sctx.onCommitted(sctx, tabl);
 
-			return new SemanticObject().addInts("deleted", r).put("resulved", sctx.resulves());
+			// return new SemanticObject().addInts("deleted", r).put("resulved", sctx.resulves());
+			return new SemanticObject().addInts("total", r).put("resulved", sctx.resulves());
 		});
 		return d;
 	}
@@ -246,10 +256,10 @@ public class DATranscxt extends Transcxt {
 
 		if (!smtConfigs.containsKey(conn)) {
 			String fpath = Connects.getSmtcsPath(conn);
-			if (LangExt.isblank(fpath, "\\."))
+			if (isblank(fpath, "\\."))
 				throw new SemanticException(
 					"Trying to find semantics of conn %1$s, but the configuration path is empty.\n" +
-					"No 'smtcs' configured in connects.xml for connection %1$s?\n" +
+					"No 'smtcs' configured in connects.xml for connection \"%1$s\"?\n" +
 					"Looking in path: %2$s", conn, fpath);
 			loadSemantics(conn, fpath, Connects.getDebug(conn));
 		}
@@ -332,7 +342,7 @@ public class DATranscxt extends Transcxt {
 
 	public static void addSemantics(String connId, String tabl, String pk,
 			smtype sm, String args, boolean debug) throws SQLException, SAXException, IOException, SemanticException {
-		addSemantics(connId, tabl, pk, sm, LangExt.split(args, ","), debug);
+		addSemantics(connId, tabl, pk, sm, split(args, ","), debug);
 	}
 
 	public static void addSemantics(String conn, String tabl, String pk,
@@ -392,5 +402,27 @@ public class DATranscxt extends Transcxt {
 	
 	public static String key(String name) {
 		return keys == null ? null : keys.get(name);
+	}
+
+	public Date now(String conn) throws TransException, SQLException {
+		if (isblank(conn))
+			conn = Connects.defltConn();
+		
+		AnResultset rs = (AnResultset) select("oz_autoseq", "t")
+				.col(Funcall.now(), "n")
+				.rs(instancontxt(conn, new IUser() {
+					@Override public TableMeta meta() { return null; }
+					@Override public String uid() { return "dumy"; }
+					@Override public IUser logAct(String funcName, String funcId) { return null; }
+					@Override public IUser notify(Object note) throws TransException { return this; }
+					@Override public List<Object> notifies() { return null; }
+					@Override public long touchedMs() { return 0; }
+					@Override public IUser sessionKey(String ssId) { return this; }
+					@Override public String sessionKey() { return null; } }))
+				.rs(0);
+
+		rs.next();
+		
+		return rs.getDateTime("n");
 	}
 }

@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 import org.apache.commons.io_odysz.FilenameUtils;
 import org.xml.sax.SAXException;
 
-import io.odysz.anson.AnsonResultset;
 import io.odysz.common.AESHelper;
 import io.odysz.common.EnvPath;
 import io.odysz.common.LangExt;
@@ -376,16 +375,18 @@ public class DASemantics {
 		
 		/**
 		 * <p>Stamp table updating / insertion, update the last stamp into a logging table. </p>
-		 * <p><b>Note: This semantics is handled in table wise style.</b><br>
+		 * <p><b>Note: This semantics is handled in table wise style, and one table can has only one stampByNode.</b><br>
 		 * Updating with post or sub insertion etc. may also has an incorrect recorded count number.</p>
 		 * <p>xml key: "stamp"</p> 
 		 * <p>xml args:<br>
-		 * 0. stamp table name, e.g. syn_node<br>
-		 * 1. target table field, e.g. 'tabl'<br>
-		 * 2. remote node id field, e.g. synode<br>
-		 * 3. crud<br>
-		 * 4. rec-count<br>
-		 * 5. stamp, optional. If no presented, will use {@link Funcall#now()}.<br>
+		 * 0. connection id where the stamp table located in<br>
+		 * 1. stamp table name, e.g. syn_node<br>
+		 * 2. target table field, e.g. 'tabl'<br>
+		 * 3. remote node id field, e.g. synode<br>
+		 * 4. crud<br>
+		 * 5. rec-count<br>
+		 * 6. stamp, optional. If configured (not empty), the handler will use {@link Funcall#now()},
+		 * otherwise it should be configured in database as an automatic stamp field.<br>
 		 * </p>
 		 * <p>For performance reason, this semantic handler has a device finger print (a hash-set)
 		 * for each DB table, which makes the handler not suitable for large group with many devices.</p>
@@ -547,10 +548,6 @@ public class DASemantics {
 			handler = new ShExtFilev2(basicTsx, tabl, recId, args);
 		else if (smtype.stampByNode == semantic)
 			handler = new ShStampByNode(basicTsx, tabl, recId, args);
-		// else if (smtype.composingCol == semantic)
-		// addComposings(tabl, recId, argss);
-		// else if (smtype.stamp1MoreThanRefee == semantic)
-		// addUpDownStamp(tabl, recId, argss);
 		else
 			throw new SemanticException("Unsuppported semantics: " + semantic);
 
@@ -1660,24 +1657,31 @@ public class DASemantics {
 	 * @author odys-z@github.com
 	 *
 	 */
-	public class ShStampByNode extends SemanticHandler {
-		/** 0. stamp table name, e.g. syn_node */
-		public static final int ixLogTabl = 0;
-		/** 1. target table field, e.g. 'tabl' */
-		public static final int ixSynTbl = 1;
-		/** 2. remote node id field, e.g. synode */
-		public static final int ixSynode = 2;
-		/** 3. crud */
-		public static final int ixCrud = 3;
-		/** 4. rec-count */
-		public static final int ixRecount = 4;
-		/** 5. stamp, optional. If no presented, will use Funcall.now(). */
-		public static final int ixStamp = 5;
+	public static class ShStampByNode extends SemanticHandler {
+		/** 0. conn-id of database of syn_stamp */
+		public static final int ixConn = 0;
+		/** 1. stamp table name, e.g. syn_node */
+		public static final int ixLogTabl = 1;
+		/** 2. target table field, e.g. 'tabl' */
+		public static final int ixSynTbl = 2;
+		/** 3. remote node id field, e.g. synode */
+		public static final int ixSynode = 3;
+		/** 4. crud */
+		public static final int ixCrud = 4;
+		/** 5. rec-count */
+		public static final int ixRecount = 5;
+		/** 6. stamp, optional. If no presented, will use Funcall.now(). */
+		public static final int ixStamp = 6;
 
 		private int cnt;
 		private DATranscxt shSt;
+		/** conn-id of database of syn_stamp */
+		private String conn;
 
-		private Set<String> devices;
+		static private Set<String> devices;
+		static {
+			devices = new HashSet<String>();
+		}
 
 		public ShStampByNode(Transcxt basicTsx, String tabl, String recId, String[] args) throws SemanticException {
 			super(basicTsx, smtype.stampByNode, tabl, recId, args);
@@ -1688,12 +1692,16 @@ public class DASemantics {
 			
 			cnt = 0;
 			try {
-				shSt = new DATranscxt(null);
+				conn = args[ixConn];
+				if (isblank(conn))
+					conn = Connects.defltConn();
+					
+				shSt = new DATranscxt(conn);
 				
-				IUser dumbUser = new IUser() {
+				IUser shUser = new IUser() {
 					@Override public TableMeta meta() { return null; }
 					@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
-					@Override public String uid() { return "dummy"; }
+					@Override public String uid() { return "ShStampByNode"; }
 					@Override public IUser logAct(String funcName, String funcId) { return this; }
 					@Override public String sessionKey() { return null; }
 					@Override public IUser sessionKey(String skey) { return null; }
@@ -1702,16 +1710,14 @@ public class DASemantics {
 					@Override public long touchedMs() { return 0; }
 				};
 
-				AnsonResultset rs = (AnsonResultset) shSt
+				AnResultset rs = (AnResultset) shSt
 					.select(args[ixLogTabl], "s")
 					.col(args[ixSynode], "n")
 					.whereEq(args[ixSynTbl], target)
 					.groupby(args[ixSynode])
-					.rs(basicTsx.instancontxt(null, dumbUser))
+					.rs(basicTsx.instancontxt(null, shUser))
 					.rs(0);
 
-				devices = new HashSet<String>();
-				
 				while (rs.next()) {
 					devices.add(rs.getString("n"));
 				}
@@ -1735,9 +1741,9 @@ public class DASemantics {
 			ShStampByNode that = this;
 
 			if (op == null) {
-				that.cnt = 1;
+				cnt = 1;
 				op = devices.contains(usr.deviceId()) ?
-					(st, sqls) -> {
+					(ctx, sqls) -> {
 						Update u = shSt.update(args[ixLogTabl], usr)
 							.nv(args[ixRecount], that.cnt)
 							.nv(args[ixCrud], CRUD.C)
@@ -1746,12 +1752,12 @@ public class DASemantics {
 						
 						if (ixStamp > args.length || isblank(args[ixStamp]))
 							u.nv(args[5], Funcall.now());
-						u.u(st);
+						u.u(ctx);
 						return null;
 					}
-					: (st, sqls) -> {
+					: (ctx, sqls) -> {
 						// not likely a concurrency problem as the device won't update with multiple threads.
-						that.devices.add(usr.deviceId());
+						ShStampByNode.devices.add(usr.deviceId());
 
 						Insert i = shSt.insert(args[ixLogTabl], usr)
 							.nv(args[ixRecount], that.cnt)
@@ -1759,13 +1765,13 @@ public class DASemantics {
 							.nv(args[ixSynTbl], target)
 							.nv(args[ixSynode], usr.deviceId());
 						
-						if (ixStamp > args.length || isblank(args[ixStamp]))
-							i.nv(args[5], Funcall.now());
-						i.ins(st);
+						if (ixStamp <= args.length && !isblank(args[ixStamp]))
+							i.nv(args[ixStamp], Funcall.now());
+						i.ins(shSt.instancontxt(conn, usr));
 						
 						return null;
 					};
-				stx.addOnTableCommitted("", op);
+				stx.addOnTableCommitted(target, op);
 			}
 			else cnt++;
 		}
@@ -1798,13 +1804,13 @@ public class DASemantics {
 					if (ixStamp > args.length || isblank(args[ixStamp]))
 						u.nv(args[5], Funcall.now());
 						
-					u.u(st);
+					u.u(shSt.instancontxt(conn, usr));
 					return null;
 				};
 			}
 			else cnt++;
 
-			stx.addOnTableCommitted("", op);
+			stx.addOnTableCommitted(target, op);
 		}
 	}
 	

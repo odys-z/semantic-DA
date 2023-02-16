@@ -504,14 +504,14 @@ end;
 	public String containerRoot() { return basePath; }
 
 	@Override
-	public void onCommitted(ISemantext ctx) throws TransException, SQLException {
+	public void onCommitted(ISemantext ctx, String tabl) throws TransException, SQLException {
 		if (onRowsOk != null)
 			for (IPostOperat ok : onRowsOk)
 				// onOk handlers shoudn't using sqls, it's already committed
 				ok.onCommitOk(ctx, null);
-		if (onTableOk != null)
-			for (IPostOperat ok : onTableOk.values())
-				ok.onCommitOk(ctx, null);
+
+		if (onTableOk != null && onTableOk.containsKey(tabl))
+			onTableOk.get(tabl).onCommitOk(ctx, null);
 	}
 
 	@Override
