@@ -59,27 +59,6 @@ public class DATranscxt extends Transcxt {
 		Utils.logi("Runtime root path: %s", runtimeRoot);
 	}
 
-	/**
-	 * @ deprecated replaced by {@link #tableMeta(String, String)}
-	public TableMeta tableMeta(String t) throws SemanticException {
-		for (String cnn : Connects.connIds()) {
-			HashMap<String, TableMeta> metas;
-			try {
-				metas = Connects.getMeta(cnn);
-				if (metas != null && metas.containsKey(t))
-					return metas.get(t);
-			} catch (SQLException e) {
-				e.printStackTrace();
-				throw new SemanticException(e.getMessage());
-			}
-		}
-		return null;
-	}
-	 */
-
-	/* (non-Javadoc)
-	 * @see io.odysz.transact.sql.Transcxt#tableMeta(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public TableMeta tableMeta(String conn, String tabl) throws SemanticException {
 		try {
@@ -166,10 +145,9 @@ public class DATranscxt extends Transcxt {
 		i.doneOp((sctx, sqls) -> {
 			int[] r = Connects.commit(sctx.connId(), usr, sqls);
 			
-			// In semantic.DA 1.0, only deletingl external files here
+			// Since v1.4.12, table stamps is handled here
 			sctx.onCommitted(sctx, tabl);
 
-			// return new SemanticObject().addInts("inserted", r).put("resulved", sctx.resulves());
 			return new SemanticObject().addInts("total", r).put("resulved", sctx.resulves());
 		});
 		return i;
@@ -194,10 +172,9 @@ public class DATranscxt extends Transcxt {
 		u.doneOp((sctx, sqls) -> {
 			int[] r = Connects.commit(sctx.connId(), usr, sqls);
 			
-			// In semantic.DA 1.0, only deletingl external files here
+			// Since v1.4.12, moving external files & table stamps are handled here
 			sctx.onCommitted(sctx, tabl);
 
-			// return new SemanticObject().addInts("updated", r).put("resulved", sctx.resulves());
 			return new SemanticObject().addInts("total", r).put("resulved", sctx.resulves());
 		});
 		return u;
@@ -217,9 +194,9 @@ public class DATranscxt extends Transcxt {
 		d.doneOp((sctx, sqls) -> {
 			int[] r = Connects.commit(sctx.connId(), usr, sqls);
 			
+			// Since v1.4.12, deleting external files & table stamps are handled here
 			sctx.onCommitted(sctx, tabl);
 
-			// return new SemanticObject().addInts("deleted", r).put("resulved", sctx.resulves());
 			return new SemanticObject().addInts("total", r).put("resulved", sctx.resulves());
 		});
 		return d;

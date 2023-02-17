@@ -177,7 +177,7 @@
   		<smtc>stamp</smtc>
   		<tabl>h_photos</tabl>
   		<pk>pid</pk>
-  		<args>,syn_stamp,tabl,synode,crud,recount,syncstamp</args>
+  		<args>,syn_stamp,tabl,synode,crud,recount,xmlstamp</args>
   	</s>
 
 	<!-- a_user.userName check same on insert -->

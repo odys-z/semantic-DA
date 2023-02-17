@@ -387,7 +387,16 @@ public class DASemantics {
 		 * 5. rec-count<br>
 		 * 6. stamp, optional. If configured (not empty), the handler will use {@link Funcall#now()},
 		 * otherwise it should be configured in database as an automatic stamp field.<br>
-		 * </p>
+		 * </p><hr>
+		 * <pre>Example
+		 * semantics.xml
+		 * &lt;smtc&gt;stamp&lt;/smtc&gt;
+		 * &lt;tabl&gt;h_photos&lt;/tabl&gt;
+		 * &lt;pk&gt;pid&lt;/pk&gt;
+		 * &lt;args&gt;,syn_stamp,tabl,synode,crud,recount,xmlstamp</args&gt;
+		 * </pre>
+		 * <hr>
+		 * <p>The configure uses empty id for default connection, configured xmlstamp field to be updated with 'now()' function.</p>
 		 * <p>For performance reason, this semantic handler has a device finger print (a hash-set)
 		 * for each DB table, which makes the handler not suitable for large group with many devices.</p>
 		 */
@@ -481,10 +490,6 @@ public class DASemantics {
 				throw new SemanticException("semantics not known, type: " + type);
 		}
 	}
-
-	/**[table, DASeamtnics]<br>
-	 * This is not static because there are many connections */
-	// private HashMap<String, DASemantics> ss;
 
 	/**
 	 * Static transact context for DB accessing without semantics support.<br>
@@ -678,8 +683,6 @@ public class DASemantics {
 						sm.name(), target, pkField, LangExt.toString(args));
 		}
 
-		// void onPrepare(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer>
-		// cols, IUser usr) {}
 		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 		}
@@ -714,17 +717,6 @@ public class DASemantics {
 			this.sm = sm;
 			this.args = args;
 		}
-
-//		public static String[][] split(String[] ss) {
-//			if (ss == null)
-//				return null;
-//			String[][] argss = new String[ss.length][];
-//			for (int ix = 0; ix < ss.length; ix++) {
-//				String[] args = LangExt.split(ss[ix], "\\s+");
-//				argss[ix] = args;
-//			}
-//			return argss;
-//		}
 
 		/**Expand the row to the size of cols - in case the cols expanded by semantics handling
 		 * @param row row to expand
@@ -797,17 +789,6 @@ public class DASemantics {
 
 			Object v = null;
 			try {
-				/* fix in v1.3.0:
-				 * full path no longer generated from rec-id (which requires rec Id but can't always be got when updating)
-				 * TODO FIXME this ruined the re-forest function !
-				if (!cols.containsKey(pkField) || row.get(cols.get(pkField)) == null)
-					throw new SemanticException("Fullpath configuration wrong: idField = %s,\nargs:%s,\ncols: %s" +
-							"\nSee %s ",
-							pkField, LangExt.toString(args), LangExt.toString(cols),
-							faqPage);
-				Object id = row.get(cols.get(pkField))[1];
-			     */
-
 				Object pid = cols.containsKey(args[0]) ? row.get(cols.get(args[0]))[1] : null;
 
 				if (LangExt.isblank(pid, "null")) {
@@ -852,15 +833,8 @@ public class DASemantics {
 				nv = row.get(cols.get(args[2]));
 			}
 			else {
-				// nv = new Object[] { args[2], v };
 				nv = new Object[] { args[2], stx.composeVal(v, target, args[2]) };
 				cols.put(args[2], row.size());
-
-				// FIXME This is a bug:
-				// If therer are two more fields of fullpath,
-				// the second row's field order is not the same as it been handled in the first row,
-				// so "add()" is not enough.
-				// -- should have been fixed in v1.3.0
 				row.add(nv);
 			}
 		}
@@ -917,7 +891,6 @@ public class DASemantics {
 							alreadyResulved, target);
 				// side effect: generated auto key already been put into autoVals,
 				// which can be referenced later.
-				// nv[1] = ExprPart.constStr(stx.genId(target, args[0]));
 				nv[1] = stx.composeVal(stx.genId(target, args[0]), target, args[0]);
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();
@@ -944,10 +917,9 @@ public class DASemantics {
 			// Use args[0] instead.
 			if (cols.containsKey(args[0]) // with nv from client
 					&& cols.get(args[0]) < row.size()) // with nv must been generated from semantics
-				// if (cols.containsKey(args[0])) { // referencing col
 				nv = row.get(cols.get(args[0]));
-			// }
-			else { // add a semantics required cell if it's absent.
+			else {
+				// add a semantics required cell if it's absent.
 				nv = new Object[] { args[0], null };
 				cols.put(args[0], row.size());
 				row.add(nv);
@@ -955,9 +927,7 @@ public class DASemantics {
 			try {
 				Object v = stx.resulvedVal(args[1], args[2]);
 				if (v != null && (nv[1] == null || LangExt.isblank(nv[1])
-						// v1.3.0 this must a bug introduced by previous modification?
 						|| nv[1] instanceof ExprPart && ((ExprPart)nv[1]).isNull()))
-					// nv[1] = v;
 					nv[1] = stx.composeVal(v, target, (String)nv[0]);
 			} catch (Exception e) {
 				if (nv[1] != null) {
@@ -1001,7 +971,7 @@ public class DASemantics {
 					if (args != null && args.length > 1 && args[1] != null) {
 						stmt.before(delChild(args, stmt, condt, usr));
 						// Design Notes: about multi level children deletion:
-						// If row can't been retrieved here, cascading children deletion can't been supported
+						// If a row can't been retrieved here, the cascading children deletion can't been supported
 					}
 		}
 
@@ -1447,15 +1417,6 @@ public class DASemantics {
 					if (nv != null && nv[1] != null
 						&& (nv[1] instanceof String && !LangExt.isblank(nv[1]) || nv[1] instanceof AbsPart)) {
 
-						// find business category - this arg can not be optional, every file has it's unique uri
-						// Object busicat = row.get(cols.get(args[ixBusiCate]))[1];
-						// String subpath = busicat.toString();
-						
-						// TODO to be tested everywhere: sub-cate is optional
-						// String subpath2 = "";
-						// if (cols.containsKey(args[ixSubCate]))
-						// 	subpath2 = row.get(cols.get(args[ixSubCate]))[1].toString();
-
 						// can be a string or an auto resulving (fk is handled before extfile)
 						Object fn = row.get(cols.get(pkField))[1];
 
@@ -1472,8 +1433,6 @@ public class DASemantics {
 								f.filename(clientname);
 						}
 
-						// f.prefixPath(subpath, subpath2) // e.g. "a_users", "ody"
-						// 	.b64(nv[1].toString());
 						f.b64(nv[1].toString());
 						
 						for (int i = ixUri + 1; i < args.length - 1; i++) {
@@ -1509,39 +1468,6 @@ public class DASemantics {
 		 */
 		@Override
 		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
-//			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
-//				if (cols.containsKey(args[ixSubCate]) || cols.containsKey(args[ixBusiCate]) || cols.containsKey(args[ixClientName])) {
-//					if ( !cols.containsKey(args[ixUri]) || !cols.containsKey(args[ixSubCate])
-//					  || !cols.containsKey(args[ixBusiCate]) || !cols.containsKey(args[ixClientName]) )
-//						throw new SemanticException("To update (move file) %s.%s, all fields must values provided by user. Old uri value is required, and fields reqired: %s, %s, %s.",
-//									target, args[ixUri], args[ixBusiCate], args[ixSubCate], args[ixClientName]);
-//					
-//				
-//					String folder = row.get(cols.get(args[ixBusiCate]))[1].toString();
-//					String subpath2 = row.get(cols.get(args[ixSubCate]))[1].toString();
-//					String oldUri = row.get(cols.get(args[ixUri]))[1].toString();
-//					String oldName = FilenameUtils.getName(oldUri);
-//
-//					ExtFileUpdate f = new ExtFileUpdate(oldName, getFileRoot(), stx)
-//							.oldUri(oldUri)
-//							.prefixPath(folder, subpath2);
-//
-//					Object[] nv = row.get(cols.get(args[ixUri]));
-//					nv = new Object[] { nv[0], f };
-//					row.set(cols.get(args[ixUri]), nv);
-//				}
-//				else {
-//					// save file, replace v - throw exception
-//					Object[] nv = row.get(cols.get(args[ixUri]));
-//					if (nv != null && nv[1] != null &&
-//						(  nv[1] instanceof String && ((String) nv[1]).length() > 0
-//						|| nv[1] instanceof ExprPart && !((ExprPart) nv[1]).isNull() )) {
-//						throw new SemanticException("Found the extFile value presented in %s.%s, but updating is configured as semantics.",
-//									target, args[ixUri]);
-//					}
-//				}
-//			}
-			
 			if (cols.containsKey(args[ixUri])) {
 				throw new SemanticException("Currently update ExtFile (%s.%s) is not supported. Use delete & insert.",
 						target, args[ixUri]);
@@ -1563,7 +1489,7 @@ public class DASemantics {
 
 					for (int i = ixUri + 1; i < args.length - 1; i++)
 						if (i != ixUri && !cols.containsKey(args[i])) 
-							throw new SemanticException("To update (move file) %s.%s, all required fields must be provided by user (missing %s).\nConfigured fields: %s.\nGot cols: %s",
+							throw new SemanticException("Cols for composing exp-file path are modified. To update (move file) %s.%s, all required fields must be provided by user (missing %s).\nNeeding fields: %s.\nModifying cols: %s",
 									target, args[ixUri], args[i],
 									Stream.of(args).skip(2).collect(Collectors.joining(", ")),
 									cols.keySet().stream().collect(Collectors.joining(", ")));
@@ -1655,7 +1581,6 @@ public class DASemantics {
 	 * see {@link smtype#stampByNode}
 	 * 
 	 * @author odys-z@github.com
-	 *
 	 */
 	public static class ShStampByNode extends SemanticHandler {
 		/** 0. conn-id of database of syn_stamp */
@@ -1750,8 +1675,8 @@ public class DASemantics {
 							.whereEq(args[ixSynTbl], target)
 							.whereEq(args[ixSynode], usr.deviceId());
 						
-						if (ixStamp > args.length || isblank(args[ixStamp]))
-							u.nv(args[5], Funcall.now());
+						if (ixStamp <= args.length && !isblank(args[ixStamp]))
+							u.nv(args[ixStamp], Funcall.now());
 						u.u(ctx);
 						return null;
 					}
@@ -1801,8 +1726,8 @@ public class DASemantics {
 						.whereEq(args[ixSynTbl], target)
 						.whereEq(args[ixSynode], usr.deviceId());
 					
-					if (ixStamp > args.length || isblank(args[ixStamp]))
-						u.nv(args[5], Funcall.now());
+					if (ixStamp <= args.length && !isblank(args[ixStamp]))
+						u.nv(args[ixStamp], Funcall.now());
 						
 					u.u(shSt.instancontxt(conn, usr));
 					return null;
@@ -2015,46 +1940,13 @@ public class DASemantics {
 			 * since multiple rows are expanded one by one, once the first rows have cols expended,
 			 * following rows should expanded automatically.
 			 * operTiem
-			if (args.length > 1 && args[1] != null) {
-				Object[] nvTime;
-				if (cols.containsKey(args[1])) {
-					int ix = cols.get(args[1]);
-					nvTime = row.get(ix);
-					try {
-						if (debug)
-							Utils.warn("[DASemantics.debug] ShOperTime#onInsert(): Found o-t value(%s, %s) exists, replacing...", nvTime[0],
-									nvTime[1]);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					nvTime = new Object[2];
-				} else {
-					nvTime = new Object[2];
-					cols.put(args[1], row.size());
-					row.add(nvTime);
-				}
-				nvTime[0] = args[1];
-				nvTime[1] = Funcall.now();
-			}
-
-			// oper
-			Object[] nvOper;
-			if (cols.containsKey(args[0]))
-				nvOper = row.get(cols.get(args[0]));
-			else {
-				nvOper = new Object[2];
-				cols.put(args[0], row.size()); // oper
-				row.add(nvOper);
-			}
-			nvOper[0] = args[0];
-			nvOper[1] = stx.composeVal(usr == null ? "sys" : usr.uid(), target, args[0]);
 			*/
 			if (args.length > 1 && args[1] != null) {
 				Object[] nvTime;
 				if (cols.containsKey(args[1])) {
 					int ix = cols.get(args[1]);
 					if (row.size() <= ix) {
-						// this row need to be expanded - happens when handling following rows after 1st row expanded cols wiht oper & optime.
+						// this row need to be expanded - happens when handling following rows after 1st row expanded cols with oper & optime.
 						nvTime = new Object[2];
 						int adding = ix - row.size() + 1;
 						while (adding > 0) {
@@ -2081,7 +1973,7 @@ public class DASemantics {
 				int jx = cols.get(args[0]);
 
 				if (row.size() <= jx) {
-					// this row need to be expanded - happens when handling following rows after 1st row expanded cols wiht oper & optime.
+					// this row need to be expanded - happens when handling following rows after 1st row expanded cols with oper & optime.
 					nvOper = new Object[2];
 					int adding = jx - row.size() + 1;
 					while (adding > 0) {

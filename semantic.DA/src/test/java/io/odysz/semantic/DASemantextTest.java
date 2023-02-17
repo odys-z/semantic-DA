@@ -981,8 +981,10 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		final long diffsnd = 300 * 1000;
 		final SyncRobot usr = new SyncRobot("robot").device("test");
 
-		// C
-		SemanticObject res = (SemanticObject) st
+		String synode = usr.deviceId();
+		try { 
+			// C
+			SemanticObject res = (SemanticObject) st
 				.insert("h_photos", usr)
 				.nv("family", "ECY.ua")
 				.nv("shareby", "ody")
@@ -992,79 +994,93 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				.nv("sync", "hub")
 				.ins(st.instancontxt(connId, usr));
 
-  		// <args>,syn_stamp,tabl,synode,crud,recount,syncstamp</args>
-		String synode = usr.deviceId();
-		int recount = res.total();
-		String pid = res.resulve("h_photos", "pid");
-		
-		AnResultset rs = (AnResultset) st.select("syn_stamp", "s")
+			// <args>,syn_stamp,tabl,synode,crud,recount,xmlstamp</args>
+			int recount = res.total();
+			String pid = res.resulve("h_photos", "pid");
+			
+			AnResultset rs = (AnResultset) st.select("syn_stamp", "s")
 				.whereEq("tabl", "h_photos")
 				.whereEq("synode", synode)
 				.rs(st.instancontxt(connId, usr))
 				.rs(0)
 				;
 		
-		rs.next();
-		assertEquals(recount, rs.getInt("recount"));
-		
-		Date d = rs.getDateTime("syncstamp");
-		long now = st.now(connId).getTime();
-		Utils.logi("%d", now - d.getTime());
-		assertTrue(now - d.getTime() < diffsnd);
-		
-		// U
-		res = (SemanticObject) st
+			rs.next();
+			assertEquals(recount, rs.getInt("recount"));
+			
+			Date di = rs.getDateTime("syncstamp");
+			Date dix = rs.getDateTime("xmlstamp");
+			long now = st.now(connId).getTime();
+			// Utils.logi("%d", now - di.getTime());
+			assertEquals(di.getTime(), dix.getTime());
+			assertTrue(now - di.getTime() < diffsnd);
+			
+			// U
+			Thread.sleep(1000);
+			res = (SemanticObject) st
 				.update("h_photos", usr)
-				.nv("family", "zsu.ua")
 				.nv("sync", "jnode")
+				.whereEq("pid", pid)
 				.u(st.instancontxt(connId, usr));
 
-  		// <args>syn_stamp,tabl,synode,crud,recount,syncstamp</args>
-		synode = usr.deviceId();
-		recount = res.total();
-		
-		rs = (AnResultset) st.select("syn_stamp", "s")
+			// <args>syn_stamp,tabl,synode,crud,recount,xmlstamp</args>
+			recount = res.total();
+			
+			rs = (AnResultset) st.select("syn_stamp", "s")
 				.whereEq("tabl", "h_photos")
 				.whereEq("synode", synode)
-				.rs(st.instancontxt(synode, usr))
+				.rs(st.instancontxt(connId, usr))
 				.rs(0)
 				;
 		
-		rs.next();
-		assertEquals(recount, rs.getInt("recount"));
-		
-		d = rs.getDate("syncstamp");
-		assertTrue(st.now(connId).getTime() - d.getTime() < diffsnd);
+			rs.next();
+			assertEquals(recount, rs.getInt("recount"));
+			
+			Date du = rs.getDateTime("syncstamp");
+			Date dux = rs.getDateTime("xmlstamp");
+			assertEquals(du.getTime(), dux.getTime());
+			assertTrue(du.getTime() > di.getTime());
+			assertTrue(st.now(connId).getTime() - du.getTime() < diffsnd);
 
-		// D
-		res = (SemanticObject) st
+			// D
+			Thread.sleep(1000);
+			res = (SemanticObject) st
 				.delete("h_photos", usr)
 				.whereEq("pid", pid)
 				.d(st.instancontxt(connId, usr));
 
-  		// <args>syn_stamp,tabl,synode,crud,recount,syncstamp</args>
-		synode = usr.deviceId();
-		assertEquals(1, res.total());
-		
-		rs = (AnResultset) st.select("syn_stamp", "s")
+			  // <args>syn_stamp,tabl,synode,crud,recount,xmlstamp</args>
+			assertEquals(1, res.total());
+			
+			rs = (AnResultset) st.select("syn_stamp", "s")
 				.whereEq("tabl", "h_photos")
 				.whereEq("synode", synode)
-				.rs(st.instancontxt(synode, usr))
+				.rs(st.instancontxt(connId, usr))
 				.rs(0)
 				;
 		
-		rs.next();
-		assertEquals(1, rs.getInt("recount"));
+			rs.next();
+			assertEquals(1, rs.getInt("recount"));
+			
+			Date dd = rs.getDateTime("syncstamp");
+			Date ddx = rs.getDateTime("xmlstamp");
+			assertEquals(dd.getTime(), ddx.getTime());
+			assertTrue(dd.getTime() > du.getTime());
+			assertTrue(st.now(connId).getTime() - dd.getTime() < diffsnd);
 		
-		d = rs.getDateTime("syncstamp");
-		assertTrue(st.now(connId).getTime() - d.getTime() < diffsnd);
-		
-		// Clean up for test both handling branches that branched from device fingerprint.
-		// see ShStampHandler.onInsert()
-		st.delete("syn_stamp", usr)
-			.whereEq("tabl", "h_photos")
-			.whereEq("synode", synode)
-			.d(st.instancontxt(connId, usr));
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+		finally {
+			// Clean up for test both handling branches that branched from device fingerprint.
+			// see ShStampHandler.onInsert()
+			st.delete("syn_stamp", usr)
+			  .whereEq("tabl", "h_photos")
+			  .whereEq("synode", synode)
+			  .d(st.instancontxt(connId, usr));
+		}
 	}
 
 	private String readB64(String filename) throws IOException {
