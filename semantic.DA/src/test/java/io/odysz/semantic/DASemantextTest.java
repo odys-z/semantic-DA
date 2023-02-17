@@ -1085,6 +1085,12 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		}
 	}
 
+	/**
+	 * @deprecated replaced by {@link CheapIO#}
+	 * @param filename
+	 * @return
+	 * @throws IOException
+	 */
 	private String readB64(String filename) throws IOException {
 		Path p = Paths.get(filename);
 		byte[] f = Files.readAllBytes(p);
