@@ -896,6 +896,9 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	@Test
 	public void testExtfilev2() throws TransException, SQLException, IOException {
 
+		// h_photo will triggering table stamps 
+		SyncRobot usr = new SyncRobot("robot").device("test");
+
 		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, runtimepath);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 
@@ -1011,7 +1014,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			Date di = rs.getDateTime("syncstamp");
 			Date dix = rs.getDateTime("xmlstamp");
 			long now = st.now(connId).getTime();
-			// Utils.logi("%d", now - di.getTime());
 			assertEquals(di.getTime(), dix.getTime());
 			assertTrue(now - di.getTime() < diffsnd);
 			

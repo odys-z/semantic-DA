@@ -296,10 +296,7 @@ public class Connects {
 			// "select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= %s and rownum <= %s"
 			s = Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (", sql,
 						") t) t where rownum > ", r1, " and rownum <= %s", r2);
-						// v1.3.0 Sep.6 2021 ">=" to ">"
 		else if (dt == dbtype.sqlite)
-			// throw new TransException("There is no easy way to support sqlite paging. Don't use server side paging for sqlite datasource.");
-
 			// https://stackoverflow.com/a/51380906
 			s = Stream.of("select * from (", sql, ") limit ", String.valueOf(pgSize), " offset ", r1);
 		else // mysql

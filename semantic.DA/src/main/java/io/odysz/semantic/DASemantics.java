@@ -621,24 +621,24 @@ public class DASemantics {
 		return false;
 	}
 
-	public void onInsert(ISemantext semantx, Insert statemt, ArrayList<Object[]> row, Map<String, Integer> cols,
-			IUser usr) throws SemanticException {
+	public void onInsert(ISemantext semantx, Insert statemt, ArrayList<Object[]> row,
+			Map<String, Integer> cols, IUser usr) throws SemanticException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
 				if (handler.insert)
 					handler.onInsert(semantx, statemt, row, cols, usr);
 	}
 
-	public void onUpdate(ISemantext semantx, Update satemt, ArrayList<Object[]> row, Map<String, Integer> cols,
-			IUser usr) throws SemanticException {
+	public void onUpdate(ISemantext semantx, Update satemt, ArrayList<Object[]> row,
+			Map<String, Integer> cols, IUser usr) throws SemanticException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
 				if (handler.update)
 					handler.onUpdate(semantx, satemt, row, cols, usr);
 	}
 
-	public void onDelete(ISemantext semantx, Statement<? extends Statement<?>> stmt, Condit whereCondt, IUser usr)
-			throws SemanticException {
+	public void onDelete(ISemantext semantx, Statement<? extends Statement<?>> stmt,
+			Condit whereCondt, IUser usr) throws SemanticException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
 				if (handler.delete)
@@ -670,8 +670,8 @@ public class DASemantics {
 
 		boolean verbose;
 
-		SemanticHandler(Transcxt trxt, String semantic, String tabl, String pk, String[] args, boolean verbose)
-				throws SemanticException {
+		SemanticHandler(Transcxt trxt, String semantic, String tabl, String pk,
+				String[] args, boolean verbose) throws SemanticException {
 			this.trxt = trxt;
 			target = tabl;
 			pkField = pk;
