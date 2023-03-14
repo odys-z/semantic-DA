@@ -20,7 +20,7 @@ import io.odysz.transact.x.TransException;
  * 
  * @author odys-z@github.com
  */
-public class SyncRobot implements IUser {
+public class SyncTestRobot implements IUser {
 
 	protected long touched;
 	protected String userId;
@@ -28,7 +28,7 @@ public class SyncRobot implements IUser {
 
 	protected String orgId;
 	public String orgId() { return orgId; }
-	public SyncRobot orgId(String org) {
+	public SyncTestRobot orgId(String org) {
 		orgId = org;
 		return this;
 	}
@@ -40,12 +40,12 @@ public class SyncRobot implements IUser {
 
 	protected Set<String> tempDirs;
 	public String orgName;
-	public SyncRobot orgName (String org) {
+	public SyncTestRobot orgName (String org) {
 		orgName = org;
 		return this;
 	}
 
-	public SyncRobot(String userid) {
+	public SyncTestRobot(String userid) {
 		this.userId = userid;
 	}
 
@@ -56,7 +56,7 @@ public class SyncRobot implements IUser {
 	 * @param pswd
 	 * @param userName
 	 */
-	public SyncRobot(String userid, String pswd, String userName) {
+	public SyncTestRobot(String userid, String pswd, String userName) {
 		this.userId = userid;
 		this.userName = userName;
 	}
@@ -131,7 +131,7 @@ public class SyncRobot implements IUser {
 		return new SessionInf().device(deviceId);
 	}
 
-	public SyncRobot device(String dev) {
+	public SyncTestRobot device(String dev) {
 		deviceId = dev;
 		return this;
 	}

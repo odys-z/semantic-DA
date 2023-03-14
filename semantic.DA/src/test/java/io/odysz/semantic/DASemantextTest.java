@@ -897,7 +897,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	public void testExtfilev2() throws TransException, SQLException, IOException {
 
 		// h_photo will triggering table stamps 
-		SyncRobot usr = new SyncRobot("robot").device("test");
+		SyncTestRobot usr = new SyncTestRobot("robot").device("test");
 
 		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, runtimepath);
 		ArrayList<String> sqls = new ArrayList<String>(1);
@@ -982,7 +982,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	@Test
 	public void testStampByNode() throws TransException, SQLException, IOException {
 		final long diffsnd = 300 * 1000;
-		final SyncRobot usr = new SyncRobot("robot").device("test");
+		final SyncTestRobot usr = new SyncTestRobot("robot").device("test");
 
 		String synode = usr.deviceId();
 		try { 
