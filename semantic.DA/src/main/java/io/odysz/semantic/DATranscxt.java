@@ -33,13 +33,16 @@ import io.odysz.transact.x.TransException;
 
 import static io.odysz.common.LangExt.*;
 
-/**Statement manager that providing statements with overridden callback methods.<br>
+/**
+ * A statement manager that can providing statements with overridden callback methods.<br>
+ * 
  * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
  * For how to use the created statements, see the testing class:
  * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/java/io/odysz/semantic/DASemantextTest.java'>
  * DASemantextTest</a>.</p>
  * This manager can handling semantics configured in xml. See {@link #loadSemantics(String, String)}. <br>
- * Every sql building needing semantics handling must use a context instance created by {@link DATranscxt#instancontxt(IUser)}.
+ * Every sql building needing semantics handling must use a context instance created by
+ * {@link DATranscxt#instancontxt(String, IUser)}.
  * @author odys-z@github.com
  *
  */
@@ -77,11 +80,12 @@ public class DATranscxt extends Transcxt {
 	/**[conn, [table, DASemantics]] */
 	protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
 
-	/**Create a new semantext instance with the static resources.<br>
+	/**
+	 * <p>Create a new semantext instance with the static resources.</p>
+	 * 
 	 * {@link DATranscxt} use a basic context (without semantics handler) for basic sql building.<br>
 	 * Every context used for {@link DASemantics} handling must use this to create a new context instance.
-	 * @param connId deprecated: since v1.2, connId is configured in connects.xml, which will mapping
-	 * req.a (func uri) to connId. It's planned that datasource can be setup by online requests in the future.
+	 * @param connId connection id usually mapped with client function uri, like: Connects.uri2conn(req.uri())
 	 * @param usr
 	 * @see ISemantext 
 	 * @return semantext

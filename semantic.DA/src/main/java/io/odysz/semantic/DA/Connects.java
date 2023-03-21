@@ -413,6 +413,15 @@ public class Connects {
 		return srcs.get(conn).enableSystemout;
 	}
 
+	/**
+	 * Mapping client function id to data connection according to configuration.
+	 * 
+	 * Uri pattern is matched with prefix of strings' in db config.xml.
+	 * 
+	 * @param uri
+	 * @return
+	 * @throws SemanticException
+	 */
 	public static String uri2conn(String uri) throws SemanticException {
 		if (LangExt.isblank(uri))
 			throw new SemanticException("Function's uri can not be null! Which is used for connecting datasource.");
