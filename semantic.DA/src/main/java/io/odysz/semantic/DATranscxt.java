@@ -59,6 +59,8 @@ public class DATranscxt extends Transcxt {
 		Utils.logi("Runtime root path: %s", runtimeRoot);
 	}
 
+	private static IUser dummy;
+
 	@Override
 	public TableMeta tableMeta(String conn, String tabl) throws SemanticException {
 		try {
@@ -387,19 +389,39 @@ public class DATranscxt extends Transcxt {
 		
 		AnResultset rs = (AnResultset) select("oz_autoseq", "t")
 				.col(Funcall.now(), "n")
-				.rs(instancontxt(conn, new IUser() {
-					@Override public TableMeta meta() { return null; }
-					@Override public String uid() { return "dumy"; }
-					@Override public IUser logAct(String funcName, String funcId) { return null; }
-					@Override public IUser notify(Object note) throws TransException { return this; }
-					@Override public List<Object> notifies() { return null; }
-					@Override public long touchedMs() { return 0; }
-					@Override public IUser sessionKey(String ssId) { return this; }
-					@Override public String sessionKey() { return null; } }))
+				.rs(instancontxt(conn, dummyUser()))
 				.rs(0);
 
 		rs.next();
 		
 		return rs.getDateTime("n");
+	}
+	
+	protected static IUser dummyUser() {
+		if (dummy == null)
+			dummy = new IUser() {
+					@Override public TableMeta meta() { return null; }
+					@Override public String uid() { return "dummy"; }
+					@Override public IUser logAct(String funcName, String funcId) { return null; }
+					@Override public IUser notify(Object note) throws TransException { return this; }
+					@Override public List<Object> notifies() { return null; }
+					@Override public long touchedMs() { return 0; }
+					@Override public IUser sessionKey(String ssId) { return this; }
+					@Override public String sessionKey() { return null; } };
+		return dummy;
+	}
+
+	public boolean exists(String conn, String tbl, String id)
+			throws TransException, SQLException {
+		if (isblank(conn))
+			conn = Connects.defltConn();
+		AnResultset rs = (AnResultset) select("oz_autoseq", "t")
+				.col(Funcall.count(), "c")
+				.rs(instancontxt(conn, dummyUser()))
+				.rs(0);
+
+		rs.next();
+		
+		return rs.getInt("c") > 0;
 	}
 }
