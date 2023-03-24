@@ -29,6 +29,19 @@ import io.odysz.common.Regex;
 public class AnResultset extends Anson {
 	private static final boolean debug = true;
 
+	/**
+	 * Object creator for converting an entity record to a user type instance.
+	 * 
+	 * @author odys-z@github.com
+	 *
+	 * @param <T> the user type
+	 * @since 1.4.12
+	 */
+	@FunctionalInterface
+	public interface ObjCreator<T extends Anson> {
+		T create(AnResultset rs) throws SQLException;
+	}
+
 	private int colCnt = 0;
 	/**current row index, start at 1. */
 	private int rowIdx = -1;
@@ -900,6 +913,40 @@ for (String coln : colnames.keySet())
 		while(next()) {
 			res.add(getString(col));
 		}
+		beforeFirst();
 		return res;
+	}
+	
+	/**
+	 * Iterating through the results and convert to hash map, like this:
+	 * <pre>
+	 HashMap<String, SynState> res = st
+		.select(met.tbl, "l")
+		.rs(st.instancontxt(conn, usr))
+		.rs(0)
+		.&lt;UserType&gt;map((currow) -> {
+			// create instance according current row
+			return new UserType(currow.getString("id"));
+		}); 
+	 * </pre>
+	 * TODO: This is a temporary way. Which will be moved to
+	 * {@link io.odysz.semantic.DA.AbsConnect#select(String, ObjCreator, int) select()}.
+	 * 
+	 * @param value of the field name used for map's key
+	 * @param <T> the user type
+	 * @param objCreator the call back
+	 * @return the hash map
+	 * @throws SQLException 
+	 * @since 1.4.12
+	 */
+	public <T extends Anson> HashMap<String, T> map(String keyField, ObjCreator<T> objCreator)
+			throws SQLException {
+		HashMap<String, T> map = new HashMap<String, T>(results.size());
+		beforeFirst();
+		while(next()) {
+			map.put(getString(keyField), objCreator.create(this));
+		}
+		beforeFirst();
+		return map;
 	}
 }

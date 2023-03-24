@@ -5,6 +5,7 @@ import java.sql.Clob;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -12,10 +13,12 @@ import javax.naming.NamingException;
 
 import org.apache.commons.io_odysz.FilenameUtils;
 
+import io.odysz.anson.Anson;
 import io.odysz.common.EnvPath;
 import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.module.rs.AnResultset.ObjCreator;
 import io.odysz.semantic.DA.cp.CpConnect;
 import io.odysz.semantic.DA.drvmnger.Msql2kDriver;
 import io.odysz.semantic.DA.drvmnger.MysqlDriver;
@@ -81,6 +84,20 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 
 	public abstract AnResultset select(String sql, int flags) throws SQLException, NamingException ;
 
+	/**
+	 * <p>Interface for the future, not supported.
+	 * An optimized version of {@link AnResultset#map(String, ObjCreator)}</p>
+	 * 
+	 * Execute a query and convert results to a map, in stream mode.
+	 * 
+	 * @param sql
+	 * @param builder
+	 * @param flags
+	 * @return null (not implemented yet)
+	 * @since 1.4.12
+	 */
+	<V extends Anson> Map<String, V> select(String sql, ObjCreator<V> builder, int flags) { return null; }
+	
 	protected abstract int[] commit(ArrayList<String> sqls, int flags) throws SQLException, NamingException;
 
 	public final int[] commit(IUser usr, ArrayList<String> sqls, int flags) throws SQLException, NamingException {
