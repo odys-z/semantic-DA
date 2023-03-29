@@ -20,10 +20,6 @@ import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DA.OracleLob;
 import io.odysz.semantics.IUser;
-// Deprecated. Use java.sql.Clob interface for declaration instead of using concrete class oracle.sql.CLOB.
-// see https://docs.oracle.com/database/121/JAJDB/oracle/sql/CLOB.html 
-//import oracle.sql.CLOB;
-
 
 /**Pooled connection manager.
  * @author Ody

@@ -30,7 +30,7 @@ import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
-import io.odysz.transact.sql.Statement.IPostOperat;
+import io.odysz.transact.sql.Statement.IPostOptn;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.AbsPart;
@@ -1103,7 +1103,7 @@ public class DASemantics {
 						continue;
 	
 					// e.g. no table "a_user2" exists as appointed by row's data.
-					if (stx.colType(vbusiTbl.toString()) == null)
+					if (stx.tablType(vbusiTbl.toString()) == null)
 						Utils.warn("%s is a semantics that is intend to use a table name as business cate, but table %s can't been found.\\n" +
 								"Deleting the records of table %s or %s will result in logical error.",
 								sm.name(), argus[ixbusiTbl], vbusiTbl, target);
@@ -1662,7 +1662,7 @@ public class DASemantics {
 						"Table %s's stampByNode semantics requires user provide device id. But it is empty (user-id = %s).",
 						target, usr.uid());
 
-			IPostOperat op = stx.onTableCommittedHandler(target);
+			IPostOptn op = stx.onTableCommittedHandler(target);
 			ShStampByNode that = this;
 
 			if (op == null) {
@@ -1713,7 +1713,7 @@ public class DASemantics {
 						"Table %s's stampByNode semantics requires user provide device id. But it is empty (user-id = %s, delete).",
 						target, usr.uid());
 
-			IPostOperat op = stx.onTableCommittedHandler(target);
+			IPostOptn op = stx.onTableCommittedHandler(target);
 			ShStampByNode that = this;
 
 			if (op == null) {

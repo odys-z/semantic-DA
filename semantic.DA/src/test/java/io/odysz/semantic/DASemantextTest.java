@@ -377,7 +377,9 @@ DELETE from a_roles;</pre>
 		
 		// assert 5. check count on insert: a_user.userName<br>
 		sqls.clear();
-		s0.clear();
+		// s0.clear();
+		s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+
 		try {
 			st.insert("a_users")
 				.nv("userName", usrName)

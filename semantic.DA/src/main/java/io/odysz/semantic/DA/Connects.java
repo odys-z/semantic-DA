@@ -238,39 +238,13 @@ public class Connects {
 		return select(null, sql, flags);
 	}
 
-	/**compose paged sql, e.g. for Oracle: select * from (sql) t where rownum > 0 and row num < 14<br>
-	 * <b>Note:</b> this is not efficiency. You should do in appendable or stream style if an AST is available,
-	 * like that one in DASemantext#pagingStream().
+	/**compose paged sql, e.g. for Oracle:<br>
+	 * select * from (sql) t where rownum > 0 and row num < 14
 	 * @param sql
 	 * @param page
 	 * @param size
 	 * @return sql
 	 * @throws SQLException 
-	public static String pagingSql(String conn, String sql, int page, int size) throws SQLException {
-		conn = conn == null ? defltConn : conn;
-		dbtype driverType = srcs.get(conn).driverType();
-
-		int r1 = page * size;
-		int r2 = r1 + size;
-		if (driverType == dbtype.mysql) {
-			String s2 = String.format(
-					"select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s",
-					sql, r1, r2);
-			return s2;
-		}
-		else if (driverType == dbtype.oracle)
-			return String.format("select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s",
-					sql, r2, r1);
-		else if (driverType == dbtype.ms2k)
-			return String.format("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= 1 and rownum <= 2;" + 
-					sql, r1, r2);
-		else if (driverType == dbtype.sqlite)
-			// DON'T COMMENT THIS OUT
-			// Reaching here means your code has bugs
-			// To stop paging from html, don't enable a html pager for a sqlite data source.
-			throw new SQLException("How to page in sqlite?");
-		else return sql;
-	}
 	 * @throws TransException 
 	 */
 	public static String pagingSql(String conn, String sql, int page, int size)
@@ -280,7 +254,7 @@ public class Connects {
 		return pagingSql(driverType, sql, page, size);
 	}
 
-	public static String pagingSql(dbtype dt, String sql, long pageIx, long pgSize)
+	public static String pagingSql(dbtype dt, String sql, int pageIx, int pgSize)
 			throws TransException {
 		if (pageIx < 0 || pgSize <= 0)
 			return sql;
@@ -289,18 +263,15 @@ public class Connects {
 		String r1 = String.valueOf(i1);
 		Stream<String> s;
 		if (dt == dbtype.oracle)
-			// "select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s"
 			s = Stream.of("select * from (select t.*, rownum r_n_ from (", sql,
 						") t order by rownum) t where r_n_ > ", r1, " and r_n_ <= ", r2);
 		else if (dt == dbtype.ms2k)
-			// "select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= %s and rownum <= %s"
 			s = Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (", sql,
 						") t) t where rownum > ", r1, " and rownum <= %s", r2);
 		else if (dt == dbtype.sqlite)
 			// https://stackoverflow.com/a/51380906
 			s = Stream.of("select * from (", sql, ") limit ", String.valueOf(pgSize), " offset ", r1);
 		else // mysql
-			// "select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s"
 			s = Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (", sql,
 						") t, (select @ic_num := 0) ic_t) t1 where rnum > ", r1, " and rnum <= ", r2);
 

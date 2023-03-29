@@ -29,8 +29,8 @@ import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
-import io.odysz.transact.sql.Statement.IPostOperat;
-import io.odysz.transact.sql.Statement.IPostSelectOperat;
+import io.odysz.transact.sql.Statement.IPostOptn;
+import io.odysz.transact.sql.Statement.IPostSelectOptn;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.AbsPart;
@@ -38,13 +38,16 @@ import io.odysz.transact.sql.parts.condition.Condit;
 import io.odysz.transact.x.TransException;
 
 /**A basic semantic context for generating sql.
- * Handling semantics defined in xml file. See path of constructor.
+ * Handling semantics defined in runtime-root/semantics.xml file.
  *
- * <p>{@link #pageSql(String, int, int)} is an example that must handled by context, but not interested by semantic.jserv.
- * When composing SQL like select statement, if the results needing to be paged at server side,
- * the paging sql statement is different for different DB.
- * But semantic-transact don't care DB type or JDBC connection, so it's the context that will handling this.
- * See the {@link #pageSql(String, int, int)}.</p>
+ * <p>For example, {@link #pageSql(String, int, int)} is an example that must
+ * handled by context, but not interested by semantic.jserv. When composing SQL
+ * like select statement, if the results needing to be paged at server side,
+ * the paging sql statement is different for different DB. But semantic-transact
+ * don't care DB type or JDBC connection, so it's the context that will handling
+ * this.
+ * 
+ * See the {@link Connects#pagingSql(dbtype, String, long, long)}.</p>
  *
  * @author odys-z@github.com
  */
@@ -61,10 +64,10 @@ public class DASemantext implements ISemantext {
 	private String connId;
 
 	private String basePath;
-	private ArrayList<IPostOperat> onRowsOk;
-	private LinkedHashMap<String,IPostSelectOperat> onSelecteds;
+	private ArrayList<IPostOptn> onRowsOk;
+	private LinkedHashMap<String,IPostSelectOptn> onSelecteds;
 
-	private LinkedHashMap<String, IPostOperat> onTableOk;
+	private LinkedHashMap<String, IPostOptn> onTableOk;
 
 	/**for generating sqlite auto seq */
 	private static IUser sqliteDumyUser;
@@ -76,7 +79,7 @@ public class DASemantext implements ISemantext {
 	 * <p>sample code: </p>
 	 * DATranscxt.initConfigs("inet", rootINF + "/semantics.xml");
 	 * @param usr
-	 * @param rtPath runtime root path
+	 * @param rtPath runtime root path, for docker layer, it's typically the volume folder. 
 	 * @throws SemanticException metas is null
 	 */
 	DASemantext(String connId, HashMap<String, DASemantics> smtcfg,
@@ -184,8 +187,6 @@ public class DASemantext implements ISemantext {
 		try {
 			DASemantext newInst = new DASemantext(connId,
 					srctx.ss, srctx.metas, usr != null && usr.length > 0 ? usr[0] : null, basePath);
-			// newInst.ss = srctx.ss;
-			// newInst.usr = usr != null && usr.length > 0 ? usr[0] : null;
 			return newInst;
 		} catch (SemanticException e) {
 			e.printStackTrace();
@@ -206,7 +207,7 @@ public class DASemantext implements ISemantext {
 	}
 
 	/**Get the resolved value in {@link #autoVals}
-	 * a.k.a return value of {@link Update#doneOp(io.odysz.transact.sql.Statement.IPostOperat)}.
+	 * a.k.a return value of {@link Update#doneOp(io.odysz.transact.sql.Statement.IPostOptn)}.
 	 * @return {@link #autoVals}
 	 * @see io.odysz.semantics.ISemantext#resulves()
 	 */
@@ -217,6 +218,7 @@ public class DASemantext implements ISemantext {
 	public ISemantext reset() {
 		if (autoVals != null)
 			autoVals.clear();
+		// FIXME no this.clear()?
 		return this;
 	}
 
@@ -296,7 +298,7 @@ end;
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public String genId(String target, String idField, String subCate) throws SQLException, TransException {
+	public static String genId(String target, String idField, String subCate) throws SQLException, TransException {
 		// String connId = ""; 
 		dbtype dt = Connects.driverType(null);
 		if (dt == dbtype.sqlite)
@@ -331,7 +333,7 @@ end;
 
 	public static int file_sys = 0; 
 	/**Try generate a radix 64 string of v.
-	 * String length is controlled by connfigs.xml/k=db-len.
+	 * String length is controlled by connfigs.xml/k=db-len, overriding default 8 for windows, or 6 for others.
 	 * If configs.xml/k=filesys is "windows", then generate a radix 32 string.
 	 * @param v
 	 * @return radix 64/32
@@ -355,7 +357,7 @@ end;
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	String genSqliteId(String conn, String target, String idF) throws SQLException, TransException {
+	static String genSqliteId(String conn, String target, String idF) throws SQLException, TransException {
 		Lock lock;
 		lock = getAutoseqLock(conn, target);
 
@@ -400,9 +402,6 @@ end;
 					idF, target);
 		rs.beforeFirst().next();
 
-//		return "windows".equals(Configs.getCfg(keys.filesys)) ?
-//				Radix32.toString(rs.getLong("seq"), Configs.getInt(keys.idLen, 12)) :
-//				Radix64.toString(rs.getLong("seq"), Configs.getInt(keys.idLen, 6)) ;
 		return radix64_32(rs.getLong("seq"));
 					
 	}
@@ -429,7 +428,7 @@ end;
 		return DASemantext.totalSql(Connects.driverType(connId()), rawSql);
 	}
 
-	public String pageSql(String rawSql, long page, long size) throws TransException {
+	public String pageSql(String rawSql, int page, int size) throws TransException {
 		return DASemantext.pagingSql(Connects.driverType(connId()), rawSql, page, size);
 	}
 
@@ -471,7 +470,7 @@ end;
 	}
 	@deprecated replaced by {@link Connects#pagingSql(dbtype, String, long, long)}
 	 */
-	public static String pagingSql(dbtype dt, String sql, long pageIx, long pgSize) throws TransException {
+	public static String pagingSql(dbtype dt, String sql, int pageIx, int pgSize) throws TransException {
 		return Connects.pagingSql(dt, sql, pageIx, pgSize);
 	}
 
@@ -486,12 +485,19 @@ end;
 				.collect(Collectors.joining("", "", ") s_jt"));
 	}
 
+	/** @deprecated */
 	public void clear() {
 		autoVals = null;
+		if (onTableOk != null)
+			onTableOk.clear();
+		if (onRowsOk != null)
+			onRowsOk.clear();
+		if (onSelecteds != null)
+			onSelecteds.clear();
 	}
 
 	@Override
-	public TableMeta colType(String tabl) {
+	public TableMeta tablType(String tabl) {
 		return metas.get(tabl);
 	}
 
@@ -506,7 +512,7 @@ end;
 	@Override
 	public void onCommitted(ISemantext ctx, String tabl) throws TransException, SQLException {
 		if (onRowsOk != null)
-			for (IPostOperat ok : onRowsOk)
+			for (IPostOptn ok : onRowsOk)
 				// onOk handlers shoudn't using sqls, it's already committed
 				ok.onCommitOk(ctx, null);
 
@@ -515,22 +521,22 @@ end;
 	}
 
 	@Override
-	public void addOnRowsCommitted(IPostOperat op) {
+	public void addOnRowsCommitted(IPostOptn op) {
 		if (onRowsOk == null)
-			onRowsOk = new ArrayList<IPostOperat>();
+			onRowsOk = new ArrayList<IPostOptn>();
 		onRowsOk.add(op);
 	}
 	
 	@Override
-	public void addOnTableCommitted(String tabl, IPostOperat op) {
+	public void addOnTableCommitted(String tabl, IPostOptn op) {
 		if (onTableOk == null)
-			onTableOk = new LinkedHashMap<String, IPostOperat>();
+			onTableOk = new LinkedHashMap<String, IPostOptn>();
 		
 		onTableOk.put(tabl, op);
 	}
 
 	@Override
-	public IPostOperat onTableCommittedHandler(String tabl) {
+	public IPostOptn onTableCommittedHandler(String tabl) {
 		return onTableOk == null ? null : onTableOk.get(tabl);
 	}
 
@@ -545,16 +551,16 @@ end;
 		if (rs != null && onSelecteds != null && onSelecteds.size() > 0) {
 			rs.beforeFirst();
 			while (rs.next())
-				for (IPostSelectOperat op : onSelecteds.values())
+				for (IPostSelectOptn op : onSelecteds.values())
 					op.onSelected(this, rs.getRowCells(), rs.getColnames());
 			rs.beforeFirst(); // makes caller less error prone
 		}
 	}
 
 	@Override
-	public void addOnSelectedHandler(String name, IPostSelectOperat op) {
+	public void addOnSelectedHandler(String name, IPostSelectOptn op) {
 		if (onSelecteds == null)
-			onSelecteds = new LinkedHashMap<String, IPostSelectOperat>();
+			onSelecteds = new LinkedHashMap<String, IPostSelectOptn>();
 		onSelecteds.put(name, op);
 	}
 
@@ -563,7 +569,7 @@ end;
 		if (v instanceof AbsPart)
 			return (AbsPart) v;
 
-		TableMeta mt = colType(tabl);
+		TableMeta mt = tablType(tabl);
 		return Statement.composeVal(v, mt, col);
 	}
 }

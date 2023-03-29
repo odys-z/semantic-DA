@@ -127,7 +127,7 @@ public class DATranscxt extends Transcxt {
 				int t = total.getInt(1);
 
 				AnResultset rs = Connects.select(sctx.connId(),
-					((DASemantext) sctx).pageSql(sqls.get(0), q.page(), q.size()));
+					((DASemantext) sctx).pageSql(sqls.get(0), (int)q.page(), (int)q.size()));
 				rs.total(t);
 
 				sctx.onSelected(rs);
