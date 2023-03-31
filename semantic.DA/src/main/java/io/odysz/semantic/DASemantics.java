@@ -1,18 +1,15 @@
 package io.odysz.semantic;
 
+import static io.odysz.common.LangExt.split;
+
 import java.io.File;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io_odysz.FilenameUtils;
-import org.xml.sax.SAXException;
 
 import io.odysz.common.AESHelper;
 import io.odysz.common.EnvPath;
@@ -24,13 +21,11 @@ import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
-import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
-import io.odysz.transact.sql.Statement.IPostOptn;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.AbsPart;
@@ -43,9 +38,6 @@ import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
-
-import static io.odysz.common.LangExt.split;
-import static io.odysz.common.LangExt.isblank;
 
 /**
  * <h2>The default semantics plugin used by semantic-DA.</h2>
@@ -163,7 +155,7 @@ public class DASemantics {
 	 * <b>11.{@link #postFk}</b><br>
 	 * <b>12.{@link #extFile}</b><br>
 	 * <b>13.{@link #extFilev2}</b><br>
-	 * <b>14. {@link #stampByNode}</b><br>
+	 * <b>14. {@link #synChange}</b><br>
 	 * <b>15.{@link #composingCol} TODO</b><br>
 	 * <b>16.{@link #orclob} TODO</b><br>
 	 */
@@ -374,33 +366,9 @@ public class DASemantics {
 		extFilev2,
 		
 		/**
-		 * <p>Stamp table updating / insertion, update the last stamp into a logging table. </p>
-		 * <p><b>Note: This semantics is handled in table wise style, and one table can has only one stampByNode.</b><br>
-		 * Updating with post or sub insertion etc. may also has an incorrect recorded count number.</p>
-		 * <p>xml key: "stamp"</p> 
-		 * <p>xml args:<br>
-		 * 0. connection id where the stamp table located in<br>
-		 * 1. stamp table name, e.g. syn_node<br>
-		 * 2. target table field, e.g. 'tabl'<br>
-		 * 3. remote node id field, e.g. synode<br>
-		 * 4. crud<br>
-		 * 5. rec-count<br>
-		 * 6. stamp, optional. If configured (not empty), the handler will use {@link Funcall#now()},
-		 * otherwise it should be configured in database as an automatic stamp field.<br>
-		 * </p><hr>
-		 * <pre>Example
-		 * semantics.xml
-		 * &lt;smtc&gt;stamp&lt;/smtc&gt;
-		 * &lt;tabl&gt;h_photos&lt;/tabl&gt;
-		 * &lt;pk&gt;pid&lt;/pk&gt;
-		 * &lt;args&gt;,syn_stamp,tabl,synode,crud,recount,xmlstamp</args&gt;
-		 * </pre>
-		 * <hr>
-		 * <p>The configure uses empty id for default connection, configured xmlstamp field to be updated with 'now()' function.</p>
-		 * <p>For performance reason, this semantic handler has a device finger print (a hash-set)
-		 * for each DB table, which makes the handler not suitable for large group with many devices.</p>
+		 * Logging entity table changes for DB synchronizing.
 		 */
-		stampByNode,
+		synChange,
 
 		/**
 		 * "cmp-col" | "compose-col" | "compse-column": compose a column from other
@@ -473,7 +441,7 @@ public class DASemantics {
 					|| "xf2.0".equals(type) || "x-f2.0".equals(type))
 				return extFilev2;
 			else if ("stamp".equals(type))
-				return stampByNode;
+				return synChange;
 			else if ("cmp-col".equals(type) || "compose-col".equals(type) || "compse-column".equals(type)
 					|| "composingcol".equals(type))
 				return composingCol;
@@ -495,11 +463,11 @@ public class DASemantics {
 	 * Static transact context for DB accessing without semantics support.<br>
 	 * Used to generate auto ID.
 	 */
-	private Transcxt basicTsx;
+	protected Transcxt basicTsx;
 
 	///////////////////////////////// container class
 	///////////////////////////////// ///////////////////////////////
-	private ArrayList<SemanticHandler> handlers;
+	protected ArrayList<SemanticHandler> handlers;
 
 	private String tabl;
 	private String pk;
@@ -551,8 +519,8 @@ public class DASemantics {
 			handler = new ShExtFile(basicTsx, tabl, recId, args);
 		else if (smtype.extFilev2 == semantic)
 			handler = new ShExtFilev2(basicTsx, tabl, recId, args);
-		else if (smtype.stampByNode == semantic)
-			handler = new ShStampByNode(basicTsx, tabl, recId, args);
+//		else if (smtype.stampByNode == semantic)
+//			handler = new ShStampByNode(basicTsx, tabl, recId, args);
 		else
 			throw new SemanticException("Unsuppported semantics: " + semantic);
 
@@ -1575,169 +1543,169 @@ public class DASemantics {
 		}
 	}
 
-	/**
-	 * 
-	 * <p>args<br>
-	 * see {@link smtype#stampByNode}
-	 * 
-	 * @author odys-z@github.com
-	 */
-	public static class ShStampByNode extends SemanticHandler {
-		/** 0. conn-id of database of syn_stamp */
-		public static final int ixConn = 0;
-		/** 1. stamp table name, e.g. syn_node */
-		public static final int ixLogTabl = 1;
-		/** 2. target table field, e.g. 'tabl' */
-		public static final int ixSynTbl = 2;
-		/** 3. remote node id field, e.g. synode */
-		public static final int ixSynode = 3;
-		/** 4. crud */
-		public static final int ixCrud = 4;
-		/** 5. rec-count */
-		public static final int ixRecount = 5;
-		/** 6. stamp, optional. If no presented, will use Funcall.now(). */
-		public static final int ixStamp = 6;
-
-		private int cnt;
-		private DATranscxt shSt;
-		/** conn-id of database of syn_stamp */
-		private String conn;
-
-		static private Set<String> devices;
-		static {
-			devices = new HashSet<String>();
-		}
-
-		public ShStampByNode(Transcxt basicTsx, String tabl, String recId, String[] args) throws SemanticException {
-			super(basicTsx, smtype.stampByNode, tabl, recId, args);
-
-			insert = true;
-			delete = true;
-			update = true;
-			
-			cnt = 0;
-			try {
-				conn = args[ixConn];
-				if (isblank(conn))
-					conn = Connects.defltConn();
-					
-				shSt = new DATranscxt(conn);
-				
-				IUser shUser = new IUser() {
-					@Override public TableMeta meta() { return null; }
-					@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
-					@Override public String uid() { return "ShStampByNode"; }
-					@Override public IUser logAct(String funcName, String funcId) { return this; }
-					@Override public String sessionKey() { return null; }
-					@Override public IUser sessionKey(String skey) { return null; }
-					@Override public IUser notify(Object note) throws TransException { return this; }
-					@Override public List<Object> notifies() { return null; }
-					@Override public long touchedMs() { return 0; }
-				};
-
-				AnResultset rs = (AnResultset) shSt
-					.select(args[ixLogTabl], "s")
-					.col(args[ixSynode], "n")
-					.whereEq(args[ixSynTbl], target)
-					.groupby(args[ixSynode])
-					.rs(basicTsx.instancontxt(null, shUser))
-					.rs(0);
-
-				while (rs.next()) {
-					devices.add(rs.getString("n"));
-				}
-
-			} catch (SQLException | SAXException | IOException | TransException e) {
-				// Fatal Error
-				e.printStackTrace();
-				throw new SemanticException(e.getMessage());
-			}
-		}
-
-		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
-				throws SemanticException {
-			
-			if (isblank(usr.deviceId()))
-				throw new SemanticException(
-						"Table %s's stampByNode semantics requires user provide device id. But it is empty (user-id = %s).",
-						target, usr.uid());
-
-			IPostOptn op = stx.onTableCommittedHandler(target);
-			ShStampByNode that = this;
-
-			if (op == null) {
-				cnt = 1;
-				op = devices.contains(usr.deviceId()) ?
-					(ctx, sqls) -> {
-						Update u = shSt.update(args[ixLogTabl], usr)
-							.nv(args[ixRecount], that.cnt)
-							.nv(args[ixCrud], CRUD.C)
-							.whereEq(args[ixSynTbl], target)
-							.whereEq(args[ixSynode], usr.deviceId());
-						
-						if (ixStamp <= args.length && !isblank(args[ixStamp]))
-							u.nv(args[ixStamp], Funcall.now());
-						u.u(ctx);
-						return null;
-					}
-					: (ctx, sqls) -> {
-						// not likely a concurrency problem as the device won't update with multiple threads.
-						ShStampByNode.devices.add(usr.deviceId());
-
-						Insert i = shSt.insert(args[ixLogTabl], usr)
-							.nv(args[ixRecount], that.cnt)
-							.nv(args[ixCrud], CRUD.C)
-							.nv(args[ixSynTbl], target)
-							.nv(args[ixSynode], usr.deviceId());
-						
-						if (ixStamp <= args.length && !isblank(args[ixStamp]))
-							i.nv(args[ixStamp], Funcall.now());
-						i.ins(shSt.instancontxt(conn, usr));
-						
-						return null;
-					};
-				stx.addOnTableCommitted(target, op);
-			}
-			else cnt++;
-		}
-
-		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
-				throws SemanticException {
-			onInsert(stx, null, row, cols, usr);
-		}
-
-		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
-				throws SemanticException {
-			if (isblank(usr.deviceId()))
-				throw new SemanticException(
-						"Table %s's stampByNode semantics requires user provide device id. But it is empty (user-id = %s, delete).",
-						target, usr.uid());
-
-			IPostOptn op = stx.onTableCommittedHandler(target);
-			ShStampByNode that = this;
-
-			if (op == null) {
-				that.cnt = 1;
-				op = (st, sqls) -> {
-					that.cnt = 1;
-					Update u = shSt.update(args[ixLogTabl], usr)
-						.nv(args[ixRecount], that.cnt)
-						.nv(args[ixCrud], CRUD.C)
-						.whereEq(args[ixSynTbl], target)
-						.whereEq(args[ixSynode], usr.deviceId());
-					
-					if (ixStamp <= args.length && !isblank(args[ixStamp]))
-						u.nv(args[ixStamp], Funcall.now());
-						
-					u.u(shSt.instancontxt(conn, usr));
-					return null;
-				};
-			}
-			else cnt++;
-
-			stx.addOnTableCommitted(target, op);
-		}
-	}
+//	/**
+//	 * 
+//	 * <p>args<br>
+//	 * see {@link smtype#stampByNode}
+//	 * 
+//	 * @author odys-z@github.com
+//	 */
+//	public static class ShStampByNode extends SemanticHandler {
+//		/** 0. conn-id of database of syn_stamp */
+//		public static final int ixConn = 0;
+//		/** 1. stamp table name, e.g. syn_node */
+//		public static final int ixLogTabl = 1;
+//		/** 2. target table field, e.g. 'tabl' */
+//		public static final int ixSynTbl = 2;
+//		/** 3. remote node id field, e.g. synode */
+//		public static final int ixSynode = 3;
+//		/** 4. crud */
+//		public static final int ixCrud = 4;
+//		/** 5. rec-count */
+//		public static final int ixRecount = 5;
+//		/** 6. stamp, optional. If no presented, will use Funcall.now(). */
+//		public static final int ixStamp = 6;
+//
+//		private int cnt;
+//		private DATranscxt shSt;
+//		/** conn-id of database of syn_stamp */
+//		private String conn;
+//
+//		static private Set<String> devices;
+//		static {
+//			devices = new HashSet<String>();
+//		}
+//
+//		public ShStampByNode(Transcxt basicTsx, String tabl, String recId, String[] args) throws SemanticException {
+//			super(basicTsx, smtype.stampByNode, tabl, recId, args);
+//
+//			insert = true;
+//			delete = true;
+//			update = true;
+//			
+//			cnt = 0;
+//			try {
+//				conn = args[ixConn];
+//				if (isblank(conn))
+//					conn = Connects.defltConn();
+//					
+//				shSt = new DATranscxt(conn);
+//				
+//				IUser shUser = new IUser() {
+//					@Override public TableMeta meta() { return null; }
+//					@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
+//					@Override public String uid() { return "ShStampByNode"; }
+//					@Override public IUser logAct(String funcName, String funcId) { return this; }
+//					@Override public String sessionKey() { return null; }
+//					@Override public IUser sessionKey(String skey) { return null; }
+//					@Override public IUser notify(Object note) throws TransException { return this; }
+//					@Override public List<Object> notifies() { return null; }
+//					@Override public long touchedMs() { return 0; }
+//				};
+//
+//				AnResultset rs = (AnResultset) shSt
+//					.select(args[ixLogTabl], "s")
+//					.col(args[ixSynode], "n")
+//					.whereEq(args[ixSynTbl], target)
+//					.groupby(args[ixSynode])
+//					.rs(basicTsx.instancontxt(null, shUser))
+//					.rs(0);
+//
+//				while (rs.next()) {
+//					devices.add(rs.getString("n"));
+//				}
+//
+//			} catch (SQLException | SAXException | IOException | TransException e) {
+//				// Fatal Error
+//				e.printStackTrace();
+//				throw new SemanticException(e.getMessage());
+//			}
+//		}
+//
+//		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+//				throws SemanticException {
+//			
+//			if (isblank(usr.deviceId()))
+//				throw new SemanticException(
+//						"Table %s's stampByNode semantics requires user provide device id. But it is empty (user-id = %s).",
+//						target, usr.uid());
+//
+//			IPostOptn op = stx.onTableCommittedHandler(target);
+//			ShStampByNode that = this;
+//
+//			if (op == null) {
+//				cnt = 1;
+//				op = devices.contains(usr.deviceId()) ?
+//					(ctx, sqls) -> {
+//						Update u = shSt.update(args[ixLogTabl], usr)
+//							.nv(args[ixRecount], that.cnt)
+//							.nv(args[ixCrud], CRUD.C)
+//							.whereEq(args[ixSynTbl], target)
+//							.whereEq(args[ixSynode], usr.deviceId());
+//						
+//						if (ixStamp <= args.length && !isblank(args[ixStamp]))
+//							u.nv(args[ixStamp], Funcall.now());
+//						u.u(ctx);
+//						return null;
+//					}
+//					: (ctx, sqls) -> {
+//						// not likely a concurrency problem as the device won't update with multiple threads.
+//						ShStampByNode.devices.add(usr.deviceId());
+//
+//						Insert i = shSt.insert(args[ixLogTabl], usr)
+//							.nv(args[ixRecount], that.cnt)
+//							.nv(args[ixCrud], CRUD.C)
+//							.nv(args[ixSynTbl], target)
+//							.nv(args[ixSynode], usr.deviceId());
+//						
+//						if (ixStamp <= args.length && !isblank(args[ixStamp]))
+//							i.nv(args[ixStamp], Funcall.now());
+//						i.ins(shSt.instancontxt(conn, usr));
+//						
+//						return null;
+//					};
+//				stx.addOnTableCommitted(target, op);
+//			}
+//			else cnt++;
+//		}
+//
+//		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+//				throws SemanticException {
+//			onInsert(stx, null, row, cols, usr);
+//		}
+//
+//		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+//				throws SemanticException {
+//			if (isblank(usr.deviceId()))
+//				throw new SemanticException(
+//						"Table %s's stampByNode semantics requires user provide device id. But it is empty (user-id = %s, delete).",
+//						target, usr.uid());
+//
+//			IPostOptn op = stx.onTableCommittedHandler(target);
+//			ShStampByNode that = this;
+//
+//			if (op == null) {
+//				that.cnt = 1;
+//				op = (st, sqls) -> {
+//					that.cnt = 1;
+//					Update u = shSt.update(args[ixLogTabl], usr)
+//						.nv(args[ixRecount], that.cnt)
+//						.nv(args[ixCrud], CRUD.C)
+//						.whereEq(args[ixSynTbl], target)
+//						.whereEq(args[ixSynode], usr.deviceId());
+//					
+//					if (ixStamp <= args.length && !isblank(args[ixStamp]))
+//						u.nv(args[ixStamp], Funcall.now());
+//						
+//					u.u(shSt.instancontxt(conn, usr));
+//					return null;
+//				};
+//			}
+//			else cnt++;
+//
+//			stx.addOnTableCommitted(target, op);
+//		}
+//	}
 	
 	/**
 	 * Check with sql before deleting<br>
