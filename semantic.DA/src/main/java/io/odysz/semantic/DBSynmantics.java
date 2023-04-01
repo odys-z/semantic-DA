@@ -29,7 +29,7 @@ import io.odysz.transact.sql.parts.condition.Condit;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
-public class DBSynmatics extends DASemantics {
+public class DBSynmantics extends DASemantics {
 
 	public void addHandler(smtype semantic, String tabl, String recId, String[] args)
 			throws SemanticException, SQLException {
@@ -39,7 +39,7 @@ public class DBSynmatics extends DASemantics {
 		else super.addHandler(semantic, tabl, recId, args);
 	}
 
-	public DBSynmatics(Transcxt basicTx, String tabl, String recId, boolean verbose) {
+	public DBSynmantics(Transcxt basicTx, String tabl, String recId, boolean verbose) {
 		super(basicTx, tabl, recId, verbose);
 	}
 

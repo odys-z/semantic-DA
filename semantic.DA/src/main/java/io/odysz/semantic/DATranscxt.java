@@ -34,7 +34,7 @@ import io.odysz.transact.x.TransException;
 import static io.odysz.common.LangExt.*;
 
 /**
- * A statement manager that can providing statements with overridden callback methods.<br>
+ * A {@link io.odysz.transact.sql.Statement Statement} builder that can providing statements with overridden callback methods.<br>
  * 
  * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
  * For how to use the created statements, see the testing class:
@@ -232,7 +232,7 @@ public class DATranscxt extends Transcxt {
 		return smtConfigs != null && smtConfigs.containsKey(connId);
 	}
 
-	private static HashMap<String, DASemantics> getSmtcs(String conn)
+	protected static HashMap<String, DASemantics> getSmtcs(String conn)
 			throws SAXException, IOException, SQLException, SemanticException {
 		if (smtConfigs == null)
 			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
@@ -354,7 +354,7 @@ public class DATranscxt extends Transcxt {
 
 	/**Get a basic transact builder (without semantics handling)
 	 * @param conn
-	 * @return the basice transact builder
+	 * @return the basic transact builder
 	 * @throws SQLException 
 	 * @throws IOException 
 	 * @throws SAXException 
@@ -401,7 +401,7 @@ public class DATranscxt extends Transcxt {
 		return rs.getDateTime("n");
 	}
 	
-	protected static IUser dummyUser() {
+	public static IUser dummyUser() {
 		if (dummy == null)
 			dummy = new IUser() {
 					@Override public TableMeta meta() { return null; }

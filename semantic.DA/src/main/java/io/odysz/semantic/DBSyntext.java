@@ -42,7 +42,7 @@ public class DBSyntext implements ISemantext {
 	private static Transcxt rawst;
 
 	/**Semantic Configurations */
-	private HashMap<String, DBSynmatics> ss;
+	private HashMap<String, DBSynmantics> ss;
 	private HashMap<String, TableMeta> metas;
 
 	private IUser usr;
@@ -54,7 +54,7 @@ public class DBSyntext implements ISemantext {
 
 	private LinkedHashMap<String, IPostOptn> onTableOk;
 
-	DBSyntext(String connId, HashMap<String, DBSynmatics> smtcfg,
+	DBSyntext(String connId, HashMap<String, DBSynmantics> smtcfg,
 			HashMap<String, TableMeta> metas, IUser usr, String rtPath) throws SemanticException {
 		basePath = rtPath;
 		this.connId = connId;
@@ -79,7 +79,7 @@ public class DBSyntext implements ISemantext {
 			// second round
 			for (ArrayList<Object[]> row : rows) {
 				Map<String, Integer> cols = insert.getColumns();
-				DBSynmatics s = ss.get(tabl);
+				DBSynmantics s = ss.get(tabl);
 				if (s == null)
 					continue;
 				s.onInsert(this, insert, row, cols, usr);
@@ -91,7 +91,7 @@ public class DBSyntext implements ISemantext {
 	public ISemantext onUpdate(Update update, String tabl, ArrayList<Object[]> nvs) throws SemanticException {
 		if (nvs != null && ss != null) {
 			Map<String, Integer> cols = update.getColumns();
-			DBSynmatics s = ss.get(tabl);
+			DBSynmantics s = ss.get(tabl);
 			if (s != null)
 				s.onUpdate(this, update, nvs, cols, usr);
 		}
@@ -101,7 +101,7 @@ public class DBSyntext implements ISemantext {
 	@Override
 	public ISemantext onDelete(Delete delete, String tabl, Condit whereCondt) throws TransException {
 		if (ss != null) {
-			DBSynmatics s = ss.get(tabl);
+			DBSynmantics s = ss.get(tabl);
 			if (s != null)
 				s.onDelete(this, delete, whereCondt, usr);
 		}
@@ -114,7 +114,7 @@ public class DBSyntext implements ISemantext {
 			Map<String, Integer> cols = stmt.getColumns();
 			if (cols == null)
 				return this;
-			DBSynmatics s = ss.get(tabl);
+			DBSynmantics s = ss.get(tabl);
 			if (s != null)
 				s.onPost(this, stmt, row, cols, usr, sqls);
 		}
