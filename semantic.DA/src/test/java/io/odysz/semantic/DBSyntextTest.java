@@ -15,6 +15,7 @@ import org.xml.sax.SAXException;
 import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
@@ -31,7 +32,10 @@ class DBSyntextTest {
 	public static final String rtroot = "src/test/res/";
 	private static String runtimepath;
 
-	static PhotoMeta m;
+	static PhotoMeta phm;
+	static SynChangeMeta chm;
+	static SynCleanMeta clnm;
+	static SynSeqMeta seqm;
 
 	static {
 		try {
@@ -53,8 +57,8 @@ class DBSyntextTest {
 			ct = new DBSynsactBuilder(connId);
 			metas = Connects.getMeta(connId);
 			
-			m = new PhotoMeta();
-			metas.put(m.tbl, m);
+			phm = new PhotoMeta();
+			metas.put(phm.tbl, phm);
 
 			SemanticObject jo = new SemanticObject();
 			jo.put("userId", "tester");
@@ -144,10 +148,20 @@ class DBSyntextTest {
 
 	@Test
 	void testChangeLog() throws TransException, SQLException {
-		ct.insert(m.tbl, robot)
-		  .nv(m.pk, "001")
-		  .nv(m.fullpath, "/test/res/photo1.jpg")
-		  .ins(ct.instancontxt(connId, robot));
+		DBSyntext syntext = (DBSyntext) ct.instancontxt(connId, robot);
+
+		ct.insert(phm.tbl, robot)
+		  .nv(phm.pk, "001")
+		  .nv(phm.fullpath, "/test/res/photo1.jpg")
+		  .ins(syntext);
+		
+		syntext.resulvedVal(phm.tbl, phm.pk);
+
+		
+		ct.select(chm.tbl, "ch")
+		  .cols(chm.cols())
+		  .whereEq(chm.tablefield, phm.tbl);
+
 		fail("Not yet implemented");
 	}
 
