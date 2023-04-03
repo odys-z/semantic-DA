@@ -50,7 +50,7 @@ class DBSyntextTest {
 	static DBSynsactBuilder trb2;
 	static DBSynsactBuilder trb3;
 	static IUser robot;
-	static HashMap<String, DBSynmantics> symantics;
+	static HashMap<String, DBSynmantics> synms;
 	static HashMap<String, TableMeta> metas;
 
 
