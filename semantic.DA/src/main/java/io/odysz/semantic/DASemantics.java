@@ -366,7 +366,8 @@ public class DASemantics {
 		extFilev2,
 		
 		/**
-		 * Logging entity table changes for DB synchronizing.
+		 * xml/smtc = "syn-change" | "s-c" <br>
+		 * Logging table changes for DB synchronizing.
 		 */
 		synChange,
 
@@ -440,7 +441,7 @@ public class DASemantics {
 			else if ("ef2.0".equals(type) || "e-f2.0".equals(type) || "ext-file2.0".equals(type)
 					|| "xf2.0".equals(type) || "x-f2.0".equals(type))
 				return extFilev2;
-			else if ("stamp".equals(type))
+			else if ("s-c".equals(type) || "syn-change".equals(type))
 				return synChange;
 			else if ("cmp-col".equals(type) || "compose-col".equals(type) || "compse-column".equals(type)
 					|| "composingcol".equals(type))

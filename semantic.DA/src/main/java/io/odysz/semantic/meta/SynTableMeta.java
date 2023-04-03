@@ -1,7 +1,13 @@
-package io.odysz.semantic;
+package io.odysz.semantic.meta;
 
 import io.odysz.semantics.meta.TableMeta;
 
+/**
+ * tabl, recId, clientpath, clientpath2
+ * 
+ * @author odys-z@github.com
+ *
+ */
 public class SynTableMeta extends TableMeta {
 
 	public final String recTabl;

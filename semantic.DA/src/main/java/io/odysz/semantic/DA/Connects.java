@@ -279,6 +279,15 @@ public class Connects {
 	}
 
 	/////////////////////////////////// update /////////////////////////////
+	/**
+	 * Commit to default connection.
+	 * @param usr
+	 * @param sqls
+	 * @param flags
+	 * @return affected row count
+	 * @throws SQLException
+	 * @throws TransException
+	 */
 	public static int[] commit(IUser usr, ArrayList<String> sqls, int... flags) throws SQLException, TransException {
 		try {
 			return srcs.get(defltConn).commit(usr, sqls, flags.length > 0 ? flags[0] : flag_nothing);

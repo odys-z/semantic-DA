@@ -1,50 +1,71 @@
 package io.odysz.semantic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static io.odysz.common.Utils.*;
+import static io.odysz.semantic.util.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.Configs;
-import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.PhotoMeta;
+import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynCleanMeta;
+import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 class DBSyntextTest {
-	public static final String connId = "synode-sqlite";
-	private static DBSynsactBuilder chtr;
-	private static IUser robot;
-	private static HashMap<String, DBSynmantics> smtcfg;
-	private static HashMap<String, TableMeta> metas;
-
+	public static final String conn0 = "synode-main";
+	public static final String conn1 = "synode-s1";
+	public static final String conn2 = "synode-s2";
+	public static final String conn3 = "synode-s3";
 	public static final String rtroot = "src/test/res/";
-	private static String runtimepath;
+
+	public static final String father = "/test/res/Sun Yet-sen.jpg";
+	public static final String s0 = "s0";
+	public static final String s1 = "s1";
+	public static final String s2 = "s2";
+	public static final String s3 = "s3";
+
+	static String runtimepath;
+
+	static DBSynsactBuilder trb0;
+	static DBSynsactBuilder trb1;
+	static DBSynsactBuilder trb2;
+	static DBSynsactBuilder trb3;
+	static IUser robot;
+	static HashMap<String, DBSynmantics> smtcfg;
+	static HashMap<String, TableMeta> metas;
+
 
 	static PhotoMeta phm;
 	static SynChangeMeta chm;
+	static SynSubsMeta sbm;
 	static SynCleanMeta clnm;
-	static SynSubsMeta seqm;
 
 	static {
 		try {
-			Utils.printCaller(false);
+			printCaller(false);
 
 			// File file = new File("src/test/res");
 			File file = new File(rtroot);
 			runtimepath = file.getAbsolutePath();
-			Utils.logi(runtimepath);
+			logi(runtimepath);
 			Configs.init(runtimepath);
 			Connects.init(runtimepath);
 
@@ -53,12 +74,24 @@ class DBSyntextTest {
 			String rootkey = System.getProperty("rootkey");
 			DATranscxt.key("user-pswd", rootkey);
 
-			// smtcfg = DBSynsactBuilder.loadSynmantics(connId, "src/test/res/synmantics.xml", true);
-			chtr = new DBSynsactBuilder(connId);
-			metas = Connects.getMeta(connId);
+			// smtcfg = DBSynsactBuilder.loadSynmantics(conn0, "src/test/res/synmantics.xml", true);
+			trb0 = new DBSynsactBuilder(conn0);
+			trb1 = new DBSynsactBuilder(conn1);
+			trb2 = new DBSynsactBuilder(conn2);
+			trb3 = new DBSynsactBuilder(conn3);
+			metas = Connects.getMeta(conn0);
 			
 			phm = new PhotoMeta();
 			metas.put(phm.tbl, phm);
+			
+			chm = new SynChangeMeta();
+			metas.put(chm.tbl, chm);
+
+			clnm = new SynCleanMeta();
+			metas.put(clnm.tbl, clnm);
+			
+			sbm = new SynSubsMeta();
+			metas.put(sbm.tbl, sbm);
 
 			SemanticObject jo = new SemanticObject();
 			jo.put("userId", "tester");
@@ -66,7 +99,7 @@ class DBSyntextTest {
 			usrAct.put("funcId", "DASemantextTest");
 			usrAct.put("funcName", "test ISemantext implementation");
 			jo.put("usrAct", usrAct);
-			robot = new LoggingUser(connId, "src/test/res/semantic-log.xml", "tester", jo);
+			robot = new LoggingUser(conn0, "src/test/res/semantic-log.xml", "tester", jo);
 		} catch (SemanticException | SQLException | SAXException | IOException e) {
 			e.printStackTrace();
 		}
@@ -92,97 +125,209 @@ class DBSyntextTest {
 				+ "  cnt int,\n"
 				+ "  txt text(4000),\n"
 				+ "  CONSTRAINT oz_logs_pk PRIMARY KEY (logId))");
-		sqls.add("");
-		sqls.add("drop table if exists syn_seq;\n"
-				+ "create table syn_seq(\n"
-				+ "	tabl    varchar2(64) not null, -- e.g. 'h_photos'\n"
-				+ "	synodee varchar2(12) not null, -- subscriber, fk-on-del, client id asked for sychronizing\n"
-				+ "	recount integer,\n"
-				+ "	crud	char(1),\n"
-				+ "	synyquist   integer not null,\n"
-				+ "	cleanyquist integer not null\n"
-				+ ");");
-		sqls.add( "drop table if exists syn_change;\n" 
-				+ "create table syn_change (\n"
-				+ "	tabl        varchar2(64) not null, -- e.g. 'h_photos'\n"
-				+ "	recId       varchar2(12) not null, -- entity record Id\n"
-				+ "	synodee     varchar2(12) not null, -- subscriber, fk-on-del, synode id device to finish cleaning task\n"
-				+ "	synoder     varchar2(12) not null, -- publisher, fk-on-del, synode id for resource's PK\n"
-				+ "	clientpath  text         not null, -- for h_photos.fullpath, or composed PK for resouce's id, not null?\n"
-				+ "	clientpath2 text,                  -- support max 3 fields of composed PK, TODO any betther patterns?\n"
-				+ "	crud        char(1)      not null, -- I/U/D\n"
-				+ "	flag        char(1)      not null, -- 'D' deleting, 'C' close (not exists),'R'/'E' rejected (then erased) by device owner\n"
-				+ "	synyquist   integer      not null  -- last Nyquist sequence number of synodee\n"
-				+ ");");
-		sqls.add( "drop table if exists syn_seq;\n"
-				+ "create table syn_seq (\n"
-				+ "	tabl    varchar2(64) not null, -- e.g. 'h_photos'\n"
-				+ "	synodee varchar2(12) not null, -- subscriber, fk-on-del, client id asked for sychronizing\n"
-				+ "	recount integer,\n"
-				+ "	crud	char(1),\n"
-				+ "	synyquist   integer not null,\n"
-				+ "	cleanyquist integer not null\n"
-				+ ");");
-		sqls.add( "drop table if exists h_potos;\n"
-				+ "create table h_photos (\n"
-				+ "	pid    varchar2(64) not null,\n"
-				+ "	pname  varchar2(12) not null,\n"
-				+ "	device varchar2(12) not null,\n"
-				+ "	clientpath varchar2(12) not null,\n"
-				+ " uri        text,"
-				+ " size       number,"
-				+ " mime       text,"
-				+ " shareby    varchar2(12),"
-				+ " sharedate  number,"
-				+ "	synflag    char(1) not null,\n"
-				+ "	synyquist  number  not null\n"
-				+ ");");
+
+		sqls.add(SynChangeMeta.ddl);
+		sqls.add(SynSubsMeta.ddl);
+		sqls.add(SynCleanMeta.ddl);
+		sqls.add(PhotoMeta.ddl);
+
 		sqls.add( "delete from oz_autoseq;\n"
 				+ "insert into oz_autoseq (sid, seq, remarks) values\n"
 				+ "('h_photos.pid', 0, 'photo'),\n"
 				+ "('a_logs.logId', 0, 'test');"
 				);
-		sqls.add("delete from h_photos");
+
+		sqls.add(String.format("delete from %s", phm.tbl));
 		sqls.add("delete from a_logs");
 
-		Connects.commit(robot, sqls, Connects.flag_nothing);
+		Connects.commit(conn0, robot, sqls, Connects.flag_nothing);
+		Connects.commit(conn1, robot, sqls, Connects.flag_nothing);
+		Connects.commit(conn2, robot, sqls, Connects.flag_nothing);
+		Connects.commit(conn3, robot, sqls, Connects.flag_nothing);
 	}
 
 	@Test
 	void testChangeLog() throws TransException, SQLException {
-		DBSyntext syntext = (DBSyntext) chtr.instancontxt(connId, robot);
+		Ck c0 = new Ck(conn0);
+		Ck c1 = new Ck(conn1);
+		Ck c2 = new Ck(conn2);
+		Ck c3 = new Ck(conn3);
 
-		String pid = ((SemanticObject) chtr
-				.insert(phm.tbl, robot)
-				.nv(phm.uri, "")
-				.nv(phm.fullpath, "/test/res/Sun Yet-sen.jpg")
-				.ins(syntext))
-				.resulve(phm.tbl, phm.pk);
+		// 1. insert h_photos
+		String pid = insertPhoto0();
 		
-		AnResultset chg = (AnResultset) chtr
+		// 2.1. check syn_change added CRUD.C
+		c0.changeC(pid);
+		// 2.2. check syn_subscribe added s1, s2, s3
+		c0.subsCCC(pid);
+
+		// 3. udpate h_photos
+		updatePoto0(pid);
+		
+		// 4. check CRUD.C over ride CRUD.U
+		c0.changeC(pid);
+		c0.subsCCC(pid);
+		
+		// 5. s1 pull
+		s1pull(pid);
+		
+		// 6. update h_photos
+		updatePoto0(pid);
+
+		// 7. check CRUD.C over ride CRUD.U
+		c0.changeU(pid);
+		c0.subsUCC(pid);
+
+		// 8. s2 pull
+		String s2pid = s2pull();
+		c0.changeU(pid);
+		c0.subs_U_C(pid);
+		c2.changeU(s2pid);
+		c2.subs_U_C(s2pid);
+
+		// 9. s1, s3 pull
+		s1pull();
+		c1.changeX(pid);
+
+		s3pull();
+		c3.changeX(pid);
+
+		c0.changeX(pid);
+
+		// s0: null, s1: null, s2: null, s3: null
+		c0.subs(pid, null, null, null, null);
+
+		// 10. s1 delete m1:clientpath
+		s1delm1f();
+		pid = s1push("m1", father);
+		c0.changeD(pid);
+		c0.clean__DD(pid);
+	}
+
+	String s1push(String dev, String clientpath) {
+		return null;
+	}
+
+	/**
+	 * s1 delete s1:father
+	 */
+	void s1delm1f() {
+	}
+
+	void s3pull() {
+	}
+
+	String s2pull() {
+		return null;
+	}
+
+	void s1pull() {
+	}
+
+	void s1pull(String pid) throws TransException {
+		((DBSyntext) trb1.instancontxt(conn1, robot))
+			.synPull(phm);
+	}
+
+	void updatePoto0(String pid) throws TransException, SQLException {
+		trb0.update(phm.tbl, robot)
+			.nv(phm.fullpath, father)
+			.whereEq(chm.pk, pid)
+			.u(trb0.instancontxt(conn0, robot))
+			;
+	}
+
+	String insertPhoto0() throws TransException, SQLException {
+		return ((SemanticObject) trb0
+			.insert(phm.tbl, robot)
+			.nv(phm.uri, "")
+			.nv(phm.fullpath, father)
+			.ins(trb0.instancontxt(conn0, robot)))
+			.resulve(phm.tbl, phm.pk);
+	}
+	
+	public static class Ck {
+		private final String connId;
+		
+		public Ck(String conn) {
+			this.connId = conn;
+		}
+
+		public void changeC(String pid) throws TransException, SQLException {
+			AnResultset chg = (AnResultset) trb0
 				.select(chm.tbl, "ch")
 				.cols(chm.cols())
 				.whereEq(chm.recTabl, phm.tbl)
 				.whereEq(chm.pk, pid)
-				.rs(chtr.instancontxt(connId, robot))
+				.rs(trb0.instancontxt(conn0, robot))
 				.rs(0);
-		
-		chg.next();
-		
-		assertEquals(CRUD.C, chg.getString(chm.crud));
-		assertEquals(phm.tbl, chg.getString(chm.recTabl));
-		assertEquals(robot.deviceId(), chg.getString(chm.synoder));
+			
+			chg.next();
+			
+			assertEquals(CRUD.C, chg.getString(chm.crud));
+			assertEquals(phm.tbl, chg.getString(chm.recTabl));
+			assertEquals(robot.deviceId(), chg.getString(chm.synoder));
+		}
 
-		AnResultset rs = (AnResultset) chtr
-				.select(seqm.tbl, "ch")
-				.cols(seqm.cols())
-				.whereEq(seqm.recTabl, phm.tbl)
-				.whereEq(seqm.pk, pid)
-				.rs(chtr.instancontxt(connId, robot))
+		/**
+		 * h_photos[pid].crud = D, syn_change[pid].crud = D
+		 * 
+		 * @param pid
+		 */
+		public void changeD(String pid) {
+		}
+
+		public void subsCCC(String pid) throws TransException, SQLException {
+			AnResultset subs = (AnResultset) trb0
+				.select(sbm.tbl, "ch")
+				.col(Funcall.count(sbm.recId), "cnt")
+				.cols(sbm.cols())
+				.whereEq(sbm.recTabl, phm.tbl)
+				.whereEq(sbm.pk, pid)
+				.rs(trb0.instancontxt(connId, robot))
 				.rs(0);
+			
+			subs.next();
 		
-		rs.next();
-	
+			assertEquals(3, subs.getInt("cnt"));
+			assertEquals(phm.tbl, subs.getString(sbm.recTabl));
+			
+			HashSet<String> s = subs.set(sbm.synodee); 
+			assertIn("s3",
+					 assertIn("s2",
+					 assertIn("s1", s)));
+		}
+
+		/**
+		 * Verify pid's change log is as updated.
+		 * @param pid
+		 */
+		public void changeU(String pid) {
+		}
+
+		public void changeX(String pid) {
+		}
+
+		/**
+		 * Verify pid's subscriptions are U, C, C.
+		 * @param pid
+		 */
+		public void subsUCC(String pid) {
+		}
+
+		public void subs_U_C(String pid) { }
+
+		/**verify subscriptions.
+		 * @param pid
+		 * @param s subscriptions for s0/s1/s2/s3
+		 */
+		public void subs(String pid, String... s) { }
+
+		/**verify cleanings:
+		 * s0: null, s1: null, s2: D, s3: D
+		 * @param pid
+		 */
+		public void clean__DD(String pid) { }
 	}
 
 }

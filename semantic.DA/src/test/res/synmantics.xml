@@ -26,15 +26,14 @@
   	</s>
 	 -->
  	
-	<!-- syn_stamp
+	<!-- syn_change -->
   	<s>
-  		<id>59</id>
-  		<smtc>stamp</smtc>
+  		<id>02</id>
+  		<smtc>syn-change</smtc>
   		<tabl>h_photos</tabl>
   		<pk>pid</pk>
-  		<args>,syn_stamp,tabl,synode,crud,recount,xmlstamp</args>
+  		<args></args>
   	</s>
-  	-->
 
   </t>
 </semantics>

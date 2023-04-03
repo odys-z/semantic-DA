@@ -14,6 +14,7 @@ import org.apache.commons.io_odysz.FilenameUtils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.PhotoMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
@@ -37,6 +38,11 @@ import io.odysz.transact.x.TransException;
  * @author odys-z@github.com
  */
 public class DBSyntext implements ISemantext {
+
+	public enum syntype {
+		pull,
+		push
+	}
 
 	private SemanticObject autoVals;
 	private static Transcxt rawst;
@@ -301,5 +307,9 @@ public class DBSyntext implements ISemantext {
 
 		TableMeta mt = tablType(tabl);
 		return Statement.composeVal(v, mt, col);
+	}
+
+	public SynTask synPull(PhotoMeta phm) {
+		return new SynTask(syntype.pull);
 	}
 }

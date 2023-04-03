@@ -1,6 +1,4 @@
-package io.odysz.semantic;
-
-import io.odysz.semantics.meta.TableMeta;
+package io.odysz.semantic.meta;
 
 /**
  * <pre>drop table if exists syn_subscribe;
@@ -12,13 +10,27 @@ import io.odysz.semantics.meta.TableMeta;
 	synodee     varchar2(12) not null  -- subscriber, fk-on-del, synode id device to finish cleaning task
 	synyquist   integer      not null  -- last Nyquist sequence number of synodee
  );</pre>
- * @author Alice
+ *
+ * @author Ody
  *
  */
 public class SynSubsMeta extends SynTableMeta {
 	
 	public final String synodee;
 	public final String nyquencee;
+
+	public static String ddl;
+	static {
+		ddl = "drop table if exists syn_subscribe;\n" +
+			"create table syn_subscribe (\n" + 
+			"	tabl        varchar2(64) not null, -- e.g. 'h_photos'\n" + 
+			"	recId       varchar2(12) not null, -- entity record Id\n" + 
+			"	clientpath  text         not null, -- for h_photos.fullpath, or composed PK for resouce's id, not null?\n" + 
+			"	clientpath2 text,                  -- support max 3 fields of composed PK, TODO any betther patterns?\n" + 
+			"	synodee     varchar2(12) not null  -- subscriber, fk-on-del, synode id device to finish cleaning task\n" + 
+			"	synyquist   integer      not null  -- last Nyquist sequence number of synodee\n" + 
+			" )";
+	}
 
 	public SynSubsMeta(String ... conn) {
 		super("syn_subscribe", conn);

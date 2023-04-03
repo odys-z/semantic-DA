@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import io.odysz.anson.Anson;
@@ -948,5 +949,22 @@ for (String coln : colnames.keySet())
 		}
 		beforeFirst();
 		return map;
+	}
+
+	/**
+	 * Construct a hash set using all value of field f.
+	 * @since 1.4.12
+	 * @param f
+	 * @return set
+	 * @throws SQLException
+	 */
+	public HashSet<String> set(String f) throws SQLException {
+		HashSet<String> s = new HashSet<String>(results.size());
+		beforeFirst();
+		while(next()) {
+			s.add(getString(f));
+		}
+		beforeFirst();
+		return s;
 	}
 }
