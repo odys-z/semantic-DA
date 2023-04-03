@@ -1,8 +1,6 @@
 package io.odysz.semantic.meta;
 
-import io.odysz.semantic.T_DocTableMeta;
-
-public class PhotoMeta extends T_DocTableMeta {
+public class PhotoMeta extends SynTableMeta {
 
 	public static String ddl =
 			"drop table if exists h_potos;\n" +

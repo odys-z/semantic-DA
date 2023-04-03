@@ -2,6 +2,7 @@ package io.odysz.semantic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static io.odysz.common.Utils.*;
+import static io.odysz.semantic.CRUD.*;
 import static io.odysz.semantic.util.Assert.*;
 
 import java.io.File;
@@ -49,7 +50,7 @@ class DBSyntextTest {
 	static DBSynsactBuilder trb2;
 	static DBSynsactBuilder trb3;
 	static IUser robot;
-	static HashMap<String, DBSynmantics> smtcfg;
+	static HashMap<String, DBSynmantics> symantics;
 	static HashMap<String, TableMeta> metas;
 
 
@@ -159,14 +160,14 @@ class DBSyntextTest {
 		// 2.1. check syn_change added CRUD.C
 		c0.changeC(pid);
 		// 2.2. check syn_subscribe added s1, s2, s3
-		c0.subsCCC(pid);
+		c0.subs(pid, null, CRUD.C, C, C);
 
 		// 3. udpate h_photos
 		updatePoto0(pid);
 		
 		// 4. check CRUD.C over ride CRUD.U
 		c0.changeC(pid);
-		c0.subsCCC(pid);
+		c0.subs_CCC(pid);
 		
 		// 5. s1 pull
 		s1pull(pid);
@@ -176,14 +177,14 @@ class DBSyntextTest {
 
 		// 7. check CRUD.C over ride CRUD.U
 		c0.changeU(pid);
-		c0.subsUCC(pid);
+		c0.subs(pid, null, C, null, C);
 
 		// 8. s2 pull
 		String s2pid = s2pull();
 		c0.changeU(pid);
-		c0.subs_U_C(pid);
+		c0.subs(pid, null, U, null, C);
 		c2.changeU(s2pid);
-		c2.subs_U_C(s2pid);
+		c2.subs(s2pid, null, U, null, C);
 
 		// 9. s1, s3 pull
 		s1pull();
@@ -201,10 +202,10 @@ class DBSyntextTest {
 		s1delm1f();
 		pid = s1push("m1", father);
 		c0.changeD(pid);
-		c0.clean__DD(pid);
+		c0.clean(pid, null, null, D, D);
 	}
 
-	String s1push(String dev, String clientpath) {
+	String s1push(String synode, String clientpath) {
 		return null;
 	}
 
@@ -231,7 +232,7 @@ class DBSyntextTest {
 
 	void updatePoto0(String pid) throws TransException, SQLException {
 		trb0.update(phm.tbl, robot)
-			.nv(phm.fullpath, father)
+			.nv(phm.clientpath, father)
 			.whereEq(chm.pk, pid)
 			.u(trb0.instancontxt(conn0, robot))
 			;
@@ -240,8 +241,8 @@ class DBSyntextTest {
 	String insertPhoto0() throws TransException, SQLException {
 		return ((SemanticObject) trb0
 			.insert(phm.tbl, robot)
-			.nv(phm.uri, "")
-			.nv(phm.fullpath, father)
+			// .nv(phm.uri, "")
+			.nv(phm.clientpath, father)
 			.ins(trb0.instancontxt(conn0, robot)))
 			.resulve(phm.tbl, phm.pk);
 	}
@@ -277,7 +278,7 @@ class DBSyntextTest {
 		public void changeD(String pid) {
 		}
 
-		public void subsCCC(String pid) throws TransException, SQLException {
+		public void subs_CCC(String pid) throws TransException, SQLException {
 			AnResultset subs = (AnResultset) trb0
 				.select(sbm.tbl, "ch")
 				.col(Funcall.count(sbm.recId), "cnt")
@@ -311,11 +312,10 @@ class DBSyntextTest {
 		/**
 		 * Verify pid's subscriptions are U, C, C.
 		 * @param pid
-		 */
-		public void subsUCC(String pid) {
-		}
+		public void subs_UCC(String pid) { }
 
 		public void subs_U_C(String pid) { }
+		 */
 
 		/**verify subscriptions.
 		 * @param pid
@@ -327,7 +327,7 @@ class DBSyntextTest {
 		 * s0: null, s1: null, s2: D, s3: D
 		 * @param pid
 		 */
-		public void clean__DD(String pid) { }
+		public void clean(String pid, String ... s) { }
 	}
 
 }
