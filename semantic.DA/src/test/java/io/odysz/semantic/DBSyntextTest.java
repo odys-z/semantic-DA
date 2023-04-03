@@ -1,6 +1,6 @@
 package io.odysz.semantic;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,8 +14,8 @@ import org.xml.sax.SAXException;
 
 import io.odysz.common.Configs;
 import io.odysz.common.Utils;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
@@ -23,8 +23,8 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 class DBSyntextTest {
-	public static final String connId = "local-sqlite";
-	private static DBSynsactBuilder ct;
+	public static final String connId = "synode-sqlite";
+	private static DBSynsactBuilder chtr;
 	private static IUser robot;
 	private static HashMap<String, DBSynmantics> smtcfg;
 	private static HashMap<String, TableMeta> metas;
@@ -35,7 +35,7 @@ class DBSyntextTest {
 	static PhotoMeta phm;
 	static SynChangeMeta chm;
 	static SynCleanMeta clnm;
-	static SynSeqMeta seqm;
+	static SynSubsMeta seqm;
 
 	static {
 		try {
@@ -53,8 +53,8 @@ class DBSyntextTest {
 			String rootkey = System.getProperty("rootkey");
 			DATranscxt.key("user-pswd", rootkey);
 
-			smtcfg = DBSynsactBuilder.loadSynmantics(connId, "src/test/res/synmantics.xml", true);
-			ct = new DBSynsactBuilder(connId);
+			// smtcfg = DBSynsactBuilder.loadSynmantics(connId, "src/test/res/synmantics.xml", true);
+			chtr = new DBSynsactBuilder(connId);
 			metas = Connects.getMeta(connId);
 			
 			phm = new PhotoMeta();
@@ -74,7 +74,9 @@ class DBSyntextTest {
 	}
 
 	@BeforeAll
-	public static void testInit() throws SQLException, SAXException, IOException, TransException {
+	public static void testInit()
+			throws SQLException, SAXException, IOException, TransException {
+
 		ArrayList<String> sqls = new ArrayList<String>();
 		sqls.add( "CREATE TABLE oz_autoseq (\n"
 				+ "  sid text(50),\n"
@@ -148,21 +150,39 @@ class DBSyntextTest {
 
 	@Test
 	void testChangeLog() throws TransException, SQLException {
-		DBSyntext syntext = (DBSyntext) ct.instancontxt(connId, robot);
+		DBSyntext syntext = (DBSyntext) chtr.instancontxt(connId, robot);
 
-		ct.insert(phm.tbl, robot)
-		  .nv(phm.pk, "001")
-		  .nv(phm.fullpath, "/test/res/photo1.jpg")
-		  .ins(syntext);
+		String pid = ((SemanticObject) chtr
+				.insert(phm.tbl, robot)
+				.nv(phm.uri, "")
+				.nv(phm.fullpath, "/test/res/Sun Yet-sen.jpg")
+				.ins(syntext))
+				.resulve(phm.tbl, phm.pk);
 		
-		syntext.resulvedVal(phm.tbl, phm.pk);
-
+		AnResultset chg = (AnResultset) chtr
+				.select(chm.tbl, "ch")
+				.cols(chm.cols())
+				.whereEq(chm.recTabl, phm.tbl)
+				.whereEq(chm.pk, pid)
+				.rs(chtr.instancontxt(connId, robot))
+				.rs(0);
 		
-		ct.select(chm.tbl, "ch")
-		  .cols(chm.cols())
-		  .whereEq(chm.tablefield, phm.tbl);
+		chg.next();
+		
+		assertEquals(CRUD.C, chg.getString(chm.crud));
+		assertEquals(phm.tbl, chg.getString(chm.recTabl));
+		assertEquals(robot.deviceId(), chg.getString(chm.synoder));
 
-		fail("Not yet implemented");
+		AnResultset rs = (AnResultset) chtr
+				.select(seqm.tbl, "ch")
+				.cols(seqm.cols())
+				.whereEq(seqm.recTabl, phm.tbl)
+				.whereEq(seqm.pk, pid)
+				.rs(chtr.instancontxt(connId, robot))
+				.rs(0);
+		
+		rs.next();
+	
 	}
 
 }

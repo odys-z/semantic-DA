@@ -171,7 +171,7 @@
   		<args>oper,optime</args>
   	</s>
   	
-	<!-- syn_stamp -->
+	<!-- syn_stamp
   	<s>
   		<id>59</id>
   		<smtc>stamp</smtc>
@@ -179,6 +179,7 @@
   		<pk>pid</pk>
   		<args>,syn_stamp,tabl,synode,crud,recount,xmlstamp</args>
   	</s>
+  	-->
 
 	<!-- a_user.userName check same on insert -->
   	<s>

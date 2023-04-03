@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<semantics>
+  <t id="synmantics" pk="id" columns="id,smtc,tabl,pk,args">
+  <!-- smtc: semantics type, e.g. auto: auto increase key.
+  			see javadoc: https://odys-z.github.io/javadoc/semantic.DA/io/odysz/semantic/DASemantics.smtype.html
+  		tabl: database table name
+  		pk:
+  		args: arguments for sementics handlers. For args for different handlers, see above javadoc link.
+   -->
+  	<s>
+  		<id>01</id>
+ 		<smtc>autopk</smtc>
+  		<tabl>h_photos</tabl>
+  		<pk>pid</pk>
+  		<args>pid</args>
+  	</s>
+
+	<!-- 
+	<s>
+  		<id>55</id>
+  		<smtc>ef2.0</smtc>
+  		<tabl>h_photos</tabl>
+  		<pk>pid</pk>
+  		<args>uploads,uri,family,shareby,folder,pname</args>
+  	</s>
+	 -->
+ 	
+	<!-- syn_stamp
+  	<s>
+  		<id>59</id>
+  		<smtc>stamp</smtc>
+  		<tabl>h_photos</tabl>
+  		<pk>pid</pk>
+  		<args>,syn_stamp,tabl,synode,crud,recount,xmlstamp</args>
+  	</s>
+  	-->
+
+  </t>
+</semantics>

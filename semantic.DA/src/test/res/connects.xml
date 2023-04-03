@@ -19,6 +19,17 @@
   		<smtcs>semantics.xml</smtcs>
   	</c>
   	
+   	<c>
+  		<id>synode-sqlite</id>
+  		<type>sqlite</type>
+  		<isdef>false</isdef>
+  		<src>synode.db</src>
+  		<usr>test</usr>
+  		<pswd>test</pswd>
+  		<dbg>true</dbg>
+  		<smtcs>synmantics.xml</smtcs>
+  	</c>
+  	
   	<!-- 
 	<c>
   		<id>local-mysql</id>

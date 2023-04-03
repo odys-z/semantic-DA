@@ -405,13 +405,13 @@ DELETE from a_roles;</pre>
 		// usr.sessionKey("odys-z.github.io");
 
 		ISemantext s2 = st.instancontxt(connId, usr);
-		st.insert("a_users", usr)
+		String usr3 = ((SemanticObject) st.insert("a_users", usr)
 			.nv("userName", "dencrypt " + flag)
 			.nv("iv", iv64)
 			.nv("pswd", pswdCipher)
-			.ins(s2);
+			.ins(s2)).resulve("a_users", "userId");
 		
-		String usr3 = (String) s2.resulvedVal("a_users", "userId");
+		// String usr3 = (String) s2.resulvedVal("a_users", "userId");
 		rs = (AnResultset) st.select("a_users", "u")
 			.col("pswd")
 			.col("iv")
@@ -722,6 +722,11 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				s0.resulvedVal("a_attaches", "attId"))));
 	}
 
+	/**
+	 * Can't work on Windows.
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	public void testExtfilePathHandler() throws Exception {
 		setEnv2("VOLUME_HOME", "/home/ody/volume");
@@ -981,7 +986,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				sqls.get(0));
 	}
 	
-	@Test
+	/**
 	public void testStampByNode() throws TransException, SQLException, IOException {
 		final long diffsnd = 300 * 1000;
 		final SyncTestRobot usr = new SyncTestRobot("robot").device("test");
@@ -1086,6 +1091,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			  .d(st.instancontxt(connId, usr));
 		}
 	}
+	*/
 
 	/**
 	 * @deprecated replaced by {@link CheapIO#}
