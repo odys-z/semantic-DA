@@ -164,42 +164,38 @@ class DBSyntextTest {
 	 *  B 0 0 0
 	 *  C 0 0 0
 	 * 
-	 * A                                       | B
-	 * crud, synode, pid, nyquence, subscribe  | crud, synode, pid, nyquence, subscribe
-	 *  I,   A,      pA0, 0,         B         |  I,   B,      pB0, 0,         A 
-	 *                               C         |                               C 
-	 *                               D         |                               D 
-	 * 
+	 * A                     | B
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
+	 *  I,   A, pA0, 0,  B   |  I,   B, pB0, 0, A 
+	 *                   C   |                  C 
+	 *                   D   |                  D 
+	 *  A.a++, B.b++
 	 *    a b c
 	 *  A 1 0 0
-	 *  B 0 1 0
+	 *  B 0 1 0  
 	 *  C 0 0 0
 	 *  
-	 * A                                        =) B
-	 * crud, synode, pid, nyquence, subscribe   |  crud, synode, pid, nyquence, subscribe
-	 *  I,   A,      pA0, 1,        [ ]         |   I,    B,     pB0,  1,        A 
-	 *                               C          |                                C 
-	 *                               D          |                                D 
-	 *                                          |   I,    A,     pA0,  1,        C 
-	 *                                          |                                D 
-	 *                                          |   (B.a = A.a)
-	 *
+	 * A                     =) B
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
+	 *  I,   A, pA0, 1, [ ]  |  I,   B, pB0, 1,  A 
+	 *                   C   |                   C 
+	 *                   D   |                   D 
+	 *                       |  I,   A, pA0, 1,  C 
+	 *                       |                   D 
 	 *    a b c
 	 *  A 1 0 0
-	 *  B 1 1 0
+	 *  B 1 1 0  [B.a = A.a]
 	 *  C 0 0 0
 	 *  
-	 * A                                        =) B
-	 * crud, synode, pid, nyquence, subscribe   |  crud, synode, pid, nyquence, subscribe
-	 *  I,    A,     pA0, 1,        [ ]         |   I,   B,      pB0, 1,        [ ]
-	 *                               C          |                                C 
-	 *                               D          |                                D 
-	 *  I,    B,     pB0, 1,         C          |   I,   A,      pA0, 1,         C 
-	 *                               D          |                                D 
-	 *  (A.b = B.b)
-	 *
+	 * A                    (=  B
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
+	 *  I,   A, pA0, 1, [ ]  |  I,   B, pB0, 1, [ ]
+	 *                   C   |                   C 
+	 *                   D   |                   D 
+	 *  I,   B, pB0, 1,  C   |  I,   A, pA0, 1,  C 
+	 *                   D   |                   D 
 	 *    a b c
-	 *  A 1 1 0
+	 *  A 1 1 0  [A.b = B.b]
 	 *  B 1 1 0
 	 *  C 0 0 0
 	 * </pre>
@@ -255,14 +251,14 @@ class DBSyntextTest {
 	 *                   D   |                   D  |                      |
 	 *  I,   B, pB0, 1,  C   |  I,   A, pA0, 1,  C  |                      |
 	 *                   D   |                   D  |                      |
-	 *                         [B.a = A.a]
+	 *                     
 	 *    a b c d
 	 *  A 1 1 0 0
 	 *  B 1 1 0 0
 	 *  C 0 0 0 0
 	 *  D 0 0 0 0
 	 *  
-	 * B vs. C: B.n=1 > C.b, B =) C
+	 * B vs. C: B.a=1 > C.b, B =) C
 	 * A                     | B                   =) C                    | D
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
 	 *  I,   A, pA0, 1, [ ]  |  I,   B, pB0, 1, [ ] |  I,   B, pB0, 1,     |
@@ -270,11 +266,11 @@ class DBSyntextTest {
 	 *                   D   |                   D  |                   D  |
 	 *  I,   B, pB0, 1,  C   |  I,   A, pA0, 1,  C  |  I,   A, pA0, 1,     |
 	 *                   D   |                   D  |                   D  |
-	 *                                                [C.a = max(B.a, C.a), C.b = B.b, C.c, C.d = max(B.d, C.d)]
+	 *                                             
 	 *    a b c d
 	 *  A 1 1 0 0
 	 *  B 1 1 0 0
-	 *  C 1 1 0 0
+	 *  C 1 1 0 0   [C.a = max(B.a, C.a), C.b = B.b, C.c, C.d = max(B.d, C.d)]
 	 *  D 0 0 0 0
 	 *  
 	 * A update pA0
@@ -286,38 +282,59 @@ class DBSyntextTest {
 	 *  I,   B, pB0, 1,  C   |
 	 *                   D   |
 	 *    a b c d
-	 *  A 2 1 0 0
+	 *  A 2 1 0 0   A.a++
 	 *  B 1 1 0 0
 	 *  C 1 1 0 0
 	 *  D 0 0 0 0
 	 * 
 	 * A                                                                  A=)D
 	 * crud, s, pid, n, sub  |                                             | crud, s, pid, n, sub
-	 *  U,   A, pA0, 2,  B   |                                             |  U,   A, pA0, 2,  B   (2>D.b=0)
-	 *                   C   |                                             |                   C   (2>D.c=0)
+	 *  U,   A, pA0, 2,  B   |                                             |  U,   A, pA0, 2,  B   (2>D.a=0)
+	 *                   C   |                                             |                   C
 	 *                  [ ]  |                                             |
 	 *  I,   B, pB0, 1,  C   |                                             |  I,   B, pB0, 1,  C   (1>D.c=0)
 	 *                  [ ]  |                                             |
-	 *                                                                       [D.a=A.a, D.b=A.b]
 	 *    a b c d
-	 *  A 2 1 0 0
+	 *  A 2 1 0 0   [A.a, A.b=max(A.b, D.b), A.c=max(A.c, D.c), A.d=D.d]
 	 *  B 1 1 0 0
 	 *  C 1 1 0 0
-	 *  D 2 1 0 0
+	 *  D 2 1 0 0   [D.a=A.a, C.b=max(A.b, D.b), D.c=max(A.c, D.c), D.d]
 	 *
-	 * B update pB0, C insert pC0
+	 * B update pA0 twice, C insert pC0
 	 * A                     | B                    | C                    | D
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
-	 *                       |  U,   B, pB0, 2,  A  |  I,   B, pB0, 1,     | 
-	 *                       |                   C  |                  [ ] |
-	 *                       |                   D  |                   D  |
-	 *                       |  I,   A, pA0, 1,  C  |  I,   B, pA0, 1,     |
-	 *                       |                   D  |                   D  |
+	 *  U,   A, pA0, 2,  B   |  I,   B, pB0, 1,  A  |  I,   B, pB0, 1,     |  U,   A, pA0, 2,  B
+	 *                   C   |                   C  |                  [ ] |                   C
+	 *                  [ ]  |                   D  |                   D  |
+	 *  I,   B, pB0, 1,  C   |  UU,  B, pA0, 3,  C  |  I,   B, pA0, 1,     |  I,   B, pB0, 1,  C
+	 *                  [ ]  |                   D  |                   D  |
 	 *                       |                      |  I,   C, pC0, 1,  A  |
 	 *                       |                      |                   B  |
 	 *                       |                      |                   D  |
-	 *                       
-	 * B update pB0, C insert pC0, A vs. C, B vs. D
+	 *    a b c d
+	 *  A 2 1 0 0 
+	 *  B 1 3 0 0   B.b++, B.b++
+	 *  C 1 1 1 0   C.c++
+	 *  D 2 1 0 0
+	 *  
+	 * A vs. C, 
+	 * B vs. D
+	 * A                     | B                    | C                    | D
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
+	 *  U,   A, pA0, 2,  B   |  I,   B, pB0, 1,  A  |  I,   B, pB0, 1,     |  U,   A, pA0, 2,  B
+	 *                   C   |                   C  |                  [ ] |                   C
+	 *                  [ ]  |                   D  |                   D  |
+	 *  I,   B, pB0, 1,  C   |  UU,  B, pA0, 3,  C  |  I,   B, pA0, 1,     |  I,   B, pB0, 1,  C
+	 *                  [ ]  |                   D  |                   D  |
+	 *                       |                      |  I,   C, pC0, 1,  A  |
+	 *                       |                      |                   B  |
+	 *                       |                      |                   D  |
+	 *    a b c d
+	 *  A 2 1 0 0 
+	 *  B 1 3 0 0
+	 *  C 1 1 1 0
+	 *  D 2 1 0 0
+	 * 
 	 * </pre>
 	 * @throws TransException
 	 * @throws SQLException
