@@ -309,14 +309,6 @@ class DBSyntextTest {
 		public void changeX(String pid) {
 		}
 
-		/**
-		 * Verify pid's subscriptions are U, C, C.
-		 * @param pid
-		public void subs_UCC(String pid) { }
-
-		public void subs_U_C(String pid) { }
-		 */
-
 		/**verify subscriptions.
 		 * @param pid
 		 * @param s subscriptions for s0/s1/s2/s3
