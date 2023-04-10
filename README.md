@@ -94,9 +94,3 @@ TODO: Docs
 ## Additional Docs
 
 The quickest way is checking the DASemantextTest test cases.
-
-![DASemantextTest junit result](https://raw.githubusercontent.com/odys-z/semantic-DA/master/misc/imgs/002-tut-DASemantextTest-02.png)
-
-![a_functions](https://raw.githubusercontent.com/odys-z/semantic-DA/master/misc/imgs/002-tut-DASemantextTest-01.png)
-
-Details is comming soon. Sorry about that.
