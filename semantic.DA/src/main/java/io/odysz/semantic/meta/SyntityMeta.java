@@ -8,20 +8,30 @@ import io.odysz.semantics.meta.TableMeta;
  * @author odys-z@github.com
  *
  */
-public class SynTableMeta extends TableMeta {
+public class SyntityMeta extends TableMeta {
+
+	public final String oper;
+
+	public final String synoder;
 
 	public final String recTabl;
 	public final String recId;
 	public final String clientpath;
 	public final String clientpath2;
 
-	public SynTableMeta(String tbl, String... conn) {
+	public final String nyquence;
+
+	public SyntityMeta(String tbl, String... conn) {
 		super(tbl, conn);
 		
 		recTabl = "tabl";
 		recId = "recId";
+		synoder = "synoder";
 		clientpath = "clientpath";
 		clientpath2 = "clientpath2";
+		
+		oper = "oper";
+		nyquence = "nyq";
 	}
 
 }

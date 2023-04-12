@@ -1,8 +1,10 @@
-package io.odysz.semantic.meta;
+package io.odysz.semantic;
 
-public class PhotoMeta extends SynTableMeta {
+import io.odysz.semantic.meta.SyntityMeta;
 
-	public static String ddl =
+public class T_PhotoMeta extends SyntityMeta {
+
+	public static String ddlSqlite =
 			"drop table if exists h_potos;\n" +
 			"create table h_photos (\n" +
 			"	pid    varchar2(64) not null,\n" +
@@ -18,7 +20,7 @@ public class PhotoMeta extends SynTableMeta {
 			"	synyquist  number  not null\n" +
 			");";
 		
-	public PhotoMeta() {
+	public T_PhotoMeta() {
 		super("h_photos", "pid", null);
 	}
 

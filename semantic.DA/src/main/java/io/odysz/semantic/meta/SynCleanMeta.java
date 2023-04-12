@@ -14,11 +14,11 @@ package io.odysz.semantic.meta;
  *
  * @author odys-z@github.com
  */
-public class SynCleanMeta extends SynTableMeta {
+public class SynCleanMeta extends SyntityMeta {
 
-	public static String ddl;
+	public static String ddlSqlite;
 	static {
-		ddl = "drop table if exists syn_clean;\n" +
+		ddlSqlite = "drop table if exists syn_clean;\n" +
 			"create table syn_clean (\n" + 
 			"	tabl        varchar2(64) not null, -- e.g. 'h_photos'\n" + 
 			"	synoder     varchar2(12) not null, -- publisher, fk-on-del, synode id for resource's PK\n" + 

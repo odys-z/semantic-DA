@@ -14,14 +14,14 @@ package io.odysz.semantic.meta;
  * @author Ody
  *
  */
-public class SynSubsMeta extends SynTableMeta {
+public class SynSubsMeta extends SyntityMeta {
 	
 	public final String synodee;
 	public final String nyquencee;
 
-	public static String ddl;
+	public static String ddlSqlite;
 	static {
-		ddl = "drop table if exists syn_subscribe;\n" +
+		ddlSqlite = "drop table if exists syn_subscribe;\n" +
 			"create table syn_subscribe (\n" + 
 			"	tabl        varchar2(64) not null, -- e.g. 'h_photos'\n" + 
 			"	recId       varchar2(12) not null, -- entity record Id\n" + 

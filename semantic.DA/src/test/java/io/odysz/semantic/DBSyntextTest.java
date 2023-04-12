@@ -19,7 +19,6 @@ import org.xml.sax.SAXException;
 import io.odysz.common.Configs;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.meta.PhotoMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynCleanMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
@@ -31,10 +30,7 @@ import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 class DBSyntextTest {
-	public static final String conn0 = "synode-0";
-	public static final String conn1 = "synode-1";
-	public static final String conn2 = "synode-2";
-	public static final String conn3 = "synode-3";
+	public static final String[] conns = new String[4];
 	public static final String rtroot = "src/test/res/";
 
 	public static final String father = "src/test/res/Sun Yet-sen.jpg";
@@ -44,24 +40,19 @@ class DBSyntextTest {
 	public static final int W = 3;
 	static String runtimepath;
 
-	static DBSynsactBuilder trb0;
-	static DBSynsactBuilder trb1;
-	static DBSynsactBuilder trb2;
-	static DBSynsactBuilder trb3;
+	static DBSynsactBuilder trbs[];
 	static IUser robot;
 	static HashMap<String, DBSynmantics> synms;
 	static HashMap<String, TableMeta> metas;
 
 
-	static PhotoMeta phm;
+	static T_PhotoMeta phm;
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
+	/** @deprecated */
 	static SynCleanMeta clnm;
 
-	static Ck c0;
-	static Ck c1;
-	static Ck c2;
-	static Ck c3;
+	static Ck[] c;
 
 	static {
 		try {
@@ -80,20 +71,18 @@ class DBSyntextTest {
 			DATranscxt.key("user-pswd", rootkey);
 
 			// smtcfg = DBSynsactBuilder.loadSynmantics(conn0, "src/test/res/synmantics.xml", true);
-			trb0 = new DBSynsactBuilder(conn0);
-			trb1 = new DBSynsactBuilder(conn1);
-			trb2 = new DBSynsactBuilder(conn2);
-			trb3 = new DBSynsactBuilder(conn3);
-			metas = Connects.getMeta(conn0);
+			for (int s = 0; s < 4; s++) {
+				conns[s] = String.format("synode-%s", s);
+				trbs[s] = new DBSynsactBuilder(conns[s]);
+				c[s] = new Ck(s);
+			}
+			metas = Connects.getMeta(conns[0]);
 
-			phm = new PhotoMeta();
+			phm = new T_PhotoMeta();
 			metas.put(phm.tbl, phm);
 
 			chm = new SynChangeMeta();
 			metas.put(chm.tbl, chm);
-
-			clnm = new SynCleanMeta();
-			metas.put(clnm.tbl, clnm);
 
 			sbm = new SynSubsMeta();
 			metas.put(sbm.tbl, sbm);
@@ -104,7 +93,7 @@ class DBSyntextTest {
 			usrAct.put("funcId", "DASemantextTest");
 			usrAct.put("funcName", "test ISemantext implementation");
 			jo.put("usrAct", usrAct);
-			robot = new LoggingUser(conn0, "src/test/res/semantic-log.xml", "tester", jo);
+			robot = new LoggingUser(conns[X], "src/test/res/semantic-log.xml", "tester", jo);
 		} catch (SemanticException | SQLException | SAXException | IOException e) {
 			e.printStackTrace();
 		}
@@ -131,10 +120,10 @@ class DBSyntextTest {
 				+ "  txt text(4000),\n"
 				+ "  CONSTRAINT oz_logs_pk PRIMARY KEY (logId))");
 
-		sqls.add(SynChangeMeta.ddl);
-		sqls.add(SynSubsMeta.ddl);
-		sqls.add(SynCleanMeta.ddl);
-		sqls.add(PhotoMeta.ddl);
+		sqls.add(SynChangeMeta.ddlSqlite);
+		sqls.add(SynSubsMeta.ddlSqlite);
+		sqls.add(SynCleanMeta.ddlSqlite);
+		sqls.add(T_PhotoMeta.ddlSqlite);
 
 		sqls.add( "delete from oz_autoseq;\n"
 				+ "insert into oz_autoseq (sid, seq, remarks) values\n"
@@ -145,16 +134,8 @@ class DBSyntextTest {
 		sqls.add(String.format("delete from %s", phm.tbl));
 		sqls.add("delete from a_logs");
 
-		Connects.commit(conn0, robot, sqls, Connects.flag_nothing);
-		Connects.commit(conn1, robot, sqls, Connects.flag_nothing);
-		Connects.commit(conn2, robot, sqls, Connects.flag_nothing);
-		Connects.commit(conn3, robot, sqls, Connects.flag_nothing);
-
-
-		c0 = new Ck(conn0);
-		c1 = new Ck(conn1);
-		c2 = new Ck(conn2);
-		c3 = new Ck(conn3);
+		for (int s = 0; s < 4; s++)
+			Connects.commit(conns[s], robot, sqls, Connects.flag_nothing);
 	}
 
 	/**
@@ -163,7 +144,7 @@ class DBSyntextTest {
 	 *  A 0 0 0
 	 *  B 0 0 0
 	 *  C 0 0 0
-	 *
+	 * 1.
 	 * A                     | B
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
 	 *  I,   A, pA0, 0,  B   |  I,   B, pB0, 0, A
@@ -174,7 +155,8 @@ class DBSyntextTest {
 	 *  A 1 0 0
 	 *  B 0 1 0
 	 *  C 0 0 0
-	 *
+	 *  
+	 * 2.
 	 * A                     =) B
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
 	 *  I,   A, pA0, 1, [ ]  |  I,   B, pB0, 1,  A
@@ -187,6 +169,7 @@ class DBSyntextTest {
 	 *  B 1 1 0  [B.a = A.a]
 	 *  C 0 0 0
 	 *
+	 * 3.
 	 * A                    (=  B
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
 	 *  I,   A, pA0, 1, [ ]  |  I,   B, pB0, 1, [ ]
@@ -205,41 +188,35 @@ class DBSyntextTest {
 	@Test
 	void test01InsertBasic() throws TransException, SQLException {
 
-		// 1. insert A
-		String pA0 = insertPhotoA();
+		// 1.1 insert A
+		String pA0 = insertPhoto(X);
 
-		// 1.1. syn_change.curd = C
-		c0.changeC(pA0);
-		// 1.2. syn_subscribe.to = [B, C, D]
-		c0.subs(pA0, null, C, C, C);
+		// syn_change.curd = C
+		c[X].change(C, pA0);
+		// syn_subscribe.to = [B, C, D]
+		c[X].subs(pA0, -1, Y, X, Z);
 
-		// 2. insert B
-		String pB0 = insertPhotoA();
+		// 1.2 insert B
+		String pB0 = insertPhoto(Y);
 
-		// 1.1. syn_change.curd = C
-		c1.changeC(pB0);
-		// 1.2. syn_subscribe.to = [A, C, D]
-		c1.subs(pB0, C, null, C, C);
+		// syn_change.curd = C
+		c[Y].change(C, pB0);
+		// syn_subscribe.to = [A, C, D]
+		c[Y].subs(pB0, X, -1, Z, W);
 
-		// 3.
-		B_pullA();
-		// 3.1. syn_change.curd = C
-		c1.changeC(pA0);
-		// 3.2. syn_subscribe.to = [C, D]
-		c1.subs(pA0, null, C, C, C);
-		// 3.3. B.a = A.a
-		int Aa = c0.nyquence(X);
-		assertEquals(Aa, c1.nyquence(X));
+		// 2.
+		BvsA(X, Y);
+		c[Y].change(C, pA0);
+		c[Y].subs(pA0, -1, -1, Z, W);
+		// B.a = A.a
+		int Aa = c[X].nyquence(X);
+		assertEquals(Aa, c[Y].nyquence(X));
 
-		// 4.
-		B_pushA();
-		// 4.1. syn_change.curd = C
-		c1.changeC(pA0);
-		// 4.2. syn_subscribe.to = [C, D]
-		c1.subs(pA0, null, C, C, C);
-		// 4.3. A.b = B.b
-		int Bb = c1.nyquence(Y);
-		assertEquals(Bb, c0.nyquence(Y));
+		c[X].change(C, pA0);
+		c[X].subs(pA0, -1, -1, Z, W);
+		// A.b = B.b
+		int Bb = c[Y].nyquence(Y);
+		assertEquals(Bb, c[X].nyquence(Y));
 	}
 
 	/**
@@ -258,7 +235,7 @@ class DBSyntextTest {
 	 *  C 0 0 0 0
 	 *  D 0 0 0 0
 	 *
-	 * B vs. C: B.ch.n=1 > C.b, B =) C, ++C
+	 * B vs. C: B.ch.n=1 > C.b, B => C, ++C
 	 * A                     | B                   =) C                    | D
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
 	 *  I,   A, pA0, 1, [ ]  |  I,   B, pB0, 1, [ ] |  I,   B, pB0, 1,     |
@@ -287,7 +264,7 @@ class DBSyntextTest {
 	 *  C 1 1 0 0
 	 *  D 0 0 0 0
 	 *
-	 * A vs D, ch[A].n=2 > D.a, ch[B].n=1 > D.b
+	 * A vs D, max(ch[A].n)=2 > D.a, max(ch[B].n)=1 > D.b
 	 * A                                                                  A=)D
 	 * crud, s, pid, n, sub  |                                             | crud, s, pid, n, sub
 	 *  U,   A, pA0, 2,  B   |                                             |  U,   A, pA0, 2,  B   (2>D.a=0)
@@ -299,7 +276,7 @@ class DBSyntextTest {
 	 *  A 2 1 0 0 
 	 *  B 1 1 0 0
 	 *  C 1 1 0 0
-	 *  D 2 1 0 1   [D.a=A.a, C.b=max(ch[B].n), D.c, ++D.d]
+	 *  D 2 1 0 1   [D.a=max(ch[A].n)=2, D.b=max(ch[B].n)=1, D.c (ch[C]==NULL), ++D.d]
 	 *
 	 * B update pA0 twice, C insert pC0
 	 * A                     | B                    | C                    | D
@@ -318,7 +295,7 @@ class DBSyntextTest {
 	 *  C 1 1 1 0   ++C.c
 	 *  D 2 1 0 1
 	 *
-	 * A vs. C, A.ch[A].n=2 > C.a, A[B] =) C; A.ch[C]=NULL, A (= C[C]
+	 * A vs. C, A.ch[A].n=2 > C.a, A.ch[B]=1 = C.b; A.ch[C]=NULL, A (= C[C]
 	 * A                     | B                    | C                    | D
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
 	 *  U,   A, pA0, 2,  B   |  I,   B, pB0, 1,  A  |  I,   B, pB0, 1,     |  U,   A, pA0, 2,  B
@@ -343,93 +320,75 @@ class DBSyntextTest {
 	void test02UpdateTransit() throws TransException, SQLException {
 	}
 
-	/**
-	 * Way 2. Nyquence in subscriptions
-	 * 
-	 * <pre>
-	 * A (=) B
-	 * A                     | B                    | C                    | D
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
-	 *  I,   A, pA0, 1, [B]  |  I,   B, pB0, 1, [A] |                      |
-	 *               1,  C   |               1,  C  |                      |
-	 *               1,  D   |               1,  D  |                      |
-	 *  I,   B, pB0, 1,  C   |  I,   A, pA0, 1,  C  |                      |
-	 *               1,  D   |               1,  D  |                      |
-	 *    a b c d
-	 *  A 1 1 0 0 [A.b = B.b]
-	 *  B 1 1 0 0 [B.a = A.a]
-	 *  C 0 0 0 0
-	 *  D 0 0 0 0
-	 *
-	 * A (=) C
-	 *                                                            pA0 1 > C.a
-	 *                                                            pA0 1 > C.d
-	 * A                     | B                    | C                    | D
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
-	 *  I,   A, pA0, 1, [ ]  |  I,   B, pB0, 1, [ ] |  I,   A, pA0, 1, [ ] |
-	 *               1, [ ]  |               1,  C  |               1, [ ] |
-	 *               1,  D   |               1,  D  |               1,  D  |
-	 *  I,   B, pB0, 1, [C]  |  I,   A, pA0, 1,  C  |  I,   B, pB0, 1,     |
-	 *               1,  D   |               1,  D  |               1,  D  |
-	 *    a b c d
-	 *  A 1 1 0 0 [A.b = B.b]
-	 *  B 1 1 0 0 [B.a = A.a]
-	 *  C 0 0 0 0
-	 *  D 0 0 0 0
-	 *
-	 * A (=) C
-	 *                                                              1 > C.a
-	 *                                                              1 > C.d
-	 * A                     | B                    | C                    | D
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
-	 *  I,   A, pA0, 1, [ ]  |  I,   B, pB0, 1, [ ] |  I,   A, pA0, 1, [ ] |
-	 *               1, [ ]  |               1,  C  |               1, [ ] |
-	 *  I,   B, pB0, 1, [C]  |  I,   A, pA0, 1,  C  |  I,   B, pB0, 1,     |
-	 *               1,  D   |               1,  D  |               1,  D  |
-	 *</pre>
-	 *@deprecated
-	 */
-	void testNyquenceInSubcripts() throws TransException, SQLException {
+	void BvsA(int A, int B) throws TransException, SQLException {
+		// A pull B
+		sync(B, A);
+
+		// A push B
+		sync(A, B);
+
 	}
 
-	void B_pullA() throws TransException {
-		((DBSyntext) trb1.instancontxt(conn1, robot))
-			.synPull(phm);
-	}
+	static void sync(int src, int dst) throws TransException, SQLException {
+		AnResultset ents = ((DBSyntext) trbs[src].instancontxt(conns[src], robot))
+			.entities(phm);
+		
+		while(ents.next()) {
+			AnResultset subs = (AnResultset) trbs[src]
+					.select(sbm.tbl, "sub")
+					// compond Id
+					.whereEq(sbm.synoder, c[src].synode)
+					.whereEq(sbm.clientpath, ents.getString(phm.clientpath))
+					.whereEq(sbm.clientpath2, ents.getString(phm.clientpath2))
+					.rs(trbs[src].instancontxt(conns[src], robot))
+					.rs(0);
 
-	void B_pushA() { }
+			SynEntity entA = new SynEntity();
+			String skip = entA.synode;
+			entA.format(ents)
+				// lock concurrency
+				.sync(conns[dst], trbs[dst], subs, skip, robot)
+				// unlock
+				;
+		}
+	}
 
 	void updatePoto0(String pid) throws TransException, SQLException {
-		trb0.update(phm.tbl, robot)
+		trbs[0].update(phm.tbl, robot)
 			.nv(phm.clientpath, father)
 			.whereEq(chm.pk, pid)
-			.u(trb0.instancontxt(conn0, robot))
+			.u(trbs[0].instancontxt(conns[X], robot))
 			;
 	}
 
-	String insertPhotoA() throws TransException, SQLException {
-		return ((SemanticObject) trb0
+	String insertPhoto(int s) throws TransException, SQLException {
+		return ((SemanticObject) trbs[s]
 			.insert(phm.tbl, robot)
 			// .nv(phm.uri, "")
 			.nv(phm.clientpath, father)
-			.ins(trb0.instancontxt(conn0, robot)))
+			.ins(trbs[0].instancontxt(conns[0], robot)))
 			.resulve(phm.tbl, phm.pk);
 	}
 
 	public static class Ck {
+		public final String synode;
 		private final String connId;
+		private final DBSynsactBuilder trb;
 
-		public Ck(String conn) {
-			this.connId = conn;
+		public Ck(int s) {
+			this.connId = conns[s];
+			this.trb = trbs[s];
+			
+			synode = String.format("s%s", s);
 		}
 
-		public void changeC(String pid) throws TransException, SQLException {
-			AnResultset chg = (AnResultset) trb0
+		public void change(String crud, String pid) throws TransException, SQLException {
+			AnResultset chg = (AnResultset) trb
 				.select(chm.tbl, "ch")
 				.cols(chm.cols())
 				.whereEq(chm.recTabl, phm.tbl)
 				.whereEq(chm.pk, pid)
-				.rs(trb0.instancontxt(conn0, robot))
+				.rs(trb.instancontxt(connId, robot))
 				.rs(0);
 
 			chg.next();
@@ -440,13 +399,13 @@ class DBSyntextTest {
 		}
 
 		public void subs_CCC(String pid) throws TransException, SQLException {
-			AnResultset subs = (AnResultset) trb0
+			AnResultset subs = (AnResultset) trb
 				.select(sbm.tbl, "ch")
 				.col(Funcall.count(sbm.recId), "cnt")
 				.cols(sbm.cols())
 				.whereEq(sbm.recTabl, phm.tbl)
 				.whereEq(sbm.pk, pid)
-				.rs(trb0.instancontxt(connId, robot))
+				.rs(trb.instancontxt(connId, robot))
 				.rs(0);
 
 			subs.next();
@@ -463,8 +422,11 @@ class DBSyntextTest {
 		/**verify subscriptions.
 		 * @param pid
 		 * @param s subscriptions for s0/s1/s2/s3
+		 * @param z 
+		 * @param x 
+		 * @param y 
 		 */
-		public void subs(String pid, String... s) { }
+		public void subs(String pid, int... s) { }
 
 		/**verify cleanings:
 		 * s0: null, s1: null, s2: D, s3: D

@@ -14,7 +14,7 @@ import org.apache.commons.io_odysz.FilenameUtils;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.meta.PhotoMeta;
+import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
@@ -309,7 +309,15 @@ public class DBSyntext implements ISemantext {
 		return Statement.composeVal(v, mt, col);
 	}
 
-	public SynTask synPull(PhotoMeta phm) {
-		return new SynTask(syntype.pull);
+	public AnResultset entities(SyntityMeta m) {
+		return null;
 	}
+
+//	public SynTask synPush(SyntityMeta phm) {
+//		return new SynTask(syntype.pull);
+//	}
+//
+//	public SynTask synPull(SyntityMeta phm) {
+//		return new SynTask(syntype.pull);
+//	}
 }

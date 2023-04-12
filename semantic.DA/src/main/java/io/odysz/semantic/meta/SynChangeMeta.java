@@ -15,15 +15,15 @@ package io.odysz.semantic.meta;
  *
  * @author Ody
  */
-public class SynChangeMeta extends SynTableMeta {
+public class SynChangeMeta extends SyntityMeta {
 
 	public String crud;
 	public final String synoder;
 
-	public static String ddl;
+	public static String ddlSqlite;
 	
 	static {
-		ddl = "drop table if exists syn_change;\n" +
+		ddlSqlite = "drop table if exists syn_change;\n" +
 			"create table syn_change (\n" + 
 			" 	nyquence    varchar2(12),          -- optional change id\n" + 
 			"	tabl        varchar2(64) not null, -- e.g. 'h_photos'\n" + 
