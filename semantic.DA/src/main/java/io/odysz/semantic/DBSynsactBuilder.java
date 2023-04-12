@@ -6,16 +6,29 @@ import java.util.HashMap;
 
 import org.xml.sax.SAXException;
 
+import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynSubsMeta;
+import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 public class DBSynsactBuilder extends DATranscxt {
 
-	public DBSynsactBuilder(String conn) throws SQLException, SAXException, IOException, SemanticException {
+	protected SynSubsMeta subm;
+	protected SyntityMeta entm;
+	protected SynChangeMeta chgm;
+
+	public DBSynsactBuilder(String conn, SyntityMeta entity, SynChangeMeta change, SynSubsMeta subs)
+			throws SQLException, SAXException, IOException, SemanticException {
 		super(conn);
+		this.subm = subs;
+		this.entm = entity;
+		this.chgm = change;
 	}
 	
 	@Override
@@ -38,6 +51,24 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		HashMap<String, DBSynmantics> syns = new HashMap<String, DBSynmantics>();
 		return syns;
+	}
+
+	/**
+	 * Get entity record's subscriptions.
+	 * 
+	 * @param entId
+	 * @param robot
+	 * @throws SQLException 
+	 * @throws TransException 
+	 */
+	public AnResultset subscripts(String conn, String entId, IUser robot) throws TransException, SQLException {
+		return (AnResultset) select(subm.tbl, "ch")
+				.col(Funcall.count(subm.recId), "cnt")
+				.cols(subm.cols())
+				.whereEq(subm.recTabl, entm.tbl)
+				.whereEq(subm.entId, entId)
+				.rs(instancontxt(conn, robot))
+				.rs(0);
 	}
 
 }
