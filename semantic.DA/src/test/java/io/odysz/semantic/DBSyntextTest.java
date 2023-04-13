@@ -319,29 +319,31 @@ class DBSyntextTest {
 
 	/**
 	 * <pre>
-	 * A                     |  B
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  I,   A, A:0, 1, [ ]  |  I,   B, B:0, 1, [ ]
-	 *                   C   |                   C
-	 *                   D   |                   D
-	 *  I,   B, B:0, 1,  C   |  I,   A, A:0, 1,  C
-	 *                   D   |                   D
+	 * A                     |  B                   |  C
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub
+	 *  
 	 *    a b c
 	 *  A 2 1 0
 	 *  B 1 1 0
 	 *  C 0 0 0
-	 *  
+	 * 
+	 * D <=> A
+	 * A                     |  B                   |  C                   |  D
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
+	 *  i,   A, A:D, 3,  B   |                      |                      |  i,   D, D:a, 1,  B
+	 *                   C   |                      |                      |                   C
 	 *  
 	 *    a b c d
-	 *  A 2 1 0 2
-	 *  B 1 1 0 1
-	 *  C 0 0 0 0
-	 *  D 2 1 0 0
+	 *  A 2 1 0 0
+	 *  B 1 1 0 
+	 *  C 0 0 0 
+	 *  D 0     0
 	 *  
-	 *    a b d
-	 *  A 2 1 2
-	 *  B 1 1 1
-	 *  D 2 1 0
+	 *    a b   d
+	 *  A 2 1 | 2
+	 *  B 1 1 | 1
+	 * [] ----+--
+	 *  D 2 1 | 0
 	 * </pre>
 	 */
 	@Test
