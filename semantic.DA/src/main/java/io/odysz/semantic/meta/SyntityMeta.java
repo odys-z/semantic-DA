@@ -3,7 +3,7 @@ package io.odysz.semantic.meta;
 import io.odysz.semantics.meta.TableMeta;
 
 /**
- * tabl, recId, clientpath, clientpath2
+ * Syncrhonizable entity table meta
  * 
  * @author odys-z@github.com
  *

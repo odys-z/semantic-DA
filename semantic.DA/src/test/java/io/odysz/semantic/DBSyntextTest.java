@@ -73,7 +73,7 @@ class DBSyntextTest {
 			// smtcfg = DBSynsactBuilder.loadSynmantics(conn0, "src/test/res/synmantics.xml", true);
 			for (int s = 0; s < 4; s++) {
 				conns[s] = String.format("synode-%s", s);
-				trbs[s] = new DBSynsactBuilder(conns[s]);
+				trbs[s] = new DBSynsactBuilder(conns[s], phm, chm, sbm);
 				c[s] = new Ck(s);
 			}
 			metas = Connects.getMeta(conns[0]);
@@ -398,35 +398,31 @@ class DBSyntextTest {
 			assertEquals(robot.deviceId(), chg.getString(chm.synoder));
 		}
 
-		public void subs_CCC(String pid) throws TransException, SQLException {
-			AnResultset subs = (AnResultset) trb
-				.select(sbm.tbl, "ch")
-				.col(Funcall.count(sbm.recId), "cnt")
-				.cols(sbm.cols())
-				.whereEq(sbm.recTabl, phm.tbl)
-				.whereEq(sbm.pk, pid)
-				.rs(trb.instancontxt(connId, robot))
-				.rs(0);
+//		public void subs_CCC(String pid) throws TransException, SQLException {
+//		}
+
+		/**verify subscriptions.
+		 * @param conn 
+		 * @param pid
+		 * @param sub subscriptions for X/Y/Z/W, -1 if not exists
+		 * @throws SQLException 
+		 * @throws TransException 
+		 */
+		public void subs(String pid, int ... sub) throws SQLException, TransException {
+			AnResultset subs = trb.subscripts(connId, pid, robot);
 
 			subs.next();
 
 			assertEquals(3, subs.getInt("cnt"));
 			assertEquals(phm.tbl, subs.getString(sbm.recTabl));
 
-			HashSet<String> s = subs.set(sbm.synodee);
-			assertIn("s3",
-					 assertIn("s2",
-					 assertIn("s1", s)));
+			HashSet<String> synodes = subs.set(sbm.synodee);
+			
+			for (int n : sub)
+				if (n >= 0)
+					// e.g. assertIn("s1", synodes)));
+					assertIn(c[n].synode, synodes);
 		}
-
-		/**verify subscriptions.
-		 * @param pid
-		 * @param s subscriptions for s0/s1/s2/s3
-		 * @param z 
-		 * @param x 
-		 * @param y 
-		 */
-		public void subs(String pid, int... s) { }
 
 		/**verify cleanings:
 		 * s0: null, s1: null, s2: D, s3: D
