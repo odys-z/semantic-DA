@@ -34,4 +34,7 @@ public class SyntityMeta extends TableMeta {
 		nyquence = "nyq";
 	}
 
+	public String[] cols() {
+		return new String[] {recTabl, recId, synoder, clientpath, clientpath2, oper, nyquence};
+	}
 }

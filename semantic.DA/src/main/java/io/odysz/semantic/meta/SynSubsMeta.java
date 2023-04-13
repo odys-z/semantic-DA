@@ -1,5 +1,7 @@
 package io.odysz.semantic.meta;
 
+import io.odysz.semantics.meta.TableMeta;
+
 /**
  * <pre>drop table if exists syn_subscribe;
  create table syn_subscribe (
@@ -14,9 +16,10 @@ package io.odysz.semantic.meta;
  * @author Ody
  *
  */
-public class SynSubsMeta extends SyntityMeta {
+public class SynSubsMeta extends TableMeta {
 	
 	public final String synodee;
+	public final String subs;
 	public final String nyquencee;
 
 	public static String ddlSqlite;
@@ -36,10 +39,11 @@ public class SynSubsMeta extends SyntityMeta {
 		super("syn_subscribe", conn);
 		this.synodee = "synodee";
 		this.nyquencee = "synyquist";
+		this.subs = "subs";
 	}
 
 	public String[] cols() {
-		return new String[] {pk, recTabl, recId, clientpath, clientpath2, synodee, nyquencee};
+		return new String[] {subs, dre};
 	}
 
 }

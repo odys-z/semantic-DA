@@ -1,19 +1,19 @@
 package io.odysz.semantic;
 
-import static io.odysz.common.LangExt.isNull;
+// import static io.odysz.common.LangExt.isNull;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
 import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.meta.TableMeta;
-import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -49,6 +49,12 @@ public class SynEntity extends Anson {
 	@AnsonField(ignoreTo=true)
 	protected SyntityMeta entMeta;
 
+	@AnsonField(ignoreTo=true)
+	protected SynSubsMeta subMeta;
+
+	@AnsonField(ignoreTo=true)
+	protected SynChangeMeta chgMeta;
+
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	ISemantext semantxt;
 
@@ -59,15 +65,17 @@ public class SynEntity extends Anson {
 	
 	public SynEntity() {}
 	
-	public SynEntity(AnResultset rs, SyntityMeta meta) throws SQLException {
-		this.entMeta = meta;
-		this.recId = rs.getString(meta.pk);
+	public SynEntity(AnResultset rs, SyntityMeta entity, SynSubsMeta subs) throws SQLException {
+		this.entMeta = entity;
+		this.recId = rs.getString(entity.pk);
 		
-		this.clientpath =  rs.getString(meta.clientpath);
-		this.clientpath2 =  rs.getString(meta.clientpath2);
-		this.synode =  rs.getString(meta.synoder);
+		this.clientpath =  rs.getString(entity.clientpath);
+		this.clientpath2 =  rs.getString(entity.clientpath2);
+		this.synode =  rs.getString(entity.synoder);
 		
 		// this.syncFlag = rs.getString(meta.syncflag);
+		this.entMeta = entity;
+		this.subMeta = subs;
 	}
 
 	public SynEntity clientpath(String p) {
@@ -99,9 +107,11 @@ public class SynEntity extends Anson {
 	}
 
 	/**
-	 * Commit synchronizations
+	 * Commit synchronizations.
+	 * 
+	 * <p>TODO the performance can be optimized with buffer writing.</p>
 	 * @param conn
-	 * @param tb default transaction builder
+	 * @param trsb default transaction builder
 	 * @param subs
 	 * @param skip 
 	 * @param robot 
@@ -109,19 +119,24 @@ public class SynEntity extends Anson {
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public SynEntity sync(String conn, DBSynsactBuilder tb, AnResultset subs, String skip, IUser robot) throws TransException, SQLException {
-		AnResultset e = (AnResultset) tb.select(entMeta.tbl, "ent")
+	public SynEntity syncWith(String conn, DBSynsactBuilder trsb, AnResultset subs, String skip, IUser robot)
+			throws TransException, SQLException {
+		AnResultset e = (AnResultset) trsb.select(entMeta.tbl, "ent")
+				.cols(entMeta.cols()).cols("", "")
+				.je(chgMeta.tbl, "ch", "ent", entMeta.pk, "ch", chgMeta.recId)
 				.whereEq(entMeta.synoder, synode)
 				.whereEq(entMeta.clientpath, clientpath)
 				.whereEq(entMeta.clientpath2, clientpath2)
-				.rs(tb.instancontxt(conn, robot))
+				.rs(trsb.instancontxt(conn, robot))
 				.rs(0);
 		
 		if (e.getString(entMeta.oper).equals(oper)) {
 			// compare ch.n with s.nyq
 			int nc = Nyquence.compare64(nyquence, e.getString(entMeta.nyquence));
 			if (nc > 0) {
-				// write subs to this DB
+				// write subs to conn.subm.tbl
+				trsb.insert(subMeta.tbl, robot)
+					.nv(subMeta.tbl, "");
 			}
 			// else (nc <= 0) ignore incoming subscriptions
 		}

@@ -347,7 +347,7 @@ class DBSyntextTest {
 			String skip = entA.synode;
 			entA.format(ents)
 				// lock concurrency
-				.sync(conns[dst], trbs[dst], subs, skip, robot)
+				.syncWith(conns[dst], trbs[dst], subs, skip, robot)
 				// unlock
 				;
 		}
