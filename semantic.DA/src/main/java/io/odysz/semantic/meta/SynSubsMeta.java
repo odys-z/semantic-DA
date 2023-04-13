@@ -1,61 +1,65 @@
 package io.odysz.semantic.meta;
 
+import static io.odysz.common.LangExt.len;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Set;
+
+import io.odysz.common.Utils;
+import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.meta.TableMeta;
 
 /**
- * <a href="syn_sbuscribe.ddl.sqlite">syn_sbuscribe DDL</a>
- * <pre>drop table if exists syn_subscribe;
- create table syn_subscribe (
-	tabl        varchar2(64) not null, -- e.g. 'h_photos'
-	recId       varchar2(12) not null, -- entity record Id
-	clientpath  text         not null, -- for h_photos.fullpath, or composed PK for resouce's id, not null?
-	clientpath2 text,                  -- support max 3 fields of composed PK, TODO any betther patterns?
-	synodee     varchar2(12) not null  -- subscriber, fk-on-del, synode id device to finish cleaning task
-	synyquist   integer      not null  -- last Nyquist sequence number of synodee
- );</pre>
+ * <a href="./syn_subscribe.sqlite.ddl">syn_sbuscribe DDL</a>
  *
  * @author Ody
  *
  */
 public class SynSubsMeta extends TableMeta {
 
-	public final String synodee;
 	public final String subs;
-	public final String nyquencee;
+	public final String entbl;
 	public final String entId;
+	public final String dre;
 
 	public static String ddlSqlite;
 	static {
-		/*
-		ddlSqlite = "drop table if exists syn_subscribe;\n" +
-			"create table syn_subscribe (\n" +
-			"	tabl        varchar2(64) not null, -- e.g. 'h_photos'\n" +
-			"	recId       varchar2(12) not null, -- entity record Id\n" +
-			"	clientpath  text         not null, -- for h_photos.fullpath, or composed PK for resouce's id, not null?\n" +
-			"	clientpath2 text,                  -- support max 3 fields of composed PK, TODO any betther patterns?\n" +
-			"	synodee     varchar2(12) not null  -- subscriber, fk-on-del, synode id device to finish cleaning task\n" +
-			"	synyquist   integer      not null  -- last Nyquist sequence number of synodee\n" +
-			" )";
-		*/
 		try {
-			ddlSqlite = Files.readAllLines(
-					Paths.get(SynSubsMeta.class.getResource("syn_subscribe.ddl.sqlite").toURI()), Charset.defaultCharset())
-					.stream().collect(Collectors.joining("\n"));
-		} catch (IOException | URISyntaxException e) {
+			ddlSqlite = Utils.loadTxt("syn_subscribe.sqlite.ddl");
+			if (Connects.flag_printSql > 0)
+				Utils.logi(ddlSqlite);
+		} catch (IOException | URISyntaxException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public SynSubsMeta(String ... conn) {
 		super("syn_subscribe", conn);
-		this.synodee = "synodee";
-		this.nyquencee = "synyquist";
-		this.subs = "subs";
+		this.subs = "synodee";
+		this.entbl = "tabl";
 		this.entId = "recId";
+		this.dre = "dre";
 	}
 
 	public String[] cols() {
 		return new String[] {subs, dre};
+	}
+
+	/**
+	 * Generate values for parameter of Insert.values();
+	 * 
+	 * @param subs row index not the same when return
+	 * @param skips ignored synodes
+	 * @return values
+	 */
+	public ArrayList<ArrayList<Object[]>> insubVals(AnResultset subs, Set<String> skips) {
+		
+		ArrayList<ArrayList<Object[]>> v = new ArrayList<ArrayList<Object[]>>(subs.getRowCount() - len(skips));
+
+		return v;
 	}
 
 }

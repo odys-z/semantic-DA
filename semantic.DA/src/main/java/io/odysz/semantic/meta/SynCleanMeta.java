@@ -12,6 +12,7 @@ package io.odysz.semantic.meta;
 	cleanyquist integer      not null  -- last Nyquist sequence number of synodee
  );</pre>
  *
+ * @deprecated
  * @author odys-z@github.com
  */
 public class SynCleanMeta extends SyntityMeta {

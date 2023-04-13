@@ -11,4 +11,9 @@ public class Nyquence {
 		return 0;
 	}
 
+	public Long n;
+
+	public Nyquence(long n) {
+		this.n = n;
+	}
 }

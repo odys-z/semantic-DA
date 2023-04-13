@@ -77,10 +77,12 @@ public class DBSyntext implements ISemantext {
 
 	/**When inserting, process data row with configured semantics, like auto-pk, fk-ins, etc..
 	 * @throws SemanticException
-	 * @see io.odysz.semantics.ISemantext#onInsert(io.odysz.transact.sql.Insert, java.lang.String, java.util.List)
+	 * @see ISemantext#onInsert(Insert, String, List)
 	 */
 	@Override
-	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> rows) throws SemanticException {
+	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> rows)
+			throws SemanticException {
+
 		if (rows != null && ss != null)
 			// second round
 			for (ArrayList<Object[]> row : rows) {
@@ -94,7 +96,9 @@ public class DBSyntext implements ISemantext {
 	}
 
 	@Override
-	public ISemantext onUpdate(Update update, String tabl, ArrayList<Object[]> nvs) throws SemanticException {
+	public ISemantext onUpdate(Update update, String tabl, ArrayList<Object[]> nvs)
+			throws SemanticException {
+
 		if (nvs != null && ss != null) {
 			Map<String, Integer> cols = update.getColumns();
 			DBSynmantics s = ss.get(tabl);
@@ -105,7 +109,9 @@ public class DBSyntext implements ISemantext {
 	}
 
 	@Override
-	public ISemantext onDelete(Delete delete, String tabl, Condit whereCondt) throws TransException {
+	public ISemantext onDelete(Delete delete, String tabl, Condit whereCondt)
+			throws TransException {
+
 		if (ss != null) {
 			DBSynmantics s = ss.get(tabl);
 			if (s != null)
@@ -312,12 +318,4 @@ public class DBSyntext implements ISemantext {
 	public AnResultset entities(SyntityMeta m) {
 		return null;
 	}
-
-//	public SynTask synPush(SyntityMeta phm) {
-//		return new SynTask(syntype.pull);
-//	}
-//
-//	public SynTask synPull(SyntityMeta phm) {
-//		return new SynTask(syntype.pull);
-//	}
 }

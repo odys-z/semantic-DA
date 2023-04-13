@@ -63,12 +63,16 @@ public class DBSynsactBuilder extends DATranscxt {
 	 */
 	public AnResultset subscripts(String conn, String entId, IUser robot) throws TransException, SQLException {
 		return (AnResultset) select(subm.tbl, "ch")
-				.col(Funcall.count(subm.recId), "cnt")
 				.cols(subm.cols())
-				.whereEq(subm.recTabl, entm.tbl)
+				.col(Funcall.count(subm.subs), "cnt")
+				.whereEq(subm.entbl, entm.tbl)
 				.whereEq(subm.entId, entId)
 				.rs(instancontxt(conn, robot))
 				.rs(0);
+	}
+
+	public Nyquence nyquence(String conn) {
+		return new Nyquence(0);
 	}
 
 }

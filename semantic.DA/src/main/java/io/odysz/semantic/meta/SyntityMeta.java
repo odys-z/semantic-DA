@@ -15,7 +15,7 @@ public class SyntityMeta extends TableMeta {
 	public final String synoder;
 
 	public final String recTabl;
-	public final String recId;
+	public final String entFk;
 	public final String clientpath;
 	public final String clientpath2;
 
@@ -25,7 +25,7 @@ public class SyntityMeta extends TableMeta {
 		super(tbl, conn);
 		
 		recTabl = "tabl";
-		recId = "recId";
+		entFk = "recId";
 		synoder = "synoder";
 		clientpath = "clientpath";
 		clientpath2 = "clientpath2";
@@ -35,6 +35,6 @@ public class SyntityMeta extends TableMeta {
 	}
 
 	public String[] cols() {
-		return new String[] {recTabl, recId, synoder, clientpath, clientpath2, oper, nyquence};
+		return new String[] {recTabl, entFk, synoder, clientpath, clientpath2, oper, nyquence};
 	}
 }

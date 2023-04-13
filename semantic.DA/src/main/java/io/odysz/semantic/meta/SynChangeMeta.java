@@ -17,7 +17,8 @@ package io.odysz.semantic.meta;
  */
 public class SynChangeMeta extends SyntityMeta {
 
-	public String crud;
+	public final String entbl;
+	public final String crud;
 	public final String synoder;
 
 	public static String ddlSqlite;
@@ -42,10 +43,11 @@ public class SynChangeMeta extends SyntityMeta {
 		
 		synoder = "synoder";
 		crud = "crud";
+		entbl = "tabl";
 	}
 
 	public String[] cols() {
-		return new String[] {pk, recTabl, recId, clientpath, clientpath2, synoder, crud};
+		return new String[] {pk, recTabl, entFk, clientpath, clientpath2, synoder, crud};
 	}
 
 }
