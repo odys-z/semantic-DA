@@ -61,7 +61,7 @@ public class SynEntity extends Anson {
 
 	protected ArrayList<String[]> subs;
 
-	protected String oper;
+	protected String synoder;
 	protected String nyquence;
 	
 	public SynEntity(AnResultset rs, SyntityMeta entity, SynChangeMeta change, SynSubsMeta subs) throws SQLException {
@@ -110,9 +110,9 @@ public class SynEntity extends Anson {
 		// TODO Auto-generated method stub
 		this.recId = rs.getString(entMeta.pk);
 		
-		this.clientpath =  rs.getString(entMeta.clientpath);
-		this.clientpath2 =  rs.getString(entMeta.clientpath2);
-		this.synode =  rs.getString(entMeta.synoder);
+		this.clientpath =  rs.getString(chgMeta.clientpath);
+		this.clientpath2 =  rs.getString(chgMeta.clientpath2);
+		this.synode =  rs.getString(chgMeta.synoder);
 
 		return this;
 	}
@@ -134,17 +134,17 @@ public class SynEntity extends Anson {
 			throws TransException, SQLException {
 		AnResultset ch = (AnResultset) trsb
 				.select(entMeta.tbl, "ent")
-				.je("ent", chgMeta.tbl, "ch", entMeta.pk, chgMeta.entFk)
-				.cols(entMeta.cols()).cols(subMeta.cols())
-				.whereEq(entMeta.synoder, synode)
-				.whereEq(entMeta.clientpath, clientpath)
-				.whereEq(entMeta.clientpath2, clientpath2)
+				.je("ent", chgMeta.tbl, "ch", entMeta.pk, chgMeta.entfk)
+				.cols(chgMeta.cols()).cols(subMeta.cols())
+				.whereEq(chgMeta.synoder, synode)
+				.whereEq(chgMeta.clientpath, clientpath)
+				.whereEq(chgMeta.clientpath2, clientpath2)
 				.rs(trsb.instancontxt(conn, robot))
 				.rs(0);
 		
-		if (ch.getString(entMeta.oper).equals(oper)) {
+		if (ch.getString(chgMeta.synoder).equals(synoder)) {
 			// compare ch.n with s.nyq
-			int nc = Nyquence.compare64(nyquence, ch.getString(entMeta.nyquence));
+			int nc = Nyquence.compare64(nyquence, ch.getString(chgMeta.nyquence));
 			if (nc > 0) {
 				// write subs to conn.subm.tbl
 				// DESIGN NOTES: There is no R/D/E in subscriptions, that's an attribute of Doc sharing relationship 

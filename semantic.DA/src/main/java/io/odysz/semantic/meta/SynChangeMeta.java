@@ -1,53 +1,42 @@
 package io.odysz.semantic.meta;
 
+import io.odysz.semantics.meta.TableMeta;
+
 /**
- * <pre>
- drop table if exists syn_change;
- create table syn_change (
- 	nyquence    varchar2(12),          -- optional change id
-	tabl        varchar2(64) not null, -- e.g. 'h_photos'
-	recId       varchar2(12) not null, -- entity record Id
-	synoder     varchar2(12) not null, -- publisher, fk-on-del, synode id for resource's PK
-	clientpath  text         not null, -- for h_photos.fullpath, or composed PK for resouce's id, not null?
-	clientpath2 text,                  -- support max 3 fields of composed PK, TODO any betther patterns?
-	crud        char(1)      not null  -- I/U/D/R/E
- );</pre>
+ *<a href="./syn_change.sqlite.ddl">syn_change DDL</a>
  *
- * @author Ody
+ * @author odys-z@github.com
+ *
  */
-public class SynChangeMeta extends SyntityMeta {
+public class SynChangeMeta extends TableMeta {
 
 	public final String entbl;
+	public final String entfk;
+	public final String clientpath;
+	public final String clientpath2;
 	public final String crud;
 	public final String synoder;
+	public final String nyquence;
 
-	public static String ddlSqlite;
 	
 	static {
-		ddlSqlite = "drop table if exists syn_change;\n" +
-			"create table syn_change (\n" + 
-			" 	nyquence    varchar2(12),          -- optional change id\n" + 
-			"	tabl        varchar2(64) not null, -- e.g. 'h_photos'\n" + 
-			"	recId       varchar2(12) not null, -- entity record Id\n" + 
-			"	synoder     varchar2(12) not null, -- publisher, fk-on-del, synode id for resource's PK\n" + 
-			"	clientpath  text         not null, -- for h_photos.fullpath, or composed PK for resouce's id, not null?\n" + 
-			"	clientpath2 text,                  -- support max 3 fields of composed PK, TODO any betther patterns?\n" + 
-			"	crud        char(1)      not null  -- I/U/D/R/E\n" + 
-			");"; 
+		sqlite = "syn_change.sqlite.ddl";
 	}
 
 	public SynChangeMeta(String ... conn) {
 		super("syn_change", conn);
 
-		pk = "nyquence";
-		
-		synoder = "synoder";
-		crud = "crud";
 		entbl = "tabl";
+		entfk = "recId";
+		clientpath = "clientpath";
+		clientpath2 = "clientpath2";
+		crud = "crud";
+		synoder = "synoder";
+		nyquence = "nyquence";
 	}
 
 	public String[] cols() {
-		return new String[] {pk, recTabl, entFk, clientpath, clientpath2, synoder, crud};
+		return new String[] {pk, entbl, entfk, clientpath, clientpath2, synoder, crud};
 	}
 
 }

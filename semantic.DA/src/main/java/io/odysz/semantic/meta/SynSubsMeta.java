@@ -2,14 +2,10 @@ package io.odysz.semantic.meta;
 
 import static io.odysz.common.LangExt.len;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Set;
 
-import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.meta.TableMeta;
 
 /**
@@ -25,15 +21,8 @@ public class SynSubsMeta extends TableMeta {
 	public final String entId;
 	public final String dre;
 
-	public static String ddlSqlite;
 	static {
-		try {
-			ddlSqlite = Utils.loadTxt("syn_subscribe.sqlite.ddl");
-			if (Connects.flag_printSql > 0)
-				Utils.logi(ddlSqlite);
-		} catch (IOException | URISyntaxException | ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+		sqlite = "syn_subscribe.sqlite.ddl";
 	}
 
 	public SynSubsMeta(String ... conn) {

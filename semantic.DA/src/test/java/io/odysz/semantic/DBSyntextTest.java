@@ -1,5 +1,6 @@
 package io.odysz.semantic;
 
+import static io.odysz.common.LangExt.*;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
@@ -21,6 +22,8 @@ import io.odysz.common.Configs;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynodesMeta;
+import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
@@ -40,14 +43,13 @@ class DBSyntextTest {
 	static String runtimepath;
 
 	static DBSynsactBuilder trbs[];
-	static IUser robot;
 	static HashMap<String, DBSynmantics> synms;
 	static HashMap<String, TableMeta> metas;
 
-
-	static T_PhotoMeta phm;
+	static SynodesMeta snm;
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
+	static T_PhotoMeta phm;
 
 	static Ck[] c;
 
@@ -69,7 +71,7 @@ class DBSyntextTest {
 
 			// smtcfg = DBSynsactBuilder.loadSynmantics(conn0, "src/test/res/synmantics.xml", true);
 			for (int s = 0; s < 4; s++) {
-				conns[s] = String.format("synode-%s", s);
+				conns[s] = String.format("syn-%x", s);
 				trbs[s] = new DBSynsactBuilder(conns[s], phm, chm, sbm);
 				c[s] = new Ck(s);
 			}
@@ -83,14 +85,6 @@ class DBSyntextTest {
 
 			sbm = new SynSubsMeta();
 			metas.put(sbm.tbl, sbm);
-
-			SemanticObject jo = new SemanticObject();
-			jo.put("userId", "tester");
-			SemanticObject usrAct = new SemanticObject();
-			usrAct.put("funcId", "DBSyntextTest");
-			usrAct.put("funcName", "test ISemantext implementation");
-			jo.put("usrAct", usrAct);
-			robot = new LoggingUser(conns[X], "src/test/res/semantic-log.xml", "tester", jo);
 		} catch (SemanticException | SQLException | SAXException | IOException e) {
 			e.printStackTrace();
 		}
@@ -117,9 +111,9 @@ class DBSyntextTest {
 				+ "  txt text(4000),\n"
 				+ "  CONSTRAINT oz_logs_pk PRIMARY KEY (logId))");
 
-		sqls.add(SynChangeMeta.ddlSqlite);
-		sqls.add(SynSubsMeta.ddlSqlite);
-		sqls.add(T_PhotoMeta.ddlSqlite);
+		sqls.add(SynChangeMeta.ddlSqlite());
+		sqls.add(SynSubsMeta.ddlSqlite());
+		sqls.add(T_PhotoMeta.ddlSqlite());
 
 		sqls.add( "delete from oz_autoseq;\n"
 				+ "insert into oz_autoseq (sid, seq, remarks) values\n"
@@ -131,7 +125,7 @@ class DBSyntextTest {
 		sqls.add("delete from a_logs");
 
 		for (int s = 0; s < 4; s++)
-			Connects.commit(conns[s], robot, sqls, Connects.flag_nothing);
+			Connects.commit(conns[s], c[s].robot, sqls, Connects.flag_nothing);
 	}
 
 	/**
@@ -188,7 +182,7 @@ class DBSyntextTest {
 		String A_0 = insertPhoto(X);
 
 		// syn_change.curd = C
-		c[X].change(C, A_0);
+		c[X].change(C, A_0, phm);
 		// syn_subscribe.to = [B, C, D]
 		c[X].subs(A_0, -1, Y, X, Z);
 
@@ -196,19 +190,19 @@ class DBSyntextTest {
 		String B_0 = insertPhoto(Y);
 
 		// syn_change.curd = C
-		c[Y].change(C, B_0);
+		c[Y].change(C, B_0, phm);
 		// syn_subscribe.to = [A, C, D]
 		c[Y].subs(B_0, X, -1, Z, W);
 
 		// 2.
 		BvsA(X, Y);
-		c[Y].change(C, A_0);
+		c[Y].change(C, A_0, phm);
 		c[Y].subs(A_0, -1, -1, Z, W);
 		// B.a = A.a
 		long Aa = c[X].nyquence(X).n;
 		assertEquals(Aa, c[Y].nyquence(X).n);
 
-		c[X].change(C, B_0);
+		c[X].change(C, B_0, phm);
 		c[X].subs(B_0, -1, -1, Z, W);
 		// A.b = B.b
 		long Bb = c[Y].nyquence(Y).n;
@@ -319,93 +313,133 @@ class DBSyntextTest {
 
 	/**
 	 * <pre>
-	 * A                     |  B                   |  C
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub
+	 * X                     |  Y                   |  Z
+	 * crud, s, sid, n, sub  | crud, s, sid, n, sub | crud, s, sid, n, sub
 	 *  
-	 *    a b c
-	 *  A 2 1 0
-	 *  B 1 1 0
-	 *  C 0 0 0
+	 *    x y z
+	 *  X 2 1 0
+	 *  Y 1 1 0
+	 *  Z 0 0 0
 	 * 
-	 * D <=> A
-	 * A                     |  B                   |  C                   |  D
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
-	 *  i,   A, A:D, 3,  B   |                      |                      |  i,   D, D:a, 1,  B
-	 *                   C   |                      |                      |                   C
+	 * W <=> X, sid[X:w]: X added W
+	 * X: syn_node           |  Y                   |  Z                   |  W
+	 * crud, s, sid, n, sub  | crud, s, sid, n, sub | crud, s, sid, n, sub | crud, s, sid, n, sub
+	 *  i,   X,  w , 3,  Y   |                      |                      |  i,   X,  w , 3,  Y
+	 *                   Z   |                      |                      |                   Z
+	 *  i,   W,  x , 1,  Y   |                      |                      |  i,   W,  x , 1,  Y
+	 *                   Z   |                      |                      |                   Z
+	 *    x y z w
+	 *  X 3 1 0 1   ++X.x, X.w = W.w
+	 *  Y 1 1 0 
+	 *  Z 0 0 0 
+	 *  W 3     1   ++W.w, W.x = X.x
 	 *  
-	 *    a b c d
-	 *  A 2 1 0 0
-	 *  B 1 1 0 
-	 *  C 0 0 0 
-	 *  D 0     0
+	 *  X <=> Y, X.ch[X].n=3 > Y.x, X.ch[W].n=1 > Y.w=NULL
+	 *  Z <=> W, Z.w < W.ch[X].n=3, Z.w=NULL < W.ch[W].n=1
+	 * X: syn_node           |  Y                   |  Z                   |  W
+	 * crud, s, sid, n, sub  | crud, s, sid, n, sub | crud, s, sid, n, sub | crud, s, sid, n, sub
+	 *  i,   X,  w , 3, [Y]  |  i,   X,  w , 3,     |  i,   X,  w , 3,  Y  |  i,   X,  w , 3,  Y
+	 *                   Z   |                   Z  |                      |                  [Z]
+	 *  i,   W,  x , 1, [Y]  |  i,   W,  x , 1,     |  i,   W,  x , 1,  Y  |  i,   W,  x , 1,  Y
+	 *                   Z   |                   Z  |                      |                  [Z]
+	 *    x y z w
+	 *  X 3 1 0 1
+	 *  Y 1 1 0 1  Y.w = max(X.ch[W].n)
+	 *  Z 0 0 0 1  Z.w = W.w
+	 *  W 3   0 1  W.z = Z.z
 	 *  
-	 *    a b   d
-	 *  A 2 1 | 2
-	 *  B 1 1 | 1
-	 * [] ----+--
-	 *  D 2 1 | 0
+	 *  Z leaved, told X
+	 * X: syn_node           |  Y                   |  Z                   |  W
+	 * crud, s, sid, n, sub  | crud, s, sid, n, sub | crud, s, sid, n, sub | crud, s, sid, n, sub
+	 *  i,   X,  w , 3,  Z   |  i,   X,  w , 3,  Z  |  -    -  ---  -   -  |  i,   X,  w , 3,  Y
+	 *  d,   X,  z , 4,  Y   |                      |                      |
+	 *                   W   |                      |                      |
+	 *  i,   W,  x , 1,  Z   |  i,   W,  x , 1,  Z  |                      |  i,   W,  x , 1,  Y
+	 *  
+	 *    x y z w
+	 *  X 4 1[0]1   ++X.x
+	 *  Y 1 1 0 1
+	 *  ------+--
+	 *  W 3   0 1
+	 *  
 	 * </pre>
+	 * @throws SQLException 
+	 * @throws TransException 
 	 */
 	@Test
-	void testSynodeManage() {
+	void testSynodeManage() throws TransException, SQLException {
+		initSynodes();
+
+		join(X, W);
+		
+		c[X].change(C, c[X].synode, phm);
+		// i X  w  3
+		c[X].chgEnt(1, c[X].synode, c[W].synode, phm);
+		// Y, Z
+		c[X].subs(c[W].synode, -1, Y, Z, -1);
+		// And more ...
 	}
 	
+	void initSynodes() { }
+
+	void join(int admin, int apply) { }
+
 	void BvsA(int A, int B) throws TransException, SQLException {
 		// A pull B
 		sync(B, A);
 
 		// A push B
 		sync(A, B);
-
 	}
 
 	@SuppressWarnings("serial")
 	static void sync(int src, int dst) throws TransException, SQLException {
-		AnResultset ents = ((DBSyntext) trbs[src].instancontxt(conns[src], robot))
+		AnResultset ents = ((DBSyntext) trbs[src].instancontxt(conns[src], c[src].robot))
 			.entities(phm);
 		
 		while(ents.next()) {
 			// say, entA = trb.loadEntity(phm)
 			AnResultset subs = (AnResultset) trbs[src]
 					.select(chm.tbl, "ch")
-					.je("ch", sbm.tbl, "sb", chm.entFk, sbm.entId)
+					.je("ch", sbm.tbl, "sb", chm.entfk, sbm.entId)
 					.whereEq("ch", chm.entbl, phm.tbl)
 					.whereEq("sb", sbm.entbl, phm.tbl)
 					// compond Id
 					.whereEq(chm.synoder, c[src].synode)
-					.whereEq(chm.clientpath, ents.getString(phm.clientpath))
-					.whereEq(chm.clientpath2, ents.getString(phm.clientpath2))
-					.rs(trbs[src].instancontxt(conns[src], robot))
+					.whereEq(chm.clientpath, ents.getString(chm.clientpath))
+					.whereEq(chm.clientpath2, ents.getString(chm.clientpath2))
+					.rs(trbs[src].instancontxt(conns[src], c[src].robot))
 					.rs(0);
 
 			SynEntity entA = new SynEntity(ents, phm, chm, sbm);
 			String skip = entA.synode;
 			entA.format(ents)
 				// lock concurrency
-				.syncWith(conns[dst], trbs[dst], subs, new HashSet<String>() {{add(skip);}}, robot)
+				.syncWith(conns[dst], trbs[dst], subs, new HashSet<String>() {{add(skip);}}, c[dst].robot)
 				// unlock
 				;
 		}
 	}
 
-	void updatePoto0(String pid) throws TransException, SQLException {
-		trbs[0].update(phm.tbl, robot)
-			.nv(phm.clientpath, father)
+	void updatePoto(int s, String pid) throws TransException, SQLException {
+		trbs[s].update(phm.tbl, c[s].robot)
+			.nv(chm.clientpath, father)
 			.whereEq(chm.pk, pid)
-			.u(trbs[0].instancontxt(conns[X], robot))
+			.u(trbs[s].instancontxt(conns[X], c[s].robot))
 			;
 	}
 
 	String insertPhoto(int s) throws TransException, SQLException {
 		return ((SemanticObject) trbs[s]
-			.insert(phm.tbl, robot)
+			.insert(phm.tbl, c[s].robot)
 			.nv(phm.uri, "")
-			.nv(phm.clientpath, father)
-			.ins(trbs[0].instancontxt(conns[0], robot)))
+			.nv(chm.clientpath, father)
+			.ins(trbs[s].instancontxt(conns[s], c[s].robot)))
 			.resulve(phm.tbl, phm.pk);
 	}
 
 	public static class Ck {
+		public IUser robot;
 		public final String synode;
 		private final String connId;
 		private final DBSynsactBuilder trb;
@@ -415,34 +449,48 @@ class DBSyntextTest {
 			this.trb = trbs[s];
 			
 			synode = String.format("s%s", s);
+
+
+			SemanticObject jo = new SemanticObject();
+			jo.put("userId", "tester");
+			SemanticObject usrAct = new SemanticObject();
+			usrAct.put("funcId", "DBSyntextTest");
+			usrAct.put("funcName", "test ISemantext implementation");
+			jo.put("usrAct", usrAct);
+			robot = new LoggingUser(connId, "src/test/res/semantic-log.xml", "rob-" + s, jo);
+		}
+
+		public void chgEnt(int i, String synoder, String entId, SyntityMeta entm) {
+			// TODO Auto-generated method stub
+			
 		}
 
 		/**
-		 * Verify change record.
+		 * Verify change flag, crud, where tabl = entabl, entity-id = eid.
 		 * 
-		 * @param crud
-		 * @param eid
+		 * @param crud flag to be verified
+		 * @param eid  entity id
+		 * @param entm entity table meta
 		 * @throws TransException
 		 * @throws SQLException
 		 */
-		public void change(String crud, String eid) throws TransException, SQLException {
+		public void change(String crud, String eid, SyntityMeta entm) throws TransException, SQLException {
 			AnResultset chg = (AnResultset) trb
 				.select(chm.tbl, "ch")
 				.cols(chm.cols())
-				.whereEq(chm.recTabl, phm.tbl)
-				.whereEq(chm.pk, eid)
+				.whereEq(chm.entbl, entm.tbl)
+				.whereEq(chm.entfk, eid)
 				.rs(trb.instancontxt(connId, robot))
 				.rs(0);
 
 			chg.next();
 
 			assertEquals(C, chg.getString(chm.crud));
-			assertEquals(phm.tbl, chg.getString(chm.recTabl));
+			assertEquals(phm.tbl, chg.getString(chm.entbl));
 			assertEquals(robot.deviceId(), chg.getString(chm.synoder));
 		}
 
 		/**verify subscriptions.
-		 * @param conn 
 		 * @param pid
 		 * @param sub subscriptions for X/Y/Z/W, -1 if not exists
 		 * @throws SQLException 
@@ -458,9 +506,12 @@ class DBSyntextTest {
 
 			HashSet<String> synodes = subs.set(sbm.subs);
 			
+			int size = c.length;
 			for (int n : sub)
 				if (n >= 0)
 					assertIn(c[n].synode, synodes);
+				else size--;
+			assertEquals(size, len(synodes));
 		}
 
 		public Nyquence nyquence(int synode) {
