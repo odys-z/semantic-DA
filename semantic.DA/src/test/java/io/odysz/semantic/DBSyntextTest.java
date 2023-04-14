@@ -87,7 +87,7 @@ class DBSyntextTest {
 			SemanticObject jo = new SemanticObject();
 			jo.put("userId", "tester");
 			SemanticObject usrAct = new SemanticObject();
-			usrAct.put("funcId", "DASemantextTest");
+			usrAct.put("funcId", "DBSyntextTest");
 			usrAct.put("funcName", "test ISemantext implementation");
 			jo.put("usrAct", usrAct);
 			robot = new LoggingUser(conns[X], "src/test/res/semantic-log.xml", "tester", jo);
