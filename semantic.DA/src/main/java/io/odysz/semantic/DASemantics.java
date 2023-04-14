@@ -517,7 +517,8 @@ public class DASemantics {
 		else if (smtype.postFk == semantic)
 			handler = new ShPostFk(basicTsx, tabl, recId, args);
 		else if (smtype.extFile == semantic)
-			handler = new ShExtFile(basicTsx, tabl, recId, args);
+			throw new SemanticException("Since 1.5.0, smtype.extFile is replaced by extFilev2!");
+			// handler = new ShExtFile(basicTsx, tabl, recId, args);
 		else if (smtype.extFilev2 == semantic)
 			handler = new ShExtFilev2(basicTsx, tabl, recId, args);
 //		else if (smtype.stampByNode == semantic)
@@ -614,7 +615,7 @@ public class DASemantics {
 					handler.onDelete(semantx, stmt, whereCondt, usr);
 	}
 
-	public void onPost(DASemantext sx, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
+	public void onPost(ISemantext sx, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
 			Map<String, Integer> cols, IUser usr, ArrayList<String> sqlBuf) throws SemanticException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
@@ -675,7 +676,7 @@ public class DASemantics {
 				throws SemanticException {
 		}
 
-		void onPost(DASemantext sm, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
+		void onPost(ISemantext sm, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
 				Map<String, Integer> cols, IUser usr, ArrayList<String> sqlBuf) throws SemanticException {
 		}
 
@@ -1976,7 +1977,7 @@ public class DASemantics {
 		}
 
 		@Override
-		public void onPost(DASemantext stx, Statement<?> stmt, ArrayList<Object[]> row, Map<String, Integer> cols,
+		public void onPost(ISemantext stx, Statement<?> stmt, ArrayList<Object[]> row, Map<String, Integer> cols,
 				IUser usr, ArrayList<String> sqlBuff) throws SemanticException {
 			Object[] nv;
 			Object resulved = null;

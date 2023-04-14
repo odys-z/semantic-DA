@@ -75,4 +75,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		return new Nyquence(0);
 	}
 
+	public void addSynode(Synode synode) {
+	}
+
 }

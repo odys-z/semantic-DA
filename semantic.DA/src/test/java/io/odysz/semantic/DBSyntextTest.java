@@ -22,7 +22,7 @@ import io.odysz.common.Configs;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
-import io.odysz.semantic.meta.SynodesMeta;
+import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantics.IUser;
@@ -46,7 +46,7 @@ class DBSyntextTest {
 	static HashMap<String, DBSynmantics> synms;
 	static HashMap<String, TableMeta> metas;
 
-	static SynodesMeta snm;
+	static SynodeMeta snm;
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
 	static T_PhotoMeta phm;
@@ -382,7 +382,10 @@ class DBSyntextTest {
 	
 	void initSynodes() { }
 
-	void join(int admin, int apply) { }
+	void join(int admin, int apply) {
+		
+		c[admin].trb.addSynode(new Synode(c[apply].synode));
+	}
 
 	void BvsA(int A, int B) throws TransException, SQLException {
 		// A pull B

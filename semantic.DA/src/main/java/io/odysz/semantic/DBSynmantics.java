@@ -19,7 +19,6 @@ import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
-import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
@@ -35,7 +34,8 @@ public class DBSynmantics extends DASemantics {
 			throws SemanticException, SQLException {
 
 		if (smtype.synChange == semantic)
-			handlers.add(new ShStampByNode(basicTsx, tabl, recId, args));
+			// handlers.add(new ShStampByNode(basicTsx, tabl, recId, args));
+			handlers.add(new ShSynChange(basicTsx, tabl, recId, args));
 		else super.addHandler(semantic, tabl, recId, args);
 	}
 
@@ -43,32 +43,59 @@ public class DBSynmantics extends DASemantics {
 		super(basicTx, tabl, recId, verbose);
 	}
 
-	public void onInsert(DBSyntext dbSyntext, Insert insert, ArrayList<Object[]> row, Map<String, Integer> cols,
-			IUser usr) {
+	/*
+	@Override
+	public void onInsert(ISemantext dbSyntext, Insert insert,
+			ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+		super.onInsert(dbSyntext, insert, row, cols, usr);
 		
 	}
 
-	public void onUpdate(DBSyntext dbSyntext, Update update, ArrayList<Object[]> nvs, Map<String, Integer> cols,
-			IUser usr) {
-		// TODO Auto-generated method stub
-		
+	@Override
+	public void onUpdate(ISemantext dbSyntext, Update update,
+			ArrayList<Object[]> nvs, Map<String, Integer> cols, IUser usr) throws SemanticException {
+		super.onUpdate(dbSyntext, update, nvs, cols, usr);
 	}
 
-	public void onDelete(DBSyntext dbSyntext, Delete delete, Condit whereCondt, IUser usr) {
-		// TODO Auto-generated method stub
-		
+	@Override
+	public void onDelete(ISemantext dbSyntext, Statement<? extends Statement<?>> stmt, Condit whereCondt, IUser usr) throws SemanticException {
+		super.onDelete(dbSyntext, stmt, whereCondt, usr);
 	}
 
-	public void onPost(DBSyntext dbSyntext, Statement<?> stmt, ArrayList<Object[]> row, Map<String, Integer> cols,
-			IUser usr, ArrayList<String> sqls) {
-		// TODO Auto-generated method stub
-		
+	@Override
+	public void onPost(ISemantext dbSyntext, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
+			Map<String, Integer> cols, IUser usr, ArrayList<String> sqlBuf) throws SemanticException {
+		super.onPost(dbSyntext, stmt, row, cols, usr, sqlBuf);
 	}
+	*/
 	
+	public static class ShSynChange extends SemanticHandler {
+
+		ShSynChange(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
+			super(trxt, smtype.synChange, tabl, pk, args);
+		}
+
+		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+				throws SemanticException {
+		}
+
+		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+				throws SemanticException {
+			onInsert(stx, null, row, cols, usr);
+		}
+
+		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+				throws SemanticException {
+
+		}
+	}
+
 	/**
 	 * 
 	 * <p>args<br>
 	 * see {@link smtype#synChange}
+	 * 
+	 * @deprecated keep for awhile for tests passed
 	 * 
 	 * @author odys-z@github.com
 	 */
