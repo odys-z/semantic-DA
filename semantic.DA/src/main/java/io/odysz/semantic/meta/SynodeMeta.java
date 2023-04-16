@@ -10,6 +10,8 @@ public class SynodeMeta extends SyntityMeta {
 	static {
 		sqlite = "syn_node.sqlite.ddl";
 	}
+	
+	public final String org;
 
 	/**
 	 * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
@@ -18,5 +20,7 @@ public class SynodeMeta extends SyntityMeta {
 	 */
 	public SynodeMeta(String... conn) {
 		super("syn_node", "synid", conn);
+		
+		org = "org";
 	}
 }

@@ -127,7 +127,7 @@ public class Connects {
 				// columns="type,id,isdef,conn,usr,pswd,dbg"
 				dbtype type = parseDrvType(conn.getString("type"));
 				String id = conn.getString("id");
-				boolean log = conn.getBool("log", false);
+				// boolean log = conn.getBool("log", false);
 				if (dmCp == DmConn)
 					srcs.put(id, AbsConnect.initDmConnect(xmlDir, type, conn.getString("src"),
 						conn.getString("usr"), conn.getString("pswd"),

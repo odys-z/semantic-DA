@@ -222,21 +222,21 @@ public class DBSyntext implements ISemantext {
 
 	static Lock lockOflocks = new ReentrantLock();
 	/** [conn-id, [table, lock]]] */
-	private static HashMap<String, HashMap<String, Lock>> locks;
-	private static Lock getAutoseqLock(String conn, String tabl) {
-		lockOflocks.lock();
-		Lock l = null;
-		try {
-			if (locks == null)
-				locks = new HashMap<String, HashMap<String, Lock>>();
-			if (!locks.containsKey(conn))
-				locks.put(conn, new HashMap<String, Lock>());
-			if (!locks.get(conn).containsKey(tabl))
-				locks.get(conn).put(tabl, new ReentrantLock());
-			l = locks.get(conn).get(tabl);
-		} finally { lockOflocks.unlock(); }
-		return l;
-	}
+//	private static HashMap<String, HashMap<String, Lock>> locks;
+//	private static Lock getAutoseqLock(String conn, String tabl) {
+//		lockOflocks.lock();
+//		Lock l = null;
+//		try {
+//			if (locks == null)
+//				locks = new HashMap<String, HashMap<String, Lock>>();
+//			if (!locks.containsKey(conn))
+//				locks.put(conn, new HashMap<String, Lock>());
+//			if (!locks.get(conn).containsKey(tabl))
+//				locks.get(conn).put(tabl, new ReentrantLock());
+//			l = locks.get(conn).get(tabl);
+//		} finally { lockOflocks.unlock(); }
+//		return l;
+//	}
 	
 	@Override
 	public TableMeta tablType(String tabl) {

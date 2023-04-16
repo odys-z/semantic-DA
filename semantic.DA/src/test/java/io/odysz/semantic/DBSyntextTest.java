@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.Configs;
+import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
@@ -28,7 +29,6 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
-import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 class DBSyntextTest {
@@ -85,7 +85,9 @@ class DBSyntextTest {
 
 			sbm = new SynSubsMeta();
 			metas.put(sbm.tbl, sbm);
-		} catch (SemanticException | SQLException | SAXException | IOException e) {
+		} catch (TransException | SQLException | SAXException | IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 
@@ -368,7 +370,6 @@ class DBSyntextTest {
 	 */
 	@Test
 	void testSynodeManage() throws TransException, SQLException {
-		initSynodes();
 
 		join(X, W);
 		
@@ -380,11 +381,16 @@ class DBSyntextTest {
 		// And more ...
 	}
 	
-	void initSynodes() { }
+	static void initSynodes(int s) throws SQLException, TransException, ClassNotFoundException, IOException {
+		String sqls = Utils.loadTxt("");
+		Connects.commit(c[s].robot, sqls);
+	}
 
-	void join(int admin, int apply) {
-		
-		c[admin].trb.addSynode(new Synode(c[apply].synode));
+	void join(int admin, int apply) throws TransException, SQLException {
+		c[admin].trb.addSynode(
+				c[admin].connId,  // into admin's db
+				new Synode(c[apply].synode, c[admin].robot.orgId()),
+				c[admin].robot);
 	}
 
 	void BvsA(int A, int B) throws TransException, SQLException {
@@ -447,7 +453,7 @@ class DBSyntextTest {
 		private final String connId;
 		private final DBSynsactBuilder trb;
 
-		public Ck(int s) {
+		public Ck(int s) throws SQLException, TransException, ClassNotFoundException, IOException {
 			this.connId = conns[s];
 			this.trb = trbs[s];
 			
@@ -461,6 +467,9 @@ class DBSyntextTest {
 			usrAct.put("funcName", "test ISemantext implementation");
 			jo.put("usrAct", usrAct);
 			robot = new LoggingUser(connId, "src/test/res/semantic-log.xml", "rob-" + s, jo);
+			
+			
+			initSynodes(s);
 		}
 
 		public void chgEnt(int i, String synoder, String entId, SyntityMeta entm) {

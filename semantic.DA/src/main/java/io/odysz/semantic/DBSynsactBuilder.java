@@ -10,6 +10,7 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
+import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -19,6 +20,7 @@ import io.odysz.transact.x.TransException;
 
 public class DBSynsactBuilder extends DATranscxt {
 
+	protected SynodeMeta synm;
 	protected SynSubsMeta subm;
 	protected SyntityMeta entm;
 	protected SynChangeMeta chgm;
@@ -75,7 +77,9 @@ public class DBSynsactBuilder extends DATranscxt {
 		return new Nyquence(0);
 	}
 
-	public void addSynode(Synode synode) {
+	public void addSynode(String conn, Synode node, IUser robot) throws TransException, SQLException {
+		node.insert(synm, insert(synm.tbl, robot))
+			.ins(this.instancontxt(conn, robot));
 	}
 
 }
