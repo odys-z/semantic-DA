@@ -14,11 +14,13 @@ import org.xml.sax.SAXException;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
@@ -34,7 +36,6 @@ public class DBSynmantics extends DASemantics {
 			throws SemanticException, SQLException {
 
 		if (smtype.synChange == semantic)
-			// handlers.add(new ShStampByNode(basicTsx, tabl, recId, args));
 			handlers.add(new ShSynChange(basicTsx, tabl, recId, args));
 		else super.addHandler(semantic, tabl, recId, args);
 	}
@@ -42,41 +43,42 @@ public class DBSynmantics extends DASemantics {
 	public DBSynmantics(Transcxt basicTx, String tabl, String recId, boolean verbose) {
 		super(basicTx, tabl, recId, verbose);
 	}
-
-	/*
-	@Override
-	public void onInsert(ISemantext dbSyntext, Insert insert,
-			ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
-		super.onInsert(dbSyntext, insert, row, cols, usr);
-		
-	}
-
-	@Override
-	public void onUpdate(ISemantext dbSyntext, Update update,
-			ArrayList<Object[]> nvs, Map<String, Integer> cols, IUser usr) throws SemanticException {
-		super.onUpdate(dbSyntext, update, nvs, cols, usr);
-	}
-
-	@Override
-	public void onDelete(ISemantext dbSyntext, Statement<? extends Statement<?>> stmt, Condit whereCondt, IUser usr) throws SemanticException {
-		super.onDelete(dbSyntext, stmt, whereCondt, usr);
-	}
-
-	@Override
-	public void onPost(ISemantext dbSyntext, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
-			Map<String, Integer> cols, IUser usr, ArrayList<String> sqlBuf) throws SemanticException {
-		super.onPost(dbSyntext, stmt, row, cols, usr, sqlBuf);
-	}
-	*/
 	
 	public static class ShSynChange extends SemanticHandler {
+		static String apidoc = "TODO ...";
+		final SynChangeMeta chm;
+
+		Set<String> pkcols = new HashSet<String>();
 
 		ShSynChange(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.synChange, tabl, pk, args);
+			chm = new SynChangeMeta();
 		}
 
 		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
+
+			// args: pk,n pk2 ...,[col-value-on-del ...]
+			// args: pid,synoder clientpath,exif,uri "",clientpath
+			Object[] nv;
+			int cnt = 0;
+			Delete del = null;
+			for (String c : cols.keySet()) {
+				if (pkcols.contains(c)) {
+					cnt++;
+					if (del == null)
+						del = stx.tr.delete(chm.tbl, usr);
+					del.whereEq(c, cols.get(c));
+				}
+			}
+			if (cnt > 0 && cnt < pkcols.size())
+				// TODO doc
+				throw new SemanticException("All cols' values are needed to log syn-change. See javadoc: %s",
+						apidoc);
+			else if (cnt > 0)
+				insrt.post(del);
+
+			Object v = stx.resulvedVal(args[1], args[2]);
 		}
 
 		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)

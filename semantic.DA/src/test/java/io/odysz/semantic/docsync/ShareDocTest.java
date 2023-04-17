@@ -16,8 +16,6 @@ import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DBSynsactBuilder;
 import io.odysz.semantic.DBSyntextTest;
-import io.odysz.semantic.DBSyntextTest.Ck;
-import io.odysz.semantic.DocUtils;
 import io.odysz.semantic.T_PhotoMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
@@ -67,9 +65,8 @@ public class ShareDocTest {
 		String pid = createPhoto(kyiv.conn, photo, kyiv.robot, new T_PhotoMeta(trb.getSysConnId()));
 
 		// 2.1 verify the sharing tasks been created
-		Ck c3 = new DBSyntextTest.Ck(anDevice.conn, trb, anDevice.worker, anDevice.userId);
-		c3.change(C, pid, phm);
-		c3.subs(pid, kyiv.nodeId, kharkiv.nodeId);
+		anDevice.ck.change(C, pid, phm);
+		anDevice.ck.subs(pid, kyiv.nodeId, kharkiv.nodeId);
 
 		// 2.2 device vs kyiv
 		DBSyntextTest.sync(anDevice.sid, kyiv.sid);
@@ -84,7 +81,7 @@ public class ShareDocTest {
 		kharkiv.ck.subs(pids.get(0), -1);
 
 		// 3.2 verify files
-		kharkiv.ck.verifile(anDevice.nodeId, anDevice.png);
+		kharkiv.ck.verifile(anDevice.nodeId, anDevice.png, phm);
 	}
 
 	/**

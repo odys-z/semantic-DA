@@ -30,7 +30,7 @@
   		<smtcs>synmantics.xml</smtcs>
   	</c>
   	
-  	<!-- 
+  	<!-- connection examples 
 	<c>
   		<id>local-mysql</id>
   		<type>mysql</type>
@@ -53,6 +53,15 @@
   		<smtcs>src/test/res/semantics.xml</smtcs>
 	</c> -->
 
+	<c>
+		<id>syn-0</id>
+  		<type>sqlite</type>
+  		<isdef></isdef>
+  		<src>syn-0.db</src>
+  		<usr></usr>
+  		<pswd></pswd>
+  		<smtcs>src/test/res/synmantics.xml</smtcs>
+	</c>
   </t>
 
   <!-- NOTE: dbcp configuration shouldn't work because you don't have container providing the connections.

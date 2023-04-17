@@ -1,4 +1,4 @@
-package io.odysz.semantic;
+package io.odysz.semantic.docsync;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -9,8 +9,6 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.docsync.T_DocTableMeta;
-import io.odysz.semantic.docsync.T_SyncDoc;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
@@ -36,13 +34,13 @@ public class DocUtils {
 	 * @param usr
 	 * @param meta 
 	 * @param st 
-	 * @param onFileCreateSql 
+	 * @param onDocreate post statement to be committed when doc created
 	 * @return doc id, e.g. pid
 	 * @throws TransException
 	 * @throws SQLException
 	 * @throws IOException
 	 */
-	public static String createFileB64(String conn, T_SyncDoc photo, IUser usr, T_DocTableMeta meta, DATranscxt st, Update onFileCreateSql)
+	public static String createFileB64(String conn, T_SyncDoc photo, IUser usr, T_DocTableMeta meta, DATranscxt st, Update onDocreate)
 			throws TransException, SQLException, IOException {
 		if (LangExt.isblank(photo.clientpath))
 			throw new SemanticException("Client path can't be null/empty.");
@@ -67,8 +65,8 @@ public class DocUtils {
 		// add a synchronizing task
 		// - also triggered as private storage jserv, but no statement will be added
 		/// Docsyncer.onDocreate(ins, photo, photoMeta.tbl, usr);
-		if (onFileCreateSql != null)
-			ins.post(onFileCreateSql);
+		if (onDocreate != null)
+			ins.post(onDocreate);
 
 		ISemantext insCtx = st.instancontxt(conn, usr);
 		SemanticObject res = (SemanticObject) ins.ins(insCtx);
