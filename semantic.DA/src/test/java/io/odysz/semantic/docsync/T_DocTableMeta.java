@@ -1,5 +1,6 @@
-package io.odysz.semantic;
+package io.odysz.semantic.docsync;
 
+import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.meta.TableMeta;
 
 /**
@@ -10,7 +11,7 @@ import io.odysz.semantics.meta.TableMeta;
  *
  * @author odys-z@github.com
  */
-public class T_DocTableMeta extends TableMeta {
+public class T_DocTableMeta extends SyntityMeta {
 	/**
 	 * consts of share type: pub | priv 
 	 */
@@ -46,7 +47,6 @@ public class T_DocTableMeta extends TableMeta {
 	 */
 	public final String uri;
 	public final String createDate;
-	public final String mime;
 	public final String shareDate;
 	public final String shareby;
 	public final String org;
@@ -66,7 +66,6 @@ public class T_DocTableMeta extends TableMeta {
 		folder = "folder";
 		createDate = "pdate";
 		org = "family";
-		mime = "mime";
 		size = "filesize";
 		synoder = "device";
 		fullpath = "clientpath";

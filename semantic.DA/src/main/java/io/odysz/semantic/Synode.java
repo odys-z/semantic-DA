@@ -4,7 +4,6 @@ import static io.odysz.common.LangExt.isNull;
 
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.transact.sql.Insert;
-import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.x.TransException;
 
 public class Synode extends SynEntity {

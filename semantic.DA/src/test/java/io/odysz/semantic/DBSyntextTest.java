@@ -1,9 +1,8 @@
 package io.odysz.semantic;
 
-import static io.odysz.common.LangExt.*;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
-import static io.odysz.semantic.CRUD.C;
+import static io.odysz.semantic.CRUD.*;
 import static io.odysz.semantic.util.Assert.assertIn;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -31,7 +30,7 @@ import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.x.TransException;
 
-class DBSyntextTest {
+public class DBSyntextTest {
 	public static final String[] conns = new String[4];
 	public static final String rtroot = "src/test/res/";
 
@@ -42,7 +41,9 @@ class DBSyntextTest {
 	public static final int W = 3;
 	static String runtimepath;
 
-	static DBSynsactBuilder trbs[];
+	public static Ck[] c;
+	public static DBSynsactBuilder trbs[];
+
 	static HashMap<String, DBSynmantics> synms;
 	static HashMap<String, TableMeta> metas;
 
@@ -50,8 +51,6 @@ class DBSyntextTest {
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
 	static T_PhotoMeta phm;
-
-	static Ck[] c;
 
 	static {
 		try {
@@ -77,7 +76,7 @@ class DBSyntextTest {
 			}
 			metas = Connects.getMeta(conns[0]);
 
-			phm = new T_PhotoMeta();
+			phm = new T_PhotoMeta(conns[0]);
 			metas.put(phm.tbl, phm);
 
 			chm = new SynChangeMeta();
@@ -375,7 +374,7 @@ class DBSyntextTest {
 		
 		c[X].change(C, c[X].synode, phm);
 		// i X  w  3
-		c[X].chgEnt(1, c[X].synode, c[W].synode, phm);
+		c[X].chgEnt(C, c[X].synode, c[W].synode, phm);
 		// Y, Z
 		c[X].subs(c[W].synode, -1, Y, Z, -1);
 		// And more ...
@@ -402,6 +401,7 @@ class DBSyntextTest {
 	}
 
 	@SuppressWarnings("serial")
+	public
 	static void sync(int src, int dst) throws TransException, SQLException {
 		AnResultset ents = ((DBSyntext) trbs[src].instancontxt(conns[src], c[src].robot))
 			.entities(phm);
@@ -454,10 +454,16 @@ class DBSyntextTest {
 		private final DBSynsactBuilder trb;
 
 		public Ck(int s) throws SQLException, TransException, ClassNotFoundException, IOException {
-			this.connId = conns[s];
-			this.trb = trbs[s];
+			this(conns[s], trbs[s], String.format("s%s", s), "rob-" + s);
+			initSynodes(s);
+		}
+
+		public Ck(String conn, DBSynsactBuilder trb, String synid, String uid)
+				throws SQLException, TransException, ClassNotFoundException, IOException {
+			this.connId = conn;
+			this.trb = trb;
 			
-			synode = String.format("s%s", s);
+			synode = synid;
 
 
 			SemanticObject jo = new SemanticObject();
@@ -466,15 +472,18 @@ class DBSyntextTest {
 			usrAct.put("funcId", "DBSyntextTest");
 			usrAct.put("funcName", "test ISemantext implementation");
 			jo.put("usrAct", usrAct);
-			robot = new LoggingUser(connId, "src/test/res/semantic-log.xml", "rob-" + s, jo);
-			
-			
-			initSynodes(s);
+			robot = new LoggingUser(connId, "src/test/res/semantic-log.xml", uid, jo);
 		}
 
-		public void chgEnt(int i, String synoder, String entId, SyntityMeta entm) {
-			// TODO Auto-generated method stub
-			
+		/**
+		 * Verify entity's change log
+		 * 
+		 * @param crud
+		 * @param synoder
+		 * @param entId
+		 * @param entm
+		 */
+		public void chgEnt(String crud, String synoder, String entId, SyntityMeta entm) {
 		}
 
 		/**
@@ -509,25 +518,47 @@ class DBSyntextTest {
 		 * @throws TransException 
 		 */
 		public void subs(String pid, int ... sub) throws SQLException, TransException {
+			ArrayList<String> toIds = new ArrayList<String>();
+			for (int n : sub)
+				if (n >= 0)
+					toIds.add(c[n].synode);
+			subs(pid, (String[])toIds.toArray());
+		}
+
+		public void subs(String pid, String ... toIds) throws SQLException, TransException {
 			AnResultset subs = trb.subscripts(connId, pid, robot);
 
 			subs.next();
 
 			assertEquals(3, subs.getInt("cnt"));
 			assertEquals(phm.tbl, subs.getString(sbm.entbl));
-
+			
 			HashSet<String> synodes = subs.set(sbm.subs);
 			
 			int size = c.length;
-			for (int n : sub)
-				if (n >= 0)
-					assertIn(c[n].synode, synodes);
-				else size--;
-			assertEquals(size, len(synodes));
+			for (String n : toIds) {
+				assertIn(n, synodes);
+				size--;
+			}
+			assertEquals(0, size);
 		}
 
 		public Nyquence nyquence(int synode) {
 			return trbs[synode].nyquence(conns[synode]);
+		}
+
+		public ArrayList<String> entities(String nodeId, String png) {
+			ArrayList<String> ents = new ArrayList<String>();
+			return ents;
+		}
+
+		/**
+		 * Verify only and only one instance exists on this node.
+		 * 
+		 * @param synoder
+		 * @param clientpath
+		 */
+		public void verifile(String synoder, String clientpath) {
 		}
 	}
 
