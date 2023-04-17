@@ -1,7 +1,5 @@
 package io.odysz.semantic;
 
-// import static io.odysz.common.LangExt.isNull;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Set;
@@ -62,7 +60,7 @@ public class SynEntity extends Anson {
 	protected ArrayList<String[]> subs;
 
 	protected String synoder;
-	protected String nyquence;
+	protected Nyquence nyquence;
 	
 	public SynEntity(AnResultset rs, SyntityMeta entity, SynChangeMeta change, SynSubsMeta subs) throws SQLException {
 		this.entMeta = entity;
@@ -144,7 +142,7 @@ public class SynEntity extends Anson {
 		
 		if (ch.getString(chgMeta.synoder).equals(synoder)) {
 			// compare ch.n with s.nyq
-			int nc = Nyquence.compare64(nyquence, ch.getString(chgMeta.nyquence));
+			int nc = Nyquence.compare64(nyquence.n, ch.getLong(chgMeta.nyquence));
 			if (nc > 0) {
 				// write subs to conn.subm.tbl
 				// DESIGN NOTES: There is no R/D/E in subscriptions, that's an attribute of Doc sharing relationship 
