@@ -12,7 +12,7 @@ public class SynodeMeta extends SyntityMeta {
 	}
 	
 	public final String org;
-	public final String synodee;
+	public final String synode;
 	public final String entbl;
 	public final String inc;
 
@@ -26,7 +26,7 @@ public class SynodeMeta extends SyntityMeta {
 		
 		entbl = "tabl";
 		org = "org";
-		synodee = "synode";
+		synode = "synode";
 		
 		inc = "inc";
 	}

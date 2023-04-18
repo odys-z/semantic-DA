@@ -16,6 +16,7 @@ import org.xml.sax.SAXException;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantics.ISemantext;
@@ -49,13 +50,15 @@ public class DBSynmantics extends DASemantics {
 		static String apidoc = "TODO ...";
 		final SynChangeMeta chm;
 		final SynodeMeta sym;
+		final SynSubsMeta sbm;
 
 		Set<String> pkcols = new HashSet<String>();
+		Set<String> subpks = new HashSet<String>();
 
 		protected DBSynsactBuilder syb;
 
 		/** Ultra high frequency mode, the data frequency need to be reduced with some cost */
-		protected boolean UHF;
+		protected final boolean UHF;
 
 		ShSynChange(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.synChange, tabl, pk, args);
@@ -67,6 +70,8 @@ public class DBSynmantics extends DASemantics {
 
 			sym = new SynodeMeta();
 			chm = new SynChangeMeta();
+			sbm = new SynSubsMeta();
+			UHF = true;
 		}
 
 		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
@@ -95,33 +100,37 @@ public class DBSynmantics extends DASemantics {
 			Delete del = null;
 			Insert insChg = syb.insert(chm.tbl, usr);
 
-			String v = (String) stx.resulvedVal(args[1], args[2]);
+			String pid = (String) stx.resulvedVal(args[1], args[2]);
 			String synoder = (String) row.get(cols.get(chm.synoder))[1];
 			try {
 				insChg.select(syb
 						.select(sym.tbl, "s")
-						.col(v, chm.entfk)
+						.col(pid, chm.entfk)
 						.col(CRUD.C, chm.crud)
 						.col(UHF ? add(sym.nyquence, sym.inc) : add(sym.nyquence, 1), chm.nyquence)
 						.whereEq(sym.entbl, target)
-						.whereEq(sym.synoder, synoder)
-						);
+						.whereEq(sym.synoder, synoder));
+
 				// and insert subscriptions, or merge syn_change & syn_subscribe?
-				// ...
+				Insert insubs = syb.insert(sbm.tbl)
+						.select(syb
+							.select(sym.tbl, args)
+							.col(sym.synode)
+							.whereEq(sbm.org, usr.orgId())
+							.whereEq(sbm.entbl, target)
+							.whereEq(sbm.entId, pid));
+
+				Delete delSb = syb.delete(sbm.tbl);
+				int c = formatSubsWhere(delSb, subpks, cols, usr);
+				if (c > 0)
+					insChg.post(delSb.post(insubs));
+				else insChg.post(insubs);
 			} catch (TransException e) {
 				e.printStackTrace();
 				throw new SemanticException(e.getMessage());
 			}
 
-			int cnt = 0;
-			for (String c : cols.keySet()) {
-				if (pkcols.contains(c)) {
-					cnt++;
-					if (del == null)
-						del = syb.delete(chm.tbl, usr);
-					del.whereEq(c, cols.get(c));
-				}
-			}
+			int cnt = formatChangeWhere(del, pkcols, cols, row, usr);
 
 			if (cnt > 0 && cnt < pkcols.size())
 				// TODO doc
@@ -135,20 +144,43 @@ public class DBSynmantics extends DASemantics {
 			
 			if (this.UHF)
 				stmt.post(clearInc(synoder, usr));
+			else stmt.post(inc(synoder, usr));
+
 			return stmt;
 		}
 
-		private Update clearInc(String synid, IUser usr) throws SemanticException {
-			try {
-				return syb.update(sym.tbl, usr)
-					.nv(sym.nyquence, add(sym.nyquence, sym.inc))
-					.nv(sym.inc, 0)
-					.whereEq(sym.synoder, synid)
-					.whereEq(sym.entbl, target);
-			} catch (TransException e) {
-				e.printStackTrace();
-				throw new SemanticException(e.getMessage());
+		private int formatSubsWhere(Delete delSb, Set<String> subpks2,
+				Map<String, Integer> cols, IUser usr) {
+			return 0;
+		}
+
+		private int formatChangeWhere(Delete del, Set<String> pkcols,
+				Map<String, Integer> cols, ArrayList<Object[]> row, IUser usr) {
+			int cnt = 0;
+			for (String c : cols.keySet()) {
+				if (pkcols.contains(c)) {
+					cnt++;
+					if (del == null)
+						del = syb.delete(chm.tbl, usr);
+					del.whereEq(c, row.get(cols.get(c))[1]);
+				}
 			}
+			return cnt;
+		}
+
+		private Statement<?> inc(String synid, IUser usr) {
+			return syb.update(sym.tbl, usr)
+				.nv(sym.nyquence, add(sym.nyquence, 1))
+				.whereEq(sym.synoder, synid)
+				.whereEq(sym.entbl, target);
+		}
+
+		private Update clearInc(String synid, IUser usr) {
+			return syb.update(sym.tbl, usr)
+				.nv(sym.nyquence, add(sym.nyquence, sym.inc))
+				.nv(sym.inc, 0)
+				.whereEq(sym.synoder, synid)
+				.whereEq(sym.entbl, target);
 		}
 
 		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)

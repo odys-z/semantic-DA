@@ -16,6 +16,7 @@ import io.odysz.semantics.meta.TableMeta;
  */
 public class SynSubsMeta extends TableMeta {
 
+	public final String org;
 	public final String subs;
 	public final String entbl;
 	public final String entId;
@@ -27,6 +28,7 @@ public class SynSubsMeta extends TableMeta {
 
 	public SynSubsMeta(String ... conn) {
 		super("syn_subscribe", conn);
+		this.org = "org";
 		this.subs = "synodee";
 		this.entbl = "tabl";
 		this.entId = "recId";
