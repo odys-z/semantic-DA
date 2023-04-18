@@ -157,7 +157,6 @@ public class DASemantics {
 	 * <b>13.{@link #extFilev2}</b><br>
 	 * <b>14. {@link #synChange}</b><br>
 	 * <b>15.{@link #composingCol} TODO</b><br>
-	 * <b>16.{@link #orclob} TODO</b><br>
 	 */
 	public enum smtype {
 		/**
@@ -368,6 +367,13 @@ public class DASemantics {
 		/**
 		 * xml/smtc = "syn-change" | "s-c" <br>
 		 * Logging table changes for DB synchronizing.
+		 * 
+		 * <p>
+		 * args<br> 
+		 * 0: pk field (pk for local table)<br>
+		 * 1: global identity fields, separated with space, e.g. "synoder clientpath"<br>
+		 * 2: fields to be cleared (optional with empty value), separated with space<br>
+		 * </p>
 		 */
 		synChange,
 
@@ -376,26 +382,7 @@ public class DASemantics {
 		 * columns;<br>
 		 * TODO
 		 */
-		composingCol,
-
-		/**
-		 * TODO
-		 * "s-up1" | "stamp-up1": add 1 more second to down-stamp column and save to
-		 * up-stamp<br>
-		 * UpdateBatch supporting:<br>
-		 * on inserting, up-stamp is the value of increased down stamp, or current time
-		 * if it's not usable;<br>
-		 * on updating, up-stamp is set as down stamp increased if down stamp value not
-		 * presented in sql, or, up stamp will be ignored if down stamp presented. (use
-		 * case of down stamp updating by synchronizer).<br>
-		 */
-		// stamp1MoreThanRefee,
-		/**
-		 * "clob" | "orclob": the column is a CLOB field, semantic-transact will
-		 * read/write separately in stream and get final results.<br>
-		 * Handler: TODO?
-		orclob
-		 */
+		composingCol
 		;
 
 		/**

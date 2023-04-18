@@ -43,32 +43,6 @@ public class DBSynmantics extends DASemantics {
 		super(basicTx, tabl, recId, verbose);
 	}
 
-	/*
-	@Override
-	public void onInsert(ISemantext dbSyntext, Insert insert,
-			ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
-		super.onInsert(dbSyntext, insert, row, cols, usr);
-		
-	}
-
-	@Override
-	public void onUpdate(ISemantext dbSyntext, Update update,
-			ArrayList<Object[]> nvs, Map<String, Integer> cols, IUser usr) throws SemanticException {
-		super.onUpdate(dbSyntext, update, nvs, cols, usr);
-	}
-
-	@Override
-	public void onDelete(ISemantext dbSyntext, Statement<? extends Statement<?>> stmt, Condit whereCondt, IUser usr) throws SemanticException {
-		super.onDelete(dbSyntext, stmt, whereCondt, usr);
-	}
-
-	@Override
-	public void onPost(ISemantext dbSyntext, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
-			Map<String, Integer> cols, IUser usr, ArrayList<String> sqlBuf) throws SemanticException {
-		super.onPost(dbSyntext, stmt, row, cols, usr, sqlBuf);
-	}
-	*/
-	
 	public static class ShSynChange extends SemanticHandler {
 
 		ShSynChange(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {

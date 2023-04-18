@@ -6,7 +6,7 @@ public class Nyquence {
 	 * 
 	 * <pre>
 	 * -128           0            127
-	 *                  a  b
+	 *                a  b
 	 *     a             b
 	 *     b                    a             a - b < 0
 	 * </pre>
