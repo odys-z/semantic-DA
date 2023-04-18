@@ -12,6 +12,7 @@ public abstract class SyntityMeta extends TableMeta {
 
 	public final String synoder;
 	public final String clientpath;
+	public final String nyquence;
 	
 	public SyntityMeta(String tbl, String pk, String... conn) {
 		super(tbl, conn);
@@ -20,5 +21,6 @@ public abstract class SyntityMeta extends TableMeta {
 		
 		synoder = "synoder";
 		clientpath = "clientpath";
+		nyquence = "nyquence";
 	}
 }

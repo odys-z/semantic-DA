@@ -3,7 +3,9 @@ CREATE TABLE syn_node (
 	synid     varchar2(64) NOT NULL,-- user input
 	org       varchar2(12) NOT NULL,
 	mac       varchar2(256),        -- if possible
-	snycstamp datetime,             -- timestamp for last successfully synchronizing (both up & down). So each time will merge records between last-stamp & got-stamp (now - 1s)
+	snycstamp datetime,             -- timestamp for last successfully synchronizing (both up & down).
+	                                -- Each time will merge records between last-stamp & got-stamp (now - 1s)
+	nyquence  long,
 	remarks   varchar2(256),        -- empty?
 	up        datetime,             -- last bring up time
 	os        varchar2(256),        -- android, browser, etc.

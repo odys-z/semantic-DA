@@ -16,6 +16,7 @@ public class SynChangeMeta extends TableMeta {
 	public final String clientpath2;
 	public final String crud;
 	public final String synoder;
+	public final String subscribe;
 	public final String nyquence;
 
 	
@@ -32,6 +33,7 @@ public class SynChangeMeta extends TableMeta {
 		clientpath2 = "clientpath2";
 		crud = "crud";
 		synoder = "synoder";
+		subscribe = "subs";
 		nyquence = "nyquence";
 	}
 

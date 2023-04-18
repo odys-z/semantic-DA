@@ -1,6 +1,7 @@
 package io.odysz.semantic;
 
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.transact.sql.parts.condition.Funcall.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -15,6 +16,7 @@ import org.xml.sax.SAXException;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -27,7 +29,6 @@ import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.Statement.IPostOptn;
 import io.odysz.transact.sql.parts.condition.Condit;
-import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 public class DBSynmantics extends DASemantics {
@@ -47,43 +48,107 @@ public class DBSynmantics extends DASemantics {
 	public static class ShSynChange extends SemanticHandler {
 		static String apidoc = "TODO ...";
 		final SynChangeMeta chm;
+		final SynodeMeta sym;
 
 		Set<String> pkcols = new HashSet<String>();
 
+		protected DBSynsactBuilder syb;
+
+		/** Ultra high frequency mode, the data frequency need to be reduced with some cost */
+		protected boolean UHF;
+
 		ShSynChange(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.synChange, tabl, pk, args);
+			if (trxt instanceof DBSynsactBuilder)
+				// builder
+				syb = (DBSynsactBuilder) trxt;
+			else
+				throw new SemanticException("ShSynChange (xml/smtype=s-c) requires instance of DBSynsactBuilder as default builder.");
+
+			sym = new SynodeMeta();
 			chm = new SynChangeMeta();
 		}
 
 		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 
-			// args: pk,n pk2 ...,[col-value-on-del ...]
-			// args: pid,synoder clientpath,exif,uri "",clientpath
-			Object[] nv;
-			int cnt = 0;
-			Delete del = null;
-			for (String c : cols.keySet()) {
-				if (pkcols.contains(c)) {
-					cnt++;
-					if (del == null)
-						del = stx.tr.delete(chm.tbl, usr);
-					del.whereEq(c, cols.get(c));
-				}
-			}
-			if (cnt > 0 && cnt < pkcols.size())
-				// TODO doc
-				throw new SemanticException("All cols' values are needed to log syn-change. See javadoc: %s",
-						apidoc);
-			else if (cnt > 0)
-				insrt.post(del);
+			setFlag(CRUD.C, stx, insrt, row, cols, usr)
+				.logChange(stx, insrt, row, cols, usr);
+		}
 
-			Object v = stx.resulvedVal(args[1], args[2]);
+		private ShSynChange setFlag(String crud, ISemantext stx, Insert insrt, ArrayList<Object[]> row,
+				Map<String, Integer> cols, IUser usr) {
+			// phm.tbl.flag = crud
+			return this;
 		}
 
 		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
-			onInsert(stx, null, row, cols, usr);
+			updt = (Update) logChange(stx, updt, row, cols, usr);
+		}
+
+		private <T extends Statement<?>> T logChange(ISemantext stx, T stmt,
+				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+
+			// args: pk,n pk2 ...,[col-value-on-del ...]
+			// args: pid,synoder clientpath,exif,uri "",clientpath
+			Delete del = null;
+			Insert insChg = syb.insert(chm.tbl, usr);
+
+			String v = (String) stx.resulvedVal(args[1], args[2]);
+			String synoder = (String) row.get(cols.get(chm.synoder))[1];
+			try {
+				insChg.select(syb
+						.select(sym.tbl, "s")
+						.col(v, chm.entfk)
+						.col(CRUD.C, chm.crud)
+						.col(UHF ? add(sym.nyquence, sym.inc) : add(sym.nyquence, 1), chm.nyquence)
+						.whereEq(sym.entbl, target)
+						.whereEq(sym.synoder, synoder)
+						);
+				// and insert subscriptions, or merge syn_change & syn_subscribe?
+				// ...
+			} catch (TransException e) {
+				e.printStackTrace();
+				throw new SemanticException(e.getMessage());
+			}
+
+			int cnt = 0;
+			for (String c : cols.keySet()) {
+				if (pkcols.contains(c)) {
+					cnt++;
+					if (del == null)
+						del = syb.delete(chm.tbl, usr);
+					del.whereEq(c, cols.get(c));
+				}
+			}
+
+			if (cnt > 0 && cnt < pkcols.size())
+				// TODO doc
+				throw new SemanticException("To update a synchronized table, all cols' values for identifying a global record are needed to generate syn-change log.\n"
+						+ "Columns in field values recieved are: %s\n"
+						+ "For how to configue See javadoc: %s",
+						cols.keySet().toString(), apidoc);
+			else if (cnt > 0)
+				stmt.post(del.post(insChg));
+			else stmt.post(insChg);
+			
+			if (this.UHF)
+				stmt.post(clearInc(synoder, usr));
+			return stmt;
+		}
+
+		private Update clearInc(String synid, IUser usr) throws SemanticException {
+			try {
+				return syb.update(sym.tbl, usr)
+					.nv(sym.nyquence, add(sym.nyquence, sym.inc))
+					.nv(sym.inc, 0)
+					.whereEq(sym.synoder, synid)
+					.whereEq(sym.entbl, target);
+			} catch (TransException e) {
+				e.printStackTrace();
+				throw new SemanticException(e.getMessage());
+			}
 		}
 
 		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
@@ -195,7 +260,7 @@ public class DBSynmantics extends DASemantics {
 							.whereEq(args[ixSynode], usr.deviceId());
 						
 						if (ixStamp <= args.length && !isblank(args[ixStamp]))
-							u.nv(args[ixStamp], Funcall.now());
+							u.nv(args[ixStamp], now());
 						u.u(ctx);
 						return null;
 					}
@@ -210,7 +275,7 @@ public class DBSynmantics extends DASemantics {
 							.nv(args[ixSynode], usr.deviceId());
 						
 						if (ixStamp <= args.length && !isblank(args[ixStamp]))
-							i.nv(args[ixStamp], Funcall.now());
+							i.nv(args[ixStamp], now());
 						i.ins(shSt.instancontxt(conn, usr));
 						
 						return null;
@@ -246,7 +311,7 @@ public class DBSynmantics extends DASemantics {
 						.whereEq(args[ixSynode], usr.deviceId());
 					
 					if (ixStamp <= args.length && !isblank(args[ixStamp]))
-						u.nv(args[ixStamp], Funcall.now());
+						u.nv(args[ixStamp], now());
 						
 					u.u(shSt.instancontxt(conn, usr));
 					return null;
