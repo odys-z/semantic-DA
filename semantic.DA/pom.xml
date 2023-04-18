@@ -49,6 +49,14 @@
 	    <scope>test</scope>
     </dependency>
 
+	<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+	<dependency>
+		<groupId>commons-io</groupId>
+		<artifactId>commons-io</artifactId>
+		<version>[2.11.0,)</version>
+	    <scope>test</scope>
+	</dependency>
+
 	<dependency>
 		<!-- As sonatype SNAPSHOT is updating on a daily base, you may update this with:
 			mvn clean package -U

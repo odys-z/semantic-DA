@@ -1,13 +1,9 @@
 package io.odysz.semantic.docsync;
 
 import io.odysz.semantic.meta.SyntityMeta;
-import io.odysz.semantics.meta.TableMeta;
 
 /**
- * Document records' table meta.
- * <p>For Docsync.jserv, this meta is used for both client and server side.
- * But the client should never use it as a parameter of API - only use a
- * parameter of table name for specifying how the server should handle it.</p>
+ * Document entity table meta.
  *
  * @author odys-z@github.com
  */

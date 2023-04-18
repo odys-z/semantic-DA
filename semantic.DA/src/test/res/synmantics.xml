@@ -32,7 +32,15 @@
   		<smtc>syn-change</smtc>
   		<tabl>h_photos</tabl>
   		<pk>pid</pk>
-  		<args></args>
+  		<args>synode</args>
+  	</s>
+
+  	<s>
+  		<id>11</id>
+  		<smtc>syn-change</smtc>
+  		<tabl>syn_node</tabl>
+  		<pk>synid</pk>
+  		<args>synoder</args>
   	</s>
 
   </t>

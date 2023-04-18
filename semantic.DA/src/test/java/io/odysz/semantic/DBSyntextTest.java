@@ -553,12 +553,12 @@ public class DBSyntextTest {
 		}
 
 		/**
-		 * Verify only and only one instance exists on this node.
+		 * Verify if and if only one instance exists on this node.
 		 * 
 		 * @param synoder
 		 * @param clientpath
 		 */
-		public void verifile(String synoder, String clientpath) {
+		public void verifile(String synoder, String clientpath, T_PhotoMeta phm) {
 		}
 	}
 
