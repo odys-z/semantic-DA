@@ -1,4 +1,4 @@
-package io.odysz.semantic.docsync;
+package io.odysz.semantic.syn;
 
 import java.io.IOException;
 import java.sql.SQLException;

@@ -1,4 +1,4 @@
-package io.odysz.semantic.docsync;
+package io.odysz.semantic.syn;
 
 import io.odysz.anson.Anson;
 

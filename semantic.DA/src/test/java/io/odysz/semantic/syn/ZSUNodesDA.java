@@ -1,4 +1,4 @@
-package io.odysz.semantic.docsync;
+package io.odysz.semantic.syn;
 
 import io.odysz.semantic.DBSyntextTest;
 import io.odysz.semantic.DBSyntextTest.Ck;

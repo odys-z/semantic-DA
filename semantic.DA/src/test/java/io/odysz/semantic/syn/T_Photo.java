@@ -1,4 +1,4 @@
-package io.odysz.semantic.docsync;
+package io.odysz.semantic.syn;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,10 +13,10 @@ import java.util.stream.Collectors;
 import io.odysz.common.AESHelper;
 import io.odysz.common.DateFormat;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.syn.T_DocTableMeta.Share;
 import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
-import io.odysz.semantic.docsync.T_DocTableMeta.Share;
 
 import static io.odysz.common.LangExt.isblank;
 /**

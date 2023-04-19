@@ -1,4 +1,4 @@
-package io.odysz.semantic.DBSync;
+package io.odysz.semantic.syn;
 
 import java.sql.SQLException;
 import java.util.ArrayList;

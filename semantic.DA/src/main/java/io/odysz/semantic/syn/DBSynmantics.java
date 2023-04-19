@@ -1,4 +1,4 @@
-package io.odysz.semantic.DBSync;
+package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.transact.sql.parts.condition.Funcall.*;

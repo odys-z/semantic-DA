@@ -1,3 +1,4 @@
+package io.odysz.semantic.syn;
 //package io.odysz.semantic.docsync;
 //
 //public class DBSyncher {

@@ -1,7 +1,7 @@
-package io.odysz.semantic.docsync;
+package io.odysz.semantic.syn;
 
-import static io.odysz.semantic.DBSync.CRUD.*;
-import static io.odysz.semantic.docsync.ZSUNodesDA.*;
+import static io.odysz.semantic.syn.CRUD.*;
+import static io.odysz.semantic.syn.ZSUNodesDA.*;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -13,13 +13,13 @@ import org.xml.sax.SAXException;
 
 import io.odysz.anson.x.AnsonException;
 import io.odysz.semantic.DASemantics.smtype;
-import io.odysz.semantic.DBSync.DBSynsactBuilder;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DBSyntextTest;
 import io.odysz.semantic.T_PhotoMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
+import io.odysz.semantic.syn.DBSynsactBuilder;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Update;

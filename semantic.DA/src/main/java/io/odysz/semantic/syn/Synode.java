@@ -1,4 +1,4 @@
-package io.odysz.semantic.DBSync;
+package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.isNull;
 
@@ -7,7 +7,8 @@ import io.odysz.transact.sql.Insert;
 import io.odysz.transact.x.TransException;
 
 /**
- * @deprecated
+ * <b>Design Note</b>
+ * <p>An entity type for used in the protocol layer.</p>
  * 
  * @author odys-z@github.com
  *
