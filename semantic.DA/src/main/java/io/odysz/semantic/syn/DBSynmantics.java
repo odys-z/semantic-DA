@@ -1,7 +1,9 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.common.LangExt.isblank;
-import static io.odysz.transact.sql.parts.condition.Funcall.*;
+import static io.odysz.common.LangExt.*;
+import static io.odysz.transact.sql.parts.condition.Funcall.add;
+import static io.odysz.transact.sql.parts.condition.Funcall.now;
+import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -20,8 +22,6 @@ import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
-import io.odysz.semantic.DASemantics.SemanticHandler;
-import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.meta.TableMeta;
@@ -29,10 +29,12 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Statement;
+import io.odysz.transact.sql.Statement.IPostOptn;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
-import io.odysz.transact.sql.Statement.IPostOptn;
+import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.condition.Condit;
+import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.x.TransException;
 
 public class DBSynmantics extends DASemantics {
@@ -52,16 +54,18 @@ public class DBSynmantics extends DASemantics {
 	public static class ShSynChange extends SemanticHandler {
 		static String apidoc = "TODO ...";
 		final SynChangeMeta chm;
-		final SynodeMeta sym;
+		final SynodeMeta snm;
 		final SynSubsMeta sbm;
 
-		Set<String> pkcols = new HashSet<String>();
-		Set<String> subpks = new HashSet<String>();
+		/** compound (global) ids of entity table */
+		Set<String> glbpks = new HashSet<String>();
+		// Set<String> subpks = new HashSet<String>();
 
 		protected DBSynsactBuilder syb;
 
 		/** Ultra high frequency mode, the data frequency need to be reduced with some cost */
 		protected final boolean UHF;
+		private String entflag;
 
 		ShSynChange(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.synChange, tabl, pk, args);
@@ -69,9 +73,9 @@ public class DBSynmantics extends DASemantics {
 				// builder
 				syb = (DBSynsactBuilder) trxt;
 			else
-				throw new SemanticException("ShSynChange (xml/smtype=s-c) requires instance of DBSynsactBuilder as default builder.");
+				throw new SemanticException("ShSynChange (xml/smtype=s-c) requires instance of DBSynsactBuilder as the default builder.");
 
-			sym = new SynodeMeta();
+			snm = new SynodeMeta();
 			chm = new SynChangeMeta();
 			sbm = new SynSubsMeta();
 			UHF = true;
@@ -79,71 +83,95 @@ public class DBSynmantics extends DASemantics {
 
 		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
-
-			setFlag(CRUD.C, stx, insrt, row, cols, usr)
-				.logChange(stx, insrt, row, cols, usr);
+			// target-table.flag = crud
+			requiredNv(entflag, new ExprPart(CRUD.C), cols, row, target, usr);
+			logChange(stx, insrt, row, cols, usr);
 		}
 
-		private ShSynChange setFlag(String crud, ISemantext stx, Insert insrt, ArrayList<Object[]> row,
-				Map<String, Integer> cols, IUser usr) {
-			// phm.tbl.flag = crud
-			return this;
-		}
-
-		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+		protected void onUpdate(ISemantext stx, Update updt,
+				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
-			updt = (Update) logChange(stx, updt, row, cols, usr);
+			requiredNv(entflag, new ExprPart(CRUD.U), cols, row, target, usr);
+			if (isHit(stx, updt, row, cols, usr))
+				updt = (Update) logChange(stx, updt, row, cols, usr);
+		}
+
+		private boolean isHit(ISemantext stx, Update updt,
+				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+				throws SemanticException {
+
+			try {
+				return ((AnResultset) syb.select(target)
+					.col(count(pkField), "c")
+					.where(updt.where())
+					.rs(syb.instancontxt(stx.connId(), usr))
+					.rs(0))
+					.nxt()
+					.getInt("c") > 0;
+			} catch (TransException | SQLException e) {
+				e.printStackTrace();
+				throw new SemanticException(e.getMessage());
+			}
 		}
 
 		private <T extends Statement<?>> T logChange(ISemantext stx, T stmt,
-				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+				throws SemanticException {
 
 			// args: pk,n pk2 ...,[col-value-on-del ...]
 			// args: pid,synoder clientpath,exif,uri "",clientpath
-			Delete del = null;
-			Insert insChg = syb.insert(chm.tbl, usr);
+
+			verifyRequiredCols(glbpks, cols.keySet());
+			Delete delChg = syb.delete(chm.tbl);
+			for (String c : cols.keySet())
+				if (glbpks.contains(c))
+					delChg.whereEq(c, row.get(cols.get(c))[1]);
+
+			
+//			int idCols = formatChangeWhere(delChg, glbpks, cols, row, usr);
+//			if (idCols > 0 && idCols < glbpks.size())
+//				// TODO doc
+//				throw new SemanticException("To update a synchronized table, all cols' values for identifying a global record are needed to generate syn-change log.\n"
+//						+ "Columns in field values recieved are: %s\n"
+//						+ "For how to configue See javadoc: %s",
+//						cols.keySet().toString(), apidoc);
+
+			Insert insChg = syb.insert(chm.tbl);
 
 			String pid = (String) stx.resulvedVal(args[1], args[2]);
 			String synoder = (String) row.get(cols.get(chm.synoder))[1];
 			try {
 				insChg.select(syb
-						.select(sym.tbl, "s")
+						.select(snm.tbl, "s")
 						.col(pid, chm.entfk)
 						.col(CRUD.C, chm.crud)
-						.col(UHF ? add(sym.nyquence, sym.inc) : add(sym.nyquence, 1), chm.nyquence)
-						.whereEq(sym.entbl, target)
-						.whereEq(sym.synoder, synoder));
+						.col(UHF ? add(snm.nyquence, snm.inc) : add(snm.nyquence, 1), chm.nyquence)
+						.whereEq(snm.entbl, target)
+						.whereEq(snm.synoder, synoder));
 
 				// and insert subscriptions, or merge syn_change & syn_subscribe?
 				Insert insubs = syb.insert(sbm.tbl)
 						.select(syb
-							.select(sym.tbl, args)
-							.col(sym.synode)
-							.whereEq(sbm.org, usr.orgId())
-							.whereEq(sbm.entbl, target)
-							.whereEq(sbm.entId, pid));
+							.select(snm.tbl)
+							.col(snm.synode).col(snm.synode)
+							.where(op.ne, snm.synode, usr.uid())
+							.whereEq(snm.org, usr.orgId()));
 
-				Delete delSb = syb.delete(sbm.tbl);
-				int c = formatSubsWhere(delSb, subpks, cols, usr);
-				if (c > 0)
-					insChg.post(delSb.post(insubs));
-				else insChg.post(insubs);
+				insChg.post(syb
+						.delete(sbm.tbl)
+						.whereEq(sbm.org, usr.orgId())
+						.whereEq(sbm.org, usr)
+						.whereEq(sbm.pk, usr)
+						.post(insubs));
 			} catch (TransException e) {
 				e.printStackTrace();
 				throw new SemanticException(e.getMessage());
 			}
 
-			int cnt = formatChangeWhere(del, pkcols, cols, row, usr);
-
-			if (cnt > 0 && cnt < pkcols.size())
-				// TODO doc
-				throw new SemanticException("To update a synchronized table, all cols' values for identifying a global record are needed to generate syn-change log.\n"
-						+ "Columns in field values recieved are: %s\n"
-						+ "For how to configue See javadoc: %s",
-						cols.keySet().toString(), apidoc);
-			else if (cnt > 0)
-				stmt.post(del.post(insChg));
-			else stmt.post(insChg);
+//			if (idCols > 0)
+//				stmt.post(delChg.post(insChg));
+//			else stmt.post(insChg);
+			stmt.post(delChg);
 			
 			if (this.UHF)
 				stmt.post(clearInc(synoder, usr));
@@ -152,43 +180,83 @@ public class DBSynmantics extends DASemantics {
 			return stmt;
 		}
 
-		private int formatSubsWhere(Delete delSb, Set<String> subpks2,
-				Map<String, Integer> cols, IUser usr) {
-			return 0;
-		}
-
-		private int formatChangeWhere(Delete del, Set<String> pkcols,
-				Map<String, Integer> cols, ArrayList<Object[]> row, IUser usr) {
-			int cnt = 0;
-			for (String c : cols.keySet()) {
-				if (pkcols.contains(c)) {
-					cnt++;
-					if (del == null)
-						del = syb.delete(chm.tbl, usr);
-					del.whereEq(c, row.get(cols.get(c))[1]);
-				}
-			}
-			return cnt;
-		}
+//		private int formatChangeWhere(Delete del, Set<String> pkcols,
+//				Map<String, Integer> cols, ArrayList<Object[]> row, IUser usr) {
+//			int cnt = 0;
+//			for (String c : cols.keySet()) {
+//				if (pkcols.contains(c)) {
+//					cnt++;
+//					if (del == null)
+//						del = syb.delete(chm.tbl, usr);
+//					del.whereEq(c, row.get(cols.get(c))[1]);
+//				}
+//			}
+//			return cnt;
+//		}
 
 		private Statement<?> inc(String synid, IUser usr) {
-			return syb.update(sym.tbl, usr)
-				.nv(sym.nyquence, add(sym.nyquence, 1))
-				.whereEq(sym.synoder, synid)
-				.whereEq(sym.entbl, target);
+			return syb.update(snm.tbl, usr)
+				.nv(snm.nyquence, add(snm.nyquence, 1))
+				.whereEq(snm.synoder, synid)
+				.whereEq(snm.entbl, target);
 		}
 
 		private Update clearInc(String synid, IUser usr) {
-			return syb.update(sym.tbl, usr)
-				.nv(sym.nyquence, add(sym.nyquence, sym.inc))
-				.nv(sym.inc, 0)
-				.whereEq(sym.synoder, synid)
-				.whereEq(sym.entbl, target);
+			return syb.update(snm.tbl, usr)
+				.nv(snm.nyquence, add(snm.nyquence, snm.inc))
+				.nv(snm.inc, 0)
+				.whereEq(snm.synoder, synid)
+				.whereEq(snm.entbl, target);
 		}
 
 		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
 				throws SemanticException {
+			
+			AnResultset row;
+			try {
+				row = (AnResultset) syb
+						.select(target)
+						.where(condt)
+						.groupby(pkField)
+						.rs(syb.instancontxt(stx.connId(), usr))
+						.rs(0);
 
+				while (row.next()) {
+					Delete delChg = syb.delete(chm.tbl);
+					Delete delSub = syb.delete(sbm.tbl);
+					for (String id : glbpks) {
+						delChg.whereEq(id, row.getString(id));
+						delSub.whereEq(id, row.getString(id));
+					}
+
+					stmt.post(delChg);
+				}
+			} catch (TransException | SQLException e) {
+				e.printStackTrace();
+				throw new SemanticException(e.getMessage());
+			}
+			
+		}
+
+		private void verifyRequiredCols(Set<String> pkcols, Set<String> cols)
+				throws SemanticException {
+			int idCols = 0;
+			if (isNull(pkcols) && isNull(cols))
+				return;
+
+			if (!isNull(pkcols) && !isNull(cols))
+				for (String pkcol : pkcols)
+					if (cols.contains(pkcol))
+						idCols++;
+					else break;
+
+			if (idCols > 0 && idCols < cols.size())
+				// TODO doc
+				throw new SemanticException(
+					"To update a synchronized table, all cols' values for identifying a global record are needed to generate syn-change log.\n"
+					+ "Columns in field values recieved are: %s\n"
+					+ "For how to configue See javadoc: %s",
+					str((HashSet<String>)cols), apidoc);
 		}
 	}
 

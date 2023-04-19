@@ -123,9 +123,9 @@ public class SyncTestRobot implements IUser {
 		return tempDir;
 	}
 
-	public String defaultAlbum() {
-		return "a-001";
-	}
+//	public String defaultAlbum() {
+//		return "a-001";
+//	}
 
 	public SessionInf sessionInf() {
 		return new SessionInf().device(deviceId);

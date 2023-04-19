@@ -12,6 +12,7 @@ public class SynodeMeta extends SyntityMeta {
 	}
 	
 	public final String org;
+	/** organization's nodes */
 	public final String synode;
 	public final String entbl;
 	public final String inc;

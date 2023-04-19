@@ -46,6 +46,12 @@ public class AnResultset extends Anson {
 	private int colCnt = 0;
 	/**current row index, start at 1. */
 	private int rowIdx = -1;
+	/**
+	 * current row index
+	 * @since 1.5.0
+	 * @return
+	 */
+	public int currentRow() { return rowIdx; }
 	private int rowCnt = 0;
 
 	// TODO docs
@@ -966,5 +972,29 @@ for (String coln : colnames.keySet())
 		}
 		beforeFirst();
 		return s;
+	}
+
+	/**
+	 * A mutation of {@link #next()}. If has a next row, return this, otherwise null.
+	 * <p>For convenience if only needs to check the first row.</p>
+	 * E.g. to check the updating records' existence:
+	 * <pre>return ((AnResultset) transbuilder
+	 * .select(targetable)
+	 * .col(Funcall.count(pk), "c")
+	 * .where(updt.where())
+	 * .rs(syb.instancontxt(stx.connId(), usr))
+	 * .rs(0))
+	 * .nxt()
+	 * .getInt("c") > 0;
+	 * </pre>
+	 * @since 1.5.0
+	 * @return this or null
+	 * @throws SQLException
+	 */
+	public AnResultset nxt() throws SQLException {
+		if (next())
+			return this;
+		else
+			return null;
 	}
 }

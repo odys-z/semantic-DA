@@ -10,6 +10,7 @@ import io.odysz.semantics.meta.TableMeta;
  */
 public abstract class SyntityMeta extends TableMeta {
 
+	/** entity creator id used for identify globally (experimental) */
 	public final String synoder;
 	public final String clientpath;
 	public final String nyquence;

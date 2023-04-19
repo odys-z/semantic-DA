@@ -396,6 +396,8 @@ public class DBSyntextTest {
 				c[admin].connId,  // into admin's db
 				new Synode(c[apply].synode, c[admin].robot.orgId()),
 				c[admin].robot);
+		
+		sync(admin, apply);
 	}
 
 	void BvsA(int A, int B) throws TransException, SQLException {
@@ -407,8 +409,7 @@ public class DBSyntextTest {
 	}
 
 	@SuppressWarnings("serial")
-	public
-	static void sync(int src, int dst) throws TransException, SQLException {
+	public static void sync(int src, int dst) throws TransException, SQLException {
 		AnResultset ents = ((DBSyntext) trbs[src].instancontxt(conns[src], c[src].robot))
 			.entities(phm);
 		

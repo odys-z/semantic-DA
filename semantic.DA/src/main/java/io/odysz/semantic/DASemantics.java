@@ -640,7 +640,7 @@ public class DASemantics {
 						sm.name(), target, pkField, LangExt.toString(args));
 		}
 
-		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 		}
 
@@ -734,7 +734,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, Insert insert, ArrayList<Object[]> row,
+		protected void onInsert(ISemantext stx, Insert insert, ArrayList<Object[]> row,
 				Map<String, Integer> cols, IUser usr) throws SemanticException {
 			String sibling;
 			try {
@@ -827,7 +827,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			Object[] nv;
 			if (cols.containsKey(args[0]) // with nv from client
 					&& cols.get(args[0]) < row.size()) // with nv must been generated from semantics
@@ -869,7 +869,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			Object[] nv;
 			// Debug Note:
 			// Don't use pk to find referencing col here, related table's pk can be null.
@@ -995,7 +995,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 			for (String[] argus : argss) {
 				// busiTbl for fk-ins-cate must known
@@ -1092,7 +1092,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			if (args.length > 1 && args[1] != null) {
 				Object[] nv;
 				if (cols.containsKey(args[0]) // with nv from client
@@ -1167,7 +1167,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			// if (args.length > 1 && args[1] != null) {
 			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
 				Object[] nv;
@@ -1365,7 +1365,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 			// if (args.length > 1 && args[1] != null) {
 			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
 				Object[] nv;
@@ -1765,7 +1765,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 			if (args.length > 1 && args[1] != null) {
 				Object[] nv = new Object[args.length - 1];
@@ -1813,7 +1813,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols,
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols,
 				IUser usr) throws SemanticException {
 			if (cols.containsKey(colCipher)) {
 				if (!cols.containsKey(colIv)) {
@@ -1894,7 +1894,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			/* v1.3.0 change log:
 			 * since multiple rows are expanded one by one, once the first rows have cols expended,
 			 * following rows should expanded automatically.
@@ -1927,6 +1927,10 @@ public class DASemantics {
 			}
 
 			// oper
+			requiredNv(args[0],
+					stx.composeVal(usr == null ? "sys" : usr.uid(), target, args[0]),
+					cols, row, target, usr);
+			/*
 			Object[] nvOper;
 			if (cols.containsKey(args[0])) {
 				int jx = cols.get(args[0]);
@@ -1951,12 +1955,54 @@ public class DASemantics {
 			}
 			nvOper[0] = args[0];
 			nvOper[1] = stx.composeVal(usr == null ? "sys" : usr.uid(), target, args[0]);
+			*/
 		}
 
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			// Design Memo: insrt is not used in onInsert
 			onInsert(stx, null, row, cols, usr);
 		}
+	}
+
+	/**
+	 * Force to set or extend a nv pair into row
+	 * 
+	 * @param forced for the pk field
+	 * @param forceval
+	 * @param cols
+	 * @param row
+	 * @param target for the table
+	 * @param usr operator
+	 * @return the extended or forced value's nv pair
+	 */
+	public static Object[] requiredNv(String forced, AbsPart forceval,
+			Map<String, Integer> cols, ArrayList<Object[]> row, String target, IUser usr) {
+		Object[] nv;
+		if (cols.containsKey(forced)) {
+			int jx = cols.get(forced);
+
+			if (row.size() <= jx) {
+				// this row need to be expanded - happens when handling following rows after 1st row expanded cols with oper & optime.
+				nv = new Object[2];
+				int adding = jx - row.size() + 1;
+				while (adding > 0) {
+					adding--;
+					row.add(new Object[2]);
+				}
+				row.set(jx, nv);
+			}
+			else
+				nv = row.get(jx);
+		}
+		else {
+			nv = new Object[2];
+			cols.put(forced, row.size()); // oper
+			row.add(nv);
+		}
+		nv[0] = forced;
+		nv[1] = forceval; // stx.composeVal(usr == null ? "sys" : usr.uid(), target, forced);
+
+		return nv;
 	}
 
 	static class ShPostFk extends SemanticHandler {
