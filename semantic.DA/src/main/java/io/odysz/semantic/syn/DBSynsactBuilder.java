@@ -23,14 +23,14 @@ public class DBSynsactBuilder extends DATranscxt {
 
 	protected SynodeMeta synm;
 	protected SynSubsMeta subm;
-	protected SyntityMeta entm;
+	// protected SyntityMeta entm;
 	protected SynChangeMeta chgm;
 
-	public DBSynsactBuilder(String conn, SyntityMeta entity, SynChangeMeta change, SynSubsMeta subs)
+	public DBSynsactBuilder(String conn, SynChangeMeta change, SynSubsMeta subs)
 			throws SQLException, SAXException, IOException, SemanticException {
 		super(conn);
 		this.subm = subs;
-		this.entm = entity;
+		// this.entm = entity;
 		this.chgm = change;
 	}
 	
@@ -57,14 +57,16 @@ public class DBSynsactBuilder extends DATranscxt {
 	}
 
 	/**
-	 * Get entity record's subscriptions.
+	 * Get DB record change's subscriptions.
 	 * 
 	 * @param entId
+	 * @param entm 
 	 * @param robot
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public AnResultset subscripts(String conn, String entId, IUser robot) throws TransException, SQLException {
+	public AnResultset subscripts(String conn, String entId, SyntityMeta entm, IUser robot)
+			throws TransException, SQLException {
 		return (AnResultset) select(subm.tbl, "ch")
 				.cols(subm.cols())
 				.col(Funcall.count(subm.subs), "cnt")
@@ -83,4 +85,23 @@ public class DBSynsactBuilder extends DATranscxt {
 			.ins(this.instancontxt(conn, robot));
 	}
 
+	public SynEntity loadEntity(String eid, String conn, IUser usr, SyntityMeta phm)
+			throws TransException, SQLException {
+		AnResultset ents = ((DBSyntext) instancontxt(conn, usr))
+			.entities(phm, eid);
+
+		AnResultset subs = (AnResultset)select(chgm.tbl, "ch")
+				.je("ch", subm.tbl, "sb", chgm.entfk, subm.entId)
+				.whereEq("ch", chgm.entbl, phm.tbl)
+				.whereEq("sb", subm.entbl, phm.tbl)
+				.whereEq(chgm.entfk, eid)
+				.rs(instancontxt(conn, usr))
+				.rs(0);
+
+		SynEntity entA = new SynEntity(ents, phm, chgm, subm);
+		String skip = entA.synode();
+		entA.format(ents);
+
+		return entA;
+	}
 }

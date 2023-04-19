@@ -69,10 +69,10 @@ public class ShareDocTest {
 		anDevice.ck.subs(pid, kyiv.nodeId, kharkiv.nodeId);
 
 		// 2.2 device vs kyiv
-		DBSyntextTest.sync(anDevice.sid, kyiv.sid);
+		DBSyntextTest.pull(anDevice.sid, kyiv.sid);
 	
 		// 2.3 kyiv vs kharkiv
-		DBSyntextTest.sync(anDevice.sid, kyiv.sid);
+		DBSyntextTest.pull(anDevice.sid, kyiv.sid);
 
 		// 3. verify changes at kharkiv
 		// 3.1 subscriptions cleared

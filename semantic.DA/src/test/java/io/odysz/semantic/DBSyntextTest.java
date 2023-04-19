@@ -77,7 +77,7 @@ public class DBSyntextTest {
 			// smtcfg = DBSynsactBuilder.loadSynmantics(conn0, "src/test/res/synmantics.xml", true);
 			for (int s = 0; s < 4; s++) {
 				conns[s] = String.format("syn-%x", s);
-				trbs[s] = new DBSynsactBuilder(conns[s], phm, chm, sbm);
+				trbs[s] = new DBSynsactBuilder(conns[s], chm, sbm);
 				c[s] = new Ck(s);
 			}
 			metas = Connects.getMeta(conns[0]);
@@ -202,7 +202,7 @@ public class DBSyntextTest {
 		c[Y].subs(B_0, X, -1, Z, W);
 
 		// 2.
-		BvsA(X, Y);
+		BvisitA(X, Y);
 		c[Y].change(C, A_0, phm);
 		c[Y].subs(A_0, -1, -1, Z, W);
 		// B.a = A.a
@@ -397,19 +397,24 @@ public class DBSyntextTest {
 				new Synode(c[apply].synode, c[admin].robot.orgId()),
 				c[admin].robot);
 		
-		sync(admin, apply);
+		pull(admin, apply);
 	}
 
-	void BvsA(int A, int B) throws TransException, SQLException {
+	void BvisitA(int A, int B) throws TransException, SQLException {
 		// A pull B
-		sync(B, A);
+		pull(B, A);
 
-		// A push B
-		sync(A, B);
+		// B push A
+		push(B, A);
+	}
+
+	public static void push(int src, int dst) throws TransException, SQLException {
+		SynEntity anObj = trbs[src].loadEntity(c[src].synode, c[src].connId, c[src].robot, phm);
+		anObj.syncInto(conns[dst], trbs[dst], anObj.subs(), null, c[dst].robot);
 	}
 
 	@SuppressWarnings("serial")
-	public static void sync(int src, int dst) throws TransException, SQLException {
+	public static void pull(int src, int dst) throws TransException, SQLException {
 		AnResultset ents = ((DBSyntext) trbs[src].instancontxt(conns[src], c[src].robot))
 			.entities(phm);
 		
@@ -427,11 +432,11 @@ public class DBSyntextTest {
 					.rs(trbs[src].instancontxt(conns[src], c[src].robot))
 					.rs(0);
 
-			SynEntity entA = new SynEntity(ents, phm, chm, sbm);
-			String skip = entA.synode();
-			entA.format(ents)
+			SynEntity anObjA = new SynEntity(ents, phm, chm, sbm);
+			String skip = anObjA.synode();
+			anObjA.format(ents)
 				// lock concurrency
-				.syncWith(conns[dst], trbs[dst], subs, new HashSet<String>() {{add(skip);}}, c[dst].robot)
+				.syncInto(conns[dst], trbs[dst], subs, new HashSet<String>() {{add(skip);}}, c[dst].robot)
 				// unlock
 				;
 		}
@@ -533,7 +538,7 @@ public class DBSyntextTest {
 		}
 
 		public void subs(String pid, String ... toIds) throws SQLException, TransException {
-			AnResultset subs = trb.subscripts(connId, pid, robot);
+			AnResultset subs = trb.subscripts(connId, pid, phm, robot);
 
 			subs.next();
 
