@@ -2,7 +2,7 @@ package io.odysz.semantic;
 
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
-import static io.odysz.semantic.CRUD.*;
+import static io.odysz.semantic.DBSync.CRUD.*;
 import static io.odysz.semantic.util.Assert.assertIn;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -21,6 +21,12 @@ import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.DBSync.DBSynmantics;
+import io.odysz.semantic.DBSync.DBSynsactBuilder;
+import io.odysz.semantic.DBSync.DBSyntext;
+import io.odysz.semantic.DBSync.Nyquence;
+import io.odysz.semantic.DBSync.SynEntity;
+import io.odysz.semantic.DBSync.Synode;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
@@ -421,7 +427,7 @@ public class DBSyntextTest {
 					.rs(0);
 
 			SynEntity entA = new SynEntity(ents, phm, chm, sbm);
-			String skip = entA.synode;
+			String skip = entA.synode();
 			entA.format(ents)
 				// lock concurrency
 				.syncWith(conns[dst], trbs[dst], subs, new HashSet<String>() {{add(skip);}}, c[dst].robot)

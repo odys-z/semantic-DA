@@ -1,4 +1,4 @@
-package io.odysz.semantic;
+package io.odysz.semantic.DBSync;
 
 public class Nyquence {
 

@@ -1,4 +1,4 @@
-package io.odysz.semantic;
+package io.odysz.semantic.DBSync;
 
 public class CRUD {
 	public static final String C = "I";

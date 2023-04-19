@@ -1,4 +1,4 @@
-package io.odysz.semantic;
+package io.odysz.semantic.DBSync;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -13,6 +13,7 @@ import org.apache.commons.io_odysz.FilenameUtils;
 
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DASemantext;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;

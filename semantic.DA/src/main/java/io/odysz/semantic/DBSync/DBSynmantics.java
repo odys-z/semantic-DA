@@ -1,4 +1,4 @@
-package io.odysz.semantic;
+package io.odysz.semantic.DBSync;
 
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.transact.sql.parts.condition.Funcall.*;
@@ -14,10 +14,13 @@ import java.util.Set;
 import org.xml.sax.SAXException;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DASemantics;
+import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
+import io.odysz.semantic.DASemantics.SemanticHandler;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -74,7 +77,7 @@ public class DBSynmantics extends DASemantics {
 			UHF = true;
 		}
 
-		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 
 			setFlag(CRUD.C, stx, insrt, row, cols, usr)
@@ -87,7 +90,7 @@ public class DBSynmantics extends DASemantics {
 			return this;
 		}
 
-		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 			updt = (Update) logChange(stx, updt, row, cols, usr);
 		}
@@ -183,7 +186,7 @@ public class DBSynmantics extends DASemantics {
 				.whereEq(sym.entbl, target);
 		}
 
-		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
 				throws SemanticException {
 
 		}
@@ -270,7 +273,7 @@ public class DBSynmantics extends DASemantics {
 			}
 		}
 
-		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 			
 			if (isblank(usr.deviceId()))
@@ -317,12 +320,12 @@ public class DBSynmantics extends DASemantics {
 			else cnt++;
 		}
 
-		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 			onInsert(stx, null, row, cols, usr);
 		}
 
-		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
 				throws SemanticException {
 			if (isblank(usr.deviceId()))
 				throw new SemanticException(

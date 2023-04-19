@@ -612,20 +612,20 @@ public class DASemantics {
 
 	//////////////////////////////// Base Handler //////////////////////////////
 	public abstract static class SemanticHandler {
-		boolean insert = false;
-		boolean update = false;
-		boolean delete = false;
+		protected boolean insert = false;
+		protected boolean update = false;
+		protected boolean delete = false;
 
-		boolean post = false;
+		protected boolean post = false;
 
-		String target;
-		String pkField;
-		String[] args;
+		protected String target;
+		protected String pkField;
+		protected String[] args;
 		protected Transcxt trxt;
 
 		protected smtype sm;
 
-		boolean verbose;
+		protected boolean verbose;
 
 		SemanticHandler(Transcxt trxt, String semantic, String tabl, String pk,
 				String[] args, boolean verbose) throws SemanticException {
@@ -644,7 +644,7 @@ public class DASemantics {
 				throws SemanticException {
 		}
 
-		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 		}
 
@@ -659,15 +659,15 @@ public class DASemantics {
 		 * @throws SemanticException
 		 * @throws SQLException 
 		 */
-		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit whereCondt, IUser usr)
+		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit whereCondt, IUser usr)
 				throws SemanticException {
 		}
 
-		void onPost(ISemantext sm, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
+		protected void onPost(ISemantext sm, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
 				Map<String, Integer> cols, IUser usr, ArrayList<String> sqlBuf) throws SemanticException {
 		}
 
-		SemanticHandler(Transcxt trxt, smtype sm, String tabl, String pk, String[] args) throws SemanticException {
+		protected SemanticHandler(Transcxt trxt, smtype sm, String tabl, String pk, String[] args) throws SemanticException {
 			this.trxt = trxt;
 			target = tabl;
 			pkField = pk;
@@ -797,7 +797,9 @@ public class DASemantics {
 		}
 
 		@Override
-		void onUpdate(ISemantext sxt, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+		protected void onUpdate(ISemantext sxt, Update updt,
+				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+						throws SemanticException {
 			// Design Memo: statement parameter (updt, or insert for onInsert()) is not used
 			onInsert(sxt, null, row, cols, usr);
 		}
@@ -921,7 +923,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
 				throws SemanticException {
 			if (argss != null && argss.length > 0)
 				for (String[] args : argss)
@@ -1231,7 +1233,7 @@ public class DASemantics {
 		 * @see io.odysz.semantic.DASemantics.SemanticHandler#onUpdate(io.odysz.semantics.ISemantext, io.odysz.transact.sql.Update, java.util.ArrayList, java.util.Map, io.odysz.semantics.IUser)
 		 */
 		@Override
-		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 			// onInsert(stx, null, row, cols, usr);
 			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
 			// if (args.length > 1 && args[1] != null) {
@@ -1268,7 +1270,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
 				throws SemanticException {
 
 				// delete external files when sqls committed
@@ -1424,7 +1426,7 @@ public class DASemantics {
 		 * @see io.odysz.semantic.DASemantics.SemanticHandler#onUpdate(io.odysz.semantics.ISemantext, io.odysz.transact.sql.Update, java.util.ArrayList, java.util.Map, io.odysz.semantics.IUser)
 		 */
 		@Override
-		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 			if (cols.containsKey(args[ixUri])) {
 				throw new SemanticException("Currently update ExtFile (%s.%s) is not supported. Use delete & insert.",
 						target, args[ixUri]);
@@ -1485,7 +1487,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
 				throws SemanticException {
 
 				try {
@@ -1712,7 +1714,7 @@ public class DASemantics {
 		}
 
 		@Override
-		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
 				throws SemanticException {
 			if (argss != null && argss.length > 0)
 				for (String[] args : argss)
@@ -1862,7 +1864,7 @@ public class DASemantics {
 			}
 		}
 
-		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols,
+		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols,
 				IUser usr) throws SemanticException {
 			onInsert(stx, null, row, cols, usr);
 		}
@@ -1951,7 +1953,7 @@ public class DASemantics {
 			nvOper[1] = stx.composeVal(usr == null ? "sys" : usr.uid(), target, args[0]);
 		}
 
-		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			// Design Memo: insrt is not used in onInsert
 			onInsert(stx, null, row, cols, usr);
 		}

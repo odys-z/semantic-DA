@@ -1,6 +1,6 @@
 package io.odysz.semantic.docsync;
 
-import static io.odysz.semantic.CRUD.*;
+import static io.odysz.semantic.DBSync.CRUD.*;
 import static io.odysz.semantic.docsync.ZSUNodesDA.*;
 
 import java.io.IOException;
@@ -13,8 +13,8 @@ import org.xml.sax.SAXException;
 
 import io.odysz.anson.x.AnsonException;
 import io.odysz.semantic.DASemantics.smtype;
+import io.odysz.semantic.DBSync.DBSynsactBuilder;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.DBSynsactBuilder;
 import io.odysz.semantic.DBSyntextTest;
 import io.odysz.semantic.T_PhotoMeta;
 import io.odysz.semantic.meta.SynChangeMeta;

@@ -1,4 +1,4 @@
-package io.odysz.semantic;
+package io.odysz.semantic.DBSync;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -7,6 +7,7 @@ import java.util.HashMap;
 import org.xml.sax.SAXException;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;

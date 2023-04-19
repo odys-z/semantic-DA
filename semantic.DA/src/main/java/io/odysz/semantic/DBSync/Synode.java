@@ -1,4 +1,4 @@
-package io.odysz.semantic;
+package io.odysz.semantic.DBSync;
 
 import static io.odysz.common.LangExt.isNull;
 
@@ -6,6 +6,12 @@ import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.x.TransException;
 
+/**
+ * @deprecated
+ * 
+ * @author odys-z@github.com
+ *
+ */
 public class Synode extends SynEntity {
 
 	public final String org;

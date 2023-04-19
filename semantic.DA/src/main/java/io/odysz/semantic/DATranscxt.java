@@ -48,7 +48,7 @@ import static io.odysz.common.LangExt.*;
  */
 public class DATranscxt extends Transcxt {
 	protected static String cfgroot = ""; 
-	static String runtimepath = "";
+	protected static String runtimepath = "";
 
 	/** configuration's root
 	 * @param cfgRoot

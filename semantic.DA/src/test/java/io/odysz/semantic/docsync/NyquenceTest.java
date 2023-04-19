@@ -1,8 +1,10 @@
-package io.odysz.semantic;
+package io.odysz.semantic.docsync;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
+
+import io.odysz.semantic.DBSync.Nyquence;
 
 class NyquenceTest {
 
