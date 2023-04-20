@@ -64,13 +64,13 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public AnResultset subscripts(String conn, String entId, SyntityMeta entm, IUser robot)
+	public AnResultset subscripts(String conn, String uids, SyntityMeta entm, IUser robot)
 			throws TransException, SQLException {
 		return (AnResultset) select(subm.tbl, "ch")
 				.cols(subm.cols())
 				.col(Funcall.count(subm.subs), "cnt")
 				.whereEq(subm.entbl, entm.tbl)
-				.whereEq(subm.uids, uid)
+				.whereEq(subm.uids, uids)
 				.rs(instancontxt(conn, robot))
 				.rs(0);
 	}
@@ -90,7 +90,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			.entities(phm, eid);
 
 		AnResultset subs = (AnResultset)select(chgm.tbl, "ch")
-				.je("ch", subm.tbl, "sb", chgm.entfk, subm.entId)
+				.je("ch", subm.tbl, "sb", chgm.uids, subm.uids, chgm.org, subm.org)
 				.whereEq("ch", chgm.entbl, phm.tbl)
 				.whereEq("sb", subm.entbl, phm.tbl)
 				.whereEq(chgm.entfk, eid)
