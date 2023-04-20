@@ -129,7 +129,7 @@ public class SynEntity extends Anson {
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public SynEntity syncWith(String conn, DBSynsactBuilder trsb, AnResultset subs, Set<String> skips, IUser robot)
+	public SynEntity syncInto(String conn, DBSynsactBuilder trsb, AnResultset subs, Set<String> skips, IUser robot)
 			throws TransException, SQLException {
 		AnResultset ch = (AnResultset) trsb
 				.select(entMeta.tbl, "ent")
@@ -162,6 +162,10 @@ public class SynEntity extends Anson {
 		}
 
 		return this;
+	}
+	public AnResultset subs() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

@@ -319,4 +319,8 @@ public class DBSyntext implements ISemantext {
 	public AnResultset entities(SyntityMeta m) {
 		return null;
 	}
+
+	public AnResultset entities(SyntityMeta m, String pkv) {
+		return null;
+	}
 }
