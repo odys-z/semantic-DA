@@ -1,8 +1,7 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.common.LangExt.isNull;
-
 import io.odysz.semantic.meta.SynodeMeta;
+import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.x.TransException;
 
@@ -17,18 +16,18 @@ public class Synode extends SynEntity {
 
 	public final String org;
 
-	public Synode(String synid, String family) {
+	public Synode(String synid, String family) throws SemanticException {
 		super(new SynodeMeta());
 		
 		this.recId = synid;
 		this.org = family;
 	}
 	
-	public Synode clientpath(String path, String... path2) {
-		clientpath = path;
-		clientpath2 = isNull(path2) ? null :path2[0];
-		return this;
-	}
+//	public Synode clientpath(String path, String... path2) {
+//		clientpath = path;
+//		clientpath2 = isNull(path2) ? null :path2[0];
+//		return this;
+//	}
 
 	/**
 	 * Format the table record according to my fields.

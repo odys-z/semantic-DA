@@ -10,13 +10,12 @@ import io.odysz.semantics.meta.TableMeta;
  */
 public class SynChangeMeta extends TableMeta {
 
+	public final String org;
 	public final String entbl;
 	public final String entfk;
-	public final String clientpath;
-	public final String clientpath2;
+	public final String uids;
 	public final String crud;
 	public final String synoder;
-	public final String subscribe;
 	public final String nyquence;
 
 	
@@ -27,18 +26,17 @@ public class SynChangeMeta extends TableMeta {
 	public SynChangeMeta(String ... conn) {
 		super("syn_change", conn);
 
+		org   = "org";
 		entbl = "tabl";
 		entfk = "recId";
-		clientpath = "clientpath";
-		clientpath2 = "clientpath2";
 		crud = "crud";
 		synoder = "synoder";
-		subscribe = "subs";
+		uids = "uids";
 		nyquence = "nyquence";
 	}
 
 	public String[] cols() {
-		return new String[] {pk, entbl, entfk, clientpath, clientpath2, synoder, crud};
+		return new String[] {pk, entbl, entfk, synoder, crud};
 	}
 
 }

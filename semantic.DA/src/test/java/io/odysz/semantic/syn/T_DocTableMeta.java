@@ -1,6 +1,9 @@
 package io.odysz.semantic.syn;
 
+import java.util.HashSet;
+
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantics.x.SemanticException;
 
 /**
  * Document entity table meta.
@@ -28,7 +31,9 @@ public class T_DocTableMeta extends SyntityMeta {
 		}
 	}
 
-	/** DB column for automantic timesamp. 
+	/**
+	 * @deprecated DBSynmantics now is using Nyquence.
+	 * DB column for automatic time stamp. 
 	 * Sqlite:<pre>syncstamp DATETIME DEFAULT CURRENT_TIMESTAMP not NULL</pre>
 	 */
 	public final String stamp;
@@ -52,7 +57,10 @@ public class T_DocTableMeta extends SyntityMeta {
 	public final String syncflag;
 	public final String shareflag;
 
-	public T_DocTableMeta(String tbl, String pk, String conn) {
+	final HashSet<String> globalIds;
+
+	@SuppressWarnings("serial")
+	public T_DocTableMeta(String tbl, String pk, String conn) throws SemanticException {
 		// TODO let's build from sync.xml
 		super(tbl, conn);
 		this.pk = pk;
@@ -73,6 +81,11 @@ public class T_DocTableMeta extends SyntityMeta {
 		shareflag = "shareflag";
 		
 		// sharelog = new SharelogMeta(tbl, pk, conn); 
+		globalIds = new HashSet<String>() { {add(synoder);}; {add(uids);} };
+	}
+
+	public HashSet<String> globalIds() {
+		return globalIds;
 	}
 
 }

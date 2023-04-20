@@ -1,5 +1,9 @@
 package io.odysz.semantic.meta;
 
+import java.util.HashSet;
+
+import io.odysz.semantics.x.SemanticException;
+
 /**
  * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
  * 
@@ -16,13 +20,16 @@ public class SynodeMeta extends SyntityMeta {
 	public final String synode;
 	public final String entbl;
 	public final String inc;
+	final HashSet<String> globalPks;
 
+	@SuppressWarnings("serial")
 	/**
 	 * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
 	 * 
 	 * @param conn
+	 * @throws SemanticException 
 	 */
-	public SynodeMeta(String... conn) {
+	public SynodeMeta(String... conn) throws SemanticException {
 		super("syn_node", "synid", conn);
 		
 		entbl = "tabl";
@@ -30,5 +37,11 @@ public class SynodeMeta extends SyntityMeta {
 		synode = "synode";
 		
 		inc = "inc";
+		globalPks = new HashSet<String>() { {add(org);}; {add(synode);} };
+	}
+
+	@Override
+	public HashSet<String> globalIds() {
+		return globalPks;
 	}
 }

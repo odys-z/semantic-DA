@@ -19,8 +19,7 @@ public class SynSubsMeta extends TableMeta {
 	public final String org;
 	public final String subs;
 	public final String entbl;
-	public final String entId;
-	public final String dre;
+	public final String uids;
 
 	static {
 		sqlite = "syn_subscribe.sqlite.ddl";
@@ -31,12 +30,11 @@ public class SynSubsMeta extends TableMeta {
 		this.org = "org";
 		this.subs = "synodee";
 		this.entbl = "tabl";
-		this.entId = "recId";
-		this.dre = "dre";
+		this.uids = "uids";
 	}
 
 	public String[] cols() {
-		return new String[] {subs, dre};
+		return new String[] {subs, uids};
 	}
 
 	/**

@@ -39,12 +39,14 @@ import io.odysz.transact.x.TransException;
 public class DBSyntextTest {
 	public static final String[] conns = new String[4];
 	public static final String rtroot = "src/test/res/";
-
+	public static final String h_photos = "h_photos";
 	public static final String father = "src/test/res/Sun Yet-sen.jpg";
+
 	public static final int X = 0;
 	public static final int Y = 1;
 	public static final int Z = 2;
 	public static final int W = 3;
+
 	static String runtimepath;
 
 	public static Ck[] c;
@@ -417,13 +419,14 @@ public class DBSyntextTest {
 			// say, entA = trb.loadEntity(phm)
 			AnResultset subs = (AnResultset) trbs[src]
 					.select(chm.tbl, "ch")
-					.je("ch", sbm.tbl, "sb", chm.entfk, sbm.entId)
+					.je("ch", sbm.tbl, "sb", chm.entfk, sbm.uids)
 					.whereEq("ch", chm.entbl, phm.tbl)
 					.whereEq("sb", sbm.entbl, phm.tbl)
 					// compond Id
+					.whereEq(chm.org, c[src].robot.orgId())
+					.whereEq(chm.entbl, h_photos)
 					.whereEq(chm.synoder, c[src].synode)
-					.whereEq(chm.clientpath, ents.getString(chm.clientpath))
-					.whereEq(chm.clientpath2, ents.getString(chm.clientpath2))
+					.whereEq(chm.uids, ents.getString(chm.uids))
 					.rs(trbs[src].instancontxt(conns[src], c[src].robot))
 					.rs(0);
 
@@ -439,7 +442,7 @@ public class DBSyntextTest {
 
 	void updatePoto(int s, String pid) throws TransException, SQLException {
 		trbs[s].update(phm.tbl, c[s].robot)
-			.nv(chm.clientpath, father)
+			.nv(chm.uids, father) // clientpath
 			.whereEq(chm.pk, pid)
 			.u(trbs[s].instancontxt(conns[X], c[s].robot))
 			;
@@ -449,7 +452,7 @@ public class DBSyntextTest {
 		return ((SemanticObject) trbs[s]
 			.insert(phm.tbl, c[s].robot)
 			.nv(phm.uri, "")
-			.nv(chm.clientpath, father)
+			.nv(chm.uids, father)
 			.ins(trbs[s].instancontxt(conns[s], c[s].robot)))
 			.resulve(phm.tbl, phm.pk);
 	}

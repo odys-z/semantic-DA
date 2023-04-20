@@ -1,9 +1,11 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.common.LangExt.*;
+import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.str;
 import static io.odysz.transact.sql.parts.condition.Funcall.add;
-import static io.odysz.transact.sql.parts.condition.Funcall.now;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
+import static io.odysz.transact.sql.parts.condition.Funcall.now;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -22,6 +24,7 @@ import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
+import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.meta.TableMeta;
@@ -39,6 +42,7 @@ import io.odysz.transact.x.TransException;
 
 public class DBSynmantics extends DASemantics {
 
+	@Override
 	public void addHandler(smtype semantic, String tabl, String recId, String[] args)
 			throws SemanticException, SQLException {
 
@@ -53,15 +57,11 @@ public class DBSynmantics extends DASemantics {
 	
 	public static class ShSynChange extends SemanticHandler {
 		static String apidoc = "TODO ...";
-		final SynChangeMeta chm;
-		final SynodeMeta snm;
-		final SynSubsMeta sbm;
+		protected final SynChangeMeta chm;
+		protected final SynodeMeta snm;
+		protected final SynSubsMeta sbm;
 
-		/** compound (global) ids of entity table */
-		Set<String> glbpks = new HashSet<String>();
-		// Set<String> subpks = new HashSet<String>();
-
-		protected DBSynsactBuilder syb;
+		protected final DBSynsactBuilder syb;
 
 		/** Ultra high frequency mode, the data frequency need to be reduced with some cost */
 		protected final boolean UHF;
@@ -120,22 +120,16 @@ public class DBSynmantics extends DASemantics {
 
 			// args: pk,n pk2 ...,[col-value-on-del ...]
 			// args: pid,synoder clientpath,exif,uri "",clientpath
+			SyntityMeta entm = (SyntityMeta) stx.getTableMeta(target);
 
-			verifyRequiredCols(glbpks, cols.keySet());
+			verifyRequiredCols(entm.globalIds(), cols.keySet());
+
 			Delete delChg = syb.delete(chm.tbl);
 			for (String c : cols.keySet())
-				if (glbpks.contains(c))
+				if (entm.globalIds().contains(c))
 					delChg.whereEq(c, row.get(cols.get(c))[1]);
 
 			
-//			int idCols = formatChangeWhere(delChg, glbpks, cols, row, usr);
-//			if (idCols > 0 && idCols < glbpks.size())
-//				// TODO doc
-//				throw new SemanticException("To update a synchronized table, all cols' values for identifying a global record are needed to generate syn-change log.\n"
-//						+ "Columns in field values recieved are: %s\n"
-//						+ "For how to configue See javadoc: %s",
-//						cols.keySet().toString(), apidoc);
-
 			Insert insChg = syb.insert(chm.tbl);
 
 			String pid = (String) stx.resulvedVal(args[1], args[2]);
@@ -160,7 +154,7 @@ public class DBSynmantics extends DASemantics {
 				insChg.post(syb
 						.delete(sbm.tbl)
 						.whereEq(sbm.org, usr.orgId())
-						.whereEq(sbm.org, usr)
+						.whereEq(sbm.uids, usr)
 						.whereEq(sbm.pk, usr)
 						.post(insubs));
 			} catch (TransException e) {
@@ -168,9 +162,6 @@ public class DBSynmantics extends DASemantics {
 				throw new SemanticException(e.getMessage());
 			}
 
-//			if (idCols > 0)
-//				stmt.post(delChg.post(insChg));
-//			else stmt.post(insChg);
 			stmt.post(delChg);
 			
 			if (this.UHF)
@@ -179,20 +170,6 @@ public class DBSynmantics extends DASemantics {
 
 			return stmt;
 		}
-
-//		private int formatChangeWhere(Delete del, Set<String> pkcols,
-//				Map<String, Integer> cols, ArrayList<Object[]> row, IUser usr) {
-//			int cnt = 0;
-//			for (String c : cols.keySet()) {
-//				if (pkcols.contains(c)) {
-//					cnt++;
-//					if (del == null)
-//						del = syb.delete(chm.tbl, usr);
-//					del.whereEq(c, row.get(cols.get(c))[1]);
-//				}
-//			}
-//			return cnt;
-//		}
 
 		private Statement<?> inc(String synid, IUser usr) {
 			return syb.update(snm.tbl, usr)
@@ -224,7 +201,7 @@ public class DBSynmantics extends DASemantics {
 				while (row.next()) {
 					Delete delChg = syb.delete(chm.tbl);
 					Delete delSub = syb.delete(sbm.tbl);
-					for (String id : glbpks) {
+					for (String id : ((SyntityMeta) stx.getTableMeta(target)).globalIds()) {
 						delChg.whereEq(id, row.getString(id));
 						delSub.whereEq(id, row.getString(id));
 					}
@@ -235,7 +212,6 @@ public class DBSynmantics extends DASemantics {
 				e.printStackTrace();
 				throw new SemanticException(e.getMessage());
 			}
-			
 		}
 
 		private void verifyRequiredCols(Set<String> pkcols, Set<String> cols)
@@ -425,4 +401,6 @@ public class DBSynmantics extends DASemantics {
 			stx.addOnTableCommitted(target, op);
 		}
 	}
+
+
 }

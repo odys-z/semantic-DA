@@ -57,20 +57,20 @@ public class DASemantext implements ISemantext {
 	private static Transcxt rawst;
 
 	/**Semantic Configurations */
-	private HashMap<String, DASemantics> ss;
-	private HashMap<String, TableMeta> metas;
+	protected HashMap<String, DASemantics> ss;
+	protected HashMap<String, TableMeta> metas;
 
 	private IUser usr;
-	private String connId;
+	protected String connId;
 
-	private String basePath;
-	private ArrayList<IPostOptn> onRowsOk;
-	private LinkedHashMap<String,IPostSelectOptn> onSelecteds;
+	protected String basePath;
+	protected ArrayList<IPostOptn> onRowsOk;
+	protected LinkedHashMap<String,IPostSelectOptn> onSelecteds;
 
-	private LinkedHashMap<String, IPostOptn> onTableOk;
+	protected LinkedHashMap<String, IPostOptn> onTableOk;
 
 	/**for generating sqlite auto seq */
-	private static IUser sqliteDumyUser;
+	protected static IUser sqliteDumyUser;
 
 	/**Initialize a context for semantics handling.
 	 * This class handling semantics comes form path, usually an xml like test/res/semantics.xml.
@@ -429,7 +429,7 @@ end;
 	}
 
 	public String pageSql(String rawSql, int page, int size) throws TransException {
-		return DASemantext.pagingSql(Connects.driverType(connId()), rawSql, page, size);
+		return Connects.pagingSql(connId, rawSql, page, size);
 	}
 
 	/**Wrap sql only for rows in a page, in stream mode.
@@ -468,7 +468,7 @@ end;
 
 		return s.collect(Collectors.joining(" "));
 	}
-	@deprecated replaced by {@link Connects#pagingSql(dbtype, String, long, long)}
+	@deprecated replaced by {@link Connects#pagingSql(string, String, int, int)}
 	 */
 	public static String pagingSql(dbtype dt, String sql, int pageIx, int pgSize) throws TransException {
 		return Connects.pagingSql(dt, sql, pageIx, pgSize);
@@ -571,5 +571,10 @@ end;
 
 		TableMeta mt = tablType(tabl);
 		return Statement.composeVal(v, mt, col);
+	}
+
+	@Override
+	public TableMeta getTableMeta(String tbl) {
+		return metas.get(tbl);
 	}
 }

@@ -1,6 +1,7 @@
 package io.odysz.semantic;
 
 import static io.odysz.common.LangExt.split;
+import static io.odysz.common.LangExt.isNull;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -21,6 +22,7 @@ import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
+import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
@@ -452,6 +454,29 @@ public class DASemantics {
 	 * Used to generate auto ID.
 	 */
 	protected Transcxt basicTsx;
+
+	/**
+	 * Use this to replace metas from DB for semantics extension.
+	 * @since 1.5.0
+	 * @param tbl
+	 * @param m
+	 * @param connId
+	 * @return replaced meta
+	 * @throws SemanticException
+	 * @throws SQLException
+	 */
+	static public TableMeta replaceMeta(String tbl, TableMeta m, String ... connId)
+			throws SemanticException {
+		String conn = isNull(connId) ? Connects.defltConn() : connId[0];
+		try {
+			TableMeta mdb = Connects.getMeta(conn, m.tbl);
+			Connects.setMeta(conn, m.clone(mdb));
+			return mdb;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	///////////////////////////////// container class
 	///////////////////////////////// ///////////////////////////////
@@ -1534,170 +1559,6 @@ public class DASemantics {
 		}
 	}
 
-//	/**
-//	 * 
-//	 * <p>args<br>
-//	 * see {@link smtype#stampByNode}
-//	 * 
-//	 * @author odys-z@github.com
-//	 */
-//	public static class ShStampByNode extends SemanticHandler {
-//		/** 0. conn-id of database of syn_stamp */
-//		public static final int ixConn = 0;
-//		/** 1. stamp table name, e.g. syn_node */
-//		public static final int ixLogTabl = 1;
-//		/** 2. target table field, e.g. 'tabl' */
-//		public static final int ixSynTbl = 2;
-//		/** 3. remote node id field, e.g. synode */
-//		public static final int ixSynode = 3;
-//		/** 4. crud */
-//		public static final int ixCrud = 4;
-//		/** 5. rec-count */
-//		public static final int ixRecount = 5;
-//		/** 6. stamp, optional. If no presented, will use Funcall.now(). */
-//		public static final int ixStamp = 6;
-//
-//		private int cnt;
-//		private DATranscxt shSt;
-//		/** conn-id of database of syn_stamp */
-//		private String conn;
-//
-//		static private Set<String> devices;
-//		static {
-//			devices = new HashSet<String>();
-//		}
-//
-//		public ShStampByNode(Transcxt basicTsx, String tabl, String recId, String[] args) throws SemanticException {
-//			super(basicTsx, smtype.stampByNode, tabl, recId, args);
-//
-//			insert = true;
-//			delete = true;
-//			update = true;
-//			
-//			cnt = 0;
-//			try {
-//				conn = args[ixConn];
-//				if (isblank(conn))
-//					conn = Connects.defltConn();
-//					
-//				shSt = new DATranscxt(conn);
-//				
-//				IUser shUser = new IUser() {
-//					@Override public TableMeta meta() { return null; }
-//					@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
-//					@Override public String uid() { return "ShStampByNode"; }
-//					@Override public IUser logAct(String funcName, String funcId) { return this; }
-//					@Override public String sessionKey() { return null; }
-//					@Override public IUser sessionKey(String skey) { return null; }
-//					@Override public IUser notify(Object note) throws TransException { return this; }
-//					@Override public List<Object> notifies() { return null; }
-//					@Override public long touchedMs() { return 0; }
-//				};
-//
-//				AnResultset rs = (AnResultset) shSt
-//					.select(args[ixLogTabl], "s")
-//					.col(args[ixSynode], "n")
-//					.whereEq(args[ixSynTbl], target)
-//					.groupby(args[ixSynode])
-//					.rs(basicTsx.instancontxt(null, shUser))
-//					.rs(0);
-//
-//				while (rs.next()) {
-//					devices.add(rs.getString("n"));
-//				}
-//
-//			} catch (SQLException | SAXException | IOException | TransException e) {
-//				// Fatal Error
-//				e.printStackTrace();
-//				throw new SemanticException(e.getMessage());
-//			}
-//		}
-//
-//		void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
-//				throws SemanticException {
-//			
-//			if (isblank(usr.deviceId()))
-//				throw new SemanticException(
-//						"Table %s's stampByNode semantics requires user provide device id. But it is empty (user-id = %s).",
-//						target, usr.uid());
-//
-//			IPostOptn op = stx.onTableCommittedHandler(target);
-//			ShStampByNode that = this;
-//
-//			if (op == null) {
-//				cnt = 1;
-//				op = devices.contains(usr.deviceId()) ?
-//					(ctx, sqls) -> {
-//						Update u = shSt.update(args[ixLogTabl], usr)
-//							.nv(args[ixRecount], that.cnt)
-//							.nv(args[ixCrud], CRUD.C)
-//							.whereEq(args[ixSynTbl], target)
-//							.whereEq(args[ixSynode], usr.deviceId());
-//						
-//						if (ixStamp <= args.length && !isblank(args[ixStamp]))
-//							u.nv(args[ixStamp], Funcall.now());
-//						u.u(ctx);
-//						return null;
-//					}
-//					: (ctx, sqls) -> {
-//						// not likely a concurrency problem as the device won't update with multiple threads.
-//						ShStampByNode.devices.add(usr.deviceId());
-//
-//						Insert i = shSt.insert(args[ixLogTabl], usr)
-//							.nv(args[ixRecount], that.cnt)
-//							.nv(args[ixCrud], CRUD.C)
-//							.nv(args[ixSynTbl], target)
-//							.nv(args[ixSynode], usr.deviceId());
-//						
-//						if (ixStamp <= args.length && !isblank(args[ixStamp]))
-//							i.nv(args[ixStamp], Funcall.now());
-//						i.ins(shSt.instancontxt(conn, usr));
-//						
-//						return null;
-//					};
-//				stx.addOnTableCommitted(target, op);
-//			}
-//			else cnt++;
-//		}
-//
-//		void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
-//				throws SemanticException {
-//			onInsert(stx, null, row, cols, usr);
-//		}
-//
-//		void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
-//				throws SemanticException {
-//			if (isblank(usr.deviceId()))
-//				throw new SemanticException(
-//						"Table %s's stampByNode semantics requires user provide device id. But it is empty (user-id = %s, delete).",
-//						target, usr.uid());
-//
-//			IPostOptn op = stx.onTableCommittedHandler(target);
-//			ShStampByNode that = this;
-//
-//			if (op == null) {
-//				that.cnt = 1;
-//				op = (st, sqls) -> {
-//					that.cnt = 1;
-//					Update u = shSt.update(args[ixLogTabl], usr)
-//						.nv(args[ixRecount], that.cnt)
-//						.nv(args[ixCrud], CRUD.C)
-//						.whereEq(args[ixSynTbl], target)
-//						.whereEq(args[ixSynode], usr.deviceId());
-//					
-//					if (ixStamp <= args.length && !isblank(args[ixStamp]))
-//						u.nv(args[ixStamp], Funcall.now());
-//						
-//					u.u(shSt.instancontxt(conn, usr));
-//					return null;
-//				};
-//			}
-//			else cnt++;
-//
-//			stx.addOnTableCommitted(target, op);
-//		}
-//	}
-	
 	/**
 	 * Check with sql before deleting<br>
 	 * 
@@ -1967,19 +1828,19 @@ public class DASemantics {
 	/**
 	 * Force to set or extend a nv pair into row
 	 * 
-	 * @param forced for the pk field
-	 * @param forceval
+	 * @param n forced field
+	 * @param v forced value
 	 * @param cols
-	 * @param row
+	 * @param row row to be expanded
 	 * @param target for the table
 	 * @param usr operator
 	 * @return the extended or forced value's nv pair
 	 */
-	public static Object[] requiredNv(String forced, AbsPart forceval,
+	public static Object[] requiredNv(String n, AbsPart v,
 			Map<String, Integer> cols, ArrayList<Object[]> row, String target, IUser usr) {
 		Object[] nv;
-		if (cols.containsKey(forced)) {
-			int jx = cols.get(forced);
+		if (cols.containsKey(n)) {
+			int jx = cols.get(n);
 
 			if (row.size() <= jx) {
 				// this row need to be expanded - happens when handling following rows after 1st row expanded cols with oper & optime.
@@ -1996,11 +1857,11 @@ public class DASemantics {
 		}
 		else {
 			nv = new Object[2];
-			cols.put(forced, row.size()); // oper
+			cols.put(n, row.size());
 			row.add(nv);
 		}
-		nv[0] = forced;
-		nv[1] = forceval; // stx.composeVal(usr == null ? "sys" : usr.uid(), target, forced);
+		nv[0] = n;
+		nv[1] = v;
 
 		return nv;
 	}

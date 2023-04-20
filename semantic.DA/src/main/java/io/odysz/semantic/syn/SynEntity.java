@@ -32,10 +32,12 @@ public class SynEntity extends Anson {
 		return this;
 	}
 
-	public String clientpath;
-	public String fullpath() { return clientpath; }
-	public String clientpath2;
-	public String clientpath2() { return clientpath2; }
+//	public String clientpath;
+//	public String fullpath() { return clientpath; }
+//	public String clientpath2;
+//	public String clientpath2() { return clientpath2; }
+
+	public String uids;
 
 	/** Non-public: doc' device id is managed by session. */
 	protected String synode;
@@ -80,10 +82,10 @@ public class SynEntity extends Anson {
 		this(rs, meta, new SynChangeMeta(), new SynSubsMeta());
 	}
 
-	public SynEntity clientpath(String p) {
-		this.clientpath = p;
-		return this;
-	}
+//	public SynEntity clientpath(String p) {
+//		this.clientpath = p;
+//		return this;
+//	}
 
 	/**
 	 * @param meta TODO change to {@link SyntityMeta} after refactor
@@ -105,11 +107,10 @@ public class SynEntity extends Anson {
 	 * @throws SQLException 
 	 */
 	public SynEntity format(AnResultset rs) throws SQLException {
-		// TODO Auto-generated method stub
 		this.recId = rs.getString(entMeta.pk);
 		
-		this.clientpath =  rs.getString(chgMeta.clientpath);
-		this.clientpath2 =  rs.getString(chgMeta.clientpath2);
+//		this.clientpath =  rs.getString(chgMeta.clientpath);
+//		this.clientpath2 =  rs.getString(chgMeta.clientpath2);
 		this.synode =  rs.getString(chgMeta.synoder);
 
 		return this;
@@ -135,8 +136,7 @@ public class SynEntity extends Anson {
 				.je("ent", chgMeta.tbl, "ch", entMeta.pk, chgMeta.entfk)
 				.cols(chgMeta.cols()).cols(subMeta.cols())
 				.whereEq(chgMeta.synoder, synode)
-				.whereEq(chgMeta.clientpath, clientpath)
-				.whereEq(chgMeta.clientpath2, clientpath2)
+				.whereEq(chgMeta.uids, uids)
 				.rs(trsb.instancontxt(conn, robot))
 				.rs(0);
 		
@@ -147,8 +147,9 @@ public class SynEntity extends Anson {
 				// write subs to conn.subm.tbl
 				// DESIGN NOTES: There is no R/D/E in subscriptions, that's an attribute of Doc sharing relationship 
 				trsb.delete(subMeta.tbl, robot)
+					.whereEq(subMeta.org, ch.getString(entMeta.org))
 					.whereEq(subMeta.entbl, ch.getString(chgMeta.entbl))
-					.whereEq(subMeta.entId, ch.getString(entMeta.pk))
+					.whereEq(subMeta.uids, ch.getString(chgMeta.uids))
 					.post(trsb
 						.insert(subMeta.tbl, robot)
 						.values(subMeta.insubVals(subs, skips))

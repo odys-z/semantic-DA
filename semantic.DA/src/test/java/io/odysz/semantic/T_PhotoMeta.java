@@ -1,6 +1,7 @@
 package io.odysz.semantic;
 
 import io.odysz.semantic.syn.T_DocTableMeta;
+import io.odysz.semantics.x.SemanticException;
 
 public class T_PhotoMeta extends T_DocTableMeta {
 
@@ -10,7 +11,7 @@ public class T_PhotoMeta extends T_DocTableMeta {
 
 	public final String uri;
 		
-	public T_PhotoMeta(String conn) {
+	public T_PhotoMeta(String conn) throws SemanticException {
 		super("h_photos", "pid", conn);
 		
 		uri = "uri";

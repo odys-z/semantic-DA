@@ -244,11 +244,10 @@ public class Connects {
 	 * @param page
 	 * @param size
 	 * @return sql
-	 * @throws SQLException 
 	 * @throws TransException 
 	 */
 	public static String pagingSql(String conn, String sql, int page, int size)
-			throws SQLException, TransException {
+			throws TransException {
 		conn = conn == null ? defltConn : conn;
 		dbtype driverType = srcs.get(conn).driverType();
 		return pagingSql(driverType, sql, page, size);
@@ -373,6 +372,36 @@ public class Connects {
 			metas.put(connId, new HashMap<String, TableMeta>(0));
 		
 		return metas.get(connId);
+	}
+	
+	/**
+	 * @since 1.5.0
+	 * @param connId
+	 * @param tbl
+	 * @return table meta
+	 * @throws SemanticException
+	 * @throws SQLException
+	 */
+	public static TableMeta getMeta(String connId, String tbl)
+			throws SemanticException, SQLException {
+		return getMeta(connId).get(tbl);
+	}
+
+	/**
+	 * Set table meta (providing a chance of extending table's semantics and keep a single copy for DB's meta).
+	 * @since 1.5.0
+	 * @param connId
+	 * @param m
+	 * @throws SemanticException
+	 * @throws SQLException
+	 */
+	public static void setMeta(String connId, TableMeta m) throws SemanticException, SQLException {
+		if (m == null || !m.typesInited())
+			throw new SemanticException("Arg or arg's types are null, TableMeta is not loaded from DB? Call getMeta() and extend it.");
+		TableMeta mdb = getMeta(connId, m.tbl);
+		if (mdb == null)
+			throw new SemanticException("Table %s deson't exists in connect %s.", m.tbl, connId);
+		getMeta(connId).put(m.tbl, m);
 	}
 
 	/**Get the smtcs file path configured in connects.xml.

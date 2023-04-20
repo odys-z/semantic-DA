@@ -1,6 +1,10 @@
 package io.odysz.semantic.meta;
 
+import java.util.HashSet;
+
+import io.odysz.semantic.syn.DBSynmantics;
 import io.odysz.semantics.meta.TableMeta;
+import io.odysz.semantics.x.SemanticException;
 
 /**
  * Syncrhonizable entity table meta
@@ -10,18 +14,24 @@ import io.odysz.semantics.meta.TableMeta;
  */
 public abstract class SyntityMeta extends TableMeta {
 
+	public final String org;
 	/** entity creator id used for identify globally (experimental) */
 	public final String synoder;
-	public final String clientpath;
+	public final String uids;
 	public final String nyquence;
 	
-	public SyntityMeta(String tbl, String pk, String... conn) {
+	public SyntityMeta(String tbl, String pk, String... conn) throws SemanticException {
 		super(tbl, conn);
 
 		this.pk = pk;
 		
+		org = "org";
 		synoder = "synoder";
-		clientpath = "clientpath";
+		uids = "clientpath";
 		nyquence = "nyquence";
+		
+		DBSynmantics.replaceMeta(tbl, this, conn);
 	}
+	
+	public abstract HashSet<String> globalIds();
 }

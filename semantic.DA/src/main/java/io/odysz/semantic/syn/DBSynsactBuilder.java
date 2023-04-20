@@ -59,17 +59,17 @@ public class DBSynsactBuilder extends DATranscxt {
 	/**
 	 * Get entity record's subscriptions.
 	 * 
-	 * @param entId
+	 * @param uid
 	 * @param robot
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public AnResultset subscripts(String conn, String entId, IUser robot) throws TransException, SQLException {
+	public AnResultset subscripts(String conn, String uid, IUser robot) throws TransException, SQLException {
 		return (AnResultset) select(subm.tbl, "ch")
 				.cols(subm.cols())
 				.col(Funcall.count(subm.subs), "cnt")
 				.whereEq(subm.entbl, entm.tbl)
-				.whereEq(subm.entId, entId)
+				.whereEq(subm.uids, uid)
 				.rs(instancontxt(conn, robot))
 				.rs(0);
 	}

@@ -1,10 +1,10 @@
 drop table if exists syn_change;
 create table syn_change (
+    entfk       varchar2(12) not null, -- entity fk, redundent for convient, not for synchronziing
+    org         varchar2(12) not null,
 	tabl        varchar2(64) not null, -- e.g. 'h_photos'
-	recId       varchar2(12) not null, -- entity record Id
-	clientpath  text         not null, -- for h_photos.fullpath, or composed PK for resouce's id, not null?
-	clientpath2 text,                  -- support max 3 fields of composed PK, TODO any better patterns?
-	oper        varchar2(12) not null, -- stamper
+	synoder     varchar2(64) not null, -- changer
+	uids        text         not null, -- for h_photos.device:fullpath, or composed PK for resouce's id, not null?
 	nyquence    long,                  -- radix64?
 	cud         char(1)       not null -- I/U/D
 );
