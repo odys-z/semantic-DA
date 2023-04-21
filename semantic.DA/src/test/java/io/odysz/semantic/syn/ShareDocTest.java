@@ -14,8 +14,6 @@ import org.xml.sax.SAXException;
 import io.odysz.anson.x.AnsonException;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.DBSyntextTest;
-import io.odysz.semantic.T_PhotoMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;

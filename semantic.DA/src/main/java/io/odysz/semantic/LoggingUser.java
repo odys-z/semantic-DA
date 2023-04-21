@@ -40,7 +40,7 @@ public class LoggingUser implements IUser {
 		this.action = action;
 
 		dumbUser = new IUser() {
-				@Override public TableMeta meta() { return null; }
+				@Override public TableMeta meta(String ... connId) { return null; }
 				@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
 				@Override public String uid() { return "dummy"; }
 				@Override public IUser logAct(String funcName, String funcId) { return this; }
@@ -60,7 +60,7 @@ public class LoggingUser implements IUser {
 		}
 	}
 
-	@Override public TableMeta meta() { return null; }
+	@Override public TableMeta meta(String ... connId) { return null; }
 
 	@Override
 	public String uid() { return uid; }

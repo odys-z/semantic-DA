@@ -1,7 +1,9 @@
 package io.odysz.semantic;
 
+import static io.odysz.common.LangExt.isNull;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -9,6 +11,7 @@ import java.util.Set;
 
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
+import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SessionInf;
 import io.odysz.semantics.meta.TableMeta;
@@ -73,7 +76,11 @@ public class SyncTestRobot implements IUser {
 	}
 
 	@Override
-	public TableMeta meta() { return new RobotMeta("a_users"); }
+	public TableMeta meta(String ... connId) throws SQLException, TransException {
+		return new RobotMeta("a_users")
+				.clone(Connects.getMeta(
+				isNull(connId) ? null : connId[0], "a_users"));
+	}
 
 	@Override
 	public ArrayList<String> dbLog(ArrayList<String> sqls) throws TransException { return null; }
@@ -122,10 +129,6 @@ public class SyncTestRobot implements IUser {
 		tempDirs.add(tempDir);
 		return tempDir;
 	}
-
-//	public String defaultAlbum() {
-//		return "a-001";
-//	}
 
 	public SessionInf sessionInf() {
 		return new SessionInf().device(deviceId);

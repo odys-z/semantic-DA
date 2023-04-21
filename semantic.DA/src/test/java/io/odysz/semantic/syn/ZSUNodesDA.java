@@ -1,7 +1,6 @@
 package io.odysz.semantic.syn;
 
-import io.odysz.semantic.DBSyntextTest;
-import io.odysz.semantic.DBSyntextTest.Ck;
+import io.odysz.semantic.syn.DBSyntextTest.Ck;
 
 /**
  * Consts for testing.

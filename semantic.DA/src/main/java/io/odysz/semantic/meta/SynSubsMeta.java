@@ -20,6 +20,7 @@ public class SynSubsMeta extends TableMeta {
 	public final String subs;
 	public final String entbl;
 	public final String uids;
+	public final String synoder;
 
 	static {
 		sqlite = "syn_subscribe.sqlite.ddl";
@@ -27,10 +28,11 @@ public class SynSubsMeta extends TableMeta {
 
 	public SynSubsMeta(String ... conn) {
 		super("syn_subscribe", conn);
-		this.org = "org";
-		this.subs = "synodee";
-		this.entbl = "tabl";
-		this.uids = "uids";
+		org = "org";
+		subs = "synodee";
+		entbl = "tabl";
+		uids = "uids";
+		synoder = "";
 	}
 
 	public String[] cols() {

@@ -3,7 +3,7 @@ package io.odysz.semantic.syn;
 import java.util.HashSet;
 
 import io.odysz.semantic.meta.SyntityMeta;
-import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.x.TransException;
 
 /**
  * Document entity table meta.
@@ -60,7 +60,7 @@ public class T_DocTableMeta extends SyntityMeta {
 	final HashSet<String> globalIds;
 
 	@SuppressWarnings("serial")
-	public T_DocTableMeta(String tbl, String pk, String conn) throws SemanticException {
+	public T_DocTableMeta(String tbl, String pk, String conn) throws TransException {
 		// TODO let's build from sync.xml
 		super(tbl, conn);
 		this.pk = pk;

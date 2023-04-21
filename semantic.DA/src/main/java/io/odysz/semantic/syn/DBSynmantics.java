@@ -6,6 +6,7 @@ import static io.odysz.common.LangExt.str;
 import static io.odysz.transact.sql.parts.condition.Funcall.add;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
+import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -21,6 +22,7 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.NyquenceMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -60,12 +62,14 @@ public class DBSynmantics extends DASemantics {
 		protected final SynChangeMeta chm;
 		protected final SynodeMeta snm;
 		protected final SynSubsMeta sbm;
+		protected final NyquenceMeta nyqm;
 
 		protected final DBSynsactBuilder syb;
 
 		/** Ultra high frequency mode, the data frequency need to be reduced with some cost */
 		protected final boolean UHF;
 		private String entflag;
+		private final ExprPart uidVals;
 
 		ShSynChange(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.synChange, tabl, pk, args);
@@ -75,10 +79,20 @@ public class DBSynmantics extends DASemantics {
 			else
 				throw new SemanticException("ShSynChange (xml/smtype=s-c) requires instance of DBSynsactBuilder as the default builder.");
 
-			snm = new SynodeMeta();
+			try {
+				snm = new SynodeMeta();
+			} catch (TransException e) {
+				e.printStackTrace();
+				throw new SemanticException(e.getMessage());
+			}
 			chm = new SynChangeMeta();
 			sbm = new SynSubsMeta();
+			nyqm = new NyquenceMeta();
 			UHF = true;
+			
+			// args: pk,n pk2 ...,[col-value-on-del ...]
+			// args: pid,synoder clientpath,exif,uri "",clientpath
+			uidVals = compound(args[1].split(" "));
 		}
 
 		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
@@ -126,8 +140,9 @@ public class DBSynmantics extends DASemantics {
 
 			Delete delChg = syb.delete(chm.tbl);
 			for (String c : cols.keySet())
-				if (entm.globalIds().contains(c))
-					delChg.whereEq(c, row.get(cols.get(c))[1]);
+				// all cols now exists in row (extended by verifyRequiredCols
+				// if (entm.globalIds().contains(c))
+				delChg.whereEq(c, row.get(cols.get(c))[1]);
 
 			
 			Insert insChg = syb.insert(chm.tbl);
@@ -137,17 +152,19 @@ public class DBSynmantics extends DASemantics {
 			try {
 				insChg.select(syb
 						.select(snm.tbl, "s")
+						.je("s", nyqm.tbl, "ny", snm.org, nyqm.org, snm.synode, nyqm.synode)
 						.col(pid, chm.entfk)
 						.col(CRUD.C, chm.crud)
-						.col(UHF ? add(snm.nyquence, snm.inc) : add(snm.nyquence, 1), chm.nyquence)
-						.whereEq(snm.entbl, target)
+						.col(UHF ? add(nyqm.nyquence, snm.inc) : add(nyqm.nyquence, 1), chm.nyquence)
+						.whereEq(nyqm.entbl, target)
+						.whereEq(snm.org, usr.orgId())
 						.whereEq(snm.synoder, synoder));
 
 				// and insert subscriptions, or merge syn_change & syn_subscribe?
 				Insert insubs = syb.insert(sbm.tbl)
 						.select(syb
 							.select(snm.tbl)
-							.col(snm.synode).col(snm.synode)
+							.col(snm.synode, sbm.synoder).col(uidVals, sbm.uids)
 							.where(op.ne, snm.synode, usr.uid())
 							.whereEq(snm.org, usr.orgId()));
 
@@ -165,25 +182,27 @@ public class DBSynmantics extends DASemantics {
 			stmt.post(delChg);
 			
 			if (this.UHF)
-				stmt.post(clearInc(synoder, usr));
-			else stmt.post(inc(synoder, usr));
+				stmt.post(clearInc(usr.orgId(), synoder));
+			else stmt.post(inc(usr.orgId(), synoder));
 
 			return stmt;
 		}
 
-		private Statement<?> inc(String synid, IUser usr) {
-			return syb.update(snm.tbl, usr)
-				.nv(snm.nyquence, add(snm.nyquence, 1))
-				.whereEq(snm.synoder, synid)
-				.whereEq(snm.entbl, target);
+		private Statement<?> inc(String org, String synid) {
+			return syb.update(snm.tbl)
+				.nv(nyqm.inc, add(nyqm.nyquence, 1))
+				.whereEq(nyqm.org, org)
+				.whereEq(nyqm.synode, synid)
+				.whereEq(nyqm.entbl, target);
 		}
 
-		private Update clearInc(String synid, IUser usr) {
-			return syb.update(snm.tbl, usr)
-				.nv(snm.nyquence, add(snm.nyquence, snm.inc))
-				.nv(snm.inc, 0)
-				.whereEq(snm.synoder, synid)
-				.whereEq(snm.entbl, target);
+		private Update clearInc(String org, String synid) {
+			return syb.update(snm.tbl)
+				.nv(nyqm.nyquence, add(nyqm.nyquence, snm.inc))
+				.nv(nyqm.inc, 0)
+				.whereEq(nyqm.org, org)
+				.whereEq(nyqm.synode, synid)
+				.whereEq(nyqm.entbl, target);
 		}
 
 		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
@@ -227,6 +246,7 @@ public class DBSynmantics extends DASemantics {
 					else break;
 
 			if (idCols > 0 && idCols < cols.size())
+				// FIXME let's force extend the cols 
 				// TODO doc
 				throw new SemanticException(
 					"To update a synchronized table, all cols' values for identifying a global record are needed to generate syn-change log.\n"
@@ -287,7 +307,7 @@ public class DBSynmantics extends DASemantics {
 				shSt = new DATranscxt(conn);
 				
 				IUser shUser = new IUser() {
-					@Override public TableMeta meta() { return null; }
+					@Override public TableMeta meta(String ... c) { return null; }
 					@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
 					@Override public String uid() { return "ShStampByNode"; }
 					@Override public IUser logAct(String funcName, String funcId) { return this; }

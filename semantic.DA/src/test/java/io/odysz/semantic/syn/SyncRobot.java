@@ -1,9 +1,12 @@
 package io.odysz.semantic.syn;
 
+import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.isblank;
 
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -12,11 +15,11 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 
 import io.odysz.anson.Anson;
-import io.odysz.common.LangExt;
 import io.odysz.common.Utils;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
+import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.SessionInf;
@@ -83,11 +86,15 @@ public class SyncRobot extends SemanticObject implements IUser {
 	}
 
 	@Override
-	public TableMeta meta() { return new RobotMeta("a_users"); }
+	public TableMeta meta(String ... connId) throws SQLException, TransException {
+		return new RobotMeta("a_users")
+				.clone(Connects.getMeta(
+				isNull(connId) ? null : connId[0], "a_users"));
+	}
 
 	public IUser onCreate(Anson reqBody) throws GeneralSecurityException {
 		deviceId = ((T_AnSessionReq)reqBody).deviceId();
-		if (LangExt.isblank(deviceId, "/", "\\."))
+		if (isblank(deviceId, "/", "\\."))
 			throw new GeneralSecurityException("Photo user's device Id can not be null - used for distinguish files.");
 		return this;
 	}

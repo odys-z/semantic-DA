@@ -16,7 +16,7 @@ public class Synode extends SynEntity {
 
 	public final String org;
 
-	public Synode(String synid, String family) throws SemanticException {
+	public Synode(String synid, String family) throws TransException {
 		super(new SynodeMeta());
 		
 		this.recId = synid;

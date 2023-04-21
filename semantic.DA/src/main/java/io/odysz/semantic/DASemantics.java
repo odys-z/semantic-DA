@@ -462,11 +462,11 @@ public class DASemantics {
 	 * @param m
 	 * @param connId
 	 * @return replaced meta
-	 * @throws SemanticException
+	 * @throws TransException 
 	 * @throws SQLException
 	 */
 	static public TableMeta replaceMeta(String tbl, TableMeta m, String ... connId)
-			throws SemanticException {
+			throws TransException {
 		String conn = isNull(connId) ? Connects.defltConn() : connId[0];
 		try {
 			TableMeta mdb = Connects.getMeta(conn, m.tbl);

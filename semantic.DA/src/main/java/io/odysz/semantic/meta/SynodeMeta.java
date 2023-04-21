@@ -2,7 +2,9 @@ package io.odysz.semantic.meta;
 
 import java.util.HashSet;
 
+import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.x.TransException;
 
 /**
  * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
@@ -18,7 +20,6 @@ public class SynodeMeta extends SyntityMeta {
 	public final String org;
 	/** organization's nodes */
 	public final String synode;
-	public final String entbl;
 	public final String inc;
 	final HashSet<String> globalPks;
 
@@ -29,10 +30,9 @@ public class SynodeMeta extends SyntityMeta {
 	 * @param conn
 	 * @throws SemanticException 
 	 */
-	public SynodeMeta(String... conn) throws SemanticException {
+	public SynodeMeta(String... conn) throws TransException {
 		super("syn_node", "synid", conn);
 		
-		entbl = "tabl";
 		org = "org";
 		synode = "synode";
 		
@@ -43,5 +43,13 @@ public class SynodeMeta extends SyntityMeta {
 	@Override
 	public HashSet<String> globalIds() {
 		return globalPks;
+	}
+	
+	@Override
+	public SynodeMeta clone(TableMeta dbm) throws TransException {
+		super.clone(dbm);
+		if (dbm.coltype(org) == null)
+			throw new SemanticException("Internal Error");
+		return this;
 	}
 }

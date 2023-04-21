@@ -1,5 +1,7 @@
 package io.odysz.semantic.syn;
 
+import static io.odysz.transact.sql.parts.condition.Funcall.count;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -9,6 +11,7 @@ import org.xml.sax.SAXException;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.NyquenceMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -22,6 +25,7 @@ import io.odysz.transact.x.TransException;
 public class DBSynsactBuilder extends DATranscxt {
 
 	protected SynodeMeta synm;
+	protected NyquenceMeta nyqm;
 	protected SynSubsMeta subm;
 	// protected SyntityMeta entm;
 	protected SynChangeMeta chgm;
@@ -32,6 +36,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		this.subm = subs;
 		// this.entm = entity;
 		this.chgm = change;
+		this.nyqm = new NyquenceMeta().clone(conn);
 	}
 
 	@Override
@@ -75,8 +80,16 @@ public class DBSynsactBuilder extends DATranscxt {
 				.rs(0);
 	}
 
-	public Nyquence nyquence(String conn) {
-		return new Nyquence(0);
+	public Nyquence nyquence(String conn, String org, String synid, String entity) throws SQLException, TransException {
+		return new Nyquence(((AnResultset) select(nyqm.tbl)
+				.col(nyqm.nyquence, "n")
+				.whereEq(nyqm.entbl, entity)
+				.whereEq(nyqm.org, org)
+				.whereEq(nyqm.synode, synid)
+				.rs(instancontxt(conn, dummy))
+				.rs(0))
+				.nxt()
+				.getInt("n"));
 	}
 
 	public void addSynode(String conn, Synode node, IUser robot) throws TransException, SQLException {

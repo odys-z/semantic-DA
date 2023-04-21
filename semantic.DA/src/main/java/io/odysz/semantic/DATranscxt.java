@@ -62,7 +62,7 @@ public class DATranscxt extends Transcxt {
 		Utils.logi("Runtime root path: %s", runtimeRoot);
 	}
 
-	private static IUser dummy;
+	protected static IUser dummy;
 
 	@Override
 	public TableMeta tableMeta(String conn, String tabl) throws SemanticException {
@@ -404,7 +404,7 @@ public class DATranscxt extends Transcxt {
 	public static IUser dummyUser() {
 		if (dummy == null)
 			dummy = new IUser() {
-					@Override public TableMeta meta() { return null; }
+					@Override public TableMeta meta(String ... connId) { return null; }
 					@Override public String uid() { return "dummy"; }
 					@Override public IUser logAct(String funcName, String funcId) { return null; }
 					@Override public IUser notify(Object note) throws TransException { return this; }

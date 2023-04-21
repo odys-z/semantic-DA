@@ -1,4 +1,4 @@
-package io.odysz.semantic;
+package io.odysz.semantic.syn;
 
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
@@ -20,6 +20,8 @@ import org.xml.sax.SAXException;
 import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DATranscxt;
+import io.odysz.semantic.LoggingUser;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -321,6 +323,8 @@ public class DBSyntextTest {
 	}
 
 	/**
+	 * Test W join with X.
+	 * 
 	 * <pre>
 	 * X                     |  Y                   |  Z
 	 * crud, s, sid, n, sub  | crud, s, sid, n, sub | crud, s, sid, n, sub
@@ -374,11 +378,18 @@ public class DBSyntextTest {
 	 * </pre>
 	 * @throws SQLException 
 	 * @throws TransException 
+	 * @throws IOException 
+	 * @throws ClassNotFoundException 
 	 */
 	@Test
-	void testSynodeManage() throws TransException, SQLException {
+	void testSynodeManage() throws TransException, SQLException, ClassNotFoundException, IOException {
 
+		initSynodes(0);
+
+		c[X].synodes(X, Y, Z, -1);
 		join(X, W);
+		c[X].synodes(X, Y, Z, W);
+		c[X].nyquence(synode);
 		
 		c[X].change(C, c[X].synode, phm);
 		// i X  w  3
@@ -388,8 +399,9 @@ public class DBSyntextTest {
 		// And more ...
 	}
 	
-	static void initSynodes(int s) throws SQLException, TransException, ClassNotFoundException, IOException {
-		String sqls = Utils.loadTxt("");
+	static void initSynodes(int s)
+			throws SQLException, TransException, ClassNotFoundException, IOException {
+		String sqls = Utils.loadTxt("syn_nodes.sql");
 		Connects.commit(c[s].robot, sqls);
 	}
 
@@ -471,6 +483,17 @@ public class DBSyntextTest {
 		public Ck(int s) throws SQLException, TransException, ClassNotFoundException, IOException {
 			this(conns[s], trbs[s], String.format("s%s", s), "rob-" + s);
 			initSynodes(s);
+		}
+
+		/**
+		 * Verify all synodes information here is as expected.
+		 * 
+		 * @param x X presented here, -1 for disappearing
+		 * @param y
+		 * @param z
+		 * @param w
+		 */
+		public void synodes(int x, int y, int z, int w) {
 		}
 
 		public Ck(String conn, DBSynsactBuilder trb, String synid, String uid)
