@@ -4,7 +4,6 @@ import java.util.HashSet;
 
 import io.odysz.semantic.syn.DBSynmantics;
 import io.odysz.semantics.meta.TableMeta;
-import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 /**

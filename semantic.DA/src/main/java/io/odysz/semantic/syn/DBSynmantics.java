@@ -87,7 +87,12 @@ public class DBSynmantics extends DASemantics {
 			}
 			chm = new SynChangeMeta();
 			sbm = new SynSubsMeta();
-			nyqm = new NyquenceMeta();
+			try {
+				nyqm = new NyquenceMeta();
+			} catch (TransException e) {
+				e.printStackTrace();
+				throw new SemanticException(e.getMessage());
+			}
 			UHF = true;
 			
 			// args: pk,n pk2 ...,[col-value-on-del ...]

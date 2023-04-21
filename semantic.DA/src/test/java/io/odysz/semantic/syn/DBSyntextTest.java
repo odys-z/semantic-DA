@@ -28,7 +28,6 @@ import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.syn.DBSynmantics;
 import io.odysz.semantic.syn.DBSynsactBuilder;
-import io.odysz.semantic.syn.DBSyntext;
 import io.odysz.semantic.syn.Nyquence;
 import io.odysz.semantic.syn.SynEntity;
 import io.odysz.semantic.syn.Synode;
@@ -81,7 +80,7 @@ public class DBSyntextTest {
 			// smtcfg = DBSynsactBuilder.loadSynmantics(conn0, "src/test/res/synmantics.xml", true);
 			for (int s = 0; s < 4; s++) {
 				conns[s] = String.format("syn-%x", s);
-				trbs[s] = new DBSynsactBuilder(conns[s], chm, sbm);
+				trbs[s] = new DBSynsactBuilder(conns[s]);
 				c[s] = new Ck(s);
 			}
 			metas = Connects.getMeta(conns[0]);
@@ -389,7 +388,8 @@ public class DBSyntextTest {
 		c[X].synodes(X, Y, Z, -1);
 		join(X, W);
 		c[X].synodes(X, Y, Z, W);
-		c[X].nyquence(synode);
+
+		Nyquence n = c[X].nyquence(X);
 		
 		c[X].change(C, c[X].synode, phm);
 		// i X  w  3
@@ -429,8 +429,7 @@ public class DBSyntextTest {
 
 	@SuppressWarnings("serial")
 	public static void pull(int src, int dst) throws TransException, SQLException {
-		AnResultset ents = ((DBSyntext) trbs[src].instancontxt(conns[src], c[src].robot))
-			.entities(phm);
+		AnResultset ents = trbs[src].entity(phm, c[src].connId);
 		
 		while(ents.next()) {
 			// say, entA = trb.loadEntity(phm)
@@ -581,8 +580,15 @@ public class DBSyntextTest {
 			assertEquals(0, size);
 		}
 
-		public Nyquence nyquence(int synode) {
-			return trbs[synode].nyquence(conns[synode]);
+		/**
+		 * get nyquence
+		 * @param synode
+		 * @return
+		 * @throws TransException 
+		 * @throws SQLException 
+		 */
+		public Nyquence nyquence(int synode) throws SQLException, TransException {
+			return trbs[synode].nyquence(conns[synode], robot.orgId(), robot.deviceId(), phm.tbl);
 		}
 
 		public ArrayList<String> entities(String nodeId, String png) {

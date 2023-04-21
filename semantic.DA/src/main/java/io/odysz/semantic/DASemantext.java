@@ -82,7 +82,7 @@ public class DASemantext implements ISemantext {
 	 * @param rtPath runtime root path, for docker layer, it's typically the volume folder. 
 	 * @throws SemanticException metas is null
 	 */
-	DASemantext(String connId, HashMap<String, DASemantics> smtcfg,
+	protected DASemantext(String connId, HashMap<String, DASemantics> smtcfg,
 			HashMap<String, TableMeta> metas, IUser usr, String rtPath) throws SemanticException {
 		basePath = rtPath;
 		this.connId = connId;

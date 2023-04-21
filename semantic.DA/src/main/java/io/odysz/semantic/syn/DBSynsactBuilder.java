@@ -27,39 +27,37 @@ public class DBSynsactBuilder extends DATranscxt {
 	protected SynodeMeta synm;
 	protected NyquenceMeta nyqm;
 	protected SynSubsMeta subm;
-	// protected SyntityMeta entm;
 	protected SynChangeMeta chgm;
 
-	public DBSynsactBuilder(String conn, SynChangeMeta change, SynSubsMeta subs)
-			throws SQLException, SAXException, IOException, SemanticException {
+	public DBSynsactBuilder(String conn)
+			throws SQLException, SAXException, IOException, TransException {
 		super(conn);
-		this.subm = subs;
-		// this.entm = entity;
-		this.chgm = change;
-		this.nyqm = new NyquenceMeta().clone(conn);
+		this.subm = new SynSubsMeta(conn);
+		this.chgm = new SynChangeMeta(conn);
+		this.nyqm = new NyquenceMeta(conn);
 	}
 
-	@Override
-	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
-		try {
-			return new DBSyntext(connId, loadSynmatics(connId),
-				Connects.getMeta(connId), usr, runtimepath);
-		} catch (SemanticException | SQLException | SAXException | IOException e) {
-			e.printStackTrace();
-			throw new TransException(e.getMessage());
-		}
-	}
+//	@Override
+//	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
+//		try {
+//			return new DBSyntext(connId, loadSynmatics(connId),
+//				Connects.getMeta(connId), usr, runtimepath);
+//		} catch (SemanticException | SQLException | SAXException | IOException e) {
+//			e.printStackTrace();
+//			throw new TransException(e.getMessage());
+//		}
+//	}
 
-	private HashMap<String, DBSynmantics> loadSynmatics(String connId) throws SAXException, IOException {
-		return null;
-	}
+//	private HashMap<String, DBSynmantics> loadSynmatics(String connId) throws SAXException, IOException {
+//		return super.loadSemantics(connId, connId, getSysDebug());
+//	}
 
-	public static HashMap<String, DBSynmantics> loadSynmantics(String connId, String cfgpath, boolean debug)
-			throws SAXException, IOException, SQLException, SemanticException {
-
-		HashMap<String, DBSynmantics> syns = new HashMap<String, DBSynmantics>();
-		return syns;
-	}
+//	public static HashMap<String, DBSynmantics> loadSynmantics(String connId, String cfgpath, boolean debug)
+//			throws SAXException, IOException, SQLException, SemanticException {
+//
+//		HashMap<String, DBSynmantics> syns = new HashMap<String, DBSynmantics>();
+//		return syns;
+//	}
 
 	/**
 	 * Get DB record change's subscriptions.
@@ -99,8 +97,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 	public SynEntity loadEntity(String eid, String conn, IUser usr, SyntityMeta phm)
 			throws TransException, SQLException {
-		AnResultset ents = ((DBSyntext) instancontxt(conn, usr))
-			.entities(phm, eid);
+		AnResultset ents = entity(phm, eid);
 
 		AnResultset subs = (AnResultset)select(chgm.tbl, "ch")
 				.je("ch", subm.tbl, "sb", chgm.uids, subm.uids, chgm.org, subm.org)
@@ -112,8 +109,13 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		SynEntity entA = new SynEntity(ents, phm, chgm, subm);
 		String skip = entA.synode();
-		entA.format(ents);
+		entA.format(subs);
 
 		return entA;
+	}
+
+	protected AnResultset entity(SyntityMeta phm, String eid) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

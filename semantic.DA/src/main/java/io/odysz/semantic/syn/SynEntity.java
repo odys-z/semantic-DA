@@ -82,11 +82,6 @@ public class SynEntity extends Anson {
 		this(rs, meta, new SynChangeMeta(), new SynSubsMeta());
 	}
 
-//	public SynEntity clientpath(String p) {
-//		this.clientpath = p;
-//		return this;
-//	}
-
 	/**
 	 * @param meta TODO change to {@link SyntityMeta} after refactor
 	 * @return this
@@ -108,11 +103,7 @@ public class SynEntity extends Anson {
 	 */
 	public SynEntity format(AnResultset rs) throws SQLException {
 		this.recId = rs.getString(entMeta.pk);
-		
-//		this.clientpath =  rs.getString(chgMeta.clientpath);
-//		this.clientpath2 =  rs.getString(chgMeta.clientpath2);
 		this.synode =  rs.getString(chgMeta.synoder);
-
 		return this;
 	}
 
