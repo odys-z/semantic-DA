@@ -20,9 +20,9 @@ For complete semantics types, see the [semantics type java API doc](https://odys
 
 # Quick Start
 
-Semantic-DA is an important compnent used by semantic-\*, which can't work independantly.
-If you are interesting in what kinde of semantics it can handle, just download or
-clone the source,
+Semantic-DA is an important component used by semantic-*, which can't work independently. 
+If you are interesting in what kind of semantics it can handle, just download or clone 
+the source,
 
 ~~~
     git clone https://github.com/odys-z/semantic-DA
@@ -58,7 +58,7 @@ The sqlite3 connection is configured in "connects.xml":
 
 Where the connection id, "local-sqlite" is the reference id in tests code.
 
-The file configured in <smtcs/> is the samantics that can handled by semantic-DA.
+The file configured in <smtcs/> is the semantics that can be handled by semantic-DA.
 
 ~~~
     <smtcs>src/test/res/semantics.xml</smtcs>
@@ -80,7 +80,7 @@ Semantic-DA can emit sql AST building / traveling events that let users have cha
 to organize updating data to inject the business semantics.
 
 The semantics is abstracted into a few patterns, which is handled by the implementation
-of a interface. This interface define the events that the DA layer firing.
+of an interface. This interface defines the events that the DA layer firing.
 
 The final data is used to build the SQL statement(s). In this way, a typical database
 application's business processing are abstracted into some semantics pattern and
