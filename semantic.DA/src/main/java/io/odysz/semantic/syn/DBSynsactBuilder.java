@@ -4,13 +4,11 @@ import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashMap;
 
 import org.xml.sax.SAXException;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.NyquenceMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
@@ -18,8 +16,6 @@ import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
-import io.odysz.semantics.x.SemanticException;
-import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 public class DBSynsactBuilder extends DATranscxt {
@@ -37,16 +33,16 @@ public class DBSynsactBuilder extends DATranscxt {
 		this.nyqm = new NyquenceMeta(conn);
 	}
 
-//	@Override
-//	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
-//		try {
-//			return new DBSyntext(connId, loadSynmatics(connId),
-//				Connects.getMeta(connId), usr, runtimepath);
-//		} catch (SemanticException | SQLException | SAXException | IOException e) {
-//			e.printStackTrace();
-//			throw new TransException(e.getMessage());
-//		}
-//	}
+	@Override
+	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
+		try {
+			return new DBSyntext(connId, loadSynmatics(connId),
+				Connects.getMeta(connId), usr, runtimepath);
+		} catch (SemanticException | SQLException | SAXException | IOException e) {
+			e.printStackTrace();
+			throw new TransException(e.getMessage());
+		}
+	}
 
 //	private HashMap<String, DBSynmantics> loadSynmatics(String connId) throws SAXException, IOException {
 //		return super.loadSemantics(connId, connId, getSysDebug());
@@ -71,7 +67,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws TransException, SQLException {
 		return (AnResultset) select(subm.tbl, "ch")
 				.cols(subm.cols())
-				.col(Funcall.count(subm.subs), "cnt")
+				.col(count(subm.subs), "cnt")
 				.whereEq(subm.entbl, entm.tbl)
 				.whereEq(subm.uids, uids)
 				.rs(instancontxt(conn, robot))
@@ -115,7 +111,6 @@ public class DBSynsactBuilder extends DATranscxt {
 	}
 
 	protected AnResultset entity(SyntityMeta phm, String eid) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 }

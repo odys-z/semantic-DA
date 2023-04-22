@@ -426,6 +426,4 @@ public class DBSynmantics extends DASemantics {
 			stx.addOnTableCommitted(target, op);
 		}
 	}
-
-
 }

@@ -433,7 +433,6 @@ end;
 	}
 
 	/**Wrap sql only for rows in a page, in stream mode.
-	 * TODO add test 
 	 * @param dt
 	 * @param sql
 	 * @param pageIx
