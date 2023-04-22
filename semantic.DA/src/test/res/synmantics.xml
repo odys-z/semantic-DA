@@ -28,30 +28,22 @@
  	
 	<!-- syn_change
 		args: pk,n pk2 ...,[col-value-on-del, ...]
-		e.g.: pid,synoder clientpath,exif,uri "",clientpath
+		e.g.: pid,crud-flag,synoder clientpath,exif,uri "",clientpath
 	-->
   	<s>
   		<id>02</id>
   		<smtc>syn-change</smtc>
   		<tabl>h_photos</tabl>
   		<pk>pid</pk>
-  		<args>pid,device clientpath,exif,uri "",clientpath</args>
+  		<args>pid,crud,device clientpath,exif,uri "",clientpath</args>
   	</s>
-
-	<s>
-		<id>03</id>
-		<smtc>syn-crud</smtc>
-  		<tabl>h_photos</tabl>
-  		<pk>pid</pk>
-  		<args>crud</args>
-	</s>
 
   	<s>
   		<id>11</id>
-  		<smtc>syn-change</smtc>
+  		<smtc>s-c</smtc>
   		<tabl>syn_node</tabl>
   		<pk>synid</pk>
-  		<args>synoder</args>
+  		<args>synid,crud,org synid,remarks</args>
   	</s>
 
   </t>
