@@ -183,7 +183,7 @@ public class DASemantext implements ISemantext {
 		}
 	}
 
-	private ISemantext clone(DASemantext srctx, IUser... usr) {
+	protected ISemantext clone(DASemantext srctx, IUser... usr) {
 		try {
 			DASemantext newInst = new DASemantext(connId,
 					srctx.ss, srctx.metas, usr != null && usr.length > 0 ? usr[0] : null, basePath);

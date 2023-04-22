@@ -209,7 +209,7 @@ public class DATranscxt extends Transcxt {
 	}
 
 	public String getSysConnId() { return Connects.defltConn(); }
-	public boolean getSysDebug() { return Connects.getDebug(Connects.defltConn()); }
+//	public boolean getSysDebug() { return Connects.getDebug(Connects.defltConn()); }
 
 	/**<p>Create a transact builder with basic DASemantext instance.</p>
 	 * <p>If it's a null configuration, the semantics can not be used to resulving semantics between records,
@@ -238,13 +238,7 @@ public class DATranscxt extends Transcxt {
 			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
 
 		if (!smtConfigs.containsKey(conn)) {
-			String fpath = Connects.getSmtcsPath(conn);
-			if (isblank(fpath, "\\."))
-				throw new SemanticException(
-					"Trying to find semantics of conn %1$s, but the configuration path is empty.\n" +
-					"No 'smtcs' configured in connects.xml for connection \"%1$s\"?\n" +
-					"Looking in path: %2$s", conn, fpath);
-			loadSemantics(conn, fpath, Connects.getDebug(conn));
+			loadSemantics(conn);
 		}
 		return smtConfigs.get(conn);
 	}
@@ -252,7 +246,6 @@ public class DATranscxt extends Transcxt {
 	/**Load semantics configuration from filepath.
 	 * This method also initialize table meta by calling {@link Connects}.
 	 * @param connId
-	 * @param cfgpath full path to semantics.xml (path and name) 
 	 * @param debug 
 	 * @return configurations
 	 * @throws SAXException
@@ -260,16 +253,24 @@ public class DATranscxt extends Transcxt {
 	 * @throws SQLException 
 	 * @throws SemanticException 
 	 */
-	public static HashMap<String, DASemantics> loadSemantics(String connId, String cfgpath, boolean debug)
+	public static HashMap<String, DASemantics> loadSemantics(String connId)
 			throws SAXException, IOException, SQLException, SemanticException {
-		Utils.logi("Loading Semantics (fullpath):\n\t%s", cfgpath);
-		if (cfgpath == null) {
-			Utils.warn("\nConnect's semantics configuration file can't be found:\n%s\n", connId);
-			return null;
-		}
-		else {
+
+		boolean debug = Connects.getDebug(connId);
+		String fpath = Connects.getSmtcsPath(connId);
+		if (isblank(fpath, "\\."))
+			throw new SemanticException(
+				"Trying to find semantics of conn %1$s, but the configuration path is empty.\n" +
+				"No 'smtcs' configured in connects.xml for connection \"%1$s\"?\n" +
+				"Looking in path: %2$s", connId, fpath);
+		Utils.logi("Loading Semantics (fullpath):\n\t%s", fpath);
+//		if (cfgpath == null) {
+//			Utils.warn("\nConnect's semantics configuration file can't be found:\n%s\n", connId);
+//			return null;
+//		}
+//		else {
 			LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
-				new Log4jWrapper("").setDebugMode(false), cfgpath, new IXMLStruct() {
+				new Log4jWrapper("").setDebugMode(false), fpath, new IXMLStruct() {
 						@Override public String rootTag() { return "semantics"; }
 						@Override public String tableTag() { return "t"; }
 						@Override public String recordTag() { return "s"; }});
@@ -277,7 +278,7 @@ public class DATranscxt extends Transcxt {
 			XMLTable xconn = xtabs.get("semantics");
 			
 			return initConfigs(connId, xconn, debug);
-		}
+//		}
 	}
 	
 	protected static HashMap<String, DASemantics> initConfigs(String conn, XMLTable xcfg, boolean debug)
