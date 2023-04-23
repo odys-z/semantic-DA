@@ -478,7 +478,7 @@ public class DBSyntextTest {
 		public IUser robot;
 		public final String synode;
 		private final String connId;
-		private final DBSynsactBuilder trb;
+		final DBSynsactBuilder trb;
 
 		public Ck(int s) throws SQLException, TransException, ClassNotFoundException, IOException {
 			this(conns[s], trbs[s], String.format("s%s", s), "rob-" + s);

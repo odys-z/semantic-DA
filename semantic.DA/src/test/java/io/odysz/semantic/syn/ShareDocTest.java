@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import io.odysz.anson.x.AnsonException;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.meta.SynChangeMeta;
@@ -74,9 +75,10 @@ public class ShareDocTest {
 
 		// 3. verify changes at kharkiv
 		// 3.1 subscriptions cleared
-		ArrayList<String> pids = kharkiv.ck.entities(anDevice.nodeId, anDevice.png);
-		kharkiv.ck.change(C, pids.get(0), phm);
-		kharkiv.ck.subs(pids.get(0), -1);
+		AnResultset pids = kharkiv.ck.trb.entities(phm, anDevice.png, kharkiv.robot);
+		pids.next();
+		kharkiv.ck.change(C, pids.getString(phm.pk), phm);
+		kharkiv.ck.subs(pids.getString(phm.pk), -1);
 
 		// 3.2 verify files
 		kharkiv.ck.verifile(anDevice.nodeId, anDevice.png, phm);
