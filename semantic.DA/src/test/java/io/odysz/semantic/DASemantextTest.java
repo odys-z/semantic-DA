@@ -72,7 +72,8 @@ public class DASemantextTest {
 			String rootkey = System.getProperty("rootkey");
 			DATranscxt.key("user-pswd", rootkey);
 
-			smtcfg = DATranscxt.loadSemantics(connId, "src/test/res/semantics.xml", true);
+			// smtcfg = DATranscxt.loadSemantics(connId, "src/test/res/semantics.xml", true);
+			smtcfg = DATranscxt.loadSemantics(connId);
 			st = new DATranscxt(connId);
 			metas = Connects.getMeta(connId);
 

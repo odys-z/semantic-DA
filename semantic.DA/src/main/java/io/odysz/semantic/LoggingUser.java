@@ -52,7 +52,7 @@ public class LoggingUser implements IUser {
 			};
 
 		try {
-			DATranscxt.loadSemantics(logConn, logCfgPath, true);
+			DATranscxt.loadSemantics(logConn);
 
 			logSemantic = new DATranscxt(logConn); //, DATranscxt.meta(logConn));
 		} catch (SAXException | IOException | SemanticException | SQLException e) {

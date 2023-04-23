@@ -2,7 +2,7 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
-import static io.odysz.semantic.syn.CRUD.*;
+import static io.odysz.semantic.syn.CRUD.C;
 import static io.odysz.semantic.util.Assert.assertIn;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -24,14 +24,9 @@ import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.LoggingUser;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
-import io.odysz.semantic.syn.DBSynmantics;
-import io.odysz.semantic.syn.DBSynsactBuilder;
-import io.odysz.semantic.syn.Nyquence;
-import io.odysz.semantic.syn.SynEntity;
-import io.odysz.semantic.syn.Synode;
-import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
@@ -429,7 +424,7 @@ public class DBSyntextTest {
 
 	@SuppressWarnings("serial")
 	public static void pull(int src, int dst) throws TransException, SQLException {
-		AnResultset ents = trbs[src].entity(phm, c[src].connId);
+		AnResultset ents = trbs[src].entities(phm, c[src].connId, c[src].robot);
 		
 		while(ents.next()) {
 			// say, entA = trb.loadEntity(phm)
