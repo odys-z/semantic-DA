@@ -35,8 +35,8 @@ public class T_DocTableMeta extends SyntityMeta {
 	 * @deprecated DBSynmantics now is using Nyquence.
 	 * DB column for automatic time stamp. 
 	 * Sqlite:<pre>syncstamp DATETIME DEFAULT CURRENT_TIMESTAMP not NULL</pre>
-	 */
 	public final String stamp;
+	 */
 	/** resource's creating node's device id, originally named as device */
 	public final String synoder;
 	public final String fullpath;
@@ -50,37 +50,34 @@ public class T_DocTableMeta extends SyntityMeta {
 	public final String createDate;
 	public final String shareDate;
 	public final String shareby;
-	public final String org;
+
 	public final String folder;
+	public final String mime;
 	public final String size;
 
-	public final String syncflag;
+//	public final String syncflag;
 	public final String shareflag;
 
 	final HashSet<String> globalIds;
 
 	@SuppressWarnings("serial")
 	public T_DocTableMeta(String tbl, String pk, String conn) throws TransException {
-		// TODO let's build from sync.xml
-		super(tbl, conn);
-		this.pk = pk;
+		super(tbl, pk, conn);
 
 		resname = "pname";
 		uri = "uri";
 		folder = "folder";
 		createDate = "pdate";
 		org = "family";
+		mime = "mime";
 		size = "filesize";
 		synoder = "device";
 		fullpath = "clientpath";
+
 		shareDate = "sharedate";
 		shareby = "shareby";
-
-		stamp = "syncstamp";
-		syncflag = "sync";
 		shareflag = "shareflag";
 		
-		// sharelog = new SharelogMeta(tbl, pk, conn); 
 		globalIds = new HashSet<String>() { {add(synoder);}; {add(uids);} };
 	}
 

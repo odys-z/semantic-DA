@@ -1,6 +1,6 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.semantic.syn.CRUD.*;
+import static io.odysz.semantic.CRUD.*;
 import static io.odysz.semantic.syn.ZSUNodesDA.*;
 
 import java.io.IOException;

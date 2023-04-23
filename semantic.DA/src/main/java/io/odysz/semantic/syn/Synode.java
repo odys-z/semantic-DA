@@ -41,7 +41,7 @@ public class Synode extends SynEntity {
 		return insert
 			.nv(synm.pk, recId)
 			.nv(synm.synoder, synoder)
-			.nv(synm.org, org);
+			.nv(synm.org(), org);
 	}
 	
 }

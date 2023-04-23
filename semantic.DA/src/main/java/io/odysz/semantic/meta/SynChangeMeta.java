@@ -1,5 +1,6 @@
 package io.odysz.semantic.meta;
 
+import io.odysz.common.Utils;
 import io.odysz.semantics.meta.TableMeta;
 
 /**
@@ -18,9 +19,8 @@ public class SynChangeMeta extends TableMeta {
 	public final String synoder;
 	public final String nyquence;
 
-	
 	static {
-		sqlite = "syn_change.sqlite.ddl";
+		 ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
 	}
 
 	public SynChangeMeta(String ... conn) {

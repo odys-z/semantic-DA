@@ -2,7 +2,7 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
-import static io.odysz.semantic.syn.CRUD.C;
+import static io.odysz.semantic.CRUD.C;
 import static io.odysz.semantic.util.Assert.assertIn;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -49,7 +49,7 @@ public class DBSyntextTest {
 	public static DBSynsactBuilder trbs[];
 
 	static HashMap<String, DBSynmantics> synms;
-	static HashMap<String, TableMeta> metas;
+	// static HashMap<String, TableMeta> metas;
 
 	static SynodeMeta snm;
 	static SynChangeMeta chm;
@@ -57,7 +57,6 @@ public class DBSyntextTest {
 	static T_PhotoMeta phm;
 
 	static {
-		try {
 			printCaller(false);
 
 			// File file = new File("src/test/res");
@@ -72,53 +71,47 @@ public class DBSyntextTest {
 			String rootkey = System.getProperty("rootkey");
 			DATranscxt.key("user-pswd", rootkey);
 
-			// smtcfg = DBSynsactBuilder.loadSynmantics(conn0, "src/test/res/synmantics.xml", true);
-			for (int s = 0; s < 4; s++) {
-				conns[s] = String.format("syn-%x", s);
-				trbs[s] = new DBSynsactBuilder(conns[s]);
-				c[s] = new Ck(s);
-			}
-			metas = Connects.getMeta(conns[0]);
 
-			phm = new T_PhotoMeta(conns[0]);
-			metas.put(phm.tbl, phm);
-
-			chm = new SynChangeMeta();
-			metas.put(chm.tbl, chm);
-
-			sbm = new SynSubsMeta();
-			metas.put(sbm.tbl, sbm);
-		} catch (TransException | SQLException | SAXException | IOException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+//			metas = Connects.getMeta(conns[0]);
+//
+//			phm = new T_PhotoMeta(conns[0]);
+//			metas.put(phm.tbl, phm);
+//
+//			chm = new SynChangeMeta();
+//			metas.put(chm.tbl, chm);
+//
+//			sbm = new SynSubsMeta();
+//			metas.put(sbm.tbl, sbm);
 
 	}
 
 	@BeforeAll
 	public static void testInit()
-			throws SQLException, SAXException, IOException, TransException {
+			throws SQLException, SAXException, IOException, TransException, ClassNotFoundException {
 
 		ArrayList<String> sqls = new ArrayList<String>();
-		sqls.add( "CREATE TABLE oz_autoseq (\n"
+		/*
+		sqls.add( "CREATE TABLE if not exists oz_autoseq (\n"
 				+ "  sid text(50),\n"
 				+ "  seq INTEGER,\n"
 				+ "  remarks text(200),\n"
 				+ "  CONSTRAINT oz_autoseq_pk PRIMARY KEY (sid))");
-		sqls.add( "CREATE TABLE a_logs (\n"
-				+ "  logId text(20),\n"
-				+ "  funcId text(20),\n"
-				+ "  funcName text(50),\n"
-				+ "  oper text(20),\n"
-				+ "  logTime text(20),\n"
-				+ "  cnt int,\n"
-				+ "  txt text(4000),\n"
-				+ "  CONSTRAINT oz_logs_pk PRIMARY KEY (logId))");
+		*/
+		sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
 
-		sqls.add(SynChangeMeta.ddlSqlite());
-		sqls.add(SynSubsMeta.ddlSqlite());
-		sqls.add(T_PhotoMeta.ddlSqlite());
+//		sqls.add( "CREATE TABLE a_logs (\n"
+//				+ "  logId text(20),\n"
+//				+ "  funcId text(20),\n"
+//				+ "  funcName text(50),\n"
+//				+ "  oper text(20),\n"
+//				+ "  logTime text(20),\n"
+//				+ "  cnt int,\n"
+//				+ "  txt text(4000),\n"
+//				+ "  CONSTRAINT oz_logs_pk PRIMARY KEY (logId))");
+
+		sqls.add(SynChangeMeta.ddlSqlite);
+		sqls.add(SynSubsMeta.ddlSqlite);
+		sqls.add(T_PhotoMeta.ddlSqlite);
 
 		sqls.add( "delete from oz_autoseq;\n"
 				+ "insert into oz_autoseq (sid, seq, remarks) values\n"
@@ -126,11 +119,21 @@ public class DBSyntextTest {
 				+ "('a_logs.logId', 0, 'test');"
 				);
 
+		phm = new T_PhotoMeta("syn.00").replace();
 		sqls.add(String.format("delete from %s", phm.tbl));
 		sqls.add("delete from a_logs");
 
 		for (int s = 0; s < 4; s++)
 			Connects.commit(conns[s], c[s].robot, sqls, Connects.flag_nothing);
+		
+		// smtcfg = DBSynsactBuilder.loadSynmantics(conn0, "src/test/res/synmantics.xml", true);
+		for (int s = 0; s < 4; s++) {
+			conns[s] = String.format("syn.%02x", s);
+			trbs[s] = new DBSynsactBuilder(conns[s]);
+			c[s] = new Ck(s);
+		}
+		
+		assertEquals("syn.00", c[0].connId);
 	}
 
 	/**
@@ -430,14 +433,10 @@ public class DBSyntextTest {
 			// say, entA = trb.loadEntity(phm)
 			AnResultset subs = (AnResultset) trbs[src]
 					.select(chm.tbl, "ch")
-					.je("ch", sbm.tbl, "sb", chm.entfk, sbm.uids)
-					.whereEq("ch", chm.entbl, phm.tbl)
-					.whereEq("sb", sbm.entbl, phm.tbl)
-					// compond Id
-					.whereEq(chm.org, c[src].robot.orgId())
-					.whereEq(chm.entbl, h_photos)
-					.whereEq(chm.synoder, c[src].synode)
-					.whereEq(chm.uids, ents.getString(chm.uids))
+					.je("ch", sbm.tbl, "sb", chm.entfk, sbm.uids, chm.entbl, phm.tbl, sbm.entbl, phm.tbl)
+					.whereEq("ch", chm.org, c[src].robot.orgId())
+					.whereEq("ch", chm.synoder, c[src].synode)
+					.whereEq("ch", chm.uids, ents.getString(chm.uids))
 					.rs(trbs[src].instancontxt(conns[src], c[src].robot))
 					.rs(0);
 
@@ -448,6 +447,8 @@ public class DBSyntextTest {
 				.syncInto(conns[dst], trbs[dst], subs, new HashSet<String>() {{add(skip);}}, c[dst].robot)
 				// unlock
 				;
+			
+			trbs[dst].incNyquence(c[dst].connId, phm.tbl, skip, c[dst].robot);
 		}
 	}
 

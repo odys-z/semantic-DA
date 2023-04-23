@@ -2,10 +2,8 @@ package io.odysz.semantic.syn;
 
 import java.util.HashMap;
 
-import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantext;
 import io.odysz.semantic.DASemantics;
-import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.meta.TableMeta;
@@ -22,7 +20,7 @@ public class DBSyntext extends DASemantext implements ISemantext {
 //	private SemanticObject autoVals;
 //	private static Transcxt rawst;
 
-	/**Semantic Configurations */
+//	/**Semantic Configurations */
 //	private HashMap<String, DBSynmantics> ss;
 //	private HashMap<String, TableMeta> metas;
 
@@ -45,14 +43,13 @@ public class DBSyntext extends DASemantext implements ISemantext {
 //	 * @see ISemantext#onInsert(Insert, String, List)
 //	 */
 //	@Override
-//	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> rows)
-//			throws SemanticException {
+//	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> rows) throws SemanticException {
 //
 //		if (rows != null && ss != null)
 //			// second round
 //			for (ArrayList<Object[]> row : rows) {
 //				Map<String, Integer> cols = insert.getColumns();
-//				DBSynmantics s = ss.get(tabl);
+//				DBSynmantics s = (DBSynmantics) ss.get(tabl);
 //				if (s == null)
 //					continue;
 //				s.onInsert(this, insert, row, cols, usr);
@@ -129,13 +126,5 @@ public class DBSyntext extends DASemantext implements ISemantext {
 			e.printStackTrace();
 			return null; // meta is null? how could it be?
 		}
-	}
-
-	public AnResultset entities(SyntityMeta m) {
-		return null;
-	}
-
-	public AnResultset entities(SyntityMeta m, String pkv) {
-		return null;
 	}
 }

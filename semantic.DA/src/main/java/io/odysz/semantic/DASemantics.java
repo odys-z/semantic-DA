@@ -533,10 +533,8 @@ public class DASemantics {
 			// handler = new ShExtFile(basicTsx, tabl, recId, args);
 		else if (smtype.extFilev2 == semantic)
 			handler = new ShExtFilev2(basicTsx, tabl, recId, args);
-//		else if (smtype.stampByNode == semantic)
-//			handler = new ShStampByNode(basicTsx, tabl, recId, args);
 		else
-			throw new SemanticException("Unsuppported semantics: " + semantic);
+			throw new SemanticException("Cannot load configured semantics of key: %s", semantic);
 
 		if (verbose)
 			handler.logi();
@@ -815,7 +813,8 @@ public class DASemantics {
 				nv = row.get(cols.get(args[2]));
 			}
 			else {
-				nv = new Object[] { args[2], stx.composeVal(v, target, args[2]) };
+				// nv = new Object[] { args[2], stx.composeVal(v, target, args[2]) };
+				nv = new Object[] { args[2], trxt.quotation(v, stx.connId(), target, args[2]) };
 				cols.put(args[2], row.size());
 				row.add(nv);
 			}
@@ -875,7 +874,8 @@ public class DASemantics {
 							alreadyResulved, target);
 				// side effect: generated auto key already been put into autoVals,
 				// which can be referenced later.
-				nv[1] = stx.composeVal(stx.genId(target, args[0]), target, args[0]);
+				// nv[1] = stx.composeVal(stx.genId(target, args[0]), target, args[0]);
+				nv[1] = trxt.quotation(stx.genId(target, args[0]), stx.connId(), target, args[0]);
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();
 			}
@@ -912,7 +912,8 @@ public class DASemantics {
 				Object v = stx.resulvedVal(args[1], args[2]);
 				if (v != null && (nv[1] == null || LangExt.isblank(nv[1])
 						|| nv[1] instanceof ExprPart && ((ExprPart)nv[1]).isNull()))
-					nv[1] = stx.composeVal(v, target, (String)nv[0]);
+					// nv[1] = stx.composeVal(v, target, (String)nv[0]);
+					nv[1] = trxt.quotation(v, stx.connId(), target, (String)nv[0]);
 			} catch (Exception e) {
 				if (nv[1] != null) {
 					if (verbose)
@@ -1063,7 +1064,8 @@ public class DASemantics {
 						// already provided by client, override it if possible
 						if (bid != null)
 							// rowBid[1] = bid;
-							rowBid[1] = stx.composeVal(bid, target, fBusiId);
+							// rowBid[1] = stx.composeVal(bid, target, fBusiId);
+							rowBid[1] = trxt.quotation(bid, stx.connId(), target, fBusiId);
 					}
 					// otherwise it may be a Resulving()
 				}
@@ -1094,7 +1096,10 @@ public class DASemantics {
 						
 					// e.g recId = user001
 					cols.put(fBusiId, row.size());
-					row.add(new Object[] {argus[ixbusiId], stx.composeVal(bid, target, argus[ixbusiId])});
+					row.add(new Object[] {argus[ixbusiId],
+							// stx.composeVal(bid, target, argus[ixbusiId])
+							trxt.quotation(bid, stx.connId(), target, argus[ixbusiId])
+							});
 				}
 			}
 		}
@@ -1118,6 +1123,7 @@ public class DASemantics {
 
 		@Override
 		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			/*
 			if (args.length > 1 && args[1] != null) {
 				Object[] nv;
 				if (cols.containsKey(args[0]) // with nv from client
@@ -1136,6 +1142,12 @@ public class DASemantics {
 					nv[1] = stx.composeVal(args[1], target, (String)nv[0]);
 				else if ((nv[1] instanceof ExprPart) && ((ExprPart)nv[1]).isNull())
 					nv[1] = stx.composeVal(args[1], target, (String)nv[0]);
+			}*/
+
+			if (args.length > 1 && args[1] != null) {
+				requiredNv(args[0],
+					trxt.quotation(args[1], stx.connId(), target, args[0]),
+					cols, row, target, usr);
 			}
 		}
 
@@ -1692,8 +1704,10 @@ public class DASemantics {
 						Object[] civ = dencrypt(insrt, cipherB64[1].toString(), ivB64[1].toString(), decryptK);
 						// [0] cipher, [1] iv
 						if (civ != null) {
-							cipherB64[1] = stx.composeVal(civ[0], target, colCipher);
-							ivB64[1] = stx.composeVal(civ[1], target, colIv);
+							// cipherB64[1] = stx.composeVal(civ[0], target, colCipher);
+							cipherB64[1] = trxt.quotation(civ[0], stx.connId(), target, colCipher);
+							// ivB64[1] = stx.composeVal(civ[1], target, colIv);
+							ivB64[1] = trxt.quotation(civ[1], stx.connId(), target, colIv);
 						}
 						else Utils.warn("Decrypt then ecrypt failed. target %s, col: %s, (client) decipher key: %s",
 								target, colCipher, decryptK);
@@ -1789,7 +1803,8 @@ public class DASemantics {
 
 			// oper
 			requiredNv(args[0],
-					stx.composeVal(usr == null ? "sys" : usr.uid(), target, args[0]),
+					// stx.composeVal(usr == null ? "sys" : usr.uid(), target, args[0]),
+					trxt.quotation(usr == null ? "sys" : usr.uid(), stx.connId(), target, args[0]),
 					cols, row, target, usr);
 			/*
 			Object[] nvOper;
@@ -1896,7 +1911,8 @@ public class DASemantics {
 			else { // add a semantics required cell if it's absent.
 				nv = new Object[] { args[0], null };
 			}
-			nv[1] = stx.composeVal(resulved, target, args[0]);
+			// nv[1] = stx.composeVal(resulved, target, args[0]);
+			nv[1] = trxt.quotation(resulved, stx.connId(), target, args[0]);
 
 			// append a sql
 			Object pk = row.get(cols.get(pkField))[1];

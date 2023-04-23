@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <semantics>
-  <t id="synmantics" pk="id" columns="id,smtc,tabl,pk,args">
+  <t id="semantics" pk="id" columns="id,smtc,tabl,pk,args">
   <!-- smtc: semantics type, e.g. auto: auto increase key.
   			see javadoc: https://odys-z.github.io/javadoc/semantic.DA/io/odysz/semantic/DASemantics.smtype.html
   		tabl: database table name
@@ -27,15 +27,15 @@
 	 -->
  	
 	<!-- syn_change
-		args: pk,n pk2 ...,[col-value-on-del, ...]
-		e.g.: pid,crud-flag,synoder clientpath,exif,uri "",clientpath
+		args: pk, crud-flag, n pk2 ...,         [col-value-on-del, ...]
+		e.g.: pid,crud,      synoder clientpath,exif,uri "",clientpath
 	-->
   	<s>
   		<id>02</id>
   		<smtc>syn-change</smtc>
   		<tabl>h_photos</tabl>
   		<pk>pid</pk>
-  		<args>pid,crud,device clientpath,exif,uri "",clientpath</args>
+  		<args>pid,crud,device clientpath,exif,uri "",clientpath,filesize 0,mime</args>
   	</s>
 
   	<s>

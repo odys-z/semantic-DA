@@ -116,6 +116,8 @@ public class T_SyncDoc extends Anson {
 
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	ISemantext semantxt;
+
+	protected String mime;
 	
 	public T_SyncDoc() {}
 	
@@ -133,7 +135,7 @@ public class T_SyncDoc extends Anson {
 				meta.shareDate,
 				meta.shareby,
 				meta.shareflag,
-				meta.syncflag,
+				meta.mime,
 				meta.fullpath,
 				meta.synoder,
 				meta.folder,
@@ -154,7 +156,7 @@ public class T_SyncDoc extends Anson {
 					meta.shareby,
 					meta.shareDate,
 					meta.shareflag,
-					meta.syncflag
+					meta.mime
 			};
 		return synpageCols;
 	}
@@ -178,7 +180,7 @@ public class T_SyncDoc extends Anson {
 		}
 		this.shareby = rs.getString(meta.shareby);
 		this.shareflag = rs.getString(meta.shareflag);
-		this.syncFlag = rs.getString(meta.syncflag);
+		this.mime = rs.getString(meta.mime);
 	}
 
 	/**

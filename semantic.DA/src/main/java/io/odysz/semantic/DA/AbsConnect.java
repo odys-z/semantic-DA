@@ -58,7 +58,7 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 			
 			File f = new File(dbpath);
 			if (!f.exists())
-				throw new SQLException("Can't find DB file.");
+				throw new SemanticException("Can't find DB file: %s", f.getAbsolutePath());
 
 			return SqliteDriver2.initConnection(String.format("jdbc:sqlite:%s", dbpath),
 					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);

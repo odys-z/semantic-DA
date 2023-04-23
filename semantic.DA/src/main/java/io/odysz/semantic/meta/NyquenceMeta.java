@@ -13,20 +13,19 @@ import io.odysz.transact.x.TransException;
  */
 public class NyquenceMeta extends SyntityMeta {
 	
-	public final String org;
 	public final String synode;
 	public final String entbl;
 	public final String nyquence;
 	public final String inc;
 
-	public NyquenceMeta(String... conn) throws TransException {
-		super("syn_nyqunce", "synode", conn);
+	public NyquenceMeta(String org, String... conn) throws TransException {
+		super("syn_nyquence", "synode", org, conn);
 		
 		nyquence = "nyquence";
 		inc = "inc";
 		entbl = "tabl";
 		synode = "synode";
-		org = "org";
+		this.org = org;
 	}
 
 	@Override
