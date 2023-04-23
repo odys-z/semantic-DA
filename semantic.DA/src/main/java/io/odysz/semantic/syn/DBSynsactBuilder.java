@@ -4,7 +4,6 @@ import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashMap;
 
 import org.xml.sax.SAXException;
 
@@ -19,9 +18,14 @@ import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
-import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
+/**
+ * Sql statement builder for {@link DBSyntext} for handling database synchronization. 
+ * 
+ * @author Ody
+ *
+ */
 public class DBSynsactBuilder extends DATranscxt {
 
 	protected SynodeMeta synm;
@@ -37,27 +41,16 @@ public class DBSynsactBuilder extends DATranscxt {
 		this.nyqm = new NyquenceMeta(conn);
 	}
 
-//	@Override
-//	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
-//		try {
-//			return new DBSyntext(connId, loadSynmatics(connId),
-//				Connects.getMeta(connId), usr, runtimepath);
-//		} catch (SemanticException | SQLException | SAXException | IOException e) {
-//			e.printStackTrace();
-//			throw new TransException(e.getMessage());
-//		}
-//	}
-
-//	private HashMap<String, DBSynmantics> loadSynmatics(String connId) throws SAXException, IOException {
-//		return super.loadSemantics(connId, connId, getSysDebug());
-//	}
-
-//	public static HashMap<String, DBSynmantics> loadSynmantics(String connId, String cfgpath, boolean debug)
-//			throws SAXException, IOException, SQLException, SemanticException {
-//
-//		HashMap<String, DBSynmantics> syns = new HashMap<String, DBSynmantics>();
-//		return syns;
-//	}
+	@Override
+	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
+		try {
+			return new DBSyntext(connId, loadSemantics(connId),
+				Connects.getMeta(connId), usr, runtimepath);
+		} catch (SemanticException | SAXException | IOException | SQLException e) {
+			e.printStackTrace();
+			throw new TransException(e.getMessage());
+		}
+	}
 
 	/**
 	 * Get DB record change's subscriptions.
@@ -71,7 +64,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws TransException, SQLException {
 		return (AnResultset) select(subm.tbl, "ch")
 				.cols(subm.cols())
-				.col(Funcall.count(subm.subs), "cnt")
+				.col(count(subm.subs), "cnt")
 				.whereEq(subm.entbl, entm.tbl)
 				.whereEq(subm.uids, uids)
 				.rs(instancontxt(conn, robot))
@@ -97,7 +90,10 @@ public class DBSynsactBuilder extends DATranscxt {
 
 	public SynEntity loadEntity(String eid, String conn, IUser usr, SyntityMeta phm)
 			throws TransException, SQLException {
-		AnResultset ents = entity(phm, eid);
+		AnResultset ents = (AnResultset)select(phm.tbl, "ch")
+				.whereEq(phm.pk, eid)
+				.rs(instancontxt(conn, usr))
+				.rs(0);
 
 		AnResultset subs = (AnResultset)select(chgm.tbl, "ch")
 				.je("ch", subm.tbl, "sb", chgm.uids, subm.uids, chgm.org, subm.org)
@@ -114,8 +110,9 @@ public class DBSynsactBuilder extends DATranscxt {
 		return entA;
 	}
 
-	protected AnResultset entity(SyntityMeta phm, String eid) {
-		// TODO Auto-generated method stub
-		return null;
+	public AnResultset entities(SyntityMeta phm, String connId, IUser usr) throws TransException, SQLException {
+		return (AnResultset)select(phm.tbl, "ch")
+				.rs(instancontxt(connId, usr))
+				.rs(0);
 	}
 }
