@@ -2,8 +2,6 @@ package io.odysz.semantic.meta;
 
 import java.util.HashSet;
 
-import io.odysz.transact.x.TransException;
-
 /**
  * 
  * <a href='./syn_nyquence.sqlite.ddl'>syn_nyquence.ddl</a>
@@ -18,7 +16,7 @@ public class NyquenceMeta extends SyntityMeta {
 	public final String nyquence;
 	public final String inc;
 
-	public NyquenceMeta(String org, String... conn) throws TransException {
+	public NyquenceMeta(String org, String... conn) {
 		super("syn_nyquence", "synode", org, conn);
 		
 		nyquence = "nyquence";

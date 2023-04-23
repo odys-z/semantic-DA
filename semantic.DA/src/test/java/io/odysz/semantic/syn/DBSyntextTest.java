@@ -4,6 +4,9 @@ import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
 import static io.odysz.semantic.util.Assert.assertIn;
+import static io.odysz.transact.sql.parts.condition.Funcall.count;
+import static io.odysz.transact.sql.parts.condition.Funcall.compound;
+import static io.odysz.transact.sql.parts.condition.Funcall.compoundVal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
@@ -29,7 +32,9 @@ import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
-import io.odysz.semantics.meta.TableMeta;
+import io.odysz.transact.sql.parts.Logic.op;
+import io.odysz.transact.sql.parts.condition.Condit;
+import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
 public class DBSyntextTest {
@@ -517,6 +522,7 @@ public class DBSyntextTest {
 		 * @param entm
 		 */
 		public void chgEnt(String crud, String synoder, String entId, SyntityMeta entm) {
+
 		}
 
 		/**
@@ -587,18 +593,22 @@ public class DBSyntextTest {
 			return trbs[synode].nyquence(conns[synode], robot.orgId(), robot.deviceId(), phm.tbl);
 		}
 
-		public ArrayList<String> entities(String nodeId, String png) {
-			ArrayList<String> ents = new ArrayList<String>();
-			return ents;
-		}
+//		public AnResultset entities(int s, String nodeId, String png) throws TransException, SQLException {
+//			AnResultset ents = c[s].trb.entities(phm, png, robot);
+//			return ents;
+//		}
 
 		/**
-		 * Verify if and if only one instance exists on this node.
+		 * Verify if and only if one instance exists on this node.
 		 * 
 		 * @param synoder
 		 * @param clientpath
 		 */
 		public void verifile(String synoder, String clientpath, T_PhotoMeta phm) {
+			trb.select(phm.tbl)
+				.col(count(phm.pk), "c")
+				.where(new Predicate(op.eq, compound(chm.uids), compoundVal(synoder, clientpath)))
+				;
 		}
 	}
 

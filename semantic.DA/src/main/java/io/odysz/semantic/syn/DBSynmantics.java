@@ -143,8 +143,9 @@ public class DBSynmantics extends DASemantics {
 			// e.g.: pid,crud,      synoder clientpath,exif,uri "",clientpath
 			SyntityMeta entm = (SyntityMeta) stx.getTableMeta(target);
 
-			String org = verifyRequiredCols(entm.globalIds(), cols.keySet());
-			NyquenceMeta nyqm = new NyquenceMeta(org);
+			verifyRequiredCols(entm.globalIds(), cols.keySet());
+
+			NyquenceMeta nyqm = new NyquenceMeta(usr.orgId());
 
 			Delete delChg = syb.delete(chm.tbl);
 			for (String c : cols.keySet())
