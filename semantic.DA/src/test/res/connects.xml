@@ -19,6 +19,7 @@
   		<smtcs>semantics.xml</smtcs>
   	</c>
   	
+  	<!-- error 
    	<c>
   		<id>synode-sqlite</id>
   		<type>sqlite</type>
@@ -29,6 +30,7 @@
   		<dbg>true</dbg>
   		<smtcs>synmantics.xml</smtcs>
   	</c>
+  	 -->
   	
   	<!-- connection examples 
 	<c>
@@ -54,14 +56,42 @@
 	</c> -->
 
 	<c>
-		<id>syn-0</id>
+		<id>syn.00</id>
   		<type>sqlite</type>
   		<isdef></isdef>
-  		<src>syn-0.db</src>
+  		<src>syn.00</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<smtcs>src/test/res/synmantics.xml</smtcs>
+  		<smtcs>synmantics.xml</smtcs>
 	</c>
+	<c>
+		<id>syn.01</id>
+  		<type>sqlite</type>
+  		<isdef></isdef>
+  		<src>syn.01</src>
+  		<usr></usr>
+  		<pswd></pswd>
+  		<smtcs>synmantics.xml</smtcs>
+	</c>
+	<c>
+		<id>syn.02</id>
+  		<type>sqlite</type>
+  		<isdef></isdef>
+  		<src>syn.02</src>
+  		<usr></usr>
+  		<pswd></pswd>
+  		<smtcs>synmantics.xml</smtcs>
+	</c>
+	<c>
+		<id>syn.03</id>
+  		<type>sqlite</type>
+  		<isdef></isdef>
+  		<src>syn.03</src>
+  		<usr></usr>
+  		<pswd></pswd>
+  		<smtcs>synmantics.xml</smtcs>
+	</c>
+
   </t>
 
   <!-- NOTE: dbcp configuration shouldn't work because you don't have container providing the connections.

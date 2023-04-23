@@ -26,25 +26,33 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
+import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
+import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 import static io.odysz.common.LangExt.*;
 
 /**
- * A {@link io.odysz.transact.sql.Statement Statement} builder that can providing statements with overridden callback methods.<br>
+ * A {@link io.odysz.transact.sql.Statement Statement} builder that can providing
+ * statements handling callback methods.<br>
  * 
- * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
+ * <p>Those statements are the starting points to build a sql transact for querying,
+ * updating, etc.<br>
+ * 
  * For how to use the created statements, see the testing class:
  * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/java/io/odysz/semantic/DASemantextTest.java'>
  * DASemantextTest</a>.</p>
- * This manager can handling semantics configured in xml. See {@link #loadSemantics(String, String)}. <br>
- * Every sql building needing semantics handling must use a context instance created by
- * {@link DATranscxt#instancontxt(String, IUser)}.
+ * 
+ * This manager can handling semantics configured in xml.
+ * See {@link #loadSemantics(String, String)}. <br>
+ * 
+ * Every sql building needing semantics handling must use a context instance
+ * created by {@link DATranscxt#instancontxt(String, IUser)}.
+ * 
  * @author odys-z@github.com
- *
  */
 public class DATranscxt extends Transcxt {
 	protected static String cfgroot = ""; 
@@ -209,7 +217,6 @@ public class DATranscxt extends Transcxt {
 	}
 
 	public String getSysConnId() { return Connects.defltConn(); }
-//	public boolean getSysDebug() { return Connects.getDebug(Connects.defltConn()); }
 
 	/**<p>Create a transact builder with basic DASemantext instance.</p>
 	 * <p>If it's a null configuration, the semantics can not be used to resulving semantics between records,
@@ -276,6 +283,8 @@ public class DATranscxt extends Transcxt {
 						@Override public String recordTag() { return "s"; }});
 
 			XMLTable xconn = xtabs.get("semantics");
+			if (xconn == null)
+				throw new SemanticException("Xml structure error (no semantics table) in\n%s", fpath);
 			
 			return initConfigs(connId, xconn, debug);
 //		}
@@ -428,5 +437,19 @@ public class DATranscxt extends Transcxt {
 		rs.next();
 		
 		return rs.getInt("c") > 0;
+	}
+
+	@Override
+	public AbsPart quotation(Object v, String conn, String tabl, String col) {
+		if (v instanceof AbsPart)
+			return (AbsPart) v;
+
+		try {
+			TableMeta mt = tableMeta(conn, tabl);
+			return Statement.composeVal(v, mt, col);
+		} catch (SemanticException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

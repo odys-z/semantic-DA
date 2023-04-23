@@ -2,6 +2,7 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.trim;
 import static io.odysz.common.LangExt.str;
 import static io.odysz.transact.sql.parts.condition.Funcall.add;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
@@ -19,6 +20,7 @@ import java.util.Set;
 import org.xml.sax.SAXException;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
@@ -62,14 +64,14 @@ public class DBSynmantics extends DASemantics {
 		protected final SynChangeMeta chm;
 		protected final SynodeMeta snm;
 		protected final SynSubsMeta sbm;
-		protected final NyquenceMeta nyqm;
+		// protected final NyquenceMeta nyqm;
 
 		protected final DBSynsactBuilder syb;
 
 		/** Ultra high frequency mode, the data frequency need to be reduced with some cost */
-		protected final boolean UHF;
-		private String entflag;
-		private final ExprPart uidVals;
+		private final boolean UHF;
+		private final String entflag;
+		private final ExprPart entGID;
 
 		ShSynChange(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.synChange, tabl, pk, args);
@@ -87,17 +89,17 @@ public class DBSynmantics extends DASemantics {
 			}
 			chm = new SynChangeMeta();
 			sbm = new SynSubsMeta();
-			try {
-				nyqm = new NyquenceMeta();
-			} catch (TransException e) {
-				e.printStackTrace();
-				throw new SemanticException(e.getMessage());
-			}
+//			try {
+//				nyqm = new NyquenceMeta();
+//			} catch (TransException e) {
+//				e.printStackTrace();
+//				throw new SemanticException(e.getMessage());
+//			}
 			UHF = true;
 			
-			// args: pk,n pk2 ...,[col-value-on-del ...]
-			// args: pid,synoder clientpath,exif,uri "",clientpath
-			uidVals = compound(args[1].split(" "));
+			entflag = trim(args[1]);
+			
+			entGID = compound(args[2].split(" "));
 		}
 
 		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
@@ -137,11 +139,12 @@ public class DBSynmantics extends DASemantics {
 				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 
-			// args: pk,n pk2 ...,[col-value-on-del ...]
-			// args: pid,synoder clientpath,exif,uri "",clientpath
+			// args: pk, crud-flag, n pk2 ...,         [col-value-on-del, ...]
+			// e.g.: pid,crud,      synoder clientpath,exif,uri "",clientpath
 			SyntityMeta entm = (SyntityMeta) stx.getTableMeta(target);
 
-			verifyRequiredCols(entm.globalIds(), cols.keySet());
+			String org = verifyRequiredCols(entm.globalIds(), cols.keySet());
+			NyquenceMeta nyqm = new NyquenceMeta(org);
 
 			Delete delChg = syb.delete(chm.tbl);
 			for (String c : cols.keySet())
@@ -157,21 +160,21 @@ public class DBSynmantics extends DASemantics {
 			try {
 				insChg.select(syb
 						.select(snm.tbl, "s")
-						.je("s", nyqm.tbl, "ny", snm.org, nyqm.org, snm.synode, nyqm.synode)
+						.je("s", nyqm.tbl, "ny", snm.org(), nyqm.org(), snm.synode, nyqm.synode)
 						.col(pid, chm.entfk)
 						.col(CRUD.C, chm.crud)
 						.col(UHF ? add(nyqm.nyquence, snm.inc) : add(nyqm.nyquence, 1), chm.nyquence)
 						.whereEq(nyqm.entbl, target)
-						.whereEq(snm.org, usr.orgId())
+						.whereEq(snm.org(), usr.orgId())
 						.whereEq(snm.synoder, synoder));
 
 				// and insert subscriptions, or merge syn_change & syn_subscribe?
 				Insert insubs = syb.insert(sbm.tbl)
 						.select(syb
 							.select(snm.tbl)
-							.col(snm.synode, sbm.synoder).col(uidVals, sbm.uids)
+							.col(snm.synode, sbm.synoder).col(entGID, sbm.uids)
 							.where(op.ne, snm.synode, usr.uid())
-							.whereEq(snm.org, usr.orgId()));
+							.whereEq(snm.org(), usr.orgId()));
 
 				insChg.post(syb
 						.delete(sbm.tbl)
@@ -186,26 +189,27 @@ public class DBSynmantics extends DASemantics {
 
 			stmt.post(delChg);
 			
+			// FIXME use table-wise handler for nyquence updating
 			if (this.UHF)
-				stmt.post(clearInc(usr.orgId(), synoder));
-			else stmt.post(inc(usr.orgId(), synoder));
+				stmt.post(clearInc(usr.orgId(), synoder, nyqm));
+			else stmt.post(inc(usr.orgId(), synoder, nyqm));
 
 			return stmt;
 		}
 
-		private Statement<?> inc(String org, String synid) {
+		private Statement<?> inc(String org, String synid, NyquenceMeta nyqm) {
 			return syb.update(snm.tbl)
 				.nv(nyqm.inc, add(nyqm.nyquence, 1))
-				.whereEq(nyqm.org, org)
+				.whereEq(nyqm.org(), org)
 				.whereEq(nyqm.synode, synid)
 				.whereEq(nyqm.entbl, target);
 		}
 
-		private Update clearInc(String org, String synid) {
+		private Update clearInc(String org, String synid, NyquenceMeta nyqm) {
 			return syb.update(snm.tbl)
 				.nv(nyqm.nyquence, add(nyqm.nyquence, snm.inc))
 				.nv(nyqm.inc, 0)
-				.whereEq(nyqm.org, org)
+				.whereEq(nyqm.org(), org)
 				.whereEq(nyqm.synode, synid)
 				.whereEq(nyqm.entbl, target);
 		}

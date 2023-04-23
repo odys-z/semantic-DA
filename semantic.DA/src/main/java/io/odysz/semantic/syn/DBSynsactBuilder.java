@@ -1,5 +1,6 @@
 package io.odysz.semantic.syn;
 
+import static io.odysz.transact.sql.parts.condition.Funcall.add;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
@@ -71,11 +72,12 @@ public class DBSynsactBuilder extends DATranscxt {
 				.rs(0);
 	}
 
-	public Nyquence nyquence(String conn, String org, String synid, String entity) throws SQLException, TransException {
+	public Nyquence nyquence(String conn, String org, String synid, String entity)
+			throws SQLException, TransException {
 		return new Nyquence(((AnResultset) select(nyqm.tbl)
 				.col(nyqm.nyquence, "n")
 				.whereEq(nyqm.entbl, entity)
-				.whereEq(nyqm.org, org)
+				.whereEq(nyqm.org(), org)
 				.whereEq(nyqm.synode, synid)
 				.rs(instancontxt(conn, dummy))
 				.rs(0))
@@ -83,14 +85,40 @@ public class DBSynsactBuilder extends DATranscxt {
 				.getInt("n"));
 	}
 
-	public void addSynode(String conn, Synode node, IUser robot) throws TransException, SQLException {
+	/**
+	 * nyquence += inc;<br>
+	 * inc = 0;
+	 * 
+	 * @param conn
+	 * @param synid
+	 * @param entity
+	 * @param usr
+	 * @return affected row count
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public int incNyquence(String conn, String synid, String entity, IUser usr)
+			throws TransException, SQLException {
+		return update(nyqm.tbl, usr)
+			.nv(nyqm.nyquence, select(nyqm.tbl).col(add(nyqm.nyquence, nyqm.inc)))
+			.nv(nyqm.inc, 0)
+			.whereEq(nyqm.entbl, entity)
+			.whereEq(nyqm.org(), usr.orgId())
+			.whereEq(nyqm.synode, synid)
+			.u(instancontxt(conn, usr))
+			.total()
+			;
+	}
+
+	public void addSynode(String conn, Synode node, IUser robot)
+			throws TransException, SQLException {
 		node.insert(synm, insert(synm.tbl, robot))
 			.ins(this.instancontxt(conn, robot));
 	}
 
 	public SynEntity loadEntity(String eid, String conn, IUser usr, SyntityMeta phm)
 			throws TransException, SQLException {
-		AnResultset ents = (AnResultset)select(phm.tbl, "ch")
+		AnResultset ent = (AnResultset)select(phm.tbl, "ch")
 				.whereEq(phm.pk, eid)
 				.rs(instancontxt(conn, usr))
 				.rs(0);
@@ -103,14 +131,12 @@ public class DBSynsactBuilder extends DATranscxt {
 				.rs(instancontxt(conn, usr))
 				.rs(0);
 
-		SynEntity entA = new SynEntity(ents, phm, chgm, subm);
-		String skip = entA.synode();
-		entA.format(subs);
-
-		return entA;
+		SynEntity entA = new SynEntity(ent, phm, chgm, subm);
+		return entA.format(subs);
 	}
 
-	public AnResultset entities(SyntityMeta phm, String connId, IUser usr) throws TransException, SQLException {
+	public AnResultset entities(SyntityMeta phm, String connId, IUser usr)
+			throws TransException, SQLException {
 		return (AnResultset)select(phm.tbl, "ch")
 				.rs(instancontxt(connId, usr))
 				.rs(0);

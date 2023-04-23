@@ -1,4 +1,4 @@
-package io.odysz.semantic.syn;
+package io.odysz.semantic;
 
 public class CRUD {
 	public static final String C = "I";

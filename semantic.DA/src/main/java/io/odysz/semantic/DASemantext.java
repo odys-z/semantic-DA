@@ -60,7 +60,7 @@ public class DASemantext implements ISemantext {
 	protected HashMap<String, DASemantics> ss;
 	protected HashMap<String, TableMeta> metas;
 
-	private IUser usr;
+	protected IUser usr;
 	protected String connId;
 
 	protected String basePath;

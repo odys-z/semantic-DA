@@ -2,6 +2,8 @@ package io.odysz.semantic.meta;
 
 import java.util.HashSet;
 
+import static io.odysz.common.Utils.loadTxt;
+
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
@@ -14,10 +16,10 @@ import io.odysz.transact.x.TransException;
  */
 public class SynodeMeta extends SyntityMeta {
 	static {
-		sqlite = "syn_node.sqlite.ddl";
+		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
 	}
 	
-	public final String org;
+	// public final String org;
 	/** organization's nodes */
 	public final String synode;
 	public final String inc;
@@ -31,9 +33,9 @@ public class SynodeMeta extends SyntityMeta {
 	 * @throws SemanticException 
 	 */
 	public SynodeMeta(String... conn) throws TransException {
-		super("syn_node", "synid", conn);
+		super("syn_node", "synid", "org", conn);
 		
-		org = "org";
+		// org = "org";
 		synode = "synode";
 		
 		inc = "inc";

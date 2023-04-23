@@ -1,6 +1,7 @@
 package io.odysz.semantic.meta;
 
 import static io.odysz.common.LangExt.len;
+import static io.odysz.common.Utils.loadTxt;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -23,7 +24,8 @@ public class SynSubsMeta extends TableMeta {
 	public final String synoder;
 
 	static {
-		sqlite = "syn_subscribe.sqlite.ddl";
+		// sqlite = "syn_subscribe.sqlite.ddl";
+		ddlSqlite = loadTxt(SynSubsMeta.class, "syn_subscribe.sqlite.ddl");
 	}
 
 	public SynSubsMeta(String ... conn) {
