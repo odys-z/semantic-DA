@@ -1,12 +1,12 @@
 package io.odysz.semantic.syn;
 
+import static io.odysz.common.LangExt.compoundVal;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
 import static io.odysz.semantic.util.Assert.assertIn;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
-import static io.odysz.transact.sql.parts.condition.Funcall.compoundVal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
@@ -33,7 +33,6 @@ import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.transact.sql.parts.Logic.op;
-import io.odysz.transact.sql.parts.condition.Condit;
 import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
@@ -54,7 +53,6 @@ public class DBSyntextTest {
 	public static DBSynsactBuilder trbs[];
 
 	static HashMap<String, DBSynmantics> synms;
-	// static HashMap<String, TableMeta> metas;
 
 	static SynodeMeta snm;
 	static SynChangeMeta chm;
@@ -64,7 +62,6 @@ public class DBSyntextTest {
 	static {
 			printCaller(false);
 
-			// File file = new File("src/test/res");
 			File file = new File(rtroot);
 			runtimepath = file.getAbsolutePath();
 			logi(runtimepath);
@@ -75,19 +72,6 @@ public class DBSyntextTest {
 			DATranscxt.configRoot(rtroot, runtimepath);
 			String rootkey = System.getProperty("rootkey");
 			DATranscxt.key("user-pswd", rootkey);
-
-
-//			metas = Connects.getMeta(conns[0]);
-//
-//			phm = new T_PhotoMeta(conns[0]);
-//			metas.put(phm.tbl, phm);
-//
-//			chm = new SynChangeMeta();
-//			metas.put(chm.tbl, chm);
-//
-//			sbm = new SynSubsMeta();
-//			metas.put(sbm.tbl, sbm);
-
 	}
 
 	@BeforeAll
@@ -95,13 +79,7 @@ public class DBSyntextTest {
 			throws SQLException, SAXException, IOException, TransException, ClassNotFoundException {
 
 		ArrayList<String> sqls = new ArrayList<String>();
-		/*
-		sqls.add( "CREATE TABLE if not exists oz_autoseq (\n"
-				+ "  sid text(50),\n"
-				+ "  seq INTEGER,\n"
-				+ "  remarks text(200),\n"
-				+ "  CONSTRAINT oz_autoseq_pk PRIMARY KEY (sid))");
-		*/
+
 		sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
 
 //		sqls.add( "CREATE TABLE a_logs (\n"
