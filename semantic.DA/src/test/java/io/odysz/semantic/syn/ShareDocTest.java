@@ -6,7 +6,6 @@ import static io.odysz.semantic.syn.ZSUNodesDA.*;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
@@ -18,7 +17,6 @@ import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
-import io.odysz.semantic.syn.DBSynsactBuilder;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Update;

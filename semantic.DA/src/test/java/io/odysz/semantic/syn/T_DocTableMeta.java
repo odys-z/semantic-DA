@@ -1,7 +1,5 @@
 package io.odysz.semantic.syn;
 
-import java.util.HashSet;
-
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.transact.x.TransException;
 
@@ -58,17 +56,17 @@ public class T_DocTableMeta extends SyntityMeta {
 //	public final String syncflag;
 	public final String shareflag;
 
-	final HashSet<String> globalIds;
+	// final HashSet<String> globalIds;
 
 	@SuppressWarnings("serial")
-	public T_DocTableMeta(String tbl, String pk, String conn) throws TransException {
-		super(tbl, pk, conn);
+	public T_DocTableMeta(String tbl, String pk, String org, String conn) throws TransException {
+		super(tbl, pk, org, conn);
 
 		resname = "pname";
 		uri = "uri";
 		folder = "folder";
 		createDate = "pdate";
-		org = "family";
+		// org = "family";
 		mime = "mime";
 		size = "filesize";
 		synoder = "device";
@@ -78,11 +76,11 @@ public class T_DocTableMeta extends SyntityMeta {
 		shareby = "shareby";
 		shareflag = "shareflag";
 		
-		globalIds = new HashSet<String>() { {add(synoder);}; {add(uids);} };
+		// uids = new HashSet<String>() { {add(synoder);}; {addAll(uids);} };
 	}
 
-	public HashSet<String> globalIds() {
-		return globalIds;
-	}
+//	public HashSet<String> globalIds() {
+//		return globalIds;
+//	}
 
 }

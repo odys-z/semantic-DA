@@ -57,7 +57,7 @@ public class DBSyntextTest {
 	static SynodeMeta snm;
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
-	static T_PhotoMeta phm;
+	// static T_PhotoMeta phm;
 
 	static {
 			printCaller(false);
@@ -101,22 +101,25 @@ public class DBSyntextTest {
 				+ "('h_photos.pid', 0, 'photo'),\n"
 				+ "('a_logs.logId', 0, 'test');"
 				);
-
-		phm = new T_PhotoMeta("syn.00").replace();
-		sqls.add(String.format("delete from %s", phm.tbl));
 		sqls.add("delete from a_logs");
 
-		for (int s = 0; s < 4; s++)
-			Connects.commit(conns[s], c[s].robot, sqls, Connects.flag_nothing);
-		
 		// smtcfg = DBSynsactBuilder.loadSynmantics(conn0, "src/test/res/synmantics.xml", true);
 		for (int s = 0; s < 4; s++) {
 			conns[s] = String.format("syn.%02x", s);
+
+			SyntityMeta phm = new T_PhotoMeta("syn.00").replace();
+			sqls.add(String.format("delete from %s", phm.tbl));
+
 			trbs[s] = new DBSynsactBuilder(conns[s]);
 			c[s] = new Ck(s);
+
 		}
 		
+		for (int s = 0; s < 4; s++)
+			Connects.commit(conns[s], c[s].robot, sqls, Connects.flag_nothing);
+
 		assertEquals("syn.00", c[0].connId);
+
 	}
 
 	/**
@@ -173,7 +176,7 @@ public class DBSyntextTest {
 		String A_0 = insertPhoto(X);
 
 		// syn_change.curd = C
-		c[X].change(C, A_0, phm);
+		c[X].change(C, A_0, c[X].phm);
 		// syn_subscribe.to = [B, C, D]
 		c[X].subs(A_0, -1, Y, X, Z);
 
@@ -181,19 +184,19 @@ public class DBSyntextTest {
 		String B_0 = insertPhoto(Y);
 
 		// syn_change.curd = C
-		c[Y].change(C, B_0, phm);
+		c[Y].change(C, B_0, c[Y].phm);
 		// syn_subscribe.to = [A, C, D]
 		c[Y].subs(B_0, X, -1, Z, W);
 
 		// 2.
 		BvisitA(X, Y);
-		c[Y].change(C, A_0, phm);
+		c[Y].change(C, A_0, c[Y].phm);
 		c[Y].subs(A_0, -1, -1, Z, W);
 		// B.a = A.a
 		long Aa = c[X].nyquence(X).n;
 		assertEquals(Aa, c[Y].nyquence(X).n);
 
-		c[X].change(C, B_0, phm);
+		c[X].change(C, B_0, c[X].phm);
 		c[X].subs(B_0, -1, -1, Z, W);
 		// A.b = B.b
 		long Bb = c[Y].nyquence(Y).n;
@@ -372,9 +375,9 @@ public class DBSyntextTest {
 
 		Nyquence n = c[X].nyquence(X);
 		
-		c[X].change(C, c[X].synode, phm);
+		c[X].change(C, c[X].synode, c[X].phm);
 		// i X  w  3
-		c[X].chgEnt(C, c[X].synode, c[W].synode, phm);
+		c[X].chgEnt(C, c[X].synode, c[W].synode, c[W].phm);
 		// Y, Z
 		c[X].subs(c[W].synode, -1, Y, Z, -1);
 		// And more ...
@@ -404,26 +407,26 @@ public class DBSyntextTest {
 	}
 
 	public static void push(int src, int dst) throws TransException, SQLException {
-		SynEntity anObj = trbs[src].loadEntity(c[src].synode, c[src].connId, c[src].robot, phm);
+		SynEntity anObj = trbs[src].loadEntity(c[src].synode, c[src].connId, c[src].robot, c[src].phm);
 		anObj.syncInto(conns[dst], trbs[dst], anObj.subs(), null, c[dst].robot);
 	}
 
 	@SuppressWarnings("serial")
 	public static void pull(int src, int dst) throws TransException, SQLException {
-		AnResultset ents = trbs[src].entities(phm, c[src].connId, c[src].robot);
+		AnResultset ents = trbs[src].entities(c[src].phm, c[src].connId, c[src].robot);
 		
 		while(ents.next()) {
 			// say, entA = trb.loadEntity(phm)
 			AnResultset subs = (AnResultset) trbs[src]
 					.select(chm.tbl, "ch")
-					.je("ch", sbm.tbl, "sb", chm.entfk, sbm.uids, chm.entbl, phm.tbl, sbm.entbl, phm.tbl)
+					.je("ch", sbm.tbl, "sb", chm.uids, sbm.uids, chm.entbl, c[src].phm.tbl, sbm.entbl, c[src].phm.tbl)
 					.whereEq("ch", chm.org, c[src].robot.orgId())
 					.whereEq("ch", chm.synoder, c[src].synode)
 					.whereEq("ch", chm.uids, ents.getString(chm.uids))
 					.rs(trbs[src].instancontxt(conns[src], c[src].robot))
 					.rs(0);
 
-			SynEntity anObjA = new SynEntity(ents, phm, chm, sbm);
+			SynEntity anObjA = new SynEntity(ents, c[dst].phm, chm, sbm);
 			String skip = anObjA.synode();
 			anObjA.format(ents)
 				// lock concurrency
@@ -431,12 +434,12 @@ public class DBSyntextTest {
 				// unlock
 				;
 			
-			trbs[dst].incNyquence(c[dst].connId, phm.tbl, skip, c[dst].robot);
+			trbs[dst].incNyquence(c[dst].connId, c[dst].phm.tbl, skip, c[dst].robot);
 		}
 	}
 
 	void updatePoto(int s, String pid) throws TransException, SQLException {
-		trbs[s].update(phm.tbl, c[s].robot)
+		trbs[s].update(c[s].phm.tbl, c[s].robot)
 			.nv(chm.uids, father) // clientpath
 			.whereEq(chm.pk, pid)
 			.u(trbs[s].instancontxt(conns[X], c[s].robot))
@@ -445,14 +448,16 @@ public class DBSyntextTest {
 
 	String insertPhoto(int s) throws TransException, SQLException {
 		return ((SemanticObject) trbs[s]
-			.insert(phm.tbl, c[s].robot)
-			.nv(phm.uri, "")
+			.insert(c[s].phm.tbl, c[s].robot)
+			.nv(c[s].phm.uri, "")
 			.nv(chm.uids, father)
 			.ins(trbs[s].instancontxt(conns[s], c[s].robot)))
-			.resulve(phm.tbl, phm.pk);
+			.resulve(c[s].phm.tbl, c[s].phm.pk);
 	}
 
 	public static class Ck {
+		public T_PhotoMeta phm;
+
 		public IUser robot;
 		public final String synode;
 		private final String connId;
@@ -460,6 +465,7 @@ public class DBSyntextTest {
 
 		public Ck(int s) throws SQLException, TransException, ClassNotFoundException, IOException {
 			this(conns[s], trbs[s], String.format("s%s", s), "rob-" + s);
+			phm = new T_PhotoMeta(conns[s]);
 			initSynodes(s);
 		}
 

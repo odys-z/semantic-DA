@@ -22,7 +22,7 @@ public abstract class SyntityMeta extends TableMeta {
 
 	/** entity creator id used for identify globally (experimental) */
 	public final String synoder;
-	public final String uids;
+	public final HashSet<String> uids;
 	
 	/**
 	 * @param tbl
@@ -32,12 +32,13 @@ public abstract class SyntityMeta extends TableMeta {
 	 * Could be changed in the future.
 	 * @param conn
 	 */
+	@SuppressWarnings("serial")
 	public SyntityMeta(String tbl, String pk, String org, String... conn) {
 		super(tbl, conn);
 
 		this.org = org;
-		synoder = "synoder";
-		uids = "clientpath";
+		synoder = "device";
+		uids = new HashSet<String>() { {add("clientpath");} };
 	}
 	
 	/**
@@ -53,5 +54,5 @@ public abstract class SyntityMeta extends TableMeta {
 		return (T) this;
 	}
 	
-	public abstract HashSet<String> globalIds();
+	public HashSet<String> globalIds() { return uids; }
 }
