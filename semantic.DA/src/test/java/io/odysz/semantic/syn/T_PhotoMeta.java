@@ -17,5 +17,7 @@ public class T_PhotoMeta extends T_DocTableMeta {
 		
 		exif = "exif";
 	}
+	
+	public String device() { return synoder; }
 
 }

@@ -7,6 +7,7 @@ import static io.odysz.semantic.CRUD.C;
 import static io.odysz.semantic.util.Assert.assertIn;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
+import static io.odysz.transact.sql.parts.condition.Funcall.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
@@ -57,6 +58,7 @@ public class DBSyntextTest {
 	static SynodeMeta snm;
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
+	static NyquenceMeta nyqm;
 
 	static {
 			printCaller(false);
@@ -100,27 +102,27 @@ public class DBSyntextTest {
 		}
 
 		// new for triggering ddl loading - some error here FIXME
-		NyquenceMeta nyqm = new NyquenceMeta("");
+		nyqm = new NyquenceMeta("");
 		for (int s = 0; s < 4; s++) {
 			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", nyqm.tbl));
 			Connects.commit(conns[s], DATranscxt.dummyUser(), NyquenceMeta.ddlSqlite);
 		}
 
-		SynodeMeta synm = new SynodeMeta();
+		snm = new SynodeMeta();
 		for (int s = 0; s < 4; s++) {
-			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", synm.tbl));
+			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", snm.tbl));
 			Connects.commit(conns[s], DATranscxt.dummyUser(), SynodeMeta.ddlSqlite);
 		}
 
-		SynChangeMeta chgm = new SynChangeMeta();
+		chm = new SynChangeMeta();
 		for (int s = 0; s < 4; s++) {
-			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", chgm.tbl));
+			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", chm.tbl));
 			Connects.commit(conns[s], DATranscxt.dummyUser(), SynChangeMeta.ddlSqlite);
 		}
 
-		SynSubsMeta subm = new SynSubsMeta();
+		sbm = new SynSubsMeta();
 		for (int s = 0; s < 4; s++) {
-			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", subm.tbl));
+			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", sbm.tbl));
 			Connects.commit(conns[s], DATranscxt.dummyUser(), SynSubsMeta.ddlSqlite);
 		}
 
@@ -485,10 +487,15 @@ public class DBSyntextTest {
 
 
 	String insertPhoto(int s) throws TransException, SQLException {
+		T_PhotoMeta m = c[s].phm;
 		return ((SemanticObject) trbs[s]
-			.insert(c[s].phm.tbl, c[s].robot)
-			.nv(c[s].phm.uri, "")
-			.nv(chm.uids, father)
+			.insert(m.tbl, c[s].robot)
+			.nv(m.uri, "")
+			.nv(m.fullpath, father)
+			.nv(m.org(), ZSUNodesDA.family)
+			.nv(m.device(), c[s].robot.uid())
+			.nv(m.folder, c[s].robot.uid())
+			.nv(m.shareDate, now())
 			.ins(trbs[s].instancontxt(conns[s], c[s].robot)))
 			.resulve(c[s].phm.tbl, c[s].phm.pk);
 	}

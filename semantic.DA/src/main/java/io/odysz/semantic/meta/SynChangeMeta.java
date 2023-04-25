@@ -26,10 +26,11 @@ public class SynChangeMeta extends TableMeta {
 	public SynChangeMeta(String ... conn) {
 		super("syn_change", conn);
 
+		// pk    = "uids";
 		org   = "org";
 		entbl = "tabl";
-		entfk = "recId";
-		crud = "crud";
+		entfk = "entfk";
+		crud = "cud";
 		synoder = "synoder";
 		uids = "uids";
 		nyquence = "nyquence";

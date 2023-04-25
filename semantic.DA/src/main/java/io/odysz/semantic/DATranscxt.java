@@ -231,10 +231,14 @@ public class DATranscxt extends Transcxt {
 	 * @throws SemanticException 
 	 */
 	public DATranscxt(String conn) throws SQLException, SAXException, IOException, SemanticException {
-		super(new DASemantext(conn, getSmtcs(conn),
+		this(new DASemantext(conn, getSmtcs(conn),
 				Connects.getMeta(conn), null, runtimepath));
 	}
 	
+	protected DATranscxt(DASemantext stxt) {
+		super(stxt);
+	}
+
 	public static boolean alreadyLoaded(String connId) {
 		return smtConfigs != null && smtConfigs.containsKey(connId);
 	}
@@ -271,23 +275,18 @@ public class DATranscxt extends Transcxt {
 				"No 'smtcs' configured in connects.xml for connection \"%1$s\"?\n" +
 				"Looking in path: %2$s", connId, fpath);
 		Utils.logi("Loading Semantics (fullpath):\n\t%s", fpath);
-//		if (cfgpath == null) {
-//			Utils.warn("\nConnect's semantics configuration file can't be found:\n%s\n", connId);
-//			return null;
-//		}
-//		else {
-			LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
-				new Log4jWrapper("").setDebugMode(false), fpath, new IXMLStruct() {
-						@Override public String rootTag() { return "semantics"; }
-						@Override public String tableTag() { return "t"; }
-						@Override public String recordTag() { return "s"; }});
 
-			XMLTable xconn = xtabs.get("semantics");
-			if (xconn == null)
-				throw new SemanticException("Xml structure error (no semantics table) in\n%s", fpath);
-			
-			return initConfigs(connId, xconn, debug);
-//		}
+		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
+			new Log4jWrapper("").setDebugMode(false), fpath, new IXMLStruct() {
+					@Override public String rootTag() { return "semantics"; }
+					@Override public String tableTag() { return "t"; }
+					@Override public String recordTag() { return "s"; }});
+
+		XMLTable xconn = xtabs.get("semantics");
+		if (xconn == null)
+			throw new SemanticException("Xml structure error (no semantics table) in\n%s", fpath);
+		
+		return initConfigs(connId, xconn, debug);
 	}
 	
 	protected static HashMap<String, DASemantics> initConfigs(String conn, XMLTable xcfg, boolean debug)
@@ -303,8 +302,6 @@ public class DATranscxt extends Transcxt {
 			try {
 				addSemantics(conn, tabl, pk, smtc, args, debug);
 			} catch (SemanticException e) {
-				// some configuration error
-				// continue
 				Utils.warn(e.getMessage());
 			}
 		}

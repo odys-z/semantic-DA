@@ -1,5 +1,5 @@
 -- drop table if exists syn_change;
-create table syn_change (
+create table if not exists syn_change (
     entfk       varchar2(12) not null, -- entity fk, redundent for convient, not for synchronziing
     org         varchar2(12) not null,
 	tabl        varchar2(64) not null, -- e.g. 'h_photos'

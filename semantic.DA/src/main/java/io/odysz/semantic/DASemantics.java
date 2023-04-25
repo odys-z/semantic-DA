@@ -377,15 +377,15 @@ public class DASemantics {
 		 * 2: fields to be cleared (optional with empty value), separated with space<br>
 		 * </p>
 		 */
-		synChange,
+		synChange
+		;
 
 		/**
 		 * "cmp-col" | "compose-col" | "compse-column": compose a column from other
 		 * columns;<br>
 		 * TODO
-		 */
 		composingCol
-		;
+		 */
 
 		/**
 		 * Convert string key to {@link smtype}.
@@ -432,9 +432,9 @@ public class DASemantics {
 				return extFilev2;
 			else if ("s-c".equals(type) || "syn-change".equals(type))
 				return synChange;
-			else if ("cmp-col".equals(type) || "compose-col".equals(type) || "compse-column".equals(type)
-					|| "composingcol".equals(type))
-				return composingCol;
+//			else if ("cmp-col".equals(type) || "compose-col".equals(type) || "compse-column".equals(type)
+//					|| "composingcol".equals(type))
+//				return composingCol;
 			else if ("s-up1".equals(type) || type.startsWith("stamp1"))
 				// return stamp1MoreThanRefee;
 				throw new SemanticException("Semantic type stamp1MoreThanRefee is deprecated.");

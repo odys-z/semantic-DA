@@ -16,6 +16,14 @@
   		<args>pid</args>
   	</s>
 
+  	<s>
+  		<id>02</id>
+ 		<smtc>o-t</smtc>
+  		<tabl>h_photos</tabl>
+  		<pk>pid</pk>
+  		<args>oper,opertime</args>
+  	</s>
+
 	<!-- 
 	<s>
   		<id>55</id>

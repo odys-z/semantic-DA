@@ -1,6 +1,5 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.common.LangExt.ifnull;
 import static io.odysz.transact.sql.parts.condition.Funcall.add;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
@@ -45,12 +44,15 @@ public class DBSynsactBuilder extends DATranscxt {
 	
 	public DBSynsactBuilder(String conn, SynSubsMeta subm, SynChangeMeta chgm, NyquenceMeta nyqm)
 			throws SQLException, SAXException, IOException, TransException {
-		super(conn);
+		super(new DBSyntext(conn, getSmtcs(conn),
+				Connects.getMeta(conn), null, runtimepath));
+
 		this.subm = subm != null ? subm : new SynSubsMeta(conn);
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.nyqm = nyqm != null ? nyqm : new NyquenceMeta(conn);
 	}
 
+	
 	@Override
 	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
 		try {

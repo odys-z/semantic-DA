@@ -7,6 +7,8 @@ import io.odysz.semantic.syn.DBSyntextTest.Ck;
  * @author odys-z@github.com
  */
 public class ZSUNodesDA {
+	public static final String family = "ZSU";
+	
 	public final String folder;
 	public String png;
 

@@ -58,7 +58,6 @@ public class T_DocTableMeta extends SyntityMeta {
 
 	// final HashSet<String> globalIds;
 
-	@SuppressWarnings("serial")
 	public T_DocTableMeta(String tbl, String pk, String org, String conn) throws TransException {
 		super(tbl, pk, org, conn);
 
