@@ -19,6 +19,8 @@ import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.IUser;
 
+import static io.odysz.common.LangExt.isblank;
+
 /**All instance using the same connection.<br>
  * 
  * Sqlite connection.<br>
@@ -75,19 +77,6 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 * @throws SQLException
 	 */
 	protected Connection getConnection() throws SQLException {
-//		if (!inited) {
-//			String isTrue = Configs.getCfg("sqlite.printSQL.enable");
-//			enableSystemout = isTrue != null && "true".equals(isTrue.toLowerCase());
-//			
-//			jdbcUrl = "jdbc:sqlite:/media/sdb/docs/prjs/works/RemoteServ/WebContent/WEB-INF/remote.db";
-//			userName = "remote";
-//			pswd = "remote";
-//			
-//			if (conn == null)
-//				conn = DriverManager.getConnection(jdbcUrl, userName, pswd);
-//			inited = true;
-//			throw new SQLException("Sqlite connection not initialized.");
-//		}
 		return conn;
 	}
 	
@@ -155,6 +144,8 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 		Statement stmt = null;
 		try {
 			Connection conn = getConnection();
+			// Connects.printSql(enableSystemout, flags, conn.toString());
+
 			stmt = conn.createStatement();
 			try {
 				conn.setAutoCommit(false);
@@ -163,6 +154,7 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 						ResultSet.CONCUR_READ_ONLY);
 
 				for (String sql : sqls) {
+					if (isblank(sql)) continue;
 					stmt.addBatch(sql);
 				}
 

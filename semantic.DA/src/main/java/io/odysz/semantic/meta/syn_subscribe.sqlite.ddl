@@ -1,4 +1,4 @@
-drop table if exists syn_subscribe;
+-- drop table if exists syn_subscribe;
 create table syn_subscribe (
     org       varchar2(12) not null,
 	tabl      varchar2(64) not null, -- e.g. 'h_photos'

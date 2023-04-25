@@ -1,4 +1,4 @@
-drop table if exists syn_nyqeunce;
+-- drop table if exists syn_nyqeunce;
 create table syn_nyqeunce (
 	org      varchar2(12)  not null,
 	synode   varchar2(64)  not null, -- source node (global pk)

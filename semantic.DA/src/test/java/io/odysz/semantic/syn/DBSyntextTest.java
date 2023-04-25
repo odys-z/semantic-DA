@@ -26,6 +26,7 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.LoggingUser;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.NyquenceMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -39,7 +40,6 @@ import io.odysz.transact.x.TransException;
 public class DBSyntextTest {
 	public static final String[] conns = new String[4];
 	public static final String rtroot = "src/test/res/";
-	public static final String h_photos = "h_photos";
 	public static final String father = "src/test/res/Sun Yet-sen.jpg";
 
 	public static final int X = 0;
@@ -57,7 +57,6 @@ public class DBSyntextTest {
 	static SynodeMeta snm;
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
-	// static T_PhotoMeta phm;
 
 	static {
 			printCaller(false);
@@ -77,49 +76,80 @@ public class DBSyntextTest {
 	@BeforeAll
 	public static void testInit()
 			throws SQLException, SAXException, IOException, TransException, ClassNotFoundException {
-
-		ArrayList<String> sqls = new ArrayList<String>();
-
-		sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
-
-//		sqls.add( "CREATE TABLE a_logs (\n"
-//				+ "  logId text(20),\n"
-//				+ "  funcId text(20),\n"
-//				+ "  funcName text(50),\n"
-//				+ "  oper text(20),\n"
-//				+ "  logTime text(20),\n"
-//				+ "  cnt int,\n"
-//				+ "  txt text(4000),\n"
-//				+ "  CONSTRAINT oz_logs_pk PRIMARY KEY (logId))");
-
-		sqls.add(SynChangeMeta.ddlSqlite);
-		sqls.add(SynSubsMeta.ddlSqlite);
-		sqls.add(T_PhotoMeta.ddlSqlite);
-
-		sqls.add( "delete from oz_autoseq;\n"
-				+ "insert into oz_autoseq (sid, seq, remarks) values\n"
-				+ "('h_photos.pid', 0, 'photo'),\n"
-				+ "('a_logs.logId', 0, 'test');"
-				);
-		sqls.add("delete from a_logs");
-
 		// smtcfg = DBSynsactBuilder.loadSynmantics(conn0, "src/test/res/synmantics.xml", true);
+		
+		// DDL
+		// Debug Notes:
+		// Sqlite won't commit multiple (ignore following) sql in one batch, silently!
+		// Similar report: https://sqlite-users.sqlite.narkive.com/JqAIbcSi/running-multiple-ddl-statements-in-a-batch-via-jdbc
+		// To verify this, uncomment the first line in ddl.
+
 		for (int s = 0; s < 4; s++) {
 			conns[s] = String.format("syn.%02x", s);
+			Connects.commit(conns[s], DATranscxt.dummyUser(),
+				"CREATE TABLE if not exists a_logs (\n"
+				+ "  logId text(20),\n"
+				+ "  funcId text(20),\n"
+				+ "  funcName text(50),\n"
+				+ "  oper text(20),\n"
+				+ "  logTime text(20),\n"
+				+ "  cnt int,\n"
+				+ "  txt text(4000),\n"
+				+ "  CONSTRAINT oz_logs_pk PRIMARY KEY (logId)\n"
+				+ ");" );
+		}
 
-			SyntityMeta phm = new T_PhotoMeta("syn.00").replace();
-			sqls.add(String.format("delete from %s", phm.tbl));
+		// new for triggering ddl loading - some error here FIXME
+		NyquenceMeta nyqm = new NyquenceMeta("");
+		for (int s = 0; s < 4; s++) {
+			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", nyqm.tbl));
+			Connects.commit(conns[s], DATranscxt.dummyUser(), NyquenceMeta.ddlSqlite);
+		}
 
+		SynodeMeta synm = new SynodeMeta();
+		for (int s = 0; s < 4; s++) {
+			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", synm.tbl));
+			Connects.commit(conns[s], DATranscxt.dummyUser(), SynodeMeta.ddlSqlite);
+		}
+
+		SynChangeMeta chgm = new SynChangeMeta();
+		for (int s = 0; s < 4; s++) {
+			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", chgm.tbl));
+			Connects.commit(conns[s], DATranscxt.dummyUser(), SynChangeMeta.ddlSqlite);
+		}
+
+		SynSubsMeta subm = new SynSubsMeta();
+		for (int s = 0; s < 4; s++) {
+			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", subm.tbl));
+			Connects.commit(conns[s], DATranscxt.dummyUser(), SynSubsMeta.ddlSqlite);
+		}
+
+		T_PhotoMeta phm = new T_PhotoMeta("");
+		for (int s = 0; s < 4; s++) {
+			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", phm.tbl));
+			Connects.commit(conns[s], DATranscxt.dummyUser(), T_PhotoMeta.ddlSqlite);
+		}
+
+		// initial data
+		// Utils.logi(sqls);
+
+		ArrayList<String> sqls = new ArrayList<String>();
+		sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
+		sqls.add(String.format("delete from %s", phm.tbl));
+
+		trbs = new DBSynsactBuilder[4];
+		c = new Ck[4];
+
+		for (int s = 0; s < 4; s++) {
 			trbs[s] = new DBSynsactBuilder(conns[s]);
 			c[s] = new Ck(s);
-
+			Connects.commit(conns[s], DATranscxt.dummyUser(), sqls);
 		}
-		
-		for (int s = 0; s < 4; s++)
-			Connects.commit(conns[s], c[s].robot, sqls, Connects.flag_nothing);
+
+		for (int s = 0; s < 3; s++) // W is new to URA
+			initSynodes(s);
 
 		assertEquals("syn.00", c[0].connId);
-
 	}
 
 	/**
@@ -202,6 +232,7 @@ public class DBSyntextTest {
 		long Bb = c[Y].nyquence(Y).n;
 		assertEquals(Bb, c[X].nyquence(Y).n);
 	}
+
 
 	/**
 	 * <pre>
@@ -305,6 +336,7 @@ public class DBSyntextTest {
 	void test02UpdateTransit() throws TransException, SQLException {
 	}
 
+
 	/**
 	 * Test W join with X.
 	 * 
@@ -382,11 +414,12 @@ public class DBSyntextTest {
 		c[X].subs(c[W].synode, -1, Y, Z, -1);
 		// And more ...
 	}
+
 	
 	static void initSynodes(int s)
 			throws SQLException, TransException, ClassNotFoundException, IOException {
 		String sqls = Utils.loadTxt("syn_nodes.sql");
-		Connects.commit(c[s].robot, sqls);
+		Connects.commit(conns[s], c[s].robot, sqls);
 	}
 
 	void join(int admin, int apply) throws TransException, SQLException {
@@ -398,6 +431,7 @@ public class DBSyntextTest {
 		pull(admin, apply);
 	}
 
+
 	void BvisitA(int A, int B) throws TransException, SQLException {
 		// A pull B
 		pull(B, A);
@@ -406,10 +440,12 @@ public class DBSyntextTest {
 		push(B, A);
 	}
 
+
 	public static void push(int src, int dst) throws TransException, SQLException {
 		SynEntity anObj = trbs[src].loadEntity(c[src].synode, c[src].connId, c[src].robot, c[src].phm);
 		anObj.syncInto(conns[dst], trbs[dst], anObj.subs(), null, c[dst].robot);
 	}
+
 
 	@SuppressWarnings("serial")
 	public static void pull(int src, int dst) throws TransException, SQLException {
@@ -437,6 +473,7 @@ public class DBSyntextTest {
 			trbs[dst].incNyquence(c[dst].connId, c[dst].phm.tbl, skip, c[dst].robot);
 		}
 	}
+	
 
 	void updatePoto(int s, String pid) throws TransException, SQLException {
 		trbs[s].update(c[s].phm.tbl, c[s].robot)
@@ -446,6 +483,7 @@ public class DBSyntextTest {
 			;
 	}
 
+
 	String insertPhoto(int s) throws TransException, SQLException {
 		return ((SemanticObject) trbs[s]
 			.insert(c[s].phm.tbl, c[s].robot)
@@ -454,6 +492,7 @@ public class DBSyntextTest {
 			.ins(trbs[s].instancontxt(conns[s], c[s].robot)))
 			.resulve(c[s].phm.tbl, c[s].phm.pk);
 	}
+
 
 	public static class Ck {
 		public T_PhotoMeta phm;
@@ -466,7 +505,6 @@ public class DBSyntextTest {
 		public Ck(int s) throws SQLException, TransException, ClassNotFoundException, IOException {
 			this(conns[s], trbs[s], String.format("s%s", s), "rob-" + s);
 			phm = new T_PhotoMeta(conns[s]);
-			initSynodes(s);
 		}
 
 		/**
@@ -576,11 +614,6 @@ public class DBSyntextTest {
 		public Nyquence nyquence(int synode) throws SQLException, TransException {
 			return trbs[synode].nyquence(conns[synode], robot.orgId(), robot.deviceId(), phm.tbl);
 		}
-
-//		public AnResultset entities(int s, String nodeId, String png) throws TransException, SQLException {
-//			AnResultset ents = c[s].trb.entities(phm, png, robot);
-//			return ents;
-//		}
 
 		/**
 		 * Verify if and only if one instance exists on this node.

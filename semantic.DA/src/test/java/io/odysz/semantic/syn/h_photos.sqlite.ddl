@@ -1,6 +1,5 @@
-drop table if exists h_photos;
-
-CREATE TABLE "h_photos" (
+-- drop table if exists h_photos;
+CREATE TABLE h_photos (
   pid        varchar(12)   NOT NULL,
   family     varchar2(12)  NOT NULL,
   folder     varchar2(256) NOT NULL,

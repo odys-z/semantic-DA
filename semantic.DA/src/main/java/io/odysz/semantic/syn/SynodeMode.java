@@ -3,7 +3,7 @@ package io.odysz.semantic.syn;
 /**
  * jserv-node states
  */
-public enum T_SynodeMode {
+public enum SynodeMode {
 	/** jserv node mode: cloud hub, equivalent of {@link Docsyncer#cloudHub} */
 	hub,
 	/** jserv node mode: private main, equivalent of {@link Docsyncer#mainStorage} */

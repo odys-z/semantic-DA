@@ -1,5 +1,5 @@
-drop table if exists syn_node;
-CREATE TABLE syn_node (
+-- drop table if exists syn_node;
+CREATE TABLE if not exists syn_node (
 	org       varchar2(12) NOT NULL,
 	synid     varchar2(64) NOT NULL,-- user input
 	remarks   varchar2(256),

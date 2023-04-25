@@ -20,10 +20,11 @@ import io.odysz.semantic.DA.OracleLob;
 import io.odysz.semantics.IUser;
 import oracle.sql.BLOB;
 
+import static io.odysz.common.LangExt.isblank;
+
 /**
  * @author odys-z@github.com
  */
-@SuppressWarnings("deprecation")
 public class OracleDriver extends AbsConnect<OracleDriver> {
 
 	static DataSource ds;
@@ -141,6 +142,7 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 					conn.setAutoCommit(false);
 					for (String sql : sqls) {
 						if (enableSystemout) System.out.println(sql + ";");
+						if (isblank(sql)) continue;
 						stmt.addBatch(sql);
 						if (!noMoreLogs && logs.length() + sql.length() + 1 + "...".length() <= 4000) {
 							logs += sql.replaceAll("'", "''") + ";";

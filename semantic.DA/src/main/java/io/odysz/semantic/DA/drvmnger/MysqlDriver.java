@@ -14,6 +14,8 @@ import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.IUser;
 
+import static io.odysz.common.LangExt.isblank;
+
 public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	static boolean inited = false;
 	static String userName;
@@ -109,6 +111,7 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 					conn.setAutoCommit(false);
 
 					for (String sql : sqls) {
+						if (isblank(sql)) continue;
 						stmt.addBatch(sql);
 					}
 
