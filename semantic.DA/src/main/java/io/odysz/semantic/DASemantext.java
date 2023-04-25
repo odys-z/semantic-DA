@@ -19,6 +19,7 @@ import io.odysz.common.Radix32;
 import io.odysz.common.Radix64;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DATranscxt.SemanticsMap;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -57,7 +58,7 @@ public class DASemantext implements ISemantext {
 	private static Transcxt rawst;
 
 	/**Semantic Configurations */
-	protected HashMap<String, DASemantics> ss;
+	protected SemanticsMap ss;
 	protected HashMap<String, TableMeta> metas;
 
 	protected IUser usr;
@@ -75,18 +76,18 @@ public class DASemantext implements ISemantext {
 	/**Initialize a context for semantics handling.
 	 * This class handling semantics comes form path, usually an xml like test/res/semantics.xml.
 	 * @param connId
-	 * @param smtcfg semantic configs, usally load by {@link io.odysz.semantic.DATranscxt}.
+	 * @param semanticsMap semantic configs, usally load by {@link io.odysz.semantic.DATranscxt}.
 	 * <p>sample code: </p>
 	 * DATranscxt.initConfigs("inet", rootINF + "/semantics.xml");
 	 * @param usr
 	 * @param rtPath runtime root path, for docker layer, it's typically the volume folder. 
 	 * @throws SemanticException metas is null
 	 */
-	protected DASemantext(String connId, HashMap<String, DASemantics> smtcfg,
+	protected DASemantext(String connId, SemanticsMap semanticsMap,
 			HashMap<String, TableMeta> metas, IUser usr, String rtPath) throws SemanticException {
 		basePath = rtPath;
 		this.connId = connId;
-		ss = smtcfg;
+		ss = semanticsMap;
 		if (metas == null)
 			throw new SemanticException("DASemantext can not work without DB metas. connId: %s", connId);
 		this.metas = metas;

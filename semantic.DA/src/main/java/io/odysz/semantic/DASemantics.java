@@ -485,12 +485,12 @@ public class DASemantics {
 	private String tabl;
 	private String pk;
 
-	public DASemantics(Transcxt basicTx, String tabl, String recId, boolean verbose) {
+	public DASemantics(Transcxt basicTx, String tabl, String recId, boolean ... verbose) {
 		this.tabl = tabl;
 		this.pk = recId;
 		basicTsx = basicTx;
 		
-		this.verbose = verbose;
+		this.verbose = isNull(verbose) ? false : verbose[0];
 
 		handlers = new ArrayList<SemanticHandler>();
 	}

@@ -17,6 +17,7 @@ import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DASemantics.SemanticHandler;
 import io.odysz.semantic.DASemantics.smtype;
+import io.odysz.semantic.DATranscxt.SemanticsMap;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -55,6 +56,42 @@ import static io.odysz.common.LangExt.*;
  * @author odys-z@github.com
  */
 public class DATranscxt extends Transcxt {
+	public static class SemanticsMap {
+		String conn;
+		HashMap<String, DASemantics> ss;
+		
+		public SemanticsMap(String conn) {
+			this.conn = conn;
+			ss = new HashMap<String, DASemantics>();
+		}
+		
+		public boolean containsKey(String tabl) {
+			return ss != null && ss.containsKey(tabl);
+		}
+
+		public DASemantics get(String tabl) {
+			return ss == null ? null : ss.get(tabl);
+		}
+
+		public void addSemantics(String conn, String tabl, smtype sm,
+				String pk, String args, boolean ... debug)
+				throws SemanticException, SQLException, SAXException, IOException {
+			if (ss == null) {
+				// ss = new HashMap<String, DASemantics>();
+				SemanticsMap smap = new SemanticsMap(conn);
+				smtConfigs.put(conn, smap);
+			}
+
+			DASemantics s = ss.get(tabl);
+			if (s == null) {
+				s = new DASemantics(getBasicTrans(conn), tabl, pk, debug);
+				ss.put(tabl, s);
+			}
+
+			s.addHandler(sm, tabl, pk, split(args, ","));
+		}
+	}
+
 	protected static String cfgroot = ""; 
 	protected static String runtimepath = "";
 
@@ -86,7 +123,9 @@ public class DATranscxt extends Transcxt {
 	}
 
 	/**[conn, [table, DASemantics]] */
-	protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
+	// protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
+
+	protected static HashMap<String, SemanticsMap> smtConfigs;
 
 	/**
 	 * <p>Create a new semantext instance with the static resources.</p>
@@ -243,10 +282,11 @@ public class DATranscxt extends Transcxt {
 		return smtConfigs != null && smtConfigs.containsKey(connId);
 	}
 
-	protected static HashMap<String, DASemantics> getSmtcs(String conn)
+	protected static SemanticsMap getSmtcs(String conn)
 			throws SAXException, IOException, SQLException, SemanticException {
 		if (smtConfigs == null)
-			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
+			// smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
+			smtConfigs = new HashMap<String, SemanticsMap>();
 
 		if (!smtConfigs.containsKey(conn)) {
 			loadSemantics(conn);
@@ -264,7 +304,7 @@ public class DATranscxt extends Transcxt {
 	 * @throws SQLException 
 	 * @throws SemanticException 
 	 */
-	public static HashMap<String, DASemantics> loadSemantics(String connId)
+	public static SemanticsMap loadSemantics(String connId)
 			throws SAXException, IOException, SQLException, SemanticException {
 
 		boolean debug = Connects.getDebug(connId);
@@ -289,11 +329,12 @@ public class DATranscxt extends Transcxt {
 		return initConfigs(connId, xconn, debug);
 	}
 	
-	protected static HashMap<String, DASemantics> initConfigs(String conn, XMLTable xcfg, boolean debug)
+	private static SemanticsMap initConfigs(String conn, XMLTable xcfg, boolean debug)
 			throws SAXException, IOException, SQLException, SemanticException {
 		xcfg.beforeFirst();
 		if (smtConfigs == null)
-			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
+			// smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
+			smtConfigs = new HashMap<String, SemanticsMap>();
 		while (xcfg.next()) {
 			String tabl = xcfg.getString("tabl");
 			String pk = xcfg.getString("pk");
@@ -324,37 +365,41 @@ public class DATranscxt extends Transcxt {
 		return s.handler(sm);
 	}
 
-	public static void addSemantics(String connId, String tabl, String pk,
-			String smtcs, String args, boolean debug) throws SQLException, SAXException, IOException, SemanticException {
+	protected static void addSemantics(String conn, String tabl,
+			String pk, String smtcs, String args, boolean debug)
+			throws SQLException, SAXException, IOException, SemanticException {
 		smtype sm = smtype.parse(smtcs);
-		addSemantics(connId, tabl, pk, sm, args, debug);
-	}
-
-	public static void addSemantics(String connId, String tabl, String pk,
-			smtype sm, String args, boolean debug) throws SQLException, SAXException, IOException, SemanticException {
-		addSemantics(connId, tabl, pk, sm, split(args, ","), debug);
-	}
-
-	public static void addSemantics(String conn, String tabl, String pk,
-			smtype sm, String[] args, boolean debug) throws SQLException, SAXException, IOException, SemanticException {
+//		addSemantics(connId, tabl, pk, sm, args, debug);
+//	}
+//
+//	private static void addSemantics(String conn, String tabl, String pk,
+//			smtype sm, String args, boolean debug) throws SQLException, SAXException, IOException, SemanticException {
+//		addSemantics(connId, tabl, pk, sm, split(args, ","), debug);
+//	}
+//
+//	private static void addSemantics(String conn, String tabl, String pk,
+//			smtype sm, String[] args, boolean debug) throws SQLException, SAXException, IOException, SemanticException {
 		if (smtConfigs == null) {
-			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
-		}
-		HashMap<String, DASemantics> ss = smtConfigs.get(conn);
-		if (ss == null) {
-			ss = new HashMap<String, DASemantics>();
-			smtConfigs.put(conn, ss);
+//			smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
+			smtConfigs = new HashMap<String, SemanticsMap>();
 		}
 
-		DASemantics s = ss.get(tabl);
-		if (s == null) {
-			// s = new DASemantics(staticInstance, tabl, pk);
-			s = new DASemantics(getBasicTrans(conn), tabl, pk, debug);
-			ss.put(tabl, s);
-		}
-		s.addHandler(sm, tabl, pk, args);
+		SemanticsMap ss = smtConfigs.get(conn);
+		ss.addSemantics(conn, tabl, sm, pk, args, debug);
+
+//		if (ss == null) {
+//			ss = new HashMap<String, DASemantics>();
+//			smtConfigs.put(conn, ss);
+//		}
+//
+//		DASemantics s = ss.get(tabl);
+//		if (s == null) {
+//			s = new DASemantics(getBasicTrans(conn), tabl, pk, debug);
+//			ss.put(tabl, s);
+//		}
+//		s.addHandler(sm, tabl, pk, split(args, ","));
 	}
-
+	
 	//////////// basic transact builders for each connection ////////////
 	private static HashMap<String, Transcxt> basicTrxes;
 	private static HashMap<String, String> keys;
