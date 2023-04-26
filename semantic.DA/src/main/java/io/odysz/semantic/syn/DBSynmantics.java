@@ -46,16 +46,8 @@ import io.odysz.transact.x.TransException;
 
 public class DBSynmantics extends DASemantics {
 
-	@Override
-	public void addHandler(smtype semantic, String tabl, String recId, String[] args)
-			throws SemanticException, SQLException {
 
-		if (smtype.synChange == semantic)
-			handlers.add(new ShSynChange(basicTsx, tabl, recId, args));
-		else super.addHandler(semantic, tabl, recId, args);
-	}
-
-	public DBSynmantics(Transcxt basicTx, String tabl, String recId, boolean verbose) {
+	public DBSynmantics(Transcxt basicTx, String tabl, String recId, boolean... verbose) {
 		super(basicTx, tabl, recId, verbose);
 	}
 	

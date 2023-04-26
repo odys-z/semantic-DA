@@ -1,5 +1,6 @@
 package io.odysz.semantic.syn;
 
+import static io.odysz.common.LangExt.split;
 import static io.odysz.transact.sql.parts.condition.Funcall.add;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
@@ -9,8 +10,9 @@ import java.sql.SQLException;
 import org.xml.sax.SAXException;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DASemantics.SemanticHandler;
+import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.NyquenceMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
@@ -19,6 +21,7 @@ import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -28,7 +31,52 @@ import io.odysz.transact.x.TransException;
  *
  */
 public class DBSynsactBuilder extends DATranscxt {
+	public static class SynmanticsMap extends SemanticsMap {
+		public SynmanticsMap(String conn) {
+			super(conn);
+		}
 
+		public static SemanticHandler parseHandler(Transcxt basicTsx, String tabl, smtype semantic,
+				String recId, String argstr, boolean ... debug)
+				throws SemanticException {
+			if (smtype.synChange == semantic)
+				return new DBSynmantics.ShSynChange(basicTsx, tabl, recId, split(argstr));
+			else
+				return SemanticsMap.parseHandler(basicTsx, tabl, semantic, recId, argstr, debug);
+		}
+	}
+
+//	private static SynmanticsMap initConfigs(String conn, XMLTable xcfg)
+//			throws SAXException, IOException, SQLException, SemanticException {
+//		xcfg.beforeFirst();
+//		if (smtConfigs == null)
+//			smtConfigs = new HashMap<String, SemanticsMap>();
+//
+//		Transcxt trb = null;
+//		boolean debug = Connects.getDebug(conn);
+//		
+//		HashMap<String, DASemantics> m = new HashMap<String, DASemantics>(); 
+//
+//		xcfg.map(
+//			(XMLTable t) -> {
+//				String tabl = xcfg.getString("tabl");
+//				String pk = xcfg.getString("pk");
+//				String smtc = xcfg.getString("smtc");
+//				String args = xcfg.getString("args");
+//				
+//				// because the table is not come with pk = tabl, returned value is useless.
+//				if (!m.containsKey(tabl))
+//					m.put(tabl, new DASemantics(trb, tabl, pk, debug));
+//				m.get(tabl).addHandler(
+//					SynmanticsMap.parseHandler(trb, tabl, smtype.parse(smtc), pk, args, debug));
+//				return null;
+//			});
+//
+//		SynmanticsMap semanticMap = (SynmanticsMap) new SynmanticsMap(conn).map(m);
+//		smtConfigs.put(conn, semanticMap);
+//		return (SynmanticsMap) smtConfigs.get(conn);
+//	}
+	
 	protected SynodeMeta synm;
 	protected NyquenceMeta nyqm;
 	protected SynSubsMeta subm;
@@ -44,21 +92,23 @@ public class DBSynsactBuilder extends DATranscxt {
 	
 	public DBSynsactBuilder(String conn, SynSubsMeta subm, SynChangeMeta chgm, NyquenceMeta nyqm)
 			throws SQLException, SAXException, IOException, TransException {
-		super(new DBSyntext(conn, getSmtcs(conn),
-				Connects.getMeta(conn), null, runtimepath));
+		super(new DBSyntext(conn, initConfigs(conn, loadSemantics(conn), new SemanticsFactory() {
+			@Override
+			public SemanticsMap ctor(String conn) { return new SynmanticsMap(conn); }
+		}), dummy, runtimepath));
 
 		this.subm = subm != null ? subm : new SynSubsMeta(conn);
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.nyqm = nyqm != null ? nyqm : new NyquenceMeta(conn);
 	}
-
 	
 	@Override
-	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
+	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
 		try {
-			return new DBSyntext(connId, loadSemantics(connId),
-				Connects.getMeta(connId), usr, runtimepath);
-		} catch (SemanticException | SAXException | IOException | SQLException e) {
+			return new DBSyntext(conn,
+				initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(conn)),
+				usr, runtimepath);
+		} catch (SAXException | IOException | SQLException e) {
 			e.printStackTrace();
 			throw new TransException(e.getMessage());
 		}
@@ -82,6 +132,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				.rs(instancontxt(conn, robot))
 				.rs(0);
 	}
+	
 
 	public Nyquence nyquence(String conn, String org, String synid, String entity)
 			throws SQLException, TransException {
