@@ -4,6 +4,7 @@ import java.sql.SQLException;
 
 import io.odysz.semantic.DASemantext;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
+import io.odysz.semantic.syn.DBSynsactBuilder.SynmanticsMap;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
@@ -32,7 +33,7 @@ public class DBSyntext extends DASemantext implements ISemantext {
 //
 //	private LinkedHashMap<String, IPostOptn> onTableOk;
 
-	protected DBSyntext(String connId, SemanticsMap metas,
+	protected DBSyntext(String connId, SynmanticsMap metas,
 			IUser usr, String rtPath) throws SemanticException, SQLException {
 		super(connId, metas, usr, rtPath);
 	}
@@ -108,7 +109,7 @@ public class DBSyntext extends DASemantext implements ISemantext {
 	@Override
 	public ISemantext clone(IUser usr) {
 		try {
-			return new DBSyntext(connId, super.ss, usr, basePath);
+			return new DBSyntext(connId, (SynmanticsMap) super.ss, usr, basePath);
 		} catch (SQLException | SemanticException e) {
 			e.printStackTrace();
 			return null; // meta is null? how could it be?
@@ -118,7 +119,7 @@ public class DBSyntext extends DASemantext implements ISemantext {
 	@Override
 	protected ISemantext clone(DASemantext srctx, IUser usr) {
 		try {
-			DASemantext newInst = new DBSyntext(connId, ss, usr, basePath);
+			DASemantext newInst = new DBSyntext(connId, (SynmanticsMap) ss, usr, basePath);
 			return newInst;
 		} catch (SemanticException | SQLException e) {
 			e.printStackTrace();

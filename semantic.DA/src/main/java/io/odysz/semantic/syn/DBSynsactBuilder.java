@@ -10,8 +10,6 @@ import java.sql.SQLException;
 import org.xml.sax.SAXException;
 
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.DASemantics.SemanticHandler;
-import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.meta.NyquenceMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
@@ -35,48 +33,8 @@ public class DBSynsactBuilder extends DATranscxt {
 		public SynmanticsMap(String conn) {
 			super(conn);
 		}
-
-		public static SemanticHandler parseHandler(Transcxt basicTsx, String tabl, smtype semantic,
-				String recId, String argstr, boolean ... debug)
-				throws SemanticException {
-			if (smtype.synChange == semantic)
-				return new DBSynmantics.ShSynChange(basicTsx, tabl, recId, split(argstr));
-			else
-				return SemanticsMap.parseHandler(basicTsx, tabl, semantic, recId, argstr, debug);
-		}
 	}
 
-//	private static SynmanticsMap initConfigs(String conn, XMLTable xcfg)
-//			throws SAXException, IOException, SQLException, SemanticException {
-//		xcfg.beforeFirst();
-//		if (smtConfigs == null)
-//			smtConfigs = new HashMap<String, SemanticsMap>();
-//
-//		Transcxt trb = null;
-//		boolean debug = Connects.getDebug(conn);
-//		
-//		HashMap<String, DASemantics> m = new HashMap<String, DASemantics>(); 
-//
-//		xcfg.map(
-//			(XMLTable t) -> {
-//				String tabl = xcfg.getString("tabl");
-//				String pk = xcfg.getString("pk");
-//				String smtc = xcfg.getString("smtc");
-//				String args = xcfg.getString("args");
-//				
-//				// because the table is not come with pk = tabl, returned value is useless.
-//				if (!m.containsKey(tabl))
-//					m.put(tabl, new DASemantics(trb, tabl, pk, debug));
-//				m.get(tabl).addHandler(
-//					SynmanticsMap.parseHandler(trb, tabl, smtype.parse(smtc), pk, args, debug));
-//				return null;
-//			});
-//
-//		SynmanticsMap semanticMap = (SynmanticsMap) new SynmanticsMap(conn).map(m);
-//		smtConfigs.put(conn, semanticMap);
-//		return (SynmanticsMap) smtConfigs.get(conn);
-//	}
-	
 	protected SynodeMeta synm;
 	protected NyquenceMeta nyqm;
 	protected SynSubsMeta subm;
@@ -92,21 +50,36 @@ public class DBSynsactBuilder extends DATranscxt {
 	
 	public DBSynsactBuilder(String conn, SynSubsMeta subm, SynChangeMeta chgm, NyquenceMeta nyqm)
 			throws SQLException, SAXException, IOException, TransException {
-		super(new DBSyntext(conn, initConfigs(conn, loadSemantics(conn), new SemanticsFactory() {
-			@Override
-			public SemanticsMap ctor(String conn) { return new SynmanticsMap(conn); }
-		}), dummy, runtimepath));
+		super ( new DBSyntext(conn,
+			    initConfigs(conn, loadSemantics(conn),
+						(trb, tbl, pk, debug) -> new DBSynmantics(trb, tbl, pk, debug)),
+				dummy, runtimepath));
 
 		this.subm = subm != null ? subm : new SynSubsMeta(conn);
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.nyqm = nyqm != null ? nyqm : new NyquenceMeta(conn);
 	}
 	
+	/**
+	 * Create a basic sync-builder, but without semantics.
+	 * 
+	 * @param tsx
+	 * @throws SemanticException 
+	 * @throws IOException 
+	 * @throws SAXException 
+	 * @throws SQLException 
+	 */
+	public DBSynsactBuilder(Transcxt tsx) throws SemanticException, SQLException, SAXException, IOException {
+		super(tsx);
+	}
+
+
 	@Override
 	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
 		try {
 			return new DBSyntext(conn,
-				initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(conn)),
+				initConfigs(conn, loadSemantics(conn),
+						(trb, tbl, pk, debug) -> new DBSynmantics(trb, tbl, pk, debug)),
 				usr, runtimepath);
 		} catch (SAXException | IOException | SQLException e) {
 			e.printStackTrace();

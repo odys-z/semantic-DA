@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.rmi.server.LogStream;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -77,9 +78,9 @@ public class DASemantextTest {
 			DATranscxt.key("user-pswd", rootkey);
 
 			// smtcfg = DATranscxt.loadSemantics(connId, "src/test/res/semantics.xml", true);
-			smtcfg = DATranscxt.initConfigs(connId, loadSemantics(connId), (c) -> new SemanticsMap(c));
+			smtcfg = DATranscxt.initConfigs(connId, loadSemantics(connId),
+						(trb, tbl, pk, debug) -> new DASemantics(trb, tbl, pk, debug));
 			st = new DATranscxt(connId);
-//			metas = Connects.getMeta(connId);
 
 			SemanticObject jo = new SemanticObject();
 			jo.put("userId", "tester");

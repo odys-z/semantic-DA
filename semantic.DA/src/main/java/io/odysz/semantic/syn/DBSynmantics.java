@@ -2,6 +2,7 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.split;
 import static io.odysz.common.LangExt.trim;
 import static io.odysz.common.LangExt.str;
 import static io.odysz.transact.sql.parts.condition.Funcall.add;
@@ -50,13 +51,25 @@ public class DBSynmantics extends DASemantics {
 	public DBSynmantics(Transcxt basicTx, String tabl, String recId, boolean... verbose) {
 		super(basicTx, tabl, recId, verbose);
 	}
-	
+
+	public SemanticHandler parseHandler(Transcxt tsx, String tabl, smtype smtp,
+			String pk, String argstr, boolean ... debug) {
+		if (smtype.synChange == smtp)
+			try {
+				return new DBSynmantics.ShSynChange(new DBSynsactBuilder(tsx), tabl, pk, split(argstr));
+			} catch (SemanticException | SQLException | SAXException | IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+		else
+			return super.parseHandler(tsx, tabl, smtp, pk, argstr, debug);
+	}
+
 	public static class ShSynChange extends SemanticHandler {
 		static String apidoc = "TODO ...";
 		protected final SynChangeMeta chm;
 		protected final SynodeMeta snm;
 		protected final SynSubsMeta sbm;
-		// protected final NyquenceMeta nyqm;
 
 		protected final DBSynsactBuilder syb;
 
@@ -70,7 +83,6 @@ public class DBSynmantics extends DASemantics {
 			UHF = true;
 			
 			if (trxt instanceof DBSynsactBuilder)
-				// builder
 				syb = (DBSynsactBuilder) trxt;
 			else
 				throw new SemanticException("ShSynChange (xml/smtype=s-c) requires instance of DBSynsactBuilder as the default builder.");

@@ -73,16 +73,17 @@ public class DATranscxt extends Transcxt {
 	 * defualt example:<br>
 	 * (c) -> new SemanticsMap(c)
 	 * 
-	 * <p>So, calling {@link DATranscxt#initConfigs(String, XMLTable, SemanticsFactory) can be:<pre>
-	 * initConfigs(connId, xtabl, (c) -> new SemanticsMap(c));</pre>
+	 * <p>So, calling {@link DATranscxt#initConfigs(String, XMLTable, SMapFactory) can be:<pre>
+	 * initConfigs(connId, (b, conn, pk, d) -> new SemanticsMap(b, conn, pk, d));</pre>
 	 * </p>
 	 * 
 	 * @since 1.5.0
 	 * @author odys-z@github.com
 	 */
+
 	@FunctionalInterface
-	public interface SemanticsFactory {
-		SemanticsMap ctor(String conn);
+	public interface SmtcFactory<S extends DASemantics> {
+		S ctor(Transcxt trb, String conn, String pk, boolean debug);
 	}
 
 	/**
@@ -92,11 +93,7 @@ public class DATranscxt extends Transcxt {
 	 * @since 1.5.0
 	 * @author odys-z@github.com
 	 */
-	public static class SemanticsMap implements SemanticsFactory {
-		@Override
-		public SemanticsMap ctor(String conn) {
-			return new SemanticsMap(conn);
-		}
+	public static class SemanticsMap {
 
 		String conn;
 		
@@ -137,57 +134,57 @@ public class DATranscxt extends Transcxt {
 //			s.addHandler(sm, tabl, pk, split(args, ","));
 //		}
 
-		public static SemanticHandler parseHandler(Transcxt basicTsx, String tabl, smtype semantic,
-				String recId, String argstr, boolean ... debug)
-				throws SemanticException {
-			// checkParas(tabl, pk, args);
-//			if (isDuplicate(tabl, semantic))
-//				return;
-			SemanticHandler handler = null;
+//		public static SemanticHandler parseHandler(Transcxt basicTsx, String tabl, smtype semantic,
+//				String recId, String argstr, boolean ... debug)
+//				throws SemanticException {
+//			// checkParas(tabl, pk, args);
+////			if (isDuplicate(tabl, semantic))
+////				return;
+//			SemanticHandler handler = null;
+//
+//			String[] args = split(argstr);
+//
+//			if (smtype.fullpath == semantic)
+//				handler = new ShFullpath(basicTsx, tabl, recId, args);
+//			else if (smtype.autoInc == semantic)
+//				handler = new ShAutoK(basicTsx, tabl, recId, args);
+//			else if (smtype.fkIns == semantic)
+//				handler = new ShFkOnIns(basicTsx, tabl, recId, args);
+//			else if (smtype.fkCateIns == semantic)
+//				handler = new ShFkInsCates(basicTsx, tabl, recId, args);
+//			else if (smtype.parentChildrenOnDel == semantic)
+//				handler = new ShPCDelAll(basicTsx, tabl, recId, args);
+//			else if (smtype.parentChildrenOnDelByCate == semantic)
+//				handler = new ShPCDelByCate(basicTsx, tabl, recId, args);
+//			else if (smtype.defltVal == semantic)
+//				handler = new ShDefltVal(basicTsx, tabl, recId, args);
+//			else if (smtype.dencrypt == semantic)
+//				handler = new ShDencrypt(basicTsx, tabl, recId, args);
+//			// else if (smtype.orclob == semantic)
+//			// addClob(tabl, recId, argss);
+//			else if (smtype.opTime == semantic)
+//				handler = new ShOperTime(basicTsx, tabl, recId, args);
+//			else if (smtype.checkSqlCountOnDel == semantic)
+//				handler = new ShChkCntDel(basicTsx, tabl, recId, args);
+//			else if (smtype.checkSqlCountOnInsert == semantic)
+//				handler = new ShChkPCInsert(basicTsx, tabl, recId, args);
+//			else if (smtype.postFk == semantic)
+//				handler = new ShPostFk(basicTsx, tabl, recId, args);
+//			else if (smtype.extFile == semantic)
+//				// throw new SemanticException("Since 1.5.0, smtype.extFile is replaced by extFilev2!");
+//				handler = new ShExtFilev2(basicTsx, tabl, recId, args);
+//			else if (smtype.extFilev2 == semantic)
+//				handler = new ShExtFilev2(basicTsx, tabl, recId, args);
+//			else
+//				throw new SemanticException("Cannot load configured semantics of key: %s", semantic);
+//	
+//			return handler;
+//		}
 
-			String[] args = split(argstr);
-
-			if (smtype.fullpath == semantic)
-				handler = new ShFullpath(basicTsx, tabl, recId, args);
-			else if (smtype.autoInc == semantic)
-				handler = new ShAutoK(basicTsx, tabl, recId, args);
-			else if (smtype.fkIns == semantic)
-				handler = new ShFkOnIns(basicTsx, tabl, recId, args);
-			else if (smtype.fkCateIns == semantic)
-				handler = new ShFkInsCates(basicTsx, tabl, recId, args);
-			else if (smtype.parentChildrenOnDel == semantic)
-				handler = new ShPCDelAll(basicTsx, tabl, recId, args);
-			else if (smtype.parentChildrenOnDelByCate == semantic)
-				handler = new ShPCDelByCate(basicTsx, tabl, recId, args);
-			else if (smtype.defltVal == semantic)
-				handler = new ShDefltVal(basicTsx, tabl, recId, args);
-			else if (smtype.dencrypt == semantic)
-				handler = new ShDencrypt(basicTsx, tabl, recId, args);
-			// else if (smtype.orclob == semantic)
-			// addClob(tabl, recId, argss);
-			else if (smtype.opTime == semantic)
-				handler = new ShOperTime(basicTsx, tabl, recId, args);
-			else if (smtype.checkSqlCountOnDel == semantic)
-				handler = new ShChkCntDel(basicTsx, tabl, recId, args);
-			else if (smtype.checkSqlCountOnInsert == semantic)
-				handler = new ShChkPCInsert(basicTsx, tabl, recId, args);
-			else if (smtype.postFk == semantic)
-				handler = new ShPostFk(basicTsx, tabl, recId, args);
-			else if (smtype.extFile == semantic)
-				// throw new SemanticException("Since 1.5.0, smtype.extFile is replaced by extFilev2!");
-				handler = new ShExtFilev2(basicTsx, tabl, recId, args);
-			else if (smtype.extFilev2 == semantic)
-				handler = new ShExtFilev2(basicTsx, tabl, recId, args);
-			else
-				throw new SemanticException("Cannot load configured semantics of key: %s", semantic);
-	
-			return handler;
-		}
-
-		public SemanticsMap map(HashMap<String, DASemantics> m) {
-			ss = m;
-			return this;
-		}
+//		public SemanticsMap map(HashMap<String, DASemantics> m) {
+//			ss = m;
+//			return this;
+//		}
 	}
 
 	protected static String cfgroot = ""; 
@@ -387,7 +384,7 @@ public class DATranscxt extends Transcxt {
 
 		if (!smtConfigs.containsKey(conn)) {
 			initConfigs(conn, loadSemantics(conn),
-				(String con) -> { return new SemanticsMap(con); } );
+				(trb, tbl, pk, ver) -> new DASemantics(trb, tbl, pk, ver));
 		}
 		return smtConfigs.get(conn);
 	}
@@ -462,35 +459,38 @@ public class DATranscxt extends Transcxt {
 	*/
 	
 	@SuppressWarnings("unchecked")
-	public static <T extends SemanticsMap> T initConfigs(String conn, XMLTable xcfg, SemanticsFactory factoryT)
+	public static <M extends SemanticsMap, S extends DASemantics> M initConfigs(String conn,
+			XMLTable xcfg, SmtcFactory<S> smFactory)
 			throws SAXException, IOException, SQLException, SemanticException {
 		xcfg.beforeFirst();
 		if (smtConfigs == null)
-			smtConfigs = (HashMap<String, SemanticsMap>) new HashMap<String, T>();
+			smtConfigs = (HashMap<String, SemanticsMap>) new HashMap<String, M>();
 
 		Transcxt trb = getBasicTrans(conn);
 		boolean debug = Connects.getDebug(conn);
 		
-		HashMap<String, DASemantics> m = new HashMap<String, DASemantics>(); 
+		HashMap<String, S> m = new HashMap<String, S>(); 
 
 		xcfg.map(
 			(XMLTable t) -> {
 				String tabl = xcfg.getString("tabl");
-				String pk = xcfg.getString("pk");
+				String pk   = xcfg.getString("pk");
 				String smtc = xcfg.getString("smtc");
 				String args = xcfg.getString("args");
 				
 				// because the table is not come with pk = tabl, returned value is useless.
 				if (!m.containsKey(tabl))
-					m.put(tabl, new DASemantics(trb, tabl, pk, debug));
-				m.get(tabl).addHandler(
-					T.parseHandler(trb, tabl, smtype.parse(smtc), pk, args, debug));
+					// m.put(tabl, new DASemantics(trb, tabl, pk, debug));
+					m.put(tabl, smFactory.ctor(trb, tabl, pk, debug));
+
+				S smtcs = m.get(tabl);
+				smtcs.addHandler(
+					smtcs.parseHandler(trb, tabl, smtype.parse(smtc), pk, args, debug));
 				return null;
 			});
 
-		T semanticMap = (T) factoryT.ctor(conn).map(m);
-		smtConfigs.put(conn, semanticMap);
-		return (T) smtConfigs.get(conn);
+		smtConfigs.put(conn, S.semantics());
+		return (M) smtConfigs.get(conn);
 	}
 
 	public static boolean hasSemantics(String conn, String tabl, smtype sm) {
