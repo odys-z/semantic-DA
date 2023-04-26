@@ -19,6 +19,7 @@ import io.odysz.common.Radix32;
 import io.odysz.common.Radix64;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DATranscxt.SemanticsMap;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -57,7 +58,7 @@ public class DASemantext implements ISemantext {
 	private static Transcxt rawst;
 
 	/**Semantic Configurations */
-	protected HashMap<String, DASemantics> ss;
+	protected SemanticsMap ss;
 	protected HashMap<String, TableMeta> metas;
 
 	protected IUser usr;
@@ -75,21 +76,22 @@ public class DASemantext implements ISemantext {
 	/**Initialize a context for semantics handling.
 	 * This class handling semantics comes form path, usually an xml like test/res/semantics.xml.
 	 * @param connId
-	 * @param smtcfg semantic configs, usally load by {@link io.odysz.semantic.DATranscxt}.
+	 * @param semanticsMap semantic configs, usally load by {@link io.odysz.semantic.DATranscxt}.
 	 * <p>sample code: </p>
 	 * DATranscxt.initConfigs("inet", rootINF + "/semantics.xml");
 	 * @param usr
 	 * @param rtPath runtime root path, for docker layer, it's typically the volume folder. 
 	 * @throws SemanticException metas is null
+	 * @throws SQLException 
 	 */
-	protected DASemantext(String connId, HashMap<String, DASemantics> smtcfg,
-			HashMap<String, TableMeta> metas, IUser usr, String rtPath) throws SemanticException {
+	protected DASemantext(String connId, SemanticsMap semanticsMap,
+			IUser usr, String rtPath) throws SemanticException, SQLException {
 		basePath = rtPath;
 		this.connId = connId;
-		ss = smtcfg;
+		ss = semanticsMap;
+		this.metas = Connects.getMeta(connId);
 		if (metas == null)
 			throw new SemanticException("DASemantext can not work without DB metas. connId: %s", connId);
-		this.metas = metas;
 		if (rawst == null) {
 			rawst = new Transcxt(null);
 		}
@@ -102,7 +104,8 @@ public class DASemantext implements ISemantext {
 	 * @see io.odysz.semantics.ISemantext#onInsert(io.odysz.transact.sql.Insert, java.lang.String, java.util.List)
 	 */
 	@Override
-	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> rows) throws SemanticException {
+	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> rows)
+			throws SemanticException {
 		if (rows != null && ss != null)
 			// second round
 			for (ArrayList<Object[]> row : rows) {
@@ -150,12 +153,12 @@ public class DASemantext implements ISemantext {
 	}
 
 	@Override
-	public ISemantext insert(Insert insert, String tabl, IUser... usr) {
+	public ISemantext insert(Insert insert, String tabl, IUser usr) throws SQLException {
 		return clone(this, usr);
 	}
 
 	@Override
-	public ISemantext update(Update update, String tabl, IUser... usr) {
+	public ISemantext update(Update update, String tabl, IUser usr) throws SQLException {
 		return clone(this, usr);
 	}
 
@@ -176,19 +179,18 @@ public class DASemantext implements ISemantext {
 	@Override
 	public ISemantext clone(IUser usr) {
 		try {
-			return new DASemantext(connId, ss, metas, usr, basePath);
-		} catch (SemanticException e) {
+			return new DASemantext(connId, ss, usr, basePath);
+		} catch (SQLException | SemanticException e) {
 			e.printStackTrace();
 			return null; // meta is null? how could it be?
 		}
 	}
 
-	protected ISemantext clone(DASemantext srctx, IUser... usr) {
+	protected ISemantext clone(DASemantext srctx, IUser usr) {
 		try {
-			DASemantext newInst = new DASemantext(connId,
-					srctx.ss, srctx.metas, usr != null && usr.length > 0 ? usr[0] : null, basePath);
+			DASemantext newInst = new DASemantext(connId, srctx.ss, usr, basePath);
 			return newInst;
-		} catch (SemanticException e) {
+		} catch (SemanticException | SQLException e) {
 			e.printStackTrace();
 			return null; // meta is null? how could it be?
 		}
@@ -218,7 +220,6 @@ public class DASemantext implements ISemantext {
 	public ISemantext reset() {
 		if (autoVals != null)
 			autoVals.clear();
-		// FIXME no this.clear()?
 		return this;
 	}
 
@@ -315,7 +316,6 @@ end;
 		// v1.3.0: user sys default conn to generate log-id
 		rs = Connects.select(Connects.defltConn(), sql);
 		if (rs.getRowCount() <= 0)
-			// throw new TransException("Can't find auot seq of %s, you may check where oz_autoseq.seq and table %s are existing?",
 			throw new TransException("Can't find auot seq of %1$s.\nFor performantc reason, DASemantext assumes a record in oz_autoseq.seq (id='%1$s.%2$s') exists.\nMay be you would check where oz_autoseq.seq and table %2$s are existing?",
 					idField, target);
 
@@ -323,11 +323,9 @@ end;
 		long newInt = rs.getLong("newId");
 
 		if (subCate == null || subCate.equals(""))
-			// return Radix64.toString(newInt);
 			return radix64_32(newInt);
 		else
 			return String.format("%1$s_%2$6s", subCate,
-					// Radix64.toString(newInt));
 					radix64_32(newInt));
 	}
 

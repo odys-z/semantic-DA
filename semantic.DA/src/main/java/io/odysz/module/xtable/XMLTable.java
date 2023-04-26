@@ -8,7 +8,25 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import io.odysz.semantics.x.SemanticException;
+
 public class XMLTable {
+	public interface IMapValue {
+		String key();
+	}
+
+	@FunctionalInterface
+	public interface IParser<T extends IMapValue> {
+		/**
+		 * Parameter t is iterated with "while(next()".
+		 * The t.rowIdx is the current row's index.
+		 * @param t
+		 * @return parsed object
+		 * @throws SAXException
+		 */
+		T parse(XMLTable t) throws SAXException, SemanticException;
+	}
+
 	private static final String TAG = "XMLTable";
 	private ILogger logger;
 	
@@ -719,5 +737,26 @@ public class XMLTable {
 				return;
 			}
 		}
+	}
+
+	public <T extends IMapValue> HashMap<String, T> map(IParser<T> parser)
+			throws SAXException, SemanticException {
+		HashMap<String, T> m = new HashMap<String, T>(getRowCount());
+		beforeFirst();
+		while (next()) {
+//			String tabl = xcfg.getString("tabl");
+//			String pk = xcfg.getString("pk");
+//			String smtc = xcfg.getString("smtc");
+//			String args = xcfg.getString("args");
+//			try {
+//				addSemantics(conn, tabl, pk, smtc, args, debug);
+//			} catch (SemanticException e) {
+//				Utils.warn(e.getMessage());
+//			}
+			T v = parser.parse(this);
+			if (v != null)
+				m.put(v.key(), v);
+		}
+		return m;
 	}
 }

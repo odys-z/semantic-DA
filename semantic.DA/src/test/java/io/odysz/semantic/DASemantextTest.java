@@ -1,6 +1,11 @@
 package io.odysz.semantic;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static io.odysz.semantic.DATranscxt.loadSemantics;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +17,6 @@ import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io_odysz.FilenameUtils;
@@ -28,11 +32,11 @@ import io.odysz.common.Regex;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
+import io.odysz.semantic.DATranscxt.SemanticsMap;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
-import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
@@ -50,8 +54,8 @@ public class DASemantextTest {
 	public static final String connId = "local-sqlite";
 	private static DATranscxt st;
 	private static IUser usr;
-	private static HashMap<String, DASemantics> smtcfg;
-	private static HashMap<String, TableMeta> metas;
+	private static SemanticsMap smtcfg;
+//	private static HashMap<String, TableMeta> metas;
 
 	public static final String rtroot = "src/test/res/";
 	private static String runtimepath;
@@ -73,9 +77,9 @@ public class DASemantextTest {
 			DATranscxt.key("user-pswd", rootkey);
 
 			// smtcfg = DATranscxt.loadSemantics(connId, "src/test/res/semantics.xml", true);
-			smtcfg = DATranscxt.loadSemantics(connId);
+			smtcfg = DATranscxt.initConfigs(connId, loadSemantics(connId), (c) -> new SemanticsMap(c));
 			st = new DATranscxt(connId);
-			metas = Connects.getMeta(connId);
+//			metas = Connects.getMeta(connId);
 
 			SemanticObject jo = new SemanticObject();
 			jo.put("userId", "tester");
@@ -164,7 +168,7 @@ DELETE from a_roles;</pre>
 	public void testInsert() throws TransException, SQLException, SAXException, IOException {
 		String flag = DateFormat.format(new Date());
 
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_functions")
 			.nv("flags", flag)
@@ -177,7 +181,7 @@ DELETE from a_roles;</pre>
 		assertEquals(6, ((String) s0.resulvedVal("a_functions", "funcId")).length());
 		
 		// level 2
-		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		DASemantext s1 = new DASemantext(connId, smtcfg, usr, rtroot);
 		st.insert("a_functions")
 			.nv("flags", flag)
 			// .nv("funcId", "AUTO")
@@ -194,7 +198,7 @@ DELETE from a_roles;</pre>
 
 	@Test
 	public void testBatch() throws TransException, SQLException, SAXException, IOException {
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		DASemantext s0 = new DASemantext(connId, smtcfg,  usr, rtroot);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		Insert f1 = st.insert("a_role_func")
 				.nv("funcId", "000001");
@@ -208,7 +212,7 @@ DELETE from a_roles;</pre>
 		newuser.commit(s0, sqls);
 		Connects.commit(usr , sqls);
 		
-		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		DASemantext s1 = new DASemantext(connId, smtcfg, usr, rtroot);
 		String newId = (String) s0.resulvedVal("a_roles", "roleId");
 		SemanticObject s = st
 				.select("a_role_func", "rf")
@@ -225,7 +229,7 @@ DELETE from a_roles;</pre>
 
 	@Test
 	public void testFullpath() throws TransException, SQLException {
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_functions")
 			.nv("funcId", "AUTO")
@@ -278,7 +282,7 @@ DELETE from a_roles;</pre>
 	 */
 	@Test
 	public void testCrossAutoK() throws TransException, SQLException {
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		Insert f1 = st.insert("crs_a")
 				.nv("remarka", Funcall.now())
@@ -318,7 +322,7 @@ DELETE from a_roles;</pre>
 					sqls.get(0));
 		
 		sqls.clear();
-		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		DASemantext s1 = new DASemantext(connId, smtcfg, usr, rtroot);
 		st.insert("crs_b")
 			.nv("remarkb", "1911-10-10")
 			.post(st.update("crs_a")
@@ -354,7 +358,7 @@ DELETE from a_roles;</pre>
 		String flag = DateFormat.formatime(new Date());
 		String usrName = "01 " + flag;
 
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_users") // with default value: pswd = '123456'
 			.nv("userName", usrName)
@@ -379,7 +383,7 @@ DELETE from a_roles;</pre>
 		// assert 5. check count on insert: a_user.userName<br>
 		sqls.clear();
 		// s0.clear();
-		s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		s0 = new DASemantext(connId, smtcfg, usr, rtroot);
 
 		try {
 			st.insert("a_users")
@@ -620,10 +624,10 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	}
 	
 	@Test
-	public void testMultiChildInst() throws TransException {
+	public void testMultiChildInst() throws TransException, SQLException {
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		String dt = DateFormat.format(new Date());
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
 		st.insert("b_alarms")
 				.nv("remarks", Funcall.now())
 				.nv("typeId", "02-alarm")
@@ -648,7 +652,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// because b_alarm is updating, no auto key generated,
 		// so child fk should provided by client, and won't been resulved.
 		sqls.clear();
-		DASemantext s1 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		DASemantext s1 = new DASemantext(connId, smtcfg, usr, rtroot);
 		st.update("b_alarms")
 			.nv("remarks", "updated")
 			.where_("=", "alarmId", alarmId)
@@ -673,7 +677,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	public void testMuiltiRowsInsert() throws TransException, SQLException, IOException {
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		String dt = DateFormat.format(new Date());
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
 		st.insert("b_alarms")
 				.nv("remarks", Funcall.now())
 				.nv("typeId", "02-alarm")
@@ -693,7 +697,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	@SuppressWarnings("serial")
 	@Test
 	public void testMuiltiInsOpertime() throws TransException, SQLException, IOException {
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, rtroot);
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 
 		ArrayList<Object[]> r0 = (new ArrayList<Object[]>() { {
@@ -794,7 +798,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		String flag = DateFormat.formatime(new Date());
 		String usrName = "attached " + flag;
 
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, runtimepath);
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr, runtimepath);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 
 		// 1
@@ -837,7 +841,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.col("uri").col("extFile(f.uri)", "b64")
 			.whereEq("attId", attId)
 			.union(q)
-			.rs(new DASemantext(connId, smtcfg, metas, usr, rtroot))
+			.rs(new DASemantext(connId, smtcfg, usr, rtroot))
 			.rs(0);
 
 		// assert 2. verify file exists
@@ -861,7 +865,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		  .nv("attName", "Sun Yet-sen Portrait.jpg")
 		  .nv("busiTbl", "a_folder2")
 		  .nv("busiId", "res")
-		  .nv("uri", uri1)
+		  // .nv("uri", uri1)
 		  .whereEq("attId", attId)
 		  // .commit(sqls, usr)
 		  .u(s0.clone(usr));
@@ -871,7 +875,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		rs = (AnResultset) st.select("a_attaches", "f")
 				.col("uri").col("extFile(f.uri)", "b64")
 				.whereEq("attId", attId)
-				.rs(new DASemantext(connId, smtcfg, metas, usr, rtroot))
+				.rs(new DASemantext(connId, smtcfg, usr, rtroot))
 				.rs(0);
 			
 		rs.next();
@@ -907,7 +911,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// h_photo will triggering table stamps 
 		SyncTestRobot usr = new SyncTestRobot("robot").device("test");
 
-		DASemantext s0 = new DASemantext(connId, smtcfg, metas, usr, runtimepath);
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr, runtimepath);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 
 		// 1
@@ -938,7 +942,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.select("h_photos", "f2")
 			.col("uri").col("extFile(f2.uri)", "b64")
 			.whereEq("pid", pid)
-			.rs(new DASemantext(connId, smtcfg, metas, usr, rtroot))
+			.rs(new DASemantext(connId, smtcfg, usr, rtroot))
 			.rs(0);
 
 		rs.beforeFirst().next(); // uri is relative path
@@ -965,7 +969,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		rs = (AnResultset) st.select("h_photos", "f")
 				.col("uri").col("extFile(f.uri)", "b64")
 				.whereEq("pid", pid)
-				.rs(new DASemantext(connId, smtcfg, metas, usr, rtroot))
+				.rs(new DASemantext(connId, smtcfg, usr, rtroot))
 				.rs(0);
 			
 		rs.next();

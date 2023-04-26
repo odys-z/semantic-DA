@@ -39,7 +39,7 @@ import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
 public class DBSyntextTest {
-	public static final String[] conns = new String[4];
+	public static final String[] conns = new String[] { "syn.00", "syn.01", "syn.02", "syn.03" };
 	public static final String rtroot = "src/test/res/";
 	public static final String father = "src/test/res/Sun Yet-sen.jpg";
 

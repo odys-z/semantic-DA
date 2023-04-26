@@ -18,6 +18,7 @@ import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.module.xtable.XMLTable.IMapValue;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -357,12 +358,27 @@ public class DASemantics {
 		 * <p><b>NOTE: </b>This semantics only guard the data for updating.</p>
 		 * <p>To replace uri back into file when selecting, use "extfile(uri)" (js) or {@link io.odysz.transact.sql.parts.condition.Funcall#sqlExtFile(ISemantext, String[]) sqlExtFile(uri)} in java. </p>
 		 * 
-		 * @deprecated replaced by {@link #extFilev2} 
+		 * @since 1.5.0
+		 * @deprecated this is the same with {@link #extFilev2} 
 		 */
 		extFile,
 		/**
+		 * <p>Save and load a special field as file of file system.</p>
+		 * <p>The file content should be a Base 64 encoded block.</p>
+		 * <p>This semantics only used for handling small files.
+		 * If the file is large, there are an example in Semantic.jserv which
+		 * uses a block sequence for uploading files.</p>
+		 * <p>args:</br>
+		 * 0: rec-id<br>
+		 * 1: uri, the Base64 content<br>
+		 * 2: subfolder<br>
+		 * 3: ...<br>
+		 *-1: file name<br>
+		 * </p> 
 		 * xml/smtc = "ef2.0" | "xf2.0" | "ext-file2.0" | "e-f2.0" | "x-f2.0" <br>
 		 * Similar to {@link #extFile}, but can handle more subfolder (configered in xml as field name of data table).
+		 * 
+		 * @since 1.5.0
 		 */
 		extFilev2,
 		
@@ -485,18 +501,30 @@ public class DASemantics {
 	private String tabl;
 	private String pk;
 
-	public DASemantics(Transcxt basicTx, String tabl, String recId, boolean verbose) {
+	public DASemantics(Transcxt basicTx, String tabl, String recId, boolean ... verbose) {
 		this.tabl = tabl;
 		this.pk = recId;
 		basicTsx = basicTx;
 		
-		this.verbose = verbose;
+		this.verbose = isNull(verbose) ? false : verbose[0];
 
 		handlers = new ArrayList<SemanticHandler>();
 	}
 
+
+//	public void addHandler(String smtc, String tabl, String pk, String args) throws SemanticException {
+//		addHandler(smtype.parse(smtc), tabl, pk, split(args));
+//	}
+
+	public DASemantics addHandler(SemanticHandler h) {
+		if (verbose)
+			h.logi();
+		handlers.add(h);
+		return this;
+	}
+
 	public void addHandler(smtype semantic, String tabl, String recId, String[] args)
-			throws SemanticException, SQLException {
+			throws SemanticException {
 		checkParas(tabl, pk, args);
 		if (isDuplicate(tabl, semantic))
 			return;
@@ -634,7 +662,7 @@ public class DASemantics {
 	}
 
 	//////////////////////////////// Base Handler //////////////////////////////
-	public abstract static class SemanticHandler {
+	public abstract static class SemanticHandler implements IMapValue {
 		protected boolean insert = false;
 		protected boolean update = false;
 		protected boolean delete = false;
@@ -642,6 +670,9 @@ public class DASemantics {
 		protected boolean post = false;
 
 		protected String target;
+		@Override
+		public String key() { return target; }
+		
 		protected String pkField;
 		protected String[] args;
 		protected Transcxt trxt;
@@ -733,9 +764,6 @@ public class DASemantics {
 	 * @author odys-z@github.com
 	 */
 	static class ShFullpath extends SemanticHandler {
-		// v1.3.0 no longer needed
-		// private static String faqPage = "https://odys-z.github.io/notes/semantics/best-practices.html#DA-concept-fullpath";
-
 		private int siblingSize;
 
 		/**
@@ -1383,13 +1411,12 @@ public class DASemantics {
 		/** Index of URI field */
 		static final int ixUri = 1;
 
-		public ShExtFilev2(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException, SQLException {
+		public ShExtFilev2(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.extFilev2, tabl, pk, args);
 			
 			delete = true;
 			insert = true;
 			update = true;
-
 
 			if (LangExt.isblank(args[ixUri + 1]))
 				Utils.warn("ShExtFile v2.0 handling special attachment table semantics, which needs multiple sub folder fileds in the table.\\n" +
@@ -1455,20 +1482,23 @@ public class DASemantics {
 			}
 		}
 
-		/**<p>On updating external files' handler.</p>
+		/**
+		 * <p>On updating external files' handler.</p>
 		 * <p>This method only moves the file with new uri & client name, applying the semantics predefined as:<br>
 		 * AS all files are treated as binary file, no file can be modified, only delete then create it makes sense.</p>
 		 * <p>Client should avoid updating an external file while handling business logics.</p>
 		 * <p><b>NOTE:</b><br>This can be changed in the future.</p>
-		 * @see io.odysz.semantic.DASemantics.SemanticHandler#onUpdate(io.odysz.semantics.ISemantext, io.odysz.transact.sql.Update, java.util.ArrayList, java.util.Map, io.odysz.semantics.IUser)
+		 * @see SemanticHandler#onUpdate(ISemantext, Update, ArrayList, Map, IUser)
 		 */
 		@Override
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 			if (cols.containsKey(args[ixUri])) {
-				throw new SemanticException("Currently update ExtFile (%s.%s) is not supported. Use delete & insert.",
-						target, args[ixUri]);
+				throw new SemanticException(
+					"Found ext-file's contenet is updated.\n" +
+					"Currently update ExtFile (%s.%s) is not supported (and moving file shouldn't updating content). Use delete & insert instead.",
+					target, args[ixUri]);
 			}
-			else if (args.length > 1 && args[1] != null && cols != null && !cols.containsKey(args[ixUri])) {
+			else if (args.length > 1 && args[ixUri] != null && cols != null && !cols.containsKey(args[ixUri])) {
 				boolean touch = false;
 				for (int i = ixUri + 1; i < args.length - 1; i++)
 					if (cols.containsKey(args[i])) {
@@ -1485,10 +1515,13 @@ public class DASemantics {
 
 					for (int i = ixUri + 1; i < args.length - 1; i++)
 						if (i != ixUri && !cols.containsKey(args[i])) 
-							throw new SemanticException("Cols for composing exp-file path are modified. To update (move file) %s.%s, all required fields must be provided by user (missing %s).\nNeeding fields: %s.\nModifying cols: %s",
-									target, args[ixUri], args[i],
-									Stream.of(args).skip(2).collect(Collectors.joining(", ")),
-									cols.keySet().stream().collect(Collectors.joining(", ")));
+							throw new SemanticException(
+								"Cols for composing exp-file path are modified. To update (move file) %s.%s, all required fields must be provided by user (missing %s).\n" +
+								"Needing fields: %s.\n" +
+								"Modifying cols: %s",
+								target, args[ixUri], args[i],
+								Stream.of(args).skip(2).collect(Collectors.joining(", ")),
+								cols.keySet().stream().collect(Collectors.joining(", ")));
 						else
 							f.appendSubFolder(row.get(cols.get(args[i]))[1]);
 
@@ -1934,5 +1967,4 @@ public class DASemantics {
 				}
 		}
 	}
-
 }

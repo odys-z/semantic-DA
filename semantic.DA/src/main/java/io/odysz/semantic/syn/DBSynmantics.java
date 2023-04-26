@@ -46,16 +46,8 @@ import io.odysz.transact.x.TransException;
 
 public class DBSynmantics extends DASemantics {
 
-	@Override
-	public void addHandler(smtype semantic, String tabl, String recId, String[] args)
-			throws SemanticException, SQLException {
 
-		if (smtype.synChange == semantic)
-			handlers.add(new ShSynChange(basicTsx, tabl, recId, args));
-		else super.addHandler(semantic, tabl, recId, args);
-	}
-
-	public DBSynmantics(Transcxt basicTx, String tabl, String recId, boolean verbose) {
+	public DBSynmantics(Transcxt basicTx, String tabl, String recId, boolean... verbose) {
 		super(basicTx, tabl, recId, verbose);
 	}
 	
@@ -75,6 +67,8 @@ public class DBSynmantics extends DASemantics {
 
 		ShSynChange(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.synChange, tabl, pk, args);
+			UHF = true;
+			
 			if (trxt instanceof DBSynsactBuilder)
 				// builder
 				syb = (DBSynsactBuilder) trxt;
@@ -89,22 +83,14 @@ public class DBSynmantics extends DASemantics {
 			}
 			chm = new SynChangeMeta();
 			sbm = new SynSubsMeta();
-//			try {
-//				nyqm = new NyquenceMeta();
-//			} catch (TransException e) {
-//				e.printStackTrace();
-//				throw new SemanticException(e.getMessage());
-//			}
-			UHF = true;
-			
+
 			entflag = trim(args[1]);
 			
 			entGID = compound(args[2].split(" "));
 		}
 
-		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
-				throws SemanticException {
-			// target-table.flag = crud
+		protected void onInsert(ISemantext stx, Insert insrt,
+				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 			requiredNv(entflag, new ExprPart(CRUD.C), cols, row, target, usr);
 			logChange(stx, insrt, row, cols, usr);
 		}

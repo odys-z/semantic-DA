@@ -50,6 +50,8 @@ public class ShareDocTest {
 	void testShareBykyiv() throws 
 		AnsonException, SQLException, IOException, TransException, SAXException, ClassNotFoundException {
 
+		ZSUNodesDA.init();
+
 		String clientpath = anDevice.png;
 
 		// 0. clean failed tests
