@@ -61,7 +61,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	}
 	
 	/**
-	 * Create a basic sync-builder, but without semantics.
+	 * Create a basic sync-builder, without semantics.
 	 * 
 	 * @param tsx
 	 * @throws SemanticException 
@@ -70,7 +70,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws SQLException 
 	 */
 	public DBSynsactBuilder(Transcxt tsx) throws SemanticException, SQLException, SAXException, IOException {
-		super(tsx);
+		super(tsx.basictx().connId());
 	}
 
 

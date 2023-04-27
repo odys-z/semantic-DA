@@ -529,11 +529,6 @@ public class DASemantics {
 		handlers = new ArrayList<SemanticHandler>();
 	}
 
-
-//	public void addHandler(String smtc, String tabl, String pk, String args) throws SemanticException {
-//		addHandler(smtype.parse(smtc), tabl, pk, split(args));
-//	}
-
 	public DASemantics addHandler(SemanticHandler h) {
 		if (verbose)
 			h.logi();
