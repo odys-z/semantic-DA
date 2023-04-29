@@ -412,13 +412,17 @@ public class DATranscxt extends Transcxt {
 	public static <M extends SemanticsMap, S extends DASemantics> M initConfigs(
 			String conn, XMLTable xcfg, SmapFactory<M> smFactory)
 			throws SAXException, IOException, SQLException, SemanticException {
+		if (smtMaps == null)
+			smtMaps = new HashMap<String, SemanticsMap>();
+		if (!smtMaps.containsKey(conn))
+			smtMaps.put(conn, smFactory.ctor(conn));
+		else
+			return (M) smtMaps.get(conn);
+
 		xcfg.beforeFirst();
 
 		Transcxt trb = getBasicTrans(conn);
 		boolean debug = Connects.getDebug(conn);
-		
-		if (!smtMaps.containsKey(conn))
-			smtMaps.put(conn, smFactory.ctor(conn));
 		
 		SemanticsMap s = smtMaps.get(conn); 
 		xcfg.map(
