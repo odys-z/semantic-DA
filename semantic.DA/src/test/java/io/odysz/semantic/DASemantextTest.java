@@ -79,7 +79,7 @@ public class DASemantextTest {
 
 			// smtcfg = DATranscxt.loadSemantics(connId, "src/test/res/semantics.xml", true);
 			smtcfg = DATranscxt.initConfigs(connId, loadSemantics(connId),
-						(trb, tbl, pk, debug) -> new DASemantics(trb, tbl, pk, debug));
+						(c) -> new SemanticsMap(c));
 			st = new DATranscxt(connId);
 
 			SemanticObject jo = new SemanticObject();
@@ -512,7 +512,7 @@ DELETE from a_roles;</pre>
 	@Test
 	public void testChkOnDel() throws TransException, SQLException {
 		ISemantext s1 = st.instancontxt(connId, usr);
-		String typeId = "02-fault";		// Device Fault
+		String typeId = "02-fault";	// Device Fault
 		st.insert("b_alarms", usr)	// auto key id = 54
 			.nv("typeId", typeId)
 			.ins(s1);

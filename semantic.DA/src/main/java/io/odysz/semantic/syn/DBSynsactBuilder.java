@@ -1,6 +1,5 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.common.LangExt.split;
 import static io.odysz.transact.sql.parts.condition.Funcall.add;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
@@ -10,6 +9,7 @@ import java.sql.SQLException;
 import org.xml.sax.SAXException;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.meta.NyquenceMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
@@ -33,6 +33,11 @@ public class DBSynsactBuilder extends DATranscxt {
 		public SynmanticsMap(String conn) {
 			super(conn);
 		}
+
+		@Override
+		public DASemantics createSemantics(Transcxt trb, String tabl, String pk, boolean debug) {
+			return new DBSynmantics(trb, tabl, pk, debug);
+		}
 	}
 
 	protected SynodeMeta synm;
@@ -52,7 +57,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws SQLException, SAXException, IOException, TransException {
 		super ( new DBSyntext(conn,
 			    initConfigs(conn, loadSemantics(conn),
-						(trb, tbl, pk, debug) -> new DBSynmantics(trb, tbl, pk, debug)),
+						(c) -> new SynmanticsMap(c)),
 				dummy, runtimepath));
 
 		this.subm = subm != null ? subm : new SynSubsMeta(conn);
@@ -79,7 +84,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		try {
 			return new DBSyntext(conn,
 				initConfigs(conn, loadSemantics(conn),
-						(trb, tbl, pk, debug) -> new DBSynmantics(trb, tbl, pk, debug)),
+						(c) -> new SynmanticsMap(c)),
 				usr, runtimepath);
 		} catch (SAXException | IOException | SQLException e) {
 			e.printStackTrace();

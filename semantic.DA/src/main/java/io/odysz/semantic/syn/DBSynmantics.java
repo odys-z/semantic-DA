@@ -30,6 +30,7 @@ import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.syn.DBSynsactBuilder.SynmanticsMap;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.meta.TableMeta;
@@ -53,7 +54,7 @@ public class DBSynmantics extends DASemantics {
 	}
 
 	public SemanticHandler parseHandler(Transcxt tsx, String tabl, smtype smtp,
-			String pk, String argstr, boolean ... debug) {
+			String pk, String argstr, boolean ... debug) throws SemanticException {
 		if (smtype.synChange == smtp)
 			try {
 				return new DBSynmantics.ShSynChange(new DBSynsactBuilder(tsx), tabl, pk, split(argstr));
@@ -62,7 +63,12 @@ public class DBSynmantics extends DASemantics {
 				return null;
 			}
 		else
-			return super.parseHandler(tsx, tabl, smtp, pk, argstr, debug);
+			return super.parseHandler(tsx, tabl, smtp, pk, split(argstr));
+	}
+	
+	@Override
+	public SynmanticsMap createSMap(String conn) {
+		return new SynmanticsMap(conn);
 	}
 
 	public static class ShSynChange extends SemanticHandler {
@@ -98,7 +104,7 @@ public class DBSynmantics extends DASemantics {
 
 			entflag = trim(args[1]);
 			
-			entGID = compound(args[2].split(" "));
+			entGID = compound(split(args[2], " "));
 		}
 
 		protected void onInsert(ISemantext stx, Insert insrt,

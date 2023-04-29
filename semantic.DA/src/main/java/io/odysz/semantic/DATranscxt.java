@@ -1,6 +1,7 @@
 package io.odysz.semantic;
 
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.split;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -18,6 +19,19 @@ import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DASemantics.SemanticHandler;
+import io.odysz.semantic.DASemantics.ShAutoK;
+import io.odysz.semantic.DASemantics.ShChkCntDel;
+import io.odysz.semantic.DASemantics.ShChkPCInsert;
+import io.odysz.semantic.DASemantics.ShDefltVal;
+import io.odysz.semantic.DASemantics.ShDencrypt;
+import io.odysz.semantic.DASemantics.ShExtFilev2;
+import io.odysz.semantic.DASemantics.ShFkInsCates;
+import io.odysz.semantic.DASemantics.ShFkOnIns;
+import io.odysz.semantic.DASemantics.ShFullpath;
+import io.odysz.semantic.DASemantics.ShOperTime;
+import io.odysz.semantic.DASemantics.ShPCDelAll;
+import io.odysz.semantic.DASemantics.ShPCDelByCate;
+import io.odysz.semantic.DASemantics.ShPostFk;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
@@ -56,20 +70,17 @@ import io.odysz.transact.x.TransException;
  */
 public class DATranscxt extends Transcxt {
 	/**
-	 * defualt example:<br>
-	 * (c) -> new SemanticsMap(c)
-	 * 
-	 * <p>So, calling {@link DATranscxt#initConfigs(String, XMLTable, SMapFactory) can be:<pre>
-	 * initConfigs(connId, (b, conn, pk, d) -> new SemanticsMap(b, conn, pk, d));</pre>
-	 * </p>
+	 * <p>Callback for buiding a connection's semantics map, with map-key = table.</p>
+	 * Example:<br>
+	 * initConfigs(conn) -> new SynmanticsMap(conn);
 	 * 
 	 * @since 1.5.0
 	 * @author odys-z@github.com
 	 */
 
 	@FunctionalInterface
-	public interface SmtcFactory<S extends DASemantics> {
-		S ctor(Transcxt trb, String conn, String pk, boolean debug);
+	public interface SmapFactory<M extends SemanticsMap> {
+		M ctor(String conn);
 	}
 
 	/**
@@ -83,6 +94,7 @@ public class DATranscxt extends Transcxt {
 
 		String conn;
 		
+		/** {table: semantics[handlers]} */
 		protected HashMap<String, DASemantics> ss;
 		
 		public SemanticsMap(String conn) {
@@ -100,6 +112,10 @@ public class DATranscxt extends Transcxt {
 
 		SemanticHandler parseHandler(Transcxt basicTrs, XMLTable x) {
 			return null;
+		}
+
+		public DASemantics createSemantics(Transcxt trb, String tabl, String pk, boolean debug) {
+			return new DASemantics(trb, tabl, pk, debug);
 		}
 	}
 
@@ -133,10 +149,59 @@ public class DATranscxt extends Transcxt {
 		throw new SemanticException("Can't find table meta: %s : %s", conn, tabl);
 	}
 
-	/**[conn, [table, DASemantics]] */
+	/** { conn: map{table: DASemantics[handlers]} } */
+	protected static HashMap<String, SemanticsMap> smtMaps;
 	// protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
 
-	protected static HashMap<String, SemanticsMap> smtConfigs;
+	public SemanticHandler parseHandler(Transcxt basicTsx, String tabl, smtype semantic,
+			String recId, String argstr, boolean ... debug) {
+		// checkParas(tabl, pk, args);
+//		if (isDuplicate(tabl, semantic))
+//			return;
+		SemanticHandler handler = null;
+
+		String[] args = split(argstr);
+
+		try {
+		if (smtype.fullpath == semantic)
+				handler = new ShFullpath(basicTsx, tabl, recId, args);
+		else if (smtype.autoInc == semantic)
+			handler = new ShAutoK(basicTsx, tabl, recId, args);
+		else if (smtype.fkIns == semantic)
+			handler = new ShFkOnIns(basicTsx, tabl, recId, args);
+		else if (smtype.fkCateIns == semantic)
+			handler = new ShFkInsCates(basicTsx, tabl, recId, args);
+		else if (smtype.parentChildrenOnDel == semantic)
+			handler = new ShPCDelAll(basicTsx, tabl, recId, args);
+		else if (smtype.parentChildrenOnDelByCate == semantic)
+			handler = new ShPCDelByCate(basicTsx, tabl, recId, args);
+		else if (smtype.defltVal == semantic)
+			handler = new ShDefltVal(basicTsx, tabl, recId, args);
+		else if (smtype.dencrypt == semantic)
+			handler = new ShDencrypt(basicTsx, tabl, recId, args);
+		// else if (smtype.orclob == semantic)
+		// addClob(tabl, recId, argss);
+		else if (smtype.opTime == semantic)
+			handler = new ShOperTime(basicTsx, tabl, recId, args);
+		else if (smtype.checkSqlCountOnDel == semantic)
+			handler = new ShChkCntDel(basicTsx, tabl, recId, args);
+		else if (smtype.checkSqlCountOnInsert == semantic)
+			handler = new ShChkPCInsert(basicTsx, tabl, recId, args);
+		else if (smtype.postFk == semantic)
+			handler = new ShPostFk(basicTsx, tabl, recId, args);
+		else if (smtype.extFile == semantic)
+			// throw new SemanticException("Since 1.5.0, smtype.extFile is replaced by extFilev2!");
+			handler = new ShExtFilev2(basicTsx, tabl, recId, args);
+		else if (smtype.extFilev2 == semantic)
+			handler = new ShExtFilev2(basicTsx, tabl, recId, args);
+		else
+			throw new SemanticException("Cannot load configured semantics of key: %s", semantic);
+
+		} catch (SemanticException e) {
+			e.printStackTrace();
+		}
+		return handler;
+	}
 
 	/**
 	 * <p>Create a new semantext instance with the static resources.</p>
@@ -152,7 +217,10 @@ public class DATranscxt extends Transcxt {
 	@Override
 	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
 		try {
-			return new DASemantext(connId, getSmtcs(connId), usr, runtimepath);
+			return new DASemantext(connId,
+				initConfigs(connId, loadSemantics(connId),
+						(c) -> new SemanticsMap(c)),
+				usr, connId);
 		} catch (SemanticException | SQLException | SAXException | IOException e) {
 			// meta is null? shouldn't happen because this instance is already created
 			e.printStackTrace();
@@ -280,7 +348,9 @@ public class DATranscxt extends Transcxt {
 	 * @throws SemanticException 
 	 */
 	public DATranscxt(String conn) throws SQLException, SAXException, IOException, SemanticException {
-		this(new DASemantext(conn, getSmtcs(conn),
+		this(new DASemantext(conn,
+				initConfigs(conn, loadSemantics(conn),
+						(c) -> new SemanticsMap(c)),
 				dummyUser(), runtimepath));
 	}
 	
@@ -288,27 +358,20 @@ public class DATranscxt extends Transcxt {
 		super(stxt);
 	}
 
-//	public DATranscxt(io.odysz.semantic.DASemantext daSemantext) {
-//		// TODO Auto-generated constructor stub
-//		super(daSemantext);
+//	protected static SemanticsMap getSmtcs(String conn)
+//			throws SAXException, IOException, SQLException, SemanticException {
+//		if (smtMaps == null)
+//			// smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
+//			smtMaps = new HashMap<String, SemanticsMap>();
+//
+//		if (!smtMaps.containsKey(conn)) {
+//			smtMaps.put(conn, new SemanticsMap(conn));
+//
+//			initConfigs(conn, loadSemantics(conn),
+//				(trb, tbl, pk, ver) -> new DASemantics(trb, tbl, pk, ver));
+//		}
+//		return smtMaps.get(conn);
 //	}
-
-	public static boolean alreadyLoaded(String connId) {
-		return smtConfigs != null && smtConfigs.containsKey(connId);
-	}
-
-	protected static SemanticsMap getSmtcs(String conn)
-			throws SAXException, IOException, SQLException, SemanticException {
-		if (smtConfigs == null)
-			// smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
-			smtConfigs = new HashMap<String, SemanticsMap>();
-
-		if (!smtConfigs.containsKey(conn)) {
-			initConfigs(conn, loadSemantics(conn),
-				(trb, tbl, pk, ver) -> new DASemantics(trb, tbl, pk, ver));
-		}
-		return smtConfigs.get(conn);
-	}
 
 	/**
 	 * Load semantics configuration from file path.
@@ -346,18 +409,18 @@ public class DATranscxt extends Transcxt {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static <M extends SemanticsMap, S extends DASemantics> M initConfigs(String conn,
-			XMLTable xcfg, SmtcFactory<S> smFactory)
+	public static <M extends SemanticsMap, S extends DASemantics> M initConfigs(
+			String conn, XMLTable xcfg, SmapFactory<M> smFactory)
 			throws SAXException, IOException, SQLException, SemanticException {
 		xcfg.beforeFirst();
-		if (smtConfigs == null)
-			smtConfigs = (HashMap<String, SemanticsMap>) new HashMap<String, M>();
 
 		Transcxt trb = getBasicTrans(conn);
 		boolean debug = Connects.getDebug(conn);
 		
-		HashMap<String, S> m = new HashMap<String, S>(); 
-
+		if (!smtMaps.containsKey(conn))
+			smtMaps.put(conn, smFactory.ctor(conn));
+		
+		SemanticsMap s = smtMaps.get(conn); 
 		xcfg.map(
 			(XMLTable t) -> {
 				String tabl = xcfg.getString("tabl");
@@ -365,34 +428,34 @@ public class DATranscxt extends Transcxt {
 				String smtc = xcfg.getString("smtc");
 				String args = xcfg.getString("args");
 				
-				// because the table is not come with pk = tabl, returned value is useless.
+				HashMap<String, DASemantics> m = s.ss;
 				if (!m.containsKey(tabl))
-					// m.put(tabl, new DASemantics(trb, tabl, pk, debug));
-					m.put(tabl, smFactory.ctor(trb, tabl, pk, debug));
+					m.put(tabl, s.createSemantics(trb, tabl, pk, debug));
 
-				S smtcs = m.get(tabl);
+				S smtcs = (S) m.get(tabl);
 				smtcs.addHandler(
-					smtcs.parseHandler(trb, tabl, smtype.parse(smtc), pk, args, debug));
+					smtcs.parseHandler(trb, tabl, smtype.parse(smtc), pk, split(args)));
+
+				// because the table is not come with pk = tabl, returned value is useless here.
 				return null;
 			});
 
-		smtConfigs.put(conn, S.semantics());
-		return (M) smtConfigs.get(conn);
+		return (M) smtMaps.get(conn);
 	}
 
 	public static boolean hasSemantics(String conn, String tabl, smtype sm) {
-		if (smtConfigs == null || !smtConfigs.containsKey(conn)
-				|| !smtConfigs.get(conn).containsKey(tabl))
+		if (smtMaps == null || !smtMaps.containsKey(conn)
+				|| !smtMaps.get(conn).ss.containsKey(tabl))
 			return false;
-		DASemantics s = smtConfigs.get(conn).get(tabl);
+		DASemantics s = smtMaps.get(conn).ss.get(tabl);
 		return s != null && s.has(sm);
 	}
 	
 	public static SemanticHandler getHandler(String conn, String tabl, smtype sm) {
-		if (smtConfigs == null || !smtConfigs.containsKey(conn)
-				|| !smtConfigs.get(conn).containsKey(tabl))
+		if (smtMaps == null || !smtMaps.containsKey(conn)
+				|| !smtMaps.get(conn).ss.containsKey(tabl))
 			return null;
-		DASemantics s = smtConfigs.get(conn).get(tabl);
+		DASemantics s = smtMaps.get(conn).ss.get(tabl);
 		return s.handler(sm);
 	}
 
