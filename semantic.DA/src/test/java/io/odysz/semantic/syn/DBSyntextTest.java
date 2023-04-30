@@ -40,6 +40,7 @@ import io.odysz.transact.x.TransException;
 
 public class DBSyntextTest {
 	public static final String[] conns = new String[] { "syn.00", "syn.01", "syn.02", "syn.03" };
+	public static final String logconn = "log";
 	public static final String rtroot = "src/test/res/";
 	public static final String father = "src/test/res/Sun Yet-sen.jpg";
 
@@ -50,8 +51,8 @@ public class DBSyntextTest {
 
 	static String runtimepath;
 
-	public static Ck[] c;
-	public static DBSynsactBuilder trbs[];
+	public static Ck[] c = new Ck[4];
+	public static DBSynsactBuilder trbs[] = new DBSynsactBuilder[4];
 
 	static HashMap<String, DBSynmantics> synms;
 
@@ -539,7 +540,7 @@ public class DBSyntextTest {
 			usrAct.put("funcId", "DBSyntextTest");
 			usrAct.put("funcName", "test ISemantext implementation");
 			jo.put("usrAct", usrAct);
-			robot = new LoggingUser(connId, "src/test/res/semantic-log.xml", uid, jo);
+			robot = new LoggingUser(logconn, "src/test/res/semantic-log.xml", uid, jo);
 		}
 
 		/**

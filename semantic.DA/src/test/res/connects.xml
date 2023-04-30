@@ -19,6 +19,18 @@
   		<smtcs>semantics.xml</smtcs>
   	</c>
 
+  	<c>
+  		<id>log</id>
+  		<type>sqlite</type>
+  		<isdef></isdef>
+  		<src>semantic-DA.db</src>
+  		<usr>test</usr>
+  		<pswd>test</pswd>
+  		<!-- enable sql printing -->
+  		<dbg>true</dbg>
+  		<smtcs>semantic-log.xml</smtcs>
+  	</c>
+
   	<!-- error
    	<c>
   		<id>synode-sqlite</id>
