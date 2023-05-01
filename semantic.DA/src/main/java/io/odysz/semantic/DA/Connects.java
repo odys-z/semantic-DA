@@ -433,7 +433,7 @@ public class Connects {
 	 */
 	public static String uri2conn(String uri) throws SemanticException {
 		if (LangExt.isblank(uri))
-			throw new SemanticException("Function's uri can not be null! Which is used for connecting datasource.");
+			throw new SemanticException("Function's uri cannot be null! Which is used for connecting datasource.");
 		for (Regex reg : conn_uri.keySet())
 			if (reg.match(uri))
 				return conn_uri.get(reg);
