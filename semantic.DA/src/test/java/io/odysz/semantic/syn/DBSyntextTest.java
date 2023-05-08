@@ -1,6 +1,7 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.compoundVal;
+import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
@@ -9,6 +10,8 @@ import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.File;
 import java.io.IOException;
@@ -109,7 +112,7 @@ public class DBSyntextTest {
 			Connects.commit(conns[s], DATranscxt.dummyUser(), NyquenceMeta.ddlSqlite);
 		}
 
-		snm = new SynodeMeta();
+		snm = new SynodeMeta("");
 		for (int s = 0; s < 4; s++) {
 			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", snm.tbl));
 			Connects.commit(conns[s], DATranscxt.dummyUser(), SynodeMeta.ddlSqlite);
@@ -428,7 +431,7 @@ public class DBSyntextTest {
 	void join(int admin, int apply) throws TransException, SQLException {
 		c[admin].trb.addSynode(
 				c[admin].connId,  // into admin's db
-				new Synode(c[apply].synode, c[admin].robot.orgId()),
+				new Synode(c[apply].connId, c[apply].synode, c[admin].robot.orgId()),
 				c[admin].robot);
 		
 		pull(admin, apply);
@@ -489,7 +492,7 @@ public class DBSyntextTest {
 
 	String insertPhoto(int s) throws TransException, SQLException {
 		T_PhotoMeta m = c[s].phm;
-		return ((SemanticObject) trbs[s]
+		String pid = ((SemanticObject) trbs[s]
 			.insert(m.tbl, c[s].robot)
 			.nv(m.uri, "")
 			.nv(m.fullpath, father)
@@ -499,6 +502,10 @@ public class DBSyntextTest {
 			.nv(m.shareDate, now())
 			.ins(trbs[s].instancontxt(conns[s], c[s].robot)))
 			.resulve(c[s].phm.tbl, c[s].phm.pk);
+		
+		assertFalse(isblank(pid));
+		
+		return pid;
 	}
 
 
@@ -573,7 +580,8 @@ public class DBSyntextTest {
 				.rs(trb.instancontxt(connId, robot))
 				.rs(0);
 
-			chg.next();
+			if (!chg.next())
+				fail("Some records are supposed to be here.");
 
 			assertEquals(C, chg.getString(chm.crud));
 			assertEquals(phm.tbl, chg.getString(chm.entbl));

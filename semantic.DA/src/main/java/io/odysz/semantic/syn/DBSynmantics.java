@@ -1,17 +1,21 @@
 package io.odysz.semantic.syn;
 
+import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.len;
 import static io.odysz.common.LangExt.split;
-import static io.odysz.common.LangExt.trim;
 import static io.odysz.common.LangExt.str;
+import static io.odysz.common.LangExt.trim;
 import static io.odysz.transact.sql.parts.condition.Funcall.add;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.sql.SQLException;
+import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +24,7 @@ import java.util.Set;
 
 import org.xml.sax.SAXException;
 
+import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DASemantics;
@@ -48,22 +53,22 @@ import io.odysz.transact.x.TransException;
 
 public class DBSynmantics extends DASemantics {
 
-
 	public DBSynmantics(Transcxt basicTx, String tabl, String recId, boolean... verbose) {
 		super(basicTx, tabl, recId, verbose);
 	}
 
+	@Override
 	public SemanticHandler parseHandler(Transcxt tsx, String tabl, smtype smtp,
-			String pk, String argstr, boolean ... debug) throws SemanticException {
+			String pk, String[] args) throws SemanticException {
 		if (smtype.synChange == smtp)
 			try {
-				return new DBSynmantics.ShSynChange(new DBSynsactBuilder(tsx), tabl, pk, split(argstr));
+				return new DBSynmantics.ShSynChange(new DBSynsactBuilder(tsx), tabl, pk, args);
 			} catch (SemanticException | SQLException | SAXException | IOException e) {
 				e.printStackTrace();
 				return null;
 			}
 		else
-			return super.parseHandler(tsx, tabl, smtp, pk, split(argstr));
+			return super.parseHandler(tsx, tabl, smtp, pk, args);
 	}
 	
 	@Override
@@ -84,8 +89,22 @@ public class DBSynmantics extends DASemantics {
 		private final String entflag;
 		private final ExprPart entGID;
 
+		/**
+		 * Target synchronzed table meta's name, configured in xml. E.g. io.oz.album.PhotoMeta.
+		 */
+		private final String metacls;
+
+		/**
+		 * Target synchronzed table meta, e.g. PhotoMeta.
+		 */
+		private final SyntityMeta entm;
+
 		ShSynChange(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.synChange, tabl, pk, args);
+			insert = true;
+			update = true;
+			delete = true;
+
 			UHF = true;
 			
 			if (trxt instanceof DBSynsactBuilder)
@@ -94,13 +113,30 @@ public class DBSynmantics extends DASemantics {
 				throw new SemanticException("ShSynChange (xml/smtype=s-c) requires instance of DBSynsactBuilder as the default builder.");
 
 			try {
-				snm = new SynodeMeta();
+				snm = new SynodeMeta(trxt.basictx().connId());
 			} catch (TransException e) {
 				e.printStackTrace();
 				throw new SemanticException(e.getMessage());
 			}
 			chm = new SynChangeMeta();
 			sbm = new SynSubsMeta();
+			
+			this.metacls = args[0];
+			
+			TableMeta m = trxt.tableMeta(tabl);
+			if (!eq(metacls, m.getClass().getName())) {
+				try {
+					Class<?> cls = Class.forName(metacls);
+					Constructor<?> constructor = cls.getConstructor(String.class);
+					entm = (SyntityMeta) constructor.newInstance(trxt.basictx().connId());
+					entm.replace();
+				} catch (ReflectiveOperationException | TransException | SQLException e) {
+					Utils.warn("Error to create instance of table meta: %s", metacls);
+					e.printStackTrace();
+					throw new SemanticException(e.getMessage());
+				}
+			}
+			else entm = (SyntityMeta) m;
 
 			entflag = trim(args[1]);
 			
@@ -109,6 +145,7 @@ public class DBSynmantics extends DASemantics {
 
 		protected void onInsert(ISemantext stx, Insert insrt,
 				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+			Utils.logi("synChange: onInsert ...\n\n");
 			requiredNv(entflag, new ExprPart(CRUD.C), cols, row, target, usr);
 			logChange(stx, insrt, row, cols, usr);
 		}
@@ -145,7 +182,10 @@ public class DBSynmantics extends DASemantics {
 
 			// args: pk, crud-flag, n pk2 ...,         [col-value-on-del, ...]
 			// e.g.: pid,crud,      synoder clientpath,exif,uri "",clientpath
-			SyntityMeta entm = (SyntityMeta) stx.getTableMeta(target);
+//			TableMeta tm = stx.getTableMeta(target);
+//			if (! (tm instanceof SyntityMeta))
+//				throw new SemanticException("Retrieving a synchronizable table meta failed: %s", target);
+//			SyntityMeta entm = (SyntityMeta) tm;
 
 			verifyRequiredCols(entm.globalIds(), cols.keySet());
 
@@ -259,14 +299,15 @@ public class DBSynmantics extends DASemantics {
 						idCols++;
 					else break;
 
-			if (idCols > 0 && idCols < cols.size())
+			if (idCols > 0 && idCols <= cols.size() && idCols != len(pkcols))
 				// FIXME let's force extend the cols 
 				// TODO doc
 				throw new SemanticException(
 					"To update a synchronized table, all cols' values for identifying a global record are needed to generate syn-change log.\n"
 					+ "Columns in field values recieved are: %s\n"
+					+ "Required columns: %s, %s.\n"
 					+ "For how to configue See javadoc: %s",
-					str((HashSet<String>)cols), apidoc);
+					str((AbstractSet<String>)cols), this.pkField, str((HashSet<String>)pkcols), apidoc);
 		}
 	}
 

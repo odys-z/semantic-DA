@@ -32,7 +32,7 @@ public class SynodeMeta extends SyntityMeta {
 	 * @param conn
 	 * @throws SemanticException 
 	 */
-	public SynodeMeta(String... conn) throws TransException {
+	public SynodeMeta(String conn) throws TransException {
 		super("syn_node", "synid", "org", conn);
 		
 		// org = "org";

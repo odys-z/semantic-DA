@@ -43,7 +43,7 @@
   		<smtc>syn-change</smtc>
   		<tabl>h_photos</tabl>
   		<pk>pid</pk>
-  		<args>pid,crud,device clientpath,exif,uri "",clientpath,filesize 0,mime</args>
+  		<args>io.odysz.semantic.syn.T_PhotoMeta,crud,device clientpath,exif,uri "",clientpath,filesize 0,mime</args>
   	</s>
 
   	<s>
@@ -51,7 +51,7 @@
   		<smtc>s-c</smtc>
   		<tabl>syn_node</tabl>
   		<pk>synid</pk>
-  		<args>synid,crud,org synid,remarks</args>
+  		<args>io.odysz.semantic.meta.SynodeMeta,crud,org synid,remarks</args>
   	</s>
 
   </t>

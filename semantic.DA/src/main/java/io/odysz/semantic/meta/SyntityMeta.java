@@ -1,7 +1,9 @@
 package io.odysz.semantic.meta;
 
+import java.sql.SQLException;
 import java.util.HashSet;
 
+import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.syn.DBSynmantics;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.x.TransException;
@@ -36,23 +38,28 @@ public abstract class SyntityMeta extends TableMeta {
 	public SyntityMeta(String tbl, String pk, String org, String... conn) {
 		super(tbl, conn);
 
+		this.pk = pk;
 		this.org = org;
 		synoder = "device";
 		uids = new HashSet<String>() { {add("clientpath");} };
 	}
-	
+
 	/**
 	 * Explicitly call this after this meta with semantics is created,
 	 * to replace auto found meta from database.
 	 * 
 	 * @return this
 	 * @throws TransException
+	 * @throws SQLException 
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends SyntityMeta> T replace() throws TransException {
-		DBSynmantics.replaceMeta(tbl, this, conn);
+	public <T extends SyntityMeta> T replace() throws TransException, SQLException {
+		TableMeta mdb = Connects.getMeta(conn, tbl);
+		if (!(mdb instanceof SyntityMeta))
+			DBSynmantics.replaceMeta(tbl, this, conn);
 		return (T) this;
 	}
 	
+
 	public HashSet<String> globalIds() { return uids; }
 }
