@@ -26,6 +26,7 @@ import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.util.LogFlags;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.PageInf;
 import io.odysz.transact.x.TransException;
 
 /**Configured dataset.xml manager and helper.<br>
@@ -58,6 +59,8 @@ public class DatasetCfg {
 			public static final int sort = 5;
 			/** lable / text field for client binding */
 			public static final int text = 6;
+			/** nodetype of tree structure */
+			public static final int nodetype = 7;
 			/** paging by server */
 			public static final int pageByServer = 8;
 
@@ -426,6 +429,13 @@ public class DatasetCfg {
 			throw new SemanticException("sk (%s) desn't configured with a tree semantics", sk);
 		return buildForest(rs, smx);
 	}
+
+	public static List<?> loadStree(String conn, String sk, PageInf page) throws SQLException, TransException {
+		if (page != null)
+			return loadStree(conn, sk, (int)page.page, (int)page.size, page.condts.get(0));
+		else 
+			return loadStree(conn, sk, 0, -1);
+	}
 	
 	/**Build forest.
 	 * @param rs
@@ -497,7 +507,6 @@ public class DatasetCfg {
 				throw new SemanticException("Found children for null parent. Check the data queried by recent committed SQL.");
 			}
 
-//			String currentParentID = rs.getString(sm.aliasParent());
 			String currentParentID = rs.getString(sm.dbParent());
 			if (currentParentID == null || currentParentID.trim().length() == 0) {
 				// new tree root
