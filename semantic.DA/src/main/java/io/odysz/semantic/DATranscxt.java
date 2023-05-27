@@ -124,14 +124,14 @@ public class DATranscxt extends Transcxt {
 
 	/** configuration's root
 	 * @param cfgRoot
-	 * @param runtimeRoot absolute path to current dir (test) or container root (web app)
+	 * @param absRuntimeRoot absolute path to current dir (test) or container root (web app)
 	 */
-	public static void configRoot(String cfgRoot, String runtimeRoot) {
+	public static void configRoot(String cfgRoot, String absRuntimeRoot) {
 		cfgroot = cfgRoot;
-		runtimepath = runtimeRoot;
+		runtimepath = absRuntimeRoot;
 		
 		Utils.logi("Configuration root path: %s", cfgRoot);
-		Utils.logi("Runtime root path: %s", runtimeRoot);
+		Utils.logi("Runtime root path: %s", absRuntimeRoot);
 	}
 
 	protected static IUser dummy;
@@ -489,16 +489,20 @@ public class DATranscxt extends Transcxt {
 		return basicTrxes.get(conn);
 	}
 
-	/**Set a key.
-	 * @param name
-	 * @param key
+	/**Set a key (configuration item).
+	 * @param name e.g. connection's root-key is set here with name = "user-pswd".
+	 * @param value
 	 */
-	public static void key(String name, String key) {
+	public static void key(String name, String value) {
 		if (keys == null)
 			keys = new HashMap<String, String>();
-		keys.put(name, key);
+		keys.put(name, value);
 	}
 	
+	/** Load a configuration item. 
+	 * @param name configuration key, e.g. "user-pswd"
+	 * @return the value
+	 */
 	public static String key(String name) {
 		return keys == null ? null : keys.get(name);
 	}

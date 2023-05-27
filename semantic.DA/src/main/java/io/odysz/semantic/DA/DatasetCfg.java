@@ -1,5 +1,7 @@
 package io.odysz.semantic.DA;
 
+import static io.odysz.common.LangExt.len;
+
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -430,11 +432,17 @@ public class DatasetCfg {
 		return buildForest(rs, smx);
 	}
 
+	/**
+	 * Load semantic tree configured in dataset.xml.
+	 * @param conn
+	 * @param sk
+	 * @param page cannot be null
+	 * @return forest
+	 * @throws SQLException
+	 * @throws TransException
+	 */
 	public static List<?> loadStree(String conn, String sk, PageInf page) throws SQLException, TransException {
-		if (page != null)
-			return loadStree(conn, sk, (int)page.page, (int)page.size, page.condts.get(0));
-		else 
-			return loadStree(conn, sk, 0, -1);
+		return loadStree(conn, sk, (int)page.page, (int)page.size, len(page.condts) > 0 ? page.condts.get(0) : null);
 	}
 	
 	/**Build forest.
