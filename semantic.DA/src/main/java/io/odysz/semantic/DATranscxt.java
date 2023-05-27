@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import org.apache.commons.io_odysz.FilenameUtils;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.Utils;
@@ -122,7 +123,9 @@ public class DATranscxt extends Transcxt {
 	protected static String cfgroot = ""; 
 	protected static String runtimepath = "";
 
-	/** configuration's root
+	/**
+	 * Configuration's root
+	 * @since 1.5.0 will using EnvPath for this.
 	 * @param cfgRoot
 	 * @param absRuntimeRoot absolute path to current dir (test) or container root (web app)
 	 */
