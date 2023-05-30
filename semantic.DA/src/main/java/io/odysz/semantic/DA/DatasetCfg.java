@@ -366,7 +366,8 @@ public class DatasetCfg {
 		// v1.3.0 overriding uri->conn with xml/conn
 		if (!LangExt.isblank(dss.get(sk).conn))
 			conn = dss.get(sk).conn;
-		AnResultset rs = new AnResultset(Connects.select(conn, sql));
+		// AnResultset rs = new AnResultset(Connects.select(conn, sql));
+		AnResultset rs = Connects.select(conn, sql);
 		return rs;
 	}
 

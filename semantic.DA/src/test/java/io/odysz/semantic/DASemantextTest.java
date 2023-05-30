@@ -13,7 +13,6 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.rmi.server.LogStream;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -56,7 +55,6 @@ public class DASemantextTest {
 	private static DATranscxt st;
 	private static IUser usr;
 	private static SemanticsMap smtcfg;
-//	private static HashMap<String, TableMeta> metas;
 
 	public static final String rtroot = "src/test/res/";
 	private static String runtimepath;
@@ -728,6 +726,29 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				s0.resulvedVal("a_attaches", "attId"))));
 	}
 
+	@Test
+	public void testAnsonField() throws TransException, SQLException {
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
+		st.insert("b_alarms", usr)
+			.nv("remarks", new T_PhotoCSS(16, 9))
+			.nv("typeId", "02-photo")
+			.ins(s0);
+
+		AnResultset rs = ((AnResultset) st.select("b_alarms")
+			.col("remarks")
+			//.col("anson('remarks', 'w')", "w")
+			//.col("anson('remarks', 'h')", "h")
+			.whereEq("typeId", "02-photo")
+			.rs(s0)
+			.rs(0))
+			.nxt();
+		
+		T_PhotoCSS anson = rs.<T_PhotoCSS>getAnson("remarks");
+		assertEquals(16, anson.w());
+		assertEquals( 9, anson.h());
+		
+	}
+	
 	/**
 	 * Can't work on Windows.
 	 * 
@@ -789,7 +810,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	}
 
 	/**
-	 * @deprecated
 	 * @throws TransException
 	 * @throws SQLException
 	 * @throws IOException

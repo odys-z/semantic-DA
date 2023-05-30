@@ -16,9 +16,11 @@ import java.util.List;
 
 import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
+import io.odysz.anson.x.AnsonException;
 import io.odysz.common.DateFormat;
 import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
+import io.odysz.transact.sql.parts.AnDbField;
 
 /**This Resultset is used for non-connected manipulation.
  * Rows and Cols are start at 1, the same as {@link java.sql.Resultset}.<br>
@@ -614,9 +616,18 @@ for (String coln : colnames.keySet())
 			//if (results.get(rowIdx - 1).get(colIndex - 1) == null) throw new SQLException("Null value to be converted to object.");
 			else return results.get(rowIdx - 1).get(colIndex - 1);
 		}catch (Exception e) {throw new SQLException(e.getMessage());}
-
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T extends AnDbField> T getAnson(int colIndex) throws AnsonException, SQLException {
+		return (T) Anson.fromJson(getString(colIndex));
 	}
 
+	@SuppressWarnings("unchecked")
+	public <T extends AnDbField> T getAnson(String col) throws AnsonException, SQLException {
+		return (T) Anson.fromJson(getString(col));
+	}
+	
 	/**
 	 * Get current row index.<br>
 	 * Row index start from 1.<br>
