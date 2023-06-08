@@ -489,9 +489,6 @@ public class DatasetCfg {
 	 */
 	private static AnTreeNode formatSemanticNode(TreeSemantics treeSmx,
 			AnResultset rs, int level) throws SQLException {
-		// Map<String, Object> node = new HashMap<String, Object>();
-//		AnTreeNode node = new AnTreeNode(rs.getString(TreeSemantics.Ix.recId),
-//								rs.getString(TreeSemantics.Ix.parent), level);
 		AnTreeNode node = new AnTreeNode(rs.getString(treeSmx.dbRecId()),
 								rs.getString(treeSmx.dbParent()), level);
 
@@ -540,8 +537,6 @@ public class DatasetCfg {
 			if (subOrg.size() > 0)
 				child.children(subOrg);
 
-//			if (childrenArray.size() > 0)
-//				root.children(childrenArray);
 			childrenArray.add(child);
 
 			root.children(childrenArray);
