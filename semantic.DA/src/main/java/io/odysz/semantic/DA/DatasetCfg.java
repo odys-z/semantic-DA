@@ -17,6 +17,7 @@ import org.apache.commons.io_odysz.FilenameUtils;
 import org.xml.sax.SAXException;
 
 import io.odysz.anson.Anson;
+import io.odysz.anson.utils.TreeIndenode;
 import io.odysz.common.LangExt;
 import io.odysz.common.Utils;
 import io.odysz.common.dbtype;
@@ -202,7 +203,8 @@ public class DatasetCfg {
 		}
 	}
 
-	/**<p>Representing each tree node.</p>
+	/**
+	 * <p>Representing each tree node.</p>
 	 * 
 	 * Design Memo:<br>
 	 * What easy ui tree control expected is this:<pre>
@@ -229,51 +231,95 @@ public class DatasetCfg {
        "text":"web contents","sort":"03","value":"03"
      }]</pre>
 	 */
-	public static class AnTreeNode extends Anson {
-		HashMap<String, Object> node;
-		String id;
+	public static class AnTreeNode extends TreeIndenode {
+//		@Override
+//		public Anson toBlock(OutputStream stream, JsonOpt... opts)
+//				throws AnsonException, IOException {
+//			indents = parentNode.cloneIndents();
+//			if (lastSibling) indents.add(IndentFlag.childx);
+//			else indents.add(IndentFlag.childi);
+//			return super.toBlock(stream, opts);
+//		}
+
+//		HashMap<String, Object> node;
+//		String id;
 		int level;
-		String parent;
+//		String parent;
+		
+//		/**
+//		 * @since 1.5.0
+//		 */
+//		@AnsonField(ignoreTo=false)
+//		AnTreeNode parentNode;
+
+		/**
+		 * @since 1.5.0
+		 */
+//		ArrayList<IndentFlag> indents;
 
 		// Only for Anson parser
 		public AnTreeNode() { }
 
-		public AnTreeNode(String id, String parent, int level) {
-			this.id = id;
-			this.parent = parent;
+		public AnTreeNode(String id, String parent, int level, AnTreeNode... root) {
+			super(id, root);
+//			this.id = id;
+//			this.parent = parent;
+//			this.parentNode = isNull(root) ? null : root[0];
 			this.level = level;
-			node = new HashMap<String, Object>(TreeSemantics.Ix.count);
+//			node = new HashMap<String, Object>(TreeSemantics.Ix.count);
 		}
 		
-		public AnTreeNode put(String k, Object v) {
-			node.put(k, v);
-			return this;
-		}
+//		public ArrayList<IndentFlag> cloneIndents() {
+//			if (indents == null && parentNode != null) 
+//				indents = parentNode.cloneIndents();
+//
+//			ArrayList<IndentFlag> ret = new ArrayList<IndentFlag>(indents);
+//			if (lastSibling && len(ret) > 0) {
+//				ret.remove(ret.size() - 1);
+//				ret.add(IndentFlag.space);
+//			}
+//			return ret;
+//		}
 
-		public Object get(String k) {
-			return node == null ? null : node.get(k);
-		}
+//		public AnTreeNode put(String k, Object v) {
+//			node.put(k, v);
+//			return this;
+//		}
 
-		public String id() { return id; }
-		public String parent() { return parent; }
-		public String fullpath() { 
-			return node == null ? null : (String) node.get("fullpath");
-		}
+//		public Object get(String k) {
+//			return node == null ? null : node.get(k);
+//		}
 
-		public List<?> children() {
-			return node == null ? null : (List<?>) node.get("children");
-		}
+//		public String id() { return id; }
+//		public String parent() { return parent; }
+//		public String fullpath() { 
+//			return node == null ? null : (String) node.get("fullpath");
+//		}
 
-		public Object child(int cx) {
-			return node == null ? null : ((List<?>) node.get("children")).get(cx);
-		}
+//		public List<?> children() {
+//			return node == null ? null : (List<?>) node.get("children");
+//		}
+//
+//		public Object child(int cx) {
+//			return node == null ? null : ((List<?>) node.get("children")).get(cx);
+//		}
 
-		/** node: { children: arrChildren&lt;List&gt; }
-		 * @param arrChildren
-		 */
-		public void children(List<Object> arrChildren) {
-			put("children", arrChildren);
-		}
+//		/** node: { children: arrChildren&lt;List&gt; }
+//		 * @param arrChildren
+//		 */
+//		public void children(List<Object> arrChildren) {
+//			put("children", arrChildren);
+//		}
+//
+//		public void children_(List<AnTreeNode> childrenArray) {
+//			put("children", childrenArray);
+//		}
+
+//		boolean lastSibling;
+//		public AnTreeNode asLastSibling() {
+//			lastSibling = true;
+//			return this;
+//		}
 	}
 
 	public static final int ixMysql = 0;
@@ -301,7 +347,8 @@ public class DatasetCfg {
 		return dss.keySet();
 	}
 
-	/**Load all dataset.xml into the argument cfgs.<br>
+	/**
+	 * Load all dataset.xml into the argument cfgs.<br>
 	 * When return, cfgs is loaded with dataset configurations like [id, mysql:sql, orcl:sql, ...].
 	 * @param cfgs
 	 * @param xmlPath
@@ -340,13 +387,14 @@ public class DatasetCfg {
 				while (xSmtcs.next()) {
 					String[] sqls = new String[4];
 					sqls[ixMysql] = xSmtcs.getString("mysql");
-					sqls[ixOrcl] = xSmtcs.getString("orcl");
+					sqls[ixOrcl]  = xSmtcs.getString("orcl");
 					sqls[ixSqlit] = xSmtcs.getString("sqlit");
-					sqls[ixMs2k] = xSmtcs.getString("ms2k");
+					sqls[ixMs2k]  = xSmtcs.getString("ms2k");
 
 					// columns="id,tabls,cols,orcl,mysql,ms2k"
 					ds = new Dataset(xSmtcs.getString("sk"),
-									xSmtcs.getString("cols"), xSmtcs.getString("conn"),
+									xSmtcs.getString("cols"),
+									xSmtcs.getString("conn"),
 									sqls, xSmtcs.getString("s-tree"));
 					if (ds != null)
 						cfgs.put(xSmtcs.getString("sk"), ds);
@@ -446,7 +494,9 @@ public class DatasetCfg {
 		return loadStree(conn, sk, (int)page.page, (int)page.size, len(page.condts) > 0 ? page.condts.get(0) : null);
 	}
 	
-	/**Build forest.
+	/**
+	 * Convert the result set to a forest.
+	 * 
 	 * @param rs
 	 * @param treeSemtcs
 	 * @return built forest
@@ -466,9 +516,7 @@ public class DatasetCfg {
 				throw new SemanticException("Building s-tree requires column '%s'(configured id). You'd better check the query request and the semantics configuration:\n%s",
 						treeSemtcs.dbRecId(), LangExt.toString(treeSemtcs.treeSmtcs()));
 
-			// checkSemantics(rs, semanticss, Ix.recId);
 			List<Object> children = buildSubTree(treeSemtcs, root,
-					// rs.getString(treeSemtcs[Ix.recId] == null ? treeSemtcs[Ix.recId] : treeSemtcs[Ix.recId]),
 					rs.getString(treeSemtcs.dbRecId()),
 					rs, 0);
 			if (children.size() > 0)
@@ -479,15 +527,17 @@ public class DatasetCfg {
 		return forest;
 	}
 
-	/**Create a SemanticObject for tree node with current rs row.<br>
+	/**
+	 * Create a SemanticObject for tree node with current rs row.<br>
+	 * 
 	 * TODO should this moved to TreeSemantics?
 	 * @param treeSmx
 	 * @param rs
-	 * @param level
+	 * @param level depth of this node
 	 * @return {@link SemanticObject} of node
 	 * @throws SQLException
 	 */
-	private static AnTreeNode formatSemanticNode(TreeSemantics treeSmx,
+	public static AnTreeNode formatSemanticNode(TreeSemantics treeSmx,
 			AnResultset rs, int level) throws SQLException {
 		AnTreeNode node = new AnTreeNode(rs.getString(treeSmx.dbRecId()),
 								rs.getString(treeSmx.dbParent()), level);

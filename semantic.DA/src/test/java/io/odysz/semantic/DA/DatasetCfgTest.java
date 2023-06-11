@@ -64,22 +64,22 @@ orgId  |parent |orgName       |orgType |sort |fullpath             |
 		
 		AnTreeNode trees = (AnTreeNode) t.get(0);
 		assertEquals(3, trees.children().size());
-		assertEquals("000000", trees.id);
+		assertEquals("000000", trees.id());
 		
 		AnTreeNode child1 = (AnTreeNode) trees.child(0);
-		assertEquals("00000N", child1.id);
+		assertEquals("00000N", child1.id());
 
 		AnTreeNode child2 = (AnTreeNode) trees.child(1);
-		assertEquals("00000O", child2.id);
+		assertEquals("00000O", child2.id());
 
 		AnTreeNode child3 = (AnTreeNode) trees.child(2);
-		assertEquals("00000W", child3.id);
+		assertEquals("00000W", child3.id());
 
 		AnTreeNode grand31 = (AnTreeNode) child3.child(0);
-		assertEquals("00000Y", grand31.id);
+		assertEquals("00000Y", grand31.id());
 
 		AnTreeNode grand32 = (AnTreeNode) child3.child(1);
-		assertEquals("00000b", grand32.id);
+		assertEquals("00000b", grand32.id());
 	}
 
 
