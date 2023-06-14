@@ -470,7 +470,7 @@ public class DatasetCfg {
 			int page, int size, String... args)
 			throws SQLException, TransException {
 		if (dss == null || !dss.containsKey(sk))
-			throw new SemanticException("Can't find tree semantics, dss %s, sk = %s. Check configuration.",
+			throw new SemanticException("Can't find tree semantics, dss %s, sk = %s. Check dataset.xml configuration.",
 					dss == null ? "null" : dss.size(), sk);
 
 		AnResultset rs = loadDataset(conn, sk, page, size, args);

@@ -42,14 +42,14 @@ public class DatasetHelper {
 	}
 
 	public static List<?> loadStree(String conn, String sk,
-			int page, int size, String[] args, NodeFormatter... optionalNoder)
+			int page, int size, String[] sqlArgs, NodeFormatter... optionalNoder)
 			throws SQLException, TransException {
 		HashMap<String, Dataset> dss = DatasetCfg.dss;
 		if (dss == null || !dss.containsKey(sk))
-			throw new SemanticException("Can't find tree semantics, dss %s, sk = %s. Check configuration.",
+			throw new SemanticException("Can't find tree semantics, dss %s, sk = %s. Check dataset.xml configuration.",
 					dss == null ? "null" : dss.size(), sk);
 
-		AnResultset rs = DatasetCfg.loadDataset(conn, sk, page, size, args);
+		AnResultset rs = DatasetCfg.loadDataset(conn, sk, page, size, sqlArgs);
 
 		TreeSemantics smx = dss.get(sk).treeSemtcs;
 		if (smx == null)
@@ -66,8 +66,10 @@ public class DatasetHelper {
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public static List<?> loadStree(String conn, String sk, PageInf page, NodeFormatter...noder) throws SQLException, TransException {
-		return loadStree(conn, sk, (int)page.page, (int)page.size, len(page.condts) > 0 ? page.condts.get(0) : null, noder);
+	public static List<?> loadStree(String conn, String sk, PageInf page, NodeFormatter...noder)
+			throws SQLException, TransException {
+		return loadStree(conn, sk, (int)page.page, (int)page.size,
+						len(page.condts) > 0 ? page.condts.get(0) : null, noder);
 	}
 	
 	/**
