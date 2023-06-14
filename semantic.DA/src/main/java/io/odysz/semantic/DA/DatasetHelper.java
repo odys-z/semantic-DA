@@ -1,5 +1,6 @@
 package io.odysz.semantic.DA;
 
+import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.len;
 
 import java.sql.SQLException;
@@ -20,8 +21,28 @@ import io.odysz.transact.x.TransException;
 
 public class DatasetHelper {
 
+	/**
+	 * The reference implementation can be similar to 
+	 * {@link DatasetHelper#formatSemanticNode(TreeSemantics, AnResultset, AnTreeNode, int)}.
+	 * 
+	 * @author Ody
+	 */
+	@FunctionalInterface
+	public interface NodeFormatter {
+		/**
+		 * Create a SemanticObject for tree node with current rs row.<br>
+		 * 
+		 * @param sm
+		 * @param rs with index to the current row, the row to be converted to a node
+		 * @param root
+		 * @param level
+		 * @return tree node
+		 */
+		AnTreeNode format(TreeSemantics sm, AnResultset rs, AnTreeNode root, int level);
+	}
+
 	public static List<?> loadStree(String conn, String sk,
-			int page, int size, String... args)
+			int page, int size, String[] args, NodeFormatter... optionalNoder)
 			throws SQLException, TransException {
 		HashMap<String, Dataset> dss = DatasetCfg.dss;
 		if (dss == null || !dss.containsKey(sk))
@@ -33,7 +54,7 @@ public class DatasetHelper {
 		TreeSemantics smx = dss.get(sk).treeSemtcs;
 		if (smx == null)
 			throw new SemanticException("sk (%s) desn't configured with a tree semantics", sk);
-		return buildForest(rs, smx);
+		return buildForest(rs, smx, optionalNoder);
 	}
 
 	/**
@@ -45,8 +66,8 @@ public class DatasetHelper {
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public static List<?> loadStree(String conn, String sk, PageInf page) throws SQLException, TransException {
-		return loadStree(conn, sk, (int)page.page, (int)page.size, len(page.condts) > 0 ? page.condts.get(0) : null);
+	public static List<?> loadStree(String conn, String sk, PageInf page, NodeFormatter...noder) throws SQLException, TransException {
+		return loadStree(conn, sk, (int)page.page, (int)page.size, len(page.condts) > 0 ? page.condts.get(0) : null, noder);
 	}
 	
 	/**
@@ -54,14 +75,15 @@ public class DatasetHelper {
 	 * 
 	 * @param rs
 	 * @param treeSemtcs
+	 * @param noder optional to override default formatter {@link NodeFormatter}.
 	 * @return built forest
 	 * @throws SQLException
 	 * @throws SemanticException data structure can not build  tree / forest 
 	 */
-	public static List<?> buildForest(AnResultset rs, TreeSemantics treeSemtcs)
+	public static List<AnTreeNode> buildForest(AnResultset rs, TreeSemantics treeSemtcs, NodeFormatter... noder)
 			throws SQLException, SemanticException {
 		// build the tree/forest
-		List<Object> forest = new ArrayList<Object>();
+		List<AnTreeNode> forest = new ArrayList<AnTreeNode>();
 		rs.beforeFirst();
 		while (rs.next()) {
 			AnTreeNode root = formatSemanticNode(treeSemtcs, rs, null, 0);
@@ -72,19 +94,21 @@ public class DatasetHelper {
 						treeSemtcs.dbRecId(), LangExt.toString(treeSemtcs.treeSmtcs()));
 
 			List<AnTreeNode> children = buildSubTree(treeSemtcs, root,
-					rs.getString(treeSemtcs.dbRecId()),
-					rs, 0);
-			if (children.size() > 0) {
+										rs.getString(treeSemtcs.dbRecId()),
+										rs, 0, noder);
+
+			if (children.size() > 0) 
 				root.children_(children).tagLast();
-			}
+	
 			forest.add(root);
 		}
 
 		return forest;
 	}
 
-	private static List<AnTreeNode> buildSubTree(TreeSemantics sm, AnTreeNode root,
-			String parentId, AnResultset rs, int level) throws SQLException, SemanticException {
+	static List<AnTreeNode> buildSubTree(TreeSemantics sm, AnTreeNode root,
+				String parentId, AnResultset rs, int level, NodeFormatter... noder)
+				throws SQLException, SemanticException {
 		List<AnTreeNode> childrenArray  = new ArrayList<AnTreeNode>();
 		while (rs.next()) {
 			if (parentId == null || root == null) {
@@ -115,7 +139,9 @@ public class DatasetHelper {
 			}
 
 			// next child & it's subtree
-			AnTreeNode child = formatSemanticNode(sm, rs, root, level + 1);
+			AnTreeNode child = isNull(noder) ? formatSemanticNode(sm, rs, root, level + 1)
+											 : noder[0].format(sm, rs, root, level + 1);
+
 			
 			List<AnTreeNode> subOrg = buildSubTree(sm, child,
 					rs.getString(sm.dbRecId()), rs, level + 1);
