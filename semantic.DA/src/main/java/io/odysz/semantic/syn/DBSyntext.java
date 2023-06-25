@@ -24,7 +24,7 @@ public class DBSyntext extends DASemantext implements ISemantext {
 	@Override
 	public ISemantext clone(IUser usr) {
 		try {
-			return new DBSyntext(connId, (SynmanticsMap) super.ss, usr, basePath);
+			return new DBSyntext(connId, (SynmanticsMap) super.semants, usr, basePath);
 		} catch (SQLException | SemanticException e) {
 			e.printStackTrace();
 			return null; // meta is null? how could it be?
@@ -34,7 +34,7 @@ public class DBSyntext extends DASemantext implements ISemantext {
 	@Override
 	protected ISemantext clone(DASemantext srctx, IUser usr) {
 		try {
-			DASemantext newInst = new DBSyntext(connId, (SynmanticsMap) ss, usr, basePath);
+			DASemantext newInst = new DBSyntext(connId, (SynmanticsMap) semants, usr, basePath);
 			return newInst;
 		} catch (SemanticException | SQLException e) {
 			e.printStackTrace();

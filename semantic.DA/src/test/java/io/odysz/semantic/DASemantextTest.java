@@ -86,7 +86,7 @@ public class DASemantextTest {
 			usrAct.put("funcId", "DASemantextTest");
 			usrAct.put("funcName", "test ISemantext implementation");
 			jo.put("usrAct", usrAct);
-			usr = new LoggingUser(connId, "src/test/res/semantic-log.xml", "tester", jo);
+			usr = new LoggingUser(connId, "tester", jo);
 		} catch (SemanticException | SQLException | SAXException | IOException e) {
 			e.printStackTrace();
 		}

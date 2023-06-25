@@ -58,7 +58,7 @@ public class DASemantext implements ISemantext {
 	private static Transcxt rawst;
 
 	/**Semantic Configurations */
-	protected SemanticsMap ss;
+	protected SemanticsMap semants;
 	protected HashMap<String, TableMeta> metas;
 
 	protected IUser usr;
@@ -88,7 +88,7 @@ public class DASemantext implements ISemantext {
 			IUser usr, String rtPath) throws SemanticException, SQLException {
 		basePath = rtPath;
 		this.connId = connId;
-		ss = semanticsMap;
+		semants = semanticsMap;
 		this.metas = Connects.getMeta(connId);
 		if (metas == null)
 			throw new SemanticException("DASemantext can not work without DB metas. connId: %s", connId);
@@ -106,11 +106,12 @@ public class DASemantext implements ISemantext {
 	@Override
 	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> rows)
 			throws SemanticException {
-		if (rows != null && ss != null)
+
+		if (rows != null && semants != null)
 			// second round
 			for (ArrayList<Object[]> row : rows) {
 				Map<String, Integer> cols = insert.getColumns();
-				DASemantics s = ss.get(tabl);
+				DASemantics s = semants.get(tabl);
 				if (s == null)
 					continue;
 				s.onInsert(this, insert, row, cols, usr);
@@ -119,10 +120,12 @@ public class DASemantext implements ISemantext {
 	}
 
 	@Override
-	public ISemantext onUpdate(Update update, String tabl, ArrayList<Object[]> nvs) throws SemanticException {
-		if (nvs != null && ss != null) {
+	public ISemantext onUpdate(Update update, String tabl, ArrayList<Object[]> nvs)
+			throws SemanticException {
+
+		if (nvs != null && semants != null) {
 			Map<String, Integer> cols = update.getColumns();
-			DASemantics s = ss.get(tabl);
+			DASemantics s = semants.get(tabl);
 			if (s != null)
 				s.onUpdate(this, update, nvs, cols, usr);
 		}
@@ -130,9 +133,11 @@ public class DASemantext implements ISemantext {
 	}
 
 	@Override
-	public ISemantext onDelete(Delete delete, String tabl, Condit whereCondt) throws TransException {
-		if (ss != null) {
-			DASemantics s = ss.get(tabl);
+	public ISemantext onDelete(Delete delete, String tabl, Condit whereCondt)
+			throws TransException {
+
+		if (semants != null) {
+			DASemantics s = semants.get(tabl);
 			if (s != null)
 				s.onDelete(this, delete, whereCondt, usr);
 		}
@@ -140,12 +145,14 @@ public class DASemantext implements ISemantext {
 	}
 
 	@Override
-	public ISemantext onPost(Statement<?> stmt, String tabl, ArrayList<Object[]> row, ArrayList<String> sqls) throws TransException {
-		if (row != null && ss != null) {
+	public ISemantext onPost(Statement<?> stmt, String tabl, ArrayList<Object[]> row,
+			ArrayList<String> sqls) throws TransException {
+
+		if (row != null && semants != null) {
 			Map<String, Integer> cols = stmt.getColumns();
 			if (cols == null)
 				return this;
-			DASemantics s = ss.get(tabl);
+			DASemantics s = semants.get(tabl);
 			if (s != null)
 				s.onPost(this, stmt, row, cols, usr, sqls);
 		}
@@ -179,7 +186,7 @@ public class DASemantext implements ISemantext {
 	@Override
 	public ISemantext clone(IUser usr) {
 		try {
-			return new DASemantext(connId, ss, usr, basePath);
+			return new DASemantext(connId, semants, usr, basePath);
 		} catch (SQLException | SemanticException e) {
 			e.printStackTrace();
 			return null; // meta is null? how could it be?
@@ -188,7 +195,7 @@ public class DASemantext implements ISemantext {
 
 	protected ISemantext clone(DASemantext srctx, IUser usr) {
 		try {
-			DASemantext newInst = new DASemantext(connId, srctx.ss, usr, basePath);
+			DASemantext newInst = new DASemantext(connId, srctx.semants, usr, basePath);
 			return newInst;
 		} catch (SemanticException | SQLException e) {
 			e.printStackTrace();
