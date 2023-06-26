@@ -547,7 +547,7 @@ public class DBSyntextTest {
 			usrAct.put("funcId", "DBSyntextTest");
 			usrAct.put("funcName", "test ISemantext implementation");
 			jo.put("usrAct", usrAct);
-			robot = new LoggingUser(logconn, "src/test/res/semantic-log.xml", uid, jo);
+			robot = new LoggingUser(logconn, uid, jo);
 		}
 
 		/**

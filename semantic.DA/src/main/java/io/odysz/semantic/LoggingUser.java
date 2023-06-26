@@ -16,7 +16,9 @@ import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
-/**This robot handle logs of table a_log()
+/**
+ * This robot handle logs of table a_log()
+ * 
  * @author odys-z@github.com
  */
 public class LoggingUser implements IUser {
@@ -26,33 +28,35 @@ public class LoggingUser implements IUser {
 	private SemanticObject action;
 	@SuppressWarnings("unused")
 	private String sessionKey;
+	private String logConn;
 
 	public static IUser dumbUser;
 
 	/**
-	 * @param logConn
-	 * @param logCfgPath e.g. "src/test/res/semantic-log.xml"
+	 * @param logConn connection of logger is not an independent data source.
 	 * @param userId
 	 * @param action
 	 */
-	public LoggingUser(String logConn, String logCfgPath, String userId, SemanticObject action) {
+	public LoggingUser(String logConn, String userId, SemanticObject action) {
+		this.logConn = logConn;
 		this.uid = userId;
 		this.action = action;
 
 		dumbUser = new IUser() {
-				@Override public TableMeta meta(String ... connId) { return null; }
-				@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
-				@Override public String uid() { return "dummy"; }
-				@Override public IUser logAct(String funcName, String funcId) { return this; }
-				@Override public String sessionKey() { return null; }
-				@Override public IUser sessionKey(String skey) { return null; }
-				@Override public IUser notify(Object note) throws TransException { return this; }
-				@Override public List<Object> notifies() { return null; }
-				@Override public long touchedMs() { return 0; }
-			};
+			@Override public TableMeta meta(String ... connId) { return null; }
+			@Override public ArrayList<String> dbLog(ArrayList<String> sqls) { return null; }
+			@Override public String uid() { return "dummy"; }
+			@Override public IUser logAct(String funcName, String funcId) { return this; }
+			@Override public String sessionKey() { return null; }
+			@Override public IUser sessionKey(String skey) { return null; }
+			@Override public IUser notify(Object note) throws TransException { return this; }
+			@Override public List<Object> notifies() { return null; }
+			@Override public long touchedMs() { return 0; }
+		};
 
 		try {
-			DATranscxt.loadSemantics(logConn);
+			// @param logCfgPath e.g. "src/test/res/semantic-log.xml"
+			// DATranscxt.loadSemantics(logConn);
 
 			logSemantic = new DATranscxt(logConn); //, DATranscxt.meta(logConn));
 		} catch (SAXException | IOException | SemanticException | SQLException e) {
@@ -67,9 +71,11 @@ public class LoggingUser implements IUser {
 
 	@Override
 	public ArrayList<String> dbLog(final ArrayList<String> sqls) {
-		return genLog(logSemantic, "a_logs", sqls, this,
+		return genLog(logConn, logSemantic, "a_logs", sqls, this,
 				action.getString("funcName"),
-				action.getString("funcId"));
+				// 1.5.0,
+				// action.getString("funcId"));
+				this.sessionId() + "@" + this.deviceId());
 	}
 
 	/**
@@ -81,9 +87,9 @@ public class LoggingUser implements IUser {
 	 * @param commitUser
 	 * @param funcName
 	 * @param funcId
-	 * @return
+	 * @return sqls
 	 */
-	public static ArrayList<String> genLog(DATranscxt logBuilder, String logTabl,
+	public static ArrayList<String> genLog(String connLog, DATranscxt logBuilder, String logTabl,
 			final ArrayList<String> sqls, IUser commitUser, String funcName, String funcId) {
 		try {
 			logBuilder.insert(logTabl, dumbUser) // dummy for stop recursive logging
@@ -92,7 +98,8 @@ public class LoggingUser implements IUser {
 				.nv("funcId", funcId)
 				.nv("cnt", String.valueOf(sqls.size()))
 				.nv("txt", txt(sqls))
-				.ins(logBuilder.basictx().clone(null)); // Note: must cloned, otherwise there are resulved values.
+				// .ins(logBuilder.basictx().clone(null)); // Note: must cloned, otherwise there are resulved values.
+				.ins(logBuilder.instancontxt(connLog, null)); // Note: must cloned, otherwise there are resulved values.
 		} catch (SQLException e) {
 			// failed case must be a bug - commitLog()'s exception already caught.
 			Utils.warn("Wrong configuration can leads to this failure. Check includes:\n" +
@@ -101,12 +108,13 @@ public class LoggingUser implements IUser {
 		} catch (TransException e) {
 			e.printStackTrace();
 		}
-		return null;
+		return sqls;
 	}
 
-	private static String txt(ArrayList<String> sqls) {
+	static String txt(ArrayList<String> sqls) {
 		return sqls == null ? null :
-			sqls.stream().map(e -> SQLString.formatSql(e))
+			sqls.stream()
+				.map(e -> SQLString.formatSql(e))
 				.collect(Collectors.joining(";"));
 	}
 
