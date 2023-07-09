@@ -395,7 +395,7 @@ public class DATranscxt extends Transcxt {
 				"Trying to find semantics of conn %1$s, but the configuration path is empty.\n" +
 				"No 'smtcs' configured in connects.xml for connection \"%1$s\"?\n" +
 				"Looking in path: %2$s", connId, fpath);
-		Utils.logi("Loading Semantics (fullpath):\n\t%s", fpath);
+		// Utils.logi("Lazy loading Semantics (fullpath):\n\t%s", fpath);
 
 		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
 			new Log4jWrapper("").setDebugMode(false), fpath, new IXMLStruct() {
