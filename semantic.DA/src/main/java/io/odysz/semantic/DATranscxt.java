@@ -61,7 +61,7 @@ import io.odysz.transact.x.TransException;
  * DASemantextTest</a>.</p>
  * 
  * This manager can handling semantics configured in xml.
- * See {@link #loadSemantics(String, String)}. <br>
+ * See {@link #loadSemantics(String)}. <br>
  * 
  * Every sql building needing semantics handling must use a context instance
  * created by {@link DATranscxt#instancontxt(String, IUser)}.
@@ -72,7 +72,7 @@ public class DATranscxt extends Transcxt {
 	/**
 	 * <p>Callback for buiding a connection's semantics map, with map-key = table.</p>
 	 * Example:<br>
-	 * initConfigs(conn) -> new SynmanticsMap(conn);
+	 * initConfigs(conn) -gt; new SynmanticsMap(conn);
 	 * 
 	 * @since 1.5.0
 	 * @author odys-z@github.com
@@ -84,7 +84,6 @@ public class DATranscxt extends Transcxt {
 	}
 
 	/**
-	 * 
 	 * Semantics handler's map manager.
 	 * 
 	 * @since 1.5.0
@@ -158,8 +157,6 @@ public class DATranscxt extends Transcxt {
 	public SemanticHandler parseHandler(Transcxt basicTsx, String tabl, smtype semantic,
 			String recId, String argstr, boolean ... debug) {
 		// checkParas(tabl, pk, args);
-//		if (isDuplicate(tabl, semantic))
-//			return;
 		SemanticHandler handler = null;
 
 		String[] args = split(argstr);
@@ -360,27 +357,11 @@ public class DATranscxt extends Transcxt {
 		super(stxt);
 	}
 
-//	protected static SemanticsMap getSmtcs(String conn)
-//			throws SAXException, IOException, SQLException, SemanticException {
-//		if (smtMaps == null)
-//			// smtConfigs = new HashMap<String, HashMap<String, DASemantics>>();
-//			smtMaps = new HashMap<String, SemanticsMap>();
-//
-//		if (!smtMaps.containsKey(conn)) {
-//			smtMaps.put(conn, new SemanticsMap(conn));
-//
-//			initConfigs(conn, loadSemantics(conn),
-//				(trb, tbl, pk, ver) -> new DASemantics(trb, tbl, pk, ver));
-//		}
-//		return smtMaps.get(conn);
-//	}
-
 	/**
 	 * Load semantics configuration from file path.
 	 * This method also initialize table meta by calling {@link Connects}.
 	 * 
 	 * @param connId
-	 * @param debug 
 	 * @return configurations
 	 * @throws SAXException
 	 * @throws IOException

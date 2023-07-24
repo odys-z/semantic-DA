@@ -239,7 +239,7 @@ public class Connects {
 	}
 
 	/**compose paged sql, e.g. for Oracle:<br>
-	 * select * from (sql) t where rownum > 0 and row num < 14
+	 * select * from (sql) t where rownum &gt; 0 and row num &lt; 14
 	 * @param sql
 	 * @param page
 	 * @param size

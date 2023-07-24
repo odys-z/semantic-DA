@@ -48,7 +48,7 @@ import io.odysz.transact.x.TransException;
  * don't care DB type or JDBC connection, so it's the context that will handling
  * this.
  * 
- * See the {@link Connects#pagingSql(dbtype, String, long, long)}.</p>
+ * See the {@link Connects#pagingSql(dbtype, String, int, int)}.</p>
  *
  * @author odys-z@github.com
  */
@@ -99,7 +99,8 @@ public class DASemantext implements ISemantext {
 		this.usr = usr;
 	}
 
-	/**When inserting, process data row with configured semantics, like auto-pk, fk-ins, etc..
+	/**
+	 * When inserting, process data row with configured semantics, like auto-pk, fk-ins, etc..
 	 * @throws SemanticException
 	 * @see io.odysz.semantics.ISemantext#onInsert(io.odysz.transact.sql.Insert, java.lang.String, java.util.List)
 	 */
@@ -444,35 +445,7 @@ end;
 	 * @param pgSize
 	 * @return pagination wrapped sql
 	 * @throws TransException
-	public static String pagingSql(dbtype dt, String sql, long pageIx, long pgSize) throws TransException {
-		if (pageIx < 0 || pgSize <= 0)
-			return sql;
-		long i1 = pageIx * pgSize;
-		String r2 = String.valueOf(i1 + pgSize);
-		String r1 = String.valueOf(i1);
-		Stream<String> s;
-		if (dt == dbtype.oracle)
-			// "select * from (select t.*, rownum r_n_ from (%s) t WHERE rownum <= %s  order by rownum) t where r_n_ > %s"
-			s = Stream.of("select * from (select t.*, rownum r_n_ from (", sql,
-						") t order by rownum) t where r_n_ > ", r1, " and r_n_ <= ", r2);
-		else if (dt == dbtype.ms2k)
-			// "select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (%s) t) t where rownum >= %s and rownum <= %s"
-			s = Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (", sql,
-						") t) t where rownum > ", r1, " and rownum <= %s", r2);
-						// v1.3.0 Sep.6 2021 ">=" to ">"
-		else if (dt == dbtype.sqlite)
-			// throw new TransException("There is no easy way to support sqlite paging. Don't use server side paging for sqlite datasource.");
-
-			// https://stackoverflow.com/a/51380906
-			s = Stream.of("select * from (", sql, ") limit ", String.valueOf(pgSize), " offset ", r1);
-		else // mysql
-			// "select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (%s) t, (select @ic_num := 0) ic_t) t1 where rnum > %s and rnum <= %s"
-			s = Stream.of("select * from (select t.*, @ic_num := @ic_num + 1 as rnum from (", sql,
-						") t, (select @ic_num := 0) ic_t) t1 where rnum > ", r1, " and rnum <= ", r2);
-
-		return s.collect(Collectors.joining(" "));
-	}
-	@deprecated replaced by {@link Connects#pagingSql(string, String, int, int)}
+	 * @deprecated replaced by {@link Connects#pagingSql(dbtype, String, int, int)}
 	 */
 	public static String pagingSql(dbtype dt, String sql, int pageIx, int pgSize) throws TransException {
 		return Connects.pagingSql(dt, sql, pageIx, pgSize);
