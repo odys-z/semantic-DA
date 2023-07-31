@@ -95,7 +95,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	/**
 	 * Get DB record change's subscriptions.
 	 *
-	 * @param uid
+	 * @param uids
 	 * @param robot
 	 * @throws SQLException
 	 * @throws TransException

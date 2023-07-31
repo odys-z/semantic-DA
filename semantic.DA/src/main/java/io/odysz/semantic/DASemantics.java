@@ -161,7 +161,6 @@ public class DASemantics {
 	 * <b>12.{@link #extFile}</b><br>
 	 * <b>13.{@link #extFilev2}</b><br>
 	 * <b>14. {@link #synChange}</b><br>
-	 * <b>15.{@link #composingCol} TODO</b><br>
 	 */
 	public enum smtype {
 		/**
@@ -299,12 +298,12 @@ public class DASemantics {
 		 * "ck-cnt-ins" | "check-count-ins" | "checksqlcountoninsert":<br>
 		 * Check is this record count when inserting - results from
 		 * sql.select(count-sql, description-args ...). The record(s) can't been
-		 * inserted if count > 0;<br>
+		 * inserted if count &gt; 0;<br>
 		 * <p>
 		 * args: [0] arg1, [1] arg2, ..., [len -1] count-sql with "%s" formatter<br>
 		 * where args are column name of parent table.
 		 * </p>
-		 * Handler: {@link DASemantics.ShChkCntInst}
+		 * Handler: {@link DASemantics.ShChkCntDel}
 		 */
 		checkSqlCountOnInsert,
 		/**
@@ -1298,7 +1297,7 @@ public class DASemantics {
 		}
 
 		/**<p>On updating external files handler.</p>
-		 * <p>This method only moves the file with new uri & client name, applying the semantics predefined as:<br>
+		 * <p>This method only moves the file with new uri &amp; client name, applying the semantics predefined as:<br>
 		 * AS all files are treated as binary file, no file can be modified, only delete then create it makes sense.</p>
 		 * <p>Client should avoid updating an external file while handling business logics.</p>
 		 * <p><b>NOTE:</b><br>This can be changed in the future.</p>
@@ -1491,7 +1490,7 @@ public class DASemantics {
 
 		/**
 		 * <p>On updating external files' handler.</p>
-		 * <p>This method only moves the file with new uri & client name, applying the semantics predefined as:<br>
+		 * <p>This method only moves the file with new uri &amp; client name, applying the semantics predefined as:<br>
 		 * AS all files are treated as binary file, no file can be modified, only delete then create it makes sense.</p>
 		 * <p>Client should avoid updating an external file while handling business logics.</p>
 		 * <p><b>NOTE:</b><br>This can be changed in the future.</p>

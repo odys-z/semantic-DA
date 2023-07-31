@@ -97,7 +97,6 @@ public class SynEntity extends Anson {
 
 	/**
 	 * Format entity synchronization task
-	 * @param ents
 	 * @return this
 	 * @throws SQLException 
 	 */

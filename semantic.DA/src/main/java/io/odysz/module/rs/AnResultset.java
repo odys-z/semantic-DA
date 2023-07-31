@@ -23,7 +23,7 @@ import io.odysz.common.Regex;
 import io.odysz.transact.sql.parts.AnDbField;
 
 /**This Resultset is used for non-connected manipulation.
- * Rows and Cols are start at 1, the same as {@link java.sql.Resultset}.<br>
+ * Rows and Cols are start at 1, the same as {@link java.sql.ResultSet}.<br>
  * TODO This will be changed in the future (It's proved starting at 0 is more bug free).
  * 
  * @author odys-z@github.com
@@ -443,7 +443,8 @@ for (String coln : colnames.keySet())
 		return s == null? "" : s;
 	}
 	
-	/**if value is equals case insensitive to 1,true, yes, y, t, decimal > 0.001 return true, else return false;
+	/**
+	 * if value is equals case insensitive to 1,true, yes, y, t, decimal &gt; 0.001 return true, else return false;
 	 * @param colIndex
 	 * @return string value
 	 * @throws SQLException
@@ -528,7 +529,7 @@ for (String coln : colnames.keySet())
 	}
 
 	/**
-	 * TODO to be tested on Mysql & Oracle.
+	 * TODO to be tested on Mysql &amp; Oracle.
 	 * @param index
 	 * @return
 	 * @throws SQLException
@@ -549,7 +550,7 @@ for (String coln : colnames.keySet())
 	}
 	
 	/**
-	 * TODO to be tested on Mysql & Oracle.
+	 * TODO to be tested on Mysql &amp; Oracle.
 	 * @param colName
 	 * @return
 	 * @throws SQLException
@@ -938,11 +939,11 @@ for (String coln : colnames.keySet())
 	/**
 	 * Iterating through the results and convert to hash map, like this:
 	 * <pre>
-	 HashMap<String, SynState> res = st
+	 HashMap &lt;String, SynState&gt; res = st
 		.select(met.tbl, "l")
 		.rs(st.instancontxt(conn, usr))
 		.rs(0)
-		.&lt;UserType&gt;map((currow) -> {
+		.&lt;UserType&gt;map((currow) -&gt; {
 			// create instance according current row
 			return new UserType(currow.getString("id"));
 		}); 
@@ -950,12 +951,12 @@ for (String coln : colnames.keySet())
 	 * TODO: This is a temporary way. Which will be moved to
 	 * {@link io.odysz.semantic.DA.AbsConnect#select(String, ObjCreator, int) select()}.
 	 * 
-	 * @param value of the field name used for map's key
-	 * @param <T> the user type
-	 * @param objCreator the call back
-	 * @return the hash map
-	 * @throws SQLException 
 	 * @since 1.4.12
+	 * @param keyField value of the field name used for map's key
+	 * @param objCreator object creator (mapper)
+	 * @return
+	 * @return the hash map
+	 * @throws SQLException
 	 */
 	public <T extends Anson> HashMap<String, T> map(String keyField, ObjCreator<T> objCreator)
 			throws SQLException {
@@ -996,7 +997,7 @@ for (String coln : colnames.keySet())
 	 * .rs(syb.instancontxt(stx.connId(), usr))
 	 * .rs(0))
 	 * .nxt()
-	 * .getInt("c") > 0;
+	 * .getInt("c") &gt; 0;
 	 * </pre>
 	 * @since 1.5.0
 	 * @return this or null
