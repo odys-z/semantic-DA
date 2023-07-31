@@ -93,7 +93,7 @@ public class DatasetHelper {
 			// sometimes error results from inconsistent data is confusing, so report an error here - it's debug experience.
 			if (!rs.hasCol(treeSemtcs.dbRecId()))
 				throw new SemanticException("Building s-tree requires column '%s'(configured id). You'd better check the query request and the semantics configuration:\n%s",
-						treeSemtcs.dbRecId(), LangExt.toString(treeSemtcs.treeSmtcs()));
+						treeSemtcs.dbRecId(), LangExt.str(treeSemtcs.treeSmtcs()));
 
 			List<AnTreeNode> children = buildSubTree(treeSemtcs, root,
 										rs.getString(treeSemtcs.dbRecId()),
