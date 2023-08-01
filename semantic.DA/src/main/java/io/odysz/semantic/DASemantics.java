@@ -2,6 +2,7 @@ package io.odysz.semantic;
 
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.split;
+import static io.odysz.common.LangExt.str;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -807,7 +808,7 @@ public class DASemantics {
 				if (LangExt.isblank(pid, "null")) {
 					Utils.warn(
 							"Fullpath Handling Error\\nTo generate fullpath, parentId must configured.\\nFound parent col: %s,\\nconfigured args = %s,\\nhandling cols = %s\\nrows = %s",
-							pid, LangExt.toString(args), LangExt.toString(cols), LangExt.toString(row));
+							pid, LangExt.toString(args), str(cols), LangExt.str(row));
 					// v1.3.0 v = id;
 				} else {
 					SemanticObject s = trxt.select(target, "_t0").col(args[2]).where("=", pkField, "'" + pid + "'")
@@ -957,8 +958,8 @@ public class DASemantics {
 					Utils.warn("Trying resolve FK failed. child-fk = %s.%s, parent = %s.%s,\\n"
 							+ "FK config args:\t%s,\\ndata cols:\t%s,\\ndata row:\t%s.\\n%s: %s\\n"
 							+ "Also note that in current version, only auto key can be referenced and auto resolved.",
-							target, args[0], args[1], args[2], LangExt.toString(args), LangExt.toString(cols),
-							LangExt.toString(row), e.getClass().getName(), e.getMessage());
+							target, args[0], args[1], args[2], LangExt.toString(args), str(cols),
+							str(row), e.getClass().getName(), e.getMessage());
 			}
 		}
 	}
