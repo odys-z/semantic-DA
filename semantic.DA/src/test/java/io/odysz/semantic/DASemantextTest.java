@@ -726,6 +726,11 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				s0.resulvedVal("a_attaches", "attId"))));
 	}
 
+	/**
+	 * @since 1.5.0
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	@Test
 	public void testAnsonField() throws TransException, SQLException {
 		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
@@ -736,8 +741,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 
 		AnResultset rs = ((AnResultset) st.select("b_alarms")
 			.col("remarks")
-			//.col("anson('remarks', 'w')", "w")
-			//.col("anson('remarks', 'h')", "h")
 			.whereEq("typeId", "02-photo")
 			.rs(s0)
 			.rs(0))
@@ -746,7 +749,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		T_PhotoCSS anson = rs.<T_PhotoCSS>getAnson("remarks");
 		assertEquals(16, anson.w());
 		assertEquals( 9, anson.h());
-		
 	}
 	
 	/**

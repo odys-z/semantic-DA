@@ -619,6 +619,14 @@ for (String coln : colnames.keySet())
 		}catch (Exception e) {throw new SQLException(e.getMessage());}
 	}
 	
+	/**
+	 * @since 1.5.0
+	 * @param <T>
+	 * @param colIndex
+	 * @return Anson object
+	 * @throws AnsonException
+	 * @throws SQLException
+	 */
 	@SuppressWarnings("unchecked")
 	public <T extends AnDbField> T getAnson(int colIndex) throws AnsonException, SQLException {
 		return (T) Anson.fromJson(getString(colIndex));
