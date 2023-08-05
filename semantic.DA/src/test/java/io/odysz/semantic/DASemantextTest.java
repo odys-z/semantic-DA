@@ -726,6 +726,11 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				s0.resulvedVal("a_attaches", "attId"))));
 	}
 
+	/**
+	 * @since 1.4.25
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	@Test
 	public void testAnsonField() throws TransException, SQLException {
 		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
@@ -736,8 +741,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 
 		AnResultset rs = ((AnResultset) st.select("b_alarms")
 			.col("remarks")
-			//.col("anson('remarks', 'w')", "w")
-			//.col("anson('remarks', 'h')", "h")
 			.whereEq("typeId", "02-photo")
 			.rs(s0)
 			.rs(0))
@@ -746,7 +749,33 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		T_PhotoCSS anson = rs.<T_PhotoCSS>getAnson("remarks");
 		assertEquals(16, anson.w());
 		assertEquals( 9, anson.h());
+
+		st.insert("b_alarms", usr)
+			.nv("remarks", new T_Exifield()
+					.add("GPS:GPS Longitude", "104° 0' 11.23\"")
+					.add("GPS:GPS Longitude Ref", "E")
+					.add("GPS:GPS Latitude", "30° 40' 11.88\"")
+					.add("GPS:GPS Altitude Ref", "Below sea level")
+					.add("Altitude", "0 metres"))
+			.nv("typeId", "03-photo")
+			.ins(s0);
+
+		rs = ((AnResultset) st.select("b_alarms")
+			.col("remarks")
+			.whereEq("typeId", "03-photo")
+			.rs(s0)
+			.rs(0))
+			.nxt();
+
+		T_Exifield exif = rs.<T_Exifield>getAnson("remarks");
+		assertEquals("104° 0' 11.23\"", exif.exif.get("GPS:GPS Longitude"));
+		assertEquals("E", exif.exif.get("GPS:GPS Longitude Ref"));
+		assertEquals("30° 40' 11.88\"", exif.exif.get("GPS:GPS Latitude"));
+		assertEquals("Below sea level", exif.exif.get("GPS:GPS Altitude Ref"));
+		assertEquals("0 metres", exif.exif.get("Altitude"));
 		
+		st.delete("b_alarms")
+			.whereIn("typeId", new String[] {"02-photo", "03-photo"});
 	}
 	
 	/**

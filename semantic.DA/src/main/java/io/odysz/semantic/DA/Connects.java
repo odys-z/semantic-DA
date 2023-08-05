@@ -375,7 +375,7 @@ public class Connects {
 	}
 	
 	/**
-	 * @since 1.5.0
+	 * @since 1.4.25
 	 * @param connId
 	 * @param tbl
 	 * @return table meta
@@ -389,7 +389,7 @@ public class Connects {
 
 	/**
 	 * Set table meta (providing a chance of extending table's semantics and keep a single copy for DB's meta).
-	 * @since 1.5.0
+	 * @since 1.4.25
 	 * @param connId
 	 * @param m
 	 * @throws SemanticException

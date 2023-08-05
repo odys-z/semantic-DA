@@ -11,7 +11,7 @@ import io.odysz.transact.x.TransException;
 /**
  * Syncrhonizable entity table meta
  * 
- * @since 1.5.0
+ * @since 1.4.25
  * @author odys-z@github.com
  *
  */

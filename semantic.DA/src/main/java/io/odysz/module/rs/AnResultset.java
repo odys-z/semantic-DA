@@ -50,7 +50,7 @@ public class AnResultset extends Anson {
 	private int rowIdx = -1;
 	/**
 	 * current row index
-	 * @since 1.5.0
+	 * @since 1.4.25
 	 * @return
 	 */
 	public int currentRow() { return rowIdx; }
@@ -619,6 +619,14 @@ for (String coln : colnames.keySet())
 		}catch (Exception e) {throw new SQLException(e.getMessage());}
 	}
 	
+	/**
+	 * @since 1.4.25
+	 * @param <T>
+	 * @param colIndex
+	 * @return Anson object
+	 * @throws AnsonException
+	 * @throws SQLException
+	 */
 	@SuppressWarnings("unchecked")
 	public <T extends AnDbField> T getAnson(int colIndex) throws AnsonException, SQLException {
 		return (T) Anson.fromJson(getString(colIndex));
@@ -999,7 +1007,7 @@ for (String coln : colnames.keySet())
 	 * .nxt()
 	 * .getInt("c") &gt; 0;
 	 * </pre>
-	 * @since 1.5.0
+	 * @since 1.4.25
 	 * @return this or null
 	 * @throws SQLException
 	 */

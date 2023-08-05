@@ -74,7 +74,7 @@ public class DATranscxt extends Transcxt {
 	 * Example:<br>
 	 * initConfigs(conn) -gt; new SynmanticsMap(conn);
 	 * 
-	 * @since 1.5.0
+	 * @since 1.4.25
 	 * @author odys-z@github.com
 	 */
 
@@ -86,7 +86,7 @@ public class DATranscxt extends Transcxt {
 	/**
 	 * Semantics handler's map manager.
 	 * 
-	 * @since 1.5.0
+	 * @since 1.4.25
 	 * @author odys-z@github.com
 	 */
 	public static class SemanticsMap {
@@ -123,7 +123,7 @@ public class DATranscxt extends Transcxt {
 
 	/**
 	 * Configuration's root
-	 * @since 1.5.0 will using EnvPath for this.
+	 * @since 1.4.25 will using EnvPath for this.
 	 * @param cfgRoot
 	 * @param absRuntimeRoot absolute path to current dir (test) or container root (web app)
 	 */

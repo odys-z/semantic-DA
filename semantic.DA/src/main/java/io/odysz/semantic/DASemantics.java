@@ -359,7 +359,7 @@ public class DASemantics {
 		 * <p><b>NOTE: </b>This semantics only guard the data for updating.</p>
 		 * <p>To replace uri back into file when selecting, use "extfile(uri)" (js) or {@link io.odysz.transact.sql.parts.condition.Funcall#sqlExtFile(ISemantext, String[]) sqlExtFile(uri)} in java. </p>
 		 * 
-		 * @since 1.5.0
+		 * @since 1.4.25
 		 * @deprecated this is the same with {@link #extFilev2} 
 		 */
 		extFile,
@@ -379,7 +379,7 @@ public class DASemantics {
 		 * xml/smtc = "ef2.0" | "xf2.0" | "ext-file2.0" | "e-f2.0" | "x-f2.0" <br>
 		 * Similar to {@link #extFile}, but can handle more subfolder (configered in xml as field name of data table).
 		 * 
-		 * @since 1.5.0
+		 * @since 1.4.25
 		 */
 		extFilev2,
 		
@@ -475,7 +475,7 @@ public class DASemantics {
 
 	/**
 	 * Use this to replace metas from DB for semantics extension.
-	 * @since 1.5.0
+	 * @since 1.4.25
 	 * @param tbl
 	 * @param m
 	 * @param connId
