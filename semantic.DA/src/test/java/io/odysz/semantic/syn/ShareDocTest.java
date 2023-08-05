@@ -104,7 +104,6 @@ public class ShareDocTest {
 		if (!DATranscxt.hasSemantics(conn, meta.tbl, smtype.extFilev2))
 			throw new SemanticException("Semantics of ext-file2.0 for h_photos.uri can't be found");
 		
-		// Update post = DBSyncher.onDocreate(photo, meta, usr);
 		return DocUtils.createFileB64(conn, photo, usr, meta, trb, null);
 	}
 
