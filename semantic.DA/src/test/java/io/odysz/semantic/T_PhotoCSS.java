@@ -20,9 +20,4 @@ public class T_PhotoCSS extends AnDbField {
 	public int h() {
 		return size[1];
 	}
-
-//	@Override
-//	public Integer get(String col) {
-//		return eq(col, "w") ? w() : eq(col, "h") ? h() : 0;
-//	}
 }
