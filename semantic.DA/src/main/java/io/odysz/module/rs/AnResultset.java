@@ -623,15 +623,23 @@ for (String coln : colnames.keySet())
 	 * @since 1.4.25
 	 * @param <T>
 	 * @param colIndex
-	 * @return Anson object
+	 * @return Anson instance (value unescaped)
 	 * @throws AnsonException
 	 * @throws SQLException
+	 * @since 1.4.27
 	 */
 	@SuppressWarnings("unchecked")
 	public <T extends AnDbField> T getAnson(int colIndex) throws AnsonException, SQLException {
 		return (T) Anson.fromJson(getString(colIndex));
 	}
 
+	/**
+	 * @param col
+	 * @return Anson instance (value unescaped)
+	 * @throws AnsonException
+	 * @throws SQLException
+	 * @since 1.4.27
+	 */
 	@SuppressWarnings("unchecked")
 	public <T extends AnDbField> T getAnson(String col) throws AnsonException, SQLException {
 		return (T) Anson.fromJson(getString(col));

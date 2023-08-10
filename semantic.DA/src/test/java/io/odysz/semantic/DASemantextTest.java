@@ -727,13 +727,30 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	}
 
 	/**
-	 * @since 1.4.25
+	 * Test deserialize Anson instance from DB field.
+	 * 
+	 * <h6>Note:<br>
+	 * New line character ('\n') is not the same with the value before saving.</h6>
+	 * <pre>
+	assertEquals("104° 0' 11.23\"", exif.exif.get("GPS:GPS Longitude"));
+	assertEquals("E", exif.exif.get("GPS:GPS Longitude Ref"));
+	assertEquals("30° 40' 11.88\"", exif.exif.get("GPS:GPS Latitude"));
+	assertEquals("Below sea level", exif.exif.get("GPS:GPS Altitude Ref"));
+	assertEquals("v\\nv", exif.exif.get("(RGB\\nabc\\n123)"));
+	assertEquals("0 metres", exif.exif.get("Altitude"));
+	 * </pre>
+	 * @since 1.4.27
 	 * @throws TransException
 	 * @throws SQLException
 	 */
 	@Test
 	public void testAnsonField() throws TransException, SQLException {
 		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
+
+		st.delete("b_alarms", usr)
+			.whereIn("typeId", new String[] {"02-photo", "03-photo"})
+			.d(s0);
+
 		st.insert("b_alarms", usr)
 			.nv("remarks", new T_PhotoCSS(16, 9))
 			.nv("typeId", "02-photo")
@@ -750,19 +767,21 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		assertEquals(16, anson.w());
 		assertEquals( 9, anson.h());
 
-		st.insert("b_alarms", usr)
+		st.update("b_alarms", usr)
 			.nv("remarks", new T_Exifield()
 					.add("GPS:GPS Longitude", "104° 0' 11.23\"")
 					.add("GPS:GPS Longitude Ref", "E")
 					.add("GPS:GPS Latitude", "30° 40' 11.88\"")
 					.add("GPS:GPS Altitude Ref", "Below sea level")
+					.add("(RGB\nabc\n123)", "v\nv")
 					.add("Altitude", "0 metres"))
-			.nv("typeId", "03-photo")
-			.ins(s0);
+			.nv("typeId", "02-photo")
+			.whereEq("typeId", "02-photo")
+			.u(s0);
 
 		rs = ((AnResultset) st.select("b_alarms")
 			.col("remarks")
-			.whereEq("typeId", "03-photo")
+			.whereEq("typeId", "02-photo")
 			.rs(s0)
 			.rs(0))
 			.nxt();
@@ -772,10 +791,12 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		assertEquals("E", exif.exif.get("GPS:GPS Longitude Ref"));
 		assertEquals("30° 40' 11.88\"", exif.exif.get("GPS:GPS Latitude"));
 		assertEquals("Below sea level", exif.exif.get("GPS:GPS Altitude Ref"));
+		assertEquals("v\\nv", exif.exif.get("(RGB\\nabc\\n123)"));
 		assertEquals("0 metres", exif.exif.get("Altitude"));
 		
-		st.delete("b_alarms")
-			.whereIn("typeId", new String[] {"02-photo", "03-photo"});
+		st.delete("b_alarms", usr)
+			.whereIn("typeId", new String[] {"02-photo", "03-photo"})
+			.d(s0);
 	}
 	
 	/**
