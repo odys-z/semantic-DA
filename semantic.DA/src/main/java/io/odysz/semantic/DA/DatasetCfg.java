@@ -334,25 +334,25 @@ public class DatasetCfg {
 		}
 	}
 
-	public static AnResultset select(String conn, String sk,
+	public static AnResultset dataset(String conn, String sk,
 			int page, int size, String... args) throws SQLException, TransException {
-		String sql = getSql(conn, sk, args);
+		String sql = getDSql(conn, sk, args);
 		if (page >= 0 && size > 0)
 			sql = Connects.pagingSql(conn, sql, page, size);
 
 		// v1.3.0 overriding uri->conn with xml/conn
 		if (!LangExt.isblank(dss.get(sk).conn))
 			conn = dss.get(sk).conn;
-		// AnResultset rs = new AnResultset(Connects.select(conn, sql));
 		AnResultset rs = Connects.select(conn, sql);
 		return rs;
 	}
 
-	public static String getSql(String conn, String k, String... args) throws SQLException, SemanticException {
+	private static String getDSql(String conn, String k, String... args)
+			throws SQLException, SemanticException {
 		if (dss == null)
 			throw new SQLException("FATAL - dataset not initialized...");
 		if (k == null || !dss.containsKey(k))
-			throw new SQLException(String.format("No dataset configuration found for k = %s", k));
+			throw new SemanticException(String.format("No dataset configuration found for k = %s", k));
 
 		if (conn == null) conn = Connects.defltConn();
 
@@ -384,20 +384,22 @@ public class DatasetCfg {
 			throw new SemanticException("null semantic key");
 		if (conn == null)
 			conn = Connects.defltConn();
-		return select(conn, sk, page, size, args);
+		return dataset(conn, sk, page, size, args);
 	}
 
-	public static AnResultset loadDataset(String conn, String sk) throws SQLException, TransException {
+	public static AnResultset loadDataset(String conn, String sk)
+			throws SQLException, TransException {
 		return loadDataset(conn, sk, -1, -1, "");
 	}
 
-	public static AnResultset loadDataset(String conn, String sk, String... args) throws SQLException, TransException {
+	public static AnResultset loadDataset(String conn, String sk, String... args)
+			throws SQLException, TransException {
 		return loadDataset(conn, sk, -1, -1, args);
 	}
 
-	public static List<?> loadStree(String conn, String sk,
-			int page, int size, String... args)
+	public static List<?> loadStree(String conn, String sk, int page, int size, String... args)
 			throws SQLException, TransException {
+
 		if (dss == null || !dss.containsKey(sk))
 			throw new SemanticException("Can't find tree semantics, dss %s, sk = %s. Check dataset.xml configuration.",
 					dss == null ? "null" : dss.size(), sk);
@@ -419,8 +421,10 @@ public class DatasetCfg {
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public static List<?> loadStree(String conn, String sk, PageInf page) throws SQLException, TransException {
-		return loadStree(conn, sk, (int)page.page, (int)page.size, len(page.condts) > 0 ? page.condts.get(0) : null);
+	public static List<?> loadStree(String conn, String sk, PageInf page)
+			throws SQLException, TransException {
+		return loadStree(conn, sk, (int)page.page, (int)page.size,
+				len(page.arrCondts) > 0 ? page.arrCondts.get(0) : null);
 	}
 	
 	/**
@@ -460,6 +464,7 @@ public class DatasetCfg {
 	 * Create a SemanticObject for tree node with current rs row.<br>
 	 * 
 	 * TODO should this moved to TreeSemantics?
+	 * 
 	 * @param treeSmx
 	 * @param rs
 	 * @param level depth of this node

@@ -218,7 +218,6 @@ public class Connects {
 
 	///////////////////////////////////// select ///////////////////////////////
 	public static AnResultset select(String conn, String sql, int... flags) throws SQLException {
-		// Print WARN? if conn is not null and srcs doesn't contains.
 		// This is probably because of wrong configuration in connects.xml. 
 		if (flags != null && flags.length > 0 && flags[0] == flag_printSql )
 			if (conn != null && !srcs.containsKey(conn))
@@ -226,9 +225,8 @@ public class Connects {
 
 		String connId = conn == null ? defltConn : conn;
 		try {
-			return srcs
-					.get(connId)
-					.select(sql, flags == null || flags.length <= 0 ? flag_nothing : flags[0]);
+			return srcs.get(connId)
+				.select(sql, flags == null || flags.length <= 0 ? flag_nothing : flags[0]);
 		} catch (NamingException e) {
 			throw new SQLException("Can't find connection, id=" + connId);
 		}

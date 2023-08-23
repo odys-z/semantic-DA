@@ -46,7 +46,7 @@ public class DatasetHelper {
 			throws SQLException, TransException {
 		HashMap<String, Dataset> dss = DatasetCfg.dss;
 		if (dss == null || !dss.containsKey(sk))
-			throw new SemanticException("Can't find tree semantics, dss %s, sk = %s. Check dataset.xml configuration.",
+			throw new SemanticException("Can't find tree semantics, dss count: %s, sk = %s. Check dataset.xml configuration.",
 					dss == null ? "null" : dss.size(), sk);
 
 		AnResultset rs = DatasetCfg.loadDataset(conn, sk, page, size, sqlArgs);
@@ -68,8 +68,9 @@ public class DatasetHelper {
 	 */
 	public static List<?> loadStree(String conn, String sk, PageInf page, NodeFormatter...noder)
 			throws SQLException, TransException {
+		page.mergeArgs();
 		return loadStree(conn, sk, (int)page.page, (int)page.size,
-						len(page.condts) > 0 ? page.condts.get(0) : null, noder);
+						len(page.arrCondts) > 0 ? page.arrCondts.get(0) : null, noder);
 	}
 	
 	/**
