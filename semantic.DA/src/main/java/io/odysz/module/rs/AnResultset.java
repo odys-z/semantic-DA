@@ -380,7 +380,6 @@ for (String coln : colnames.keySet())
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) return null;
 			if (results.get(rowIdx - 1).get(colIndex - 1) == null) return null;
-			// else return results.get(rowIdx - 1).get(colIndex - 1).toString();
 			else {
 				Object v = results.get(rowIdx - 1).get(colIndex - 1);
 				return stringFormats != null && stringFormats.containsKey(v.getClass()) ?
@@ -469,8 +468,6 @@ for (String coln : colnames.keySet())
 						if (d >= 0.001d) return true;
 					}
 					catch (Exception e){}
-					//if (v.equals("0")) return false;
-					//if (v.equals("false")) return false;
 					return false;
 				} catch (Exception e) {
 					return false;
@@ -487,8 +484,12 @@ for (String coln : colnames.keySet())
 
 	public double getDouble(int colIndex) throws SQLException {
 		try {
-			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
-			if (results.get(rowIdx - 1).get(colIndex - 1) == null) throw new SQLException("Null value to be converted to double.");
+			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null)
+				throw new SQLException("Null row to be accessed.");
+
+			if (results.get(rowIdx - 1).get(colIndex - 1) == null)
+				throw new SQLException("Null value to be converted to double.");
+
 			else return Double.valueOf(results.get(rowIdx - 1).get(colIndex - 1).toString());
 		} catch (Exception e) {
 			throw new SQLException(e.getMessage());
@@ -509,9 +510,11 @@ for (String coln : colnames.keySet())
 	
 	public Date getDate(int index)throws SQLException{
 		try {
-			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
+			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null)
+				throw new SQLException("Null row to be accessed.");
+
 			if (results.get(rowIdx - 1).get(index - 1) == null) return null;
-			// Oracle Datetime, Mysql Date, datetime can safely cast to date.
+			// Oracle Datetime, Mysql Date, datetime can be safely casted to date.
 			// If your debugging arrived here, you may first check you database column type.
 			else try {
 				return (Date)results.get(rowIdx - 1).get(index - 1);
@@ -529,14 +532,15 @@ for (String coln : colnames.keySet())
 	}
 
 	/**
-	 * TODO to be tested on Mysql &amp; Oracle.
 	 * @param index
-	 * @return
+	 * @return datetime
 	 * @throws SQLException
 	 */
 	public Date getDateTime(int index)throws SQLException{
 		try {
-			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
+			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null)
+				throw new SQLException("Null row to be accessed.");
+
 			if (results.get(rowIdx - 1).get(index - 1) == null) return null;
 			// Oracle Datetime, Mysql Date, datetime can safely cast to date.
 			else try {
@@ -549,12 +553,6 @@ for (String coln : colnames.keySet())
 		}
 	}
 	
-	/**
-	 * TODO to be tested on Mysql &amp; Oracle.
-	 * @param colName
-	 * @return
-	 * @throws SQLException
-	 */
 	public Date getDateTime(String colName)throws SQLException{
 		return getDateTime((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
