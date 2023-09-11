@@ -86,7 +86,7 @@ public class DASemantextTest {
 			// smtcfg = DATranscxt.loadSemantics(connId, "src/test/res/semantics.xml", true);
 			smtcfg = DATranscxt.initConfigs(connId, loadSemantics(connId),
 						(c) -> new SemanticsMap(c));
-			// st = new DATranscxt(connId);
+			st = new DATranscxt(connId);
 
 			SemanticObject jo = new SemanticObject();
 			jo.put("userId", "tester");
