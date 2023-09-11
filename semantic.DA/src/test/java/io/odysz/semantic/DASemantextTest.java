@@ -1,5 +1,6 @@
 package io.odysz.semantic;
 
+import static io.odysz.common.Utils.loadTxt;
 import static io.odysz.semantic.DATranscxt.loadSemantics;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -63,7 +64,12 @@ public class DASemantextTest {
 		try {
 			Utils.printCaller(false);
 
-			// File file = new File("src/test/res");
+			File db = new File("src/test/res/semantic-DA.db");
+			if (db.exists())
+				if (!db.delete())
+					fail("can't delete semantic-Da.db");
+			db.createNewFile();
+
 			File file = new File(rtroot);
 			runtimepath = file.getAbsolutePath();
 			Utils.logi(runtimepath);
@@ -78,7 +84,7 @@ public class DASemantextTest {
 			// smtcfg = DATranscxt.loadSemantics(connId, "src/test/res/semantics.xml", true);
 			smtcfg = DATranscxt.initConfigs(connId, loadSemantics(connId),
 						(c) -> new SemanticsMap(c));
-			st = new DATranscxt(connId);
+			// st = new DATranscxt(connId);
 
 			SemanticObject jo = new SemanticObject();
 			jo.put("userId", "tester");
@@ -93,13 +99,8 @@ public class DASemantextTest {
 	
 	}
 
-	/**Initializing testing DB (use this to reset semantic-DA.db - a sqlite3 db file).<pre>
-drop TABLE a_logs;
-drop TABLE oz_autoseq;
-DELETE FROM a_functions;
-DELETE FROM a_role_func;
-DELETE from a_users;
-DELETE from a_roles;</pre>
+	/**
+	 * Initializing testing DB (use this to reset semantic-DA.db - a sqlite3 db file).
 	 * 
 	 * @throws SQLException
 	 * @throws SemanticException
@@ -109,57 +110,78 @@ DELETE from a_roles;</pre>
 	@BeforeAll
 	public static void testInit() throws SQLException, SemanticException, SAXException, IOException {
 		// initialize oz_autoseq - only for sqlite
-		AnResultset rs = Connects.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table' and tbl_name = 'oz_autoseq'",
-				Connects.flag_nothing);
-		if (rs.getRowCount() == 0) {
-			// create oz_autoseq
-			ArrayList<String> sqls = new ArrayList<String>();
-			sqls.add("CREATE TABLE oz_autoseq (\n" + 
-					"  sid text(50),\n" + 
-					"  seq INTEGER,\n" + 
-					"  remarks text(200),\n" + 
-					"  CONSTRAINT oz_autoseq_pk PRIMARY KEY (sid))");
-			sqls.add("CREATE TABLE a_logs (\n" +
-					"  logId text(20),\n" + 
-					"  funcId text(20),\n" + 
-					"  funcName text(50),\n" + 
-					"  oper text(20),\n" + 
-					"  logTime text(20),\n" + 
-					"  cnt int,\n" + 
-					"  txt text(4000),\n" + 
-					"  CONSTRAINT oz_logs_pk PRIMARY KEY (logId))");
-			sqls.add("insert into oz_autoseq (sid, seq, remarks) values" +
-					"('a_attaches.attId', 0, 'attachements')," +
-					"('a_functions.funcId', 0, 'test')," +
-					"('a_logs.logId', 0, 'test')," +
-					"('a_orgs.orgId', 0, 'test')," + 
-					"('a_roles.roleId', 0, 'test')," + 
-					"('a_users.userId', 0, 'test')," +
-					"('b_alarm_logic.logicId', 64 * 4, 'cascade-parent')," +
-					"('b_alarms.alarmId', 0, 'cascade-ancestor')," +
-					"('b_logic_device.deviceLogId', 64 * 64, 'cascade-child')," +
-					"('crs_a.aid', 0, 'test')," + 
-					"('crs_b.bid', 128 * 64, 'test')"
-					);
-			sqls.add("delete from a_attaches");
-			sqls.add("delete from a_functions");
-			sqls.add("delete from a_logs");
-			sqls.add("delete from a_orgs");
-			sqls.add("delete from a_role_func");
-			sqls.add("delete from a_roles");
-			sqls.add("delete from a_users");
-			sqls.add("delete from b_alarm_logic");
-			sqls.add("delete from b_alarms");
-			sqls.add("delete from b_logic_device");
-			sqls.add("delete from crs_a");
-			sqls.add("delete from crs_b");
-			sqls.add("insert into a_functions\n" +
-					"(flags, funcId, funcName, fullpath) " + 
-					"values ( '1911-10-10', '------', 'Sun Yat-sen', '-')");
-			try { Connects.commit(usr, sqls, Connects.flag_nothing); }
-			catch (Exception e) {
-				Utils.warn("Make sure table oz_autoseq already exists, and only for testing aginst a sqlite DB.");
+//		AnResultset rs = Connects.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table' and tbl_name = 'oz_autoseq'",
+//				Connects.flag_nothing);
+//		if (rs.getRowCount() == 0) {
+//			// create oz_autoseq
+//			ArrayList<String> sqls = new ArrayList<String>();
+//			sqls.add("drop table if exists oz_autoseq;" +
+//					"CREATE TABLE oz_autoseq (\n" + 
+//					"  sid text(50),\n" + 
+//					"  seq INTEGER,\n" + 
+//					"  remarks text(200),\n" + 
+//					"  CONSTRAINT oz_autoseq_pk PRIMARY KEY (sid))");
+//			sqls.add("drop table if exists a_logs;" +
+//					"CREATE TABLE a_logs (\n" +
+//					"  logId text(20),\n" + 
+//					"  funcId text(20),\n" + 
+//					"  funcName text(50),\n" + 
+//					"  oper text(20),\n" + 
+//					"  logTime text(20),\n" + 
+//					"  cnt int,\n" + 
+//					"  txt text(4000),\n" + 
+//					"  CONSTRAINT oz_logs_pk PRIMARY KEY (logId))");
+//			sqls.add("insert into oz_autoseq (sid, seq, remarks) values" +
+//					"('a_attaches.attId', 0, 'attachements')," +
+//					"('a_functions.funcId', 0, 'test')," +
+//					"('a_logs.logId', 0, 'test')," +
+//					"('a_orgs.orgId', 0, 'test')," + 
+//					"('a_roles.roleId', 0, 'test')," + 
+//					"('a_users.userId', 0, 'test')," +
+//					"('b_alarm_logic.logicId', 64 * 4, 'cascade-parent')," +
+//					"('b_alarms.alarmId', 0, 'cascade-ancestor')," +
+//					"('b_logic_device.deviceLogId', 64 * 64, 'cascade-child')," +
+//					"('crs_a.aid', 0, 'test')," + 
+//					"('crs_b.bid', 128 * 64, 'test'), " +
+//					"('doc_devices.device', 64 * 64 * 4, test)"
+//					);
+//			sqls.add("delete from a_attaches");
+//			sqls.add("delete from a_functions");
+//			sqls.add("delete from a_logs");
+//			sqls.add("delete from a_orgs");
+//			sqls.add("delete from a_role_func");
+//			sqls.add("delete from a_roles");
+//			sqls.add("delete from a_users");
+//			sqls.add("delete from b_alarm_logic");
+//			sqls.add("delete from b_alarms");
+//			sqls.add("delete from b_logic_device");
+//			sqls.add("delete from crs_a");
+//			sqls.add("delete from crs_b");
+//			sqls.add("insert into a_functions\n" +
+//					"(flags, funcId, funcName, fullpath) " + 
+//					"values ( '1911-10-10', '------', 'Sun Yat-sen', '-')");
+//			sqls.add(loadTxt(DASemantextTest.class, "doc_devices.ddl"));
+
+		
+		ArrayList<String> sqls = new ArrayList<String>();
+
+		try {
+			for (String tbl : new String[] {
+					"oz_autoseq.ddl",  "oz_autoseq.sql",     "a_logs.ddl",      "a_attaches.ddl",
+					"a_domains.ddl",   "a_domain.sql",       "a_functions.ddl", "a_functions.sql",
+					"a_orgs.ddl",      "a_orgs.sql",
+					"a_role_func.ddl", "a_roles.ddl",        "a_users.ddl",     "a_alarm_logic.ddl",
+					"b_alarms.ddl",    "b_logic_device.ddl", "crs_a.ddl",       "crs_b.ddl",
+					"doc_devices.ddl"}) {
+				sqls.add(loadTxt(DASemantextTest.class, tbl));
+				Connects.commit(usr, sqls, Connects.flag_nothing);
+				sqls.clear();
 			}
+			Connects.reinit(runtimepath); // reload metas
+			st = new DATranscxt(connId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail(e.getMessage());
 		}
 	}
 
@@ -171,7 +193,7 @@ DELETE from a_roles;</pre>
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_functions")
 			.nv("flags", flag)
-			.nv("funcId", "AUTO")	// let's support semantics.xml/smtc=pk
+			.nv("funcId", "AUTO") // Legacy
 			.nv("funcName", "testInsert A - " + flag)
 			.nv("parentId", "------")
 			.commit(s0, sqls);
@@ -183,7 +205,7 @@ DELETE from a_roles;</pre>
 		DASemantext s1 = new DASemantext(connId, smtcfg, usr, rtroot);
 		st.insert("a_functions")
 			.nv("flags", flag)
-			// .nv("funcId", "AUTO")
+			.nv("funcId", "AUTO")
 			.nv("funcName", "testInsert B - " + flag)
 			.nv("parentId", (String)s0.resulvedVal("a_functions", "funcId"))
 			.commit(s1, sqls);
@@ -254,16 +276,53 @@ DELETE from a_roles;</pre>
 			.nv("sibling", "2")
 			.commit(s0, sqls);
 
-		// "insert into a_functions  (funcId, funcName, parentId, fullpath) values ('00006k', 'testInsert A - ', '------', '000 000')"
 		Regex reg = new Regex("insert into a_functions  \\(funcId, funcName, parentId, fullpath\\) values \\('.{6}', 'testInsert A - ', '------', '000'\\)");
-		// assertEquals("insert into a_functions  (funcId, funcName, parentId, fullpath) values ('00006k', 'testInsert A - ', '------', '000')", sqls.get(0));
 		assertTrue(reg.match(sqls.get(0)));
 
-		// insert into a_functions  (funcId, funcName, parentId, sibling, fullpath) values ('00009Z', 'testInsert A - ', '00009Y', 1, '000.001')
 		reg = new Regex(".*000.001'\\)");
 		assertTrue(reg.match(sqls.get(1)));
 		reg = new Regex(".*000.002'\\)");
 		assertTrue(reg.match(sqls.get(2)));
+	}
+	
+	/**
+	 * Test prefix.auto-key.
+	 * 
+	 * sk = semantics.xml/6h
+	 * 
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	@Test
+	void testAutoKprefix() throws TransException, SQLException {
+		String devname = DateFormat.formatime(new Date());
+		
+		String tbl = "doc_devices";
+
+		st.insert(tbl, usr)
+			.nv("synode0", "1.4.34") // varchar(6)
+			.nv("devname", devname)
+			.nv("owner",   usr.uid())
+			.nv("org",     "zsu.ua")
+			.ins(st.instancontxt(connId, usr));
+	
+		st.insert(tbl, usr)
+			// synode0 == null, will hard code 'synode0'
+			.nv("devname", devname)
+			.nv("owner",   usr.uid())
+			.nv("org",     "zsu.ua")
+			.ins(st.instancontxt(connId, usr));
+	
+		AnResultset rs = ((AnResultset) st
+			.select(tbl)
+			.col("device")
+			.whereEq("devname", devname)
+			.rs(st.instancontxt(connId, usr))
+			.rs(0)).nxt();
+		
+		assertEquals("1.4.34.000G01", rs.getString("device"));
+		rs.next();
+		assertEquals("synode0.000G02", rs.getString("device"));
 	}
 
 	/**Test cross referencing auto k.<br>
@@ -526,7 +585,7 @@ DELETE from a_roles;</pre>
 			fail("ck-cnt-del not working");
 		}
 		catch (SemanticException e) {
-			assertTrue(e.getMessage().startsWith("a_domain.checkSqlCountOnDel: b_alarms "));
+			assertTrue(e.getMessage().startsWith("a_domain.checkSqlCountOnDel: b_alarms "), e.getMessage());
 		}
 	}
 	

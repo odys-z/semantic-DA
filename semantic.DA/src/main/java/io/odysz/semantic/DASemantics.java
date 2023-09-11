@@ -1,6 +1,8 @@
 package io.odysz.semantic;
 
+import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.ix;
 import static io.odysz.common.LangExt.split;
 import static io.odysz.common.LangExt.str;
 
@@ -169,10 +171,11 @@ public class DASemantics {
 		 * Generate auto increased value for the field when inserting.<br>
 		 * on-events: insert<br>
 		 * <p>
-		 * args: [0]: pk-field
+		 * args: [0]: pk-field; [1]: optional, pk-prefix (since 1.4.34)
 		 * </p>
 		 * 
 		 * Handler: {@link DASemantics.ShAutoK}
+		 * @since 1.4.34, add pk-prefix, args[1], can be field name or string consts.
 		 */
 		autoInc,
 		/**
@@ -553,7 +556,7 @@ public class DASemantics {
 		if (smtype.fullpath == semantic)
 			return new ShFullpath(basicTsx, tabl, recId, args);
 		else if (smtype.autoInc == semantic)
-			return new ShAutoK(basicTsx, tabl, recId, args);
+			return new ShAutoKPrefix(basicTsx, tabl, recId, args);
 		else if (smtype.fkIns == semantic)
 			return new ShFkOnIns(basicTsx, tabl, recId, args);
 		else if (smtype.fkCateIns == semantic)
@@ -805,7 +808,7 @@ public class DASemantics {
 			try {
 				Object pid = cols.containsKey(args[0]) ? row.get(cols.get(args[0]))[1] : null;
 
-				if (LangExt.isblank(pid, "null")) {
+				if (isblank(pid, "null")) {
 					Utils.warn(
 							"Fullpath Handling Error\\nTo generate fullpath, parentId must configured.\\nFound parent col: %s,\\nconfigured args = %s,\\nhandling cols = %s\\nrows = %s",
 							pid, LangExt.toString(args), str(cols), LangExt.str(row));
@@ -866,7 +869,7 @@ public class DASemantics {
 	/**Auto Pk Handler.<br>
 	 * Generate a radix 64, 6 bit of string representation of integer.
 	 * @see smtype#autoInc
-	 * @author odys-z@github.com
+	 * @deprecated replaced by {@link ShAutoKPrefix}
 	 */
 	static class ShAutoK extends SemanticHandler {
 		/**
@@ -878,8 +881,8 @@ public class DASemantics {
 		 */
 		ShAutoK(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.autoInc, tabl, pk, args);
-			if (args == null || args.length == 0 || LangExt.isblank(args[0]))
-				throw new SemanticException("AUTO pk semantics configuration not correct. tabl = %s, pk = %s, args: %s",
+			if (args == null || args.length == 0 || isblank(args[0]))
+				throw new SemanticException("AUTO pk semantics' configuration is not correct. tabl = %s, pk = %s, args: %s",
 						tabl, pk, LangExt.toString(args));
 			insert = true;
 		}
@@ -916,6 +919,65 @@ public class DASemantics {
 		}
 	}
 
+	static class ShAutoKPrefix extends SemanticHandler {
+		String prefixCol;
+
+		ShAutoKPrefix(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
+			super(trxt, smtype.autoInc, tabl, pk, args);
+			if (args == null || args.length == 0 || isblank(args[0]))
+				throw new SemanticException("AUTO pk with profix (autok)'s configuration is not correct. tabl = %s, pk = %s, args: %s",
+						tabl, pk, LangExt.toString(args));
+			else if (args.length >= 2)
+				prefixCol = args[1];
+
+			insert = true;
+		}
+
+		@Override
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+			Object[] autonv;
+			if (cols.containsKey(args[0]) // with nv from client
+					&& cols.get(args[0]) < row.size()) { // with nv must been generated from semantics
+				autonv = row.get(cols.get(args[0]));
+
+			}
+			else {
+				autonv = new Object[2];
+				cols.put(args[0], row.size());
+				row.add(autonv);
+			}
+			autonv[0] = args[0];
+
+			// prefix
+			Object[] prefixnv = null;
+			if (cols.containsKey(prefixCol))
+				prefixnv = row.get(cols.get(prefixCol));
+			else
+				prefixnv = new Object[] {prefixCol, null};
+			Object prefixVal = ix(prefixnv, 1);
+
+
+			try {
+				Object alreadyResulved = stx.resulvedVal(target, args[0]);
+				if (verbose && alreadyResulved != null)
+					// 1. When cross fk referencing happened, this branch will reached by handling post inserts.
+					// 2. When multiple children inserting, this happens
+					Utils.warn(
+						"Debug Notes(verbose): Found an already resulved value (%s) while handling %s auto-key generation. Replacing ...",
+						alreadyResulved, target);
+				// side effect: generated auto key already been put into autoVals, which can be referenced later.
+				String ak = isblank(prefixCol)
+						? stx.genId(target, args[0])
+						: String.format("%s.%s",
+								isblank(prefixVal) ? prefixCol : prefixVal.toString(),
+								stx.genId(target, args[0]));
+				autonv[1] = trxt.quotation(ak, stx.connId(), target, args[0]);
+			} catch (SQLException | TransException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	/**
 	 * Handle fk referencing resolving when inserting children.<br>
 	 * 
@@ -944,7 +1006,7 @@ public class DASemantics {
 			}
 			try {
 				Object v = stx.resulvedVal(args[1], args[2]);
-				if (v != null && (nv[1] == null || LangExt.isblank(nv[1])
+				if (v != null && (nv[1] == null || isblank(nv[1])
 						|| nv[1] instanceof ExprPart && ((ExprPart)nv[1]).isNull()))
 					// nv[1] = stx.composeVal(v, target, (String)nv[0]);
 					nv[1] = trxt.quotation(v, stx.connId(), target, (String)nv[0]);
@@ -1066,7 +1128,7 @@ public class DASemantics {
 				}
 				// <!-- 0 business cate (table name); 1 merged child fk; 2 parent table, 3 parent referee [, ...]  -->
 				Object[] nvBusiTbl = row.get(cols.get(argus[ixbusiTbl]));
-				if (nvBusiTbl == null || LangExt.isblank(nvBusiTbl[1])) {
+				if (nvBusiTbl == null || isblank(nvBusiTbl[1])) {
 					Utils.warn("Can't generate value of %s.%s without business cate, the value of %s not provided",
 							target, argus[ixbusiId], argus[ixbusiTbl]);
 				}
@@ -1077,13 +1139,13 @@ public class DASemantics {
 	
 				Object bid; 
 				bid = stx.resulvedVal(argus[ixparentbl], argus[ixparentpk]);
-				if (LangExt.isblank(bid, "''")) {
+				if (isblank(bid, "''")) {
 					// can't resulve, try if client provided
 					if (cols.containsKey(argus[ixbusiId]))
 						bid = row.get(cols.get(argus[ixbusiId]))[1];
 				}
 
-				if (LangExt.isblank(bid, "''"))
+				if (isblank(bid, "''"))
 					throw new SemanticException("Semantics %s can't been handled without business record Id - resulving failed: %s.%s",
 							sm.name(), argus[ixparentbl], argus[ixparentpk]);
 				Object[] rowBid; 
@@ -1117,7 +1179,7 @@ public class DASemantics {
 					}
 	
 					// e.g. this handler only handling records for a_users's children.
-					if (LangExt.isblank(vbusiTbl, "'\\s*'")
+					if (isblank(vbusiTbl, "'\\s*'")
 						|| vbusiTbl.equals(rowBusiTbl[0]))
 						// not for this semantics
 						continue;
@@ -1227,7 +1289,7 @@ public class DASemantics {
 			update = true;
 
 
-			if (LangExt.isblank(args[ixBusiCate]))
+			if (isblank(args[ixBusiCate]))
 				Utils.warn("ShExtFile handling special attachment table semantics, which is needing a business category filed in the table.\\n" +
 					"But the configuration on the target table (%s) doesn't provide the semantics (business table name field not specified)",
 					target);
@@ -1247,7 +1309,7 @@ public class DASemantics {
 					// save file, replace v
 					nv = row.get(cols.get(args[ixUri]));
 					if (nv != null && nv[1] != null
-						&& (nv[1] instanceof String && !LangExt.isblank(nv[1]) || nv[1] instanceof AbsPart)) {
+						&& (nv[1] instanceof String && !isblank(nv[1]) || nv[1] instanceof AbsPart)) {
 
 						// find business category - this arg can not be is optional, every file has it's unique uri
 						Object busicat = row.get(cols.get(args[ixBusiCate]))[1];
@@ -1361,7 +1423,7 @@ public class DASemantics {
 					while (rs.next()) {
 						try {
 							String uri = rs.getString(args[ixUri]);
-							if (LangExt.isblank(uri, "\\.*", "\\**", "\\s*"))
+							if (isblank(uri, "\\.*", "\\**", "\\s*"))
 								continue;
 
 							uri = EnvPath.decodeUri(stx, uri);
@@ -1424,7 +1486,7 @@ public class DASemantics {
 			insert = true;
 			update = true;
 
-			if (LangExt.isblank(args[ixUri + 1]))
+			if (isblank(args[ixUri + 1]))
 				Utils.warn("ShExtFile v2.0 handling special attachment table semantics, which needs multiple sub folder fileds in the table.\\n" +
 					"But the configuration on the target table (%s) doesn't provide the semantics (business table name field not specified)",
 					target);
@@ -1444,7 +1506,7 @@ public class DASemantics {
 					// save file, replace v
 					nv = row.get(cols.get(args[ixUri]));
 					if (nv != null && nv[1] != null
-						&& (nv[1] instanceof String && !LangExt.isblank(nv[1]) || nv[1] instanceof AbsPart)) {
+						&& (nv[1] instanceof String && !isblank(nv[1]) || nv[1] instanceof AbsPart)) {
 
 						// can be a string or an auto resulving (fk is handled before extfile)
 						Object fn = row.get(cols.get(pkField))[1];
@@ -1579,7 +1641,7 @@ public class DASemantics {
 					while (rs.next()) {
 						try {
 							String uri = rs.getString("uri");
-							if (LangExt.isblank(uri, "\\.*", "\\**", "\\s*"))
+							if (isblank(uri, "\\.*", "\\**", "\\s*"))
 								continue;
 
 							uri = EnvPath.decodeUri(stx, uri);

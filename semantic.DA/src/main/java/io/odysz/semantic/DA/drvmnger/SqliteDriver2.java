@@ -82,8 +82,8 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 		return conn;
 	}
 	
-	/**Use this to init connection without using servlet context for retrieving configured strings.<br>
-	 * This is the typical scenario when running test from "main" thread.
+	/**
+	 * Get {@link SqliteDriver2} instance, with database connection got via {@link DriverManager}.
 	 * 
 	 * @param jdbc
 	 * @param user

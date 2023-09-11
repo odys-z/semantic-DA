@@ -24,6 +24,7 @@ public abstract class SyntityMeta extends TableMeta {
 
 	/** entity creator id used for identify globally (experimental) */
 	public final String synoder;
+
 	public final HashSet<String> uids;
 	
 	/**

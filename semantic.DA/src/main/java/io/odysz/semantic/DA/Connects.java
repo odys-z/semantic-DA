@@ -77,6 +77,12 @@ public class Connects {
 	private static final int DmConn = 1;
 	private static final int CpConn = 2;
 
+	public static void reinit(String xmlDir) {
+		srcs = null;
+		metas = null;
+		init(xmlDir);
+	}
+
 	/**parse connects.xml, setup connections configured in table "drvmnger", for JDBC DriverManger,
 	 * and "dbcp", for JDBC connection-pooled connection managed by container.
 	 * @param xmlDir
@@ -89,7 +95,7 @@ public class Connects {
 		try{
 			ILogger logger = new Log4jWrapper("xtabl");
 			srcs = loadConnects(srcs, "drvmnger", DmConn, logger, xmlDir);
-			srcs = loadConnects(srcs, "dbcp", CpConn, logger, xmlDir);
+			srcs = loadConnects(srcs, "dbcp",     CpConn, logger, xmlDir);
 
 			conn_uri = loadConnUri("conn-uri", logger, xmlDir);
 		
@@ -107,7 +113,8 @@ public class Connects {
 		}
 	}
 	
-	private static HashMap<String, AbsConnect<? extends AbsConnect<?>>> loadConnects(HashMap<String, AbsConnect<? extends AbsConnect<?>>> srcs,
+	static HashMap<String, AbsConnect<? extends AbsConnect<?>>> loadConnects(
+			HashMap<String, AbsConnect<? extends AbsConnect<?>>> srcs,
 			String tablId, int dmCp, ILogger logger, String xmlDir) throws SAXException {
 		if (srcs == null)
 			srcs = new HashMap<String, AbsConnect<? extends AbsConnect<?>>>();
@@ -162,7 +169,7 @@ public class Connects {
 		String absPath = FilenameUtils.concat(xmlDir, "connects.xml");
 		Utils.logi(new File(absPath).getAbsolutePath());
 
-		XMLTable conn = XMLDataFactory.getTable(logger , tablId, absPath, //xmlDir + "/connects.xml",
+		XMLTable conn = XMLDataFactory.getTable(logger, tablId, absPath, //xmlDir + "/connects.xml",
 						new IXMLStruct() {
 							@Override public String rootTag() { return "conns"; }
 							@Override public String tableTag() { return "t"; }
@@ -302,7 +309,9 @@ public class Connects {
 		return commit(conn, usr, new ArrayList<String>() { {add(sql);} }, flags.length > 0 ? flags[0] : flag_nothing);
 	}
 	
-	public static int[] commit(String conn, IUser usr, ArrayList<String> sqls, int... flags) throws SQLException, TransException {
+	public static int[] commit(String conn, IUser usr, ArrayList<String> sqls, int... flags)
+			throws SQLException, TransException {
+
 		if (srcs == null || !srcs.containsKey(conn))
 			throw new SemanticException("Can't find connection %s.", conn);
 		try {
@@ -336,7 +345,7 @@ public class Connects {
 	 * @throws SemanticException
 	 * @throws SQLException
 	 */
-	static HashMap<String, TableMeta> loadMeta(String conn) throws SemanticException, SQLException {
+	public static HashMap<String, TableMeta> loadMeta(String conn) throws SemanticException, SQLException {
 		dbtype dt = driverType(conn);
 
 		HashMap<String, TableMeta> metas = new HashMap<String, TableMeta>();

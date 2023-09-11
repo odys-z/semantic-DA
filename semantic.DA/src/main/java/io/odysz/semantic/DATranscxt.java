@@ -152,7 +152,6 @@ public class DATranscxt extends Transcxt {
 
 	/** { conn: map{table: DASemantics[handlers]} } */
 	protected static HashMap<String, SemanticsMap> smtMaps;
-	// protected static HashMap<String, HashMap<String, DASemantics>> smtConfigs;
 
 	public SemanticHandler parseHandler(Transcxt basicTsx, String tabl, smtype semantic,
 			String recId, String argstr, boolean ... debug) {

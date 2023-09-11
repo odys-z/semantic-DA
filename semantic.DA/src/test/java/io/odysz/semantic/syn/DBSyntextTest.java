@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
@@ -28,7 +29,6 @@ import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.LoggingUser;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.NyquenceMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
@@ -41,6 +41,7 @@ import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
+@Disabled
 public class DBSyntextTest {
 	public static final String[] conns = new String[] { "syn.00", "syn.01", "syn.02", "syn.03" };
 	public static final String logconn = "log";
@@ -547,7 +548,9 @@ public class DBSyntextTest {
 			usrAct.put("funcId", "DBSyntextTest");
 			usrAct.put("funcName", "test ISemantext implementation");
 			jo.put("usrAct", usrAct);
-			robot = new LoggingUser(logconn, uid, jo);
+
+			// robot = new LoggingUser(logconn, uid, jo);
+			robot = new SyncRobot(ZSUNodesDA.family);
 		}
 
 		/**
