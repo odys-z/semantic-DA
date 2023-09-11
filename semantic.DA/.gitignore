@@ -1,3 +1,4 @@
 /target/
 /.settings/
 main.net
+**/semantic-DA.db

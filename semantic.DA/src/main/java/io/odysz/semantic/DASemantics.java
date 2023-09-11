@@ -2,7 +2,7 @@ package io.odysz.semantic;
 
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.isNull;
-import static io.odysz.common.LangExt.ix;
+import static io.odysz.common.LangExt.len;
 import static io.odysz.common.LangExt.split;
 import static io.odysz.common.LangExt.str;
 
@@ -162,7 +162,7 @@ public class DASemantics {
 	 * <b>11.{@link #postFk}</b><br>
 	 * <b>12.{@link #extFile}</b><br>
 	 * <b>13.{@link #extFilev2}</b><br>
-	 * <b>14. {@link #synChange}</b><br>
+	 * <b>14.{@link #synChange}</b><br>
 	 */
 	public enum smtype {
 		/**
@@ -171,11 +171,11 @@ public class DASemantics {
 		 * Generate auto increased value for the field when inserting.<br>
 		 * on-events: insert<br>
 		 * <p>
-		 * args: [0]: pk-field; [1]: optional, pk-prefix (since 1.4.34)
+		 * args: [0]: pk-field; [1]: optional, pk-prefix (since 1.4.35)
 		 * </p>
 		 * 
 		 * Handler: {@link DASemantics.ShAutoK}
-		 * @since 1.4.34, add pk-prefix, args[1], can be field name or string consts.
+		 * @since 1.4.35, add pk-prefix, args[1], can be field name or string consts.
 		 */
 		autoInc,
 		/**
@@ -453,11 +453,7 @@ public class DASemantics {
 				return extFilev2;
 			else if ("s-c".equals(type) || "syn-change".equals(type))
 				return synChange;
-//			else if ("cmp-col".equals(type) || "compose-col".equals(type) || "compse-column".equals(type)
-//					|| "composingcol".equals(type))
-//				return composingCol;
 			else if ("s-up1".equals(type) || type.startsWith("stamp1"))
-				// return stamp1MoreThanRefee;
 				throw new SemanticException("Semantic type stamp1MoreThanRefee is deprecated.");
 			else if ("clob".equals(type) || "orclob".equals(type))
 				// return orclob;
@@ -954,7 +950,7 @@ public class DASemantics {
 				prefixnv = row.get(cols.get(prefixCol));
 			else
 				prefixnv = new Object[] {prefixCol, null};
-			Object prefixVal = ix(prefixnv, 1);
+			Object prefixVal = (len(prefixnv) > 1) ? prefixnv[1] : null;// ix(prefixnv, 1);
 
 
 			try {
