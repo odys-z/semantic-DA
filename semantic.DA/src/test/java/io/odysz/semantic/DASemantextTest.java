@@ -280,9 +280,9 @@ public class DASemantextTest {
 			.rs(0)).nxt();
 		
 		// G01 for windows
-		assertEquals("1.4.34.000401", rs.getString("device"));
+		assertEquals("1.4.34.000G01", rs.getString("device"));
 		rs.next();
-		assertEquals("synode0.000402", rs.getString("device"));
+		assertEquals("synode0.000G02", rs.getString("device"));
 	}
 
 	/**Test cross referencing auto k.<br>

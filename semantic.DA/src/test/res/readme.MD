@@ -1,3 +1,8 @@
+# How to test
+
+Run test/io.odysz.semantic.DASemanticsTest first to create database file.
+Also make sure all resource file in the path are copied to target.
+
 # About Testing Resources
 
 - config.xml
