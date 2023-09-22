@@ -1,5 +1,6 @@
 package io.odysz.semantic;
 
+import static io.odysz.common.Utils.loadTxt;
 import static io.odysz.semantic.DATranscxt.loadSemantics;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -63,7 +64,14 @@ public class DASemantextTest {
 		try {
 			Utils.printCaller(false);
 
-			// File file = new File("src/test/res");
+			File db = new File("src/test/res/semantic-DA.db");
+//			if (db.exists())
+//				if (!db.delete())
+//					fail("can't delete semantic-Da.db");
+//			db.createNewFile();
+			if (!db.exists())
+				fail("Create res/semantic-DA.db, clean project and retry...");
+
 			File file = new File(rtroot);
 			runtimepath = file.getAbsolutePath();
 			Utils.logi(runtimepath);
@@ -93,13 +101,8 @@ public class DASemantextTest {
 	
 	}
 
-	/**Initializing testing DB (use this to reset semantic-DA.db - a sqlite3 db file).<pre>
-drop TABLE a_logs;
-drop TABLE oz_autoseq;
-DELETE FROM a_functions;
-DELETE FROM a_role_func;
-DELETE from a_users;
-DELETE from a_roles;</pre>
+	/**
+	 * Initializing testing DB (use this to reset semantic-DA.db - a sqlite3 db file).
 	 * 
 	 * @throws SQLException
 	 * @throws SemanticException
@@ -108,58 +111,35 @@ DELETE from a_roles;</pre>
 	 */
 	@BeforeAll
 	public static void testInit() throws SQLException, SemanticException, SAXException, IOException {
-		// initialize oz_autoseq - only for sqlite
-		AnResultset rs = Connects.select("SELECT type, name, tbl_name FROM sqlite_master where type = 'table' and tbl_name = 'oz_autoseq'",
-				Connects.flag_nothing);
-		if (rs.getRowCount() == 0) {
-			// create oz_autoseq
-			ArrayList<String> sqls = new ArrayList<String>();
-			sqls.add("CREATE TABLE oz_autoseq (\n" + 
-					"  sid text(50),\n" + 
-					"  seq INTEGER,\n" + 
-					"  remarks text(200),\n" + 
-					"  CONSTRAINT oz_autoseq_pk PRIMARY KEY (sid))");
-			sqls.add("CREATE TABLE a_logs (\n" +
-					"  logId text(20),\n" + 
-					"  funcId text(20),\n" + 
-					"  funcName text(50),\n" + 
-					"  oper text(20),\n" + 
-					"  logTime text(20),\n" + 
-					"  cnt int,\n" + 
-					"  txt text(4000),\n" + 
-					"  CONSTRAINT oz_logs_pk PRIMARY KEY (logId))");
-			sqls.add("insert into oz_autoseq (sid, seq, remarks) values" +
-					"('a_attaches.attId', 0, 'attachements')," +
-					"('a_functions.funcId', 0, 'test')," +
-					"('a_logs.logId', 0, 'test')," +
-					"('a_orgs.orgId', 0, 'test')," + 
-					"('a_roles.roleId', 0, 'test')," + 
-					"('a_users.userId', 0, 'test')," +
-					"('b_alarm_logic.logicId', 64 * 4, 'cascade-parent')," +
-					"('b_alarms.alarmId', 0, 'cascade-ancestor')," +
-					"('b_logic_device.deviceLogId', 64 * 64, 'cascade-child')," +
-					"('crs_a.aid', 0, 'test')," + 
-					"('crs_b.bid', 128 * 64, 'test')"
-					);
-			sqls.add("delete from a_attaches");
-			sqls.add("delete from a_functions");
-			sqls.add("delete from a_logs");
-			sqls.add("delete from a_orgs");
-			sqls.add("delete from a_role_func");
-			sqls.add("delete from a_roles");
-			sqls.add("delete from a_users");
-			sqls.add("delete from b_alarm_logic");
-			sqls.add("delete from b_alarms");
-			sqls.add("delete from b_logic_device");
-			sqls.add("delete from crs_a");
-			sqls.add("delete from crs_b");
-			sqls.add("insert into a_functions\n" +
-					"(flags, funcId, funcName, fullpath) " + 
-					"values ( '1911-10-10', '------', 'Sun Yat-sen', '-')");
-			try { Connects.commit(usr, sqls, Connects.flag_nothing); }
-			catch (Exception e) {
-				Utils.warn("Make sure table oz_autoseq already exists, and only for testing aginst a sqlite DB.");
+		ArrayList<String> sqls = new ArrayList<String>();
+
+		try {
+			for (String tbl : new String[] {"oz_autoseq", "a_logs", "a_attaches",
+					"a_domain", "a_functions", "a_orgs", "a_role_func", "a_roles", "a_users",
+					"b_alarms", "b_alarm_logic", "b_logic_device",
+					"crs_a", "crs_b", "h_photos", "doc_devices"}) {
+				sqls.add("drop table if exists " + tbl);
+				Connects.commit(usr, sqls, Connects.flag_nothing);
+				sqls.clear();
 			}
+
+			for (String tbl : new String[] {
+					"oz_autoseq.ddl",  "oz_autoseq.sql",     "a_logs.ddl",      "a_attaches.ddl",
+					"a_domains.ddl",   "a_domain.sql",       "a_functions.ddl", "a_functions.sql",
+					"a_orgs.ddl",      "a_orgs.sql",
+					"a_role_func.ddl", "a_roles.ddl",        "a_users.ddl",     "a_alarm_logic.ddl",
+					"b_alarms.ddl",    "b_logic_device.ddl", "crs_a.ddl",       "crs_b.ddl",
+					"h_photos.ddl",    "doc_devices.ddl"}) {
+
+				sqls.add(loadTxt(DASemantextTest.class, tbl));
+				Connects.commit(usr, sqls, Connects.flag_nothing);
+				sqls.clear();
+			}
+			Connects.reinit(runtimepath); // reload metas
+			st = new DATranscxt(connId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail(e.getMessage());
 		}
 	}
 
@@ -171,7 +151,7 @@ DELETE from a_roles;</pre>
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_functions")
 			.nv("flags", flag)
-			.nv("funcId", "AUTO")	// let's support semantics.xml/smtc=pk
+			.nv("funcId", "AUTO") // Legacy
 			.nv("funcName", "testInsert A - " + flag)
 			.nv("parentId", "------")
 			.commit(s0, sqls);
@@ -183,7 +163,7 @@ DELETE from a_roles;</pre>
 		DASemantext s1 = new DASemantext(connId, smtcfg, usr, rtroot);
 		st.insert("a_functions")
 			.nv("flags", flag)
-			// .nv("funcId", "AUTO")
+			.nv("funcId", "AUTO")
 			.nv("funcName", "testInsert B - " + flag)
 			.nv("parentId", (String)s0.resulvedVal("a_functions", "funcId"))
 			.commit(s1, sqls);
@@ -234,6 +214,7 @@ DELETE from a_roles;</pre>
 			.nv("funcId", "AUTO")
 			.nv("funcName", "testInsert A - ")
 			.nv("parentId", "------")
+			// for root inserted by a_functions.sql, fullpath = '-.000'
 			.commit(s0, sqls);
 
 		Connects.commit(usr , sqls); // must insert - parent exists when compose children's fullpaths
@@ -254,16 +235,54 @@ DELETE from a_roles;</pre>
 			.nv("sibling", "2")
 			.commit(s0, sqls);
 
-		// "insert into a_functions  (funcId, funcName, parentId, fullpath) values ('00006k', 'testInsert A - ', '------', '000 000')"
-		Regex reg = new Regex("insert into a_functions  \\(funcId, funcName, parentId, fullpath\\) values \\('.{6}', 'testInsert A - ', '------', '000'\\)");
-		// assertEquals("insert into a_functions  (funcId, funcName, parentId, fullpath) values ('00006k', 'testInsert A - ', '------', '000')", sqls.get(0));
-		assertTrue(reg.match(sqls.get(0)));
+		Regex reg = new Regex("insert into a_functions  \\(funcId, funcName, parentId, fullpath\\) values \\('.{6}', 'testInsert A - ', '------', '-.000'\\)");
+		assertTrue(reg.match(sqls.get(0)), sqls.get(0));
 
-		// insert into a_functions  (funcId, funcName, parentId, sibling, fullpath) values ('00009Z', 'testInsert A - ', '00009Y', 1, '000.001')
 		reg = new Regex(".*000.001'\\)");
 		assertTrue(reg.match(sqls.get(1)));
 		reg = new Regex(".*000.002'\\)");
 		assertTrue(reg.match(sqls.get(2)));
+	}
+	
+	/**
+	 * Test prefix.auto-key.
+	 * 
+	 * sk = semantics.xml/6h
+	 * 
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	@Test
+	void testAutoKprefix() throws TransException, SQLException {
+		String devname = DateFormat.formatime(new Date());
+		
+		String tbl = "doc_devices";
+
+		st.insert(tbl, usr)
+			.nv("synode0", "1.4.34") // varchar(6)
+			.nv("devname", devname)
+			.nv("owner",   usr.uid())
+			.nv("org",     "zsu.ua")
+			.ins(st.instancontxt(connId, usr));
+	
+		st.insert(tbl, usr)
+			// synode0 == null, will hard code 'synode0'
+			.nv("devname", devname)
+			.nv("owner",   usr.uid())
+			.nv("org",     "zsu.ua")
+			.ins(st.instancontxt(connId, usr));
+	
+		AnResultset rs = ((AnResultset) st
+			.select(tbl)
+			.col("device")
+			.whereEq("devname", devname)
+			.rs(st.instancontxt(connId, usr))
+			.rs(0)).nxt();
+		
+		// G01 for windows
+		assertEquals("1.4.34.000401", rs.getString("device"));
+		rs.next();
+		assertEquals("synode0.000402", rs.getString("device"));
 	}
 
 	/**Test cross referencing auto k.<br>
@@ -526,7 +545,7 @@ DELETE from a_roles;</pre>
 			fail("ck-cnt-del not working");
 		}
 		catch (SemanticException e) {
-			assertTrue(e.getMessage().startsWith("a_domain.checkSqlCountOnDel: b_alarms "));
+			assertTrue(e.getMessage().startsWith("a_domain.checkSqlCountOnDel: b_alarms "), e.getMessage());
 		}
 	}
 	
@@ -726,9 +745,31 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				s0.resulvedVal("a_attaches", "attId"))));
 	}
 
+	/**
+	 * Test deserialize Anson instance from DB field.
+	 * 
+	 * <h6>Note:<br>
+	 * New line character ('\n') is not the same with the value before saving.</h6>
+	 * <pre>
+	assertEquals("104° 0' 11.23\"", exif.exif.get("GPS:GPS Longitude"));
+	assertEquals("E", exif.exif.get("GPS:GPS Longitude Ref"));
+	assertEquals("30° 40' 11.88\"", exif.exif.get("GPS:GPS Latitude"));
+	assertEquals("Below sea level", exif.exif.get("GPS:GPS Altitude Ref"));
+	assertEquals("v\\nv", exif.exif.get("(RGB\\nabc\\n123)"));
+	assertEquals("0 metres", exif.exif.get("Altitude"));
+	 * </pre>
+	 * @since 1.4.27
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	@Test
 	public void testAnsonField() throws TransException, SQLException {
 		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
+
+		st.delete("b_alarms", usr)
+			.whereIn("typeId", new String[] {"02-photo", "03-photo"})
+			.d(s0);
+
 		st.insert("b_alarms", usr)
 			.nv("remarks", new T_PhotoCSS(16, 9))
 			.nv("typeId", "02-photo")
@@ -736,8 +777,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 
 		AnResultset rs = ((AnResultset) st.select("b_alarms")
 			.col("remarks")
-			//.col("anson('remarks', 'w')", "w")
-			//.col("anson('remarks', 'h')", "h")
 			.whereEq("typeId", "02-photo")
 			.rs(s0)
 			.rs(0))
@@ -746,7 +785,37 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		T_PhotoCSS anson = rs.<T_PhotoCSS>getAnson("remarks");
 		assertEquals(16, anson.w());
 		assertEquals( 9, anson.h());
+
+		st.update("b_alarms", usr)
+			.nv("remarks", new T_Exifield()
+					.add("GPS:GPS Longitude", "104° 0' 11.23\"")
+					.add("GPS:GPS Longitude Ref", "E")
+					.add("GPS:GPS Latitude", "30° 40' 11.88\"")
+					.add("GPS:GPS Altitude Ref", "Below sea level")
+					.add("(RGB\nabc\n123)", "v\nv")
+					.add("Altitude", "0 metres"))
+			.nv("typeId", "02-photo")
+			.whereEq("typeId", "02-photo")
+			.u(s0);
+
+		rs = ((AnResultset) st.select("b_alarms")
+			.col("remarks")
+			.whereEq("typeId", "02-photo")
+			.rs(s0)
+			.rs(0))
+			.nxt();
+
+		T_Exifield exif = rs.<T_Exifield>getAnson("remarks");
+		assertEquals("104° 0' 11.23\"", exif.exif.get("GPS:GPS Longitude"));
+		assertEquals("E", exif.exif.get("GPS:GPS Longitude Ref"));
+		assertEquals("30° 40' 11.88\"", exif.exif.get("GPS:GPS Latitude"));
+		assertEquals("Below sea level", exif.exif.get("GPS:GPS Altitude Ref"));
+		assertEquals("v\\nv", exif.exif.get("(RGB\\nabc\\n123)"));
+		assertEquals("0 metres", exif.exif.get("Altitude"));
 		
+		st.delete("b_alarms", usr)
+			.whereIn("typeId", new String[] {"02-photo", "03-photo"})
+			.d(s0);
 	}
 	
 	/**

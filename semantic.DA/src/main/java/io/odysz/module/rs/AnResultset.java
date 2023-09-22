@@ -23,7 +23,7 @@ import io.odysz.common.Regex;
 import io.odysz.transact.sql.parts.AnDbField;
 
 /**This Resultset is used for non-connected manipulation.
- * Rows and Cols are start at 1, the same as {@link java.sql.Resultset}.<br>
+ * Rows and Cols are start at 1, the same as {@link java.sql.ResultSet}.<br>
  * TODO This will be changed in the future (It's proved starting at 0 is more bug free).
  * 
  * @author odys-z@github.com
@@ -50,7 +50,7 @@ public class AnResultset extends Anson {
 	private int rowIdx = -1;
 	/**
 	 * current row index
-	 * @since 1.5.0
+	 * @since 1.4.25
 	 * @return
 	 */
 	public int currentRow() { return rowIdx; }
@@ -380,7 +380,6 @@ for (String coln : colnames.keySet())
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) return null;
 			if (results.get(rowIdx - 1).get(colIndex - 1) == null) return null;
-			// else return results.get(rowIdx - 1).get(colIndex - 1).toString();
 			else {
 				Object v = results.get(rowIdx - 1).get(colIndex - 1);
 				return stringFormats != null && stringFormats.containsKey(v.getClass()) ?
@@ -443,7 +442,8 @@ for (String coln : colnames.keySet())
 		return s == null? "" : s;
 	}
 	
-	/**if value is equals case insensitive to 1,true, yes, y, t, decimal > 0.001 return true, else return false;
+	/**
+	 * if value is equals case insensitive to 1,true, yes, y, t, decimal &gt; 0.001 return true, else return false;
 	 * @param colIndex
 	 * @return string value
 	 * @throws SQLException
@@ -468,8 +468,6 @@ for (String coln : colnames.keySet())
 						if (d >= 0.001d) return true;
 					}
 					catch (Exception e){}
-					//if (v.equals("0")) return false;
-					//if (v.equals("false")) return false;
 					return false;
 				} catch (Exception e) {
 					return false;
@@ -486,8 +484,12 @@ for (String coln : colnames.keySet())
 
 	public double getDouble(int colIndex) throws SQLException {
 		try {
-			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
-			if (results.get(rowIdx - 1).get(colIndex - 1) == null) throw new SQLException("Null value to be converted to double.");
+			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null)
+				throw new SQLException("Null row to be accessed.");
+
+			if (results.get(rowIdx - 1).get(colIndex - 1) == null)
+				throw new SQLException("Null value to be converted to double.");
+
 			else return Double.valueOf(results.get(rowIdx - 1).get(colIndex - 1).toString());
 		} catch (Exception e) {
 			throw new SQLException(e.getMessage());
@@ -508,9 +510,11 @@ for (String coln : colnames.keySet())
 	
 	public Date getDate(int index)throws SQLException{
 		try {
-			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
+			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null)
+				throw new SQLException("Null row to be accessed.");
+
 			if (results.get(rowIdx - 1).get(index - 1) == null) return null;
-			// Oracle Datetime, Mysql Date, datetime can safely cast to date.
+			// Oracle Datetime, Mysql Date, datetime can be safely casted to date.
 			// If your debugging arrived here, you may first check you database column type.
 			else try {
 				return (Date)results.get(rowIdx - 1).get(index - 1);
@@ -528,14 +532,15 @@ for (String coln : colnames.keySet())
 	}
 
 	/**
-	 * TODO to be tested on Mysql & Oracle.
 	 * @param index
-	 * @return
+	 * @return datetime
 	 * @throws SQLException
 	 */
 	public Date getDateTime(int index)throws SQLException{
 		try {
-			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
+			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null)
+				throw new SQLException("Null row to be accessed.");
+
 			if (results.get(rowIdx - 1).get(index - 1) == null) return null;
 			// Oracle Datetime, Mysql Date, datetime can safely cast to date.
 			else try {
@@ -548,12 +553,6 @@ for (String coln : colnames.keySet())
 		}
 	}
 	
-	/**
-	 * TODO to be tested on Mysql & Oracle.
-	 * @param colName
-	 * @return
-	 * @throws SQLException
-	 */
 	public Date getDateTime(String colName)throws SQLException{
 		return getDateTime((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
@@ -618,11 +617,27 @@ for (String coln : colnames.keySet())
 		}catch (Exception e) {throw new SQLException(e.getMessage());}
 	}
 	
+	/**
+	 * @since 1.4.25
+	 * @param <T>
+	 * @param colIndex
+	 * @return Anson instance (value unescaped)
+	 * @throws AnsonException
+	 * @throws SQLException
+	 * @since 1.4.27
+	 */
 	@SuppressWarnings("unchecked")
 	public <T extends AnDbField> T getAnson(int colIndex) throws AnsonException, SQLException {
 		return (T) Anson.fromJson(getString(colIndex));
 	}
 
+	/**
+	 * @param col
+	 * @return Anson instance (value unescaped)
+	 * @throws AnsonException
+	 * @throws SQLException
+	 * @since 1.4.27
+	 */
 	@SuppressWarnings("unchecked")
 	public <T extends AnDbField> T getAnson(String col) throws AnsonException, SQLException {
 		return (T) Anson.fromJson(getString(col));
@@ -938,11 +953,11 @@ for (String coln : colnames.keySet())
 	/**
 	 * Iterating through the results and convert to hash map, like this:
 	 * <pre>
-	 HashMap<String, SynState> res = st
+	 HashMap &lt;String, SynState&gt; res = st
 		.select(met.tbl, "l")
 		.rs(st.instancontxt(conn, usr))
 		.rs(0)
-		.&lt;UserType&gt;map((currow) -> {
+		.&lt;UserType&gt;map((currow) -&gt; {
 			// create instance according current row
 			return new UserType(currow.getString("id"));
 		}); 
@@ -950,12 +965,12 @@ for (String coln : colnames.keySet())
 	 * TODO: This is a temporary way. Which will be moved to
 	 * {@link io.odysz.semantic.DA.AbsConnect#select(String, ObjCreator, int) select()}.
 	 * 
-	 * @param value of the field name used for map's key
-	 * @param <T> the user type
-	 * @param objCreator the call back
-	 * @return the hash map
-	 * @throws SQLException 
 	 * @since 1.4.12
+	 * @param keyField value of the field name used for map's key
+	 * @param objCreator object creator (mapper)
+	 * @return
+	 * @return the hash map
+	 * @throws SQLException
 	 */
 	public <T extends Anson> HashMap<String, T> map(String keyField, ObjCreator<T> objCreator)
 			throws SQLException {
@@ -996,9 +1011,9 @@ for (String coln : colnames.keySet())
 	 * .rs(syb.instancontxt(stx.connId(), usr))
 	 * .rs(0))
 	 * .nxt()
-	 * .getInt("c") > 0;
+	 * .getInt("c") &gt; 0;
 	 * </pre>
-	 * @since 1.5.0
+	 * @since 1.4.25
 	 * @return this or null
 	 * @throws SQLException
 	 */

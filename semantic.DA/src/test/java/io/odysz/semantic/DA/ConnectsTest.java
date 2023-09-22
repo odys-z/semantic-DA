@@ -39,7 +39,6 @@ public class ConnectsTest {
 		Configs.init(abspath);
 		Connects.init(abspath);
 
-		// Utils.logi("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n+++\n+++\n+++\n+++");
 		try {
 			DATranscxt.configRoot(null, abspath);
 			st = new DATranscxt(DASemantextTest.connId);

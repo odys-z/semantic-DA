@@ -1,6 +1,7 @@
 package io.odysz.semantic.DA;
 
 import static io.odysz.common.LangExt.len;
+import static io.odysz.common.LangExt.str;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,16 +75,22 @@ public class DatasetCfg {
 		/**parse tree semantics like ",checked,table,recId id,parentId,itemName text,fullpath,siblingSort,false" to 2d array.
 		 * @param semantic
 		 * @return [0:[checked, null], 1:[tabl, null], 2:[areaId, id], ...]
+		 * @throws SAXException 
 		 */
-		public static String[][] parseSemantics(String semantic) {
+		public static String[][] parseSemantics(String semantic) throws SAXException {
 			if (semantic == null) return null;
 			String[] sms = semantic.split(",");
 			
 			return parseSemantics(sms);
 		}
 		
-		public static String[][] parseSemantics(String[] sms) {
+		public static String[][] parseSemantics(String[] sms) throws SAXException {
 			if (sms == null) return new String[0][2];
+			
+			if (sms.length > Ix.count)
+				throw new SAXException(String.format(
+					"[TODO doc] Configured semantics, [%s], has too many elements. Only max %d is understandable.",
+					str(sms), Ix.count));
 
 			String[][] sm = new String[Ix.count][];
 			for (int ix = 0; ix < sms.length; ix++) {
@@ -114,11 +121,11 @@ public class DatasetCfg {
 		String[][] treeSmtcs;
 		public String[][] treeSmtcs() { return treeSmtcs; }
 
-		public TreeSemantics(String stree) {
+		public TreeSemantics(String stree) throws SAXException {
 			treeSmtcs = parseSemantics(stree);
 		}
 
-		public TreeSemantics(String[] stree) {
+		public TreeSemantics(String[] stree) throws SAXException {
 			treeSmtcs = parseSemantics(stree);
 		}
 
@@ -232,94 +239,16 @@ public class DatasetCfg {
      }]</pre>
 	 */
 	public static class AnTreeNode extends TreeIndenode {
-//		@Override
-//		public Anson toBlock(OutputStream stream, JsonOpt... opts)
-//				throws AnsonException, IOException {
-//			indents = parentNode.cloneIndents();
-//			if (lastSibling) indents.add(IndentFlag.childx);
-//			else indents.add(IndentFlag.childi);
-//			return super.toBlock(stream, opts);
-//		}
 
-//		HashMap<String, Object> node;
-//		String id;
 		int level;
-//		String parent;
-		
-//		/**
-//		 * @since 1.5.0
-//		 */
-//		@AnsonField(ignoreTo=false)
-//		AnTreeNode parentNode;
 
-		/**
-		 * @since 1.5.0
-		 */
-//		ArrayList<IndentFlag> indents;
-
-		// Only for Anson parser
+		/** Only for Anson parser, don't create like this (use subclass constructor) */
 		public AnTreeNode() { }
 
 		public AnTreeNode(String id, String parent, int level, AnTreeNode... root) {
 			super(id, root);
-//			this.id = id;
-//			this.parent = parent;
-//			this.parentNode = isNull(root) ? null : root[0];
 			this.level = level;
-//			node = new HashMap<String, Object>(TreeSemantics.Ix.count);
 		}
-		
-//		public ArrayList<IndentFlag> cloneIndents() {
-//			if (indents == null && parentNode != null) 
-//				indents = parentNode.cloneIndents();
-//
-//			ArrayList<IndentFlag> ret = new ArrayList<IndentFlag>(indents);
-//			if (lastSibling && len(ret) > 0) {
-//				ret.remove(ret.size() - 1);
-//				ret.add(IndentFlag.space);
-//			}
-//			return ret;
-//		}
-
-//		public AnTreeNode put(String k, Object v) {
-//			node.put(k, v);
-//			return this;
-//		}
-
-//		public Object get(String k) {
-//			return node == null ? null : node.get(k);
-//		}
-
-//		public String id() { return id; }
-//		public String parent() { return parent; }
-//		public String fullpath() { 
-//			return node == null ? null : (String) node.get("fullpath");
-//		}
-
-//		public List<?> children() {
-//			return node == null ? null : (List<?>) node.get("children");
-//		}
-//
-//		public Object child(int cx) {
-//			return node == null ? null : ((List<?>) node.get("children")).get(cx);
-//		}
-
-//		/** node: { children: arrChildren&lt;List&gt; }
-//		 * @param arrChildren
-//		 */
-//		public void children(List<Object> arrChildren) {
-//			put("children", arrChildren);
-//		}
-//
-//		public void children_(List<AnTreeNode> childrenArray) {
-//			put("children", childrenArray);
-//		}
-
-//		boolean lastSibling;
-//		public AnTreeNode asLastSibling() {
-//			lastSibling = true;
-//			return this;
-//		}
 	}
 
 	public static final int ixMysql = 0;
@@ -405,25 +334,25 @@ public class DatasetCfg {
 		}
 	}
 
-	public static AnResultset select(String conn, String sk,
+	public static AnResultset dataset(String conn, String sk,
 			int page, int size, String... args) throws SQLException, TransException {
-		String sql = getSql(conn, sk, args);
+		String sql = getDSql(conn, sk, args);
 		if (page >= 0 && size > 0)
 			sql = Connects.pagingSql(conn, sql, page, size);
 
 		// v1.3.0 overriding uri->conn with xml/conn
 		if (!LangExt.isblank(dss.get(sk).conn))
 			conn = dss.get(sk).conn;
-		// AnResultset rs = new AnResultset(Connects.select(conn, sql));
 		AnResultset rs = Connects.select(conn, sql);
 		return rs;
 	}
 
-	public static String getSql(String conn, String k, String... args) throws SQLException, SemanticException {
+	private static String getDSql(String conn, String k, String... args)
+			throws SQLException, SemanticException {
 		if (dss == null)
 			throw new SQLException("FATAL - dataset not initialized...");
 		if (k == null || !dss.containsKey(k))
-			throw new SQLException(String.format("No dataset configuration found for k = %s", k));
+			throw new SemanticException(String.format("No dataset configuration found for k = %s", k));
 
 		if (conn == null) conn = Connects.defltConn();
 
@@ -455,20 +384,22 @@ public class DatasetCfg {
 			throw new SemanticException("null semantic key");
 		if (conn == null)
 			conn = Connects.defltConn();
-		return select(conn, sk, page, size, args);
+		return dataset(conn, sk, page, size, args);
 	}
 
-	public static AnResultset loadDataset(String conn, String sk) throws SQLException, TransException {
+	public static AnResultset loadDataset(String conn, String sk)
+			throws SQLException, TransException {
 		return loadDataset(conn, sk, -1, -1, "");
 	}
 
-	public static AnResultset loadDataset(String conn, String sk, String... args) throws SQLException, TransException {
+	public static AnResultset loadDataset(String conn, String sk, String... args)
+			throws SQLException, TransException {
 		return loadDataset(conn, sk, -1, -1, args);
 	}
 
-	public static List<?> loadStree(String conn, String sk,
-			int page, int size, String... args)
+	public static List<?> loadStree(String conn, String sk, int page, int size, String... args)
 			throws SQLException, TransException {
+
 		if (dss == null || !dss.containsKey(sk))
 			throw new SemanticException("Can't find tree semantics, dss %s, sk = %s. Check dataset.xml configuration.",
 					dss == null ? "null" : dss.size(), sk);
@@ -490,8 +421,10 @@ public class DatasetCfg {
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public static List<?> loadStree(String conn, String sk, PageInf page) throws SQLException, TransException {
-		return loadStree(conn, sk, (int)page.page, (int)page.size, len(page.condts) > 0 ? page.condts.get(0) : null);
+	public static List<?> loadStree(String conn, String sk, PageInf page)
+			throws SQLException, TransException {
+		return loadStree(conn, sk, (int)page.page, (int)page.size,
+				len(page.arrCondts) > 0 ? page.arrCondts.get(0) : null);
 	}
 	
 	/**
@@ -514,7 +447,7 @@ public class DatasetCfg {
 			// sometimes error results from inconsistent data is confusing, so report an error here - it's debug experience.
 			if (!rs.hasCol(treeSemtcs.dbRecId()))
 				throw new SemanticException("Building s-tree requires column '%s'(configured id). You'd better check the query request and the semantics configuration:\n%s",
-						treeSemtcs.dbRecId(), LangExt.toString(treeSemtcs.treeSmtcs()));
+						treeSemtcs.dbRecId(), LangExt.str(treeSemtcs.treeSmtcs()));
 
 			List<Object> children = buildSubTree(treeSemtcs, root,
 					rs.getString(treeSemtcs.dbRecId()),
@@ -531,6 +464,7 @@ public class DatasetCfg {
 	 * Create a SemanticObject for tree node with current rs row.<br>
 	 * 
 	 * TODO should this moved to TreeSemantics?
+	 * 
 	 * @param treeSmx
 	 * @param rs
 	 * @param level depth of this node

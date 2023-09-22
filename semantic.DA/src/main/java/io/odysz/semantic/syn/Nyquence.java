@@ -8,11 +8,11 @@ public class Nyquence {
 	 * -128           0            127
 	 *                a  b
 	 *     a             b
-	 *     b                    a             a - b < 0
+	 *     b                    a             a - b &lt; 0
 	 * </pre>
 	 * @param a
 	 * @param b
-	 * @return 1 if a > b else -1 if a < b else 0
+	 * @return 1 if a &gt; b else -1 if a &lt; b else 0
 	 */
 	public static int compare64(long a, long b) {
 		long c = a - b;

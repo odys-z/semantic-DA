@@ -270,5 +270,13 @@
   		<pk>deviceLogId</pk>
   		<args>alarmId,b_alarms,alarmId</args>
   	</s>
+  	
+  	<s>
+  		<id>6h</id>
+  		<smtc>auto</smtc>
+  		<tabl>doc_devices</tabl>
+  		<pk>device</pk>
+  		<args>device,synode0</args>
+  	</s>
   </t>
 </semantics>

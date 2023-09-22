@@ -44,13 +44,25 @@ public class Configs {
 		load(cfgs, keys.deftXTableId);
 	}
 	
-	protected static void load(HashMap<String, HashMap<String, String>> cfgs, String tid) {
-		load(cfgs, cfgFile, tid);
+	/**
+	 * @param cfgs
+	 * @param tid
+	 * @return absolute configure file path
+	 */
+	protected static String load(HashMap<String, HashMap<String, String>> cfgs, String tid) {
+		return load(cfgs, cfgFile, tid);
 	}
 
-	public static void load(HashMap<String, HashMap<String, String>> cfgs, String xml, String tid) {
+	/**
+	 * @param cfgs
+	 * @param xml
+	 * @param tid
+	 * @return absolute configure file path
+	 */
+	public static String load(HashMap<String, HashMap<String, String>> cfgs, String xml, String tid) {
 		String absPath = FilenameUtils.concat(xml);
-		Utils.logi("config file : %s", new File(absPath).getAbsolutePath());
+		String p = new File(absPath).getAbsolutePath();
+		Utils.logi("config file : %s", p);
 
 		XMLTable deft = XMLDataFactory.getTable(xml, log, tid, absPath, new IXMLStruct(){
 			@Override public String rootTag() { return "configs"; }
@@ -74,6 +86,7 @@ public class Configs {
 				e.printStackTrace();
 			}
 		}
+		return p;
 	}
 
 	public static String getCfg(String key) {
