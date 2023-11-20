@@ -1,5 +1,6 @@
 package io.odysz.semantic.DA;
 
+import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.len;
 import static io.odysz.common.LangExt.str;
 
@@ -361,7 +362,7 @@ public class DatasetCfg {
 		Dataset ds = dss.get(k);
 		String sql = ds.getSql(Connects.driverType(ds.conn == null ? conn : ds.conn));
 
-		if (sql == null)
+		if (isblank(sql))
 			throw new SemanticException("Sql not found for sk=%s, type = %s",
 					k, Connects.driverType(conn));
 
