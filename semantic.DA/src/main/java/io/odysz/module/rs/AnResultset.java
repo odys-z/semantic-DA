@@ -1,5 +1,6 @@
 package io.odysz.module.rs;
 
+
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -22,7 +23,8 @@ import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
 import io.odysz.transact.sql.parts.AnDbField;
 
-/**This Resultset is used for non-connected manipulation.
+/**
+ * This Resultset is used for non-connected manipulation.
  * Rows and Cols are start at 1, the same as {@link java.sql.ResultSet}.<br>
  * TODO This will be changed in the future (It's proved starting at 0 is more bug free).
  * 
@@ -292,34 +294,6 @@ for (String coln : colnames.keySet())
 		rowIdx = 0;
 		rowCnt = 0;
 	}
-
-	/**For older version compatibility, will be removed if SResultset is removed.
-	 * @param rs
-	 * @throws SQLException 
-	public AnResultset(SResultset icrs) throws SQLException {
-		results = new ArrayList<ArrayList<Object>>();
-		if (icrs == null) return;
-		HashMap<String, Object[]> src_colnames = icrs.getColnames();
-		colnames = new HashMap<String, Object[]>();
-		for (String cname : src_colnames.keySet()) {
-			Object[] v = src_colnames.get(cname);
-			colnames.put(cname, new Object[] {v[0], new String((String) v[1])});
-		}
-		rowIdx = 0;
-		rowCnt = 0;
-		colCnt = src_colnames.keySet().size();
-		while (icrs.next()) {
-			rowCnt++;
-			ArrayList<Object> row = new ArrayList<Object>();
-			for (int j = 1; j <= colCnt; j++) {
-				String v = icrs.getString(j);
-				if (v == null) row.add("");
-				else row.add(new String(v));
-			}
-			results.add(row);
-		}
-	}
-	 */
 
 	/** @return column names */
 	public HashMap<String, Object[]> getColnames() {
@@ -1023,4 +997,15 @@ for (String coln : colnames.keySet())
 		else
 			return null;
 	}
+
+//	/**
+//	 * Force escape all value from db.
+//	 */
+//	@Override
+//	public Anson toBlock(OutputStream stream, JsonOpt... opts) throws AnsonException, IOException {
+//		if (isNull(opts))
+//			opts = new JsonOpt[] {new JsonOpt()};
+//		opts[0].escape4DB(true);
+//		return super.toBlock(stream, opts);
+//	}
 }
