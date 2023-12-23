@@ -1,5 +1,6 @@
 package io.odysz.semantic;
 
+import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.Utils.loadTxt;
 import static io.odysz.semantic.DATranscxt.loadSemantics;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -810,7 +811,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		assertEquals("E", exif.exif.get("GPS:GPS Longitude Ref"));
 		assertEquals("30° 40' 11.88\"", exif.exif.get("GPS:GPS Latitude"));
 		assertEquals("Below sea level", exif.exif.get("GPS:GPS Altitude Ref"));
-		assertEquals("v\\nv", exif.exif.get("(RGB\\nabc\\n123)"));
+		assertEquals("v\nv", exif.exif.get("(RGB\\nabc\\n123)"));
 		assertEquals("0 metres", exif.exif.get("Altitude"));
 		
 		st.delete("b_alarms", usr)
@@ -831,32 +832,38 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		String extroot = args[ShExtFilev2.ixExtRoot];
 		
 		String encoded = EnvPath.encodeUri(extroot, "ody", "000001 f.txt");
-		assertEquals("$VOLUME_HOME/shares/ody/000001 f.txt", encoded);
+		assertTrue( eq("$VOLUME_HOME/shares/ody/000001 f.txt", encoded) ||
+					eq("$VOLUME_HOME\\shares\\ody\\000001 f.txt", encoded));
 
 		String abspath = EnvPath.decodeUri("", encoded);
-		assertEquals("/home/ody/volume/shares/ody/000001 f.txt", abspath);
+		assertTrue( eq("/home/ody/volume/shares/ody/000001 f.txt", abspath) ||
+					eq("\\home\\ody\\volume\\shares\\ody\\000001 f.txt", abspath));
 		
 		args = "upload,uri,userId,cate,docName".split(",");
 		encoded = EnvPath.encodeUri(extroot, "admin", "000002 f.txt");
-		assertEquals("$VOLUME_HOME/shares/admin/000002 f.txt", encoded);
+		assertTrue( eq("$VOLUME_HOME/shares/admin/000002 f.txt", encoded) ||
+					eq("$VOLUME_HOME\\shares\\admin\\000002 f.txt", encoded));
 
 		abspath = EnvPath.decodeUri(rtroot, encoded);
 		// assertEquals("src/test/res/upload/admin/000002 f.txt", abspath);
-		assertEquals("/home/ody/volume/shares/admin/000002 f.txt", abspath);
+		assertTrue( eq("/home/ody/volume/shares/admin/000002 f.txt", abspath) ||
+					eq("\\home\\ody\\volume\\shares\\admin\\000002 f.txt", abspath));
 
 		args = "/home/ody/upload,uri,userId,cate,docName".split(",");
 		encoded = EnvPath.encodeUri(extroot, "admin", "000003 f.txt");
 		// assertEquals("/home/ody/upload/admin/000003 f.txt", encoded);
-		assertEquals("$VOLUME_HOME/shares/admin/000003 f.txt", encoded);
+		assertTrue( eq("$VOLUME_HOME/shares/admin/000003 f.txt", encoded) ||
+					eq("$VOLUME_HOME\\shares\\admin\\000003 f.txt", encoded));
 
 		abspath = EnvPath.decodeUri(rtroot, encoded);
-		// assertEquals("/home/ody/upload/admin/000003 f.txt", abspath);
-		assertEquals("/home/ody/volume/shares/admin/000003 f.txt", abspath);
+		assertTrue( eq("/home/ody/volume/shares/admin/000003 f.txt", abspath) ||
+					eq("\\home\\ody\\volume\\shares\\admin\\000003 f.txt", abspath));
 		
 		// Override
 		System.setProperty("VOLUME_HOME", "/home/alice/vol");
 		abspath = EnvPath.decodeUri(rtroot, encoded);
-		assertEquals("/home/alice/vol/shares/admin/000003 f.txt", abspath);
+		assertTrue( eq("/home/alice/vol/shares/admin/000003 f.txt", abspath) ||
+					eq("\\home\\alice\\vol\\shares\\admin\\000003 f.txt", abspath));
 	}
 	
 	/**Only Linux/MacOs
