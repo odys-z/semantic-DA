@@ -29,12 +29,19 @@ public class Configs {
 		public static final String idLen = "id-len";
 		
 		/**
-		 * Tike external parser. Currently only used for configure factory to load exiftoll.
+		 * Tike external parser. Currently only used for configure factory to load exiftool.
 		 * 
 		 * @since 1.4.35
 		 */
 		public static final String tika_ex_parser_win = "windows:tika-external-parsers.xml";
+		
+		/**
+		 * Disable session token verification.
+		 * @since 1.4.36
+		 */
+		public static final String disableTokenKey = "disable-token";
 	}
+
 	protected static HashMap<String, HashMap<String, String>> cfgs;
 
 	static {
