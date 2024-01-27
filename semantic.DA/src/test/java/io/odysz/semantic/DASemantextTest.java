@@ -126,7 +126,7 @@ public class DASemantextTest {
 
 			for (String tbl : new String[] {
 					"oz_autoseq.ddl",  "oz_autoseq.sql",     "a_logs.ddl",      "a_attaches.ddl",
-					"a_domains.ddl",   "a_domain.sql",       "a_functions.ddl", "a_functions.sql",
+					"a_domain.ddl",    "a_domain.sql",       "a_functions.ddl", "a_functions.sql",
 					"a_orgs.ddl",      "a_orgs.sql",
 					"a_role_func.ddl", "a_roles.ddl",        "a_users.ddl",     "a_alarm_logic.ddl",
 					"b_alarms.ddl",    "b_logic_device.ddl", "crs_a.ddl",       "crs_b.ddl",
@@ -280,10 +280,10 @@ public class DASemantextTest {
 			.rs(st.instancontxt(connId, usr))
 			.rs(0)).nxt();
 		
-		// G01 for windows
-		assertEquals("1.4.34.000G01", rs.getString("device"));
+		// oz_autoseq.sql: ('doc_devices.device', 64 * 64 * 4, 'device');
+		assertEquals("1.4.34.000401", rs.getString("device"));
 		rs.next();
-		assertEquals("synode0.000G02", rs.getString("device"));
+		assertEquals("synode0.000402", rs.getString("device"));
 	}
 
 	/**Test cross referencing auto k.<br>
