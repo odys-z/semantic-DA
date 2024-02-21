@@ -14,7 +14,7 @@ import io.odysz.common.dbtype;
  * For additional information of Json datetime format:
  * <a href='https://www.ibm.com/developerworks/library/j-javaee8-json-binding-4/index.html'>IBM Learn</a>
  * </p>
- * <br>For sql format helper, see {@link DateFormat}.
+ * <br>For sql format helper, see {@link io.odysz.common.DateFormat}.
  * @author ody */
 public class JDateFormat {
 	/**yyyy-MM-dd*/

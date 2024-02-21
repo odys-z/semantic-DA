@@ -71,7 +71,9 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 		DriverManager.deregisterDriver(drv);
 	}
 
-	/**This method is only for debug and test, use #{@link SqliteDriver2#initConnection(String, String, String, int)} before any function call.
+	/**This method is only for debug and test, use
+	 * #{@link SqliteDriver2#initConnection(String, String, String, boolean, int)}
+	 * before any function call.
 	 * MUST CLOSE CONNECTION!
 	 * @return connection
 	 * @throws SQLException
@@ -80,8 +82,8 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 		return conn;
 	}
 	
-	/**Use this to init connection without using servlet context for retrieving configured strings.<br>
-	 * This is the typical scenario when running test from "main" thread.
+	/**
+	 * Get {@link SqliteDriver2} instance, with database connection got via {@link DriverManager}.
 	 * 
 	 * @param jdbc
 	 * @param user

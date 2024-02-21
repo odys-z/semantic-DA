@@ -1,7 +1,6 @@
 package io.odysz.semantic.syn;
 
 import io.odysz.semantic.meta.SynodeMeta;
-import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.x.TransException;
 

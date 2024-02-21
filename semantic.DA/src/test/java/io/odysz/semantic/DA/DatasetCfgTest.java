@@ -81,6 +81,4 @@ orgId  |parent |orgName       |orgType |sort |fullpath             |
 		AnTreeNode grand32 = (AnTreeNode) child3.child(1);
 		assertEquals("00000b", grand32.id());
 	}
-
-
 }

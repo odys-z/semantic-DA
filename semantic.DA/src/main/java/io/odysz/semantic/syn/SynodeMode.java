@@ -4,11 +4,11 @@ package io.odysz.semantic.syn;
  * jserv-node states
  */
 public enum SynodeMode {
-	/** jserv node mode: cloud hub, equivalent of {@link Docsyncer#cloudHub} */
+	/** jserv node mode: cloud hub, equivalent of jserv/Docsyncer.cloudHub */
 	hub,
-	/** jserv node mode: private main, equivalent of {@link Docsyncer#mainStorage} */
+	/** jserv node mode: private main, equivalent of jserv/Docsyncer.mainStorage */
 	main,
-	/** jserv node mode: bridge , equivalent of {@link Docsyncer#privateStorage}*/
+	/** jserv node mode: bridge , equivalent of jserv/Docsyncer.privateStorage*/
 	bridge,
 	/** jserv client device */
 	device

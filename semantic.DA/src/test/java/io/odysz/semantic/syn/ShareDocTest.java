@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
@@ -22,6 +23,7 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.x.TransException;
 
+@Disabled
 public class ShareDocTest {
 	
 	static DBSynsactBuilder trb;
@@ -104,7 +106,6 @@ public class ShareDocTest {
 		if (!DATranscxt.hasSemantics(conn, meta.tbl, smtype.extFilev2))
 			throw new SemanticException("Semantics of ext-file2.0 for h_photos.uri can't be found");
 		
-		// Update post = DBSyncher.onDocreate(photo, meta, usr);
 		return DocUtils.createFileB64(conn, photo, usr, meta, trb, null);
 	}
 

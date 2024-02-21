@@ -11,7 +11,7 @@ import io.odysz.transact.x.TransException;
 /**
  * Syncrhonizable entity table meta
  * 
- * @since 1.5.0
+ * @since 1.4.25
  * @author odys-z@github.com
  *
  */
@@ -24,6 +24,7 @@ public abstract class SyntityMeta extends TableMeta {
 
 	/** entity creator id used for identify globally (experimental) */
 	public final String synoder;
+
 	public final HashSet<String> uids;
 	
 	/**
@@ -31,7 +32,7 @@ public abstract class SyntityMeta extends TableMeta {
 	 * @param pk
 	 * @param org DB field of orgnization - {@link io.odysz.semantic.syn.DBSynmantics}
 	 * uses this to filter data for synchronization.
-	 * Could be changed in the future.
+	 * Could be changed in the future. (What is this if using DB synchronization, data filter?)
 	 * @param conn
 	 */
 	@SuppressWarnings("serial")

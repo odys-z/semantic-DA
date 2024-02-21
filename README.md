@@ -20,8 +20,8 @@ For complete semantics types, see the [semantics type java API doc](https://odys
 
 # Quick Start
 
-Semantic-DA is an important component used by semantic-*, which can't work independently. 
-If you are interesting in what kind of semantics it can handle, just download or clone 
+Semantic-DA is an important component used by semantic-*, which can't work independently.
+If you are interesting in what kind of semantics it can handle, just download or clone
 the source,
 
 ~~~
@@ -89,8 +89,11 @@ supported semantics plugins.
 In short, semantic-transact handling sql structure, ISemantics handling data
 modification, semantic-DA glue this together, based on JDBC connection(s).
 
-TODO: Docs
+## Test Semantic.DA
 
-## Additional Docs
+The tests based on a target sqlite3 database file, which is been removed from git
+since 1.4.35.
 
-The quickest way is checking the DASemantextTest test cases.
+The test DASemantextTest is used to create the sqlite3 database file, which must
+be run before other tests at least once. Create an empty file in test/res, semantic-DA.db,
+and run the test.
