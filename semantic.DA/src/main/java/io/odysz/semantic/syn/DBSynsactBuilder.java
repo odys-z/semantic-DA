@@ -181,4 +181,14 @@ public class DBSynsactBuilder extends DATranscxt {
 				.rs(instancontxt(connId, usr))
 				.rs(0);
 	}
+
+	public AnResultset tobegin(SyntityMeta phm, String synode, String connId, IUser robot) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public AnResultset onbegin(SyntityMeta phm, String synode, String connId, IUser robot, AnResultset schgs) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

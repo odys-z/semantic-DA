@@ -32,11 +32,6 @@ public class SynEntity extends Anson {
 		return this;
 	}
 
-//	public String clientpath;
-//	public String fullpath() { return clientpath; }
-//	public String clientpath2;
-//	public String clientpath2() { return clientpath2; }
-
 	public String uids;
 
 	/** Non-public: doc' device id is managed by session. */

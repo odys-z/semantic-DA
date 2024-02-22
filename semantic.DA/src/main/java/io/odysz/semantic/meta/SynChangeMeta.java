@@ -14,6 +14,7 @@ public class SynChangeMeta extends TableMeta {
 	public final String org;
 	public final String entbl;
 	public final String entfk;
+	/** device:fullpath */
 	public final String uids;
 	public final String crud;
 	public final String synoder;

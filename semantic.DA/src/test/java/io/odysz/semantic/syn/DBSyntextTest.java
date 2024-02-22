@@ -177,20 +177,20 @@ public class DBSyntextTest {
 	 *  B 0 1 0
 	 *  C 0 0 0
 	 *  
-	 * 2.
+	 * 2. A.a > B.a, B don't know A:0 [B]/C/D, with n=1 > 0 | s=A
 	 * A                     =) B
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
 	 *  I,   A, A:0, 1, [ ]  |  I,   B, B:0, 1,  A
-	 *                   C   |                   C
-	 *                   D   |                   D
-	 *                       |  I,   A, A:0, 1,  C
-	 *                       |                   D
+	 *                  [C]  |                   C
+	 *                  [D]  |                   D
+	 *                       |  I,   A, A:0, 1, [C]
+	 *                       |                  [D]
 	 *    a b c
 	 *  A 1 0 0
 	 *  B 1 1 0  [B.a = A.a]
 	 *  C 0 0 0
 	 *
-	 * 3.
+	 * 3. A.b < B.b, A don't know B:0 [A]/C/D, with n=1 > A.b | s=B
 	 * A                    (=  B
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
 	 *  I,   A, A:0, 1, [ ]  |  I,   B, B:0, 1, [ ]
@@ -257,7 +257,12 @@ public class DBSyntextTest {
 	 *  C 0 0 0 0
 	 *  D 0 0 0 0
 	 *
-	 * B vs. C: B.ch.n=1 > C.b, B => C, ++C
+	 * B vs. C:
+	 * B =) C,
+	 *     [B, B:0, 1] for S=B, n=1 > C.b=0; clear SUB=C/B, C.b=B.b
+	 *     [A, A:0, 1] for S=A, n=1 > C.a=0; clear SUB=C/B, C.a=B.a
+	 *     B.c=C.c
+	 * 
 	 * A                     | B                   =) C                    | D
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
 	 *  I,   A, A:0, 1, [ ]  |  I,   B, B:0, 1, [ ] |  I,   B, B:0, 1,     |
@@ -269,7 +274,7 @@ public class DBSyntextTest {
 	 *    a b c d
 	 *  A 1 1 0 0
 	 *  B 1 1 0 0
-	 *  C 1 1 1 0   [C.a = max(ch[A].n), C.b = B.b, ++C.c, C.d]
+	 *  C 1 1 1 0   [C.a = max(B.a, C.a), C.b = max(B.b, C.b), C.c++, C.d=max(B.d, C.d)]
 	 *  D 0 0 0 0
 	 *
 	 * A update A:0
@@ -422,7 +427,6 @@ public class DBSyntextTest {
 		// And more ...
 	}
 
-	
 	static void initSynodes(int s)
 			throws SQLException, TransException, ClassNotFoundException, IOException {
 		String sqls = Utils.loadTxt("syn_nodes.sql");
@@ -435,15 +439,28 @@ public class DBSyntextTest {
 				new Synode(c[apply].connId, c[apply].synode, c[admin].robot.orgId()),
 				c[admin].robot);
 		
-		pull(admin, apply);
+		// pull(admin, apply);
+		exchange(admin, apply);
+	}
+	
+	void exchange(int a, int b) {
+	}
+	
+	
+	void exbegin(int dst, int src) throws TransException, SQLException {
+		AnResultset schgs = trbs[src].tobegin(c[src].phm, c[src].synode, c[src].connId, c[src].robot);
+		AnResultset dchgs = trbs[dst].onbegin(c[dst].phm, c[dst].synode, c[dst].connId, c[dst].robot, schgs);
+
+		schgs = trbs[src].toexchange();
+		trbs[dst].onexchange(schgs);
 	}
 
-
+	//////////////// deprecated for without clear schema rules /////////////////
 	void BvisitA(int A, int B) throws TransException, SQLException {
-		// A pull B
+		// B pull at A
 		pull(B, A);
 
-		// B push A
+		// B push to A
 		push(B, A);
 	}
 
@@ -455,7 +472,7 @@ public class DBSyntextTest {
 
 
 	@SuppressWarnings("serial")
-	public static void pull(int src, int dst) throws TransException, SQLException {
+	public static void pull(int dst, int src) throws TransException, SQLException {
 		AnResultset ents = trbs[src].entities(c[src].phm, c[src].connId, c[src].robot);
 		
 		while(ents.next()) {
@@ -482,7 +499,7 @@ public class DBSyntextTest {
 	}
 	
 
-	void updatePoto(int s, String pid) throws TransException, SQLException {
+	void updatePhoto(int s, String pid) throws TransException, SQLException {
 		trbs[s].update(c[s].phm.tbl, c[s].robot)
 			.nv(chm.uids, father) // clientpath
 			.whereEq(chm.pk, pid)
