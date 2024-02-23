@@ -226,7 +226,8 @@ public class DBSyntextTest {
 		c[Y].subs(B_0, X, -1, Z, W);
 
 		// 2.
-		BvisitA(X, Y);
+		// BvisitA(X, Y);
+		exchange(X, Y);
 		c[Y].change(C, A_0, c[Y].phm);
 		c[Y].subs(A_0, -1, -1, Z, W);
 		// B.a = A.a
@@ -239,7 +240,6 @@ public class DBSyntextTest {
 		long Bb = c[Y].nyquence(Y).n;
 		assertEquals(Bb, c[X].nyquence(Y).n);
 	}
-
 
 	/**
 	 * <pre>
@@ -348,7 +348,6 @@ public class DBSyntextTest {
 	void test02UpdateTransit() throws TransException, SQLException {
 	}
 
-
 	/**
 	 * Test W join with X.
 	 * 
@@ -409,7 +408,7 @@ public class DBSyntextTest {
 	 * @throws ClassNotFoundException 
 	 */
 	@Test
-	void testSynodeManage() throws TransException, SQLException, ClassNotFoundException, IOException {
+	void testSynodeManage() throws Exception {
 
 		initSynodes(0);
 
@@ -427,6 +426,135 @@ public class DBSyntextTest {
 		// And more ...
 	}
 
+	/**
+	 * <pre>
+	 * 1. A insert A:0, update C:0; B insert B:0, update C:0
+	 * A                     | B                    
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
+	 *  I,   A, A:0, 1,  B   |  I,   B, B:0, 1,  A 
+	 *                   C   |                   C 
+	 *  U,   A, C:0, 1,  B   |  U,   B, C:0, 1,  A 
+	 *                   C   |                   C 
+	 *
+	 *    a b
+	 *  A 1 0
+	 *  B 0 1
+	 * 
+	 * Action:
+	 * B insert A:0 for B.a=0 < A:0[s=A, sub=B].n=1
+	 * A insert B:0 for A.b=0 < B:0[s=B, sub=A].n=1
+	 * A replace C:0 with B:C:0, because B is the client
+	 ************************************************
+	 * A                     | B                    
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
+	 *  I,   A, A:0, 2, [B] x|  I,   B, B:0, 2, [A] x
+	 *                   C   |                   C 
+	 *  I,   A, B:0, 2,  C   |  I,   B, A:0, 2,  C 
+	 *  U,   A, C:0, 2, [B]  |  U,   B, C:0, 2, [A] 
+	 *                   C   |                   C 
+	 *
+	 *    a b
+	 *  A 2 2
+	 *  B 2 2
+	 ************************************************************************  
+	 * B (=) C
+	 * A                     | B                      | C
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
+	 *  I,   A, A:0, 2, [B] x|  I,   B, B:0, 2, [A]   |  
+	 *                   C   |                  [C] x |
+	 *  I,   A, B:0, 2,  C   |  I,   B, A:0, 2, [C] x |
+	 *  U,   A, C:0, 2, [B]  |  U,   B, C:0, 2, [A]   |
+	 *                   C   |                  [C] x |
+	 *
+	 *    a b c
+	 *  A 2 2 ?
+	 *  B 2 3 3
+	 *  C 2 3 3
+	 *  
+	 ************************************************************************  
+	 * A (=) B
+	 * A                     | B                      | C
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
+	 *  I,   A, A:0, 2, [B]  |                        |  
+	 *                  [C] x|                        |
+	 *  I,   A, B:0, 2, [C] x|                        |
+	 *  U,   A, C:0, 2, [B]  |                        |
+	 *                  [C] x|                        |
+	 * 
+	 * Actions:
+	 * clear changes as chg.n=2 < B.n0=3
+	 * A.n0 = max(B.a, B.b, B.c), no inc as no local entities change.
+	 *
+	 *    a b c
+	 *  A 3 3 3   A.c = max(A.c, B.c)
+	 *  B 3 3 3
+	 *  C 2 3 3
+	 * </pre>
+	 */
+	@Test
+	void test04conflict() throws Exception {
+	}
+	
+	/**
+	 * A                     | B                    
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
+	 *  D,   A, A:0, 2,  B   |  D,   B, B:0, 2,  A  
+	 *                   C   |                   C 
+	 *  I,   A, B:0, 2,  C   |  I,   B, A:0, 2,  C 
+	 *  U,   A, C:0, 2,  C   |  U,   B, C:0, 2,  C
+	 *
+	 *    a b
+	 *  A 3 2
+	 *  B 2 3
+	 *********************************************** 
+	 * A                     | B                    
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
+	 *  D,   A, A:0, 4, [B]x |  D,   B, B:0, 4, [A] x 
+	 *                   C   |                   C 
+	 *  I,   A, B:0, 4,  C   |  I,   B, A:0, 4,  C 
+	 *  U,   A, C:0, 4,  C   |  U,   B, C:0, 4,  C
+	 *  
+	 *    a b
+	 *  A 4 4
+	 *  B 4 4
+	 *  
+	 ************************************************************************ 
+	 * A                     | B                      | C
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
+	 *  D,   A, A:0, 4, [B]x |  D,   B, B:0, 4, [A]   |  
+	 *                   C   |                  [C] x |
+	 *  I,   A, B:0, 4,  C   |  I,   B, A:0, 4, [C] x |
+	 *  U,   A, C:0, 4,  C   |  U,   B, C:0, 4, [C] x |
+	 *  
+	 *    a b c
+	 *  A 4 4 ?
+	 *  B 4 5 5
+	 *  C ? 5 5
+	 *  
+	 ************************************************************************ 
+	 * A                     | B                      | C
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
+	 *  D,   A, A:0, 5, [B]x |  D,   B, B:0, 5, [A] x |  
+	 *                  [C]x |                  [C] x |
+	 *  I,   A, B:0, 4, [C]  |  I,   B, A:0, 4, [C] x |
+	 *  U,   A, C:0, 4, [C]  |  U,   B, C:0, 4, [C] x |
+	 *  
+	 *  Action:
+	 *  B:0.n=4 < B.n0 = 5, delete B:0(s=A, n=4) as 
+	 *  
+	 *    a b c
+	 *  A 6 6 ?
+	 *  B 6 6 5
+	 *  C ? 5 5
+	 *  
+	 * <pre>
+	 * </pre>
+	 * @throws Exception
+	 */
+	@Test
+	void test05delete() throws Exception {
+	}
+	
 	static void initSynodes(int s)
 			throws SQLException, TransException, ClassNotFoundException, IOException {
 		String sqls = Utils.loadTxt("syn_nodes.sql");
@@ -443,16 +571,28 @@ public class DBSyntextTest {
 		exchange(admin, apply);
 	}
 	
-	void exchange(int a, int b) {
-	}
-	
-	
-	void exbegin(int dst, int src) throws TransException, SQLException {
+	/**
+	 * A, b exchange/synchronize change logs.
+	 * 
+	 * @param dst hub
+	 * @param src client
+	 * @throws SQLException 
+	 * @throws TransException 
+	 */
+	void exchange(int dst, int src) throws TransException, SQLException {
+		
 		AnResultset schgs = trbs[src].tobegin(c[src].phm, c[src].synode, c[src].connId, c[src].robot);
-		AnResultset dchgs = trbs[dst].onbegin(c[dst].phm, c[dst].synode, c[dst].connId, c[dst].robot, schgs);
+		// AnResultset dchgs = trbs[dst].onbegin(c[dst].phm, c[dst].synode, c[dst].connId, c[dst].robot, schgs);
 
-		schgs = trbs[src].toexchange();
-		trbs[dst].onexchange(schgs);
+		HashMap<String, Nyquence> vector = DBSynsactBuilder.toNyqvect(schgs);
+		for (String synode: vector.keySet()) {
+			Nyquence n = vector.get(synode);
+			// condition: dst.n[src] < src.n0
+			while (trbs[src].shouldExchange(c[dst].synode, c[dst].nyquence(src), synode, n)) {
+				schgs = trbs[src].toexchange(chm, c[src].connId, c[dst].synode, c[src].robot);
+				trbs[dst].onexchange(schgs);
+			}
+		}
 	}
 
 	//////////////// deprecated for without clear schema rules /////////////////
@@ -464,12 +604,10 @@ public class DBSyntextTest {
 		push(B, A);
 	}
 
-
 	public static void push(int src, int dst) throws TransException, SQLException {
 		SynEntity anObj = trbs[src].loadEntity(c[src].synode, c[src].connId, c[src].robot, c[src].phm);
 		anObj.syncInto(conns[dst], trbs[dst], anObj.subs(), null, c[dst].robot);
 	}
-
 
 	@SuppressWarnings("serial")
 	public static void pull(int dst, int src) throws TransException, SQLException {
@@ -498,7 +636,6 @@ public class DBSyntextTest {
 		}
 	}
 	
-
 	void updatePhoto(int s, String pid) throws TransException, SQLException {
 		trbs[s].update(c[s].phm.tbl, c[s].robot)
 			.nv(chm.uids, father) // clientpath
@@ -506,7 +643,6 @@ public class DBSyntextTest {
 			.u(trbs[s].instancontxt(conns[X], c[s].robot))
 			;
 	}
-
 
 	String insertPhoto(int s) throws TransException, SQLException {
 		T_PhotoMeta m = c[s].phm;
@@ -525,7 +661,6 @@ public class DBSyntextTest {
 		
 		return pid;
 	}
-
 
 	public static class Ck {
 		public T_PhotoMeta phm;

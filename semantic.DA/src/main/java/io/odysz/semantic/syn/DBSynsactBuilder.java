@@ -5,6 +5,7 @@ import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
 
 import org.xml.sax.SAXException;
 
@@ -182,12 +183,59 @@ public class DBSynsactBuilder extends DATranscxt {
 				.rs(0);
 	}
 
+	/**
+	 * Collect Nyquense vector.
+	 * @param phm
+	 * @param synode
+	 * @param connId
+	 * @param robot
+	 * @return e.g. Nyguenses
+	 */
 	public AnResultset tobegin(SyntityMeta phm, String synode, String connId, IUser robot) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public AnResultset onbegin(SyntityMeta phm, String synode, String connId, IUser robot, AnResultset schgs) {
+	/**
+	 * Reply change differences,
+	 * e.g, with schags.a = 0, if reply with {a: 1}, then should there are changes for b, with recode.n > 0.
+	 * 
+	 * @return true if has changes
+	 */
+	public boolean shouldExchange(String dst, Nyquence dn, String src, Nyquence sn) {
+		return false;
+	}
+
+	/**
+	 * Client/slave initiate a change logs exchange
+	 * @param dstnode
+	 * @return change logs
+	 * @throws SQLException 
+	 * @throws TransException 
+	 */
+	public AnResultset toexchange(SynChangeMeta chm, String conn, String dstnode, IUser robot)
+			throws TransException, SQLException {
+
+		AnResultset chs = (AnResultset)select(chm.tbl, "ch")
+				.whereEq(chm.synoder, robot)
+				.rs(instancontxt(conn, robot))
+				.rs(0);
+
+		return chs;
+	}
+
+	/**
+	 * 
+	 * Client/slave initiate a change logs exchange
+	 * 
+	 * @param schgs change logs
+	 * @return change logs reply
+	 */
+	public AnResultset onexchange(AnResultset schgs) {
+		return null;
+	}
+
+	public static HashMap<String, Nyquence> toNyqvect(AnResultset schgs) {
 		// TODO Auto-generated method stub
 		return null;
 	}
