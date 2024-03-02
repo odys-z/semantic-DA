@@ -1,15 +1,18 @@
 package io.odysz.semantic.syn;
 
+import static io.odysz.common.LangExt.*;
 import static io.odysz.transact.sql.parts.condition.Funcall.add;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 
 import org.xml.sax.SAXException;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.meta.NyquenceMeta;
@@ -46,24 +49,44 @@ public class DBSynsactBuilder extends DATranscxt {
 	protected SynSubsMeta subm;
 	protected SynChangeMeta chgm;
 
-	public DBSynsactBuilder(String conn)
+	protected String synode;
+	/** Nyquence vector [{synode, n0}]*/
+	protected HashMap<String, Nyquence> nyquect;
+	protected Nyquence n0;
+
+	public DBSynsactBuilder(String conn, IUser robot)
 			throws SQLException, SAXException, IOException, TransException {
 		this(conn,
 			new SynSubsMeta(conn),
 			new SynChangeMeta(conn),
-			new NyquenceMeta(conn));
+			new NyquenceMeta(conn), robot);
 	}
 	
-	public DBSynsactBuilder(String conn, SynSubsMeta subm, SynChangeMeta chgm, NyquenceMeta nyqm)
+	public DBSynsactBuilder(String conn, SynSubsMeta subm, SynChangeMeta chgm, NyquenceMeta nyqm, IUser robot)
 			throws SQLException, SAXException, IOException, TransException {
 		super ( new DBSyntext(conn,
 			    initConfigs(conn, loadSemantics(conn),
 						(c) -> new SynmanticsMap(c)),
-				dummy, runtimepath));
+				robot, runtimepath));
 
 		this.subm = subm != null ? subm : new SynSubsMeta(conn);
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.nyqm = nyqm != null ? nyqm : new NyquenceMeta(conn);
+		
+		AnResultset rs = ((AnResultset) select(nyqm.tbl)
+				.rs(instancontxt(conn, robot))
+				.rs(0))
+				.nxt();
+		
+		if (rs == null) {
+			// register myself, wait for others to join
+			// - this will minimize unknown records transit ?
+			// TODO insert synode
+		}
+		
+		this.synode = rs.getString(nyqm.synode);
+		this.nyquect = toNyquect(rs);
+		this.n0 = nyquect.get(synode);
 	}
 	
 	/**
@@ -95,11 +118,14 @@ public class DBSynsactBuilder extends DATranscxt {
 
 	/**
 	 * Get DB record change's subscriptions.
-	 *
+	 * 
+	 * @param conn
 	 * @param uids
+	 * @param entm
 	 * @param robot
-	 * @throws SQLException
+	 * @return results with count's field named as 'cnt'
 	 * @throws TransException
+	 * @throws SQLException
 	 */
 	public AnResultset subscripts(String conn, String uids, SyntityMeta entm, IUser robot)
 			throws TransException, SQLException {
@@ -197,45 +223,137 @@ public class DBSynsactBuilder extends DATranscxt {
 	}
 
 	/**
-	 * Reply change differences,
-	 * e.g, with schags.a = 0, if reply with {a: 1}, then should there are changes for b, with recode.n > 0.
+	 * FIXME not correct if
+	 * 
+	 * Check change differences,
+	 * e.g, with dst.n, check is there any changes for dst, with dst.n. 
 	 * 
 	 * @return true if has changes
-	 */
-	public boolean shouldExchange(String dst, Nyquence dn, String src, Nyquence sn) {
-		return false;
+	 * @throws SQLException 
+	 * @throws TransException 
+	private boolean shouldExchange(SynChangeMeta chm, String conn, IUser robot)
+			throws TransException, SQLException {
+		AnResultset chs = ((AnResultset) select(chm.tbl, "ch")
+				.col(String.format("count(%s)", chm.nyquence), "cnt")
+				.rs(instancontxt(conn, robot))
+				.rs(0)).nxt();
+		
+		return chs.getInt("cnt") > 0;
 	}
+	 */
 
 	/**
 	 * Client/slave initiate a change logs exchange
-	 * @param dstnode
 	 * @return change logs
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public AnResultset toexchange(SynChangeMeta chm, String conn, String dstnode, IUser robot)
+	public AnResultset toexchange(IUser robot, String destnode)
 			throws TransException, SQLException {
 
-		AnResultset chs = (AnResultset)select(chm.tbl, "ch")
-				.whereEq(chm.synoder, robot)
-				.rs(instancontxt(conn, robot))
+		AnResultset chs = (AnResultset)select(chgm.tbl, "ch")
+				.whereEq(chgm.synoder, destnode)
+				.rs(instancontxt(this.getSysConnId(), robot))
 				.rs(0);
 
 		return chs;
 	}
 
 	/**
+	 * Server/hub handle a change-logs' exchange
 	 * 
-	 * Client/slave initiate a change logs exchange
-	 * 
-	 * @param schgs change logs
+	 * @param srcnode source node id
+	 * @param sn source Nyquence
+	 * @param srchgs change logs
+	 * @param commitBuff 
 	 * @return change logs reply
+	 * @throws SQLException 
+	 * @throws TransException 
 	 */
-	public AnResultset onexchange(AnResultset schgs) {
-		return null;
+	public ChangeLogs onexchange(String srcnode, Nyquence sn, AnResultset srchgs, IUser robot, List<ChangeLogs> commitBuff)
+			throws TransException, SQLException {
+		
+		if (isNull(srchgs)) return null;
+
+		srchgs.beforeFirst();
+		long sn0 = srchgs.hasnext() ? srchgs.getLong(chgm.nyquence) : 0;
+		
+		// select order by n, s
+		AnResultset dchgs = (AnResultset) select(chgm.tbl)
+				.rs(instancontxt(this.basictx.connId(), robot))
+				.rs(0);
+		
+		ChangeLogs localog = new ChangeLogs(chgm);
+		ChangeLogs remolog = new ChangeLogs(chgm);
+		
+		long srcn1 = nyquect.get(srcnode).n;
+		// in case unfinished previous synchronizing
+		// i.e. B haven't got last acknowledge from A since buffer is not empty 
+		while (commitBuff.size() > 0) {
+			if (Nyquence.compareNyq(srchgs.getLong(chgm.nyquence), srcn1) > 0)
+				commitUntil(commitBuff, srcnode, srcn1);
+			// i.e. B has operation haven't committed yet since A failed acknowledge
+			else
+				ignoreUntil(commitBuff, srcnode, srcn1);
+		}
+		srchgs.beforeFirst();
+
+		boolean hasmore = dchgs.next() && srchgs.next();
+		while (hasmore) {
+			int diff = compare(srchgs, dchgs);
+			// int diff = Nyquence.compareNyq(srchgs.getLong(chgm.nyquence), dchgs.getLong(chgm.nyquence));
+			if (diff == 0) {
+				// e.g. I A A:0 1 B at B#onexchange()
+				if (indexOf(srchgs.getString(chgm.subs), this.synode) >= 0) {
+					// insertion propagation
+					remolog.remove_sub(srchgs, this.synode); // e.g. "I A A:0 1 B"
+					remolog.append(dchgs);
+					localog.append(srchgs);
+				}
+				else {
+					// partial deletion propagation
+					remolog.remove_sub(srchgs, this.synode);
+				}
+				// e.g. I A A:0 1 C/D
+				hasmore = srchgs.next() && dchgs.next();
+			}
+			else if (diff < 0) {
+				// e.g. I A A:0 1 is missing at B
+				localog.append(srchgs);
+				hasmore = srchgs.next();
+			}
+			else {
+				// e.g. I B B:0 1 is missing at A
+				remolog.append(dchgs);
+				hasmore = dchgs.next();
+			}
+		}
+
+		while(srchgs.hasnext()) {
+			localog.append(srchgs);
+			srchgs.next();
+		}
+		while(dchgs.hasnext()) {
+			remolog.append(dchgs);
+			dchgs.next();
+		}
+		
+		// FIXME what happen if local committed and remote lost response?
+		// commit(localog);
+		commitBuff.add(localog);
+
+		return remolog;
 	}
 
-	public static HashMap<String, Nyquence> toNyqvect(AnResultset schgs) {
+	static List<ChangeLogs> ignoreUntil(List<ChangeLogs> commitBuff, String srcnode, long srcn1) {
+		return commitBuff;
+	}
+
+	static List<ChangeLogs> commitUntil(List<ChangeLogs> commitBuff, String srcnode, long srcn1) {
+		return commitBuff;
+	}
+
+	public static HashMap<String, Nyquence> toNyquect(AnResultset schgs) {
 		// TODO Auto-generated method stub
 		return null;
 	}

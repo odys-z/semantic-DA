@@ -6,12 +6,12 @@ import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
 import static io.odysz.semantic.util.Assert.assertIn;
-import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
+import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,15 +19,18 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.xml.sax.SAXException;
 
 import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.NyquenceMeta;
@@ -41,7 +44,61 @@ import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
+/**
+ * <pre>
+ * 1. Synodes initialized with ++n0.
+ * 
+ *   A B C D
+ * a 1 0 0 0
+ * b 0 1 0 0
+ * c 0 0 1 0
+ * d 0 0 0 1
+ * 
+ * --------------------------------------------------------
+ * 2. A vs. B
+ * A[s=A, A.b ≤ n] ⇨ B, where n ∈ {1}
+ * A ⇦ B[s=B, B.a ≤ n], where n ∈ {1}
+ * A.b = B.n0, B.a = A.n0
+ * A.n0++, B.n0++
+ * 
+ *   A B C D
+ * a 2 1 0 0
+ * b 1 2 0 0
+ * c 0 0 1 0
+ * d 0 0 0 1
+ * 
+ * --------------------------------------------------------
+ * 3. A vs. B
+ * A[s=A, A.b ≤ n] ⇨ B
+ * failed response: A ⇦ B[s=B, B.a ≤ n]
+ * B roll back pending operations (buffered pending commitment), but A committed.
+ * ++A.n0, A.b = B.n0
+ * 
+ *   A B C D
+ * a 3 2 0 0
+ * b 1 2 0 0
+ * c 0 0 1 0
+ * d 0 0 0 1
+ * 
+ * --------------------------------------------------------
+ * 4. A vs. B
+ * A[s=A, A.b ≤ n] ⇨ B, where n ∈ {2=A.b, 3=A.a}
+ * if B found n=2 ≥ B.a, commit buffered commitments up to n=2
+ * if B found n=1 &lt; B.a, discard buffered commitments up to n=2
+ * B.a = 2
+ * B.b = max(++B.b, ∀n)
+ * 
+ *   A B C D
+ * a 3 2 0 0
+ * b 2 3 0 0
+ * c 0 0 1 0
+ * d 0 0 0 1
+ * 
+ * </pre>
+ * @author Ody
+ */
 @Disabled
+@SuppressWarnings("unused")
 public class DBSyntextTest {
 	public static final String[] conns = new String[] { "syn.00", "syn.01", "syn.02", "syn.03" };
 	public static final String logconn = "log";
@@ -81,8 +138,7 @@ public class DBSyntextTest {
 	}
 
 	@BeforeAll
-	public static void testInit()
-			throws SQLException, SAXException, IOException, TransException, ClassNotFoundException {
+	public static void testInit() throws Exception {
 		// smtcfg = DBSynsactBuilder.loadSynmantics(conn0, "src/test/res/synmantics.xml", true);
 		
 		// DDL
@@ -137,9 +193,6 @@ public class DBSyntextTest {
 			Connects.commit(conns[s], DATranscxt.dummyUser(), T_PhotoMeta.ddlSqlite);
 		}
 
-		// initial data
-		// Utils.logi(sqls);
-
 		ArrayList<String> sqls = new ArrayList<String>();
 		sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
 		sqls.add(String.format("delete from %s", phm.tbl));
@@ -148,7 +201,7 @@ public class DBSyntextTest {
 		c = new Ck[4];
 
 		for (int s = 0; s < 4; s++) {
-			trbs[s] = new DBSynsactBuilder(conns[s]);
+			trbs[s] = new DBSynsactBuilder(conns[s], c[s].robot);
 			c[s] = new Ck(s);
 			Connects.commit(conns[s], DATranscxt.dummyUser(), sqls);
 		}
@@ -161,35 +214,40 @@ public class DBSyntextTest {
 
 	/**
 	 * <pre>
+	 *  ++A.a, ++B.b
 	 *    a b c
-	 *  A 0 0 0
-	 *  B 0 0 0
+	 *  A 1 0 0
+	 *  B 0 1 0
 	 *  C 0 0 0
 	 * 1.
 	 * A                     | B
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  I,   A, A:0, 0,  B   |  I,   B, B:0, 0, A
+	 *  I,   A, A:0, 1,  B   |  I,   B, B:0, 1, A
 	 *                   C   |                  C
 	 *                   D   |                  D
-	 *  A.a++, B.b++
+	 *
 	 *    a b c
 	 *  A 1 0 0
 	 *  B 0 1 0
 	 *  C 0 0 0
 	 *  
+	 *---------------------------------------------------------------
 	 * 2. A.a > B.a, B don't know A:0 [B]/C/D, with n=1 > 0 | s=A
 	 * A                     =) B
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  I,   A, A:0, 1, [ ]  |  I,   B, B:0, 1,  A
-	 *                  [C]  |                   C
-	 *                  [D]  |                   D
-	 *                       |  I,   A, A:0, 1, [C]
-	 *                       |                  [D]
+	 *  I,   A, A:0, 1, [B]  |  I,   B, B:0, 1,  A
+	 *                   C   |                   C
+	 *                   D   |                   D
+	 *  A select n in range [A.b, A.a = A.n0]
+	 *  B merge with local DB, with records sorted by n, s, pid.
+	 *                       |  I,   A, A:0, 1,  C 
+	 *                       |                   D 
 	 *    a b c
 	 *  A 1 0 0
-	 *  B 1 1 0  [B.a = A.a]
+	 *  B 1 1 0  [B.a = A.a, B.c = max(A.c=0, B.c=0)]
 	 *  C 0 0 0
 	 *
+	 *---------------------------------------------------------------
 	 * 3. A.b < B.b, A don't know B:0 [A]/C/D, with n=1 > A.b | s=B
 	 * A                    (=  B
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
@@ -199,9 +257,54 @@ public class DBSyntextTest {
 	 *  I,   B, B:0, 1,  C   |  I,   A, A:0, 1,  C
 	 *                   D   |                   D
 	 *    a b c
-	 *  A 1 1 0  [A.b = B.b]
-	 *  B 1 1 0
+	 *  A 2 1 0  [A.b = B.b, A.c = max(B.c, A.c)]
+	 *  B 1 2 0
 	 *  C 0 0 0
+	 *  
+	 *---------------------------------------------------------------
+	 * 4. A insert A:1
+	 * A                    (=  B
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
+	 *  I,   A, A:0, 1, [ ]  |  I,   B, B:0, 1, [ ]
+	 *                   C   |                   C
+	 *                   D   |                   D
+	 *  I,   B, B:0, 1,  C   |  I,   A, A:0, 1,  C
+	 *                   D   |                   D
+	 *  I,   A, A:1, 2,  B   |  
+	 *                   C   |  
+	 *                   D   |  
+	 *                   
+	 *    a b c
+	 *  A 2 1 0
+	 *  B 1 2 0
+	 *  C 0 0 0
+	 *  
+	 *---------------------------------------------------------------
+	 * 5. A Update A:1
+	 * A                    (=  B
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
+	 *  I,   A, A:0, 1, [ ]  |  I,   B, B:0, 1, [ ]
+	 *                   C   |                   C
+	 *                   D   |                   D
+	 *  I,   B, B:0, 1,  C   |  I,   A, A:0, 1,  C
+	 *                   D   |                   D
+	 *  U,   A, A:1, 2,  B   |  
+	 *                   C   |  
+	 *                   D   |  
+	 * A select n in range (A.b, A.a = A.n0]
+	 * B merge with local DB, with records sorted by n, s, pid, only merge with n in range (B.a, B.b = B.n0]
+	 *                       |  I,   A, A:1, 2,  C 
+	 *                       |                   D 
+	 *                   
+	 *    a b c
+	 *  A 2 1 0
+	 *  B 1 2 0
+	 *  C 0 0 0
+	 *  
+	 * =============================================================
+	 * If the response to A lost, B won't commit but will send the
+	 * operations into a buffer.
+	 *  
 	 * </pre>
 	 * @throws TransException
 	 * @throws SQLException
@@ -226,7 +329,6 @@ public class DBSyntextTest {
 		c[Y].subs(B_0, X, -1, Z, W);
 
 		// 2.
-		// BvisitA(X, Y);
 		exchange(X, Y);
 		c[Y].change(C, A_0, c[Y].phm);
 		c[Y].subs(A_0, -1, -1, Z, W);
@@ -360,7 +462,7 @@ public class DBSyntextTest {
 	 *  Y 1 1 0
 	 *  Z 0 0 0
 	 * 
-	 * W <=> X, sid[X:w]: X added W
+	 * W (=) X, sid[X:w]: X added W
 	 * X: syn_node           |  Y                   |  Z                   |  W
 	 * crud, s, sid, n, sub  | crud, s, sid, n, sub | crud, s, sid, n, sub | crud, s, sid, n, sub
 	 *  i,   X,  w , 3,  Y   |                      |                      |  i,   X,  w , 3,  Y
@@ -444,7 +546,7 @@ public class DBSyntextTest {
 	 * B insert A:0 for B.a=0 < A:0[s=A, sub=B].n=1
 	 * A insert B:0 for A.b=0 < B:0[s=B, sub=A].n=1
 	 * A replace C:0 with B:C:0, because B is the client
-	 ************************************************
+	 *-----------------------------------------------------------------------
 	 * A                     | B                    
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
 	 *  I,   A, A:0, 2, [B] x|  I,   B, B:0, 2, [A] x
@@ -456,14 +558,14 @@ public class DBSyntextTest {
 	 *    a b
 	 *  A 2 2
 	 *  B 2 2
-	 ************************************************************************  
+	 *-----------------------------------------------------------------------
 	 * B (=) C
 	 * A                     | B                      | C
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
-	 *  I,   A, A:0, 2, [B] x|  I,   B, B:0, 2, [A]   |  
+	 *  I,   A, A:0, 2, [ ] x|  I,   B, B:0, 2, [ ]   |  
 	 *                   C   |                  [C] x |
 	 *  I,   A, B:0, 2,  C   |  I,   B, A:0, 2, [C] x |
-	 *  U,   A, C:0, 2, [B]  |  U,   B, C:0, 2, [A]   |
+	 *  U,   A, C:0, 2, [ ]  |  U,   B, C:0, 2, [ ]   |
 	 *                   C   |                  [C] x |
 	 *
 	 *    a b c
@@ -471,14 +573,14 @@ public class DBSyntextTest {
 	 *  B 2 3 3
 	 *  C 2 3 3
 	 *  
-	 ************************************************************************  
+	 *-----------------------------------------------------------------------
 	 * A (=) B
 	 * A                     | B                      | C
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
-	 *  I,   A, A:0, 2, [B]  |                        |  
+	 *  I,   A, A:0, 2,      |                        |  
 	 *                  [C] x|                        |
 	 *  I,   A, B:0, 2, [C] x|                        |
-	 *  U,   A, C:0, 2, [B]  |                        |
+	 *  U,   A, C:0, 2,      |                        |
 	 *                  [C] x|                        |
 	 * 
 	 * Actions:
@@ -496,6 +598,7 @@ public class DBSyntextTest {
 	}
 	
 	/**
+	 * <pre>
 	 * A                     | B                    
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
 	 *  D,   A, A:0, 2,  B   |  D,   B, B:0, 2,  A  
@@ -506,57 +609,66 @@ public class DBSyntextTest {
 	 *    a b
 	 *  A 3 2
 	 *  B 2 3
-	 *********************************************** 
+	 *----------------------------------------------
+	 * Sync-range: [2, 3]
 	 * A                     | B                    
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  D,   A, A:0, 4, [B]x |  D,   B, B:0, 4, [A] x 
+	 *  D,   A, A:0, 2, [B]x |  D,   B, B:0, 2, [A] x 
 	 *                   C   |                   C 
-	 *  I,   A, B:0, 4,  C   |  I,   B, A:0, 4,  C 
-	 *  U,   A, C:0, 4,  C   |  U,   B, C:0, 4,  C
+	 *  I,   A, B:0, 2,  C   |  I,   B, A:0, 2,  C 
+	 *  U,   A, C:0, 2,  C   |  U,   B, C:0, 2,  C
 	 *  
-	 *    a b
-	 *  A 4 4
-	 *  B 4 4
+	 *    a b c
+	 *  A 4 3 0
+	 *  B 3 4 0
+	 *  C 0 0 1
 	 *  
-	 ************************************************************************ 
+	 *-----------------------------------------------------------------------
+	 * B = C
 	 * A                     | B                      | C
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
-	 *  D,   A, A:0, 4, [B]x |  D,   B, B:0, 4, [A]   |  
+	 *  D,   A, A:0, 2, [ ]x |  D,   B, B:0, 2, [ ]   |  
 	 *                   C   |                  [C] x |
-	 *  I,   A, B:0, 4,  C   |  I,   B, A:0, 4, [C] x |
-	 *  U,   A, C:0, 4,  C   |  U,   B, C:0, 4, [C] x |
+	 *  I,   A, B:0, 3,  C   |  I,   B, A:0, 3, [C] x |
+	 *  U,   A, C:0, 3,  C   |  U,   B, C:0, 3, [C] x |
 	 *  
 	 *    a b c
-	 *  A 4 4 ?
-	 *  B 4 5 5
-	 *  C ? 5 5
+	 *  A 4 3 0
+	 *  B 3 5 1  B.c = C.c
+	 *  C 0 4 5  C.b = B.b, C.c = B.b = max(B.b, C.c) + 1
 	 *  
-	 ************************************************************************ 
+	 *----------------------------------------------------------------------- 
+	 * A = B
 	 * A                     | B                      | C
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
-	 *  D,   A, A:0, 5, [B]x |  D,   B, B:0, 5, [A] x |  
-	 *                  [C]x |                  [C] x |
-	 *  I,   A, B:0, 4, [C]  |  I,   B, A:0, 4, [C] x |
-	 *  U,   A, C:0, 4, [C]  |  U,   B, C:0, 4, [C] x |
+	 *  D,   A, A:0, 2, [ ]  |                        |  
+	 *                  [C]x |                        |
+	 *  I,   A, B:0, 3, [C]x |                        |
+	 *  U,   A, C:0, 3, [C]x |                        |
 	 *  
-	 *  Action:
-	 *  B:0.n=4 < B.n0 = 5, delete B:0(s=A, n=4) as 
+	 *  Action
+	 *  B:0.n=3 < B.a=4, override A with B, i.e. delete B:0(s=A, n=3),
+	 *  C:0.n=3 < B.a=4, override A with B, i.e. delete C:0(s=A, n=3)
+	 *  FIXME should B:0.n always less than, not equal to, B.a in a deletion propagation?
 	 *  
 	 *    a b c
-	 *  A 6 6 ?
-	 *  B 6 6 5
-	 *  C ? 5 5
+	 *  A 6 5 0  A.b = B.b,  A.a = max(A.a, B.b) + 1
+	 *  B 4 6 1  B.a = A.a
+	 *  C 0 4 5
 	 *  
-	 * <pre>
 	 * </pre>
 	 * @throws Exception
 	 */
 	@Test
-	void test05delete() throws Exception {
+	void test02delete() throws Exception {
+		String A_0 = deletePhoto(chm, X);
+		String B_0 = deletePhoto(chm, Y);
+
+		c[X].subs(A_0, -1,  Y, X, Z);
+		c[X].subs(A_0,  X, -1, X, Z);
 	}
 	
-	static void initSynodes(int s)
-			throws SQLException, TransException, ClassNotFoundException, IOException {
+	static void initSynodes(int s) throws Exception {
 		String sqls = Utils.loadTxt("syn_nodes.sql");
 		Connects.commit(conns[s], c[s].robot, sqls);
 	}
@@ -567,7 +679,6 @@ public class DBSyntextTest {
 				new Synode(c[apply].connId, c[apply].synode, c[admin].robot.orgId()),
 				c[admin].robot);
 		
-		// pull(admin, apply);
 		exchange(admin, apply);
 	}
 	
@@ -582,17 +693,62 @@ public class DBSyntextTest {
 	void exchange(int dst, int src) throws TransException, SQLException {
 		
 		AnResultset schgs = trbs[src].tobegin(c[src].phm, c[src].synode, c[src].connId, c[src].robot);
-		// AnResultset dchgs = trbs[dst].onbegin(c[dst].phm, c[dst].synode, c[dst].connId, c[dst].robot, schgs);
 
-		HashMap<String, Nyquence> vector = DBSynsactBuilder.toNyqvect(schgs);
-		for (String synode: vector.keySet()) {
-			Nyquence n = vector.get(synode);
+		/*
+		HashMap<String, Nyquence> vector = DBSynsactBuilder.toNyquect(schgs);
+		for (String pernode: vector.keySet()) {
+			Nyquence n = vector.get(pernode);
 			// condition: dst.n[src] < src.n0
-			while (trbs[src].shouldExchange(c[dst].synode, c[dst].nyquence(src), synode, n)) {
-				schgs = trbs[src].toexchange(chm, c[src].connId, c[dst].synode, c[src].robot);
-				trbs[dst].onexchange(schgs);
+			while (shouldExchange(src, n, pernode)) {
+				AnResultset schg = trbs[src].toexchange(c[src].robot, pernode);
+				trbs[dst].onexchange(pernode, n, schgs, c[dst].robot);
 			}
 		}
+		*/
+		int loop = 0;
+		while (shouldExchange(src, c[src].nyquence(dst), c[dst].synode, c[src].nyquence(src))) {
+			List<ChangeLogs> committings = new ArrayList<ChangeLogs>();
+			ChangeLogs resp = trbs[dst].onexchange(
+					c[src].synode, c[src].nyquence(src), schgs, c[dst].robot, committings);
+			if (loop == 0)
+				; // TODO insert new records at source
+			ackExchange(src, trbs[src], resp);
+		}
+		finish(dst);
+		finish(src);
+	}
+	
+	void ackExchange(int src, DBSynsactBuilder dbSynsactBuilder, ChangeLogs resp) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	void finish(int dst) {
+		
+	}
+
+
+	/**
+	 * There are change logs such that chg.n &gt; n0.
+	 * @param src
+	 * @param dn
+	 * @param pernode for the target node
+	 * @return count(chg.n > n0) > 0
+	 * @throws SQLException
+	 * @throws TransException
+	 */
+	boolean shouldExchange(int src, Nyquence dn, String pernode, Nyquence sn)
+			throws SQLException, TransException {
+		// return c[src].trb.shouldExchange(n0, pernode);
+		AnResultset chs = ((AnResultset) c[src].trb.select(chm.tbl, "ch")
+				.col(String.format("count(%s)", chm.nyquence), "cnt")
+				.whereEq(chm.synoder, pernode)
+				.where(op.gt, chm.synoder, dn.n)
+				.where(op.le, chm.synoder, sn.n)
+				.rs(c[src].trb.instancontxt(c[src].connId, c[src].robot))
+				.rs(0)).nxt();
+		
+		return chs.getInt("cnt") > 0;	
 	}
 
 	//////////////// deprecated for without clear schema rules /////////////////
@@ -659,9 +815,52 @@ public class DBSyntextTest {
 		
 		assertFalse(isblank(pid));
 		
+		trbs[s]
+			.insert(chm.tbl, c[s].robot)
+			.nv(chm.entbl, m.tbl)
+			.nv(chm.crud, CRUD.C)
+			.nv(chm.synoder, c[s].synode)
+			.nv(chm.uids, new String[] {c[s].synode, pid})
+			.nv(chm.subs, new String[] {synodes(c, c[s].synode)})
+			.ins(trbs[s].instancontxt(conns[s], c[s].robot))
+			;
+		
 		return pid;
 	}
+	
+	String synodes(Ck[] cks, String synode) {
+		return Stream.of(cks)
+				.map((Ck c) -> {return c.synode;})
+				.collect(Collectors.joining(","));
+	}
 
+	String deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
+		T_PhotoMeta m = c[s].phm;
+		AnResultset slt = ((AnResultset) trbs[s]
+				.select(chgm.tbl, conns)
+				.orderby(m.pk, "desc")
+				.limit(1)
+				.rs(trbs[s].instancontxt(c[s].connId, c[s].robot))
+				.rs(0))
+				.nxt();
+		String pid = slt.getString(m.pk);
+
+		pid = ((SemanticObject) trbs[s]
+			.delete(m.tbl, c[s].robot)
+			.whereEq(chgm.uids, pid)
+			.d(trbs[s].instancontxt(conns[s], c[s].robot)))
+			.resulve(c[s].phm.tbl, c[s].phm.pk);
+		
+		assertFalse(isblank(pid));
+		
+		return pid;
+	
+	}
+
+	/**
+	 * Checker
+	 * @author Ody
+	 */
 	public static class Ck {
 		public T_PhotoMeta phm;
 
@@ -693,7 +892,6 @@ public class DBSyntextTest {
 			
 			synode = synid;
 
-
 			SemanticObject jo = new SemanticObject();
 			jo.put("userId", "tester");
 			SemanticObject usrAct = new SemanticObject();
@@ -718,7 +916,7 @@ public class DBSyntextTest {
 		}
 
 		/**
-		 * Verify change flag, crud, where tabl = entabl, entity-id = eid.
+		 * Verify change flag, crud, where tabl = entm.tbl, entity-id = eid.
 		 * 
 		 * @param crud flag to be verified
 		 * @param eid  entity id
@@ -743,7 +941,8 @@ public class DBSyntextTest {
 			assertEquals(robot.deviceId(), chg.getString(chm.synoder));
 		}
 
-		/**verify subscriptions.
+		/**
+		 * verify subscriptions.
 		 * @param pid
 		 * @param sub subscriptions for X/Y/Z/W, -1 if not exists
 		 * @throws SQLException 
@@ -762,7 +961,7 @@ public class DBSyntextTest {
 
 			subs.next();
 
-			assertEquals(3, subs.getInt("cnt"));
+			assertEquals(c.length - 1, subs.getInt("cnt"));
 			assertEquals(phm.tbl, subs.getString(sbm.entbl));
 			
 			HashSet<String> synodes = subs.set(sbm.subs);

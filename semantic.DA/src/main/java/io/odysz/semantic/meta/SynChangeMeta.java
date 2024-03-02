@@ -20,6 +20,8 @@ public class SynChangeMeta extends TableMeta {
 	public final String synoder;
 	public final String nyquence;
 
+	public final String subs;
+
 	static {
 		 ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
 	}
@@ -35,6 +37,8 @@ public class SynChangeMeta extends TableMeta {
 		synoder = "synoder";
 		uids = "uids";
 		nyquence = "nyquence";
+		
+		subs = "sub";
 	}
 
 	public String[] cols() {

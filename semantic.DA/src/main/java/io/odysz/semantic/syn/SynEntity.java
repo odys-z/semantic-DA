@@ -127,7 +127,7 @@ public class SynEntity extends Anson {
 		
 		if (ch.getString(chgMeta.synoder).equals(synoder)) {
 			// compare ch.n with s.nyq
-			int nc = Nyquence.compare64(nyquence.n, ch.getLong(chgMeta.nyquence));
+			int nc = Nyquence.compareNyq(nyquence.n, ch.getLong(chgMeta.nyquence));
 			if (nc > 0) {
 				// write subs to conn.subm.tbl
 				// DESIGN NOTES: There is no R/D/E in subscriptions, that's an attribute of Doc sharing relationship 

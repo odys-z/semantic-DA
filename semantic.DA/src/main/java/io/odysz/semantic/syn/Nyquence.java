@@ -3,9 +3,9 @@ package io.odysz.semantic.syn;
 public class Nyquence {
 
 	/**
-	 * 
+	 * Compare a, b within modal of max long.
 	 * <pre>
-	 * -128           0            127
+	 * min-long<0        0            max-long
 	 *                a  b
 	 *     a             b
 	 *     b                    a             a - b &lt; 0
@@ -14,7 +14,7 @@ public class Nyquence {
 	 * @param b
 	 * @return 1 if a &gt; b else -1 if a &lt; b else 0
 	 */
-	public static int compare64(long a, long b) {
+	public static int compareNyq(long a, long b) {
 		long c = a - b;
 		return c < 0 && c != Long.MIN_VALUE ? -1 : a == b ? 0 : 1;
 	}

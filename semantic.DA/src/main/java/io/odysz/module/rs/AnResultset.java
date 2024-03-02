@@ -975,7 +975,8 @@ for (String coln : colnames.keySet())
 	}
 
 	/**
-	 * A mutation of {@link #next()}. If has a next row, return this, otherwise null.
+	 * A mutation of {@link #next()}. If has a next row, move index and
+	 * return this, otherwise null.
 	 * <p>For convenience if only needs to check the first row.</p>
 	 * E.g. to check the updating records' existence:
 	 * <pre>return ((AnResultset) transbuilder
@@ -997,15 +998,9 @@ for (String coln : colnames.keySet())
 		else
 			return null;
 	}
-
-//	/**
-//	 * Force escape all value from db.
-//	 */
-//	@Override
-//	public Anson toBlock(OutputStream stream, JsonOpt... opts) throws AnsonException, IOException {
-//		if (isNull(opts))
-//			opts = new JsonOpt[] {new JsonOpt()};
-//		opts[0].escape4DB(true);
-//		return super.toBlock(stream, opts);
-//	}
+	
+	public boolean hasnext() {
+		return (rs != null || results != null) && rowIdx < rowCnt;
+		
+	}
 }
