@@ -1,8 +1,5 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.semantic.CRUD.*;
-import static io.odysz.semantic.syn.ZSUNodesDA.*;
-
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
@@ -12,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import io.odysz.anson.x.AnsonException;
-import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.meta.SynChangeMeta;
@@ -51,6 +47,7 @@ public class ShareDocTest {
 	@Test
 	void testShareBykyiv() throws 
 		AnsonException, SQLException, IOException, TransException, SAXException, ClassNotFoundException {
+	/* deprecated as mobile devices don't have local DB change logs
 
 		ZSUNodesDA.init();
 
@@ -84,6 +81,7 @@ public class ShareDocTest {
 
 		// 3.2 verify files
 		kharkiv.ck.verifile(anDevice.nodeId, anDevice.png, phm);
+	*/
 	}
 
 	/**

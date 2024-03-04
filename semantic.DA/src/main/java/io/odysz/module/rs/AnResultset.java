@@ -1,7 +1,6 @@
 package io.odysz.module.rs;
 
 
-import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -223,14 +222,14 @@ for (String coln : colnames.keySet())
 	 * @param rows
 	 * @param cols
 	 */
-	public AnResultset(int rows, int cols, String... colPrefix) {
+	public AnResultset(int rows, int cols, String colPrefix) {
 		if (rows <= 0 || cols <= 0)
 			return;
 		results = new ArrayList<ArrayList<Object>>(rows);
 		colCnt = cols;
 		colnames = new HashMap<String, Object[]>(cols);
 		for (int i = colCnt; i >= 1; i--) {
-			String colName = (colPrefix == null || colPrefix.length != 1) ? String.valueOf(i) : String.format("%s%s", colPrefix[0].trim(), i);
+			String colName = colPrefix == null  ? String.valueOf(i) : String.format("%s%s", colPrefix.trim(), i);
 			colnames.put(colName.toUpperCase(), new Object[] {i, colName});
 		}
 		rowIdx = 0;
@@ -240,6 +239,30 @@ for (String coln : colnames.keySet())
 			ArrayList<Object> row = new ArrayList<Object>(colCnt);
 			for (int j = 1; j <= colCnt; j++) {
 				row.add(String.format("%s, %s", r, j));
+			}
+			results.add(row);
+		}
+	}
+	
+	public AnResultset(int rows, int cols) throws Exception {
+		if (rows <= 0 || cols <= 0)
+			return;
+
+		results = new ArrayList<ArrayList<Object>>(rows);
+		colCnt = cols;
+		colnames = new HashMap<String, Object[]>(cols);
+
+		for (int i = colCnt; i >= 1; i--) {
+			String colName = String.format("c-%1$s", i);
+			colnames.put(colName.toUpperCase(), new Object[] {i, colName});
+		}
+		rowIdx = 0;
+		rowCnt = 0;
+		for (int r = 0; r < rows; r++) {
+			rowCnt++;
+			ArrayList<Object> row = new ArrayList<Object>(colCnt);
+			for (int j = 0; j < colCnt; j++) {
+				row.add(String.valueOf(r * cols + j));
 			}
 			results.add(row);
 		}
@@ -415,7 +438,16 @@ for (String coln : colnames.keySet())
 		String s = getString((Integer)colnames.get(colName.toUpperCase())[0]);
 		return s == null? "" : s;
 	}
-	
+
+	public String getStringAtRow(String colName, int row) throws NumberFormatException, SQLException {
+		return getStringAtRow(getColumex(colName), row);
+	}
+
+	public String getStringAtRow(int col, int row) throws NumberFormatException, SQLException {
+		return String.valueOf(getRowAt(row - 1).get(col));
+	}
+
+
 	/**
 	 * if value is equals case insensitive to 1,true, yes, y, t, decimal &gt; 0.001 return true, else return false;
 	 * @param colIndex
@@ -474,13 +506,13 @@ for (String coln : colnames.keySet())
 		return getDouble((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
-	public BigDecimal getBigDecimal(int colIndex) throws SQLException {
-		return BigDecimal.valueOf(getDouble(colIndex));
-	}
-
-	public BigDecimal getBigDecimal(String colName) throws SQLException {
-		return BigDecimal.valueOf(getDouble((Integer)colnames.get(colName.toUpperCase())[0]));
-	}
+//	public BigDecimal getBigDecimal(int colIndex) throws SQLException {
+//		return BigDecimal.valueOf(getDouble(colIndex));
+//	}
+//
+//	public BigDecimal getBigDecimal(String colName) throws SQLException {
+//		return BigDecimal.valueOf(getDouble((Integer)colnames.get(colName.toUpperCase())[0]));
+//	}
 	
 	public Date getDate(int index)throws SQLException{
 		try {
@@ -565,6 +597,28 @@ for (String coln : colnames.keySet())
 	public long getLong(String colName) throws SQLException {
 		return getLong((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
+	
+	/**
+	 * @param colName
+	 * @param row0 index start at 0
+	 * @return v
+	 * @throws NumberFormatException
+	 * @throws SQLException
+	 */
+	public long getLongAtRow(String colName, int row) throws NumberFormatException, SQLException {
+		return getLongAtRow(getColumex(colName) - 1, row);
+	}
+
+	/**
+	 * @param col column index start at 0
+	 * @param row0 index start at 0
+	 * @return v
+	 * @throws NumberFormatException
+	 * @throws SQLException
+	 */
+	public long getLongAtRow(int col, int row0) throws NumberFormatException, SQLException {
+		return Long.valueOf(String.valueOf(getRowAt(row0).get(col)));
+	}
 
 	public int getInt(String colName) throws SQLException {
 		return getInt((Integer)colnames.get(colName.toUpperCase())[0]);
@@ -621,7 +675,7 @@ for (String coln : colnames.keySet())
 	 * Get current row index.<br>
 	 * Row index start from 1.<br>
 	 * The last row indix == getRowCount()
-	 * @return string value
+	 * @return row index
 	 */
 	public int getRow() {
 		if (results == null) return 0;
@@ -716,11 +770,15 @@ for (String coln : colnames.keySet())
 		return colCnt;
 	}
 	
-	/**idx start at 0 */
-	public ArrayList<Object> getRowAt(int idx) throws SQLException {
-		if (results == null || idx < 0 || idx >= results.size()) 
-			throw new SQLException("Row index out of boundary. idx: " + idx);
-		return results.get(idx);
+	/**
+	 * @param idx0 start at 0 
+	 * @return row
+	 * @throws SQLException
+	 */
+	public ArrayList<Object> getRowAt(int idx0) throws SQLException {
+		if (results == null || idx0 < 0 || idx0 >= results.size()) 
+			throw new SQLException("Row index out of boundary. idx: " + idx0);
+		return results.get(idx0);
 	}
 
 	/**Set value to current row

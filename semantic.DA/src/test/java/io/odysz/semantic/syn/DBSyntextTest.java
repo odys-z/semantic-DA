@@ -333,14 +333,14 @@ public class DBSyntextTest {
 		c[Y].change(C, A_0, c[Y].phm);
 		c[Y].subs(A_0, -1, -1, Z, W);
 		// B.a = A.a
-		long Aa = c[X].nyquence(X).n;
-		assertEquals(Aa, c[Y].nyquence(X).n);
+		long Aa = c[X].trb.n0.n; // .getNyquence(X).n;
+		assertEquals(Aa, c[Y].trb.nyquect.get(c[X].synode)); //.getNyquence(X).n);
 
 		c[X].change(C, B_0, c[X].phm);
 		c[X].subs(B_0, -1, -1, Z, W);
 		// A.b = B.b
-		long Bb = c[Y].nyquence(Y).n;
-		assertEquals(Bb, c[X].nyquence(Y).n);
+		long Bb = c[Y].trb.n0.n; //.getNyquence(Y).n;
+		assertEquals(Bb, c[X].trb.nyquect.get(c[Y].synode)); //.getNyquence(Y).n);
 	}
 
 	/**
@@ -518,11 +518,9 @@ public class DBSyntextTest {
 		join(X, W);
 		c[X].synodes(X, Y, Z, W);
 
-		Nyquence n = c[X].nyquence(X);
-		
 		c[X].change(C, c[X].synode, c[X].phm);
 		// i X  w  3
-		c[X].chgEnt(C, c[X].synode, c[W].synode, c[W].phm);
+		// c[X].chgEnt(C, c[X].synode, c[W].synode, c[W].phm);
 		// Y, Z
 		c[X].subs(c[W].synode, -1, Y, Z, -1);
 		// And more ...
@@ -664,8 +662,33 @@ public class DBSyntextTest {
 		String A_0 = deletePhoto(chm, X);
 		String B_0 = deletePhoto(chm, Y);
 
-		c[X].subs(A_0, -1,  Y, X, Z);
-		c[X].subs(A_0,  X, -1, X, Z);
+		c[X].subs(A_0, -1,  Y, Z, W);
+		c[Y].subs(B_0,  X, -1, Z, W);
+		
+		exchange(X, Y);
+		c[X].subs(A_0, -1, -1, Z, W);
+		c[Y].subs(A_0, -1, -1, Z, W);
+
+		c[X].subs(B_0, -1, -1, Z, W);
+		c[Y].subs(B_0, -1, -1, Z, W);
+		
+		exchange(Y, Z);
+		c[X].subs(A_0, -1, -1,  Z, W);
+		c[Y].subs(A_0, -1, -1, -1, W);
+		c[Z].subs(A_0, -1, -1, -1, W);
+
+		c[X].subs(B_0, -1, -1,  Z, W);
+		c[Y].subs(B_0, -1, -1, -1, W);
+		c[Z].subs(B_0, -1, -1, -1, W);
+
+		exchange(X, Y);
+		c[X].subs(A_0, -1, -1, -1, W);
+		c[Y].subs(A_0, -1, -1, -1, W);
+		c[Z].subs(A_0, -1, -1, -1, W);
+
+		c[X].subs(B_0, -1, -1, -1, W);
+		c[Y].subs(B_0, -1, -1, -1, W);
+		c[Z].subs(B_0, -1, -1, -1, W);
 	}
 	
 	static void initSynodes(int s) throws Exception {
@@ -693,23 +716,12 @@ public class DBSyntextTest {
 	void exchange(int dst, int src) throws TransException, SQLException {
 		
 		AnResultset schgs = trbs[src].tobegin(c[src].phm, c[src].synode, c[src].connId, c[src].robot);
-
-		/*
-		HashMap<String, Nyquence> vector = DBSynsactBuilder.toNyquect(schgs);
-		for (String pernode: vector.keySet()) {
-			Nyquence n = vector.get(pernode);
-			// condition: dst.n[src] < src.n0
-			while (shouldExchange(src, n, pernode)) {
-				AnResultset schg = trbs[src].toexchange(c[src].robot, pernode);
-				trbs[dst].onexchange(pernode, n, schgs, c[dst].robot);
-			}
-		}
-		*/
 		int loop = 0;
-		while (shouldExchange(src, c[src].nyquence(dst), c[dst].synode, c[src].nyquence(src))) {
+		while (shouldExchange(src, c[src].trb.nyquect.get(c[dst].synode),
+							  c[dst].synode, c[src].trb.n0)) {
 			List<ChangeLogs> committings = new ArrayList<ChangeLogs>();
 			ChangeLogs resp = trbs[dst].onexchange(
-					c[src].synode, c[src].nyquence(src), schgs, c[dst].robot, committings);
+					c[src].synode, c[src].trb.n0, schgs, c[dst].robot, committings);
 			if (loop == 0)
 				; // TODO insert new records at source
 			ackExchange(src, trbs[src], resp);
@@ -752,45 +764,45 @@ public class DBSyntextTest {
 	}
 
 	//////////////// deprecated for without clear schema rules /////////////////
-	void BvisitA(int A, int B) throws TransException, SQLException {
-		// B pull at A
-		pull(B, A);
-
-		// B push to A
-		push(B, A);
-	}
-
-	public static void push(int src, int dst) throws TransException, SQLException {
-		SynEntity anObj = trbs[src].loadEntity(c[src].synode, c[src].connId, c[src].robot, c[src].phm);
-		anObj.syncInto(conns[dst], trbs[dst], anObj.subs(), null, c[dst].robot);
-	}
-
-	@SuppressWarnings("serial")
-	public static void pull(int dst, int src) throws TransException, SQLException {
-		AnResultset ents = trbs[src].entities(c[src].phm, c[src].connId, c[src].robot);
-		
-		while(ents.next()) {
-			// say, entA = trb.loadEntity(phm)
-			AnResultset subs = (AnResultset) trbs[src]
-					.select(chm.tbl, "ch")
-					.je("ch", sbm.tbl, "sb", chm.uids, sbm.uids, chm.entbl, c[src].phm.tbl, sbm.entbl, c[src].phm.tbl)
-					.whereEq("ch", chm.org, c[src].robot.orgId())
-					.whereEq("ch", chm.synoder, c[src].synode)
-					.whereEq("ch", chm.uids, ents.getString(chm.uids))
-					.rs(trbs[src].instancontxt(conns[src], c[src].robot))
-					.rs(0);
-
-			SynEntity anObjA = new SynEntity(ents, c[dst].phm, chm, sbm);
-			String skip = anObjA.synode();
-			anObjA.format(ents)
-				// lock concurrency
-				.syncInto(conns[dst], trbs[dst], subs, new HashSet<String>() {{add(skip);}}, c[dst].robot)
-				// unlock
-				;
-			
-			trbs[dst].incNyquence(c[dst].connId, c[dst].phm.tbl, skip, c[dst].robot);
-		}
-	}
+//	void BvisitA(int A, int B) throws TransException, SQLException {
+//		// B pull at A
+//		pull(B, A);
+//
+//		// B push to A
+//		push(B, A);
+//	}
+//
+//	public static void push(int src, int dst) throws TransException, SQLException {
+//		SynEntity anObj = trbs[src].loadEntity(c[src].synode, c[src].connId, c[src].robot, c[src].phm);
+//		anObj.syncInto(conns[dst], trbs[dst], anObj.subs(), null, c[dst].robot);
+//	}
+//
+//	@SuppressWarnings("serial")
+//	public static void pull(int dst, int src) throws TransException, SQLException {
+//		AnResultset ents = trbs[src].entities(c[src].phm, c[src].connId, c[src].robot);
+//		
+//		while(ents.next()) {
+//			// say, entA = trb.loadEntity(phm)
+//			AnResultset subs = (AnResultset) trbs[src]
+//					.select(chm.tbl, "ch")
+//					.je("ch", sbm.tbl, "sb", chm.uids, sbm.uids, chm.entbl, c[src].phm.tbl, sbm.entbl, c[src].phm.tbl)
+//					.whereEq("ch", chm.org, c[src].robot.orgId())
+//					.whereEq("ch", chm.synoder, c[src].synode)
+//					.whereEq("ch", chm.uids, ents.getString(chm.uids))
+//					.rs(trbs[src].instancontxt(conns[src], c[src].robot))
+//					.rs(0);
+//
+//			SynEntity anObjA = new SynEntity(ents, c[dst].phm, chm, sbm);
+//			String skip = anObjA.synode();
+//			anObjA.format(ents)
+//				// lock concurrency
+//				.syncInto(conns[dst], trbs[dst], subs, new HashSet<String>() {{add(skip);}}, c[dst].robot)
+//				// unlock
+//				;
+//			
+//			trbs[dst].incNyquence(c[dst].connId, c[dst].phm.tbl, skip, c[dst].robot);
+//		}
+//	}
 	
 	void updatePhoto(int s, String pid) throws TransException, SQLException {
 		trbs[s].update(c[s].phm.tbl, c[s].robot)
@@ -910,10 +922,8 @@ public class DBSyntextTest {
 		 * @param synoder
 		 * @param entId
 		 * @param entm
+		public void chgEnt(String crud, String synoder, String entId, SyntityMeta entm) { }
 		 */
-		public void chgEnt(String crud, String synoder, String entId, SyntityMeta entm) {
-
-		}
 
 		/**
 		 * Verify change flag, crud, where tabl = entm.tbl, entity-id = eid.
@@ -972,17 +982,6 @@ public class DBSyntextTest {
 				size--;
 			}
 			assertEquals(0, size);
-		}
-
-		/**
-		 * get nyquence
-		 * @param synode
-		 * @return
-		 * @throws TransException 
-		 * @throws SQLException 
-		 */
-		public Nyquence nyquence(int synode) throws SQLException, TransException {
-			return trbs[synode].nyquence(conns[synode], robot.orgId(), robot.deviceId(), phm.tbl);
 		}
 
 		/**
