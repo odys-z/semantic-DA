@@ -1,7 +1,8 @@
 package io.odysz.semantic.syn;
 
 import java.sql.SQLException;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
@@ -12,50 +13,71 @@ import io.odysz.semantic.meta.SynChangeMeta;
 public class ChangeLogs extends Anson {
 
 	@AnsonField(ignoreTo=true)
-	SynChangeMeta met;
+	SynChangeMeta chm;
 	
 	String entble;
 	/**
 	 * 0: change statement, CRUD.C: insert, CRUD.U: remove-subs, CRUD.D: remove-log),<br>
 	 * 1: change-crud,<br> 2: synoder,<br> 3: uids,<br> 4: nyquence<br> 
 	 */
-	List<Object[]> changes;
+	ArrayList<ArrayList<Object>> changes;
+
+	private HashMap<String, Object[]> columns;
+
+	private AnResultset rs;
+
+	private boolean dirty;
 
 	public ChangeLogs(SynChangeMeta changemeta) {
-		this.met = changemeta;
+		this.chm = changemeta;
+		dirty = false;
 	}
 
 	public void remove_sub(AnResultset chgs, String synode) throws SQLException {
-		changes.add(new Object[] {
-			CRUD.U, // insert change log
-			chgs.getString(met.crud),
-			chgs.getString(met.synoder),
-			chgs.getString(met.uids),
-			chgs.getLong(met.nyquence),
-			synode
-		});
+		if (this.columns == null)
+			setColumms(chgs.colnames());
+		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow());
+		row.add(getColIndex(chm.crud), CRUD.U);
+		dirty = true;
 	}
 
 	public void remove(AnResultset chgs) throws SQLException {
-		changes.add(new Object[] {
-			CRUD.D, // delete change log
-			chgs.getString(met.crud),
-			chgs.getString(met.synoder),
-			chgs.getString(met.uids),
-			chgs.getLong(met.nyquence)
-		});
+		if (this.columns == null)
+			setColumms(chgs.colnames());
+		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow());
+		row.add(CRUD.D);
+		dirty = true;
 	}
 
 	public void append(AnResultset dchgs) throws SQLException {
-		changes.add(new String[] {
-			CRUD.C, // remove change subscriptions
-			dchgs.getString(met.crud),
-			dchgs.getString(met.synoder),
-			dchgs.getString(met.uids),
-			dchgs.getString(met.subs) });
+		if (this.columns == null)
+			setColumms(dchgs.colnames());
+		ArrayList<Object> row = dchgs.getRowAt(dchgs.currentRow());
+		row.add(CRUD.C);
+		dirty = true;
 	}
 
 	public static Nyquence parseNyq(Object[] c) {
 		return new Nyquence((long)c[4]);
+	}
+
+	protected int getColIndex(String col) {
+		return (int)columns.get(col.toUpperCase())[0];
+	}
+
+	protected int setColumms(HashMap<String, Object[]> colnames) {
+		columns = colnames;
+		if (!columns.containsKey(chm.crud)) {
+			columns.put(chm.crud, new Object[] {Integer.valueOf(colnames.size()), chm.crud});
+		}
+		dirty = true;
+		return columns.size();
+	}
+	
+	AnResultset rs() {
+		if (rs == null || dirty) {
+			rs = new AnResultset(columns, true).results(changes);
+		}
+		return rs;
 	}
 }

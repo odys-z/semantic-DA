@@ -1,11 +1,9 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.isNull;
-import static io.odysz.common.LangExt.isblank;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -14,7 +12,6 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
-import io.odysz.anson.Anson;
 import io.odysz.common.Utils;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
@@ -45,7 +42,7 @@ public class SyncRobot extends SemanticObject implements IUser {
 		return this;
 	}
 
-	protected String deviceId;
+	protected final String deviceId;
 	public String deviceId() { return deviceId; }
 
 	protected String ssid;
@@ -57,8 +54,9 @@ public class SyncRobot extends SemanticObject implements IUser {
 		return this;
 	}
 
-	public SyncRobot(String userid) {
+	public SyncRobot(String userid, String device) {
 		this.userId = userid;
+		deviceId = device;
 	}
 
 	/**
@@ -68,9 +66,10 @@ public class SyncRobot extends SemanticObject implements IUser {
 	 * @param pswd
 	 * @param userName
 	 */
-	public SyncRobot(String userid, String pswd, String userName) {
+	public SyncRobot(String userid, String pswd, String userName, String device) {
 		this.userId = userid;
 		this.userName = userName;
+		this.deviceId = device;
 	}
 	
 	public static class RobotMeta extends TableMeta {
@@ -92,12 +91,12 @@ public class SyncRobot extends SemanticObject implements IUser {
 				isNull(connId) ? null : connId[0], "a_users"));
 	}
 
-	public IUser onCreate(Anson reqBody) throws GeneralSecurityException {
-		deviceId = ((T_AnSessionReq)reqBody).deviceId();
-		if (isblank(deviceId, "/", "\\."))
-			throw new GeneralSecurityException("Photo user's device Id can not be null - used for distinguish files.");
-		return this;
-	}
+//	public IUser onCreate(Anson reqBody) throws GeneralSecurityException {
+//		deviceId = ((AnSessionReq)reqBody).deviceId();
+//		if (isblank(deviceId, "/", "\\."))
+//			throw new GeneralSecurityException("Photo user's device Id can not be null - used for distinguish files.");
+//		return this;
+//	}
 
 	@Override
 	public ArrayList<String> dbLog(ArrayList<String> sqls) throws TransException { return null; }
@@ -169,8 +168,8 @@ public class SyncRobot extends SemanticObject implements IUser {
 		return new SessionInf().device(deviceId);
 	}
 
-	public SyncRobot device(String dev) {
-		deviceId = dev;
-		return this;
-	}
+//	public SyncRobot device(String dev) {
+//		deviceId = dev;
+//		return this;
+//	}
 }

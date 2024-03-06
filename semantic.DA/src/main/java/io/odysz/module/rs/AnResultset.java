@@ -73,6 +73,7 @@ for (String coln : colnames.keySet())
 	 * */
 	@AnsonField(valType="[Ljava.lang.Object;")
 	private HashMap<String, Object[]> colnames;
+	public HashMap<String, Object[]> colnames() { return colnames; }
 
 	/** In cs version, it's Datatable */
 	@AnsonField(ignoreTo = true)
@@ -177,6 +178,24 @@ for (String coln : colnames.keySet())
 			rowCnt = results.size();
 		}
 	}
+
+//	public AnResultset(HashMap<String, Object[]> columns, ArrayList<ArrayList<Object>> rows) {
+//		results = new ArrayList<ArrayList<Object>>();
+//		colCnt = colnames.size();
+//		this.colnames = new HashMap<String, Object[]>(colCnt);
+//		for (String coln : colnames.keySet()) {
+//			this.colnames.put(coln.toUpperCase(), new Object[] {colnames.get(coln), coln});
+//		}
+//		rowIdx = 0;
+//		rowCnt = 0;
+//		
+//		if (rows != null && rows[0] != null) {
+//			results = rows[0];
+//			rowIdx = 0;
+//			rowCnt = results.size();
+//		}
+//	}
+
 
 	/**Construct an empty set, used for appending rows.
 	 * Cols are deep copied.
@@ -316,6 +335,11 @@ for (String coln : colnames.keySet())
 		}
 		rowIdx = 0;
 		rowCnt = 0;
+	}
+
+	public AnResultset results(ArrayList<ArrayList<Object>> rows) {
+		this.results = rows;
+		return this;
 	}
 
 	/** @return column names */

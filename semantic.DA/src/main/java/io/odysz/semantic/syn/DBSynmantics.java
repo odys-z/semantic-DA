@@ -8,6 +8,7 @@ import static io.odysz.common.LangExt.split;
 import static io.odysz.common.LangExt.str;
 import static io.odysz.common.LangExt.trim;
 import static io.odysz.transact.sql.parts.condition.Funcall.add;
+import static io.odysz.transact.sql.parts.condition.Funcall.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
@@ -62,8 +63,8 @@ public class DBSynmantics extends DASemantics {
 			String pk, String[] args) throws SemanticException {
 		if (smtype.synChange == smtp)
 			try {
-				return new DBSynmantics.ShSynChange(new DBSynsactBuilder(tsx), tabl, pk, args);
-			} catch (SemanticException | SQLException | SAXException | IOException e) {
+				return new DBSynmantics.ShSynChange(new DBSynsactBuilder(tsx.basictx().connId(), "FIXME-dev"), tabl, pk, args);
+			} catch (TransException | SQLException | SAXException | IOException e) {
 				e.printStackTrace();
 				return null;
 			}
@@ -176,6 +177,17 @@ public class DBSynmantics extends DASemantics {
 			}
 		}
 
+		/**
+		 * Log changes when synchronized entities updated.
+		 * @param <T>
+		 * @param stx
+		 * @param stmt
+		 * @param row
+		 * @param cols
+		 * @param usr
+		 * @return statements, i. e. stmt
+		 * @throws SemanticException
+		 */
 		private <T extends Statement<?>> T logChange(ISemantext stx, T stmt,
 				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
@@ -206,7 +218,7 @@ public class DBSynmantics extends DASemantics {
 				insChg.select(syb
 						.select(snm.tbl, "s")
 						.je("s", nyqm.tbl, "ny", snm.org(), nyqm.org(), snm.synode, nyqm.synode)
-						.col(pid, chm.entfk)
+						.col(constr(pid))
 						.col(CRUD.C, chm.crud)
 						.col(UHF ? add(nyqm.nyquence, snm.inc) : add(nyqm.nyquence, 1), chm.nyquence)
 						.whereEq(nyqm.entbl, target)

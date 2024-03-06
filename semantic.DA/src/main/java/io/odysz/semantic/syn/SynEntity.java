@@ -13,6 +13,7 @@ import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.meta.TableMeta;
+import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -49,7 +50,7 @@ public class SynEntity extends Anson {
 	protected SynSubsMeta subMeta;
 
 	@AnsonField(ignoreTo=true)
-	protected SynChangeMeta chgMeta;
+	protected SynChangeMeta chgm;
 
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	ISemantext semantxt;
@@ -62,7 +63,7 @@ public class SynEntity extends Anson {
 	public SynEntity(AnResultset rs, SyntityMeta entity, SynChangeMeta change, SynSubsMeta subs) throws SQLException {
 		this.entMeta = entity;
 		this.subMeta = subs;
-		this.chgMeta = change;
+		this.chgm = change;
 
 		format(rs);
 	}
@@ -70,7 +71,7 @@ public class SynEntity extends Anson {
 	public SynEntity(SyntityMeta entm) {
 		this.entMeta = entm;
 		this.subMeta = new SynSubsMeta();
-		this.chgMeta = new SynChangeMeta();
+		this.chgm = new SynChangeMeta();
 	}
 
 	public SynEntity(AnResultset rs, SyntityMeta meta) throws SQLException {
@@ -97,7 +98,7 @@ public class SynEntity extends Anson {
 	 */
 	public SynEntity format(AnResultset rs) throws SQLException {
 		this.recId = rs.getString(entMeta.pk);
-		this.synode =  rs.getString(chgMeta.synoder);
+		this.synode =  rs.getString(chgm.synoder);
 		return this;
 	}
 
@@ -118,23 +119,23 @@ public class SynEntity extends Anson {
 			throws TransException, SQLException {
 		AnResultset ch = (AnResultset) trsb
 				.select(entMeta.tbl, "ent")
-				.je("ent", chgMeta.tbl, "ch", entMeta.pk, chgMeta.entfk)
-				.cols(chgMeta.cols()).cols(subMeta.cols())
-				.whereEq(chgMeta.synoder, synode)
-				.whereEq(chgMeta.uids, uids)
+				.je("ent", chgm.tbl, "ch", chgm.uids, Funcall.concat(trsb.synode + chgm.UIDsep + chgm.pk), chgm.uids, chgm.synoder, trsb.synode)
+				.cols(chgm.cols()).cols(subMeta.cols())
+				.whereEq(chgm.synoder, synode)
+				.whereEq(chgm.uids, uids)
 				.rs(trsb.instancontxt(conn, robot))
 				.rs(0);
 		
-		if (ch.getString(chgMeta.synoder).equals(synoder)) {
+		if (ch.getString(chgm.synoder).equals(synoder)) {
 			// compare ch.n with s.nyq
-			int nc = Nyquence.compareNyq(nyquence.n, ch.getLong(chgMeta.nyquence));
+			int nc = Nyquence.compareNyq(nyquence.n, ch.getLong(chgm.nyquence));
 			if (nc > 0) {
 				// write subs to conn.subm.tbl
 				// DESIGN NOTES: There is no R/D/E in subscriptions, that's an attribute of Doc sharing relationship 
 				trsb.delete(subMeta.tbl, robot)
 					.whereEq(subMeta.org, ch.getString(entMeta.org()))
-					.whereEq(subMeta.entbl, ch.getString(chgMeta.entbl))
-					.whereEq(subMeta.uids, ch.getString(chgMeta.uids))
+					.whereEq(subMeta.entbl, ch.getString(chgm.entbl))
+					.whereEq(subMeta.uids, ch.getString(chgm.uids))
 					.post(trsb
 						.insert(subMeta.tbl, robot)
 						.values(subMeta.insubVals(subs, skips))

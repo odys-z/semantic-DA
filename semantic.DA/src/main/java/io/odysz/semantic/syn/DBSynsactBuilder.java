@@ -15,6 +15,7 @@ import java.util.List;
 
 import org.xml.sax.SAXException;
 
+import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DASemantics;
@@ -58,39 +59,37 @@ public class DBSynsactBuilder extends DATranscxt {
 	/** Nyquence vector [{synode, n0}]*/
 	protected HashMap<String, Nyquence> nyquect;
 	protected Nyquence n0;
+	public final IUser synrobot;
 
-	public DBSynsactBuilder(String conn, IUser robot)
+	public DBSynsactBuilder(String conn, String synodeId)
 			throws SQLException, SAXException, IOException, TransException {
-		this(conn,
+		this(conn, synodeId,
 			new SynSubsMeta(conn),
 			new SynChangeMeta(conn),
-			new NyquenceMeta(conn), robot);
+			new NyquenceMeta(conn));
 	}
 	
-	public DBSynsactBuilder(String conn, SynSubsMeta subm, SynChangeMeta chgm, NyquenceMeta nyqm, IUser robot)
+	public DBSynsactBuilder(String conn, String synodeId,
+			SynSubsMeta subm, SynChangeMeta chgm, NyquenceMeta nyqm)
 			throws SQLException, SAXException, IOException, TransException {
 		super ( new DBSyntext(conn,
 			    initConfigs(conn, loadSemantics(conn),
 						(c) -> new SynmanticsMap(c)),
-				robot, runtimepath));
+				(IUser) new SyncRobot("rob-" + synodeId, synodeId), runtimepath));
+
+		this.synode = synodeId;
+		this.synrobot = new SyncRobot("rob-" + synodeId, synodeId);
 
 		this.subm = subm != null ? subm : new SynSubsMeta(conn);
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.nyqm = nyqm != null ? nyqm : new NyquenceMeta(conn);
 		
 		AnResultset rs = ((AnResultset) select(nyqm.tbl)
-				.rs(instancontxt(conn, robot))
+				.rs(instancontxt(conn, synrobot))
 				.rs(0))
 				.nxt();
 		
-		if (rs == null) {
-			// register myself, wait for others to join
-			// - this will minimize unknown records transit ?
-			// TODO insert synode
-		}
-		
-		this.synode = rs.getString(nyqm.synode);
-		this.nyquect = toNyquect(rs);
+		this.nyquect = toNyquvect(rs);
 		this.n0 = nyquect.get(synode);
 	}
 	
@@ -102,10 +101,11 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws IOException 
 	 * @throws SAXException 
 	 * @throws SQLException 
-	 */
 	public DBSynsactBuilder(Transcxt tsx) throws SemanticException, SQLException, SAXException, IOException {
 		super(tsx.basictx().connId());
+		this.synrobot = new SyncRobot("rob-" + synodeId, synodeId);
 	}
+	 */
 
 
 	@Override
@@ -172,7 +172,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	public int incNyquence(String conn, String synid, String entity, IUser usr)
 			throws TransException, SQLException {
 		return update(nyqm.tbl, usr)
-			.nv(nyqm.nyquence, select(nyqm.tbl).col(add(nyqm.nyquence, nyqm.inc)))
+			.nv(nyqm.nyquence, select(nyqm.tbl).col(add(nyqm.nyquence, nyqm.inc))) // FIXME what happens when overflow?
 			.nv(nyqm.inc, 0)
 			.whereEq(nyqm.entbl, entity)
 			.whereEq(nyqm.org(), usr.orgId())
@@ -199,7 +199,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				.je("ch", subm.tbl, "sb", chgm.uids, subm.uids, chgm.org, subm.org)
 				.whereEq("ch", chgm.entbl, phm.tbl)
 				.whereEq("sb", subm.entbl, phm.tbl)
-				.whereEq(chgm.entfk, eid)
+				.whereEq(chgm.uids, synode + chgm.UIDsep + eid)
 				.rs(instancontxt(conn, usr))
 				.rs(0);
 
@@ -275,7 +275,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public ChangeLogs onexchange(String srcnode, Nyquence sn, AnResultset srchgs, IUser robot, List<ChangeLogs> localbuf)
+	public ChangeLogs mergeChange(String srcnode, Nyquence sn, AnResultset srchgs, IUser robot, List<ChangeLogs> localbuf)
 			throws TransException, SQLException {
 		
 		if (isNull(srchgs)) return null;
@@ -348,6 +348,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 			srchgs.next();
 		}
+
 		while(dchgs.hasnext()) {
 			remolog.append(dchgs);
 
@@ -363,7 +364,6 @@ public class DBSynsactBuilder extends DATranscxt {
 
 			localog.append(srchgs);
 			dchgs.next();
-	
 		}
 		
 		// FIXME what happen if local committed and remote lost response?
@@ -373,20 +373,23 @@ public class DBSynsactBuilder extends DATranscxt {
 		return remolog;
 	}
 
-	private int compare(long sn0, AnResultset dchgs) {
-		// TODO Auto-generated method stub
-		return 0;
+	int compare(long n, AnResultset chgs) throws SQLException {
+		long dn = chgs.getLong(chgm.nyquence);
+		int diff = Nyquence.compareNyq(n, dn);
+		if (diff == 0)
+			return 0;
+		
+		return (int) Math.min(2, Math.max(-2, (n - dn)));
 	}
 
-	private int compare(AnResultset srchgs, Nyquence n02) {
-		// TODO Auto-generated method stub
-		return 0;
+	int compare(AnResultset chgs, Nyquence n) throws SQLException {
+		return - compare(n.n, chgs);
 	}
 
 	/**
 	 * Compare source and destination record, using both current row.
-	 * @param ini initiator
-	 * @param ack acknowledger
+	 * @param a initiator
+	 * @param b acknowledger
 	 * @return
 	 * -2: ack to ini deletion propagation,
 	 * -1: ack to ini appending,
@@ -395,46 +398,112 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * 2: ini to ack deletion propagation
 	 * @throws SQLException 
 	 */
-	int compare(AnResultset ini, AnResultset ack) throws SQLException {
-		long sn = ini.getLong(chgm.nyquence);
-		long dn = ack.getLong(chgm.nyquence);
-		int diff = Nyquence.compareNyq(sn, dn);
-		if (diff == 0)
-			return 0;
-		
-		return (int) Math.min(2, Math.max(-2, (sn - dn)));
+	int compare(AnResultset a, AnResultset b) throws SQLException {
+		long sn = a.getLong(chgm.nyquence);
+		return compare(sn, b);
 	}
 
-	DBSynsactBuilder ignoreUntil(List<ChangeLogs> commitBuff, String srcnode, long srcn1) {
-		return this;
+	/**
+	 * 
+	 * @param commitBuff
+	 * @param srcnode
+	 * @param srcn1
+	 * @return current log index with current row index of first in-ignorable. If all ignored, return the size
+	 * @throws SQLException
+	 */
+	int ignoreUntil(List<ChangeLogs> commitBuff, String srcnode, long srcn1) throws SQLException {
+		// FIXME, binary search?
+		for (int lx = 0; lx < commitBuff.size(); lx++) {
+			ChangeLogs log = commitBuff.get(lx);
+			AnResultset rs = log.rs();
+			rs.beforeFirst();
+			while (rs.next() && rs.getLong(0) > srcn1)
+				;
+			if (rs.hasnext()) 
+				return lx;
+		}
+		return commitBuff.size();
 	}
 
-	DBSynsactBuilder commitUntil(List<ChangeLogs> commitBuff, String srcnode, long untilN0) {
+	DBSynsactBuilder commitUntil(List<ChangeLogs> commitBuff, String srcnode, long untilN0) throws SQLException, TransException {
 		List<Statement<?>> stats = new ArrayList<Statement<?>>();
-		for (ChangeLogs l : commitBuff) {
-			for (Object [] c : l.changes) {
-				if (Nyquence.compareNyq(ChangeLogs.parseNyq(c).n, untilN0) <= 0)
+		for (ChangeLogs log : commitBuff) {
+			AnResultset c = log.rs();
+			while (c.next()) {
+				if (Nyquence.compareNyq(c.getLong(chgm.nyquence), untilN0) <= 0)
 					break;
-				stats.add(eq((String)c[0], CRUD.C)
+				String crud = c.getString(chgm.crud);
+				SyntityMeta entm = getEntityMeta(chgm.entbl);
+				stats.add(eq(crud, CRUD.C)
+					/* create an entity, and trigger change log
 					? insert(chgm.tbl)
-							.nv(chgm.crud, (String)c[1])
-							.nv(chgm.synoder, (String)c[2])
-							.nv(chgm.uids, (String)c[3])
-					: eq((String)c[0], CRUD.U)
+						.nv(chgm.crud, CRUD.C)
+						.nv(chgm.synoder, c.getString(chgm.synoder))
+						.nv(chgm.uids, c.getString(chgm.uids))
+						.post(insert(c.getString(chgm.entbl))
+							.cols("")
+							.value(""))
+					*/
+					? insert(entm.tbl, synrobot)
+						.cols(entm.insertCols())
+						.values(entm.insertVal(log))
+						.post(insert(subm.tbl)
+								.cols(subm.insertCols())
+								.values(subm.insertVals(log)))
+					: eq(crud, CRUD.U) // remove subscribes
 					? update(chgm.tbl)
-						.nv(chgm.subs, removele((String)c[2], (String)c[4]))
-						.whereEq(chgm.synoder, (String)c[2])
-						.whereEq(chgm.uids, (String)c[3])
-					: delete(chgm.tbl)
-						.whereEq(chgm.synoder, (String)c[2])
-						.whereEq(chgm.uids, (String)c[3]));
+						.nv(chgm.subs, removele(c.getString(chgm.synoder), c.getString(chgm.nyquence)))
+						.whereEq(chgm.synoder, c.getString(chgm.synoder))
+						.whereEq(chgm.uids, c.getString(chgm.uids))
+					: delete(chgm.tbl) // backward change log deletion propagation
+						.whereEq(chgm.synoder, c.getString(chgm.synoder))
+						.whereEq(chgm.uids, c.getString(chgm.uids)));
 			}
 		}
+		Utils.logi("[DBSynsactBuilder.commitUntil()]");
+		Utils.warn("Needing a Semantext which won't trigger semantics handling ...");
+		Utils.logi(stats);
 		return this;
 	}
 
-	public static HashMap<String, Nyquence> toNyquect(AnResultset schgs) {
+	private SyntityMeta getEntityMeta(String entbl) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public static HashMap<String, Nyquence> toNyquvect(AnResultset schgs) {
+		return null;
+	}
+
+	/**
+	 * Source node acknowledge destionation's response.
+	 * @param resp
+	 * @return acknowledge, answer to the destination node's commitment, and have be committed at source.
+	 * @throws SQLException 
+	 */
+	public ChangeLogs ackExchange(ChangeLogs resp) throws SQLException {
+		ChangeLogs logs = new ChangeLogs(chgm);
+		if (resp != null && resp.rs().getRowCount() > 0) {
+			AnResultset changes = resp.rs();
+			while (changes.next()) {
+				
+			}
+		}
+		return logs;
+	}
+
+	public void onAck(ChangeLogs resp, List<ChangeLogs> commitbuf) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public Nyquence closexchange() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void onClosexchange(String synode2, Nyquence n) {
+		// TODO Auto-generated method stub
+		
 	}
 }

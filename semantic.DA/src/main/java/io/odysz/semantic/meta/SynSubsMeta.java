@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.syn.ChangeLogs;
 import io.odysz.semantics.meta.TableMeta;
 
 /**
@@ -53,6 +54,16 @@ public class SynSubsMeta extends TableMeta {
 		ArrayList<ArrayList<Object[]>> v = new ArrayList<ArrayList<Object[]>>(subs.getRowCount() - len(skips));
 
 		return v;
+	}
+
+	public String[] insertCols() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public ArrayList<ArrayList<Object[]>> insertVals(ChangeLogs log) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

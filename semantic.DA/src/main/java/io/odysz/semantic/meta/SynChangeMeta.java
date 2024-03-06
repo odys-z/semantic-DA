@@ -10,10 +10,12 @@ import io.odysz.semantics.meta.TableMeta;
  *
  */
 public class SynChangeMeta extends TableMeta {
+	/** Separator in uids, for separating fields of pk */
+	public final String UIDsep;
 
 	public final String org;
 	public final String entbl;
-	public final String entfk;
+	// public final String entfk;
 	/** device:fullpath */
 	public final String uids;
 	public final String crud;
@@ -29,11 +31,12 @@ public class SynChangeMeta extends TableMeta {
 	public SynChangeMeta(String ... conn) {
 		super("syn_change", conn);
 
+		UIDsep = ",";
 		// pk    = "uids";
 		org   = "org";
 		entbl = "tabl";
-		entfk = "entfk";
-		crud = "cud";
+		// entfk = "entfk";
+		crud = "crud";
 		synoder = "synoder";
 		uids = "uids";
 		nyquence = "nyquence";
@@ -42,7 +45,7 @@ public class SynChangeMeta extends TableMeta {
 	}
 
 	public String[] cols() {
-		return new String[] {pk, entbl, entfk, synoder, crud};
+		return new String[] {pk, entbl, crud, synoder, uids};
 	}
 
 }

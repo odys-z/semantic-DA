@@ -1,9 +1,11 @@
 package io.odysz.semantic.meta;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.syn.ChangeLogs;
 import io.odysz.semantic.syn.DBSynmantics;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.x.TransException;
@@ -63,4 +65,13 @@ public abstract class SyntityMeta extends TableMeta {
 	
 
 	public HashSet<String> globalIds() { return uids; }
+
+	public String[] insertCols() {
+		return null;
+	}
+
+	public ArrayList<ArrayList<Object[]>> insertVal(ChangeLogs l) {
+		return null;
+	}
+
 }
