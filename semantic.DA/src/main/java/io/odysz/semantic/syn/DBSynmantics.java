@@ -86,7 +86,7 @@ public class DBSynmantics extends DASemantics {
 		protected final DBSynsactBuilder syb;
 
 		/** Ultra high frequency mode, the data frequency need to be reduced with some cost */
-		private final boolean UHF;
+		// private final boolean UHF;
 		private final String entflag;
 		private final ExprPart entGID;
 
@@ -106,7 +106,7 @@ public class DBSynmantics extends DASemantics {
 			update = true;
 			delete = true;
 
-			UHF = true;
+			// UHF = true;
 			
 			if (trxt instanceof DBSynsactBuilder)
 				syb = (DBSynsactBuilder) trxt;
@@ -144,14 +144,14 @@ public class DBSynmantics extends DASemantics {
 			entGID = compound(split(args[2], " "));
 		}
 
-		protected void onInsert(ISemantext stx, Insert insrt,
+		protected void onInsert(ISyncontext stx, Insert insrt,
 				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 			Utils.logi("synChange: onInsert ...\n\n");
 			requiredNv(entflag, new ExprPart(CRUD.C), cols, row, target, usr);
 			logChange(stx, insrt, row, cols, usr);
 		}
 
-		protected void onUpdate(ISemantext stx, Update updt,
+		protected void onUpdate(ISyncontext stx, Update updt,
 				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 			requiredNv(entflag, new ExprPart(CRUD.U), cols, row, target, usr);
@@ -159,7 +159,7 @@ public class DBSynmantics extends DASemantics {
 				updt = (Update) logChange(stx, updt, row, cols, usr);
 		}
 
-		private boolean isHit(ISemantext stx, Update updt,
+		private boolean isHit(ISyncontext stx, Update updt,
 				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 
@@ -188,7 +188,7 @@ public class DBSynmantics extends DASemantics {
 		 * @return statements, i. e. stmt
 		 * @throws SemanticException
 		 */
-		private <T extends Statement<?>> T logChange(ISemantext stx, T stmt,
+		private <T extends Statement<?>> T logChange(ISyncontext stx, T stmt,
 				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 
@@ -220,8 +220,8 @@ public class DBSynmantics extends DASemantics {
 						.je("s", nyqm.tbl, "ny", snm.org(), nyqm.org(), snm.synode, nyqm.synode)
 						.col(constr(pid))
 						.col(CRUD.C, chm.crud)
-						.col(UHF ? add(nyqm.nyquence, snm.inc) : add(nyqm.nyquence, 1), chm.nyquence)
-						.whereEq(nyqm.entbl, target)
+						.col(String.valueOf(stx.nyquence()), nyqm.nyquence)
+						// .whereEq(nyqm.entbl, target)
 						.whereEq(snm.org(), usr.orgId())
 						.whereEq(snm.synoder, synoder));
 
@@ -246,21 +246,21 @@ public class DBSynmantics extends DASemantics {
 
 			stmt.post(delChg);
 			
-			// FIXME use table-wise handler for nyquence updating
-			if (this.UHF)
-				stmt.post(clearInc(usr.orgId(), synoder, nyqm));
-			else stmt.post(inc(usr.orgId(), synoder, nyqm));
+//			// FIXME use table-wise handler for nyquence updating
+//			if (this.UHF)
+			stmt.post(clearInc(usr.orgId(), synoder, nyqm));
+			// else stmt.post(inc(usr.orgId(), synoder, nyqm));
 
 			return stmt;
 		}
 
-		private Statement<?> inc(String org, String synid, NyquenceMeta nyqm) {
-			return syb.update(snm.tbl)
-				.nv(nyqm.inc, add(nyqm.nyquence, 1))
-				.whereEq(nyqm.org(), org)
-				.whereEq(nyqm.synode, synid)
-				.whereEq(nyqm.entbl, target);
-		}
+//		private Statement<?> inc(String org, String synid, NyquenceMeta nyqm) {
+//			return syb.update(snm.tbl)
+//				.nv(nyqm.inc, add(nyqm.nyquence, 1))
+//				.whereEq(nyqm.org(), org)
+//				.whereEq(nyqm.synode, synid)
+//				.whereEq(nyqm.entbl, target);
+//		}
 
 		private Update clearInc(String org, String synid, NyquenceMeta nyqm) {
 			return syb.update(snm.tbl)
@@ -268,7 +268,8 @@ public class DBSynmantics extends DASemantics {
 				.nv(nyqm.inc, 0)
 				.whereEq(nyqm.org(), org)
 				.whereEq(nyqm.synode, synid)
-				.whereEq(nyqm.entbl, target);
+				// .whereEq(nyqm.entbl, target)
+				;
 		}
 
 		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)

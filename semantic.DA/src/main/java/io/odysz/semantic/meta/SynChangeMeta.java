@@ -10,13 +10,13 @@ import io.odysz.semantics.meta.TableMeta;
  *
  */
 public class SynChangeMeta extends TableMeta {
-	/** Separator in uids, for separating fields of pk */
+	/** Separator in uids, ",", for separating fields of pk */
 	public final String UIDsep;
 
 	public final String org;
 	public final String entbl;
 	// public final String entfk;
-	/** device:fullpath */
+	/** Format: device {@link #UIDsep} entity-id */
 	public final String uids;
 	public final String crud;
 	public final String synoder;

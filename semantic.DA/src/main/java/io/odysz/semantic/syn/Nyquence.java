@@ -24,4 +24,15 @@ public class Nyquence {
 	public Nyquence(long n) {
 		this.n = n;
 	}
+
+	public Nyquence inc(Nyquence maxn) {
+		return inc(maxn.n);
+	}
+
+	public Nyquence inc(long maxn) {
+		this.n++;
+		this.n = Math.max(maxn, this.n );
+		return this;
+	}
+
 }

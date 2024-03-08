@@ -12,7 +12,7 @@ import java.util.HashSet;
 public class NyquenceMeta extends SyntityMeta {
 	
 	public final String synode;
-	public final String entbl;
+	// public final String entbl;
 	public final String nyquence;
 	public final String inc;
 
@@ -21,7 +21,7 @@ public class NyquenceMeta extends SyntityMeta {
 		
 		nyquence = "nyquence";
 		inc = "inc";
-		entbl = "tabl";
+		// entbl = "tabl";
 		synode = "synode";
 		this.org = org;
 	}

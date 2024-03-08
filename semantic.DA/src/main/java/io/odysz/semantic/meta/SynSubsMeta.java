@@ -8,7 +8,9 @@ import java.util.Set;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.syn.ChangeLogs;
+import io.odysz.semantic.syn.DBSynsactBuilder;
 import io.odysz.semantics.meta.TableMeta;
+import io.odysz.transact.sql.Query;
 
 /**
  * <a href="./syn_subscribe.sqlite.ddl">syn_sbuscribe DDL</a>
@@ -61,9 +63,11 @@ public class SynSubsMeta extends TableMeta {
 		return null;
 	}
 
-	public ArrayList<ArrayList<Object[]>> insertVals(ChangeLogs log) {
-		// TODO Auto-generated method stub
-		return null;
+	public Query subs2change(SynodeMeta synm, DBSynsactBuilder tb, ChangeLogs log) {
+		// TODO how about caching in memory for current subscribers?
+		return tb.with(true, org, entbl, null)
+				.select(synm.tbl, "sn")
+			;
 	}
 
 }

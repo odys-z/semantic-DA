@@ -28,6 +28,9 @@ public class ChangeLogs extends Anson {
 
 	private boolean dirty;
 
+	/** max nyquence */
+	public Nyquence maxn;
+
 	public ChangeLogs(SynChangeMeta changemeta) {
 		this.chm = changemeta;
 		dirty = false;

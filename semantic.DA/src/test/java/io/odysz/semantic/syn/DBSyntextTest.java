@@ -339,13 +339,13 @@ public class DBSyntextTest {
 		c[Y].subs(A_0, -1, -1, Z, W);
 		// B.a = A.a
 		long Aa = c[X].trb.n0.n; // .getNyquence(X).n;
-		assertEquals(Aa, c[Y].trb.nyquect.get(c[X].trb.synode)); //.getNyquence(X).n);
+		assertEquals(Aa, c[Y].trb.nyquvect.get(c[X].trb.synode)); //.getNyquence(X).n);
 
 		c[X].change(C, B_0, c[X].phm);
 		c[X].subs(B_0, -1, -1, Z, W);
 		// A.b = B.b
 		long Bb = c[Y].trb.n0.n; //.getNyquence(Y).n;
-		assertEquals(Bb, c[X].trb.nyquect.get(c[Y].trb.synode)); //.getNyquence(Y).n);
+		assertEquals(Bb, c[X].trb.nyquvect.get(c[Y].trb.synode)); //.getNyquence(Y).n);
 	}
 
 	/**
@@ -706,6 +706,9 @@ public class DBSyntextTest {
 	static void initSynodes(int s) throws Exception {
 		String sqls = Utils.loadTxt("syn_nodes.sql");
 		Connects.commit(conns[s], c[s].robot(), sqls);
+		
+		c[s].trb.registerEntity(c[s].phm);
+		c[s].trb.loadNyquvect0(conns[s]);
 	}
 
 	void join(int admin, int apply) throws TransException, SQLException {
@@ -718,7 +721,7 @@ public class DBSyntextTest {
 	}
 	
 	/**
-	 * A, b exchange/synchronize change logs.
+	 * X, Y exchange/synchronize change logs.
 	 * 
 	 * @param dst hub
 	 * @param src client
@@ -726,27 +729,33 @@ public class DBSyntextTest {
 	 * @throws TransException 
 	 */
 	void exchange(int dst, int src) throws TransException, SQLException {
-		AnResultset schgs = c[src].trb.tobegin(c[src].phm, c[src].trb.synode, c[src].connId(), c[src].robot());
 		int loop = 0;
-		while (shouldExchange(src, c[src].trb.nyquect.get(c[dst].trb.synode),
+		long maxn = 0;
+		while (shouldExchange(src, c[src].trb.nyquvect.get(c[dst].trb.synode),
 							  c[dst].trb.synode, c[src].trb.n0)) {
+			AnResultset req = c[src].trb.iniExchange(c[src].trb.synode, c[src].connId(), c[src].robot());
 			List<ChangeLogs> committings = new ArrayList<ChangeLogs>();
 			ChangeLogs resp = c[dst].trb.mergeChange(
-					c[src].trb.synode, c[src].trb.n0, schgs, c[dst].robot(), committings);
+					c[src].trb.synode, c[src].trb.n0, req, c[dst].robot(), committings);
 			if (loop == 0)
 				; // TODO insert new records at source
-			resp = c[src].trb.ackExchange(resp);
+			maxn = Math.max(resp.maxn.n, maxn);
+			resp = c[src].trb.ackExchange(resp, c[dst].trb.synode);
 			
 			// network: ack lost
 			if (loop > 0)
 				c[dst].trb.onAck(resp, committings);
+			loop++;
 		}
-		Nyquence n = c[src].trb.closexchange();
-		c[dst].trb.onClosexchange(c[src].trb.synode, n);
+		
+		if (loop > 0) {
+			Nyquence n = c[src].trb.n0.inc(maxn);
+			c[dst].trb.n0.inc(n);
+		}
 	}
 	
 	/**
-	 * There are change logs such that chg.n &gt; n0.
+	 * There are change logs such that chg.n &ge; n0.
 	 * @param src
 	 * @param dn
 	 * @param pernode for the target node
@@ -787,7 +796,6 @@ public class DBSyntextTest {
 			.ins(c[s].trb.instancontxt(conns[X], c[s].robot()));
 	}
 	
-
 	String insertPhoto(int s) throws TransException, SQLException {
 		T_PhotoMeta m = c[s].phm;
 		String pid = ((SemanticObject) c[s].trb
@@ -815,7 +823,6 @@ public class DBSyntextTest {
 		
 		return pid;
 	}
-	
 	
 	String synodes(Ck[] cks, String synode) {
 		return Stream.of(cks)
