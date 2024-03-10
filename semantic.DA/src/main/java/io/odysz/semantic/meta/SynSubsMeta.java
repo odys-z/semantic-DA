@@ -27,12 +27,12 @@ public class SynSubsMeta extends TableMeta {
 	public final String synoder;
 
 	static {
-		// sqlite = "syn_subscribe.sqlite.ddl";
-		ddlSqlite = loadTxt(SynSubsMeta.class, "syn_subscribe.sqlite.ddl");
 	}
 
 	public SynSubsMeta(String ... conn) {
 		super("syn_subscribe", conn);
+		ddlSqlite = loadTxt(SynSubsMeta.class, "syn_subscribe.sqlite.ddl");
+
 		org = "org";
 		subs = "synodee";
 		entbl = "tabl";

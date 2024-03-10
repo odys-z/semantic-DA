@@ -25,11 +25,11 @@ public class SynChangeMeta extends TableMeta {
 	public final String subs;
 
 	static {
-		 ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
 	}
 
 	public SynChangeMeta(String ... conn) {
 		super("syn_change", conn);
+		ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
 
 		UIDsep = ",";
 		// pk    = "uids";

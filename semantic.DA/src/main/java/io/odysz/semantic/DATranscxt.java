@@ -113,6 +113,14 @@ public class DATranscxt extends Transcxt {
 			return null;
 		}
 
+		/**
+		 * Note: trb is already created per the connection, i. e. connect id is known. 
+		 * @param trb
+		 * @param tabl
+		 * @param pk
+		 * @param debug
+		 * @return
+		 */
 		public DASemantics createSemantics(Transcxt trb, String tabl, String pk, boolean debug) {
 			return new DASemantics(trb, tabl, pk, debug);
 		}
@@ -357,7 +365,7 @@ public class DATranscxt extends Transcxt {
 	}
 
 	/**
-	 * Load semantics configuration from file path.
+	 * Load semantics configuration, x-table, from file path.
 	 * This method also initialize table meta by calling {@link Connects}.
 	 * 
 	 * @param connId
@@ -375,7 +383,7 @@ public class DATranscxt extends Transcxt {
 				"Trying to find semantics of conn %1$s, but the configuration path is empty.\n" +
 				"No 'smtcs' configured in connects.xml for connection \"%1$s\"?\n" +
 				"Looking in path: %2$s", connId, fpath);
-		// Utils.logi("Lazy loading Semantics (fullpath):\n\t%s", fpath);
+		
 
 		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
 			new Log4jWrapper("").setDebugMode(false), fpath, new IXMLStruct() {

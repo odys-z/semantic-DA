@@ -502,6 +502,13 @@ public class DASemantics {
 	private String tabl;
 	private String pk;
 
+	/**
+	 * Note: basicTx is already created per the connection, i. e. connect id is known. 
+	 * @param basicTx
+	 * @param tabl
+	 * @param recId
+	 * @param verbose
+	 */
 	public DASemantics(Transcxt basicTx, String tabl, String recId, boolean ... verbose) {
 		this.tabl = tabl;
 		this.pk = recId;

@@ -3,7 +3,7 @@ package io.odysz.semantic.meta;
 import java.util.HashSet;
 
 /**
- * 
+ * @deprecated
  * <a href='./syn_nyquence.sqlite.ddl'>syn_nyquence.ddl</a>
  * 
  * @author odys-z@github.com

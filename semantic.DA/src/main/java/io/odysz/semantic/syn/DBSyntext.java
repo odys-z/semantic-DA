@@ -16,6 +16,8 @@ import io.odysz.semantics.x.SemanticException;
  */
 public class DBSyntext extends DASemantext implements ISemantext {
 
+	public String synode;
+
 	protected DBSyntext(String connId, SynmanticsMap metas,
 			IUser usr, String rtPath) throws SemanticException, SQLException {
 		super(connId, metas, usr, rtPath);

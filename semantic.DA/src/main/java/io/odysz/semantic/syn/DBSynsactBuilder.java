@@ -18,7 +18,6 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.meta.NyquenceMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -50,11 +49,12 @@ public class DBSynsactBuilder extends DATranscxt {
 	}
 
 	protected SynodeMeta synm;
-	protected NyquenceMeta nyqm;
+	// protected NyquenceMeta nyqm;
 	protected SynSubsMeta subm;
 	protected SynChangeMeta chgm;
 
-	protected String synode;
+	protected String synode() { return ((DBSyntext)this.basictx).synode; }
+
 	/** Nyquence vector [{synode, n0}]*/
 	protected HashMap<String, Nyquence> nyquvect;
 	protected Nyquence n0;
@@ -67,11 +67,10 @@ public class DBSynsactBuilder extends DATranscxt {
 		this(conn, synodeId,
 			new SynSubsMeta(conn),
 			new SynChangeMeta(conn),
-			new NyquenceMeta(conn));
+			new SynodeMeta(conn));
 	}
 	
-	public DBSynsactBuilder(String conn, String synodeId,
-			SynSubsMeta subm, SynChangeMeta chgm, NyquenceMeta nyqm)
+	public DBSynsactBuilder(String conn, String synodeId, SynSubsMeta subm, SynChangeMeta chgm, SynodeMeta synm)
 			throws SQLException, SAXException, IOException, TransException {
 
 		super ( new DBSyntext(conn,
@@ -79,28 +78,29 @@ public class DBSynsactBuilder extends DATranscxt {
 						(c) -> new SynmanticsMap(c)),
 				(IUser) new SyncRobot("rob-" + synodeId, synodeId), runtimepath));
 
-		this.synode = synodeId;
+		((DBSyntext)this.basictx).synode = synodeId;
 		this.synrobot = new SyncRobot("rob-" + synodeId, synodeId);
 
 		this.subm = subm != null ? subm : new SynSubsMeta(conn);
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
-		this.nyqm = nyqm != null ? nyqm : new NyquenceMeta(conn);
-		
-		this.nyquvect = loadNyquvect0(conn);
-		this.n0 = nyquvect.get(synode);
+		this.synm = synm != null ? synm : new SynodeMeta(conn);
 	}
 	
-	HashMap<String, Nyquence> loadNyquvect0(String conn) throws SQLException, TransException {
-		AnResultset rs = ((AnResultset) select(nyqm.tbl)
+	DBSynsactBuilder loadNyquvect0(String conn) throws SQLException, TransException {
+		AnResultset rs = ((AnResultset) select(synm.tbl)
+				.cols(synm.pk, synm.nyquence)
 				.rs(instancontxt(conn, synrobot))
 				.rs(0));
 		
-		HashMap<String, Nyquence> map = new HashMap<String, Nyquence>(rs.getRowCount());
+		nyquvect = new HashMap<String, Nyquence>(rs.getRowCount());
 		while (rs.next()) {
-			map.put(rs.getString(nyqm.synode), new Nyquence(rs.getLong(nyqm.nyquence)));
+			nyquvect.put(rs.getString(synm.synode), new Nyquence(rs.getLong(synm.nyquence)));
 		}
 		
-		return map;
+		// loadNyquvect0(conn);
+		this.n0 = nyquvect.get(synode());
+
+		return this;
 	}
 
 	@Override
@@ -237,9 +237,9 @@ public class DBSynsactBuilder extends DATranscxt {
 			// int diff = Nyquence.compareNyq(srchgs.getLong(chgm.nyquence), dchgs.getLong(chgm.nyquence));
 			if (diff == 0) {
 				// changes propagated to both sides through 3rd parties.
-				if (indexOf(srchgs.getString(chgm.subs), this.synode) >= 0) {
+				if (indexOf(srchgs.getString(chgm.subs), this.synode()) >= 0) {
 					// insertion propagation
-					remolog.remove_sub(srchgs, this.synode); // e.g. "I A A:0 1 B"
+					remolog.remove_sub(srchgs, this.synode()); // e.g. "I A A:0 1 B"
 				}
 				// e.g. I A A:0 1 C/D
 			}
@@ -258,7 +258,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				hasmore = dchgs.next();
 			}
 			else // diff == 2
-				localog.remove_sub(dchgs, this.synode);
+				localog.remove_sub(dchgs, this.synode());
 
 			hasmore = srchgs.next() && dchgs.next();
 		}
@@ -442,7 +442,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	public void onAck(ChangeLogs resp, List<ChangeLogs> commitbuf) throws SQLException, TransException {
 		ChangeLogs logs = new ChangeLogs(chgm);
 		if (resp != null && resp.rs().getRowCount() > 0) {
-			commitUntil(new ArrayList<ChangeLogs>() {{add(logs);}}, this.synode, logs.maxn.n);
+			commitUntil(new ArrayList<ChangeLogs>() {{add(logs);}}, this.synode(), logs.maxn.n);
 		}
 	}
 }

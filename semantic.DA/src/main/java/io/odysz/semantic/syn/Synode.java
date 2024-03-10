@@ -29,7 +29,7 @@ public class Synode extends SynEntity {
 //	}
 
 	/**
-	 * Format the table record according to my fields.
+	 * Format the insert statement according to my fields.
 	 * 
 	 * @param synm
 	 * @param insert
@@ -39,7 +39,7 @@ public class Synode extends SynEntity {
 	public Insert insert(SynodeMeta synm, Insert insert) throws TransException {
 		return insert
 			.nv(synm.pk, recId)
-			.nv(synm.synoder, synoder)
+			.nv(synm.mac, synoder)
 			.nv(synm.org(), org);
 	}
 	

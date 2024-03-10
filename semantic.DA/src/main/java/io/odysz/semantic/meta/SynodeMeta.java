@@ -1,7 +1,5 @@
 package io.odysz.semantic.meta;
 
-import java.util.HashSet;
-
 import static io.odysz.common.Utils.loadTxt;
 
 import io.odysz.semantics.meta.TableMeta;
@@ -15,17 +13,11 @@ import io.odysz.transact.x.TransException;
  *
  */
 public class SynodeMeta extends SyntityMeta {
-	static {
-		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
-	}
-	
-	// public final String org;
-	/** organization's nodes */
-	public final String synode;
-	public final String inc;
-	final HashSet<String> globalPks;
 
-	@SuppressWarnings("serial")
+	public final String synode;
+	public final String nyquence;
+	public final String mac;
+
 	/**
 	 * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
 	 * 
@@ -33,20 +25,18 @@ public class SynodeMeta extends SyntityMeta {
 	 * @throws SemanticException 
 	 */
 	public SynodeMeta(String conn) throws TransException {
-		super("syn_node", "synid", "org", conn);
+		super("syn_node", "synid", "org", conn, "syn_node.sqlite.ddl");
+		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
 		
 		// org = "org";
-		synode = "synode";
+		synode = "synid";
 		
-		inc = "inc";
-		globalPks = new HashSet<String>() { {add(org);}; {add(synode);} };
+		mac = "mac";
+		// inc = "inc";
+		// globalPks = new HashSet<String>() { {add(org);}; {add(synode);} };
+		nyquence = "nyq";
 	}
 
-	@Override
-	public HashSet<String> globalIds() {
-		return globalPks;
-	}
-	
 	@Override
 	public SynodeMeta clone(TableMeta dbm) throws TransException {
 		super.clone(dbm);

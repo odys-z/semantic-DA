@@ -1,5 +1,7 @@
 package io.odysz.semantic.syn;
 
+import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Set;
@@ -13,7 +15,6 @@ import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.meta.TableMeta;
-import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -119,7 +120,7 @@ public class SynEntity extends Anson {
 			throws TransException, SQLException {
 		AnResultset ch = (AnResultset) trsb
 				.select(entMeta.tbl, "ent")
-				.je("ent", chgm.tbl, "ch", chgm.uids, Funcall.concat(trsb.synode + chgm.UIDsep + chgm.pk), chgm.uids, chgm.synoder, trsb.synode)
+				.je("ent", chgm.tbl, "ch", chgm.uids, concatstr(trsb.synode(), chgm.UIDsep, chgm.pk), chgm.uids, chgm.synoder, trsb.synode())
 				.cols(chgm.cols()).cols(subMeta.cols())
 				.whereEq(chgm.synoder, synode)
 				.whereEq(chgm.uids, uids)
