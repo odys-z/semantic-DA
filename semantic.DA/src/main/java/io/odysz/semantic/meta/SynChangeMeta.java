@@ -2,6 +2,7 @@ package io.odysz.semantic.meta;
 
 import io.odysz.common.Utils;
 import io.odysz.semantics.meta.TableMeta;
+import io.odysz.transact.sql.parts.condition.Funcall;
 
 /**
  *<a href="./syn_change.sqlite.ddl">syn_change DDL</a>
@@ -15,7 +16,8 @@ public class SynChangeMeta extends TableMeta {
 
 	public final String org;
 	public final String entbl;
-	// public final String entfk;
+	/** Entity fk, redundant for convenient, not for synchronizing */
+	public final String entfk;
 	/** Format: device {@link #UIDsep} entity-id */
 	public final String uids;
 	public final String crud;
@@ -35,7 +37,7 @@ public class SynChangeMeta extends TableMeta {
 		// pk    = "uids";
 		org   = "org";
 		entbl = "tabl";
-		// entfk = "entfk";
+		entfk = "entfk";
 		crud = "crud";
 		synoder = "synoder";
 		uids = "uids";
@@ -45,7 +47,12 @@ public class SynChangeMeta extends TableMeta {
 	}
 
 	public String[] cols() {
-		return new String[] {pk, entbl, crud, synoder, uids};
+		return new String[] {pk, entbl, crud, synoder, uids, nyquence};
+	}
+
+	/** compose function for uids */
+	public Funcall uids(String synode, String entityId) {
+		return Funcall.concatstr(synode, UIDsep, entityId);
 	}
 
 }

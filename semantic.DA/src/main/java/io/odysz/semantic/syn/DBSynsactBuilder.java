@@ -22,6 +22,7 @@ import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
@@ -58,7 +59,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	/** Nyquence vector [{synode, n0}]*/
 	protected HashMap<String, Nyquence> nyquvect;
 	protected Nyquence n0;
-	public final IUser synrobot;
+	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
 
 	private HashMap<String, SyntityMeta> entityRegists;
 
@@ -70,16 +71,26 @@ public class DBSynsactBuilder extends DATranscxt {
 			new SynodeMeta(conn));
 	}
 	
-	public DBSynsactBuilder(String conn, String synodeId, SynSubsMeta subm, SynChangeMeta chgm, SynodeMeta synm)
+	public DBSynsactBuilder(String conn, String synodeId,
+			SynSubsMeta subm, SynChangeMeta chgm, SynodeMeta synm)
 			throws SQLException, SAXException, IOException, TransException {
 
 		super ( new DBSyntext(conn,
-			    initConfigs(conn, loadSemantics(conn),
-						(c) -> new SynmanticsMap(c)),
-				(IUser) new SyncRobot("rob-" + synodeId, synodeId), runtimepath));
+			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(c)),
+			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId)
+			    	, runtimepath));
 
-		((DBSyntext)this.basictx).synode = synodeId;
-		this.synrobot = new SyncRobot("rob-" + synodeId, synodeId);
+		// wire up local identity
+		DBSyntext tx = (DBSyntext) this.basictx;
+		tx.synode = synodeId;
+		tx.domain = DAHelper.loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
+		((SyncRobot)tx.usr()).orgId = DAHelper.loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
+
+		// this.synrobot = ((DBSyntext)this.basictx).usr();
+		// String uid = "rob-" + synodeId;
+		// this.synrobot = new SyncRobot("rob-" + synodeId, synodeId)
+				// .orgId(DAHelper.loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain))
+				;
 
 		this.subm = subm != null ? subm : new SynSubsMeta(conn);
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
@@ -89,7 +100,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	DBSynsactBuilder loadNyquvect0(String conn) throws SQLException, TransException {
 		AnResultset rs = ((AnResultset) select(synm.tbl)
 				.cols(synm.pk, synm.nyquence)
-				.rs(instancontxt(conn, synrobot))
+				.rs(instancontxt(conn, synrobot()))
 				.rs(0));
 		
 		nyquvect = new HashMap<String, Nyquence>(rs.getRowCount());
@@ -133,7 +144,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				.cols(subm.cols())
 				.col(count(subm.subs), "cnt")
 				.whereEq(subm.entbl, entm.tbl)
-				.whereEq(subm.uids, uids)
+				.whereEq(subm.uids, chgm.uids(synode(), uids))
 				.rs(instancontxt(conn, robot))
 				.rs(0);
 	}
@@ -167,7 +178,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		
 		Nyquence dn = this.nyquvect.get(target);
 		return (AnResultset) select(chgm.tbl, "ch")
-			.je("ch", subm.tbl, "sb", chgm.subs, subm.synoder)
+			.je("ch", subm.tbl, "sb", chgm.subs, subm.synodee)
 			.where(op.ge, chgm.nyquence, dn.n)
 			.rs(instancontxt(connId, robot))
 			.rs(0);
@@ -364,7 +375,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				SyntityMeta entm = getEntityMeta(c.getString(chgm.entbl));
 				stats.add(eq(crud, CRUD.C)
 					// create an entity, and trigger change log
-					? insert(entm.tbl, synrobot)
+					? insert(entm.tbl, synrobot())
 						.cols(entm.insertCols())
 						.values(entm.insertVal(log))
 						.post(insert(chgm.tbl) // TODO implement semantics handler
@@ -376,9 +387,9 @@ public class DBSynsactBuilder extends DATranscxt {
 								.select(subm.subs2change(synm, this, log))))
 					: eq(crud, CRUD.U) // remove subscribes
 					// remove subscribers
-					? delete(subm.tbl, synrobot)
+					? delete(subm.tbl, synrobot())
 						.whereEq(subm.entbl, c.getString(chgm.entbl))
-						.whereEq(subm.synoder, c.getString(chgm.synoder))
+						.whereEq(subm.synodee, c.getString(chgm.synoder))
 						.whereEq(subm.uids, c.getString(chgm.uids))
 						.post(delete(chgm.tbl) // delete change log if no subscribers exist
 							.whereEq(subm.entbl,   c.getString(chgm.entbl))
@@ -386,8 +397,8 @@ public class DBSynsactBuilder extends DATranscxt {
 							.whereEq(chgm.uids,    c.getString(chgm.uids))
 							.where(op.notin, chgm.synoder,
 								select(subm.tbl)
-									.col(subm.synoder)
-									.whereEq(subm.synoder, c.getString(chgm.synoder)))
+									.col(subm.synodee)
+									.whereEq(subm.synodee, c.getString(chgm.synoder)))
 									.whereEq(subm.uids,  c.getString(chgm.uids)))
 					: delete(chgm.tbl) // backward change log deletion propagation
 						.whereEq(chgm.synoder, c.getString(chgm.synoder))

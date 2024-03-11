@@ -14,6 +14,7 @@ import io.odysz.transact.x.TransException;
  */
 public class SynodeMeta extends SyntityMeta {
 
+	public final String domain;
 	public final String synode;
 	public final String nyquence;
 	public final String mac;
@@ -35,6 +36,8 @@ public class SynodeMeta extends SyntityMeta {
 		// inc = "inc";
 		// globalPks = new HashSet<String>() { {add(org);}; {add(synode);} };
 		nyquence = "nyq";
+		
+		domain = "domain";
 	}
 
 	@Override

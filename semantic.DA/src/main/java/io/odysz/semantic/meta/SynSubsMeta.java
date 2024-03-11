@@ -24,7 +24,7 @@ public class SynSubsMeta extends TableMeta {
 	public final String subs;
 	public final String entbl;
 	public final String uids;
-	public final String synoder;
+	public final String synodee;
 
 	static {
 	}
@@ -37,7 +37,7 @@ public class SynSubsMeta extends TableMeta {
 		subs = "synodee";
 		entbl = "tabl";
 		uids = "uids";
-		synoder = "";
+		synodee = "synodee";
 	}
 
 	public String[] cols() {

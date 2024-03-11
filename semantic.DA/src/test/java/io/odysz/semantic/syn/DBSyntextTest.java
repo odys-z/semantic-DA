@@ -38,6 +38,7 @@ import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
+import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.sql.parts.condition.Predicate;
@@ -98,7 +99,8 @@ import io.odysz.transact.x.TransException;
  */
 @SuppressWarnings("unused")
 public class DBSyntextTest {
-	public static final String[] conns; // = new String[] { "syn.00", "syn.01", "syn.02", "syn.03" };
+	public static final String[] conns;
+	public static final String[] testers;
 	public static final String logconn = "log";
 	public static final String rtroot = "src/test/res/";
 	public static final String father = "src/test/res/Sun Yet-sen.jpg";
@@ -111,18 +113,17 @@ public class DBSyntextTest {
 	static String runtimepath;
 
 	public static Ck[] c = new Ck[4];
-	// public static DBSynsactBuilder trbs[] = new DBSynsactBuilder[4];
 
 	static HashMap<String, DBSynmantics> synms;
 
 	static SynodeMeta snm;
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
-	// static NyquenceMeta nyqm;
 
 	static {
 			printCaller(false);
 			conns = new String[] { "syn.00", "syn.01", "syn.02", "syn.03" };
+			testers = new String[] { "odyx", "odyy", "odyz", "odyw" };
 
 			File file = new File(rtroot);
 			runtimepath = file.getAbsolutePath();
@@ -142,7 +143,7 @@ public class DBSyntextTest {
 		
 		// DDL
 		// Debug Notes:
-		// Sqlite won't commit multiple (ignore following) sql in one batch, silently!
+		// Sqlite won't commit multiple (ignore following) sql in one batch, and quit silently!
 		// Similar report: https://sqlite-users.sqlite.narkive.com/JqAIbcSi/running-multiple-ddl-statements-in-a-batch-via-jdbc
 		// To verify this, uncomment the first line in ddl.
 
@@ -178,6 +179,7 @@ public class DBSyntextTest {
 
 		for (int s = 0; s < 4; s++) {
 			String conn = conns[s];
+			String tester = testers[s];
 			
 			snm = new SynodeMeta(conn);
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", snm.tbl));
@@ -189,14 +191,21 @@ public class DBSyntextTest {
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", sbm.tbl));
 			Connects.commit(conn, DATranscxt.dummyUser(), sbm.ddlSqlite);
 
+//			JUserMeta usm = new JUserMeta(conn);
+//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", usm.tbl));
+//			Connects.commit(conn, DATranscxt.dummyUser(), usm.ddlSqlite);
+
 			T_PhotoMeta phm = new T_PhotoMeta(conn);
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", phm.tbl));
 			Connects.commit(conn, DATranscxt.dummyUser(), phm.ddlSqlite);
 
 			ArrayList<String> sqls = new ArrayList<String>();
 			sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
-			sqls.add(String.format("delete from %s", phm.tbl));
+			sqls.add(String.format("delete from %s", snm.tbl));
 			sqls.add(Utils.loadTxt("syn_nodes.sql"));
+			sqls.add(String.format("delete from %s", phm.tbl));
+			// sqls.add(String.format("delete from %s", usm.tbl));
+			// sqls.add(Utils.loadTxt("a_users.sql"));
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
 			c[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s]).loadNyquvect0(conn));
@@ -313,7 +322,7 @@ public class DBSyntextTest {
 		// syn_change.curd = C
 		c[X].change(C, A_0, c[X].phm);
 		// syn_subscribe.to = [B, C, D]
-		c[X].subs(A_0, -1, Y, X, Z);
+		c[X].subs(2, A_0, -1, Y, X, Z);
 
 		// 1.2 insert B
 		String B_0 = insertPhoto(Y);
@@ -321,21 +330,21 @@ public class DBSyntextTest {
 		// syn_change.curd = C
 		c[Y].change(C, B_0, c[Y].phm);
 		// syn_subscribe.to = [A, C, D]
-		c[Y].subs(B_0, X, -1, Z, W);
+		c[Y].subs(2, B_0, X, -1, Z, W);
 
 		// 2.
 		exchange(X, Y);
 		c[Y].change(C, A_0, c[Y].phm);
-		c[Y].subs(A_0, -1, -1, Z, W);
+		c[Y].subs(2, A_0, -1, -1, Z, W);
 		// B.a = A.a
-		long Aa = c[X].trb.n0.n; // .getNyquence(X).n;
-		assertEquals(Aa, c[Y].trb.nyquvect.get(c[X].trb.synode())); //.getNyquence(X).n);
+		long Aa = c[X].trb.n0.n;
+		assertEquals(Aa, c[Y].trb.nyquvect.get(c[X].trb.synode()));
 
 		c[X].change(C, B_0, c[X].phm);
-		c[X].subs(B_0, -1, -1, Z, W);
+		c[X].subs(2, B_0, -1, -1, Z, W);
 		// A.b = B.b
-		long Bb = c[Y].trb.n0.n; //.getNyquence(Y).n;
-		assertEquals(Bb, c[X].trb.nyquvect.get(c[Y].trb.synode())); //.getNyquence(Y).n);
+		long Bb = c[Y].trb.n0.n;
+		assertEquals(Bb, c[X].trb.nyquvect.get(c[Y].trb.synode()));
 	}
 
 	/**
@@ -517,12 +526,12 @@ public class DBSyntextTest {
 		// i X  w  3
 		// c[X].chgEnt(C, c[X].synode, c[W].synode, c[W].phm);
 		// Y, Z
-		c[X].subs(c[W].trb.synode(), -1, Y, Z, -1);
+		c[X].subs(3, c[W].trb.synode(), -1, Y, Z, -1);
 		
 		exchange(X, Y);
 		c[Y].change(CRUD.C, c[X].trb.synode(), c[Y].phm);
-		c[Y].subs(c[W].trb.synode(),  -1, -1, Z, -1);
-		c[X].subs(c[W].trb.synode(),  -1, -1, Z, -1);
+		c[Y].subs(3, c[W].trb.synode(),  -1, -1, Z, -1);
+		c[X].subs(3, c[W].trb.synode(),  -1, -1, Z, -1);
 		
 	}
 
@@ -664,40 +673,35 @@ public class DBSyntextTest {
 
 		c[X].change(CRUD.D, A_0, c[X].phm);
 		c[Y].change(CRUD.D, B_0, c[Y].phm);
-		c[X].subs(A_0, -1,  Y, Z, W);
-		c[Y].subs(B_0,  X, -1, Z, W);
+		c[X].subs(2, A_0, -1,  Y, Z, W);
+		c[Y].subs(2, B_0,  X, -1, Z, W);
 		
 		exchange(X, Y);
-		c[X].subs(A_0, -1, -1, Z, W);
-		c[Y].subs(A_0, -1, -1, Z, W);
+		c[X].subs(2, A_0, -1, -1, Z, W);
+		c[Y].subs(2, A_0, -1, -1, Z, W);
 
-		c[X].subs(B_0, -1, -1, Z, W);
-		c[Y].subs(B_0, -1, -1, Z, W);
+		c[X].subs(2, B_0, -1, -1, Z, W);
+		c[Y].subs(2, B_0, -1, -1, Z, W);
 		
 		exchange(Y, Z);
-		c[X].subs(A_0, -1, -1,  Z, W);
-		c[Y].subs(A_0, -1, -1, -1, W);
-		c[Z].subs(A_0, -1, -1, -1, W);
+		c[X].subs(2, A_0, -1, -1,  Z, W);
+		c[Y].subs(2, A_0, -1, -1, -1, W);
+		c[Z].subs(2, A_0, -1, -1, -1, W);
 
-		c[X].subs(B_0, -1, -1,  Z, W);
-		c[Y].subs(B_0, -1, -1, -1, W);
-		c[Z].subs(B_0, -1, -1, -1, W);
+		c[X].subs(2, B_0, -1, -1,  Z, W);
+		c[Y].subs(2, B_0, -1, -1, -1, W);
+		c[Z].subs(2, B_0, -1, -1, -1, W);
 
 		exchange(X, Y);
-		c[X].subs(A_0, -1, -1, -1, W);
-		c[Y].subs(A_0, -1, -1, -1, W);
-		c[Z].subs(A_0, -1, -1, -1, W);
+		c[X].subs(2, A_0, -1, -1, -1, W);
+		c[Y].subs(2, A_0, -1, -1, -1, W);
+		c[Z].subs(2, A_0, -1, -1, -1, W);
 
-		c[X].subs(B_0, -1, -1, -1, W);
-		c[Y].subs(B_0, -1, -1, -1, W);
-		c[Z].subs(B_0, -1, -1, -1, W);
+		c[X].subs(2, B_0, -1, -1, -1, W);
+		c[Y].subs(2, B_0, -1, -1, -1, W);
+		c[Z].subs(2, B_0, -1, -1, -1, W);
 	}
 	
-//	static void initSynodes(int s) throws Exception {
-//		c[s].trb.registerEntity(c[s].phm);
-//		c[s].trb.loadNyquvect0(conns[s]);
-//	}
-
 	void join(int admin, int apply) throws TransException, SQLException {
 		c[admin].trb.addSynode(
 				c[admin].connId(),  // into admin's db
@@ -784,10 +788,10 @@ public class DBSyntextTest {
 			.post(trb
 				.delete(sbm.tbl)
 				.whereEq(sbm.entbl, entm.tbl)
-				.whereEq(sbm.synoder, synoder)
+				.whereEq(sbm.synodee, synoder)
 				.whereEq(sbm.uids, concatstr(synoder, chm.UIDsep, pid))
 				.post(trb.insert(sbm.tbl)
-					.cols(sbm.entbl, sbm.synoder, sbm.uids)
+					.cols(sbm.entbl, sbm.synodee, sbm.uids)
 					.select(trb.select(sbm.tbl)
 						.col(constr(entm.tbl)).col(constr(synoder))
 						.col(concatstr(synoder, chm.UIDsep, pid)))))
@@ -818,17 +822,23 @@ public class DBSyntextTest {
 		assertFalse(isblank(pid));
 		
 		trb .insert(chm.tbl, robot)
+			.nv(chm.entfk, pid)
 			.nv(chm.entbl, m.tbl)
 			.nv(chm.crud, CRUD.C)
 			.nv(chm.synoder, synoder)
 			.nv(chm.uids, concatstr(synoder, chm.UIDsep, pid))
 			.nv(chm.nyquence, trb.n0.n)
-			// .nv(chm.subs, new String[] {synodes(c, c[s].trb.synode)}) // FIXME, use the way of #updatePhoto()
+			.nv(chm.org, robot.orgId)
 			.post(trb.insert(sbm.tbl)
-					.cols(sbm.entbl, sbm.synoder, sbm.uids)
-					.select(trb.select(sbm.tbl)
-						.col(constr(entm.tbl)).col(constr(snm.synode))
-						.col(concatstr(synoder, chm.UIDsep, pid))))
+					.cols(sbm.entbl, sbm.synodee, sbm.uids, sbm.org)
+					.select((Query) trb
+						.select(snm.tbl)
+						.col(constr(entm.tbl))
+						.col(snm.synode)
+						.col(concatstr(synoder, chm.UIDsep, pid))
+						.col(constr(robot.orgId))
+						.where(op.ne, snm.domain, constr(trb.synode()))
+						.whereEq(snm.domain, robot.orgId)))
 			.ins(trb.instancontxt(conn, robot))
 			;
 		
@@ -872,7 +882,7 @@ public class DBSyntextTest {
 		public T_PhotoMeta phm;
 
 		final DBSynsactBuilder trb;
-		public IUser robot() { return trb.synrobot; }
+		public IUser robot() { return trb.synrobot(); }
 		String connId() { return trb.basictx().connId(); }
 
 		public Ck(int s, DBSynsactBuilder trb) throws SQLException, TransException, ClassNotFoundException, IOException {
@@ -891,16 +901,9 @@ public class DBSyntextTest {
 		public void synodes(int x, int y, int z, int w) {
 		}
 
-		public Ck(String conn, DBSynsactBuilder trb, String synid, String uid)
+		public Ck(String conn, DBSynsactBuilder trb, String synid, String usrid)
 				throws SQLException, TransException, ClassNotFoundException, IOException {
 			this.trb = trb;
-
-			SemanticObject jo = new SemanticObject();
-			jo.put("userId", "tester");
-			SemanticObject usrAct = new SemanticObject();
-			usrAct.put("funcId", "DBSyntextTest");
-			usrAct.put("funcName", "test ISemantext implementation");
-			jo.put("usrAct", usrAct);
 		}
 
 		/**
@@ -946,20 +949,20 @@ public class DBSyntextTest {
 		 * @throws SQLException 
 		 * @throws TransException 
 		 */
-		public void subs(String pid, int ... sub) throws SQLException, TransException {
+		public void subs(int subcount, String pid, int ... sub) throws SQLException, TransException {
 			ArrayList<String> toIds = new ArrayList<String>();
 			for (int n : sub)
 				if (n >= 0)
 					toIds.add(c[n].trb.synode());
-			subs(pid, (String[])toIds.toArray());
+			subsCount(subcount, pid, toIds.toArray(new String[0]));
 		}
 
-		public void subs(String pid, String ... toIds) throws SQLException, TransException {
+		public void subsCount(int subcount, String pid, String ... toIds) throws SQLException, TransException {
 			AnResultset subs = trb.subscripts(connId(), pid, phm, robot());
 
 			subs.next();
 
-			assertEquals(c.length - 1, subs.getInt("cnt"));
+			assertEquals(subcount, subs.getInt("cnt"));
 			assertEquals(phm.tbl, subs.getString(sbm.entbl));
 			
 			HashSet<String> synodes = subs.set(sbm.subs);

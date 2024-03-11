@@ -25,7 +25,6 @@ import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DASemantics;
-import io.odysz.semantic.meta.NyquenceMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -47,8 +46,6 @@ import io.odysz.transact.x.TransException;
 
 public class DBSynmantics extends DASemantics {
 
-	// public String synode;
-
 	public DBSynmantics(Transcxt basicTx, String tabl, String pk, boolean... verbose) {
 		super(basicTx, tabl, pk, verbose);
 	}
@@ -58,7 +55,9 @@ public class DBSynmantics extends DASemantics {
 			String pk, String[] args) throws SemanticException {
 		if (smtype.synChange == smtp)
 			try {
-				return new DBSynmantics.ShSynChange(new DBSynsactBuilder(tsx.basictx().connId(), null), tabl, pk, args);
+				return new DBSynmantics.ShSynChange(
+						new DBSynsactBuilder(tsx.basictx().connId(), "dummy-loader"),
+						tabl, pk, args);
 			} catch (TransException | SQLException | SAXException | IOException e) {
 				e.printStackTrace();
 				return null;
@@ -189,14 +188,8 @@ public class DBSynmantics extends DASemantics {
 
 			// args: pk, crud-flag, n pk2 ...,         [col-value-on-del, ...]
 			// e.g.: pid,crud,      synoder clientpath,exif,uri "",clientpath
-//			TableMeta tm = stx.getTableMeta(target);
-//			if (! (tm instanceof SyntityMeta))
-//				throw new SemanticException("Retrieving a synchronizable table meta failed: %s", target);
-//			SyntityMeta entm = (SyntityMeta) tm;
 
 			verifyRequiredCols(entm.globalIds(), cols.keySet());
-
-			NyquenceMeta nyqm = new NyquenceMeta(usr.orgId());
 
 			Delete delChg = syb.delete(chm.tbl);
 			for (String c : cols.keySet())
@@ -212,10 +205,10 @@ public class DBSynmantics extends DASemantics {
 			try {
 				insChg.select(syb
 						.select(snm.tbl, "s")
-						.je("s", nyqm.tbl, "ny", snm.org(), nyqm.org(), snm.synode, nyqm.synode)
+						// .je("s", nyqm.tbl, "ny", snm.org(), nyqm.org(), snm.synode, nyqm.synode)
 						.col(constr(pid))
 						.col(CRUD.C, chm.crud)
-						.col(String.valueOf(stx.nyquence()), nyqm.nyquence)
+						.col(String.valueOf(stx.nyquence()), snm.nyquence)
 						// .whereEq(nyqm.entbl, target)
 						.whereEq(snm.org(), usr.orgId())
 						.whereEq(snm.synoder, synoder));
@@ -224,7 +217,7 @@ public class DBSynmantics extends DASemantics {
 				Insert insubs = syb.insert(sbm.tbl)
 						.select(syb
 							.select(snm.tbl)
-							.col(snm.synode, sbm.synoder).col(entGID, sbm.uids)
+							.col(snm.synode, sbm.synodee).col(entGID, sbm.uids)
 							.where(op.ne, snm.synode, usr.uid())
 							.whereEq(snm.org(), usr.orgId()));
 
@@ -241,31 +234,8 @@ public class DBSynmantics extends DASemantics {
 
 			stmt.post(delChg);
 			
-//			// FIXME use table-wise handler for nyquence updating
-//			if (this.UHF)
-//			stmt.post(clearInc(usr.orgId(), synoder, nyqm));
-			// else stmt.post(inc(usr.orgId(), synoder, nyqm));
-
 			return stmt;
 		}
-
-//		private Statement<?> inc(String org, String synid, NyquenceMeta nyqm) {
-//			return syb.update(snm.tbl)
-//				.nv(nyqm.inc, add(nyqm.nyquence, 1))
-//				.whereEq(nyqm.org(), org)
-//				.whereEq(nyqm.synode, synid)
-//				.whereEq(nyqm.entbl, target);
-//		}
-
-//		private Update clearInc(String org, String synid, NyquenceMeta nyqm) {
-//			return syb.update(snm.tbl)
-//				.nv(nyqm.nyquence, add(nyqm.nyquence, snm.inc))
-//				.nv(nyqm.inc, 0)
-//				.whereEq(nyqm.org(), org)
-//				.whereEq(nyqm.synode, synid)
-//				// .whereEq(nyqm.entbl, target)
-//				;
-//		}
 
 		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
 				throws SemanticException {
