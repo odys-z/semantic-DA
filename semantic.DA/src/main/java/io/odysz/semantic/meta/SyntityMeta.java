@@ -25,7 +25,7 @@ public abstract class SyntityMeta extends TableMeta {
 	public String org() { return org; }
 
 	/** entity creator id used for identify globally (experimental) */
-	public final String synoder;
+	public String synoder;
 
 	public final HashSet<String> uids;
 	
@@ -43,7 +43,7 @@ public abstract class SyntityMeta extends TableMeta {
 
 		this.pk = pk;
 		this.org = org;
-		synoder = "device";
+		synoder = "synode";
 		uids = new HashSet<String>() { {add("clientpath");} };
 	}
 

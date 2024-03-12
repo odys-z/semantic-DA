@@ -915,7 +915,7 @@ public class DASemantics {
 				// side effect: generated auto key already been put into autoVals,
 				// which can be referenced later.
 				// nv[1] = stx.composeVal(stx.genId(target, args[0]), target, args[0]);
-				nv[1] = trxt.quotation(stx.genId(target, args[0]), stx.connId(), target, args[0]);
+				nv[1] = trxt.quotation(stx.genId(stx.connId(), target, args[0]), stx.connId(), target, args[0]);
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();
 			}
@@ -970,10 +970,10 @@ public class DASemantics {
 						alreadyResulved, target);
 				// side effect: generated auto key already been put into autoVals, which can be referenced later.
 				String ak = isblank(prefixCol)
-						? stx.genId(target, args[0])
+						? stx.genId(stx.connId(), target, args[0])
 						: String.format("%s.%s",
 								isblank(prefixVal) ? prefixCol : prefixVal.toString(),
-								stx.genId(target, args[0]));
+								stx.genId(stx.connId(), target, args[0]));
 				autonv[1] = trxt.quotation(ak, stx.connId(), target, args[0]);
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();
@@ -982,7 +982,7 @@ public class DASemantics {
 	}
 
 	/**
-	 * Handle fk referencing resolving when inserting children.<br>
+	 * Resolve fk reference when inserting children.<br>
 	 * 
 	 * @see smtype#fkIns
 	 */

@@ -21,7 +21,7 @@ import io.odysz.transact.sql.Query;
 public class SynSubsMeta extends TableMeta {
 
 	public final String org;
-	public final String subs;
+	// public final String subs;
 	public final String entbl;
 	public final String uids;
 	public final String synodee;
@@ -34,14 +34,14 @@ public class SynSubsMeta extends TableMeta {
 		ddlSqlite = loadTxt(SynSubsMeta.class, "syn_subscribe.sqlite.ddl");
 
 		org = "org";
-		subs = "synodee";
 		entbl = "tabl";
-		uids = "uids";
 		synodee = "synodee";
+		uids = "uids";
+		// subs = "synodee";
 	}
 
 	public String[] cols() {
-		return new String[] {subs, uids};
+		return new String[] {org, entbl, synodee, uids};
 	}
 
 	/**

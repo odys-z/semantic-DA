@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -200,7 +201,7 @@ public class DBSyntextTest {
 			Connects.commit(conn, DATranscxt.dummyUser(), phm.ddlSqlite);
 
 			ArrayList<String> sqls = new ArrayList<String>();
-			sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
+			sqls.addAll(Arrays.asList(Utils.loadTxt("../oz_autoseq.sql").split(";-- --\n")));
 			sqls.add(String.format("delete from %s", snm.tbl));
 			sqls.add(Utils.loadTxt("syn_nodes.sql"));
 			sqls.add(String.format("delete from %s", phm.tbl));
@@ -320,31 +321,31 @@ public class DBSyntextTest {
 		String A_0 = insertPhoto(X);
 
 		// syn_change.curd = C
-		c[X].change(C, A_0, c[X].phm);
+		c[X].change(1, C, A_0, c[X].phm);
 		// syn_subscribe.to = [B, C, D]
-		c[X].subs(2, A_0, -1, Y, X, Z);
+		c[X].subs(2, A_0, -1, Y, Z, -1);
 
 		// 1.2 insert B
 		String B_0 = insertPhoto(Y);
 
 		// syn_change.curd = C
-		c[Y].change(C, B_0, c[Y].phm);
+		c[Y].change(1, C, B_0, c[Y].phm);
 		// syn_subscribe.to = [A, C, D]
-		c[Y].subs(2, B_0, X, -1, Z, W);
+		c[Y].subs(2, B_0, X, -1, Z, -1);
 
-		// 2.
+		// 2. X <=> Y
 		exchange(X, Y);
-		c[Y].change(C, A_0, c[Y].phm);
-		c[Y].subs(2, A_0, -1, -1, Z, W);
+		c[Y].change(2, C, A_0, c[Y].phm);
+		c[Y].subs(2, A_0, -1, -1, Z, -1);
 		// B.a = A.a
 		long Aa = c[X].trb.n0.n;
-		assertEquals(Aa, c[Y].trb.nyquvect.get(c[X].trb.synode()));
+		assertEquals(Aa, c[Y].trb.nyquvect.get(c[X].trb.synode()).n);
 
-		c[X].change(C, B_0, c[X].phm);
-		c[X].subs(2, B_0, -1, -1, Z, W);
+		c[X].change(2, C, B_0, c[X].phm);
+		c[X].subs(2, B_0, -1, -1, Z, -1);
 		// A.b = B.b
 		long Bb = c[Y].trb.n0.n;
-		assertEquals(Bb, c[X].trb.nyquvect.get(c[Y].trb.synode()));
+		assertEquals(Bb, c[X].trb.nyquvect.get(c[Y].trb.synode()).n);
 	}
 
 	/**
@@ -522,14 +523,14 @@ public class DBSyntextTest {
 		join(X, W);
 		c[X].synodes(X, Y, Z, W);
 
-		c[X].change(C, c[X].trb.synode(), c[X].phm);
+		c[X].change(1, C, c[X].trb.synode(), c[X].phm);
 		// i X  w  3
 		// c[X].chgEnt(C, c[X].synode, c[W].synode, c[W].phm);
 		// Y, Z
 		c[X].subs(3, c[W].trb.synode(), -1, Y, Z, -1);
 		
 		exchange(X, Y);
-		c[Y].change(CRUD.C, c[X].trb.synode(), c[Y].phm);
+		c[Y].change(1, CRUD.C, c[X].trb.synode(), c[Y].phm);
 		c[Y].subs(3, c[W].trb.synode(),  -1, -1, Z, -1);
 		c[X].subs(3, c[W].trb.synode(),  -1, -1, Z, -1);
 		
@@ -671,8 +672,8 @@ public class DBSyntextTest {
 		String A_0 = deletePhoto(chm, X);
 		String B_0 = deletePhoto(chm, Y);
 
-		c[X].change(CRUD.D, A_0, c[X].phm);
-		c[Y].change(CRUD.D, B_0, c[Y].phm);
+		c[X].change(2, CRUD.D, A_0, c[X].phm);
+		c[Y].change(2, CRUD.D, B_0, c[Y].phm);
 		c[X].subs(2, A_0, -1,  Y, Z, W);
 		c[Y].subs(2, B_0,  X, -1, Z, W);
 		
@@ -723,7 +724,7 @@ public class DBSyntextTest {
 		int loop = 0;
 		long maxn = 0;
 		while (shouldExchange(src, c[src].trb.nyquvect.get(c[dst].trb.synode()),
-							  c[dst].trb.synode(), c[src].trb.n0)) {
+							  c[src].trb.synode(), c[src].trb.n0)) {
 			AnResultset req = c[src].trb.iniExchange(c[src].trb.synode(), c[src].connId(), c[src].robot());
 			List<ChangeLogs> committings = new ArrayList<ChangeLogs>();
 			ChangeLogs resp = c[dst].trb.mergeChange(
@@ -749,18 +750,18 @@ public class DBSyntextTest {
 	 * There are change logs such that chg.n &ge; n0.
 	 * @param src
 	 * @param dn
-	 * @param pernode for the target node
+	 * @param synoder for the target node
 	 * @return count(chg.n > n0) > 0
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	boolean shouldExchange(int src, Nyquence dn, String pernode, Nyquence sn)
+	boolean shouldExchange(int src, Nyquence dn, String synoder, Nyquence sn)
 			throws SQLException, TransException {
 		AnResultset chs = ((AnResultset) c[src].trb.select(chm.tbl, "ch")
 				.col(String.format("count(%s)", chm.nyquence), "cnt")
-				.whereEq(chm.synoder, pernode)
-				.where(op.gt, chm.synoder, dn.n)
-				.where(op.le, chm.synoder, sn.n)
+				.whereEq(chm.synoder, synoder)
+				.where(op.ge, chm.nyquence, dn.n)
+				.where(op.le, chm.nyquence, sn.n)
 				.rs(c[src].trb.instancontxt(c[src].connId(), c[src].robot()))
 				.rs(0)).nxt();
 		
@@ -834,10 +835,10 @@ public class DBSyntextTest {
 					.select((Query) trb
 						.select(snm.tbl)
 						.col(constr(entm.tbl))
-						.col(snm.synode)
+						.col(snm.synoder)
 						.col(concatstr(synoder, chm.UIDsep, pid))
 						.col(constr(robot.orgId))
-						.where(op.ne, snm.domain, constr(trb.synode()))
+						.where(op.ne, snm.synoder, constr(trb.synode()))
 						.whereEq(snm.domain, robot.orgId)))
 			.ins(trb.instancontxt(conn, robot))
 			;
@@ -909,6 +910,7 @@ public class DBSyntextTest {
 		/**
 		 * Verify change flag, crud, where tabl = entm.tbl, entity-id = eid.
 		 * 
+		 * @param count 
 		 * @param crud flag to be verified
 		 * @param eid  entity id
 		 * @param entm entity table meta
@@ -916,12 +918,12 @@ public class DBSyntextTest {
 		 * @throws TransException
 		 * @throws SQLException
 		 */
-		public long change(String crud, String eid, SyntityMeta entm)
+		public long change(int count, String crud, String eid, SyntityMeta entm)
 				throws TransException, SQLException {
-			return change(crud, trb.synode(), eid, entm);
+			return change(count, crud, trb.synode(), eid, entm);
 		}
 
-		public long change(String crud, String synoder, String eid, SyntityMeta entm)
+		public long change(int count, String crud, String synoder, String eid, SyntityMeta entm)
 				throws TransException, SQLException {
 			AnResultset chg = (AnResultset) trb
 				.select(chm.tbl, "ch")
@@ -935,7 +937,8 @@ public class DBSyntextTest {
 			if (!chg.next())
 				fail("Some records are supposed to be here.");
 
-			assertEquals(C, chg.getString(chm.crud));
+			assertEquals(count, chg.getRowCount());
+			assertEquals(crud, chg.getString(chm.crud));
 			assertEquals(phm.tbl, chg.getString(chm.entbl));
 			assertEquals(robot().deviceId(), chg.getString(chm.synoder));
 			
@@ -962,12 +965,12 @@ public class DBSyntextTest {
 
 			subs.next();
 
-			assertEquals(subcount, subs.getInt("cnt"));
+			assertEquals(subcount, subs.getRowCount());
 			assertEquals(phm.tbl, subs.getString(sbm.entbl));
 			
-			HashSet<String> synodes = subs.set(sbm.subs);
+			HashSet<String> synodes = subs.set(sbm.synodee);
 			
-			int size = c.length;
+			int size = toIds.length;
 			for (String n : toIds) {
 				assertIn(n, synodes);
 				size--;

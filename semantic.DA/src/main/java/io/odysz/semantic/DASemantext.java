@@ -235,8 +235,8 @@ public class DASemantext implements ISemantext {
 	// auto ID
 	///////////////////////////////////////////////////////////////////////////
 	@Override
-	public String genId(String tabl, String col) throws SQLException, TransException {
-		String newv = genId(tabl, col, null);
+	public String genId(String conn, String tabl, String col) throws SQLException, TransException {
+		String newv = genId(conn, tabl, col, null);
 
 		if (autoVals == null)
 			autoVals = new SemanticObject();
@@ -300,6 +300,7 @@ end;
 	 </pre>
 	 * select f_incSeq2('%s.%s', '%s') newId from dual
 	 * <p>auto ID for sqlite is handled by {@link #genSqliteId(String, String, String)} - needing table initialization.</p>
+	 * @param conn connection id 
 	 * @param target target table
 	 * @param idField table id column (no multi-column id supported)
 	 * @param subCate
@@ -307,11 +308,11 @@ end;
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public static String genId(String target, String idField, String subCate) throws SQLException, TransException {
+	public static String genId(String conn, String target, String idField, String subCate) throws SQLException, TransException {
 		// String connId = ""; 
 		dbtype dt = Connects.driverType(null);
 		if (dt == dbtype.sqlite)
-			return genSqliteId(Connects.defltConn(), target, idField);
+			return genSqliteId(conn, target, idField);
 
 		if (subCate == null) subCate = "";
 		String sql;

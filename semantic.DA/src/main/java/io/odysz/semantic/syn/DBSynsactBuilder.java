@@ -3,7 +3,6 @@ package io.odysz.semantic.syn;
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.isNull;
-import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -29,6 +28,7 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.parts.Logic.op;
+import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -105,12 +105,21 @@ public class DBSynsactBuilder extends DATranscxt {
 		
 		nyquvect = new HashMap<String, Nyquence>(rs.getRowCount());
 		while (rs.next()) {
-			nyquvect.put(rs.getString(synm.synode), new Nyquence(rs.getLong(synm.nyquence)));
+			nyquvect.put(rs.getString(synm.synoder), new Nyquence(rs.getLong(synm.nyquence)));
 		}
 		
 		// loadNyquvect0(conn);
 		this.n0 = nyquvect.get(synode());
 
+		return this;
+	}
+
+	public DBSynsactBuilder incNyquence(String conn) throws TransException, SQLException {
+		update(synm.tbl, synrobot())
+			.nv(synm.nyquence, Funcall.add(synm.nyquence, 1))
+			.whereEq(synm.nyquence, synode())
+			.u(instancontxt(conn, synrobot()));
+		
 		return this;
 	}
 
@@ -142,7 +151,6 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws TransException, SQLException {
 		return (AnResultset) select(subm.tbl, "ch")
 				.cols(subm.cols())
-				.col(count(subm.subs), "cnt")
 				.whereEq(subm.entbl, entm.tbl)
 				.whereEq(subm.uids, chgm.uids(synode(), uids))
 				.rs(instancontxt(conn, robot))
@@ -178,7 +186,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		
 		Nyquence dn = this.nyquvect.get(target);
 		return (AnResultset) select(chgm.tbl, "ch")
-			.je("ch", subm.tbl, "sb", chgm.subs, subm.synodee)
+			.je("ch", subm.tbl, "sb", chgm.entbl, subm.entbl, chgm.uids, subm.uids)
 			.where(op.ge, chgm.nyquence, dn.n)
 			.rs(instancontxt(connId, robot))
 			.rs(0);

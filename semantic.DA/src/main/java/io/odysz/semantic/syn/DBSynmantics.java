@@ -210,16 +210,16 @@ public class DBSynmantics extends DASemantics {
 						.col(CRUD.C, chm.crud)
 						.col(String.valueOf(stx.nyquence()), snm.nyquence)
 						// .whereEq(nyqm.entbl, target)
-						.whereEq(snm.org(), usr.orgId())
+						.whereEq(snm.domain, usr.orgId())
 						.whereEq(snm.synoder, synoder));
 
 				// and insert subscriptions, or merge syn_change & syn_subscribe?
 				Insert insubs = syb.insert(sbm.tbl)
 						.select(syb
 							.select(snm.tbl)
-							.col(snm.synode, sbm.synodee).col(entGID, sbm.uids)
-							.where(op.ne, snm.synode, usr.uid())
-							.whereEq(snm.org(), usr.orgId()));
+							.col(snm.synoder, sbm.synodee).col(entGID, sbm.uids)
+							.where(op.ne, snm.synoder, usr.uid())
+							.whereEq(snm.domain, usr.orgId()));
 
 				insChg.post(syb
 						.delete(sbm.tbl)

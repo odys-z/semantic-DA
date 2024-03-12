@@ -29,14 +29,6 @@ public class T_DocTableMeta extends SyntityMeta {
 		}
 	}
 
-	/**
-	 * @deprecated DBSynmantics now is using Nyquence.
-	 * DB column for automatic time stamp. 
-	 * Sqlite:<pre>syncstamp DATETIME DEFAULT CURRENT_TIMESTAMP not NULL</pre>
-	public final String stamp;
-	 */
-	/** resource's creating node's device id, originally named as device */
-	public final String synoder;
 	public final String fullpath;
 	/** aslo named as pname, clientname or filename previously */
 	public final String resname;
