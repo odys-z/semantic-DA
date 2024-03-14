@@ -231,43 +231,44 @@ public class DBSyntextTest {
 	 *                   C   |                  C
 	 *                   D   |                  D
 	 *
-	 *    a b c
-	 *  A 1 0 0
-	 *  B 0 1 0
-	 *  C 0 0 0
-	 *  
+	 *    a b c d
+	 *  A x      
+	 *  B   y    
+	 *  C     z  
+	 *  D       w
 	 *---------------------------------------------------------------
-	 * 2. A.a > B.a, B don't know A:0 [B]/C/D, with n=1 > 0 | s=A
-	 * A                     =) B
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  I,   A, A:0, 1, [B]  |  I,   B, B:0, 1,  A
-	 *                   C   |                   C
-	 *                   D   |                   D
-	 *  A select n in range [A.b, A.a = A.n0]
+	 * 2. A.a > B.a, B don't know A:0 [B]/C/D, with n=x > B.a | s=A
+	 * 
+	 *  A select n in range [A.b, A.a = x]
 	 *  B merge with local DB, with records sorted by n, s, pid.
-	 *                       |  I,   A, A:0, 1,  C 
-	 *                       |                   D 
-	 *    a b c
-	 *  A 1 0 0
-	 *  B 1 1 0  [B.a = A.a, B.c = max(A.c=0, B.c=0)]
-	 *  C 0 0 0
+	 *  
+	 * A                     =) B
+	 * crud, s, uids, n, sub  | crud, s, uids, n, sub
+	 *  I,   A, A:0,  x, [B]  |  I,   B, B:0,  y,  A
+	 *                    C   |                    C
+	 *                    D   |                    D
+	 *                        |
+	 *                        |  I,   A, A:0,  x,  C   b.a < chg.n = x
+	 *                        |                    D   b.a < chg.n = x
+	 *                        
 	 *
-	 *---------------------------------------------------------------
-	 * 3. A.b < B.b, A don't know B:0 [A]/C/D, with n=1 > A.b | s=B
+	 * A.b < B.b, A don't know B:0 [A]/C/D, with n=y > A.b | s=B
 	 * A                    (=  B
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  I,   A, A:0, 1, [ ]  |  I,   B, B:0, 1, [ ]
+	 *  I,   A, A:0, x, [ ]  |  I,   B, B:0, y, [ ]
 	 *                   C   |                   C
 	 *                   D   |                   D
-	 *  I,   B, B:0, 1,  C   |  I,   A, A:0, 1,  C
+	 *  I,   B, B:0, y,  C   |  I,   A, A:0, x,  C
 	 *                   D   |                   D
-	 *    a b c
-	 *  A 2 1 0  [A.b = B.b, A.c = max(B.c, A.c)]
-	 *  B 1 2 0
-	 *  C 0 0 0
+	 *                   
+	 *    a  b  c  d
+	 *  A x1 x        [A.b = B.b, ++A.a ( = max(B.a, ++A.a))]
+	 *  B x  y1=x1    [B.a = A.a, ++B.b (= max(++B.b, A.b))]
+	 *  C       z
+	 *  D          w
 	 *  
 	 *---------------------------------------------------------------
-	 * 4. A insert A:1
+	 * 3. A insert A:1
 	 * A                    (=  B
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
 	 *  I,   A, A:0, 1, [ ]  |  I,   B, B:0, 1, [ ]
@@ -338,13 +339,13 @@ public class DBSyntextTest {
 		c[Y].change(2, C, A_0, c[Y].phm);
 		c[Y].subs(2, A_0, -1, -1, Z, -1);
 		// B.a = A.a
-		long Aa = c[X].trb.n0.n;
+		long Aa = c[X].trb.n0().n;
 		assertEquals(Aa, c[Y].trb.nyquvect.get(c[X].trb.synode()).n);
 
 		c[X].change(2, C, B_0, c[X].phm);
 		c[X].subs(2, B_0, -1, -1, Z, -1);
 		// A.b = B.b
-		long Bb = c[Y].trb.n0.n;
+		long Bb = c[Y].trb.n0().n;
 		assertEquals(Bb, c[X].trb.nyquvect.get(c[Y].trb.synode()).n);
 	}
 
@@ -592,8 +593,9 @@ public class DBSyntextTest {
 	 *                  [C] x|                        |
 	 * 
 	 * Actions:
-	 * clear changes as chg.n=2 < B.n0=3
-	 * A.n0 = max(B.a, B.b, B.c), no inc as no local entities change.
+	 * clear changes as chg.n=2 = B.a, chg.n < B.c=3 
+	 * A.n0 = max(B.a, B.b, B.c, ++A.n0) 
+	 * B.a = A.n0, by A.ack
 	 *
 	 *    a b c
 	 *  A 3 3 3   A.c = max(A.c, B.c)
@@ -607,63 +609,70 @@ public class DBSyntextTest {
 	
 	/**
 	 * <pre>
-	 * A                     | B                    
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  D,   A, A:0, 2,  B   |  D,   B, B:0, 2,  A  
-	 *                   C   |                   C 
-	 *  I,   A, B:0, 2,  C   |  I,   B, A:0, 2,  C 
-	 *  U,   A, C:0, 2,  C   |  U,   B, C:0, 2,  C
+	 * A                      | B                    
+	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub
+	 *  D,   A, A:0, x0,  B   |  D,   B, B:0, y0,  A  
+	 *                    C   |                    C 
+	 *  I,   A, B:0, x0,  C   |  I,   B, A:0, y0,  C 
+	 *  U,   A, C:0, x0,  C   |  U,   B, C:0, y0,  C
 	 *
-	 *    a b
-	 *  A 3 2
-	 *  B 2 3
+	 *    a   b   c    d
+	 *  A x  
+	 *  B     y
+	 *  C         z
+	 *  D             w
 	 *----------------------------------------------
-	 * Sync-range: [2, 3]
-	 * A                     | B                    
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  D,   A, A:0, 2, [B]x |  D,   B, B:0, 2, [A] x 
-	 *                   C   |                   C 
-	 *  I,   A, B:0, 2,  C   |  I,   B, A:0, 2,  C 
-	 *  U,   A, C:0, 2,  C   |  U,   B, C:0, 2,  C
+	 * Sync-range: [x, A.b] vs [y, B.a]
+	 * A                      | B                    
+	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub
+	 *  D,   A, A:0, x,  [B]x |  D,   B, B:0, y,  [A] x 
+	 *                    C   |                    C 
+	 *  I,   A, B:0, x0,  C   |  I,   B, A:0, y0,  C 
+	 *  U,   A, C:0, x0,  C   |  U,   B, C:0, y0,  C
 	 *  
-	 *    a b c
-	 *  A 4 3 0
-	 *  B 3 4 0
-	 *  C 0 0 1
+	 *    a   b   c    d
+	 *  A x1  y0
+	 *  B x0  y1
+	 *  C         z0
+	 *  D             w0
 	 *  
 	 *-----------------------------------------------------------------------
 	 * B = C
-	 * A                     | B                      | C
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
-	 *  D,   A, A:0, 2, [ ]x |  D,   B, B:0, 2, [ ]   |  
-	 *                   C   |                  [C] x |
-	 *  I,   A, B:0, 3,  C   |  I,   B, A:0, 3, [C] x |
-	 *  U,   A, C:0, 3,  C   |  U,   B, C:0, 3, [C] x |
+	 * A                      | B                       | C
+	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub   | crud, s, pid, n, sub
+	 *  D,   A, A:0, x,  [ ]x |  D,   B, B:0, x,  [ ]   |  
+	 *                    C   |                   [C] x |
+	 *  I,   A, B:0, x0,  C   |  I,   B, A:0, y0, [C] x |
+	 *  U,   A, C:0, x0,  C   |  U,   B, C:0, y0, [C] x |
 	 *  
-	 *    a b c
-	 *  A 4 3 0
-	 *  B 3 5 1  B.c = C.c
-	 *  C 0 4 5  C.b = B.b, C.c = B.b = max(B.b, C.c) + 1
+	 *    a   b   c    d
+	 *  A x1  y0
+	 *  B x0  y2  z0
+	 *  C     y1  z1    
+	 *  D             w0
 	 *  
 	 *----------------------------------------------------------------------- 
 	 * A = B
-	 * A                     | B                      | C
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
-	 *  D,   A, A:0, 2, [ ]  |                        |  
-	 *                  [C]x |                        |
-	 *  I,   A, B:0, 3, [C]x |                        |
-	 *  U,   A, C:0, 3, [C]x |                        |
+	 * A                      | B                      | C
+	 * crud, s, pid, n,  sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
+	 *  D,   A, A:0, x,  [ ]  |                        |  
+	 *                   [C]x |                        |
+	 *  I,   A, B:0, x0, [C]x |                        |
+	 *  U,   A, C:0, x0, [C]x |                        |
 	 *  
 	 *  Action
-	 *  B:0.n=3 < B.a=4, override A with B, i.e. delete B:0(s=A, n=3),
-	 *  C:0.n=3 < B.a=4, override A with B, i.e. delete C:0(s=A, n=3)
-	 *  FIXME should B:0.n always less than, not equal to, B.a in a deletion propagation?
+	 *  B:0.n=x = B.a=3, B:0.n < B.c, override A with B for subscript C, i.e. delete B:0(s=A, n=3),
+	 *  C:0.n=3 = B.a=3, C:0.n < B.c, override A with B for subscript C, i.e. delete C:0(s=A, n=3)
 	 *  
-	 *    a b c
-	 *  A 6 5 0  A.b = B.b,  A.a = max(A.a, B.b) + 1
-	 *  B 4 6 1  B.a = A.a
-	 *  C 0 4 5
+	 *  NOTE
+	 *  B:0.n[sub=C] always less than, not equal to, B.c in a deletion propagation,
+	 *  because B know about C later than A.
 	 *  
+	 *    a   b   c    d
+	 *  A x3  y2            x3 = y3
+	 *  B x1  y3  z0
+	 *  C     y1  z1    
+	 *  D             w0
 	 * </pre>
 	 * @throws Exception
 	 */
@@ -721,28 +730,41 @@ public class DBSyntextTest {
 	 * @throws TransException 
 	 */
 	void exchange(int dst, int src) throws TransException, SQLException {
+		DBSynsactBuilder stb = c[src].trb;
+		DBSynsactBuilder dtb = c[dst].trb;
+
+		String sn = stb.synode();
+		String dn = dtb.synode();
+
 		int loop = 0;
-		long maxn = 0;
-		while (shouldExchange(src, c[src].trb.nyquvect.get(c[dst].trb.synode()),
-							  c[src].trb.synode(), c[src].trb.n0)) {
-			AnResultset req = c[src].trb.iniExchange(c[src].trb.synode(), c[src].connId(), c[src].robot());
-			List<ChangeLogs> committings = new ArrayList<ChangeLogs>();
-			ChangeLogs resp = c[dst].trb.mergeChange(
-					c[src].trb.synode(), c[src].trb.n0, req, c[dst].robot(), committings);
-			if (loop == 0)
-				; // TODO insert new records at source
-			maxn = Math.max(resp.maxn.n, maxn);
-			resp = c[src].trb.ackExchange(resp, c[dst].trb.synode());
-			
-			// network: ack lost
-			if (loop > 0)
-				c[dst].trb.onAck(resp, committings);
+		Nyquence maxn = null;
+		while (shouldExchange(src, stb.nyquvect.get(dtb.synode()), stb.synode(), stb.n0())) {
+
+			AnResultset req = stb.iniExchange(dn, c[src].connId(), c[src].robot());
+
+			if (req.hasnext()) {
+				if (maxn == null)
+					maxn = new Nyquence(req.getLongAt(chm.nyquence, 0));
+				List<ChangeLogs> committings = new ArrayList<ChangeLogs>();
+				ChangeLogs resp = dtb.mergeChange(
+						stb.synode(), stb.n0(), req, c[dst].robot(), committings);
+				if (loop == 0)
+					; // TODO insert new records at source
+				maxn = Nyquence.max(resp.maxn, maxn);
+				resp = stb.ackExchange(resp, dtb.synode());
+				
+				// network: ack lost
+				if (loop > 0)
+					dtb.onAck(resp, committings);
+				
+				if (loop > 0) {
+				}
+			}
 			loop++;
 		}
-		
-		if (loop > 0) {
-			Nyquence n = c[src].trb.n0.inc(maxn);
-			c[dst].trb.n0.inc(n);
+		if (maxn != null) {
+			Nyquence n = stb.incN0(maxn); // .n0.inc(maxn);
+			dtb.incN0(n);
 		}
 	}
 	
@@ -785,7 +807,7 @@ public class DBSyntextTest {
 			.nv(chm.crud, CRUD.U)
 			.nv(chm.synoder, synoder)
 			.nv(chm.uids, synoder + chm.UIDsep + pid)
-			.nv(chm.nyquence, trb.n0.n)
+			.nv(chm.nyquence, trb.n0().n)
 			.post(trb
 				.delete(sbm.tbl)
 				.whereEq(sbm.entbl, entm.tbl)
@@ -828,7 +850,7 @@ public class DBSyntextTest {
 			.nv(chm.crud, CRUD.C)
 			.nv(chm.synoder, synoder)
 			.nv(chm.uids, concatstr(synoder, chm.UIDsep, pid))
-			.nv(chm.nyquence, trb.n0.n)
+			.nv(chm.nyquence, trb.n0().n)
 			.nv(chm.org, robot.orgId)
 			.post(trb.insert(sbm.tbl)
 					.cols(sbm.entbl, sbm.synodee, sbm.uids, sbm.org)

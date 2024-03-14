@@ -339,6 +339,18 @@ for (String coln : colnames.keySet())
 
 	public AnResultset results(ArrayList<ArrayList<Object>> rows) {
 		this.results = rows;
+		/*
+		colCnt = colNames.size();
+		this.colnames = new HashMap<String, Object[]>(colCnt);
+		for (int i = colCnt; i >= 1; i--) {
+			// colnames.put(colNames.get(i - 1) == null ? String.valueOf(i): colNames.get(i - 1).toUpperCase(), i);
+			String cn = colNames.get(i - 1) == null ? String.valueOf(i): colNames.get(i - 1);
+			colnames.put(cn.toUpperCase(), new Object[] {i, cn});
+		}
+		*/
+		rowIdx = 0;
+		rowCnt = rows.size();
+
 		return this;
 	}
 
@@ -607,10 +619,16 @@ for (String coln : colnames.keySet())
 	
 	public long getLong(int colIndex) throws SQLException {
 		try {
-			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
-			if (results.get(rowIdx - 1).get(colIndex - 1) == null) throw new SQLException("Null value to be converted to long.");
-			else return Long.valueOf(results.get(rowIdx - 1).get(colIndex - 1).toString());
-		}catch (Exception e) {throw new SQLException(e.getMessage());}
+			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null)
+				throw new SQLException("Null row to be accessed.");
+			if (results.get(rowIdx - 1).get(colIndex - 1) == null)
+				throw new SQLException("Null value to be converted to long.");
+			else
+				return Long.valueOf(results.get(rowIdx - 1).get(colIndex - 1).toString());
+		}
+		catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		}
 	}
 
 	public long getLong(String size, long empty) {
@@ -629,7 +647,7 @@ for (String coln : colnames.keySet())
 	 * @throws NumberFormatException
 	 * @throws SQLException
 	 */
-	public long getLongAtRow(String colName, int row) throws NumberFormatException, SQLException {
+	public long getLongAt(String colName, int row) throws NumberFormatException, SQLException {
 		return getLongAtRow(getColumex(colName) - 1, row);
 	}
 

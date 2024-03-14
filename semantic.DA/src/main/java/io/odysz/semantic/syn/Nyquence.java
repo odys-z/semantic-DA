@@ -29,10 +29,22 @@ public class Nyquence {
 		return inc(maxn.n);
 	}
 
-	public Nyquence inc(long maxn) {
+	Nyquence inc(long maxn) {
 		this.n++;
 		this.n = Math.max(maxn, this.n );
 		return this;
+	}
+
+	public static long max(long a, long b) {
+		return compareNyq(a, b) < 0 ? b : a;
+	}
+
+	public static long min(long a, long b) {
+		return compareNyq(a, b) < 0 ? a : b;
+	}
+
+	public static Nyquence max(Nyquence a, Nyquence b) {
+		return compareNyq(a.n, b.n) < 0 ? b : a;
 	}
 
 }

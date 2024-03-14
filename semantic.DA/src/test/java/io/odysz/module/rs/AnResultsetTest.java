@@ -30,6 +30,6 @@ class AnResultsetTest {
 		assertEquals(4l, rs.getLongAtRow(0, 1));
 		assertEquals(7l, rs.getLongAtRow(3, 1));
 		assertEquals(11l, rs.getLongAtRow(3, 2));
-		assertEquals(11l, rs.getLongAtRow("c-4", 2));
+		assertEquals(11l, rs.getLongAt("c-4", 2));
 	}
 }

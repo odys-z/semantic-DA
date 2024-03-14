@@ -3,6 +3,7 @@ package io.odysz.semantic.syn;
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.isNull;
+import static io.odysz.semantic.syn.Nyquence.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -58,7 +59,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 	/** Nyquence vector [{synode, n0}]*/
 	protected HashMap<String, Nyquence> nyquvect;
-	protected Nyquence n0;
+	protected Nyquence n0() { return nyquvect.get(synode()); }
 	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
 
 	private HashMap<String, SyntityMeta> entityRegists;
@@ -109,7 +110,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		}
 		
 		// loadNyquvect0(conn);
-		this.n0 = nyquvect.get(synode());
+		// this.n0 = nyquvect.get(synode());
 
 		return this;
 	}
@@ -188,6 +189,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		return (AnResultset) select(chgm.tbl, "ch")
 			.je("ch", subm.tbl, "sb", chgm.entbl, subm.entbl, chgm.uids, subm.uids)
 			.where(op.ge, chgm.nyquence, dn.n)
+			.orderby(chgm.nyquence, chgm.synoder)
 			.rs(instancontxt(connId, robot))
 			.rs(0);
 	}
@@ -213,52 +215,108 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * Server/hub handle a change-logs' exchange
 	 * 
 	 * @param srcnode source node id
-	 * @param sn source Nyquence
+	 * @param srcn0 source Nyquence from remote client
 	 * @param srchgs change logs
 	 * @param localbuf [in/out] local commitment buffer 
 	 * @return change logs to reply
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public ChangeLogs mergeChange(String srcnode, Nyquence sn, AnResultset srchgs, IUser robot, List<ChangeLogs> localbuf)
-			throws TransException, SQLException {
+	public ChangeLogs mergeChange(String srcnode, Nyquence srcn0, AnResultset srchgs,
+			IUser robot, List<ChangeLogs> localbuf) throws TransException, SQLException {
 		
 		if (isNull(srchgs)) return null;
 
 		srchgs.beforeFirst();
-		// long sn0 = srchgs.hasnext() ? srchgs.getLong(chgm.nyquence) : 0;
-		long sn1 = srchgs.getLongAtRow(chgm.nyquence, srchgs.getRowCount() - 1);
+		long sn0 = srchgs.getLongAt(chgm.nyquence, srchgs.getRowCount() - 1);
 		
-		// select order by n, s
-		AnResultset dchgs = (AnResultset) select(chgm.tbl)
+		AnResultset dchgs = (AnResultset) select(chgm.tbl, "ch")
+				.je("ch", subm.tbl, "sb", chgm.entbl, subm.entbl, chgm.uids, subm.uids)
+				.where(op.ge, chgm.nyquence, nyquvect.get(srcnode).n)
+				.orderby(chgm.nyquence)
+				.orderby(chgm.synoder)
 				.rs(instancontxt(this.basictx.connId(), robot))
 				.rs(0);
 		
 		ChangeLogs localog = new ChangeLogs(chgm);
 		ChangeLogs remolog = new ChangeLogs(chgm);
 		
-		long srcn1 = nyquvect.get(srcnode).n;
+		long mysrcn0 = nyquvect.get(srcnode).n;
+		// srcn1 = Nyquence.min(srcn1, sn0);
+
 		// in case unfinished previous synchronizing
 		// i.e. B haven't got last acknowledge from A since buffer is not empty 
 		while (localbuf.size() > 0) {
-			if (Nyquence.compareNyq(srchgs.getLong(chgm.nyquence), srcn1) > 0)
-				commitUntil(localbuf, srcnode, srcn1);
+			if (Nyquence.compareNyq(srchgs.getLong(chgm.nyquence), mysrcn0) > 0)
+				commitUntil(localbuf, srcnode, mysrcn0);
 			// i.e. B has operation haven't committed yet since A failed acknowledge
-			else
-				ignoreUntil(localbuf, srcnode, srcn1);
+			else // if (Nyquence.compareNyq(srchgs.getLong(chgm.nyquence), mysrcn0) < 0)
+				ignoreUntil(localbuf, srcnode, mysrcn0);
 		}
 		srchgs.beforeFirst();
 
+		long maxn = max(mysrcn0, sn0);
+		
+		while(srchgs.next()) {
+			if (compare(srchgs.getLong(chgm.nyquence), mysrcn0) <= -2)
+				remolog.remove(dchgs);
+
+			maxn = max(srchgs.getLong(chgm.nyquence), maxn);
+
+			if (!eq(srchgs.getString(chgm.uids), srchgs.getString(chgm.uids)))
+				throw new SemanticException("Shouldn't be here");
+			else if (diff == -1)
+				localog.append(srchgs);
+			else // diff == -2
+				remolog.remove(srchgs);
+
+			srchgs.next();
+		}
+
+		while(dchgs.hasnext()) {
+			maxn = max(dchgs.getLong(chgm.nyquence), maxn);
+
+			remolog.append(dchgs);
+
+			int diff = compare(sn0, dchgs);
+			if (diff == 0)
+				break;
+			else if (diff < 0)
+				throw new SemanticException("Shouldn't be here");
+			else if (diff == -1)
+				remolog.append(srchgs);
+			else // diff == -2
+				remolog.remove(srchgs);
+
+			localog.append(srchgs);
+			dchgs.next();
+		}
+
+		maxn = max(srcn0.n, maxn);
+
+		// FIXME what happen if local committed and remote lost response?
+		// commit(localog);
+		localbuf.add(localog.maxn(maxn));
+
+		return remolog.maxn(maxn);
+		/*
 		boolean hasmore = dchgs.next() && srchgs.next();
 		while (hasmore) {
 			// src - dst
+			maxn = max(srchgs.getLong(chgm.nyquence), maxn);
 			int diff = compare(srchgs, dchgs);
 			// int diff = Nyquence.compareNyq(srchgs.getLong(chgm.nyquence), dchgs.getLong(chgm.nyquence));
 			if (diff == 0) {
 				// changes propagated to both sides through 3rd parties.
-				if (indexOf(srchgs.getString(chgm.subs), this.synode()) >= 0) {
-					// insertion propagation
+				if (indexOf(srchgs.getString(subm.synodee), this.synode()) >= 0) {
+					// remove subscription from client
 					remolog.remove_sub(srchgs, this.synode()); // e.g. "I A A:0 1 B"
+				}
+				else if (eq(srchgs.getString(chgm.uids), srchgs.getString(chgm.uids))){
+					// insertion propagation
+				}
+				else {
+					remolog.append(srchgs);
 				}
 				// e.g. I A A:0 1 C/D
 			}
@@ -283,7 +341,9 @@ public class DBSynsactBuilder extends DATranscxt {
 		}
 
 		while(srchgs.hasnext()) {
-			int diff = compare(srchgs, this.n0);
+			maxn = max(srchgs.getLong(chgm.nyquence), maxn);
+
+			int diff = compare(srchgs, this.n0());
 			if (diff >= 0)
 				throw new SemanticException("Shouldn't be here");
 			else if (diff == -1)
@@ -295,9 +355,11 @@ public class DBSynsactBuilder extends DATranscxt {
 		}
 
 		while(dchgs.hasnext()) {
+			maxn = max(dchgs.getLong(chgm.nyquence), maxn);
+
 			remolog.append(dchgs);
 
-			int diff = compare(sn1, dchgs);
+			int diff = compare(sn0, dchgs);
 			if (diff == 0)
 				break;
 			else if (diff < 0)
@@ -311,24 +373,14 @@ public class DBSynsactBuilder extends DATranscxt {
 			dchgs.next();
 		}
 		
+		maxn = max(srcn0.n, maxn);
+
 		// FIXME what happen if local committed and remote lost response?
 		// commit(localog);
-		localbuf.add(localog);
+		localbuf.add(localog.maxn(maxn));
 
-		return remolog;
-	}
-
-	int compare(long n, AnResultset chgs) throws SQLException {
-		long dn = chgs.getLong(chgm.nyquence);
-		int diff = Nyquence.compareNyq(n, dn);
-		if (diff == 0)
-			return 0;
-		
-		return (int) Math.min(2, Math.max(-2, (n - dn)));
-	}
-
-	int compare(AnResultset chgs, Nyquence n) throws SQLException {
-		return - compare(n.n, chgs);
+		return remolog.maxn(maxn);
+		*/
 	}
 
 	/**
@@ -343,10 +395,35 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * 2: ini to ack deletion propagation
 	 * @throws SQLException 
 	 */
-	int compare(AnResultset a, AnResultset b) throws SQLException {
-		long sn = a.getLong(chgm.nyquence);
-		return compare(sn, b);
+	int compare(long srcn, long dstn) throws SQLException {
+		// long dn = chgs.getLong(chgm.nyquence);
+		int diff = Nyquence.compareNyq(srcn, dstn);
+		if (diff == 0)
+			return 0;
+		
+		return (int) Math.min(2, Math.max(-2, (srcn - dstn)));
 	}
+
+//	int compare(AnResultset chgs, Nyquence n) throws SQLException {
+//		return - compare(n.n, chgs);
+//	}
+
+	/**
+	 * Compare source and destination record, using both current row.
+	 * @param a initiator
+	 * @param b acknowledger
+	 * @return
+	 * -2: ack to ini deletion propagation,
+	 * -1: ack to ini appending,
+	 * 0: needing to be merged (same record),
+	 * 1: ini to ack appending
+	 * 2: ini to ack deletion propagation
+	 * @throws SQLException 
+	 */
+//	int compare(AnResultset a, AnResultset b) throws SQLException {
+//		long sn = a.getLong(chgm.nyquence);
+//		return compare(sn, b);
+//	}
 
 	/**
 	 * 
@@ -379,9 +456,9 @@ public class DBSynsactBuilder extends DATranscxt {
 			while (c.next()) {
 				if (Nyquence.compareNyq(c.getLong(chgm.nyquence), untilN0) <= 0)
 					break;
-				String crud = c.getString(chgm.crud);
+				String change = c.getString(ChangeLogs.ChangeFlag);
 				SyntityMeta entm = getEntityMeta(c.getString(chgm.entbl));
-				stats.add(eq(crud, CRUD.C)
+				stats.add(eq(change, CRUD.C)
 					// create an entity, and trigger change log
 					? insert(entm.tbl, synrobot())
 						.cols(entm.insertCols())
@@ -393,7 +470,7 @@ public class DBSynsactBuilder extends DATranscxt {
 							.post(insert(subm.tbl)
 								.cols(subm.insertCols())
 								.select(subm.subs2change(synm, this, log))))
-					: eq(crud, CRUD.U) // remove subscribes
+					: eq(change, CRUD.U) // remove subscribes
 					// remove subscribers
 					? delete(subm.tbl, synrobot())
 						.whereEq(subm.entbl, c.getString(chgm.entbl))
@@ -444,8 +521,9 @@ public class DBSynsactBuilder extends DATranscxt {
 	@SuppressWarnings("serial")
 	public ChangeLogs ackExchange(ChangeLogs resp, String srcnode) throws SQLException, TransException {
 		ChangeLogs logs = new ChangeLogs(chgm);
-		if (resp != null && resp.rs().getRowCount() > 0) {
-			commitUntil(new ArrayList<ChangeLogs>() {{add(logs);}}, srcnode, this.n0.n);
+		logs.setColumms(resp.columns);
+		if (resp != null && resp.rs() != null && resp.rs().getRowCount() > 0) {
+			commitUntil(new ArrayList<ChangeLogs>() {{add(logs);}}, srcnode, this.n0().n);
 		}
 		return logs;
 	}
@@ -460,8 +538,21 @@ public class DBSynsactBuilder extends DATranscxt {
 	@SuppressWarnings("serial")
 	public void onAck(ChangeLogs resp, List<ChangeLogs> commitbuf) throws SQLException, TransException {
 		ChangeLogs logs = new ChangeLogs(chgm);
-		if (resp != null && resp.rs().getRowCount() > 0) {
+		if (resp != null && resp.rs() != null && resp.rs().getRowCount() > 0) {
 			commitUntil(new ArrayList<ChangeLogs>() {{add(logs);}}, this.synode(), logs.maxn.n);
 		}
+	}
+
+	/**
+	 * this.n0++, this.n0 = max(n0, maxn)
+	 * @param maxn
+	 * @return n0
+	 */
+	public Nyquence incN0(long maxn) {
+		n0().inc(maxn);
+		return n0();
+	}
+	public Nyquence incN0(Nyquence n) {
+		return incN0(n.n);
 	}
 }

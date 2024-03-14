@@ -12,6 +12,8 @@ import io.odysz.semantic.meta.SynChangeMeta;
 
 public class ChangeLogs extends Anson {
 
+	public static final String ChangeFlag = "change";
+
 	@AnsonField(ignoreTo=true)
 	SynChangeMeta chm;
 	
@@ -22,9 +24,9 @@ public class ChangeLogs extends Anson {
 	 */
 	ArrayList<ArrayList<Object>> changes;
 
-	private HashMap<String, Object[]> columns;
+	HashMap<String, Object[]> columns;
 
-	private AnResultset rs;
+	AnResultset rs;
 
 	private boolean dirty;
 
@@ -33,14 +35,22 @@ public class ChangeLogs extends Anson {
 
 	public ChangeLogs(SynChangeMeta changemeta) {
 		this.chm = changemeta;
+		this.changes = new ArrayList<ArrayList<Object>>();
 		dirty = false;
 	}
 
+	/**
+	 * Add remove command to change log, chgs.
+	 * @param chgs
+	 * @param synode
+	 * @throws SQLException
+	 */
 	public void remove_sub(AnResultset chgs, String synode) throws SQLException {
 		if (this.columns == null)
 			setColumms(chgs.colnames());
 		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow());
-		row.add(getColIndex(chm.crud), CRUD.U);
+		row.add(CRUD.U);
+		changes.add(row);
 		dirty = true;
 	}
 
@@ -49,6 +59,7 @@ public class ChangeLogs extends Anson {
 			setColumms(chgs.colnames());
 		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow());
 		row.add(CRUD.D);
+		changes.add(row);
 		dirty = true;
 	}
 
@@ -57,6 +68,7 @@ public class ChangeLogs extends Anson {
 			setColumms(dchgs.colnames());
 		ArrayList<Object> row = dchgs.getRowAt(dchgs.currentRow());
 		row.add(CRUD.C);
+		changes.add(row);
 		dirty = true;
 	}
 
@@ -68,19 +80,30 @@ public class ChangeLogs extends Anson {
 		return (int)columns.get(col.toUpperCase())[0];
 	}
 
-	protected int setColumms(HashMap<String, Object[]> colnames) {
+	/**
+	 * Copy columns from resultset, adding field {@link #ChangeFlag} as last field
+	 * @param colnames
+	 * @return this
+	 */
+	protected ChangeLogs setColumms(HashMap<String, Object[]> colnames) {
 		columns = colnames;
 		if (!columns.containsKey(chm.crud)) {
-			columns.put(chm.crud, new Object[] {Integer.valueOf(colnames.size()), chm.crud});
+			columns.put(ChangeFlag, new Object[] {Integer.valueOf(colnames.size()), chm.crud});
 		}
 		dirty = true;
-		return columns.size();
+		return this;
 	}
 	
 	AnResultset rs() {
 		if (rs == null || dirty) {
-			rs = new AnResultset(columns, true).results(changes);
+			if (changes != null)
+				rs = new AnResultset(columns, true).results(changes);
 		}
 		return rs;
+	}
+
+	public ChangeLogs maxn(long n) {
+		maxn = new Nyquence(n);
+		return this;
 	}
 }

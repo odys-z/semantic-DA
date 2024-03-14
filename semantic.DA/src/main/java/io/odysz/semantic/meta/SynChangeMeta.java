@@ -24,7 +24,7 @@ public class SynChangeMeta extends TableMeta {
 	public final String synoder;
 	public final String nyquence;
 
-	public final String subs;
+	// public final String subs;
 
 	static {
 	}
@@ -43,7 +43,7 @@ public class SynChangeMeta extends TableMeta {
 		uids = "uids";
 		nyquence = "nyquence";
 		
-		subs = "sub";
+		// subs = "sub";
 	}
 
 	public String[] cols() {
