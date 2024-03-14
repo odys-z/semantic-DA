@@ -140,8 +140,6 @@ public class DBSyntextTest {
 
 	@BeforeAll
 	public static void testInit() throws Exception {
-		// smtcfg = DBSynsactBuilder.loadSynmantics(conn0, "src/test/res/synmantics.xml", true);
-		
 		// DDL
 		// Debug Notes:
 		// Sqlite won't commit multiple (ignore following) sql in one batch, and quit silently!
@@ -239,7 +237,7 @@ public class DBSyntextTest {
 	 *---------------------------------------------------------------
 	 * 2. A.a > B.a, B don't know A:0 [B]/C/D, with n=x > B.a | s=A
 	 * 
-	 *  A select n in range [A.b, A.a = x]
+	 *  A select n in range (A.b, A.a = x]
 	 *  B merge with local DB, with records sorted by n, s, pid.
 	 *  
 	 * A                     =) B
@@ -262,8 +260,8 @@ public class DBSyntextTest {
 	 *                   D   |                   D
 	 *                   
 	 *    a  b  c  d
-	 *  A x1 x        [A.b = B.b, ++A.a ( = max(B.a, ++A.a))]
-	 *  B x  y1=x1    [B.a = A.a, ++B.b (= max(++B.b, A.b))]
+	 *  A x1 x                  [A.b = B.b, ++A.a ( = max(B.a, ++A.a))]
+	 *  B x  y1        y1 = x1, [B.a = A.a, ++B.b (= max(++B.b, A.b))]
 	 *  C       z
 	 *  D          w
 	 *  
@@ -271,45 +269,49 @@ public class DBSyntextTest {
 	 * 3. A insert A:1
 	 * A                    (=  B
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  I,   A, A:0, 1, [ ]  |  I,   B, B:0, 1, [ ]
+	 *  I,   A, A:0, x, [ ]  |  I,   B, B:0, y, [ ]
 	 *                   C   |                   C
 	 *                   D   |                   D
-	 *  I,   B, B:0, 1,  C   |  I,   A, A:0, 1,  C
+	 *  I,   B, B:0, y,  C   |  I,   A, A:0, x,  C
 	 *                   D   |                   D
-	 *  I,   A, A:1, 2,  B   |  
+	 *  I,   A, A:1, x1, B   |  
 	 *                   C   |  
 	 *                   D   |  
 	 *                   
-	 *    a b c
-	 *  A 2 1 0
-	 *  B 1 2 0
-	 *  C 0 0 0
+	 *    a  b  c  d
+	 *  A x1 x
+	 *  B x  y1
+	 *  C       z
+	 *  D          w
 	 *  
 	 *---------------------------------------------------------------
-	 * 5. A Update A:1
-	 * A                    (=  B
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  I,   A, A:0, 1, [ ]  |  I,   B, B:0, 1, [ ]
-	 *                   C   |                   C
-	 *                   D   |                   D
-	 *  I,   B, B:0, 1,  C   |  I,   A, A:0, 1,  C
-	 *                   D   |                   D
-	 *  U,   A, A:1, 2,  B   |  
-	 *                   C   |  
-	 *                   D   |  
+	 * 4. A Update A:1
+	 * 
 	 * A select n in range (A.b, A.a = A.n0]
 	 * B merge with local DB, with records sorted by n, s, pid, only merge with n in range (B.a, B.b = B.n0]
-	 *                       |  I,   A, A:1, 2,  C 
+	 * 
+	 * A                    (=  B
+	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
+	 *  I,   A, A:0, x, [ ]  |  I,   B, B:0, y, [ ]
+	 *                   C   |                   C
+	 *                   D   |                   D
+	 *  I,   B, B:0, y,  C   |  I,   A, A:0, x,  C
+	 *                   D   |                   D
+	 *  U,   A, A:1, x1, B   |  
+	 *                   C   |  
+	 *                   D   |  
+	 *                       |  I,   A, A:1, x1, C 
 	 *                       |                   D 
 	 *                   
-	 *    a b c
-	 *  A 2 1 0
-	 *  B 1 2 0
-	 *  C 0 0 0
-	 *  
+	 *    a  b  c  d
+	 *  A x2 x1
+	 *  B x1 y2
+	 *  C       z
+	 *  D          w
+	 *
 	 * =============================================================
 	 * If the response to A lost, B won't commit but will send the
-	 * operations into a buffer.
+	 * operations into a buffer, to discard if requested again.
 	 *  
 	 * </pre>
 	 * @throws TransException
@@ -541,66 +543,67 @@ public class DBSyntextTest {
 	 * <pre>
 	 * 1. A insert A:0, update C:0; B insert B:0, update C:0
 	 * A                     | B                    
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  I,   A, A:0, 1,  B   |  I,   B, B:0, 1,  A 
-	 *                   C   |                   C 
-	 *  U,   A, C:0, 1,  B   |  U,   B, C:0, 1,  A 
-	 *                   C   |                   C 
+	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub
+	 *  I,   A, A:0, x1,  B   |  I,   B, B:0, y1,  A 
+	 *                    C   |                    C 
+	 *  U,   A, C:0, x1,  B   |  U,   B, C:0, y1,  A 
+	 *                    C   |                    C 
 	 *
-	 *    a b
-	 *  A 1 0
-	 *  B 0 1
+	 *    a  b
+	 *  A x1
+	 *  B    y1
+	 *-----------------------------------------------------------------------
 	 * 
 	 * Action:
-	 * B insert A:0 for B.a=0 < A:0[s=A, sub=B].n=1
-	 * A insert B:0 for A.b=0 < B:0[s=B, sub=A].n=1
-	 * A replace C:0 with B:C:0, because B is the client
-	 *-----------------------------------------------------------------------
-	 * A                     | B                    
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  I,   A, A:0, 2, [B] x|  I,   B, B:0, 2, [A] x
-	 *                   C   |                   C 
-	 *  I,   A, B:0, 2,  C   |  I,   B, A:0, 2,  C 
-	 *  U,   A, C:0, 2, [B]  |  U,   B, C:0, 2, [A] 
-	 *                   C   |                   C 
+	 * B insert A:0 for B.a < A:0[s=A, sub=B].n=x1
+	 * A insert B:0 for A.b=0 < B:0[s=B, sub=A].n=y1
+	 * A replace C:0 with B:C:0, because B has priority
+	 * 
+	 * A                      | B                    
+	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub
+	 *  I,   A, A:0, x1, [B] x|  I,   B, B:0, y1, [A] x
+	 *                    C   |                    C 
+	 *  I,   A, B:0, x1,  C   |  I,   B, A:0, y1,  C 
+	 *  U,   A, C:0, y1, [B]  |  U,   B, C:0, y1, [A] 
+	 *                    C   |                    C 
 	 *
-	 *    a b
-	 *  A 2 2
-	 *  B 2 2
+	 *    a  b
+	 *  A x2 y1
+	 *  B x1 y2
 	 *-----------------------------------------------------------------------
 	 * B (=) C
-	 * A                     | B                      | C
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
-	 *  I,   A, A:0, 2, [ ] x|  I,   B, B:0, 2, [ ]   |  
-	 *                   C   |                  [C] x |
-	 *  I,   A, B:0, 2,  C   |  I,   B, A:0, 2, [C] x |
-	 *  U,   A, C:0, 2, [ ]  |  U,   B, C:0, 2, [ ]   |
-	 *                   C   |                  [C] x |
+	 * A                      | B                       | C
+	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub   | crud, s, pid, n, sub
+	 *  I,   A, A:0, x1, [ ] x|  I,   B, B:0, y1, [ ]   |  
+	 *                    C   |                   [C] x |
+	 *  I,   A, B:0, x1,  C   |  I,   B, A:0, y1, [C] x |
+	 *  U,   A, C:0, y1, [ ]  |  U,   B, C:0, y1, [ ]   |
+	 *                    C   |                   [C] x |
 	 *
-	 *    a b c
-	 *  A 2 2 ?
-	 *  B 2 3 3
-	 *  C 2 3 3
+	 *    a  b  c
+	 *  A x2 y1  
+	 *  B x1 y3 z0
+	 *  C x1 y2 z3
 	 *  
 	 *-----------------------------------------------------------------------
 	 * A (=) B
-	 * A                     | B                      | C
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
-	 *  I,   A, A:0, 2,      |                        |  
-	 *                  [C] x|                        |
-	 *  I,   A, B:0, 2, [C] x|                        |
-	 *  U,   A, C:0, 2,      |                        |
-	 *                  [C] x|                        |
+	 * A                      | B                      | C
+	 * crud, s, pid, n,  sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
+	 *  I,   A, A:0, x1,      |                        |  
+	 *                   [C] x|                        |
+	 *  I,   A, B:0, x1, [C] x|                        |
+	 *  U,   A, C:0, y1,      |                        |
+	 *                   [C] x|                        |
 	 * 
 	 * Actions:
-	 * clear changes as chg.n=2 = B.a, chg.n < B.c=3 
+	 * A clear changes as chg.n=x1 = B.a, and A.c < B.c (A merge with C earlier than B with C) 
 	 * A.n0 = max(B.a, B.b, B.c, ++A.n0) 
 	 * B.a = A.n0, by A.ack
 	 *
-	 *    a b c
-	 *  A 3 3 3   A.c = max(A.c, B.c)
-	 *  B 3 3 3
-	 *  C 2 3 3
+	 *    a  b  c
+	 *  A x4 y3 z0   A.c = max(A.c, B.c) = z0 
+	 *  B x2 y4 z0
+	 *  C x1 y2 z3
 	 * </pre>
 	 */
 	@Test
@@ -648,7 +651,7 @@ public class DBSyntextTest {
 	 *    a   b   c    d
 	 *  A x1  y0
 	 *  B x0  y2  z0
-	 *  C     y1  z1    
+	 *  C x0  y1  z2         z2 = y2
 	 *  D             w0
 	 *  
 	 *----------------------------------------------------------------------- 
@@ -660,9 +663,10 @@ public class DBSyntextTest {
 	 *  I,   A, B:0, x0, [C]x |                        |
 	 *  U,   A, C:0, x0, [C]x |                        |
 	 *  
-	 *  Action
-	 *  B:0.n=x = B.a=3, B:0.n < B.c, override A with B for subscript C, i.e. delete B:0(s=A, n=3),
-	 *  C:0.n=3 = B.a=3, C:0.n < B.c, override A with B for subscript C, i.e. delete C:0(s=A, n=3)
+	 * A cleaning for chg.n <= B.i and chg.sub = i and chg.n[sub=i] < B.i
+	 * - B:0.n=x0 = B.a, A.c < B.c=z0 because A can't have A.c later than B.c,
+	 *   so override A with B for subscript C, i.e. delete B:0[c], (s=A, n=x0),
+	 * - C:0.n=x0 = B.a, C:0.n < B.c, override A with B for subscript C, i.e. delete C:0(s=A, n=3)
 	 *  
 	 *  NOTE
 	 *  B:0.n[sub=C] always less than, not equal to, B.c in a deletion propagation,
@@ -671,7 +675,7 @@ public class DBSyntextTest {
 	 *    a   b   c    d
 	 *  A x3  y2            x3 = y3
 	 *  B x1  y3  z0
-	 *  C     y1  z1    
+	 *  C     y1  z2    
 	 *  D             w0
 	 * </pre>
 	 * @throws Exception

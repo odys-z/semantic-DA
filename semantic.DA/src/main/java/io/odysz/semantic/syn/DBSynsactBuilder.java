@@ -242,7 +242,6 @@ public class DBSynsactBuilder extends DATranscxt {
 		ChangeLogs remolog = new ChangeLogs(chgm);
 		
 		long mysrcn0 = nyquvect.get(srcnode).n;
-		// srcn1 = Nyquence.min(srcn1, sn0);
 
 		// in case unfinished previous synchronizing
 		// i.e. B haven't got last acknowledge from A since buffer is not empty 
