@@ -222,7 +222,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public ChangeLogs mergeChange(String srcnode, Nyquence srcn0, AnResultset srchgs,
+	ChangeLogs mergeChange(String srcnode, Nyquence srcn0, AnResultset srchgs,
 			IUser robot, List<ChangeLogs> localbuf) throws TransException, SQLException {
 		
 		if (isNull(srchgs)) return null;
@@ -264,8 +264,8 @@ public class DBSynsactBuilder extends DATranscxt {
 
 			if (!eq(srchgs.getString(chgm.uids), srchgs.getString(chgm.uids)))
 				throw new SemanticException("Shouldn't be here");
-			else if (diff == -1)
-				localog.append(srchgs);
+//			else if (diff == -1)
+//				localog.append(srchgs);
 			else // diff == -2
 				remolog.remove(srchgs);
 
@@ -277,7 +277,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 			remolog.append(dchgs);
 
-			int diff = compare(sn0, dchgs);
+			int diff = compare(sn0, dchgs.getLong(chgm.nyquence));
 			if (diff == 0)
 				break;
 			else if (diff < 0)
