@@ -50,7 +50,7 @@ public class AnResultset extends Anson {
 	/**current row index, start at 1. */
 	private int rowIdx = -1;
 	/**
-	 * current row index
+	 * current row index, start from 1. If used for {@link #getRowAt(int)}, must - 1.
 	 * @since 1.4.25
 	 * @return
 	 */

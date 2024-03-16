@@ -1,5 +1,7 @@
 package io.odysz.semantic.syn;
 
+import static io.odysz.common.LangExt.isNull;
+
 public class Nyquence {
 
 	/**
@@ -19,14 +21,14 @@ public class Nyquence {
 		return c < 0 && c != Long.MIN_VALUE ? -1 : a == b ? 0 : 1;
 	}
 
-	public Long n;
+	public long n;
 
 	public Nyquence(long n) {
 		this.n = n;
 	}
 
-	public Nyquence inc(Nyquence maxn) {
-		return inc(maxn.n);
+	public Nyquence inc(Nyquence... maxn) {
+		return isNull(maxn) ? new Nyquence(++this.n) : inc(maxn[0].n);
 	}
 
 	Nyquence inc(long maxn) {

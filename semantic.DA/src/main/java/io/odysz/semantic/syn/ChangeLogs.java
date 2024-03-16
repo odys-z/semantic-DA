@@ -22,7 +22,7 @@ public class ChangeLogs extends Anson {
 	 * 0: change statement, CRUD.C: insert, CRUD.U: remove-subs, CRUD.D: remove-log),<br>
 	 * 1: change-crud,<br> 2: synoder,<br> 3: uids,<br> 4: nyquence<br> 
 	 */
-	ArrayList<ArrayList<Object>> changes;
+	ArrayList<ArrayList<Object>> answers;
 
 	HashMap<String, Object[]> columns;
 
@@ -35,7 +35,7 @@ public class ChangeLogs extends Anson {
 
 	public ChangeLogs(SynChangeMeta changemeta) {
 		this.chm = changemeta;
-		this.changes = new ArrayList<ArrayList<Object>>();
+		this.answers = new ArrayList<ArrayList<Object>>();
 		dirty = false;
 	}
 
@@ -48,27 +48,44 @@ public class ChangeLogs extends Anson {
 	public void remove_sub(AnResultset chgs, String synode) throws SQLException {
 		if (this.columns == null)
 			setColumms(chgs.colnames());
-		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow());
+		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow()-1);
 		row.add(CRUD.U);
-		changes.add(row);
+
+		if (answers == null)
+			answers = new ArrayList<ArrayList<Object>>();
+		answers.add(row);
+
 		dirty = true;
 	}
 
 	public void remove(AnResultset chgs) throws SQLException {
 		if (this.columns == null)
 			setColumms(chgs.colnames());
-		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow());
+		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow()-1);
 		row.add(CRUD.D);
-		changes.add(row);
+
+		if (answers == null)
+			answers = new ArrayList<ArrayList<Object>>();
+		answers.add(row);
+
 		dirty = true;
 	}
 
-	public void append(AnResultset dchgs) throws SQLException {
+	/**
+	 * Append changes' current row to committing tasks.
+	 * @param remote
+	 * @throws SQLException
+	 */
+	public void append(AnResultset remote) throws SQLException {
 		if (this.columns == null)
-			setColumms(dchgs.colnames());
-		ArrayList<Object> row = dchgs.getRowAt(dchgs.currentRow());
+			setColumms(remote.colnames());
+		ArrayList<Object> row = remote.getRowAt(remote.currentRow()-1);
 		row.add(CRUD.C);
-		changes.add(row);
+
+		if (answers == null)
+			answers = new ArrayList<ArrayList<Object>>();
+		answers.add(row);
+
 		dirty = true;
 	}
 
@@ -96,8 +113,8 @@ public class ChangeLogs extends Anson {
 	
 	AnResultset rs() {
 		if (rs == null || dirty) {
-			if (changes != null)
-				rs = new AnResultset(columns, true).results(changes);
+			if (answers != null)
+				rs = new AnResultset(columns, true).results(answers);
 		}
 		return rs;
 	}
@@ -105,5 +122,16 @@ public class ChangeLogs extends Anson {
 	public ChangeLogs maxn(long n) {
 		maxn = new Nyquence(n);
 		return this;
+	}
+
+	AnResultset challenge;
+	public ChangeLogs exchange(AnResultset challenge) {
+		this.challenge = challenge;
+		return this;
+	}
+
+	public void clear() {
+		challenge = null;
+		answers = null;
 	}
 }

@@ -316,9 +316,10 @@ public class DBSyntextTest {
 	 * </pre>
 	 * @throws TransException
 	 * @throws SQLException
+	 * @throws IOException 
 	 */
 	@Test
-	void test01InsertBasic() throws TransException, SQLException {
+	void test01InsertBasic() throws TransException, SQLException, IOException {
 
 		// 1.1 insert A
 		String A_0 = insertPhoto(X);
@@ -732,8 +733,9 @@ public class DBSyntextTest {
 	 * @param src client
 	 * @throws SQLException 
 	 * @throws TransException 
+	 * @throws IOException 
 	 */
-	void exchange(int dst, int src) throws TransException, SQLException {
+	void exchange(int dst, int src) throws TransException, SQLException, IOException {
 		DBSynsactBuilder stb = c[src].trb;
 		DBSynsactBuilder dtb = c[dst].trb;
 
@@ -759,7 +761,7 @@ public class DBSyntextTest {
 				
 				// network: ack lost
 				if (loop > 0)
-					dtb.onAck(resp, committings);
+					dtb.onAck(resp);
 				
 				if (loop > 0) {
 				}
