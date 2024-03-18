@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.syn.ChangeLogs;
+import io.odysz.module.rs.ChangeLogs;
 import io.odysz.semantic.syn.DBSynsactBuilder;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.sql.Query;
@@ -59,15 +59,20 @@ public class SynSubsMeta extends TableMeta {
 	}
 
 	public String[] insertCols() {
-		// TODO Auto-generated method stub
-		return null;
+		return new String[] { org, entbl, synodee, uids };
 	}
 
+	/**
+	 * Select clause for inserting subscribers, into {@link #tbl}.
+	 * @param synm
+	 * @param tb
+	 * @param log
+	 * @return select clause
+	 */
 	public Query subs2change(SynodeMeta synm, DBSynsactBuilder tb, ChangeLogs log) {
-		// TODO how about caching in memory for current subscribers?
-		return tb.with(true, org, entbl, null)
-				.select(synm.tbl, "sn")
-			;
+		return tb
+			.select(synm.tbl, "sn")
+			.whereEq("", "");
 	}
 
 }

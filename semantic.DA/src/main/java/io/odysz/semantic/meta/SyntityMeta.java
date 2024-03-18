@@ -2,10 +2,13 @@ package io.odysz.semantic.meta;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 
+import io.odysz.module.rs.AnResultset;
+import io.odysz.module.rs.ChangeLogs;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.syn.ChangeLogs;
 import io.odysz.semantic.syn.DBSynmantics;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.x.TransException;
@@ -28,6 +31,8 @@ public abstract class SyntityMeta extends TableMeta {
 	public String synoder;
 
 	public final HashSet<String> uids;
+
+	private HashMap<String, Integer> entCols;
 	
 	/**
 	 * @param tbl
@@ -66,12 +71,51 @@ public abstract class SyntityMeta extends TableMeta {
 
 	public HashSet<String> globalIds() { return uids; }
 
-	public String[] insertCols() {
+	/**
+	 * Generate columns for inserting challenging entities.
+	 * @return columns in order of rows' fields, values should be same order for insertion
+	 */
+	public String[] insChallengeEntCols() {
+		if (entCols == null)
+			this.entCols = new HashMap<String, Integer>(ftypes.size());
+
+		String[] cols = new String[entCols.size()];
+		int cx = 0;
+		for (String c : ftypes.keySet()) {
+			this.entCols.put(c, cx);
+			cols[(int) cx - 1] = c;
+			cx++;
+		}
+		return cols;
+	}
+
+	/**
+	 * Filtering for columns to insert into entity table, with columns specified in
+	 * the Insert statement by {@link #insChallengeEntCols()}.
+	 * @param challenge 
+	 * @return values as arguments for calling Insert.values
+	 * @throws SQLException 
+	 */
+	public ArrayList<ArrayList<Object[]>> insertChallengeEnts(AnResultset challenge) throws SQLException {
+		// TODO optimize Insert to handle this values faster
+		if (entCols == null)
+			insChallengeEntCols();
+
+		if (challenge != null && challenge.getRowCount() > 0) {
+			ArrayList<ArrayList<Object[]>> vals = new ArrayList<ArrayList<Object[]>>(challenge.getRowCount());
+			challenge.beforeFirst();
+			while (challenge.next()) {
+				Object[][] colrow = new Object[entCols.size()][];
+				for (String c : entCols.keySet()) {
+					colrow[entCols.get(c)] = new Object[] {c, challenge.getObject(c)};
+				}
+				vals.add((ArrayList<Object[]>) Arrays.asList(colrow));
+			}
+			return vals;
+		}
 		return null;
 	}
 
-	public ArrayList<ArrayList<Object[]>> insertVal(ChangeLogs l) {
-		return null;
-	}
+
 
 }

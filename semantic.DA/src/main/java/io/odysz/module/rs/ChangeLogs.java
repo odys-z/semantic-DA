@@ -1,4 +1,4 @@
-package io.odysz.semantic.syn;
+package io.odysz.module.rs;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -6,9 +6,10 @@ import java.util.HashMap;
 
 import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
-import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.syn.Nyquence;
+import io.odysz.semantic.syn.SynEntity;
 
 public class ChangeLogs extends Anson {
 
@@ -22,16 +23,14 @@ public class ChangeLogs extends Anson {
 	 * 0: change statement, CRUD.C: insert, CRUD.U: remove-subs, CRUD.D: remove-log),<br>
 	 * 1: change-crud,<br> 2: synoder,<br> 3: uids,<br> 4: nyquence<br> 
 	 */
-	ArrayList<ArrayList<Object>> answers;
+	public ArrayList<ArrayList<Object>> answers;
 
-	HashMap<String, Object[]> columns;
+	/** Entity tables' column names */
+	// public HashMap<String, HashMap<String, Object[]>> entCols;
 
-	AnResultset rs;
+	public HashMap<String, Object[]> changeCols;
 
 	private boolean dirty;
-
-	/** max nyquence */
-	public Nyquence maxn;
 
 	public ChangeLogs(SynChangeMeta changemeta) {
 		this.chm = changemeta;
@@ -46,8 +45,7 @@ public class ChangeLogs extends Anson {
 	 * @throws SQLException
 	 */
 	public void remove_sub(AnResultset chgs, String synode) throws SQLException {
-		if (this.columns == null)
-			setColumms(chgs.colnames());
+		setChangeCols(chgs.colnames());
 		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow()-1);
 		row.add(CRUD.U);
 
@@ -59,8 +57,7 @@ public class ChangeLogs extends Anson {
 	}
 
 	public void remove(AnResultset chgs) throws SQLException {
-		if (this.columns == null)
-			setColumms(chgs.colnames());
+		setChangeCols(chgs.colnames());
 		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow()-1);
 		row.add(CRUD.D);
 
@@ -77,8 +74,7 @@ public class ChangeLogs extends Anson {
 	 * @throws SQLException
 	 */
 	public void append(AnResultset remote) throws SQLException {
-		if (this.columns == null)
-			setColumms(remote.colnames());
+		setChangeCols(remote.colnames());
 		ArrayList<Object> row = remote.getRowAt(remote.currentRow()-1);
 		row.add(CRUD.C);
 
@@ -93,39 +89,32 @@ public class ChangeLogs extends Anson {
 		return new Nyquence((long)c[4]);
 	}
 
-	protected int getColIndex(String col) {
-		return (int)columns.get(col.toUpperCase())[0];
-	}
+//	protected int getColIndex(String col) {
+//		return (int)columns.get(col.toUpperCase())[0];
+//	}
 
 	/**
 	 * Copy columns from resultset, adding field {@link #ChangeFlag} as last field
-	 * @param colnames
+	 * @param answer
 	 * @return this
 	 */
-	protected ChangeLogs setColumms(HashMap<String, Object[]> colnames) {
-		columns = colnames;
-		if (!columns.containsKey(chm.crud)) {
-			columns.put(ChangeFlag, new Object[] {Integer.valueOf(colnames.size()), chm.crud});
-		}
-		dirty = true;
-		return this;
+	public ChangeLogs setChangeCols(ChangeLogs answer) {
+		return setChangeCols(answer.changeCols);
 	}
 	
-	AnResultset rs() {
-		if (rs == null || dirty) {
-			if (answers != null)
-				rs = new AnResultset(columns, true).results(answers);
+	private ChangeLogs setChangeCols(HashMap<String, Object[]> colnames) {
+		this.changeCols = colnames;
+		
+		if (!changeCols.containsKey(ChangeFlag)) {
+			changeCols.put(ChangeFlag.toUpperCase(),
+				new Object[] {Integer.valueOf(changeCols.size() + 1), ChangeFlag});
 		}
-		return rs;
-	}
-
-	public ChangeLogs maxn(long n) {
-		maxn = new Nyquence(n);
 		return this;
 	}
 
-	AnResultset challenge;
-	public ChangeLogs exchange(AnResultset challenge) {
+	public AnResultset challenge;
+
+	public ChangeLogs challenge(AnResultset challenge) {
 		this.challenge = challenge;
 		return this;
 	}
@@ -133,5 +122,28 @@ public class ChangeLogs extends Anson {
 	public void clear() {
 		challenge = null;
 		answers = null;
+		entities = null;
+		dirty = false;
+	}
+
+	public HashMap<String, HashMap<String, ? extends SynEntity>> entities;
+	public HashMap<String, Nyquence> nyquvect;
+
+	public ChangeLogs nyquvect(HashMap<String, Nyquence> nyquvect) {
+		this.nyquvect = nyquvect;
+		return this;
+	}
+
+	public ChangeLogs entities(String tbl, HashMap<String, ? extends SynEntity> entities) {
+		this.entities.put(tbl, entities);
+		return this;
+	}
+
+	public int challenges() {
+		return challenge == null ? 0 : challenge.getRowCount();
+	}
+
+	public AnResultset answers() {
+		return new AnResultset(changeCols).results(answers);
 	}
 }

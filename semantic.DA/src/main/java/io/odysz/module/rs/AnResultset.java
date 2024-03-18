@@ -59,7 +59,7 @@ public class AnResultset extends Anson {
 
 	// TODO docs
 	@AnsonField(valType="java.util.ArrayList")
-	private ArrayList<ArrayList<Object>> results;
+	ArrayList<ArrayList<Object>> results;
 
 	/**col-index start at 1, map: [alais(upper-case), [col-index, db-col-name(in raw case)]<br>
 	 * case 1<pre>
@@ -333,6 +333,12 @@ for (String coln : colnames.keySet())
 			String cn = colNames.get(i - 1) == null ? String.valueOf(i): colNames.get(i - 1);
 			colnames.put(cn.toUpperCase(), new Object[] {i, cn});
 		}
+		rowIdx = 0;
+		rowCnt = 0;
+	}
+
+	public AnResultset(HashMap<String, Object[]> columns) {
+		this.colnames = columns;
 		rowIdx = 0;
 		rowCnt = 0;
 	}
@@ -677,6 +683,10 @@ for (String coln : colnames.keySet())
 	
 	public Blob getBlob(String colName) throws SQLException {
 		return getBlob((Integer)colnames.get(colName.toUpperCase())[0]);
+	}
+
+	public Object getObject(String colName) throws SQLException {
+		return getObject((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
 	public Object getObject(int colIndex) throws SQLException {

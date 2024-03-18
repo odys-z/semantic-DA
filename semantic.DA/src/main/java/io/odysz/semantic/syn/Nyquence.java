@@ -49,4 +49,8 @@ public class Nyquence {
 		return compareNyq(a.n, b.n) < 0 ? b : a;
 	}
 
+	public static int compareNyq(Nyquence a, Nyquence b) {
+		return compareNyq(a.n, b.n);
+	}
+
 }

@@ -31,6 +31,8 @@ import org.junit.jupiter.api.Test;
 import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.module.rs.AnResultset.ObjCreator;
+import io.odysz.module.rs.ChangeLogs;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
@@ -133,6 +135,8 @@ public class DBSyntextTest2 {
 			DATranscxt.key("user-pswd", rootkey);
 	}
 
+	static ObjCreator<T_Photo> phEntCreater;
+
 	@BeforeAll
 	public static void testInit() throws Exception {
 		// DDL
@@ -211,6 +215,8 @@ public class DBSyntextTest2 {
 
 			c[s].trb.registerEntity(c[s].phm);
 		}
+
+		phEntCreater = (rs) -> { return new T_Photo(rs); };
 
 		assertEquals("syn.00", c[0].connId());
 	}
@@ -743,29 +749,30 @@ public class DBSyntextTest2 {
 		DBSynsactBuilder stb = c[srv].trb;
 
 		// clean local.nyquvect[remote] <= remote.n0 && local.chg[sub-i].n < remote.nyquvect[sub-i]
-		HashMap<String, Nyquence> srvect = stb.nyquvect;
 		ctb.clean();
-		AnResultset req = ctb.diffrom(stb.synode());
+		ChangeLogs req = ctb.diffrom(stb.synode(), new T_PhotoMeta(ctb.getSysConnId()), phEntCreater);
 
 		int loop = 0;
-		while (req != null && req.getRowCount() > 0
-			&& ctb.exbegin(stb.synode(), srvect)) {
+		while (req != null && req.challenges() > 0) {
+			// && ctb.exbegin(stb.synode(), srvect)) {
 
-			ChangeLogs resp = stb.onExhange(ctb.synode(), ctb.nyquvect, req);
+			SyntityMeta sphm = new T_PhotoMeta(stb.getSysConnId());
+			ChangeLogs resp = stb.onExhange(ctb.synode(), ctb.nyquvect, req, sphm, phEntCreater);
 
 			resp = ctb.ackExchange(resp, stb.synode());
 			
 			// network: ack lost
-			if (loop == 0)
-				; // TODO insert new records at source
-			else  // (loop > 0)
-				stb.onAck(resp);
-			
-			if (loop > 0) {
-			}
+//			if (loop == 0)
+//				; // TODO insert new records at source
+//			else  // (loop > 0)
+//				stb.onAck(resp);
+//			
+//			if (loop > 0) {
+//			}
+			stb.onAck(resp);
 
 			loop++;
-			req = stb.diffrom(stb.synode());
+			req = stb.diffrom(stb.synode(), sphm, phEntCreater);
 		}
 	}
 	
@@ -934,16 +941,18 @@ public class DBSyntextTest2 {
 				.whereEq(chm.uids, synoder + chm.UIDsep + eid)
 				.rs(trb.instancontxt(connId(), robot()))
 				.rs(0);
-
-			if (!chg.next())
-				fail("Some records are supposed to be here.");
+			
+			if (!chg.next() && count > 0)
+				fail("Some change logs are missing...");
 
 			assertEquals(count, chg.getRowCount());
-			assertEquals(crud, chg.getString(chm.crud));
-			assertEquals(phm.tbl, chg.getString(chm.entbl));
-			assertEquals(robot().deviceId(), chg.getString(chm.synoder));
-			
-			return chg.getLong(chm.nyquence);
+			if (count > 0) {
+				assertEquals(crud, chg.getString(chm.crud));
+				assertEquals(phm.tbl, chg.getString(chm.entbl));
+				assertEquals(robot().deviceId(), chg.getString(chm.synoder));
+				return chg.getLong(chm.nyquence);
+			}
+			return 0;
 		}
 
 		/**

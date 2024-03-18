@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.module.rs.ChangeLogs;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
@@ -756,7 +757,7 @@ public class DBSyntextTest {
 						stb.synode(), stb.n0(), req, c[dst].robot(), committings);
 				if (loop == 0)
 					; // TODO insert new records at source
-				maxn = Nyquence.max(resp.maxn, maxn);
+				maxn = Nyquence.max(resp.nyquvect.get(dtb.synode()), maxn);
 				resp = stb.ackExchange(resp, dtb.synode());
 				
 				// network: ack lost
