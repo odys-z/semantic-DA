@@ -135,6 +135,8 @@ public class DBSyntextTest2 {
 			DATranscxt.key("user-pswd", rootkey);
 	}
 
+	static T_PhotoMeta phm;
+
 	static ObjCreator<T_Photo> phEntCreater;
 
 	@BeforeAll
@@ -213,10 +215,11 @@ public class DBSyntextTest2 {
 			if (s != 3)
 				c[s].trb.incNyquence();
 
-			c[s].trb.registerEntity(c[s].phm);
+			c[s].trb.registerEntity(conn, c[s].phm);
 		}
 
-		phEntCreater = (rs) -> { return new T_Photo(rs); };
+		phm = new T_PhotoMeta(conns[0]); // all entity table is the same in this test
+		phEntCreater = (rs) -> { return new T_Photo(rs, phm); };
 
 		assertEquals("syn.00", c[0].connId());
 	}
@@ -750,7 +753,7 @@ public class DBSyntextTest2 {
 
 		// clean local.nyquvect[remote] <= remote.n0 && local.chg[sub-i].n < remote.nyquvect[sub-i]
 		ctb.clean();
-		ChangeLogs req = ctb.diffrom(stb.synode(), new T_PhotoMeta(ctb.getSysConnId()), phEntCreater);
+		ChangeLogs req = ctb.diffrom(stb.synode(), new T_PhotoMeta(ctb.getSysConnId()).replace(), phEntCreater);
 
 		int loop = 0;
 		while (req != null && req.challenges() > 0) {

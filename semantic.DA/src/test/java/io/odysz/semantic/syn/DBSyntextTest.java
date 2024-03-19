@@ -210,7 +210,7 @@ public class DBSyntextTest {
 
 			c[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s]).loadNyquvect0(conn));
 
-			c[s].trb.registerEntity(c[s].phm);
+			c[s].trb.registerEntity(conn, c[s].phm);
 		}
 
 		assertEquals("syn.00", c[0].connId());

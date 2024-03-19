@@ -126,15 +126,18 @@ public class ChangeLogs extends Anson {
 		dirty = false;
 	}
 
-	public HashMap<String, HashMap<String, ? extends SynEntity>> entities;
-	public HashMap<String, Nyquence> nyquvect;
+	// public HashMap<String, HashMap<String, ? extends SynEntity>> entities;
+	HashMap<String, AnResultset> entities;
+	HashMap<String, Nyquence> nyquvect;
 
 	public ChangeLogs nyquvect(HashMap<String, Nyquence> nyquvect) {
 		this.nyquvect = nyquvect;
 		return this;
 	}
 
-	public ChangeLogs entities(String tbl, HashMap<String, ? extends SynEntity> entities) {
+	public ChangeLogs entities(String tbl, AnResultset entities) {
+		if (this.entities == null)
+			this.entities = new HashMap<String, AnResultset>();
 		this.entities.put(tbl, entities);
 		return this;
 	}
@@ -146,4 +149,8 @@ public class ChangeLogs extends Anson {
 	public AnResultset answers() {
 		return new AnResultset(changeCols).results(answers);
 	}
+
+//	public SynEntity entity(String ename, String pkv) {
+//		return entities.get(ename).get(pkv);
+//	}
 }

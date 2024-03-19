@@ -5,8 +5,8 @@ import static io.odysz.common.LangExt.isNull;
 import static io.odysz.semantic.syn.Nyquence.max;
 import static io.odysz.semantic.util.DAHelper.loadRecNyquence;
 import static io.odysz.semantic.util.DAHelper.loadRecString;
+import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
-import static io.odysz.transact.sql.parts.condition.Funcall.constr;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -16,7 +16,6 @@ import java.util.List;
 
 import org.xml.sax.SAXException;
 
-import io.odysz.anson.Anson;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.module.rs.AnResultset.ObjCreator;
@@ -353,18 +352,29 @@ public class DBSynsactBuilder extends DATranscxt {
 		List<Statement<?>> stats = new ArrayList<Statement<?>>();
 		for (ChangeLogs log : commitBuff) {
 			AnResultset c = log.answers();
+			String entid = null;
 			while (c.next()) {
 				if (Nyquence.compareNyq(c.getLong(chgm.nyquence), untilN0) > 0)
 					break;
+
 				String change = c.getString(ChangeLogs.ChangeFlag);
 				SyntityMeta entm = getEntityMeta(c.getString(chgm.entbl));
+				SynEntity currentity = log.entity(entm.tbl, entid);
+
 				stats.add(eq(change, CRUD.C)
 					// create an entity, and trigger change log
-					? insert(entm.tbl, synrobot())
-						// .cols(entm.insChallengeEntCols(log.entCols.get(entm.tbl)))
-						.cols(entm.insChallengeEntCols())
-						.values(entm.insertChallengeEnts(log.challenge))
-						.post(insert(chgm.tbl) // TODO implement semantics handler
+					? (entid == null && !eq(currentity.recId, c.getString(chgm.entfk)) ?
+						insert(entm.tbl, synrobot())
+							.cols(entm.entCols())
+							.value(entm.insertChallengeEnt(entid, log.entities, log.entindices))
+							.post(insert(chgm.tbl) // TODO implement semantics handler
+								.nv(chgm.crud, CRUD.C)
+								.nv(chgm.synoder, c.getString(chgm.synoder))
+								.nv(chgm.uids, c.getString(chgm.uids))
+								.post(insert(subm.tbl)
+									.cols(subm.insertCols())
+									.select(subm.subs2change(synm, this, log))))
+						: insert(chgm.tbl)
 							.nv(chgm.crud, CRUD.C)
 							.nv(chgm.synoder, c.getString(chgm.synoder))
 							.nv(chgm.uids, c.getString(chgm.uids))
@@ -389,6 +399,8 @@ public class DBSynsactBuilder extends DATranscxt {
 					: delete(chgm.tbl) // backward change log deletion propagation
 						.whereEq(chgm.synoder, c.getString(chgm.synoder))
 						.whereEq(chgm.uids, c.getString(chgm.uids)));
+
+				entid = c.getString(chgm.entfk);
 			}
 		}
 		Utils.logi("[DBSynsactBuilder.commitUntil()] TODO update entities...");
@@ -406,10 +418,11 @@ public class DBSynsactBuilder extends DATranscxt {
 		return entityRegists.get(entbl);
 	}
 	
-	public DBSynsactBuilder registerEntity(SyntityMeta m) {
+	public DBSynsactBuilder registerEntity(String conn, SyntityMeta m)
+			throws SemanticException, TransException, SQLException {
 		if (entityRegists == null)
 			entityRegists = new HashMap<String, SyntityMeta>();
-		entityRegists.put(m.tbl, m);
+		entityRegists.put(m.tbl, (SyntityMeta) m.clone(Connects.getMeta(conn, m.tbl)));
 		return this;
 	}
 
@@ -519,15 +532,15 @@ public class DBSynsactBuilder extends DATranscxt {
 		while (entbls.next()) {
 			String tbl = entbls.getString(chgm.entbl);
 
-			HashMap<String, ? extends SynEntity> entities = ((AnResultset) select(tbl, "e")
+			AnResultset entities = (AnResultset) select(tbl, "e")
 				.je("e", chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
-				.cols("e.*")
+				.cols(entm.entCols())
 				.where(op.gt, chgm.nyquence, dn.n)
 				.orderby(chgm.nyquence)
 				.orderby(chgm.synoder)
 				.rs(instancontxt(basictx.connId(), synrobot()))
-				.rs(0))
-				.map(entm.pk, lambda);
+				.rs(0);
+				// .map(entm.pk, lambda);
 			
 			diff.entities(tbl, entities);
 		}

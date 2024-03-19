@@ -7,10 +7,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import io.odysz.module.rs.AnResultset;
-import io.odysz.module.rs.ChangeLogs;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.syn.DBSynmantics;
+import io.odysz.semantic.syn.SynEntity;
 import io.odysz.semantics.meta.TableMeta;
+import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -74,48 +75,52 @@ public abstract class SyntityMeta extends TableMeta {
 	/**
 	 * Generate columns for inserting challenging entities.
 	 * @return columns in order of rows' fields, values should be same order for insertion
+	 * @throws SemanticException this instance is not initialized from db ({@link #ftypes} is empty).
 	 */
-	public String[] insChallengeEntCols() {
+	public String[] entCols() throws SemanticException {
 		if (entCols == null)
 			this.entCols = new HashMap<String, Integer>(ftypes.size());
 
-		String[] cols = new String[entCols.size()];
+		if (ftypes == null || ftypes.size() == 0) 
+			throw new SemanticException("This table meta is not initialized with information from DB. Call clone() or replace() first.");
+
+		String[] cols = new String[ftypes.size()];
 		int cx = 0;
 		for (String c : ftypes.keySet()) {
 			this.entCols.put(c, cx);
-			cols[(int) cx - 1] = c;
+			cols[cx] = c;
 			cx++;
 		}
 		return cols;
 	}
 
 	/**
-	 * Filtering for columns to insert into entity table, with columns specified in
-	 * the Insert statement by {@link #insChallengeEntCols()}.
-	 * @param challenge 
-	 * @return values as arguments for calling Insert.values
+	 * Generate data for value clause of the Insert statement,
+	 * using columns for filter out fields of entity table.
+	 * Columns are provided by {@link #entCols()}.
+	 * 
+	 * @return values as arguments for calling Insert.value(), the row for the change log
 	 * @throws SQLException 
+	 * @throws SemanticException 
 	 */
-	public ArrayList<ArrayList<Object[]>> insertChallengeEnts(AnResultset challenge) throws SQLException {
+	public ArrayList<Object[]> insertChallengeEnt(String pk, AnResultset challengents, HashMap<String, Integer> indices)
+			throws SQLException, SemanticException {
 		// TODO optimize Insert to handle this values faster
-		if (entCols == null)
-			insChallengeEntCols();
+		String[] cols = entCols();
 
-		if (challenge != null && challenge.getRowCount() > 0) {
-			ArrayList<ArrayList<Object[]>> vals = new ArrayList<ArrayList<Object[]>>(challenge.getRowCount());
-			challenge.beforeFirst();
-			while (challenge.next()) {
-				Object[][] colrow = new Object[entCols.size()][];
-				for (String c : entCols.keySet()) {
-					colrow[entCols.get(c)] = new Object[] {c, challenge.getObject(c)};
-				}
-				vals.add((ArrayList<Object[]>) Arrays.asList(colrow));
-			}
-			return vals;
+		ArrayList<Object[]> val = new ArrayList<Object[]> (entCols.size());
+
+		// Object[][] colrow = new Object[entCols.size()][];
+
+		ArrayList<Object> row = challengents.getRowAt(indices.get(pk));
+
+		for (int cx = 0; cx < row.size(); cx++) {
+			// colrow[entCols.get(c)] = new Object[] {c, row.get(entCols.get(c))};
+
+			val.add(new Object[] {cols[cx], row.get(cx)});
 		}
-		return null;
+
+		// return new ArrayList<>(Arrays.asList(colrow));
+		return val;
 	}
-
-
-
 }
