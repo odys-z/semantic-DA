@@ -1,4 +1,4 @@
-package io.odysz.module.rs;
+package io.odysz.semantic.syn;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -6,10 +6,9 @@ import java.util.HashMap;
 
 import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.meta.SynChangeMeta;
-import io.odysz.semantic.syn.Nyquence;
-import io.odysz.semantic.syn.SynEntity;
 
 public class ChangeLogs extends Anson {
 
@@ -23,12 +22,12 @@ public class ChangeLogs extends Anson {
 	 * 0: change statement, CRUD.C: insert, CRUD.U: remove-subs, CRUD.D: remove-log),<br>
 	 * 1: change-crud,<br> 2: synoder,<br> 3: uids,<br> 4: nyquence<br> 
 	 */
-	public ArrayList<ArrayList<Object>> answers;
+	ArrayList<ArrayList<Object>> answers;
 
 	/** Entity tables' column names */
 	// public HashMap<String, HashMap<String, Object[]>> entCols;
 
-	public HashMap<String, Object[]> changeCols;
+	HashMap<String, Object[]> changeCols;
 
 	private boolean dirty;
 
@@ -44,7 +43,7 @@ public class ChangeLogs extends Anson {
 	 * @param synode
 	 * @throws SQLException
 	 */
-	public void remove_sub(AnResultset chgs, String synode) throws SQLException {
+	void remove_sub(AnResultset chgs, String synode) throws SQLException {
 		setChangeCols(chgs.colnames());
 		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow()-1);
 		row.add(CRUD.U);
@@ -56,7 +55,12 @@ public class ChangeLogs extends Anson {
 		dirty = true;
 	}
 
-	public void remove(AnResultset chgs) throws SQLException {
+	/**
+	 * @deprecated
+	 * @param chgs
+	 * @throws SQLException
+	 */
+	void remove(AnResultset chgs) throws SQLException {
 		setChangeCols(chgs.colnames());
 		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow()-1);
 		row.add(CRUD.D);
@@ -89,10 +93,6 @@ public class ChangeLogs extends Anson {
 		return new Nyquence((long)c[4]);
 	}
 
-//	protected int getColIndex(String col) {
-//		return (int)columns.get(col.toUpperCase())[0];
-//	}
-
 	/**
 	 * Copy columns from resultset, adding field {@link #ChangeFlag} as last field
 	 * @param answer
@@ -105,7 +105,7 @@ public class ChangeLogs extends Anson {
 	private ChangeLogs setChangeCols(HashMap<String, Object[]> colnames) {
 		this.changeCols = colnames;
 		
-		if (!changeCols.containsKey(ChangeFlag)) {
+		if (!changeCols.containsKey(ChangeFlag.toUpperCase())) {
 			changeCols.put(ChangeFlag.toUpperCase(),
 				new Object[] {Integer.valueOf(changeCols.size() + 1), ChangeFlag});
 		}
@@ -127,7 +127,7 @@ public class ChangeLogs extends Anson {
 	}
 
 	// public HashMap<String, HashMap<String, ? extends SynEntity>> entities;
-	HashMap<String, AnResultset> entities;
+	public HashMap<String, AnResultset> entities;
 	HashMap<String, Nyquence> nyquvect;
 
 	public ChangeLogs nyquvect(HashMap<String, Nyquence> nyquvect) {
@@ -142,6 +142,7 @@ public class ChangeLogs extends Anson {
 		return this;
 	}
 
+	/** Get challenge's row count */
 	public int challenges() {
 		return challenge == null ? 0 : challenge.getRowCount();
 	}
@@ -149,8 +150,4 @@ public class ChangeLogs extends Anson {
 	public AnResultset answers() {
 		return new AnResultset(changeCols).results(answers);
 	}
-
-//	public SynEntity entity(String ename, String pkv) {
-//		return entities.get(ename).get(pkv);
-//	}
 }

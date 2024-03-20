@@ -32,7 +32,6 @@ import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.module.rs.AnResultset.ObjCreator;
-import io.odysz.module.rs.ChangeLogs;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
@@ -137,7 +136,7 @@ public class DBSyntextTest2 {
 
 	static T_PhotoMeta phm;
 
-	static ObjCreator<T_Photo> phEntCreater;
+	// static ObjCreator<T_Photo> phEntCreater;
 
 	@BeforeAll
 	public static void testInit() throws Exception {
@@ -219,7 +218,7 @@ public class DBSyntextTest2 {
 		}
 
 		phm = new T_PhotoMeta(conns[0]); // all entity table is the same in this test
-		phEntCreater = (rs) -> { return new T_Photo(rs, phm); };
+		// phEntCreater = (rs) -> { return new T_Photo(rs, phm); };
 
 		assertEquals("syn.00", c[0].connId());
 	}
@@ -349,18 +348,19 @@ public class DBSyntextTest2 {
 
 		// 2. X <=> Y
 		exchange(X, Y);
-		exchange(Y, X);
-		c[Y].change(2, C, A_0, c[Y].phm);
-		c[Y].subs(2, A_0, -1, -1, Z, -1);
+		c[Y].change(1, C, B_0, c[Y].phm);
+		c[Y].subs(1, B_0, -1, -1, Z, -1);
 		// B.a = A.a
 		long Aa = c[X].trb.n0().n;
-		assertEquals(Aa, c[Y].trb.nyquvect.get(c[X].trb.synode()).n);
+		assertEquals(Aa, c[Y].trb.nyquvect.get(c[X].trb.synode()).n + 1);
 
-		c[X].change(2, C, B_0, c[X].phm);
-		c[X].subs(2, B_0, -1, -1, Z, -1);
+		exchange(Y, X);
+		c[X].change(1, C, A_0, c[X].phm);
+		c[X].subs(1, A_0, -1, -1, Z, -1);
+
 		// A.b = B.b
 		long Bb = c[Y].trb.n0().n;
-		assertEquals(Bb, c[X].trb.nyquvect.get(c[Y].trb.synode()).n);
+		assertEquals(Bb, c[X].trb.nyquvect.get(c[Y].trb.synode()).n + 1);
 	}
 
 	/**
@@ -753,14 +753,14 @@ public class DBSyntextTest2 {
 
 		// clean local.nyquvect[remote] <= remote.n0 && local.chg[sub-i].n < remote.nyquvect[sub-i]
 		ctb.clean();
-		ChangeLogs req = ctb.diffrom(stb.synode(), new T_PhotoMeta(ctb.getSysConnId()).replace(), phEntCreater);
+		ChangeLogs req = ctb.diffrom(stb.synode(), new T_PhotoMeta(ctb.basictx().connId()).replace());
 
 		int loop = 0;
 		while (req != null && req.challenges() > 0) {
 			// && ctb.exbegin(stb.synode(), srvect)) {
 
-			SyntityMeta sphm = new T_PhotoMeta(stb.getSysConnId());
-			ChangeLogs resp = stb.onExhange(ctb.synode(), ctb.nyquvect, req, sphm, phEntCreater);
+			SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId()).replace();
+			ChangeLogs resp = stb.onExhange(ctb.synode(), ctb.nyquvect, req, sphm);
 
 			resp = ctb.ackExchange(resp, stb.synode());
 			
@@ -775,7 +775,7 @@ public class DBSyntextTest2 {
 			stb.onAck(resp);
 
 			loop++;
-			req = stb.diffrom(stb.synode(), sphm, phEntCreater);
+			req = stb.diffrom(stb.synode(), sphm);
 		}
 	}
 	

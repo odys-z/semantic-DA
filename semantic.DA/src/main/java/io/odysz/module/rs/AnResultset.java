@@ -90,6 +90,11 @@ for (String coln : colnames.keySet())
 
 	private HashMap<Class<?>,String> stringFormats;
 
+	/** row indices, start at 0 */
+	private HashMap<String, Integer> indices0;
+	public HashMap<String, Integer> indices0() { return indices0; }
+	public int indices0(String k) { return indices0 == null ? -1 : indices0.get(k); }
+
 	/** for deserializing */
 	public AnResultset() { }
 
@@ -178,24 +183,6 @@ for (String coln : colnames.keySet())
 			rowCnt = results.size();
 		}
 	}
-
-//	public AnResultset(HashMap<String, Object[]> columns, ArrayList<ArrayList<Object>> rows) {
-//		results = new ArrayList<ArrayList<Object>>();
-//		colCnt = colnames.size();
-//		this.colnames = new HashMap<String, Object[]>(colCnt);
-//		for (String coln : colnames.keySet()) {
-//			this.colnames.put(coln.toUpperCase(), new Object[] {colnames.get(coln), coln});
-//		}
-//		rowIdx = 0;
-//		rowCnt = 0;
-//		
-//		if (rows != null && rows[0] != null) {
-//			results = rows[0];
-//			rowIdx = 0;
-//			rowCnt = results.size();
-//		}
-//	}
-
 
 	/**Construct an empty set, used for appending rows.
 	 * Cols are deep copied.
@@ -1112,5 +1099,20 @@ for (String coln : colnames.keySet())
 	public boolean hasnext() {
 		return (rs != null || results != null) && rowIdx < rowCnt;
 		
+	}
+
+	/**
+	 * Generate row indices, start at 0.
+	 * FIXME move this method to Query and be called before rs construction.
+	 * @param pk
+	 * @return this
+	 */
+	public AnResultset index0(String pk) {
+		if (indices0 == null)
+			indices0 = new HashMap<String, Integer>();
+		for (int i = 0; i < results.size(); i++) {
+			indices0.put((String) results.get(i).get(getColumex(pk)-1), i);
+		}
+		return this;
 	}
 }

@@ -3,11 +3,12 @@ package io.odysz.semantic.meta;
 import static io.odysz.common.LangExt.len;
 import static io.odysz.common.Utils.loadTxt;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Set;
 
 import io.odysz.module.rs.AnResultset;
-import io.odysz.module.rs.ChangeLogs;
+import io.odysz.semantic.syn.ChangeLogs;
 import io.odysz.semantic.syn.DBSynsactBuilder;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.sql.Query;
@@ -25,6 +26,7 @@ public class SynSubsMeta extends TableMeta {
 	public final String entbl;
 	public final String uids;
 	public final String synodee;
+	private String[] subcols;
 
 	static {
 	}
@@ -58,8 +60,23 @@ public class SynSubsMeta extends TableMeta {
 		return v;
 	}
 
+	/**
+	 * @return [org, entbl, synodee, uids]
+	 */
 	public String[] insertCols() {
-		return new String[] { org, entbl, synodee, uids };
+		if (this.subcols == null)
+			this.subcols = new String[] { org, entbl, synodee, uids };
+		return subcols;
+	}
+
+	public ArrayList<Object[]> insertSubVal(AnResultset chlogs) throws SQLException {
+		String[] cols = insertCols();
+		ArrayList<Object[]> val = new ArrayList<Object[]> (cols.length);
+
+		for (int cx = 0; cx < cols.length; cx++) {
+			val.add(new Object[] {cols[cx], chlogs.getString(cols[cx])});
+		}
+		return val;
 	}
 
 	/**
@@ -68,11 +85,11 @@ public class SynSubsMeta extends TableMeta {
 	 * @param tb
 	 * @param log
 	 * @return select clause
-	 */
 	public Query subs2change(SynodeMeta synm, DBSynsactBuilder tb, ChangeLogs log) {
 		return tb
 			.select(synm.tbl, "sn")
 			.whereEq("", "");
 	}
+	 */
 
 }

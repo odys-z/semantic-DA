@@ -1,15 +1,15 @@
 package io.odysz.semantic.meta;
 
+import static io.odysz.common.LangExt.isNull;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.syn.DBSynmantics;
-import io.odysz.semantic.syn.SynEntity;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
@@ -55,7 +55,7 @@ public abstract class SyntityMeta extends TableMeta {
 
 	/**
 	 * Explicitly call this after this meta with semantics is created,
-	 * to replace auto found meta from database.
+	 * to replace auto found meta from database, which is managed by {@link Connects}.
 	 * 
 	 * @return this
 	 * @throws TransException
@@ -66,6 +66,8 @@ public abstract class SyntityMeta extends TableMeta {
 		TableMeta mdb = Connects.getMeta(conn, tbl);
 		if (!(mdb instanceof SyntityMeta))
 			DBSynmantics.replaceMeta(tbl, this, conn);
+		if (isNull(this.ftypes) && mdb.ftypes() != null)
+			this.ftypes = mdb.ftypes();
 		return (T) this;
 	}
 	
@@ -102,25 +104,19 @@ public abstract class SyntityMeta extends TableMeta {
 	 * @return values as arguments for calling Insert.value(), the row for the change log
 	 * @throws SQLException 
 	 * @throws SemanticException 
+	 * @since 1.4.40
+	 * FIXME extend Insert statement API to handle this data structure
 	 */
-	public ArrayList<Object[]> insertChallengeEnt(String pk, AnResultset challengents, HashMap<String, Integer> indices)
+	public ArrayList<Object[]> insertChallengeEnt(String pk, AnResultset challengents)
 			throws SQLException, SemanticException {
 		// TODO optimize Insert to handle this values faster
 		String[] cols = entCols();
-
 		ArrayList<Object[]> val = new ArrayList<Object[]> (entCols.size());
-
-		// Object[][] colrow = new Object[entCols.size()][];
-
-		ArrayList<Object> row = challengents.getRowAt(indices.get(pk));
+		ArrayList<Object> row = challengents.getRowAt(challengents.indices0(pk));
 
 		for (int cx = 0; cx < row.size(); cx++) {
-			// colrow[entCols.get(c)] = new Object[] {c, row.get(entCols.get(c))};
-
 			val.add(new Object[] {cols[cx], row.get(cx)});
 		}
-
-		// return new ArrayList<>(Arrays.asList(colrow));
 		return val;
 	}
 }
