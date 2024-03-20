@@ -6,7 +6,11 @@ import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
 import static io.odysz.semantic.util.Assert.assertIn;
-import static io.odysz.transact.sql.parts.condition.Funcall.*;
+import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
+import static io.odysz.transact.sql.parts.condition.Funcall.compound;
+import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
+import static io.odysz.transact.sql.parts.condition.Funcall.count;
+import static io.odysz.transact.sql.parts.condition.Funcall.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -18,12 +22,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.common.Configs;
@@ -38,10 +40,8 @@ import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
-import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Logic.op;
-import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
@@ -49,56 +49,51 @@ import io.odysz.transact.x.TransException;
  * <pre>
  * 1. Synodes initialized with ++n0.
  * 
- *   A B C D
- * a 1 0 0 0
- * b 0 1 0 0
- * c 0 0 1 0
- * d 0 0 0 1
+ *   a  b c  d
+ * A x0
+ * B   y0
+ * C      z
+ * D         w
  * 
  * --------------------------------------------------------
  * 2. A vs. B
- * A[s=A, A.b ≤ n] ⇨ B, where n ∈ {1}
- * A ⇦ B[s=B, B.a ≤ n], where n ∈ {1}
+ * A[s=A, A.b ≤ n] ⇨ B, where n ∈ {x0}
+ * A ⇦ B[s=B, B.a ≤ n], where n ∈ {y0}
  * A.b = B.n0, B.a = A.n0
  * A.n0++, B.n0++
  * 
- *   A B C D
- * a 2 1 0 0
- * b 1 2 0 0
- * c 0 0 1 0
- * d 0 0 0 1
+ *   a  b  c  d
+ * A x1 y0
+ * B x0 y1
+ * C       z  
+ * D          w
  * 
  * --------------------------------------------------------
  * 3. A vs. B
  * A[s=A, A.b ≤ n] ⇨ B
- * failed response: A ⇦ B[s=B, B.a ≤ n]
- * B roll back pending operations (buffered pending commitment), but A committed.
+ * A handled B's response, buf B failed of getting response of A, A ⇦ B[s=B, B.a ≤ y1]
+ * B roll back pending operations (buffered pending commitments), but A committed.
  * ++A.n0, A.b = B.n0
  * 
- *   A B C D
- * a 3 2 0 0
- * b 1 2 0 0
- * c 0 0 1 0
- * d 0 0 0 1
+ *   a  b   c   d
+ * A x3 y1			A can update A.a while communicating with C/D
+ * B x0 y2 != x3	B can update B.b while communicating with C/D
+ * C        z 
+ * D            w
  * 
  * --------------------------------------------------------
  * 4. A vs. B
- * A[s=A, A.b ≤ n] ⇨ B, where n ∈ {2=A.b, 3=A.a}
- * if B found n=2 ≥ B.a, commit buffered commitments up to n=2
- * if B found n=1 &lt; B.a, discard buffered commitments up to n=2
- * B.a = 2
- * B.b = max(++B.b, ∀n)
+ * On initiation, B found buffered commitments whit n <= A.b, commit first
  * 
- *   A B C D
- * a 3 2 0 0
- * b 2 3 0 0
- * c 0 0 1 0
- * d 0 0 0 1
+ *   a  b   c   d
+ * A x3 y1
+ * B x0 y3           y3 = x3
+ * C        z 
+ * D            w
  * 
  * </pre>
  * @author Ody
  */
-@SuppressWarnings("unused")
 public class DBSyntextTest {
 	public static final String[] conns;
 	public static final String[] testers;
@@ -137,6 +132,10 @@ public class DBSyntextTest {
 			String rootkey = System.getProperty("rootkey");
 			DATranscxt.key("user-pswd", rootkey);
 	}
+
+	static T_PhotoMeta phm;
+
+	// static ObjCreator<T_Photo> phEntCreater;
 
 	@BeforeAll
 	public static void testInit() throws Exception {
@@ -178,7 +177,7 @@ public class DBSyntextTest {
 
 		for (int s = 0; s < 4; s++) {
 			String conn = conns[s];
-			String tester = testers[s];
+			// String tester = testers[s];
 			
 			snm = new SynodeMeta(conn);
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", snm.tbl));
@@ -200,17 +199,25 @@ public class DBSyntextTest {
 
 			ArrayList<String> sqls = new ArrayList<String>();
 			sqls.addAll(Arrays.asList(Utils.loadTxt("../oz_autoseq.sql").split(";-- --\n")));
+			sqls.add(String.format("update oz_autoseq set seq = %s where sid = 'h_photos.pid'", (s+1) * 64));
+
 			sqls.add(String.format("delete from %s", snm.tbl));
 			sqls.add(Utils.loadTxt("syn_nodes.sql"));
 			sqls.add(String.format("delete from %s", phm.tbl));
 			// sqls.add(String.format("delete from %s", usm.tbl));
 			// sqls.add(Utils.loadTxt("a_users.sql"));
+
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
 			c[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s]).loadNyquvect0(conn));
+			if (s != 3)
+				c[s].trb.incNyquence();
 
 			c[s].trb.registerEntity(conn, c[s].phm);
 		}
+
+		phm = new T_PhotoMeta(conns[0]); // all entity table is the same in this test
+		// phEntCreater = (rs) -> { return new T_Photo(rs, phm); };
 
 		assertEquals("syn.00", c[0].connId());
 	}
@@ -218,10 +225,11 @@ public class DBSyntextTest {
 	/**
 	 * <pre>
 	 *  ++A.a, ++B.b
-	 *    a b c
-	 *  A 1 0 0
-	 *  B 0 1 0
-	 *  C 0 0 0
+	 *     a  b  c
+	 *  A +1     
+	 *  B    +1   
+	 *  C       +1
+	 *  
 	 * 1.
 	 * A                     | B
 	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
@@ -339,17 +347,19 @@ public class DBSyntextTest {
 
 		// 2. X <=> Y
 		exchange(X, Y);
-		c[Y].change(2, C, A_0, c[Y].phm);
-		c[Y].subs(2, A_0, -1, -1, Z, -1);
+		c[Y].change(1, C, B_0, c[Y].phm);
+		c[Y].subs(1, B_0, -1, -1, Z, -1);
 		// B.a = A.a
 		long Aa = c[X].trb.n0().n;
-		assertEquals(Aa, c[Y].trb.nyquvect.get(c[X].trb.synode()).n);
+		assertEquals(Aa, c[Y].trb.nyquvect.get(c[X].trb.synode()).n + 1);
 
-		c[X].change(2, C, B_0, c[X].phm);
-		c[X].subs(2, B_0, -1, -1, Z, -1);
+		exchange(Y, X);
+		c[X].change(1, C, A_0, c[X].phm);
+		c[X].subs(1, A_0, -1, -1, Z, -1);
+
 		// A.b = B.b
 		long Bb = c[Y].trb.n0().n;
-		assertEquals(Bb, c[X].trb.nyquvect.get(c[Y].trb.synode()).n);
+		assertEquals(Bb, c[X].trb.nyquvect.get(c[Y].trb.synode()).n + 1);
 	}
 
 	/**
@@ -659,24 +669,25 @@ public class DBSyntextTest {
 	 * A = B
 	 * A                      | B                      | C
 	 * crud, s, pid, n,  sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
-	 *  D,   A, A:0, x,  [ ]  |                        |  
+	 *  D,   A, A:0, x,  [ ]  |                        |
 	 *                   [C]x |                        |
 	 *  I,   A, B:0, x0, [C]x |                        |
 	 *  U,   A, C:0, x0, [C]x |                        |
 	 *  
-	 * A cleaning for chg.n <= B.i and chg.sub = i and chg.n[sub=i] < B.i
-	 * - B:0.n=x0 = B.a, A.c < B.c=z0 because A can't have A.c later than B.c,
-	 *   so override A with B for subscript C, i.e. delete B:0[c], (s=A, n=x0),
-	 * - C:0.n=x0 = B.a, C:0.n < B.c, override A with B for subscript C, i.e. delete C:0(s=A, n=3)
+	 * A cleaning for chg.n ≤ B.i and chg.sub = i and chg.n[sub=i] < B.i
+	 * - B:0[C].n=x0 = B.a, A.c < B.c=z0 because A can't have A.c later than or equals B.c,
+	 *   so override A with B for subscribe C, i.e. delete B:0[c], (s=A, n=x0),
+	 * - C:0[C].n=x0 = B.a, A.c < B.c=z0,
+	 *   override A with B for subscribe C, i.e. delete C:0(s=A, n=x0)
 	 *  
 	 *  NOTE
 	 *  B:0.n[sub=C] always less than, not equal to, B.c in a deletion propagation,
 	 *  because B know about C later than A.
 	 *  
 	 *    a   b   c    d
-	 *  A x3  y2            x3 = y3
+	 *  A x3  y2  z0        x3 = y3
 	 *  B x1  y3  z0
-	 *  C     y1  z2    
+	 *  C x0  y1  z2    
 	 *  D             w0
 	 * </pre>
 	 * @throws Exception
@@ -727,75 +738,46 @@ public class DBSyntextTest {
 	}
 	
 	/**
-	 * X, Y exchange/synchronize change logs.
+	 * Go through logs' exchange, where client initiate the process.
 	 * 
-	 * @param dst hub
-	 * @param src client
+	 * @param srv hub
+	 * @param cli client
 	 * @throws SQLException 
 	 * @throws TransException 
 	 * @throws IOException 
 	 */
-	void exchange(int dst, int src) throws TransException, SQLException, IOException {
-		DBSynsactBuilder stb = c[src].trb;
-		DBSynsactBuilder dtb = c[dst].trb;
+	void exchange(int srv, int cli) throws TransException, SQLException, IOException {
+		DBSynsactBuilder ctb = c[cli].trb;
+		DBSynsactBuilder stb = c[srv].trb;
 
-		String sn = stb.synode();
-		String dn = dtb.synode();
+		// clean local.nyquvect[remote] <= remote.n0 && local.chg[sub-i].n < remote.nyquvect[sub-i]
+		ctb.clean();
+		ChangeLogs req = ctb.diffrom(stb.synode(), new T_PhotoMeta(ctb.basictx().connId()).replace());
 
-		int loop = 0;
-		Nyquence maxn = null;
-		while (shouldExchange(src, stb.nyquvect.get(dtb.synode()), stb.synode(), stb.n0())) {
+		// int loop = 0;
+		while (req != null && req.challenges() > 0) {
+			// && ctb.exbegin(stb.synode(), srvect)) {
 
-			AnResultset req = stb.iniExchange(dn, c[src].connId(), c[src].robot());
+			SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId()).replace();
+			ChangeLogs resp = stb.onExhange(ctb.synode(), ctb.nyquvect, req, sphm);
 
-			if (req.hasnext()) {
-				if (maxn == null)
-					maxn = new Nyquence(req.getLongAt(chm.nyquence, 0));
-				List<ChangeLogs> committings = new ArrayList<ChangeLogs>();
-				ChangeLogs resp = dtb.mergeChange(
-						stb.synode(), stb.n0(), req, c[dst].robot(), committings);
-				if (loop == 0)
-					; // TODO insert new records at source
-				maxn = Nyquence.max(resp.nyquvect.get(dtb.synode()), maxn);
-				resp = stb.ackExchange(resp, dtb.synode());
-				
-				// network: ack lost
-				if (loop > 0)
-					dtb.onAck(resp);
-				
-				if (loop > 0) {
-				}
-			}
-			loop++;
-		}
-		if (maxn != null) {
-			Nyquence n = stb.incN0(maxn); // .n0.inc(maxn);
-			dtb.incN0(n);
+			resp = ctb.ackExchange(resp, stb.synode());
+			
+			// network: ack lost
+//			if (loop == 0)
+//				; // TODO insert new records at source
+//			else  // (loop > 0)
+//				stb.onAck(resp);
+//			
+//			if (loop > 0) {
+//			}
+			stb.onAck(resp);
+
+			// loop++;
+			req = stb.diffrom(stb.synode(), sphm);
 		}
 	}
 	
-	/**
-	 * There are change logs such that chg.n &ge; n0.
-	 * @param src
-	 * @param dn
-	 * @param synoder for the target node
-	 * @return count(chg.n > n0) > 0
-	 * @throws SQLException
-	 * @throws TransException
-	 */
-	boolean shouldExchange(int src, Nyquence dn, String synoder, Nyquence sn)
-			throws SQLException, TransException {
-		AnResultset chs = ((AnResultset) c[src].trb.select(chm.tbl, "ch")
-				.col(String.format("count(%s)", chm.nyquence), "cnt")
-				.whereEq(chm.synoder, synoder)
-				.where(op.ge, chm.nyquence, dn.n)
-				.where(op.le, chm.nyquence, sn.n)
-				.rs(c[src].trb.instancontxt(c[src].connId(), c[src].robot()))
-				.rs(0)).nxt();
-		
-		return chs.getInt("cnt") > 0;	
-	}
-
 	void updatePhoto(int s, String pid) throws TransException, SQLException {
 		SyntityMeta entm = c[s].phm;
 		String conn = conns[s];
@@ -961,16 +943,18 @@ public class DBSyntextTest {
 				.whereEq(chm.uids, synoder + chm.UIDsep + eid)
 				.rs(trb.instancontxt(connId(), robot()))
 				.rs(0);
-
-			if (!chg.next())
-				fail("Some records are supposed to be here.");
+			
+			if (!chg.next() && count > 0)
+				fail("Some change logs are missing...");
 
 			assertEquals(count, chg.getRowCount());
-			assertEquals(crud, chg.getString(chm.crud));
-			assertEquals(phm.tbl, chg.getString(chm.entbl));
-			assertEquals(robot().deviceId(), chg.getString(chm.synoder));
-			
-			return chg.getLong(chm.nyquence);
+			if (count > 0) {
+				assertEquals(crud, chg.getString(chm.crud));
+				assertEquals(phm.tbl, chg.getString(chm.entbl));
+				assertEquals(robot().deviceId(), chg.getString(chm.synoder));
+				return chg.getLong(chm.nyquence);
+			}
+			return 0;
 		}
 
 		/**

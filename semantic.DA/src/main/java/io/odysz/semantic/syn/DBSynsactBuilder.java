@@ -1,8 +1,6 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
-import static io.odysz.common.LangExt.isNull;
-import static io.odysz.semantic.syn.Nyquence.max;
 import static io.odysz.semantic.util.DAHelper.loadRecNyquence;
 import static io.odysz.semantic.util.DAHelper.loadRecString;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
@@ -225,7 +223,6 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @return change logs to reply
 	 * @throws SQLException 
 	 * @throws TransException 
-	 */
 	ChangeLogs mergeChange(String srcnode, Nyquence srcn0, AnResultset srchgs,
 			IUser robot, List<ChangeLogs> localbuf) throws TransException, SQLException {
 		
@@ -301,6 +298,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		// return remolog.maxn(maxn);
 		return remolog;
 	}
+	 */
 
 	/**
 	 * Compare source and destination record, using both current row.
@@ -495,20 +493,6 @@ public class DBSynsactBuilder extends DATranscxt {
 		// delete local changes where change.n <= rv[remote] && change.n < rv[change.sub]
 		commitbuf.clear();
 	}
-
-	/** @deprecated not used
-	public boolean exbegin(String synodee, HashMap<String, Nyquence> rv) throws SQLException, TransException {
-		
-		// select n in range (src.b, src.a = x]
-		AnResultset chgs = ((AnResultset) select(chgm.tbl, "ch")
-				.col(count(chgm.nyquence), "cnt")
-				.where(op.gt, chgm.nyquence, nyquvect.get(synodee).n)
-				.where(op.le, chgm.nyquence, n0().n) // not needed?
-				.rs(instancontxt(basictx.connId(), synrobot()))
-				.rs(0)).nxt();
-
-		return chgs.getInt("cnt") > 0;	
-	} */
 
 	/**
 	 * Find if there are change logs such that chg.n &ge; remote n, to be exchanged.

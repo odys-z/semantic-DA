@@ -29,6 +29,7 @@ public class ChangeLogs extends Anson {
 
 	HashMap<String, Object[]> changeCols;
 
+	@SuppressWarnings("unused")
 	private boolean dirty;
 
 	public ChangeLogs(SynChangeMeta changemeta) {
@@ -43,27 +44,10 @@ public class ChangeLogs extends Anson {
 	 * @param synode
 	 * @throws SQLException
 	 */
-	void remove_sub(AnResultset chgs, String synode) throws SQLException {
+	public void remove_sub(AnResultset chgs, String synode) throws SQLException {
 		setChangeCols(chgs.colnames());
 		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow()-1);
 		row.add(CRUD.U);
-
-		if (answers == null)
-			answers = new ArrayList<ArrayList<Object>>();
-		answers.add(row);
-
-		dirty = true;
-	}
-
-	/**
-	 * @deprecated
-	 * @param chgs
-	 * @throws SQLException
-	 */
-	void remove(AnResultset chgs) throws SQLException {
-		setChangeCols(chgs.colnames());
-		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow()-1);
-		row.add(CRUD.D);
 
 		if (answers == null)
 			answers = new ArrayList<ArrayList<Object>>();
@@ -102,7 +86,7 @@ public class ChangeLogs extends Anson {
 		return setChangeCols(answer.changeCols);
 	}
 	
-	private ChangeLogs setChangeCols(HashMap<String, Object[]> colnames) {
+	protected ChangeLogs setChangeCols(HashMap<String, Object[]> colnames) {
 		this.changeCols = colnames;
 		
 		if (!changeCols.containsKey(ChangeFlag.toUpperCase())) {
@@ -127,7 +111,7 @@ public class ChangeLogs extends Anson {
 	}
 
 	// public HashMap<String, HashMap<String, ? extends SynEntity>> entities;
-	public HashMap<String, AnResultset> entities;
+	HashMap<String, AnResultset> entities;
 	HashMap<String, Nyquence> nyquvect;
 
 	public ChangeLogs nyquvect(HashMap<String, Nyquence> nyquvect) {
