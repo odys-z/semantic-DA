@@ -2,6 +2,8 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.isNull;
 
+import java.util.HashMap;
+
 public class Nyquence {
 
 	/**
@@ -28,7 +30,12 @@ public class Nyquence {
 	}
 
 	public Nyquence inc(Nyquence... maxn) {
-		return isNull(maxn) ? new Nyquence(++this.n) : inc(maxn[0].n);
+		if (isNull(maxn)) {
+			++this.n;
+			return this;
+		}
+		else
+			return inc(maxn[0].n);
 	}
 
 	Nyquence inc(long maxn) {
@@ -46,11 +53,26 @@ public class Nyquence {
 	}
 
 	public static Nyquence max(Nyquence a, Nyquence b) {
-		return compareNyq(a.n, b.n) < 0 ? b : a;
+		return a == null ? b : b == null ? a : compareNyq(a.n, b.n) < 0 ? b : a;
 	}
 
 	public static int compareNyq(Nyquence a, Nyquence b) {
 		return compareNyq(a.n, b.n);
+	}
+
+	public static Nyquence max(HashMap<String, Nyquence> nv) {
+		Nyquence mx = null;
+		for (Nyquence nyq : nv.values()) {
+			mx = max(mx, nyq);
+		}
+		return mx;
+	}
+
+	public static HashMap<String, Nyquence> clone(HashMap<String, Nyquence> from) {
+		HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(from.size());
+		for (String k : from.keySet())
+			nv.put(k, new Nyquence(from.get(k).n));
+		return nv;
 	}
 
 }

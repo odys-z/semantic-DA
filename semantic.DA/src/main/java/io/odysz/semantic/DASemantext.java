@@ -73,10 +73,11 @@ public class DASemantext implements ISemantext {
 	/**for generating sqlite auto seq */
 	protected static IUser sqliteDumyUser;
 
-	/**Initialize a context for semantics handling.
+	/**
+	 * Initialize a context for semantics handling.
 	 * This class handling semantics comes form path, usually an xml like test/res/semantics.xml.
 	 * @param connId
-	 * @param semanticsMap semantic configs, usally load by {@link io.odysz.semantic.DATranscxt}.
+	 * @param semanticsMap semantic configurations, usually load by {@link io.odysz.semantic.DATranscxt}.
 	 * <p>sample code: </p>
 	 * DATranscxt.initConfigs("inet", rootINF + "/semantics.xml");
 	 * @param usr

@@ -9,6 +9,7 @@ import io.odysz.anson.AnsonField;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantics.x.SemanticException;
 
 public class ChangeLogs extends Anson {
 
@@ -22,36 +23,36 @@ public class ChangeLogs extends Anson {
 	 * 0: change statement, CRUD.C: insert, CRUD.U: remove-subs, CRUD.D: remove-log),<br>
 	 * 1: change-crud,<br> 2: synoder,<br> 3: uids,<br> 4: nyquence<br> 
 	 */
-	ArrayList<ArrayList<Object>> answers;
+	AnResultset answers;
 
 	/** Entity tables' column names */
 	// public HashMap<String, HashMap<String, Object[]>> entCols;
-
-	HashMap<String, Object[]> changeCols;
+	// HashMap<String, Object[]> changeCols;
 
 	@SuppressWarnings("unused")
 	private boolean dirty;
 
 	public ChangeLogs(SynChangeMeta changemeta) {
 		this.chm = changemeta;
-		this.answers = new ArrayList<ArrayList<Object>>();
+		// this.answers = new ArrayList<ArrayList<Object>>();
 		dirty = false;
 	}
 
 	/**
 	 * Add remove command to change log, chgs.
-	 * @param chgs
+	 * @param challenge
 	 * @param synode
 	 * @throws SQLException
 	 */
-	public void remove_sub(AnResultset chgs, String synode) throws SQLException {
-		setChangeCols(chgs.colnames());
-		ArrayList<Object> row = chgs.getRowAt(chgs.currentRow()-1);
-		row.add(CRUD.U);
+	@SuppressWarnings("serial")
+	public void remove_sub(AnResultset challenge, String synode) throws SQLException {
+		if (answers == null) 
+			answers = new AnResultset(checkChangeCol(challenge.getColnames()))
+						.results(new ArrayList<ArrayList<Object>>() {});
 
-		if (answers == null)
-			answers = new ArrayList<ArrayList<Object>>();
-		answers.add(row);
+		ArrayList<Object> row = challenge.getRowAt(challenge.currentRow()-1);
+		row.add(answers.getColumex(ChangeFlag)-1, CRUD.U);
+		answers.append(row);
 
 		dirty = true;
 	}
@@ -61,15 +62,15 @@ public class ChangeLogs extends Anson {
 	 * @param remote
 	 * @throws SQLException
 	 */
+	@SuppressWarnings("serial")
 	public void append(AnResultset remote) throws SQLException {
-		setChangeCols(remote.colnames());
-		ArrayList<Object> row = remote.getRowAt(remote.currentRow()-1);
-		row.add(CRUD.C);
-
 		if (answers == null)
-			answers = new ArrayList<ArrayList<Object>>();
-		answers.add(row);
+			answers = new AnResultset(remote.getColnames())
+						.results(new ArrayList<ArrayList<Object>>() {});
 
+		ArrayList<Object> row = remote.getRowAt(remote.currentRow()-1);
+		row.add(answers.getColumex(ChangeFlag)-1, CRUD.C);
+		answers.append(row);
 		dirty = true;
 	}
 
@@ -78,22 +79,17 @@ public class ChangeLogs extends Anson {
 	}
 
 	/**
-	 * Copy columns from resultset, adding field {@link #ChangeFlag} as last field
+	 * Check and extend column {@link #ChangeFlag}, which is for changing flag of change-log.
+	 * 
 	 * @param answer
 	 * @return this
 	 */
-	public ChangeLogs setChangeCols(ChangeLogs answer) {
-		return setChangeCols(answer.changeCols);
-	}
-	
-	protected ChangeLogs setChangeCols(HashMap<String, Object[]> colnames) {
-		this.changeCols = colnames;
-		
-		if (!changeCols.containsKey(ChangeFlag.toUpperCase())) {
-			changeCols.put(ChangeFlag.toUpperCase(),
-				new Object[] {Integer.valueOf(changeCols.size() + 1), ChangeFlag});
+	public static HashMap<String,Object[]> checkChangeCol(HashMap<String, Object[]> colnames) {
+		if (!colnames.containsKey(ChangeFlag.toUpperCase())) {
+			colnames.put(ChangeFlag.toUpperCase(),
+				new Object[] {Integer.valueOf(colnames.size() + 1), ChangeFlag});
 		}
-		return this;
+		return colnames;
 	}
 
 	public AnResultset challenge;
@@ -115,7 +111,7 @@ public class ChangeLogs extends Anson {
 	HashMap<String, Nyquence> nyquvect;
 
 	public ChangeLogs nyquvect(HashMap<String, Nyquence> nyquvect) {
-		this.nyquvect = nyquvect;
+		this.nyquvect = Nyquence.clone(nyquvect);
 		return this;
 	}
 
@@ -125,6 +121,13 @@ public class ChangeLogs extends Anson {
 		this.entities.put(tbl, entities);
 		return this;
 	}
+	
+	public ChangeLogs entities(HashMap<String, AnResultset> entities) throws SemanticException {
+		if (this.entities != null)
+			throw new SemanticException("There are entities already to be handled.");
+		this.entities = entities;
+		return this;
+	}
 
 	/** Get challenge's row count */
 	public int challenges() {
@@ -132,6 +135,6 @@ public class ChangeLogs extends Anson {
 	}
 
 	public AnResultset answers() {
-		return new AnResultset(changeCols).results(answers);
+		return answers;
 	}
 }

@@ -5,6 +5,7 @@ import static io.odysz.semantic.util.DAHelper.loadRecNyquence;
 import static io.odysz.semantic.util.DAHelper.loadRecString;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
+import static io.odysz.semantic.syn.Nyquence.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -24,6 +25,7 @@ import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
@@ -53,7 +55,6 @@ public class DBSynsactBuilder extends DATranscxt {
 	}
 
 	protected SynodeMeta synm;
-	// protected NyquenceMeta nyqm;
 	protected SynSubsMeta subm;
 	protected SynChangeMeta chgm;
 
@@ -65,6 +66,8 @@ public class DBSynsactBuilder extends DATranscxt {
 	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
 
 	private HashMap<String, SyntityMeta> entityRegists;
+
+	// private HashMap<String, AnResultset> entitybuf;
 
 	public DBSynsactBuilder(String conn, String synodeId)
 			throws SQLException, SAXException, IOException, TransException {
@@ -99,7 +102,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.synm = synm != null ? synm : new SynodeMeta(conn);
 		
-		this.commitbuf = new ChangeLogs(chgm);
+		// this.commitbuf = new ChangeLogs(chgm);
 	}
 	
 	DBSynsactBuilder loadNyquvect0(String conn) throws SQLException, TransException {
@@ -175,132 +178,6 @@ public class DBSynsactBuilder extends DATranscxt {
 	}
 
 	/**
-	 * Collect Change logs.
-	 * Logs are collected across all registered entity tables, in sequence of Nyquence.
-	 * @param target
-	 * @param connId
-	 * @param robot
-	 * @return changes for request to remote node
-	 * @throws SQLException 
-	 * @throws TransException 
-	 */
-	public AnResultset iniExchange(String target, String connId, IUser robot)
-			throws TransException, SQLException {
-		
-		Nyquence dn = this.nyquvect.get(target);
-		return (AnResultset) select(chgm.tbl, "ch")
-			.je("ch", subm.tbl, "sb", chgm.entbl, subm.entbl, chgm.uids, subm.uids)
-			.where(op.ge, chgm.nyquence, dn.n)
-			.orderby(chgm.nyquence, chgm.synoder)
-			.rs(instancontxt(connId, robot))
-			.rs(0);
-	}
-
-	/**
-	 * Client/slave initiate a change logs exchange
-	 * @return change logs
-	 * @throws SQLException 
-	 * @throws TransException 
-	 */
-	public AnResultset toexchange(IUser robot, String destnode)
-			throws TransException, SQLException {
-
-		AnResultset chs = (AnResultset)select(chgm.tbl, "ch")
-				.whereEq(chgm.synoder, destnode)
-				.rs(instancontxt(this.getSysConnId(), robot))
-				.rs(0);
-
-		return chs;
-	}
-
-	/**
-	 * Server/hub handle a change-logs' exchange
-	 * 
-	 * @param srcnode source node id
-	 * @param srcn0 source Nyquence from remote client
-	 * @param srchgs change logs
-	 * @param localbuf [in/out] local commitment buffer 
-	 * @return change logs to reply
-	 * @throws SQLException 
-	 * @throws TransException 
-	ChangeLogs mergeChange(String srcnode, Nyquence srcn0, AnResultset srchgs,
-			IUser robot, List<ChangeLogs> localbuf) throws TransException, SQLException {
-		
-		if (isNull(srchgs)) return null;
-
-		srchgs.beforeFirst();
-		long sn0 = srchgs.getLongAt(chgm.nyquence, srchgs.getRowCount() - 1);
-		
-		AnResultset dchgs = (AnResultset) select(chgm.tbl, "ch")
-				.je("ch", subm.tbl, "sb", chgm.entbl, subm.entbl, chgm.uids, subm.uids)
-				.where(op.ge, chgm.nyquence, nyquvect.get(srcnode).n)
-				.orderby(chgm.nyquence)
-				.orderby(chgm.synoder)
-				.rs(instancontxt(this.basictx.connId(), robot))
-				.rs(0);
-		
-		ChangeLogs localog = new ChangeLogs(chgm);
-		ChangeLogs remolog = new ChangeLogs(chgm);
-		
-		long mysrcn0 = nyquvect.get(srcnode).n;
-
-		// in case unfinished previous synchronizing
-		// i.e. B haven't got last acknowledge from A since buffer is not empty 
-		while (localbuf.size() > 0) {
-			if (Nyquence.compareNyq(srchgs.getLong(chgm.nyquence), mysrcn0) > 0)
-				commitTill(localbuf, srcnode, mysrcn0);
-			// i.e. B has operation haven't committed yet since A failed acknowledge
-			else // if (Nyquence.compareNyq(srchgs.getLong(chgm.nyquence), mysrcn0) < 0)
-				ignoreUntil(localbuf, srcnode, mysrcn0);
-		}
-		srchgs.beforeFirst();
-
-		long maxn = max(mysrcn0, sn0);
-		
-		while(srchgs.next()) {
-			if (compare(srchgs.getLong(chgm.nyquence), mysrcn0) <= -2)
-				remolog.remove(dchgs);
-
-			maxn = max(srchgs.getLong(chgm.nyquence), maxn);
-
-			if (!eq(srchgs.getString(chgm.uids), srchgs.getString(chgm.uids)))
-				throw new SemanticException("Shouldn't be here");
-			else // diff == -2
-				remolog.remove(srchgs);
-
-			srchgs.next();
-		}
-
-		while(dchgs.hasnext()) {
-			maxn = max(dchgs.getLong(chgm.nyquence), maxn);
-
-			remolog.append(dchgs);
-
-			int diff = compare(sn0, dchgs.getLong(chgm.nyquence));
-			if (diff == 0)
-				break;
-			else if (diff < 0)
-				throw new SemanticException("Shouldn't be here");
-			else if (diff == -1)
-				remolog.append(srchgs);
-			else // diff == -2
-				remolog.remove(srchgs);
-
-			localog.append(srchgs);
-			dchgs.next();
-		}
-
-		maxn = max(srcn0.n, maxn);
-
-		// FIXME what happen if local committed and remote lost response?
-		// commit(localog);
-		// localbuf.add(localog.maxn(maxn));
-		// return remolog.maxn(maxn);
-		return remolog;
-	}
-	 */
-
-	/**
 	 * Compare source and destination record, using both current row.
 	 * @param a initiator
 	 * @param b acknowledger
@@ -343,74 +220,166 @@ public class DBSynsactBuilder extends DATranscxt {
 		return commitBuff.size();
 	}
 
-	DBSynsactBuilder commitTill(List<ChangeLogs> commitBuff, String srcnode, long tillN)
+	DBSynsactBuilder commitAnswers(ExchangeContext x, String srcnode, long tillN)
 			throws SQLException, TransException {
 
 		List<Statement<?>> stats = new ArrayList<Statement<?>>();
-		for (ChangeLogs log : commitBuff) {
-			AnResultset c = log.answers();
+		// for (AnResultset c : x.commit) {
+			AnResultset rply = x.answer.beforeFirst();
+			rply.beforeFirst();
 			String entid = null;
-			while (c.next()) {
-				if (Nyquence.compareNyq(c.getLong(chgm.nyquence), tillN) > 0)
+			while (rply.next()) {
+				if (Nyquence.compareNyq(rply.getLong(chgm.nyquence), tillN) > 0)
 					break;
 
-				String change = c.getString(ChangeLogs.ChangeFlag);
-				SyntityMeta entm = getEntityMeta(c.getString(chgm.entbl));
-				// SynEntity currentity = log.entity(entm.tbl, entid);
+				SyntityMeta entm = getEntityMeta(rply.getString(chgm.entbl));
+				String change = rply.getString(ChangeLogs.ChangeFlag);
+				HashMap<String, AnResultset> entbuf = x.commit.entities;
+				
+				// current entity
+				String entid1 = rply.getString(chgm.entfk);
 
+				if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).indices0(entid1) < 0) {
+					Utils.warn("[DBSynsactBuilder commitTill] Fatal error ignored: can't restore entity record answered from target node.\n"
+							+ "entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by answer): %s", entm.tbl, srcnode, synode(), entid1);
+					continue;
+				}
+					
 				stats.add(eq(change, CRUD.C)
 					// create an entity, and trigger change log
-					? !eq(entid, c.getString(chgm.entfk)) ?
-						insert(entm.tbl, synrobot())
+					? !eq(entid, entid1)
+						? insert(entm.tbl, synrobot())
 							.cols(entm.entCols())
-							.value(entm.insertChallengeEnt(entid, log.entities.get(entm.tbl)))
-							.post(insert(chgm.tbl) // TODO implement semantics handler
+							.value(entm.insertChallengeEnt(entid1, entbuf.get(entm.tbl)))
+							.post(insert(chgm.tbl)
 								.nv(chgm.crud, CRUD.C)
-								.nv(chgm.org, c.getString(chgm.org))
-								.nv(chgm.entbl, c.getString(chgm.entbl))
-								.nv(chgm.synoder, c.getString(chgm.synoder))
-								.nv(chgm.uids, c.getString(chgm.uids))
-								.nv(chgm.entfk, c.getString(chgm.entfk))
+								.nv(chgm.org, rply.getString(chgm.org))
+								.nv(chgm.entbl, rply.getString(chgm.entbl))
+								.nv(chgm.synoder, rply.getString(chgm.synoder))
+								.nv(chgm.uids, rply.getString(chgm.uids))
+								.nv(chgm.entfk, entid1)
 								.post(insert(subm.tbl)
 									.cols(subm.insertCols())
-									.value(subm.insertSubVal(c))))
+									.value(subm.insertSubVal(rply))))
 						: insert(subm.tbl)
 							.cols(subm.insertCols())
-							.value(subm.insertSubVal(c))
+							.value(subm.insertSubVal(rply))
 
-					// : eq(change, CRUD.U) ?// remove subscribes
 					// remove subscribers & backward change logs's deletion propagation
 					: delete(subm.tbl, synrobot())
 						.whereEq(subm.entbl, entm.tbl)
-						.whereEq(subm.synodee, c.getString(subm.synodee))
-						.whereEq(subm.uids, c.getString(chgm.uids))
+						.whereEq(subm.synodee, rply.getString(subm.synodee))
+						.whereEq(subm.uids, rply.getString(chgm.uids))
 						.post(delete(chgm.tbl) // delete change log if no subscribers exist
 							.whereEq(chgm.entbl, entm.tbl)
-							.whereEq(chgm.org, c.getString(chgm.org))
-							.whereEq(chgm.synoder, c.getString(chgm.synoder))
-							.whereEq(chgm.uids,    c.getString(chgm.uids))
+							.whereEq(chgm.org, rply.getString(chgm.org))
+							.whereEq(chgm.synoder, rply.getString(chgm.synoder))
+							.whereEq(chgm.uids,    rply.getString(chgm.uids))
 							.whereEq("0", (Query)select(subm.tbl)
 								.col(count(subm.synodee))
-								.whereEq(subm.org, c.getString(chgm.org))
+								.whereEq(subm.org, rply.getString(chgm.org))
 								.whereEq(subm.entbl, entm.tbl)
-								.where(op.ne, subm.synodee, constr(c.getString(subm.synodee)))
-								.whereEq(subm.uids,  c.getString(chgm.uids)))));
-
-					// backward change logs's deletion propagation
-//					: delete(subm.tbl, synrobot())
-//						.whereEq(subm.entbl, entm.tbl)
-//						.whereEq(subm.synodee, c.getString(subm.synodee))
-//						.whereEq(subm.uids, c.getString(chgm.uids))
-//						.post(delete(chgm.tbl)
-//							.whereEq(chgm.entbl, entm.tbl)
-//							.whereEq(chgm.org, c.getString(chgm.org))
-//							.whereEq(chgm.synoder, c.getString(chgm.synoder))
-//							.whereEq(chgm.uids, c.getString(chgm.uids))));
-
-				entid = c.getString(chgm.entfk);
+								.where(op.ne, subm.synodee, constr(rply.getString(subm.synodee)))
+								.whereEq(subm.uids,  rply.getString(chgm.uids)))));
+				entid = entid1;
 			}
+//		}
+		Utils.logi("[DBSynsactBuilder.commitAnswers()] updating change logs without modifying entities...");
+		ArrayList<String> sqls = new ArrayList<String>();
+		for (Statement<?> s : stats)
+			s.commit(sqls, synrobot());
+		Connects.commit(basictx.connId(), synrobot(), sqls);
+		return this;
+	}
+
+	DBSynsactBuilder commitChallenges(ExchangeContext x, String srcnode, long tillN)
+			throws SQLException, TransException {
+
+		List<Statement<?>> stats = new ArrayList<Statement<?>>();
+
+		AnResultset chal = x.commit.challenge.beforeFirst();
+		String entid = null;
+
+		while (chal.next()) {
+			if (Nyquence.compareNyq(chal.getLong(chgm.nyquence), tillN) > 0)
+				break;
+
+			SyntityMeta entm = getEntityMeta(chal.getString(chgm.entbl));
+			String change = chal.getString(chgm.crud);
+
+			// current entity
+			String entid1 = chal.getString(chgm.entfk);
+
+			HashMap<String, AnResultset> entbuf = x.commit.entities;
+			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).indices0(entid1) < 0) {
+				Utils.warn("[DBSynsactBuilder commitChallenges] Fatal error ignored: can't restore entity record answered from target node.\n"
+						+ "entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by challenge): %s", entm.tbl, srcnode, synode(), entid1);
+				continue;
+			}
+			
+			String chorg = chal.getString(chgm.org);
+			String chent = chal.getString(chgm.entbl);
+			String chuids = chal.getString(chgm.uids);
+			String synodr = chal.getString(chgm.synoder);
+			String subsrb = chal.getString(subm.synodee);
+
+			if (!eq(entid, entid1))
+				// next entity
+				stats.add(eq(change, CRUD.C)
+					? insert(entm.tbl, synrobot())
+						.cols(entm.entCols())
+						.value(entm.insertChallengeEnt(entid1, entbuf.get(entm.tbl)))
+						.post(insert(chgm.tbl)
+							.nv(chgm.crud, CRUD.C)
+							.nv(chgm.org, chorg)
+							.nv(chgm.entbl, chent)
+							.nv(chgm.synoder, synodr)
+							.nv(chgm.uids, chuids)
+							.nv(chgm.entfk, entid1)
+							.post(insert(subm.tbl)
+								.cols(subm.insertCols())
+								.value(subm.insertSubVal(chal))))
+
+					: eq(change, CRUD.D)
+					? delete(subm.tbl, synrobot())
+						.whereEq(subm.synodee, subsrb)
+						.whereEq(subm.entbl, chent)
+						.whereEq(subm.org, chorg)
+						.whereEq(subm.uids, chuids)
+						.post(entid == null ? null : delete(chgm.tbl)
+							.whereEq(chgm.entbl, chent)
+							.whereEq(chgm.org, chorg)
+							.whereEq(chgm.synoder, synodr)
+							.whereEq(chgm.uids, chuids)
+							.post(delete(entm.tbl)
+								.whereEq(entm.org(), chorg)
+								.whereEq(entm.synoder, synodr)
+								.whereEq(entm.pk, chent)))
+
+					: eq(change, CRUD.U)
+					? update(entm.tbl, synrobot())
+						.nvs(entm.updateChallengeEnt(entid1, entbuf.get(entm.tbl)))
+						.whereEq(entm.synoder, synodr)
+						.whereEq(entm.org(), chorg)
+						.whereEq(entm.pk, chal.getString(chgm.entfk))
+					: null);
+			
+			else // same entity
+				stats.add(eq(change, CRUD.C)
+					? insert(subm.tbl)
+						.cols(subm.insertCols())
+						.value(subm.insertSubVal(chal))
+					: eq(change, CRUD.D)
+					? delete(subm.tbl, synrobot())
+						.whereEq(subm.synodee, subsrb)
+						.whereEq(subm.entbl, chent)
+						.whereEq(subm.org, chorg)
+						.whereEq(subm.uids, chuids)
+					: null); // eq(change, CRUD.U | R)
+			entid = entid1;
 		}
-		Utils.logi("[DBSynsactBuilder.commitUntil()] TODO update entities...");
+
+		Utils.logi("[DBSynsactBuilder.commitChallenges()] update entities...");
 		ArrayList<String> sqls = new ArrayList<String>();
 		for (Statement<?> s : stats)
 			s.commit(sqls, synrobot());
@@ -434,68 +403,25 @@ public class DBSynsactBuilder extends DATranscxt {
 	}
 
 	/**
-	 * Client node acknowledge destionation's response (from server),
-	 * i.e. check answers up to n = my-n0
-	 * @param answer
-	 * @param srvnode 
-	 * @return acknowledge, answer to the destination node's commitment, and have be committed at source.
-	 * @throws SQLException 
-	 * @throws TransException 
-	 */
-	@SuppressWarnings("serial")
-	public ChangeLogs ackExchange(ChangeLogs answer, String srvnode) throws SQLException, TransException, IOException {
-		ChangeLogs logs = new ChangeLogs(chgm)
-				.setChangeCols(answer)
-				.nyquvect(nyquvect);
-
-		if (answer != null && answer.answers != null && answer.answers.size() > 0) {
-			commitTill(new ArrayList<ChangeLogs>() {{add(answer);}}, srvnode, n0().n);
-		}
-		return logs;
-	}
-
-	/**
-	 * Commit suspended statements as source node confirmed the merges.
-	 * @param resp
-	 * @throws TransException 
-	 * @throws SQLException 
-	 */
-	@SuppressWarnings("serial")
-	public void onAck(ChangeLogs resp) throws SQLException, TransException {
-		ChangeLogs logs = new ChangeLogs(chgm)
-				.nyquvect(nyquvect);
-
-		if (resp != null && Nyquence.compareNyq(resp.nyquvect.get(synode()), nyquvect.get(synode())) <= 0) {
-			commitTill(new ArrayList<ChangeLogs>() {{add(logs);}},
-					this.synode(), nyquvect.get(synode()).n);
-		}
-	}
-
-	/**
 	 * this.n0++, this.n0 = max(n0, maxn)
 	 * @param maxn
 	 * @return n0
+	 * @throws SQLException 
+	 * @throws TransException 
 	 */
-	public Nyquence incN0(long maxn) {
+	public Nyquence incN0(long maxn) throws TransException, SQLException {
+		// FIXME, sync db
 		n0().inc(maxn);
+		DAHelper.updateField(this, basictx.connId(), synm, synode(), String.valueOf(n0().n), synm.nyquence, synrobot());
 		return n0();
 	}
-	public Nyquence incN0(Nyquence n) {
+	public Nyquence incN0(Nyquence n) throws TransException, SQLException {
 		return incN0(n.n);
 	}
 
-	ChangeLogs commitbuf;
 	/**
-	 * Delete local changes where change.n <= rv[local] && change[sub].n < rv[sub].
-	 * Clear statements buffer waiting for ack.
-	 */
-	public void clean() {
-		// delete local changes where change.n <= rv[remote] && change.n < rv[change.sub]
-		commitbuf.clear();
-	}
-
-	/**
-	 * Find if there are change logs such that chg.n &ge; remote n, to be exchanged.
+	 * Find if there are change logs such that chg.n &gt; myvect[remote].n, to be exchanged.
+	 * @param cx 
 	 * @param <T>
 	 * 
 	 * @param target exchange target (server)
@@ -504,7 +430,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public <T extends SynEntity> ChangeLogs diffrom(String target, SyntityMeta entm) throws TransException, SQLException {
+	public <T extends SynEntity> ChangeLogs initExchange(ExchangeContext cx, String target, SyntityMeta entm) throws TransException, SQLException {
 		Nyquence dn = this.nyquvect.get(target);
 		AnResultset challenge = (AnResultset) select(chgm.tbl, "ch")
 			.je("ch", subm.tbl, "sb", chgm.entbl, subm.entbl, chgm.uids, subm.uids) // FIXME line 1:7 mismatched input '<EOF>' expecting '.'
@@ -541,25 +467,95 @@ public class DBSynsactBuilder extends DATranscxt {
 			
 			diff.entities(tbl, entities);
 		}
+		
+		cx.initChallenge(target, diff);
 
 		return diff;
 	}
 	
-	public <T extends SynEntity> ChangeLogs onExhange(String from, HashMap<String, Nyquence> remotv,
+	public <T extends SynEntity> ChangeLogs onExchange(ExchangeContext x, String from, HashMap<String, Nyquence> remotv,
 			ChangeLogs req, SyntityMeta entm) throws SQLException, TransException {
 
-		ChangeLogs resp = diffrom(from, entm);
+		ChangeLogs myanswer = new ChangeLogs(chgm);
 
+		ArrayList<ArrayList<Object>> changes = new ArrayList<ArrayList<Object>>();
 		while (req != null && req.challenge != null && req.challenge.next()) {
 			String subscribe = req.challenge.getString(subm.synodee);
-			if (Nyquence.compareNyq(req.challenge.getLong(chgm.nyquence), nyquvect.get(subscribe).n) < 0)
-				// knowledge about the sub from req is older than this node's knowledge 
-				resp.remove_sub(req.challenge, subscribe);	
-			else if (eq(subscribe, synode())) {
-				resp.remove_sub(req.challenge, synode());	
-				commitbuf.append(req.challenge);
+
+			if (eq(subscribe, synode())) {
+				myanswer.remove_sub(req.challenge, synode());	
+				changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
+			}
+			else {
+				if (Nyquence.compareNyq(req.challenge.getLong(chgm.nyquence), nyquvect.get(subscribe).n) < 0)
+					// knowledge about the sub from req is older than this node's knowledge 
+					myanswer.remove_sub(req.challenge, subscribe);	
+				else
+					changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
 			}
 		}
-		return resp;
+		x.addCommit(req.challenge.colnames(), changes, req.entities);
+		return myanswer.nyquvect(nyquvect);
+	}
+
+	/**
+	 * Client node acknowledge destionation's response (from server),
+	 * i.e. check answers up to n = my-n0
+	 * If there is no more challenges, increase my.n0.
+	 * @param x exchange execution instance 
+	 * @param answer
+	 * @param srvnode 
+	 * @return acknowledge, answer to the destination node's commitment, and have be committed at source.
+	 * @throws SQLException 
+	 * @throws TransException 
+	 */
+	public ChangeLogs ackExchange(ExchangeContext x, ChangeLogs answer, String srvnode)
+			throws SQLException, TransException, IOException {
+		if (answer != null && answer.answers != null && answer.answers.getRowCount() > 0) {
+			x.addAnswer(answer.answers);
+			commitAnswers(x, srvnode, n0().n);
+			incN0(max(answer.nyquvect));
+		}
+
+		return new ChangeLogs(chgm).nyquvect(nyquvect);
+	}
+
+
+	/**
+	 * Commit buffered answer's changes as client node acknowledged the answers with {@code ack}.
+	 * @param x exchange execution's instance
+	 * @param ack answer to previous challenge
+	 * @param target 
+	 * @param entm 
+	 * @throws TransException 
+	 * @throws SQLException 
+	 */
+	public void onAck(ExchangeContext x, ChangeLogs ack, String target, SyntityMeta entm)
+			throws SQLException, TransException {
+		if (ack != null && Nyquence.compareNyq(ack.nyquvect.get(synode()), nyquvect.get(synode())) <= 0) {
+			commitChallenges(x, this.synode(), nyquvect.get(synode()).n);
+		}
+	}
+	
+	public HashMap<String,Nyquence> closexchange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
+			throws TransException, SQLException {
+		x.clear();
+		incN0(nv.get(sn));
+		for (String n : nv.keySet()) {
+			if (eq(n, sn))
+				incN0(nv.get(n));
+			else nyquvect.get(n).n = Nyquence.max(nv.get(n).n, nyquvect.get(n).n);
+		}
+		return nyquvect;
+	}
+	
+	public void onclosechange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
+			throws SemanticException, SQLException {
+		x.clear();
+		for (String n : nv.keySet()) {
+			if (eq(n, sn) && Nyquence.compareNyq(n0(), nv.get(n)) < 0)
+				throw new SemanticException("Remote node has nyquence about me greater than myself's?");
+			else nyquvect.get(n).n = Nyquence.max(nv.get(n).n, nyquvect.get(n).n);
+		}
 	}
 }

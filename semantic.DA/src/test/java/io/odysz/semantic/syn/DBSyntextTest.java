@@ -13,6 +13,7 @@ import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
@@ -135,8 +136,6 @@ public class DBSyntextTest {
 
 	static T_PhotoMeta phm;
 
-	// static ObjCreator<T_Photo> phEntCreater;
-
 	@BeforeAll
 	public static void testInit() throws Exception {
 		// DDL
@@ -220,6 +219,11 @@ public class DBSyntextTest {
 		// phEntCreater = (rs) -> { return new T_Photo(rs, phm); };
 
 		assertEquals("syn.00", c[0].connId());
+	}
+
+	@Test
+	void testChangeLogs() throws Exception {
+		test01InsertBasic();
 	}
 
 	/**
@@ -326,8 +330,16 @@ public class DBSyntextTest {
 	 * @throws SQLException
 	 * @throws IOException 
 	 */
-	@Test
 	void test01InsertBasic() throws TransException, SQLException, IOException {
+
+		HashMap<String, Nyquence> nvx = c[X].trb.nyquvect;
+		long Aa_ = nvx.get(c[X].trb.synode()).n;
+		long Ab_ = nvx.get(c[Y].trb.synode()).n;
+		String x = c[X].trb.synode();
+		HashMap<String, Nyquence> nvy = c[Y].trb.nyquvect;
+		long Ba_ = nvy.get(c[X].trb.synode()).n;
+		long Bb_ = nvy.get(c[Y].trb.synode()).n;
+		String y = c[Y].trb.synode();
 
 		// 1.1 insert A
 		String A_0 = insertPhoto(X);
@@ -345,21 +357,48 @@ public class DBSyntextTest {
 		// syn_subscribe.to = [A, C, D]
 		c[Y].subs(2, B_0, X, -1, Z, -1);
 
-		// 2. X <=> Y
+		// 2. X <= Y
 		exchange(X, Y);
 		c[Y].change(1, C, B_0, c[Y].phm);
 		c[Y].subs(1, B_0, -1, -1, Z, -1);
-		// B.a = A.a
-		long Aa = c[X].trb.n0().n;
-		assertEquals(Aa, c[Y].trb.nyquvect.get(c[X].trb.synode()).n + 1);
 
+		// B.b++, A.b = B.b, B.a = A.a
+		long Ab = nvx.get(y).n;
+		long Bb = c[Y].trb.n0().n;
+		assertEquals(Bb, nvy.get(y).n);
+		assertEquals(Bb_ + 1, Bb);
+		assertEquals(Ab_ + 1, Ab);
+		assertEquals(Ab, Bb);
+
+		long Aa = nvx.get(x).n;
+		long Ba = nvy.get(x).n;
+		assertEquals(Aa, c[X].trb.n0().n);
+		assertEquals(Aa_, Aa);
+		assertEquals(Ba_ + 1, Ba);
+		Ab_ = Ab;
+		Bb_ = Bb;
+		Aa_ = Aa;
+		Ba_ = Ba;
+
+		// 3. Y <= X
 		exchange(Y, X);
 		c[X].change(1, C, A_0, c[X].phm);
 		c[X].subs(1, A_0, -1, -1, Z, -1);
 
-		// A.b = B.b
-		long Bb = c[Y].trb.n0().n;
-		assertEquals(Bb, c[X].trb.nyquvect.get(c[Y].trb.synode()).n + 1);
+		// A.a++, B.a = A.a, A.b = B.b
+		Aa = nvx.get(x).n;
+		Ba = nvy.get(x).n;
+		assertEquals(Aa_ + 1, Aa);
+		assertEquals(Aa, c[X].trb.n0().n);
+		assertEquals(Aa, Ba);
+
+		assertEquals(Ba, c[X].trb.n0().n);
+		assertEquals(Ba_, Ba);
+		assertEquals(Ba_ + 1, Ba);
+		Aa_ = Aa;
+		Ab_ = Ab;
+		Ba_ = Ba;
+		Bb_ = Bb;
 	}
 
 	/**
@@ -751,31 +790,38 @@ public class DBSyntextTest {
 		DBSynsactBuilder stb = c[srv].trb;
 
 		// clean local.nyquvect[remote] <= remote.n0 && local.chg[sub-i].n < remote.nyquvect[sub-i]
-		ctb.clean();
-		ChangeLogs req = ctb.diffrom(stb.synode(), new T_PhotoMeta(ctb.basictx().connId()).replace());
+		// ctb.clean();
 
-		// int loop = 0;
-		while (req != null && req.challenges() > 0) {
-			// && ctb.exbegin(stb.synode(), srvect)) {
+		SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId()).replace();
+		SyntityMeta cphm = new T_PhotoMeta(ctb.basictx().connId()).replace();
 
-			SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId()).replace();
-			ChangeLogs resp = stb.onExhange(ctb.synode(), ctb.nyquvect, req, sphm);
+		ExchangeContext cx = new ExchangeContext(chm, ctb, stb.synode());
+		ChangeLogs req = ctb.initExchange(cx, stb.synode(), cphm);
+		assertNotNull(req);
 
-			resp = ctb.ackExchange(resp, stb.synode());
+		ExchangeContext sx = new ExchangeContext(chm, stb, ctb.synode());
+
+		while (req.challenges() > 0) {
+			// server
+			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req, sphm);
+
+			// client
+			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode());
 			
-			// network: ack lost
-//			if (loop == 0)
-//				; // TODO insert new records at source
-//			else  // (loop > 0)
-//				stb.onAck(resp);
-//			
-//			if (loop > 0) {
-//			}
-			stb.onAck(resp);
+			// server
+			stb.onAck(sx, ack, ctb.synode(), sphm);
 
-			// loop++;
-			req = stb.diffrom(stb.synode(), sphm);
+			// client
+			req = ctb.initExchange(cx, stb.synode(), cphm);
 		}
+
+		assertNotNull(req);
+		assertEquals(0, req.challenge);
+		ctb.closexchange(cx, stb.synode(), stb.nyquvect);
+		stb.onclosechange(sx, ctb.synode(), ctb.nyquvect);
+
+		if (req.challenges() > 0)
+			fail("Shouldn't has any more challenge here.");
 	}
 	
 	void updatePhoto(int s, String pid) throws TransException, SQLException {
@@ -841,15 +887,15 @@ public class DBSyntextTest {
 			.nv(chm.nyquence, trb.n0().n)
 			.nv(chm.org, robot.orgId)
 			.post(trb.insert(sbm.tbl)
-					.cols(sbm.entbl, sbm.synodee, sbm.uids, sbm.org)
-					.select((Query) trb
-						.select(snm.tbl)
-						.col(constr(entm.tbl))
-						.col(snm.synoder)
-						.col(concatstr(synoder, chm.UIDsep, pid))
-						.col(constr(robot.orgId))
-						.where(op.ne, snm.synoder, constr(trb.synode()))
-						.whereEq(snm.domain, robot.orgId)))
+				.cols(sbm.entbl, sbm.synodee, sbm.uids, sbm.org)
+				.select((Query) trb
+					.select(snm.tbl)
+					.col(constr(entm.tbl))
+					.col(snm.synoder)
+					.col(concatstr(synoder, chm.UIDsep, pid))
+					.col(constr(robot.orgId))
+					.where(op.ne, snm.synoder, constr(trb.synode()))
+					.whereEq(snm.domain, robot.orgId)))
 			.ins(trb.instancontxt(conn, robot))
 			;
 		
@@ -915,6 +961,13 @@ public class DBSyntextTest {
 		public Ck(String conn, DBSynsactBuilder trb, String synid, String usrid)
 				throws SQLException, TransException, ClassNotFoundException, IOException {
 			this.trb = trb;
+		}
+
+		public HashMap<String, Nyquence> cloneNv() {
+			HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(4);
+			for (String n : trb.nyquvect.keySet())
+				nv.put(n, new Nyquence(trb.nyquvect.get(n).n));
+			return nv;
 		}
 
 		/**

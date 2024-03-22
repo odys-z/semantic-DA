@@ -23,8 +23,10 @@ import io.odysz.transact.x.TransException;
  */
 public abstract class SyntityMeta extends TableMeta {
 
-	/** exposed to subclass to change
-	 * @see SyntityMeta#SyntityMeta */
+	/**
+	 * exposed to subclass to change
+	 * @see SyntityMeta#SyntityMeta
+	 */
 	protected String org;
 	public String org() { return org; }
 
@@ -71,7 +73,6 @@ public abstract class SyntityMeta extends TableMeta {
 		return (T) this;
 	}
 	
-
 	public HashSet<String> globalIds() { return uids; }
 
 	/**
@@ -118,5 +119,10 @@ public abstract class SyntityMeta extends TableMeta {
 			val.add(new Object[] {cols[cx], row.get(cx)});
 		}
 		return val;
+	}
+
+	public ArrayList<Object[]> updateChallengeEnt(String entid1, AnResultset anResultset) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

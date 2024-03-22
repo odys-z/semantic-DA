@@ -5,8 +5,11 @@ import java.sql.SQLException;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.syn.Nyquence;
+import io.odysz.semantics.IUser;
+import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.sql.Transcxt;
+import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 public class DAHelper {
@@ -20,7 +23,8 @@ public class DAHelper {
 	 * @throws TransException 
 	 * @throws SQLException 
 	 */
-	public static String loadRecString(Transcxt trb, String conn, TableMeta m, String recId, String field) throws SQLException, TransException {
+	public static String loadRecString(Transcxt trb, String conn, TableMeta m, String recId, String field)
+			throws SQLException, TransException {
 		AnResultset rs = (AnResultset) trb.select(m.tbl)
 				.col(field)
 				.whereEq(m.pk, recId)
@@ -32,7 +36,8 @@ public class DAHelper {
 		else return null;
 	}
 
-	public static long loadRecLong(Transcxt trb, String conn, TableMeta m, String recId, String field) throws SQLException, TransException {
+	public static long loadRecLong(Transcxt trb, String conn, TableMeta m, String recId, String field)
+			throws SQLException, TransException {
 		AnResultset rs = (AnResultset) trb.select(m.tbl)
 				.col(field)
 				.whereEq(m.pk, recId)
@@ -45,8 +50,16 @@ public class DAHelper {
 			.format("Record not found: %s.%s = '%s'", m.tbl, m.pk, recId));
 	}
 
-	public static Nyquence loadRecNyquence(Transcxt trb, String conn, TableMeta m, String recId, String field) throws SQLException, TransException {
+	public static Nyquence loadRecNyquence(Transcxt trb, String conn, TableMeta m, String recId, String field)
+			throws SQLException, TransException {
 		return new Nyquence(loadRecLong(trb, conn, m, recId, field));
 	}
 
+	public static SemanticObject updateField(Transcxt trb, String conn, TableMeta m, String recId,
+			String field, String v, IUser usr) throws TransException, SQLException {
+		return trb.update(m.tbl)
+			.nv(field, Funcall.constr((String)v))
+			.whereEq(m.pk, recId)
+			.u(trb.instancontxt(conn, usr));
+	}
 }

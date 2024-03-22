@@ -69,6 +69,12 @@ public class SynSubsMeta extends TableMeta {
 		return subcols;
 	}
 
+	/**
+	 * 
+	 * @param chlogs
+	 * @return
+	 * @throws SQLException
+	 */
 	public ArrayList<Object[]> insertSubVal(AnResultset chlogs) throws SQLException {
 		String[] cols = insertCols();
 		ArrayList<Object[]> val = new ArrayList<Object[]> (cols.length);

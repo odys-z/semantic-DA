@@ -800,9 +800,12 @@ for (String coln : colnames.keySet())
 		}
 	}
 	
-	/**/
 	public int getRowCount() {
 		return rowCnt;
+	}
+	
+	public int size() {
+		return getRowCount();
 	}
 
 	public int getColCount() {
