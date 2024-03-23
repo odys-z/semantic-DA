@@ -44,7 +44,7 @@ public class ZSUNodesDA {
 		this.sid = sid;
 		folder = "zsu-" + sid;
 		conn = DBSyntextTest.conns[sid];
-		ck = new Ck(sid, new DBSynsactBuilder(null, "zsu-dev-" + sid));
+		ck = new Ck(sid, new DBSynsactBuilder(null, "zsu-dev-" + sid), "zsu");
 		robot = (SyncRobot) ck.robot();
 		nodeId = robot.deviceId;
 		worker = robot.uid();

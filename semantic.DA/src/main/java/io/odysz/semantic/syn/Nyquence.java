@@ -44,15 +44,15 @@ public class Nyquence {
 		return this;
 	}
 
-	public static long max(long a, long b) {
+	public static long maxn(long a, long b) {
 		return compareNyq(a, b) < 0 ? b : a;
 	}
 
-	public static long min(long a, long b) {
+	public static long minn(long a, long b) {
 		return compareNyq(a, b) < 0 ? a : b;
 	}
 
-	public static Nyquence max(Nyquence a, Nyquence b) {
+	public static Nyquence maxn(Nyquence a, Nyquence b) {
 		return a == null ? b : b == null ? a : compareNyq(a.n, b.n) < 0 ? b : a;
 	}
 
@@ -60,10 +60,10 @@ public class Nyquence {
 		return compareNyq(a.n, b.n);
 	}
 
-	public static Nyquence max(HashMap<String, Nyquence> nv) {
+	public static Nyquence maxn(HashMap<String, Nyquence> nv) {
 		Nyquence mx = null;
 		for (Nyquence nyq : nv.values()) {
-			mx = max(mx, nyq);
+			mx = maxn(mx, nyq);
 		}
 		return mx;
 	}

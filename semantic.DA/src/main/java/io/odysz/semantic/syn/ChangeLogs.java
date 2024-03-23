@@ -79,7 +79,7 @@ public class ChangeLogs extends Anson {
 	}
 
 	/**
-	 * Check and extend column {@link #ChangeFlag}, which is for changing flag of change-log.
+	 * Check and extend column {@link #ChangeFlag}, which is for changing flag of change-logs.
 	 * 
 	 * @param answer
 	 * @return this
@@ -134,7 +134,11 @@ public class ChangeLogs extends Anson {
 		return challenge == null ? 0 : challenge.getRowCount();
 	}
 
-	public AnResultset answers() {
-		return answers;
+	public int enitities(String tbl) {
+		return entities != null && entities.containsKey(tbl) ? entities.get(tbl).size() : 0;
+	}
+
+	public int answers() {
+		return answers == null ? 0 : answers.getRowCount();
 	}
 }

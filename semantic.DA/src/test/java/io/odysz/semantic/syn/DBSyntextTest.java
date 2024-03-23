@@ -39,6 +39,7 @@ import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.syn.DBSyntextTest.Ck;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.transact.sql.Query;
@@ -208,7 +209,7 @@ public class DBSyntextTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			c[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s]).loadNyquvect0(conn));
+			c[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
 			if (s != 3)
 				c[s].trb.incNyquence();
 
@@ -335,13 +336,17 @@ public class DBSyntextTest {
 		HashMap<String, Nyquence> nvx = c[X].trb.nyquvect;
 		long Aa_ = nvx.get(c[X].trb.synode()).n;
 		long Ab_ = nvx.get(c[Y].trb.synode()).n;
+		// Ab_ ++; // because no synchronization for the loading step of B
 		String x = c[X].trb.synode();
+
 		HashMap<String, Nyquence> nvy = c[Y].trb.nyquvect;
 		long Ba_ = nvy.get(c[X].trb.synode()).n;
 		long Bb_ = nvy.get(c[Y].trb.synode()).n;
+		// Ba_ ++;
 		String y = c[Y].trb.synode();
 
 		// 1.1 insert A
+		Utils.logi("\n1.1 insert A");
 		String A_0 = insertPhoto(X);
 
 		// syn_change.curd = C
@@ -350,6 +355,7 @@ public class DBSyntextTest {
 		c[X].subs(2, A_0, -1, Y, Z, -1);
 
 		// 1.2 insert B
+		Utils.logi("\n1.2 insert B");
 		String B_0 = insertPhoto(Y);
 
 		// syn_change.curd = C
@@ -358,6 +364,7 @@ public class DBSyntextTest {
 		c[Y].subs(2, B_0, X, -1, Z, -1);
 
 		// 2. X <= Y
+		Utils.logi("\n2 X <= Y");
 		exchange(X, Y);
 		c[Y].change(1, C, B_0, c[Y].phm);
 		c[Y].subs(1, B_0, -1, -1, Z, -1);
@@ -368,7 +375,7 @@ public class DBSyntextTest {
 		assertEquals(Bb, nvy.get(y).n);
 		assertEquals(Bb_ + 1, Bb);
 		assertEquals(Ab_ + 1, Ab);
-		assertEquals(Ab, Bb);
+		assertEquals(Ab + 1, Bb);
 
 		long Aa = nvx.get(x).n;
 		long Ba = nvy.get(x).n;
@@ -381,20 +388,26 @@ public class DBSyntextTest {
 		Ba_ = Ba;
 
 		// 3. Y <= X
+		Utils.logi("\n3 Y <= X");
 		exchange(Y, X);
 		c[X].change(1, C, A_0, c[X].phm);
-		c[X].subs(1, A_0, -1, -1, Z, -1);
+		c[X].subs(2, A_0, -1, -1, Z, -1);
 
 		// A.a++, B.a = A.a, A.b = B.b
 		Aa = nvx.get(x).n;
 		Ba = nvy.get(x).n;
+		assertEquals(Aa, c[X].trb.n0().n);
+
+		Ab = nvx.get(y).n;
+		Bb = nvy.get(y).n;
+		assertEquals(Bb, c[Y].trb.n0().n);
+		
 		assertEquals(Aa_ + 1, Aa);
 		assertEquals(Aa, c[X].trb.n0().n);
-		assertEquals(Aa, Ba);
+		assertEquals(Aa, Ba + 1);
 
-		assertEquals(Ba, c[X].trb.n0().n);
 		assertEquals(Ba_, Ba);
-		assertEquals(Ba_ + 1, Ba);
+		assertEquals(Ab_ + 1, Bb);
 		Aa_ = Aa;
 		Ab_ = Ab;
 		Ba_ = Ba;
@@ -789,41 +802,59 @@ public class DBSyntextTest {
 		DBSynsactBuilder ctb = c[cli].trb;
 		DBSynsactBuilder stb = c[srv].trb;
 
-		// clean local.nyquvect[remote] <= remote.n0 && local.chg[sub-i].n < remote.nyquvect[sub-i]
-		// ctb.clean();
-
 		SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId()).replace();
 		SyntityMeta cphm = new T_PhotoMeta(ctb.basictx().connId()).replace();
 
 		ExchangeContext cx = new ExchangeContext(chm, ctb, stb.synode());
+		ExchangeContext sx = new ExchangeContext(chm, stb, ctb.synode());
+
+		// 0, X init
+		Utils.logi("\n0: C initiate");
 		ChangeLogs req = ctb.initExchange(cx, stb.synode(), cphm);
 		assertNotNull(req);
-
-		ExchangeContext sx = new ExchangeContext(chm, stb, ctb.synode());
+		assertEquals(srv == 0 && cli == 1, req.challenges() > 0); // X <= Y with some challenges
+		Utils.logi("0: C initiate\tchanges: %d\tentities: %d", req.challenges(), req.enitities(cphm.tbl));
 
 		while (req.challenges() > 0) {
 			// server
+			Utils.logi("\n1: S on exchange");
 			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req, sphm);
+			Utils.logi("1: S on exchange response\tchanges: %d\tentities: %d\nanswers: %d",
+					resp.challenges(), resp.enitities(cphm.tbl), resp.answers());
+			printNyquv(c);
 
 			// client
+			Utils.logi("\n2: C ack exchange");
 			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode());
+			Utils.logi("2: C ack exchange acknowledge\tchanges: %d\tentities: %d\nanswers: %d",
+					ack.challenges(), ack.enitities(cphm.tbl), ack.answers());
+			printNyquv(c);
 			
 			// server
+			Utils.logi("\n3: S on acknowledge");
 			stb.onAck(sx, ack, ctb.synode(), sphm);
+			printNyquv(c);
 
 			// client
+			Utils.logi("\n0: C initiate again");
 			req = ctb.initExchange(cx, stb.synode(), cphm);
+			Utils.logi("0: C initiate again\tchanges: %d\tentities: %d", req.challenges(), req.enitities(cphm.tbl));
+			printNyquv(c);
 		}
 
 		assertNotNull(req);
-		assertEquals(0, req.challenge);
-		ctb.closexchange(cx, stb.synode(), stb.nyquvect);
-		stb.onclosechange(sx, ctb.synode(), ctb.nyquvect);
+		assertEquals(0, req.challenge == null ? 0 : req.challenge.size());
+
+		Utils.logi("\n4: C closing exchange");
+		HashMap<String, Nyquence> nv = ctb.closexchange(cx, stb.synode(), stb.nyquvect);
+		Utils.logi("   S on closing exchange");
+		stb.onclosechange(sx, ctb.synode(), nv);
+		printNyquv(c);
 
 		if (req.challenges() > 0)
 			fail("Shouldn't has any more challenge here.");
 	}
-	
+
 	void updatePhoto(int s, String pid) throws TransException, SQLException {
 		SyntityMeta entm = c[s].phm;
 		String conn = conns[s];
@@ -939,11 +970,14 @@ public class DBSyntextTest {
 		public T_PhotoMeta phm;
 
 		final DBSynsactBuilder trb;
+
+		final String org;
+
 		public IUser robot() { return trb.synrobot(); }
 		String connId() { return trb.basictx().connId(); }
 
-		public Ck(int s, DBSynsactBuilder trb) throws SQLException, TransException, ClassNotFoundException, IOException {
-			this(conns[s], trb, String.format("s%s", s), "rob-" + s);
+		public Ck(int s, DBSynsactBuilder trb, String org) throws SQLException, TransException, ClassNotFoundException, IOException {
+			this(conns[s], trb, org, String.format("s%s", s), "rob-" + s);
 			phm = new T_PhotoMeta(conns[s]);
 		}
 
@@ -958,9 +992,10 @@ public class DBSyntextTest {
 		public void synodes(int x, int y, int z, int w) {
 		}
 
-		public Ck(String conn, DBSynsactBuilder trb, String synid, String usrid)
+		public Ck(String conn, DBSynsactBuilder trb, String org, String synid, String usrid)
 				throws SQLException, TransException, ClassNotFoundException, IOException {
 			this.trb = trb;
+			this.org = org;
 		}
 
 		public HashMap<String, Nyquence> cloneNv() {
@@ -991,6 +1026,7 @@ public class DBSyntextTest {
 			AnResultset chg = (AnResultset) trb
 				.select(chm.tbl, "ch")
 				.cols(chm.cols())
+				.whereEq(chm.org, org)
 				.whereEq(chm.entbl, entm.tbl)
 				.whereEq(chm.synoder, synoder)
 				.whereEq(chm.uids, synoder + chm.UIDsep + eid)
@@ -1026,7 +1062,7 @@ public class DBSyntextTest {
 		}
 
 		public void subsCount(int subcount, String pid, String ... toIds) throws SQLException, TransException {
-			AnResultset subs = trb.subscripts(connId(), pid, phm, robot());
+			AnResultset subs = trb.subscripts(connId(), org, pid, phm, robot());
 
 			subs.next();
 
@@ -1057,4 +1093,12 @@ public class DBSyntextTest {
 		}
 	}
 
+	public static void printNyquv(Ck[] ck) {
+		for (int cx = 0; cx < ck.length; cx++) {
+			DBSynsactBuilder t = ck[cx].trb;
+			Utils.logi(t.synode() + " [ " + t.nyquvect.keySet().stream()
+				.map((String n) -> {return n + ": " + t.nyquvect.get(n).n;})
+				.collect(Collectors.joining(", ")) + " ]");
+		}
+	}
 }

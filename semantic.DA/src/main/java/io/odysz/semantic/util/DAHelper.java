@@ -36,7 +36,7 @@ public class DAHelper {
 		else return null;
 	}
 
-	public static long loadRecLong(Transcxt trb, String conn, TableMeta m, String recId, String field)
+	public static long loadRecLong(DATranscxt trb, String conn, TableMeta m, String recId, String field)
 			throws SQLException, TransException {
 		AnResultset rs = (AnResultset) trb.select(m.tbl)
 				.col(field)
@@ -50,14 +50,14 @@ public class DAHelper {
 			.format("Record not found: %s.%s = '%s'", m.tbl, m.pk, recId));
 	}
 
-	public static Nyquence loadRecNyquence(Transcxt trb, String conn, TableMeta m, String recId, String field)
+	public static Nyquence loadRecNyquence(DATranscxt trb, String conn, TableMeta m, String recId, String field)
 			throws SQLException, TransException {
 		return new Nyquence(loadRecLong(trb, conn, m, recId, field));
 	}
 
-	public static SemanticObject updateField(Transcxt trb, String conn, TableMeta m, String recId,
+	public static SemanticObject updateField(DATranscxt trb, String conn, TableMeta m, String recId,
 			String field, String v, IUser usr) throws TransException, SQLException {
-		return trb.update(m.tbl)
+		return trb.update(m.tbl, usr)
 			.nv(field, Funcall.constr((String)v))
 			.whereEq(m.pk, recId)
 			.u(trb.instancontxt(conn, usr));
