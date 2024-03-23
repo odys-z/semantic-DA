@@ -13,6 +13,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
@@ -42,7 +44,13 @@ public class AnResultset extends Anson {
 	 * @since 1.4.12
 	 */
 	@FunctionalInterface
-	public interface ObjCreator<T extends Anson> {
+	public interface ObjCreator<T> {
+		/**
+		 * @param rs resultset at current row, iteration is driven by AnResultset, 
+		 * by calling {@link AnResultset#map(String, ObjCreator).
+		 * @return
+		 * @throws SQLException
+		 */
 		T create(AnResultset rs) throws SQLException;
 	}
 
@@ -466,6 +474,17 @@ for (String coln : colnames.keySet())
 		if (colName == null) return "";
 		String s = getString((Integer)colnames.get(colName.toUpperCase())[0]);
 		return s == null? "" : s;
+	}
+	
+	/**
+	 * Get string. If not exists, return {@code deflt}.
+	 * @param colName
+	 * @param deflt
+	 * @return string value or {@code deflt}
+	 * @throws SQLException
+	 */
+	public String getString(String colName, String deflt) throws SQLException {
+		return (colnames.containsKey(colName.toUpperCase())) ? getString(colName) : deflt;
 	}
 
 	public String getStringAtRow(String colName, int row) throws NumberFormatException, SQLException {
@@ -1046,7 +1065,7 @@ for (String coln : colnames.keySet())
 	 * @return the hash map
 	 * @throws SQLException
 	 */
-	public <T extends Anson> HashMap<String, T> map(String keyField, ObjCreator<T> objCreator)
+	public <T> HashMap<String, T> map(String keyField, ObjCreator<T> objCreator)
 			throws SQLException {
 		HashMap<String, T> map = new HashMap<String, T>(results.size());
 		beforeFirst();
@@ -1056,6 +1075,25 @@ for (String coln : colnames.keySet())
 		beforeFirst();
 		return map;
 	}
+
+	public <T> HashMap<String, T> map(String[] keyFields, ObjCreator<T> objCreator)
+			throws SQLException {
+		HashMap<String, T> map = new HashMap<String, T>(results.size());
+		beforeFirst();
+		while(next()) {
+			map.put(Stream.of(keyFields).map(k -> {
+				try { return getString(k); }
+				catch (SQLException e) {
+					e.printStackTrace();
+					return e.getMessage();
+				}
+			}).collect(Collectors.joining(",")),
+			objCreator.create(this));
+		}
+		beforeFirst();
+		return map;
+	}
+
 
 	/**
 	 * Construct a hash set using all value of field f.

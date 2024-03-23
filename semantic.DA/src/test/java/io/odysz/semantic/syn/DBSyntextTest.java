@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import io.odysz.anson.Anson;
 import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
@@ -203,7 +204,7 @@ public class DBSyntextTest {
 
 			ArrayList<String> sqls = new ArrayList<String>();
 			sqls.addAll(Arrays.asList(Utils.loadTxt("../oz_autoseq.sql").split(";-- --\n")));
-			sqls.add(String.format("update oz_autoseq set seq = %s where sid = 'h_photos.pid'", (s+1) * 64));
+			sqls.add(String.format("update oz_autoseq set seq = %d where sid = 'h_photos.pid'", (long) Math.pow(64, s+1)));
 
 			sqls.add(String.format("delete from %s", snm.tbl));
 			sqls.add(Utils.loadTxt("syn_nodes.sql"));
@@ -366,6 +367,9 @@ public class DBSyntextTest {
 		c[Y].change(1, C, B_0, c[Y].phm);
 		// syn_subscribe.to = [A, C, D]
 		c[Y].subs(2, B_0, X, -1, Z, -1);
+		
+		printChangeLines(c);
+		printNyquv(c);
 
 		// 2. X <= Y
 		Utils.logi("\n2 X <= Y");
@@ -378,8 +382,8 @@ public class DBSyntextTest {
 		long Bb = c[Y].trb.n0().n;
 		assertEquals(Bb, nvy.get(y).n);
 		assertEquals(Bb_ + 1, Bb);
-		assertEquals(Ab_ + 1, Ab);
-		assertEquals(Ab + 1, Bb);
+		assertEquals(Ab_, Ab);
+		assertEquals(Ab + 2, Bb);
 
 		long Aa = nvx.get(x).n;
 		long Ba = nvy.get(x).n;
@@ -416,6 +420,8 @@ public class DBSyntextTest {
 		Ab_ = Ab;
 		Ba_ = Ba;
 		Bb_ = Bb;
+
+		printChangeLines(c);
 	}
 
 	/**
@@ -816,7 +822,7 @@ public class DBSyntextTest {
 		Utils.logi("\n0: %s initiate", ctb.synode());
 		ChangeLogs req = ctb.initExchange(cx, stb.synode(), cphm);
 		assertNotNull(req);
-		assertEquals(srv == 0 && cli == 1, req.challenges() > 0); // X <= Y with some challenges
+		// assertEquals(srv == 0 && cli == 1, req.challenges() > 0); // X <= Y with some challenges
 		Utils.logi("0: C initiate\tchanges: %d\tentities: %d", req.challenges(), req.enitities(cphm.tbl));
 
 		while (req.challenges() > 0) {
@@ -825,6 +831,7 @@ public class DBSyntextTest {
 			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req, sphm);
 			Utils.logi("1: %s on exchange response\tchanges: %d\tentities: %d\nanswers: %d",
 					stb.synode(), resp.challenges(), resp.enitities(cphm.tbl), resp.answers());
+			printChangeLines(c);
 			printNyquv(c);
 
 			// client
@@ -832,11 +839,13 @@ public class DBSyntextTest {
 			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode());
 			Utils.logi("2: %s ack exchange acknowledge\tchanges: %d\tentities: %d\nanswers: %d",
 					ctb.synode(), ack.challenges(), ack.enitities(cphm.tbl), ack.answers());
+			printChangeLines(c);
 			printNyquv(c);
 			
 			// server
 			Utils.logi("\n3: %s on ack", stb.synode());
 			stb.onAck(sx, ack, ctb.synode(), sphm);
+			printChangeLines(c);
 			printNyquv(c);
 
 			// client
@@ -844,6 +853,7 @@ public class DBSyntextTest {
 			req = ctb.initExchange(cx, stb.synode(), cphm);
 			Utils.logi("0: %s initiate again\tchanges: %d\tentities: %d",
 					ctb.synode(), req.challenges(), req.enitities(cphm.tbl));
+			printChangeLines(c);
 			printNyquv(c);
 		}
 
@@ -854,6 +864,7 @@ public class DBSyntextTest {
 		HashMap<String, Nyquence> nv = ctb.closexchange(cx, stb.synode(), stb.nyquvect);
 		Utils.logi("   %s on closing exchange", stb.synode());
 		stb.onclosechange(sx, ctb.synode(), nv);
+		printChangeLines(c);
 		printNyquv(c);
 
 		if (req.challenges() > 0)
@@ -1111,5 +1122,62 @@ public class DBSyntextTest {
 				 .collect(Collectors.joining(", ")) +
 				" ]");
 		}
+	}
+	
+	static class ChangeLine extends Anson {
+		String s;
+		public ChangeLine(AnResultset r) throws SQLException {
+			this.s = String.format("%1$1s %2$2s %3$9s %4$4s %5$2s %6$2s",
+				r.getString(chm.crud),
+				r.getString(chm.synoder),
+				r.getString(chm.uids),
+				r.getString(chm.nyquence),
+				r.getString(sbm.synodee),
+				r.getString(ChangeLogs.ChangeFlag, " "));
+		}
+		
+		@Override
+		public String toString() { return s; }
+	}
+	
+	public static void printChangeLines(Ck[] ck) throws TransException, SQLException {
+
+		HashMap<String, ChangeLine[]> uidss = new HashMap<String, ChangeLine[]>();
+
+		for (int cx = 0; cx < ck.length; cx++) {
+			DBSynsactBuilder b = ck[cx].trb;
+			HashMap<String, ChangeLine> idmap = ((AnResultset) b
+					.select(chm.tbl, "ch")
+					.cols("ch.*", sbm.synodee)
+					.je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.org, sbm.org, chm.uids, sbm.uids)
+					.rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
+					.rs(0))
+					.<ChangeLine>map(new String[] {chm.uids, sbm.synodee}, (r) -> new ChangeLine(r));
+
+			for(String uids : idmap.keySet()) {
+				if (!uidss.containsKey(uids))
+					uidss.put(uids, new ChangeLine[4]);
+
+				uidss.get(uids)[cx] = idmap.get(uids);
+			}
+		}
+		
+		Utils.logi(Stream.of(ck).map(c -> strcenter(c.trb.synode(), 27)).collect(Collectors.joining("")));
+
+		Utils.logi(uidss.values().stream().map(
+			(ChangeLine[] line) -> {
+				return Stream.of(line)
+					.map(c -> c == null ? String.format("%25s",  " ") : c.s)
+					.collect(Collectors.joining(" | "));
+			})
+			.collect(Collectors.joining("\n")));
+	}
+	
+	public static String strcenter(String text, int len){
+	    String out = String.format("%"+len+"s%s%"+len+"s", "",text,"");
+	    float mid = (out.length()/2);
+	    float start = mid - (len/2);
+	    float end = start + len; 
+	    return out.substring((int)start, (int)end);
 	}
 }

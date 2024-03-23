@@ -347,6 +347,7 @@ public class DBSynsactBuilder extends DATranscxt {
 							.nv(chgm.entbl, chent)
 							.nv(chgm.synoder, synodr)
 							.nv(chgm.uids, chuids)
+							.nv(chgm.nyquence, chal.getLong(chgm.nyquence))
 							.nv(chgm.entfk, new Resulving(entm.tbl, entm.pk))
 							.post(eq(subsrb, srcnode) ? null : insert(subm.tbl)
 								.cols(subm.insertCols())
@@ -570,7 +571,8 @@ public class DBSynsactBuilder extends DATranscxt {
 	public void onclosechange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
 			throws SQLException, TransException {
 		x.clear();
-		synyquvectWith(sn, nv);
+		// half-duplex mode, will be deprecated
+		// synyquvectWith(sn, nv);
 	}
 
 	private DBSynsactBuilder synyquvectWith(String sn, HashMap<String, Nyquence> nv) throws TransException, SQLException {
