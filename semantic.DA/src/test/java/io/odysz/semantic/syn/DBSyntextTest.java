@@ -48,6 +48,10 @@ import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
 /**
+ * Half-duplex mode for exchanging logs are running.
+ * This test is marked by commit 522f918e1c1f76ba588ce8d262a13936043cf449
+ * and will be deprecated.
+ * 
  * <pre>
  * 1. Synodes initialized with ++n0.
  * 
@@ -809,7 +813,7 @@ public class DBSyntextTest {
 		ExchangeContext sx = new ExchangeContext(chm, stb, ctb.synode());
 
 		// 0, X init
-		Utils.logi("\n0: C initiate");
+		Utils.logi("\n0: %s initiate", ctb.synode());
 		ChangeLogs req = ctb.initExchange(cx, stb.synode(), cphm);
 		assertNotNull(req);
 		assertEquals(srv == 0 && cli == 1, req.challenges() > 0); // X <= Y with some challenges
@@ -817,37 +821,38 @@ public class DBSyntextTest {
 
 		while (req.challenges() > 0) {
 			// server
-			Utils.logi("\n1: S on exchange");
+			Utils.logi("\n1: %s on exchange", stb.synode());
 			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req, sphm);
-			Utils.logi("1: S on exchange response\tchanges: %d\tentities: %d\nanswers: %d",
-					resp.challenges(), resp.enitities(cphm.tbl), resp.answers());
+			Utils.logi("1: %s on exchange response\tchanges: %d\tentities: %d\nanswers: %d",
+					stb.synode(), resp.challenges(), resp.enitities(cphm.tbl), resp.answers());
 			printNyquv(c);
 
 			// client
-			Utils.logi("\n2: C ack exchange");
+			Utils.logi("\n2: %s ack exchange", ctb.synode());
 			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode());
-			Utils.logi("2: C ack exchange acknowledge\tchanges: %d\tentities: %d\nanswers: %d",
-					ack.challenges(), ack.enitities(cphm.tbl), ack.answers());
+			Utils.logi("2: %s ack exchange acknowledge\tchanges: %d\tentities: %d\nanswers: %d",
+					ctb.synode(), ack.challenges(), ack.enitities(cphm.tbl), ack.answers());
 			printNyquv(c);
 			
 			// server
-			Utils.logi("\n3: S on acknowledge");
+			Utils.logi("\n3: %s on ack", stb.synode());
 			stb.onAck(sx, ack, ctb.synode(), sphm);
 			printNyquv(c);
 
 			// client
-			Utils.logi("\n0: C initiate again");
+			Utils.logi("\n0: %s initiate again", ctb.synode());
 			req = ctb.initExchange(cx, stb.synode(), cphm);
-			Utils.logi("0: C initiate again\tchanges: %d\tentities: %d", req.challenges(), req.enitities(cphm.tbl));
+			Utils.logi("0: %s initiate again\tchanges: %d\tentities: %d",
+					ctb.synode(), req.challenges(), req.enitities(cphm.tbl));
 			printNyquv(c);
 		}
 
 		assertNotNull(req);
 		assertEquals(0, req.challenge == null ? 0 : req.challenge.size());
 
-		Utils.logi("\n4: C closing exchange");
+		Utils.logi("\n4: %s closing exchange", ctb.synode());
 		HashMap<String, Nyquence> nv = ctb.closexchange(cx, stb.synode(), stb.nyquvect);
-		Utils.logi("   S on closing exchange");
+		Utils.logi("   %s on closing exchange", stb.synode());
 		stb.onclosechange(sx, ctb.synode(), nv);
 		printNyquv(c);
 
@@ -1094,11 +1099,17 @@ public class DBSyntextTest {
 	}
 
 	public static void printNyquv(Ck[] ck) {
+		Utils.logi(Stream.of(ck).map(c -> { return c.trb.synode();})
+				.collect(Collectors.joining("    ", "      ", "")));
+
 		for (int cx = 0; cx < ck.length; cx++) {
 			DBSynsactBuilder t = ck[cx].trb;
-			Utils.logi(t.synode() + " [ " + t.nyquvect.keySet().stream()
-				.map((String n) -> {return n + ": " + t.nyquvect.get(n).n;})
-				.collect(Collectors.joining(", ")) + " ]");
+			Utils.logi(
+				t.synode() + " [ " +
+				t.nyquvect.keySet().stream()
+				 .map((String n) -> {return String.format("%3s", t.nyquvect.get(n).n);})
+				 .collect(Collectors.joining(", ")) +
+				" ]");
 		}
 	}
 }
