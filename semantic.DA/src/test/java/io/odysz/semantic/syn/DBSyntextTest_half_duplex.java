@@ -53,7 +53,7 @@ import io.odysz.transact.x.TransException;
  * <pre>
  * commit 522f918e1c1f76ba588ce8d262a13936043cf449
  * to
- * commit 512a2f36ca5eb82312d8f3302b31f9d32bf9b00b
+ * commit a7febfcd0fd8e1c3e539e4379e67c1abb4f1e495
  * </pre>
  * and will be deprecated.
  * 
