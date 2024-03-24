@@ -817,14 +817,21 @@ public class DBSyntextTest {
 		Utils.logi("\n0: %s initiate", ctb.synode());
 		ChangeLogs req = ctb.initExchange(cx, stb.synode(), cphm);
 		assertNotNull(req);
-		// assertEquals(srv == 0 && cli == 1, req.challenges() > 0); // X <= Y with some challenges
-		Utils.logi("0: C initiate\tchanges: %d\tentities: %d", req.challenges(), req.enitities(cphm.tbl));
+		
+		if (srv == 1 && cli == 0) {
+			if (req.challenges() >= 3 || req.enitities(cphm.tbl) >= 2)
+				Utils.warn("ERROR, req.challenges() >= 3 || req.enitities(cphm.tbl) >= 2,"
+						+ "but it's not planned to fix this problem in half-duplex mode");
+		}
+
+		Utils.logi("0: %s initiate\tchanges: %d\tentities: %d",
+				ctb.synode(), req.challenges(), req.enitities(cphm.tbl));
 
 		while (req.challenges() > 0) {
 			// server
 			Utils.logi("\n1: %s on exchange", stb.synode());
 			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req, sphm);
-			Utils.logi("1: %s on exchange response\tchanges: %d\tentities: %d\nanswers: %d",
+			Utils.logi("1: %s on exchange response\tchanges: %d\tentities: %d\tanswers: %d",
 					stb.synode(), resp.challenges(), resp.enitities(cphm.tbl), resp.answers());
 			printChangeLines(c);
 			printNyquv(c);
@@ -832,7 +839,7 @@ public class DBSyntextTest {
 			// client
 			Utils.logi("\n2: %s ack exchange", ctb.synode());
 			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode());
-			Utils.logi("2: %s ack exchange acknowledge\tchanges: %d\tentities: %d\nanswers: %d",
+			Utils.logi("2: %s ack exchange acknowledge\tchanges: %d\tentities: %d\tanswers: %d",
 					ctb.synode(), ack.challenges(), ack.enitities(cphm.tbl), ack.answers());
 			printChangeLines(c);
 			printNyquv(c);
