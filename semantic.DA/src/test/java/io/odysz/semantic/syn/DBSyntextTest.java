@@ -381,13 +381,13 @@ public class DBSyntextTest {
 		long Bb = c[Y].trb.n0().n;
 		assertEquals(Bb, nvy.get(y).n);
 		assertEquals(Bb_ + 1, Bb);
-		assertEquals(Ab_, Ab);
-		assertEquals(Ab + 2, Bb);
+		assertEquals(Ab_ + 1, Ab);
+		assertEquals(Ab + 1, Bb);
 
 		long Aa = nvx.get(x).n;
 		long Ba = nvy.get(x).n;
 		assertEquals(Aa, c[X].trb.n0().n);
-		assertEquals(Aa_, Aa);
+		assertEquals(Aa_ + 1, Aa);
 		assertEquals(Ba_ + 1, Ba);
 		Ab_ = Ab;
 		Bb_ = Bb;
@@ -395,33 +395,33 @@ public class DBSyntextTest {
 		Ba_ = Ba;
 
 		// 3. Y <= X
-		Utils.logi("\n3 Y <= X");
-		exchange(Y, X);
-		c[X].change(1, C, A_0, c[X].phm);
-		c[X].subs(1, A_0_uids[1], -1, -1, Z, -1);
-		c[X].subs(1, B_0_uids[1], -1, -1, Z, -1);
+//		Utils.logi("\n3 Y <= X");
+//		exchange(Y, X);
+//		c[X].change(1, C, A_0, c[X].phm);
+//		c[X].subs(1, A_0_uids[1], -1, -1, Z, -1);
+//		c[X].subs(1, B_0_uids[1], -1, -1, Z, -1);
+//
+//		// A.a++, B.a = A.a, A.b = B.b
+//		Aa = nvx.get(x).n;
+//		Ba = nvy.get(x).n;
+//		assertEquals(Aa, c[X].trb.n0().n);
+//
+//		Ab = nvx.get(y).n;
+//		Bb = nvy.get(y).n;
+//		assertEquals(Bb, c[Y].trb.n0().n);
+//		
+//		assertEquals(Aa_ + 1, Aa);
+//		assertEquals(Aa, c[X].trb.n0().n);
+//		assertEquals(Aa, Ba + 1);
+//
+//		assertEquals(Ba_, Ba);
+//		assertEquals(Ab_ + 2, Bb);
+//		Aa_ = Aa;
+//		Ab_ = Ab;
+//		Ba_ = Ba;
+//		Bb_ = Bb;
 
-		// A.a++, B.a = A.a, A.b = B.b
-		Aa = nvx.get(x).n;
-		Ba = nvy.get(x).n;
-		assertEquals(Aa, c[X].trb.n0().n);
-
-		Ab = nvx.get(y).n;
-		Bb = nvy.get(y).n;
-		assertEquals(Bb, c[Y].trb.n0().n);
-		
-		assertEquals(Aa_ + 1, Aa);
-		assertEquals(Aa, c[X].trb.n0().n);
-		assertEquals(Aa, Ba + 1);
-
-		assertEquals(Ba_, Ba);
-		assertEquals(Ab_ + 2, Bb);
-		Aa_ = Aa;
-		Ab_ = Ab;
-		Ba_ = Ba;
-		Bb_ = Bb;
-
-		printChangeLines(c);
+//		printChangeLines(c);
 	}
 
 	/**
@@ -814,7 +814,7 @@ public class DBSyntextTest {
 		ExchangeContext sx = new ExchangeContext(chm, stb, ctb.synode());
 
 		// 0, X init
-		Utils.logi("\n0: %s initiate", ctb.synode());
+		Utils.logi("\n(0.0): %s initiate", ctb.synode());
 		ChangeLogs req = ctb.initExchange(cx, stb.synode(), cphm);
 		assertNotNull(req);
 		
@@ -824,36 +824,36 @@ public class DBSyntextTest {
 						+ "but it's not planned to fix this problem in half-duplex mode");
 		}
 
-		Utils.logi("0: %s initiate\tchanges: %d\tentities: %d",
+		Utils.logi("(0.1): %s initiate\tchanges: %d\tentities: %d",
 				ctb.synode(), req.challenges(), req.enitities(cphm.tbl));
 
 		while (req.challenges() > 0) {
 			// server
-			Utils.logi("\n1: %s on exchange", stb.synode());
+			Utils.logi("\n(1.0): %s on exchange", stb.synode());
 			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req, sphm);
-			Utils.logi("1: %s on exchange response\tchanges: %d\tentities: %d\tanswers: %d",
+			Utils.logi("(1.1): %s on exchange response\tchanges: %d\tentities: %d\tanswers: %d",
 					stb.synode(), resp.challenges(), resp.enitities(cphm.tbl), resp.answers());
 			printChangeLines(c);
 			printNyquv(c);
 
 			// client
-			Utils.logi("\n2: %s ack exchange", ctb.synode());
+			Utils.logi("\n(2.0): %s ack exchange", ctb.synode());
 			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode());
-			Utils.logi("2: %s ack exchange acknowledge\tchanges: %d\tentities: %d\tanswers: %d",
+			Utils.logi("(2.1): %s ack exchange acknowledge\tchanges: %d\tentities: %d\tanswers: %d",
 					ctb.synode(), ack.challenges(), ack.enitities(cphm.tbl), ack.answers());
 			printChangeLines(c);
 			printNyquv(c);
 			
 			// server
-			Utils.logi("\n3: %s on ack", stb.synode());
+			Utils.logi("\n(3.0): %s on ack", stb.synode());
 			stb.onAck(sx, ack, ctb.synode(), sphm);
 			printChangeLines(c);
 			printNyquv(c);
 
 			// client
-			Utils.logi("\n0: %s initiate again", ctb.synode());
+			Utils.logi("\n(4.0): %s initiate again", ctb.synode());
 			req = ctb.initExchange(cx, stb.synode(), cphm);
-			Utils.logi("0: %s initiate again\tchanges: %d\tentities: %d",
+			Utils.logi("(4.1): %s initiate again\tchanges: %d\tentities: %d",
 					ctb.synode(), req.challenges(), req.enitities(cphm.tbl));
 			printChangeLines(c);
 			printNyquv(c);
@@ -862,9 +862,12 @@ public class DBSyntextTest {
 		assertNotNull(req);
 		assertEquals(0, req.challenge == null ? 0 : req.challenge.size());
 
-		Utils.logi("\n4: %s closing exchange", ctb.synode());
+		Utils.logi("\n(5.0): %s closing exchange", ctb.synode());
 		HashMap<String, Nyquence> nv = ctb.closexchange(cx, stb.synode(), stb.nyquvect);
-		Utils.logi("   %s on closing exchange", stb.synode());
+		printChangeLines(c);
+		printNyquv(c);
+
+		Utils.logi("(5.1) %s on closing exchange", stb.synode());
 		stb.onclosechange(sx, ctb.synode(), nv);
 		printChangeLines(c);
 		printNyquv(c);

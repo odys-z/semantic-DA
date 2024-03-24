@@ -232,7 +232,6 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		List<Statement<?>> stats = new ArrayList<Statement<?>>();
 
-
 		AnResultset rply = x.answer.beforeFirst();
 		rply.beforeFirst();
 		String entid = null;
@@ -242,7 +241,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 			SyntityMeta entm = getEntityMeta(rply.getString(chgm.entbl));
 			String change = rply.getString(ChangeLogs.ChangeFlag);
-			HashMap<String, AnResultset> entbuf = x.challengebuf.entities;
+			HashMap<String, AnResultset> entbuf = x.mychallenge.entities;
 			
 			// current entity
 			String entid1 = rply.getString(chgm.entfk);
@@ -252,8 +251,6 @@ public class DBSynsactBuilder extends DATranscxt {
 			String rpuids = rply.getString(chgm.uids);
 			String rpnodr = rply.getString(chgm.synoder);
 			String rpscrb = rply.getString(subm.synodee);
-
-
 
 			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).indices0(entid1) < 0) {
 				Utils.warn("[DBSynsactBuilder commitTill] Fatal error ignored: can't restore entity record answered from target node.\n"
@@ -315,7 +312,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		List<Statement<?>> stats = new ArrayList<Statement<?>>();
 
-		AnResultset chal = x.challengebuf.challenge.beforeFirst();
+		AnResultset chal = x.onchanges.challenge.beforeFirst();
 		String entid = null;
 
 		while (chal.next()) {
@@ -328,7 +325,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			// current entity
 			String entid1 = chal.getString(chgm.entfk);
 
-			HashMap<String, AnResultset> entbuf = x.challengebuf.entities;
+			HashMap<String, AnResultset> entbuf = x.onchanges.entities;
 			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).indices0(entid1) < 0) {
 				Utils.warn("[DBSynsactBuilder commitChallenges] Fatal error ignored: can't restore entity record answered from target node.\n"
 						+ "entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by challenge): %s", entm.tbl, srcnode, synode(), entid1);
@@ -406,7 +403,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			s.commit(sqls, synrobot());
 		Connects.commit(basictx.connId(), synrobot(), sqls);
 		
-		x.challengebuf = null;
+		x.onchanges = null;
 		return this;
 	}
 
@@ -446,14 +443,14 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * Find if there are change logs such that chg.n &gt; myvect[remote].n, to be exchanged.
 	 * @param cx 
 	 * @param <T>
-	 * 
 	 * @param target exchange target (server)
 	 * @param nyv nyquevect from target 
 	 * @return logs such that chg.n > nyv[target], i.e there are change logs to be exchanged.
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public <T extends SynEntity> ChangeLogs initExchange(ExchangeContext cx, String target, SyntityMeta entm) throws TransException, SQLException {
+	public <T extends SynEntity> ChangeLogs initExchange(ExchangeContext cx, String target, SyntityMeta entm)
+			throws TransException, SQLException {
 		Nyquence dn = this.nyquvect.get(target);
 		AnResultset challenge = (AnResultset) select(chgm.tbl, "ch")
 			.je("ch", subm.tbl, "sb", chgm.entbl, subm.entbl, chgm.uids, subm.uids) // FIXME line 1:7 mismatched input '<EOF>' expecting '.'
@@ -499,8 +496,13 @@ public class DBSynsactBuilder extends DATranscxt {
 	public <T extends SynEntity> ChangeLogs onExchange(ExchangeContext x, String from, HashMap<String, Nyquence> remotv,
 			ChangeLogs req, SyntityMeta entm) throws SQLException, TransException {
 
-		ChangeLogs myanswer = new ChangeLogs(chgm);
+		// ChangeLogs myanswer = new ChangeLogs(chgm);
+		if (x.onchanges != null && x.onchanges.challenges() > 0)
+			Utils.warn("There are challenges buffered to be commited: %s@%s", from, synode());;
 
+		ChangeLogs myanswer = initExchange(x, from, entm);
+
+		/*
 		ArrayList<ArrayList<Object>> changes = new ArrayList<ArrayList<Object>>();
 		while (req != null && req.challenge != null && req.challenge.next()) {
 			String subscribe = req.challenge.getString(subm.synodee);
@@ -517,10 +519,31 @@ public class DBSynsactBuilder extends DATranscxt {
 					changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
 			}
 		}
-		x.addCommit(req.challenge.colnames(), changes, req.entities);
+		*/
+		x.buffChanges(req.challenge.colnames(), onchanges(myanswer, req), req.entities);
 		return myanswer.nyquvect(nyquvect);
 	}
 
+	ArrayList<ArrayList<Object>> onchanges(ChangeLogs resp, ChangeLogs req) throws SQLException {
+		ArrayList<ArrayList<Object>> changes = new ArrayList<ArrayList<Object>>();
+		while (req != null && req.challenge != null && req.challenge.next()) {
+			String subscribe = req.challenge.getString(subm.synodee);
+
+			if (eq(subscribe, synode())) {
+				resp.remove_sub(req.challenge, synode());	
+				// changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
+			}
+			else {
+				if (compareNyq(req.challenge.getLong(chgm.nyquence), nyquvect.get(subscribe).n) < 0)
+					// knowledge about the sub from req is older than this node's knowledge 
+					resp.remove_sub(req.challenge, subscribe);	
+				else
+					changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
+			}
+		}
+
+		return changes;
+	}
 	/**
 	 * Client node acknowledge destionation's response (from server),
 	 * i.e. check answers up to n = my-n0
@@ -535,17 +558,22 @@ public class DBSynsactBuilder extends DATranscxt {
 	public ChangeLogs ackExchange(ExchangeContext x, ChangeLogs answer, String sn)
 			throws SQLException, TransException, IOException {
 
-		ChangeLogs log = new ChangeLogs(chgm);
+		ChangeLogs myack = new ChangeLogs(chgm);
 
-		if (answer != null && answer.answers != null && answer.answers.getRowCount() > 0) {
+		if (answer.answers != null && answer.answers.getRowCount() > 0) {
 			x.addAnswer(answer.answers);
 			commitAnswers(x, sn, n0().n);
-
-			this.synyquvectWith(sn, answer.nyquvect);
-			log.nyquvect(Nyquence.clone(nyquvect));
 		}
 
-		return log;
+		x.buffChanges(answer.challenge.colnames(), onchanges(myack, answer), answer.entities);
+		if (x.onchanges.challenges() > 0) {
+			commitChallenges(x, sn, nyquvect.get(synode()).n);
+		}
+
+		this.synyquvectWith(sn, answer.nyquvect);
+		myack.nyquvect(Nyquence.clone(nyquvect));
+
+		return myack;
 	}
 
 	/**
@@ -560,10 +588,14 @@ public class DBSynsactBuilder extends DATranscxt {
 	public void onAck(ExchangeContext x, ChangeLogs ack, String target, SyntityMeta entm)
 			throws SQLException, TransException {
 		if (ack != null && compareNyq(ack.nyquvect.get(synode()), nyquvect.get(synode())) <= 0) {
-			commitChallenges(x, this.synode(), nyquvect.get(synode()).n);
+			commitChallenges(x, target, nyquvect.get(synode()).n);
 		}
-		// synyquvectWith(target, ack.nyquvect);
-		// DAHelper.updateField(this, basictx.connId(), synm, synode(), synm.nyquence, String.valueOf(n0().n), synrobot());
+
+		if (ack.answers != null && ack.answers.getRowCount() > 0) {
+			x.addAnswer(ack.answers);
+			commitAnswers(x, target, n0().n);
+		}
+		synyquvectWith(target, ack.nyquvect);
 	}
 	
 	public HashMap<String, Nyquence> closexchange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
@@ -577,8 +609,8 @@ public class DBSynsactBuilder extends DATranscxt {
 	public void onclosechange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
 			throws SQLException, TransException {
 		x.clear();
-		// half-duplex mode, will be deprecated
-		// synyquvectWith(sn, nv);
+		synyquvectWith(sn, nv);
+		incN0(maxn(nv));
 	}
 
 	private DBSynsactBuilder synyquvectWith(String sn, HashMap<String, Nyquence> nv) throws TransException, SQLException {

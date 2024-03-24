@@ -523,6 +523,11 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 	}
 
 	/**
+	 * // FIXME shouldn't be target for synode?
+	 * // FIXME shouldn't be target for synode?
+	 * // FIXME shouldn't be target for synode?
+	 * // FIXME shouldn't be target for synode?
+	 * 
 	 * Commit buffered answer's changes as client node acknowledged the answers with {@code ack}.
 	 * @param x exchange execution's instance
 	 * @param ack answer to previous challenge
@@ -534,7 +539,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 	public void onAck(ExchangeContext_half_duplex x, ChangeLogs ack, String target, SyntityMeta entm)
 			throws SQLException, TransException {
 		if (ack != null && compareNyq(ack.nyquvect.get(synode()), nyquvect.get(synode())) <= 0) {
-			commitChallenges(x, this.synode(), nyquvect.get(synode()).n);
+			commitChallenges(x, this.synode(), nyquvect.get(synode()).n); // FIXME shouldn't be target for synode?
 		}
 		// synyquvectWith(target, ack.nyquvect);
 		// DAHelper.updateField(this, basictx.connId(), synm, synode(), synm.nyquence, String.valueOf(n0().n), synrobot());

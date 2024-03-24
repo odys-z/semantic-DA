@@ -25,16 +25,17 @@ public class ChangeLogs extends Anson {
 	 */
 	AnResultset answers;
 
-	/** Entity tables' column names */
-	// public HashMap<String, HashMap<String, Object[]>> entCols;
-	// HashMap<String, Object[]> changeCols;
+	public AnResultset challenge;
+	public ChangeLogs challenge(AnResultset challenge) {
+		this.challenge = challenge;
+		return this;
+	}
 
 	@SuppressWarnings("unused")
 	private boolean dirty;
 
 	public ChangeLogs(SynChangeMeta changemeta) {
 		this.chm = changemeta;
-		// this.answers = new ArrayList<ArrayList<Object>>();
 		dirty = false;
 	}
 
@@ -57,23 +58,6 @@ public class ChangeLogs extends Anson {
 		dirty = true;
 	}
 
-	/**
-	 * Append changes' current row to committing tasks.
-	 * @param remote
-	 * @throws SQLException
-	 */
-	@SuppressWarnings("serial")
-	public void append(AnResultset remote) throws SQLException {
-		if (answers == null)
-			answers = new AnResultset(remote.getColnames())
-						.results(new ArrayList<ArrayList<Object>>() {});
-
-		ArrayList<Object> row = remote.getRowAt(remote.currentRow()-1);
-		row.add(answers.getColumex(ChangeFlag)-1, CRUD.C);
-		answers.append(row);
-		dirty = true;
-	}
-
 	public static Nyquence parseNyq(Object[] c) {
 		return new Nyquence((long)c[4]);
 	}
@@ -90,13 +74,6 @@ public class ChangeLogs extends Anson {
 				new Object[] {Integer.valueOf(colnames.size() + 1), ChangeFlag});
 		}
 		return colnames;
-	}
-
-	public AnResultset challenge;
-
-	public ChangeLogs challenge(AnResultset challenge) {
-		this.challenge = challenge;
-		return this;
 	}
 
 	public void clear() {

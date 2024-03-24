@@ -18,8 +18,16 @@ import io.odysz.semantics.x.SemanticException;
  */
 public class ExchangeContext {
 
-	ChangeLogs challengebuf;
+	/** Changes to be committed according to the other's challenges */
+	ChangeLogs onchanges;
 
+	/**
+	 * My challenges initiated by
+	 * {@link DBSynsactBuilder#initExchange(ExchangeContext, String, io.odysz.semantic.meta.SyntityMeta) initExchange()}.
+	 */
+	ChangeLogs mychallenge;
+
+	/** Answers to my challenges, {@link #mychallenge}, with entities in it. */
 	AnResultset answer;
 	
 	String target;
@@ -35,28 +43,35 @@ public class ExchangeContext {
 		if (!eq(this.target, target))
 			throw new SemanticException("Contexts are mismatched: %s vs %s", this.target, target);
 		
-		this.challengebuf = diff;
+		this.mychallenge = diff;
 	}
 
-	public void addCommit(HashMap<String, Object[]> chcols, ArrayList<ArrayList<Object>> changes,
+	/**
+	 * Buffering changes while responding to {@code challenges}.
+	 * @param chcols
+	 * @param yourchallenges
+	 * @param entities
+	 * @throws SemanticException
+	 */
+	public void buffChanges(HashMap<String, Object[]> chcols, ArrayList<ArrayList<Object>> yourchallenges,
 			HashMap<String, AnResultset> entities) throws SemanticException {
-		if (challengebuf != null)
+		if (onchanges != null)
 			throw new SemanticException("There is challenges already buffered for committing.");
-		challengebuf = new ChangeLogs(chgm)
-				.challenge(new AnResultset(chcols).results(changes))
+		onchanges = new ChangeLogs(chgm)
+				.challenge(new AnResultset(chcols).results(yourchallenges))
 				.entities(entities);
 	}
 
 	public void addAnswer(AnResultset answer) throws SemanticException {
-		if (challengebuf == null || challengebuf.challenge == null || challengebuf.challenge.size() == 0)
+		if (mychallenge == null || mychallenge.challenge == null || mychallenge.challenge.size() == 0)
 			throw new SemanticException("There is no challenge awaiting for any answer.");
 		this.answer = answer;
 	}
 
 	public void clear() throws SemanticException {
-		if (challengebuf != null && challengebuf.challenge != null && challengebuf.challenge.size() > 0 || answer != null && answer.size() > 0)
+		if (onchanges != null && onchanges.challenge != null && onchanges.challenge.size() > 0 || answer != null && answer.size() > 0)
 			throw new SemanticException("There are suspending operations needed tobe handled before clearing exchange conctext.\nChallenges: %s, Answers: %s",
-					challengebuf == null || challengebuf.challenge == null ? 0 : challengebuf.challenge.size(),
+					onchanges == null || onchanges.challenge == null ? 0 : onchanges.challenge.size(),
 					answer == null ? 0 : answer.size());
 	}
 
