@@ -162,11 +162,21 @@ public class DBSynsactBuilder extends DATranscxt {
 				.cols(subm.cols())
 				.whereEq(subm.org, org)
 				.whereEq(subm.entbl, entm.tbl)
-				.whereEq(subm.uids, chgm.uids(synode(), uids))
+				.whereEq(subm.uids, uids)
 				.rs(instancontxt(conn, robot))
 				.rs(0);
 	}
-	
+	public AnResultset subscripts(String conn, String org, Funcall uids, SyntityMeta entm, IUser robot)
+			throws TransException, SQLException {
+		return (AnResultset) select(subm.tbl, "ch")
+				.cols(subm.cols())
+				.whereEq(subm.org, org)
+				.whereEq(subm.entbl, entm.tbl)
+				.whereEq(subm.uids, uids)
+				.rs(instancontxt(conn, robot))
+				.rs(0);
+	}
+
 	public void addSynode(String conn, Synode node, IUser robot)
 			throws TransException, SQLException {
 		node.insert(synm, insert(synm.tbl, robot))

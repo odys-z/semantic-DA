@@ -1,11 +1,12 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.compoundVal;
+import static io.odysz.common.LangExt.indexOf;
+import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
-import static io.odysz.semantic.util.Assert.assertIn;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
@@ -22,12 +23,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.Anson;
@@ -54,8 +53,8 @@ import io.odysz.transact.x.TransException;
  * <pre>
  * commit 522f918e1c1f76ba588ce8d262a13936043cf449
  * to
- * commit 951a5ac069ce79c25f83995c7bc62ce01255ea0f
- * <pre>
+ * commit 512a2f36ca5eb82312d8f3302b31f9d32bf9b00b
+ * </pre>
  * and will be deprecated.
  * 
  * <pre>
@@ -236,7 +235,6 @@ public class DBSyntextTest_half_duplex {
 		assertEquals("syn.00", c[0].connId());
 	}
 
-	@Disabled
 	@Test
 	void testChangeLogs() throws Exception {
 		test01InsertBasic_half_duplex();
@@ -362,21 +360,23 @@ public class DBSyntextTest_half_duplex {
 
 		// 1.1 insert A
 		Utils.logi("\n1.1 insert A");
-		String A_0 = insertPhoto(X);
+		String[] A_0_uids = insertPhoto(X);
+		String A_0 = A_0_uids[0];
 
 		// syn_change.curd = C
 		c[X].change(1, C, A_0, c[X].phm);
 		// syn_subscribe.to = [B, C, D]
-		c[X].subs(2, A_0, -1, Y, Z, -1);
+		c[X].subs(2, A_0_uids[1], -1, Y, Z, -1);
 
 		// 1.2 insert B
 		Utils.logi("\n1.2 insert B");
-		String B_0 = insertPhoto(Y);
+		String[] B_0_uids = insertPhoto(Y);
+		String B_0 = B_0_uids[0];
 
 		// syn_change.curd = C
 		c[Y].change(1, C, B_0, c[Y].phm);
 		// syn_subscribe.to = [A, C, D]
-		c[Y].subs(2, B_0, X, -1, Z, -1);
+		c[Y].subs(2, B_0_uids[1], X, -1, Z, -1);
 		
 		printChangeLines(c);
 		printNyquv(c);
@@ -385,7 +385,7 @@ public class DBSyntextTest_half_duplex {
 		Utils.logi("\n2 X <= Y");
 		exchange(X, Y);
 		c[Y].change(1, C, B_0, c[Y].phm);
-		c[Y].subs(1, B_0, -1, -1, Z, -1);
+		c[Y].subs(1, B_0_uids[1], -1, -1, Z, -1);
 
 		// B.b++, A.b = B.b, B.a = A.a
 		long Ab = nvx.get(y).n;
@@ -409,7 +409,8 @@ public class DBSyntextTest_half_duplex {
 		Utils.logi("\n3 Y <= X");
 		exchange(Y, X);
 		c[X].change(1, C, A_0, c[X].phm);
-		c[X].subs(2, A_0, -1, -1, Z, -1);
+		c[X].subs(1, A_0_uids[1], -1, -1, Z, -1);
+		c[X].subs(1, B_0_uids[1], -1, -1, Z, -1);
 
 		// A.a++, B.a = A.a, A.b = B.b
 		Aa = nvx.get(x).n;
@@ -425,7 +426,7 @@ public class DBSyntextTest_half_duplex {
 		assertEquals(Aa, Ba + 1);
 
 		assertEquals(Ba_, Ba);
-		assertEquals(Ab_ + 1, Bb);
+		assertEquals(Ab_ + 2, Bb);
 		Aa_ = Aa;
 		Ab_ = Ab;
 		Ba_ = Ba;
@@ -909,7 +910,7 @@ public class DBSyntextTest_half_duplex {
 			.ins(trb.instancontxt(conn, robot));
 	}
 	
-	String insertPhoto(int s) throws TransException, SQLException {
+	String[] insertPhoto(int s) throws TransException, SQLException {
 		SyntityMeta entm = c[s].phm;
 		String conn = conns[s];
 		String synoder = c[s].trb.synode();
@@ -951,7 +952,8 @@ public class DBSyntextTest_half_duplex {
 			.ins(trb.instancontxt(conn, robot))
 			;
 		
-		return pid;
+		// return pid;
+		return new String[] {pid, chm.uids(synoder, pid)};
 	}
 	
 //	String synodes(Ck[] cks, String synode) {
@@ -1069,35 +1071,50 @@ public class DBSyntextTest_half_duplex {
 
 		/**
 		 * verify subscriptions.
-		 * @param pid
+		 * @param uids
 		 * @param sub subscriptions for X/Y/Z/W, -1 if not exists
 		 * @throws SQLException 
 		 * @throws TransException 
 		 */
-		public void subs(int subcount, String pid, int ... sub) throws SQLException, TransException {
+		public void subs(int subcount, String uids, int ... sub) throws SQLException, TransException {
 			ArrayList<String> toIds = new ArrayList<String>();
 			for (int n : sub)
 				if (n >= 0)
 					toIds.add(c[n].trb.synode());
-			subsCount(subcount, pid, toIds.toArray(new String[0]));
+			subsCount(subcount, uids, toIds.toArray(new String[0]));
 		}
 
-		public void subsCount(int subcount, String pid, String ... toIds) throws SQLException, TransException {
-			AnResultset subs = trb.subscripts(connId(), org, pid, phm, robot());
-
-			subs.next();
-
-			assertEquals(subcount, subs.getRowCount());
-			assertEquals(phm.tbl, subs.getString(sbm.entbl));
-			
-			HashSet<String> synodes = subs.set(sbm.synodee);
-			
-			int size = toIds.length;
-			for (String n : toIds) {
-				assertIn(n, synodes);
-				size--;
+		public void subsCount(int subcount, String uids, String ... toIds) throws SQLException, TransException {
+			if (isNull(toIds)) {
+				AnResultset subs = trb.subscripts(connId(), org, uids, phm, robot());
+				assertEquals(subcount, subs.getRowCount());
+				assertEquals(phm.tbl, subs.getString(sbm.entbl));
 			}
-			assertEquals(0, size);
+			else {
+				int cnt = 0;
+//				for (String syndee : toIds) {
+					AnResultset subs = trb.subscripts(connId(), org, uids, phm, robot());
+					subs.beforeFirst();
+					while (subs.next()) {
+						if (indexOf(toIds, subs.getString(sbm.synodee)) >= 0)
+							cnt++;
+					}
+					if (subs.beforeFirst().next())
+						assertEquals(phm.tbl, subs.getString(sbm.entbl));
+//				}
+				assertEquals(subcount, cnt);
+			}
+
+
+			
+//			HashSet<String> synodes = subs.set(sbm.synodee);
+			
+//			int size = toIds.length;
+//			for (String n : toIds) {
+//				assertIn(n, synodes);
+//				size--;
+//			}
+//			assertEquals(0, size);
 		}
 
 		/**

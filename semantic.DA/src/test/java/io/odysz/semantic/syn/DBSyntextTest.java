@@ -49,13 +49,8 @@ import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
 /**
- * Half-duplex mode for exchanging logs are running.
- * This test is marked by
- * <pre>
- * commit 522f918e1c1f76ba588ce8d262a13936043cf449
- * to
- * commit 951a5ac069ce79c25f83995c7bc62ce01255ea0f
- * <pre>
+ * Duplex mode for exchanging logs are running.
+ * This test is start following commit 512a2f36ca5eb82312d8f3302b31f9d32bf9b00b
  * and will be deprecated.
  * 
  * <pre>

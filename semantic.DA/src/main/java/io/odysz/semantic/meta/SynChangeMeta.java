@@ -51,8 +51,8 @@ public class SynChangeMeta extends TableMeta {
 	}
 
 	/** compose function for uids */
-	public Funcall uids(String synode, String entityId) {
-		return Funcall.concatstr(synode, UIDsep, entityId);
+	public String uids(String synode, String entityId) {
+		return synode + UIDsep + entityId; // Funcall.concatstr(synode, UIDsep, entityId);
 	}
 
 }
