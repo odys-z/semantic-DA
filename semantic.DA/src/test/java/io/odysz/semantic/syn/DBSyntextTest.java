@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.Anson;
@@ -40,7 +41,6 @@ import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
-import io.odysz.semantic.syn.DBSyntextTest.Ck;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.transact.sql.Query;
@@ -50,7 +50,12 @@ import io.odysz.transact.x.TransException;
 
 /**
  * Half-duplex mode for exchanging logs are running.
- * This test is marked by commit 522f918e1c1f76ba588ce8d262a13936043cf449
+ * This test is marked by
+ * <pre>
+ * commit 522f918e1c1f76ba588ce8d262a13936043cf449
+ * to
+ * commit 951a5ac069ce79c25f83995c7bc62ce01255ea0f
+ * <pre>
  * and will be deprecated.
  * 
  * <pre>
@@ -227,9 +232,10 @@ public class DBSyntextTest {
 		assertEquals("syn.00", c[0].connId());
 	}
 
+	@Disabled
 	@Test
 	void testChangeLogs() throws Exception {
-		test01InsertBasic();
+		test01InsertBasic_half_duplex();
 	}
 
 	/**
@@ -336,7 +342,7 @@ public class DBSyntextTest {
 	 * @throws SQLException
 	 * @throws IOException 
 	 */
-	void test01InsertBasic() throws TransException, SQLException, IOException {
+	void test01InsertBasic_half_duplex() throws TransException, SQLException, IOException {
 
 		HashMap<String, Nyquence> nvx = c[X].trb.nyquvect;
 		long Aa_ = nvx.get(c[X].trb.synode()).n;
@@ -949,11 +955,11 @@ public class DBSyntextTest {
 		return pid;
 	}
 	
-	String synodes(Ck[] cks, String synode) {
-		return Stream.of(cks)
-				.map((Ck c) -> {return c.trb.synode();})
-				.collect(Collectors.joining(","));
-	}
+//	String synodes(Ck[] cks, String synode) {
+//		return Stream.of(cks)
+//				.map((Ck c) -> {return c.trb.synode();})
+//				.collect(Collectors.joining(","));
+//	}
 
 	String deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
 		T_PhotoMeta m = c[s].phm;
