@@ -94,17 +94,11 @@ public class DBSynsactBuilder extends DATranscxt {
 		tx.domain = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
 		((SyncRobot)tx.usr()).orgId = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
 
-		// this.synrobot = ((DBSyntext)this.basictx).usr();
-		// String uid = "rob-" + synodeId;
-		// this.synrobot = new SyncRobot("rob-" + synodeId, synodeId)
-				// .orgId(DAHelper.loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain))
-				;
+
 
 		this.subm = subm != null ? subm : new SynSubsMeta(conn);
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.synm = synm != null ? synm : new SynodeMeta(conn);
-		
-		// this.commitbuf = new ChangeLogs(chgm);
 	}
 	
 	DBSynsactBuilder loadNyquvect0(String conn) throws SQLException, TransException {
@@ -237,73 +231,75 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws SQLException, TransException {
 
 		List<Statement<?>> stats = new ArrayList<Statement<?>>();
-		// for (AnResultset c : x.commit) {
-			AnResultset rply = x.answer.beforeFirst();
-			rply.beforeFirst();
-			String entid = null;
-			while (rply.next()) {
-				if (compareNyq(rply.getLong(chgm.nyquence), tillN) > 0)
-					break;
-
-				SyntityMeta entm = getEntityMeta(rply.getString(chgm.entbl));
-				String change = rply.getString(ChangeLogs.ChangeFlag);
-				HashMap<String, AnResultset> entbuf = x.challengebuf.entities;
-				
-				// current entity
-				String entid1 = rply.getString(chgm.entfk);
-
-				String rporg  = rply.getString(chgm.org);
-				String rpent  = rply.getString(chgm.entbl);
-				String rpuids = rply.getString(chgm.uids);
-				String rpnodr = rply.getString(chgm.synoder);
-				String rpscrb = rply.getString(subm.synodee);
 
 
-				if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).indices0(entid1) < 0) {
-					Utils.warn("[DBSynsactBuilder commitTill] Fatal error ignored: can't restore entity record answered from target node.\n"
-							+ "entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by answer): %s", entm.tbl, srcnode, synode(), entid1);
-					continue;
-				}
-					
-				stats.add(eq(change, CRUD.C)
-					// create an entity, and trigger change log
-					? !eq(entid, entid1)
-						? insert(entm.tbl, synrobot())
-							.cols(entm.entCols())
-							.value(entm.insertChallengeEnt(entid1, entbuf.get(entm.tbl)))
-							.post(insert(chgm.tbl)
-								.nv(chgm.crud, CRUD.C)
-								.nv(chgm.org, rporg)
-								.nv(chgm.entbl, rpent)
-								.nv(chgm.synoder, rpnodr)
-								.nv(chgm.uids, rpuids)
-								.nv(chgm.entfk, entid1)
-								.post(insert(subm.tbl)
-									.cols(subm.insertCols())
-									.value(subm.insertSubVal(rply))))
-						: insert(subm.tbl)
-							.cols(subm.insertCols())
-							.value(subm.insertSubVal(rply))
+		AnResultset rply = x.answer.beforeFirst();
+		rply.beforeFirst();
+		String entid = null;
+		while (rply.next()) {
+			if (compareNyq(rply.getLong(chgm.nyquence), tillN) > 0)
+				break;
 
-					// remove subscribers & backward change logs's deletion propagation
-					: delete(subm.tbl, synrobot())
-						.whereEq(subm.entbl, entm.tbl)
-						.whereEq(subm.synodee, rpscrb)
-						.whereEq(subm.uids, rpuids)
-						.post(delete(chgm.tbl) // delete change log if no subscribers exist
-							.whereEq(chgm.entbl, entm.tbl)
-							.whereEq(chgm.org, rporg)
-							.whereEq(chgm.synoder, rpnodr)
-							.whereEq(chgm.uids,    rpuids)
-							.whereEq("0", (Query)select(subm.tbl)
-								.col(count(subm.synodee))
-								.whereEq(subm.org, rporg)
-								.whereEq(subm.entbl, entm.tbl)
-								.where(op.ne, subm.synodee, constr(rpscrb))
-								.whereEq(subm.uids,  rpuids))));
-				entid = entid1;
+			SyntityMeta entm = getEntityMeta(rply.getString(chgm.entbl));
+			String change = rply.getString(ChangeLogs.ChangeFlag);
+			HashMap<String, AnResultset> entbuf = x.challengebuf.entities;
+			
+			// current entity
+			String entid1 = rply.getString(chgm.entfk);
+
+			String rporg  = rply.getString(chgm.org);
+			String rpent  = rply.getString(chgm.entbl);
+			String rpuids = rply.getString(chgm.uids);
+			String rpnodr = rply.getString(chgm.synoder);
+			String rpscrb = rply.getString(subm.synodee);
+
+
+
+			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).indices0(entid1) < 0) {
+				Utils.warn("[DBSynsactBuilder commitTill] Fatal error ignored: can't restore entity record answered from target node.\n"
+						+ "entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by answer): %s", entm.tbl, srcnode, synode(), entid1);
+				continue;
 			}
-//		}
+				
+			stats.add(eq(change, CRUD.C)
+				// create an entity, and trigger change log
+				? !eq(entid, entid1)
+					? insert(entm.tbl, synrobot())
+						.cols(entm.entCols())
+						.value(entm.insertChallengeEnt(entid1, entbuf.get(entm.tbl)))
+						.post(insert(chgm.tbl)
+							.nv(chgm.crud, CRUD.C)
+							.nv(chgm.org, rporg)
+							.nv(chgm.entbl, rpent)
+							.nv(chgm.synoder, rpnodr)
+							.nv(chgm.uids, rpuids)
+							.nv(chgm.entfk, entid1)
+							.post(insert(subm.tbl)
+								.cols(subm.insertCols())
+								.value(subm.insertSubVal(rply))))
+					: insert(subm.tbl)
+						.cols(subm.insertCols())
+						.value(subm.insertSubVal(rply))
+
+				// remove subscribers & backward change logs's deletion propagation
+				: delete(subm.tbl, synrobot())
+					.whereEq(subm.entbl, entm.tbl)
+					.whereEq(subm.synodee, rpscrb)
+					.whereEq(subm.uids, rpuids)
+					.post(delete(chgm.tbl) // delete change log if no subscribers exist
+						.whereEq(chgm.entbl, entm.tbl)
+						.whereEq(chgm.org, rporg)
+						.whereEq(chgm.synoder, rpnodr)
+						.whereEq(chgm.uids,    rpuids)
+						.whereEq("0", (Query)select(subm.tbl)
+							.col(count(subm.synodee))
+							.whereEq(subm.org, rporg)
+							.whereEq(subm.entbl, entm.tbl)
+							.where(op.ne, subm.synodee, constr(rpscrb))
+							.whereEq(subm.uids,  rpuids))));
+			entid = entid1;
+		}
+
 		Utils.logi("[DBSynsactBuilder.commitAnswers()] updating change logs without modifying entities...");
 		ArrayList<String> sqls = new ArrayList<String>();
 		for (Statement<?> s : stats)

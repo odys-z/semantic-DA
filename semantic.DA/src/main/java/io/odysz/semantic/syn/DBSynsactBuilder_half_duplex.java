@@ -141,7 +141,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 				.cols(subm.cols())
 				.whereEq(subm.org, org)
 				.whereEq(subm.entbl, entm.tbl)
-				.whereEq(subm.uids, chgm.uids(synode(), uids))
+				.whereEq(subm.uids, uids)
 				.rs(instancontxt(conn, robot))
 				.rs(0);
 	}
@@ -202,7 +202,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 		return commitBuff.size();
 	}
 
-	DBSynsactBuilder_half_duplex commitAnswers(ExchangeContext x, String srcnode, long tillN)
+	DBSynsactBuilder_half_duplex commitAnswers(ExchangeContext_half_duplex x, String srcnode, long tillN)
 			throws SQLException, TransException {
 
 		List<Statement<?>> stats = new ArrayList<Statement<?>>();
@@ -283,7 +283,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 		return this;
 	}
 
-	DBSynsactBuilder_half_duplex commitChallenges(ExchangeContext x, String srcnode, long tillN)
+	DBSynsactBuilder_half_duplex commitChallenges(ExchangeContext_half_duplex x, String srcnode, long tillN)
 			throws SQLException, TransException {
 
 		List<Statement<?>> stats = new ArrayList<Statement<?>>();
@@ -426,7 +426,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public <T extends SynEntity> ChangeLogs initExchange(ExchangeContext cx, String target, SyntityMeta entm) throws TransException, SQLException {
+	public <T extends SynEntity> ChangeLogs initExchange(ExchangeContext_half_duplex cx, String target, SyntityMeta entm) throws TransException, SQLException {
 		Nyquence dn = this.nyquvect.get(target);
 		AnResultset challenge = (AnResultset) select(chgm.tbl, "ch")
 			.je("ch", subm.tbl, "sb", chgm.entbl, subm.entbl, chgm.uids, subm.uids) // FIXME line 1:7 mismatched input '<EOF>' expecting '.'
@@ -469,7 +469,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 		return diff;
 	}
 	
-	public <T extends SynEntity> ChangeLogs onExchange(ExchangeContext x, String from, HashMap<String, Nyquence> remotv,
+	public <T extends SynEntity> ChangeLogs onExchange(ExchangeContext_half_duplex x, String from, HashMap<String, Nyquence> remotv,
 			ChangeLogs req, SyntityMeta entm) throws SQLException, TransException {
 
 		ChangeLogs myanswer = new ChangeLogs(chgm);
@@ -505,7 +505,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public ChangeLogs ackExchange(ExchangeContext x, ChangeLogs answer, String sn)
+	public ChangeLogs ackExchange(ExchangeContext_half_duplex x, ChangeLogs answer, String sn)
 			throws SQLException, TransException, IOException {
 
 		ChangeLogs log = new ChangeLogs(chgm);
@@ -530,7 +530,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 	 * @throws TransException 
 	 * @throws SQLException 
 	 */
-	public void onAck(ExchangeContext x, ChangeLogs ack, String target, SyntityMeta entm)
+	public void onAck(ExchangeContext_half_duplex x, ChangeLogs ack, String target, SyntityMeta entm)
 			throws SQLException, TransException {
 		if (ack != null && compareNyq(ack.nyquvect.get(synode()), nyquvect.get(synode())) <= 0) {
 			commitChallenges(x, this.synode(), nyquvect.get(synode()).n);
@@ -539,7 +539,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 		// DAHelper.updateField(this, basictx.connId(), synm, synode(), synm.nyquence, String.valueOf(n0().n), synrobot());
 	}
 	
-	public HashMap<String, Nyquence> closexchange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
+	public HashMap<String, Nyquence> closexchange(ExchangeContext_half_duplex x, String sn, HashMap<String, Nyquence> nv)
 			throws TransException, SQLException {
 		x.clear();
 		HashMap<String, Nyquence> snapshot = Nyquence.clone(nyquvect);
@@ -547,7 +547,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 		return snapshot;
 	}
 	
-	public void onclosechange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
+	public void onclosechange(ExchangeContext_half_duplex x, String sn, HashMap<String, Nyquence> nv)
 			throws SQLException, TransException {
 		x.clear();
 		// half-duplex mode, will be deprecated

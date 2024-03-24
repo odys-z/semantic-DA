@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.Anson;
@@ -132,20 +133,20 @@ public class DBSyntextTest_half_duplex {
 	static SynSubsMeta sbm;
 
 	static {
-			printCaller(false);
-			conns = new String[] { "syn.00", "syn.01", "syn.02", "syn.03" };
-			testers = new String[] { "odyx", "odyy", "odyz", "odyw" };
+		printCaller(false);
+		conns = new String[] { "syn.00", "syn.01", "syn.02", "syn.03" };
+		testers = new String[] { "odyx", "odyy", "odyz", "odyw" };
 
-			File file = new File(rtroot);
-			runtimepath = file.getAbsolutePath();
-			logi(runtimepath);
-			Configs.init(runtimepath);
-			Connects.init(runtimepath);
+		File file = new File(rtroot);
+		runtimepath = file.getAbsolutePath();
+		logi(runtimepath);
+		Configs.init(runtimepath);
+		Connects.init(runtimepath);
 
-			// load metas, then semantics
-			DATranscxt.configRoot(rtroot, runtimepath);
-			String rootkey = System.getProperty("rootkey");
-			DATranscxt.key("user-pswd", rootkey);
+		// load metas, then semantics
+		DATranscxt.configRoot(rtroot, runtimepath);
+		String rootkey = System.getProperty("rootkey");
+		DATranscxt.key("user-pswd", rootkey);
 	}
 
 	static T_PhotoMeta phm;
@@ -222,7 +223,7 @@ public class DBSyntextTest_half_duplex {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			c[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
+			c[s] = new Ck(s, new DBSynsactBuilder_half_duplex(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
 			if (s != 3)
 				c[s].trb.incNyquence();
 
@@ -815,14 +816,14 @@ public class DBSyntextTest_half_duplex {
 	 * @throws IOException 
 	 */
 	void exchange(int srv, int cli) throws TransException, SQLException, IOException {
-		DBSynsactBuilder ctb = c[cli].trb;
-		DBSynsactBuilder stb = c[srv].trb;
+		DBSynsactBuilder_half_duplex ctb = c[cli].trb;
+		DBSynsactBuilder_half_duplex stb = c[srv].trb;
 
 		SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId()).replace();
 		SyntityMeta cphm = new T_PhotoMeta(ctb.basictx().connId()).replace();
 
-		ExchangeContext cx = new ExchangeContext(chm, ctb, stb.synode());
-		ExchangeContext sx = new ExchangeContext(chm, stb, ctb.synode());
+		ExchangeContext_half_duplex cx = new ExchangeContext_half_duplex(chm, ctb, stb.synode());
+		ExchangeContext_half_duplex sx = new ExchangeContext_half_duplex(chm, stb, ctb.synode());
 
 		// 0, X init
 		Utils.logi("\n0: %s initiate", ctb.synode());
@@ -881,7 +882,7 @@ public class DBSyntextTest_half_duplex {
 		SyntityMeta entm = c[s].phm;
 		String conn = conns[s];
 		String synoder = c[s].trb.synode();
-		DBSynsactBuilder trb = c[s].trb;
+		DBSynsactBuilder_half_duplex trb = c[s].trb;
 		SyncRobot robot = (SyncRobot) c[s].robot();
 		
 		trb.update(entm.tbl, robot)
@@ -914,7 +915,7 @@ public class DBSyntextTest_half_duplex {
 		SyntityMeta entm = c[s].phm;
 		String conn = conns[s];
 		String synoder = c[s].trb.synode();
-		DBSynsactBuilder trb = c[s].trb;
+		DBSynsactBuilder_half_duplex trb = c[s].trb;
 		SyncRobot robot = (SyncRobot) c[s].robot();
 		
 		T_PhotoMeta m = c[s].phm;
@@ -992,14 +993,14 @@ public class DBSyntextTest_half_duplex {
 	public static class Ck {
 		public T_PhotoMeta phm;
 
-		final DBSynsactBuilder trb;
+		final DBSynsactBuilder_half_duplex trb;
 
 		final String org;
 
 		public IUser robot() { return trb.synrobot(); }
 		String connId() { return trb.basictx().connId(); }
 
-		public Ck(int s, DBSynsactBuilder trb, String org) throws SQLException, TransException, ClassNotFoundException, IOException {
+		public Ck(int s, DBSynsactBuilder_half_duplex trb, String org) throws SQLException, TransException, ClassNotFoundException, IOException {
 			this(conns[s], trb, org, String.format("s%s", s), "rob-" + s);
 			phm = new T_PhotoMeta(conns[s]);
 		}
@@ -1015,7 +1016,7 @@ public class DBSyntextTest_half_duplex {
 		public void synodes(int x, int y, int z, int w) {
 		}
 
-		public Ck(String conn, DBSynsactBuilder trb, String org, String synid, String usrid)
+		public Ck(String conn, DBSynsactBuilder_half_duplex trb, String org, String synid, String usrid)
 				throws SQLException, TransException, ClassNotFoundException, IOException {
 			this.trb = trb;
 			this.org = org;
@@ -1092,16 +1093,16 @@ public class DBSyntextTest_half_duplex {
 			}
 			else {
 				int cnt = 0;
-//				for (String syndee : toIds) {
-					AnResultset subs = trb.subscripts(connId(), org, uids, phm, robot());
-					subs.beforeFirst();
-					while (subs.next()) {
-						if (indexOf(toIds, subs.getString(sbm.synodee)) >= 0)
-							cnt++;
-					}
-					if (subs.beforeFirst().next())
-						assertEquals(phm.tbl, subs.getString(sbm.entbl));
-//				}
+				AnResultset subs = trb.subscripts(connId(), org, uids, phm, robot());
+				subs.beforeFirst();
+				while (subs.next()) {
+					if (indexOf(toIds, subs.getString(sbm.synodee)) >= 0)
+						cnt++;
+				}
+
+				if (subs.beforeFirst().next())
+					assertEquals(phm.tbl, subs.getString(sbm.entbl));
+
 				assertEquals(subcount, cnt);
 			}
 
@@ -1136,7 +1137,7 @@ public class DBSyntextTest_half_duplex {
 				.collect(Collectors.joining("    ", "      ", "")));
 
 		for (int cx = 0; cx < ck.length; cx++) {
-			DBSynsactBuilder t = ck[cx].trb;
+			DBSynsactBuilder_half_duplex t = ck[cx].trb;
 			Utils.logi(
 				t.synode() + " [ " +
 				t.nyquvect.keySet().stream()
@@ -1167,7 +1168,7 @@ public class DBSyntextTest_half_duplex {
 		HashMap<String, ChangeLine[]> uidss = new HashMap<String, ChangeLine[]>();
 
 		for (int cx = 0; cx < ck.length; cx++) {
-			DBSynsactBuilder b = ck[cx].trb;
+			DBSynsactBuilder_half_duplex b = ck[cx].trb;
 			HashMap<String, ChangeLine> idmap = ((AnResultset) b
 					.select(chm.tbl, "ch")
 					.cols("ch.*", sbm.synodee)
