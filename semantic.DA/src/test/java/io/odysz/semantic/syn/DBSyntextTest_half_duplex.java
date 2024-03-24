@@ -49,12 +49,12 @@ import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
 /**
- * Half-duplex mode for exchanging logs are running.
+ * @deprecated Half-duplex mode for exchanging logs are running.
  * This test is marked by
  * <pre>
  * commit 522f918e1c1f76ba588ce8d262a13936043cf449
  * to
- * commit a7febfcd0fd8e1c3e539e4379e67c1abb4f1e495
+ * commit 8e1ed0c9771e8b23af9735fefa106807fa2f0fbc
  * </pre>
  * and will be deprecated.
  * 
@@ -107,7 +107,6 @@ import io.odysz.transact.x.TransException;
  * D            w
  * 
  * </pre>
- * @deprecated Half-duplex mode is only work as a step stone
  * @author Ody
  */
 public class DBSyntextTest_half_duplex {
@@ -236,6 +235,7 @@ public class DBSyntextTest_half_duplex {
 		assertEquals("syn.00", c[0].connId());
 	}
 
+	@Disabled
 	@Test
 	void testChangeLogs() throws Exception {
 		test01InsertBasic_half_duplex();
