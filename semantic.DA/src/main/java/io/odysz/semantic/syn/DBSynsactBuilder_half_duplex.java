@@ -39,8 +39,10 @@ import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 /**
  * Sql statement builder for {@link DBSyntext} for handling database synchronization. 
+ * 
+ * @deprecated Half-duplex mode is only work as a step stone
+ * 
  * @author Ody
- *
  */
 public class DBSynsactBuilder_half_duplex extends DATranscxt {
 

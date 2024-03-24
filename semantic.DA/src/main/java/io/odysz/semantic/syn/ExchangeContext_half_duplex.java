@@ -14,6 +14,7 @@ import io.odysz.semantics.x.SemanticException;
  * This is different from {@link DBSyntext} which is used for
  * handling local data integration and database semantics. 
  * 
+ * @deprecated replaced by full-duplex mode
  * @author Ody
  */
 public class ExchangeContext_half_duplex {
