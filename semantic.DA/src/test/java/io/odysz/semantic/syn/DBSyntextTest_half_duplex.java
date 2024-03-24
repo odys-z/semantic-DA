@@ -57,6 +57,9 @@ import io.odysz.transact.x.TransException;
  * </pre>
  * and will be deprecated.
  * 
+ * This test shouldn't run in the near future. For test results, see 
+ * commit log of 951a5ac069ce79c25f83995c7bc62ce01255ea0f.
+ * 
  * <pre>
  * 1. Synodes initialized with ++n0.
  * 
@@ -103,9 +106,6 @@ import io.odysz.transact.x.TransException;
  * D            w
  * 
  * </pre>
- * This test shouldn't run in the near future. For test results, see 
- * commit log of 951a5ac069ce79c25f83995c7bc62ce01255ea0f.
- * 
  * @deprecated Half-duplex mode is only work as a step stone
  * @author Ody
  */

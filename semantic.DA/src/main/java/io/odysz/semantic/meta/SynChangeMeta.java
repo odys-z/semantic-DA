@@ -2,7 +2,6 @@ package io.odysz.semantic.meta;
 
 import io.odysz.common.Utils;
 import io.odysz.semantics.meta.TableMeta;
-import io.odysz.transact.sql.parts.condition.Funcall;
 
 /**
  *<a href="./syn_change.sqlite.ddl">syn_change DDL</a>
