@@ -828,7 +828,7 @@ public class DBSyntextTest_half_duplex {
 		ChangeLogs req = ctb.initExchange(cx, stb.synode(), cphm);
 		assertNotNull(req);
 		
-		if (srv == 1 && cli == 0) {
+		if (srv == Y && cli == X) {
 			if (req.challenges() >= 3 || req.enitities(cphm.tbl) >= 2)
 				Utils.warn("ERROR, req.challenges() >= 3 || req.enitities(cphm.tbl) >= 2,"
 						+ "but it's not planned to fix this problem in half-duplex mode");
