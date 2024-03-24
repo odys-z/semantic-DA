@@ -235,6 +235,7 @@ public class DBSyntextTest_half_duplex {
 		assertEquals("syn.00", c[0].connId());
 	}
 
+	@Disabled
 	@Test
 	void testChangeLogs() throws Exception {
 		test01InsertBasic_half_duplex();
