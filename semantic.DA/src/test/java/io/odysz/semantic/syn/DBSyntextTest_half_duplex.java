@@ -107,7 +107,6 @@ import io.odysz.transact.x.TransException;
  * D            w
  * 
  * </pre>
- * @deprecated Half-duplex mode is only work as a step stone
  * @author Ody
  */
 public class DBSyntextTest_half_duplex {
