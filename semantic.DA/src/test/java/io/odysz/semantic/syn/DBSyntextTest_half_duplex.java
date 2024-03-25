@@ -123,7 +123,7 @@ public class DBSyntextTest_half_duplex {
 
 	static String runtimepath;
 
-	public static Ck[] c = new Ck[4];
+	public static Ck[] ck = new Ck[4];
 
 	static HashMap<String, DBSynmantics> synms;
 
@@ -180,7 +180,7 @@ public class DBSyntextTest_half_duplex {
 				 + "  CONSTRAINT oz_autoseq_pk PRIMARY KEY (sid));");
 		}
 
-		c = new Ck[4];
+		ck = new Ck[4];
 		String[] synodeIds = new String[] { "X", "Y", "Z", "W" };
 		// new for triggering ddl loading - some error here FIXME
 		// nyqm = new NyquenceMeta("");
@@ -222,17 +222,17 @@ public class DBSyntextTest_half_duplex {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			c[s] = new Ck(s, new DBSynsactBuilder_half_duplex(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
+			ck[s] = new Ck(s, new DBSynsactBuilder_half_duplex(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
 			if (s != 3)
-				c[s].trb.incNyquence();
+				ck[s].trb.incNyquence();
 
-			c[s].trb.registerEntity(conn, c[s].phm);
+			ck[s].trb.registerEntity(conn, ck[s].phm);
 		}
 
 		phm = new T_PhotoMeta(conns[0]); // all entity table is the same in this test
 		// phEntCreater = (rs) -> { return new T_Photo(rs, phm); };
 
-		assertEquals("syn.00", c[0].connId());
+		assertEquals("syn.00", ck[0].connId());
 	}
 
 	@Disabled
@@ -347,17 +347,17 @@ public class DBSyntextTest_half_duplex {
 	 */
 	void test01InsertBasic_half_duplex() throws TransException, SQLException, IOException {
 
-		HashMap<String, Nyquence> nvx = c[X].trb.nyquvect;
-		long Aa_ = nvx.get(c[X].trb.synode()).n;
-		long Ab_ = nvx.get(c[Y].trb.synode()).n;
+		HashMap<String, Nyquence> nvx = ck[X].trb.nyquvect;
+		long Aa_ = nvx.get(ck[X].trb.synode()).n;
+		long Ab_ = nvx.get(ck[Y].trb.synode()).n;
 		// Ab_ ++; // because no synchronization for the loading step of B
-		String x = c[X].trb.synode();
+		String x = ck[X].trb.synode();
 
-		HashMap<String, Nyquence> nvy = c[Y].trb.nyquvect;
-		long Ba_ = nvy.get(c[X].trb.synode()).n;
-		long Bb_ = nvy.get(c[Y].trb.synode()).n;
+		HashMap<String, Nyquence> nvy = ck[Y].trb.nyquvect;
+		long Ba_ = nvy.get(ck[X].trb.synode()).n;
+		long Bb_ = nvy.get(ck[Y].trb.synode()).n;
 		// Ba_ ++;
-		String y = c[Y].trb.synode();
+		String y = ck[Y].trb.synode();
 
 		// 1.1 insert A
 		Utils.logi("\n1.1 insert A");
@@ -365,9 +365,9 @@ public class DBSyntextTest_half_duplex {
 		String A_0 = A_0_uids[0];
 
 		// syn_change.curd = C
-		c[X].change(1, C, A_0, c[X].phm);
+		ck[X].change(1, C, A_0, ck[X].phm);
 		// syn_subscribe.to = [B, C, D]
-		c[X].subs(2, A_0_uids[1], -1, Y, Z, -1);
+		ck[X].subs(2, A_0_uids[1], -1, Y, Z, -1);
 
 		// 1.2 insert B
 		Utils.logi("\n1.2 insert B");
@@ -375,22 +375,22 @@ public class DBSyntextTest_half_duplex {
 		String B_0 = B_0_uids[0];
 
 		// syn_change.curd = C
-		c[Y].change(1, C, B_0, c[Y].phm);
+		ck[Y].change(1, C, B_0, ck[Y].phm);
 		// syn_subscribe.to = [A, C, D]
-		c[Y].subs(2, B_0_uids[1], X, -1, Z, -1);
+		ck[Y].subs(2, B_0_uids[1], X, -1, Z, -1);
 		
-		printChangeLines(c);
-		printNyquv(c);
+		printChangeLines(ck);
+		printNyquv(ck);
 
 		// 2. X <= Y
 		Utils.logi("\n2 X <= Y");
 		exchange(X, Y);
-		c[Y].change(1, C, B_0, c[Y].phm);
-		c[Y].subs(1, B_0_uids[1], -1, -1, Z, -1);
+		ck[Y].change(1, C, B_0, ck[Y].phm);
+		ck[Y].subs(1, B_0_uids[1], -1, -1, Z, -1);
 
 		// B.b++, A.b = B.b, B.a = A.a
 		long Ab = nvx.get(y).n;
-		long Bb = c[Y].trb.n0().n;
+		long Bb = ck[Y].trb.n0().n;
 		assertEquals(Bb, nvy.get(y).n);
 		assertEquals(Bb_ + 1, Bb);
 		assertEquals(Ab_, Ab);
@@ -398,7 +398,7 @@ public class DBSyntextTest_half_duplex {
 
 		long Aa = nvx.get(x).n;
 		long Ba = nvy.get(x).n;
-		assertEquals(Aa, c[X].trb.n0().n);
+		assertEquals(Aa, ck[X].trb.n0().n);
 		assertEquals(Aa_, Aa);
 		assertEquals(Ba_ + 1, Ba);
 		Ab_ = Ab;
@@ -409,21 +409,21 @@ public class DBSyntextTest_half_duplex {
 		// 3. Y <= X
 		Utils.logi("\n3 Y <= X");
 		exchange(Y, X);
-		c[X].change(1, C, A_0, c[X].phm);
-		c[X].subs(1, A_0_uids[1], -1, -1, Z, -1);
-		c[X].subs(1, B_0_uids[1], -1, -1, Z, -1);
+		ck[X].change(1, C, A_0, ck[X].phm);
+		ck[X].subs(1, A_0_uids[1], -1, -1, Z, -1);
+		ck[X].subs(1, B_0_uids[1], -1, -1, Z, -1);
 
 		// A.a++, B.a = A.a, A.b = B.b
 		Aa = nvx.get(x).n;
 		Ba = nvy.get(x).n;
-		assertEquals(Aa, c[X].trb.n0().n);
+		assertEquals(Aa, ck[X].trb.n0().n);
 
 		Ab = nvx.get(y).n;
 		Bb = nvy.get(y).n;
-		assertEquals(Bb, c[Y].trb.n0().n);
+		assertEquals(Bb, ck[Y].trb.n0().n);
 		
 		assertEquals(Aa_ + 1, Aa);
-		assertEquals(Aa, c[X].trb.n0().n);
+		assertEquals(Aa, ck[X].trb.n0().n);
 		assertEquals(Aa, Ba + 1);
 
 		assertEquals(Ba_, Ba);
@@ -433,7 +433,7 @@ public class DBSyntextTest_half_duplex {
 		Ba_ = Ba;
 		Bb_ = Bb;
 
-		printChangeLines(c);
+		printChangeLines(ck);
 	}
 
 	/**
@@ -605,20 +605,20 @@ public class DBSyntextTest_half_duplex {
 
 		// initSynodes(0);
 
-		c[X].synodes(X, Y, Z, -1);
+		ck[X].synodes(X, Y, Z, -1);
 		join(X, W);
-		c[X].synodes(X, Y, Z, W);
+		ck[X].synodes(X, Y, Z, W);
 
-		c[X].change(1, C, c[X].trb.synode(), c[X].phm);
+		ck[X].change(1, C, ck[X].trb.synode(), ck[X].phm);
 		// i X  w  3
 		// c[X].chgEnt(C, c[X].synode, c[W].synode, c[W].phm);
 		// Y, Z
-		c[X].subs(3, c[W].trb.synode(), -1, Y, Z, -1);
+		ck[X].subs(3, ck[W].trb.synode(), -1, Y, Z, -1);
 		
 		exchange(X, Y);
-		c[Y].change(1, CRUD.C, c[X].trb.synode(), c[Y].phm);
-		c[Y].subs(3, c[W].trb.synode(),  -1, -1, Z, -1);
-		c[X].subs(3, c[W].trb.synode(),  -1, -1, Z, -1);
+		ck[Y].change(1, CRUD.C, ck[X].trb.synode(), ck[Y].phm);
+		ck[Y].subs(3, ck[W].trb.synode(),  -1, -1, Z, -1);
+		ck[X].subs(3, ck[W].trb.synode(),  -1, -1, Z, -1);
 	}
 
 	/**
@@ -766,42 +766,42 @@ public class DBSyntextTest_half_duplex {
 		String A_0 = deletePhoto(chm, X);
 		String B_0 = deletePhoto(chm, Y);
 
-		c[X].change(2, CRUD.D, A_0, c[X].phm);
-		c[Y].change(2, CRUD.D, B_0, c[Y].phm);
-		c[X].subs(2, A_0, -1,  Y, Z, W);
-		c[Y].subs(2, B_0,  X, -1, Z, W);
+		ck[X].change(2, CRUD.D, A_0, ck[X].phm);
+		ck[Y].change(2, CRUD.D, B_0, ck[Y].phm);
+		ck[X].subs(2, A_0, -1,  Y, Z, W);
+		ck[Y].subs(2, B_0,  X, -1, Z, W);
 		
 		exchange(X, Y);
-		c[X].subs(2, A_0, -1, -1, Z, W);
-		c[Y].subs(2, A_0, -1, -1, Z, W);
+		ck[X].subs(2, A_0, -1, -1, Z, W);
+		ck[Y].subs(2, A_0, -1, -1, Z, W);
 
-		c[X].subs(2, B_0, -1, -1, Z, W);
-		c[Y].subs(2, B_0, -1, -1, Z, W);
+		ck[X].subs(2, B_0, -1, -1, Z, W);
+		ck[Y].subs(2, B_0, -1, -1, Z, W);
 		
 		exchange(Y, Z);
-		c[X].subs(2, A_0, -1, -1,  Z, W);
-		c[Y].subs(2, A_0, -1, -1, -1, W);
-		c[Z].subs(2, A_0, -1, -1, -1, W);
+		ck[X].subs(2, A_0, -1, -1,  Z, W);
+		ck[Y].subs(2, A_0, -1, -1, -1, W);
+		ck[Z].subs(2, A_0, -1, -1, -1, W);
 
-		c[X].subs(2, B_0, -1, -1,  Z, W);
-		c[Y].subs(2, B_0, -1, -1, -1, W);
-		c[Z].subs(2, B_0, -1, -1, -1, W);
+		ck[X].subs(2, B_0, -1, -1,  Z, W);
+		ck[Y].subs(2, B_0, -1, -1, -1, W);
+		ck[Z].subs(2, B_0, -1, -1, -1, W);
 
 		exchange(X, Y);
-		c[X].subs(2, A_0, -1, -1, -1, W);
-		c[Y].subs(2, A_0, -1, -1, -1, W);
-		c[Z].subs(2, A_0, -1, -1, -1, W);
+		ck[X].subs(2, A_0, -1, -1, -1, W);
+		ck[Y].subs(2, A_0, -1, -1, -1, W);
+		ck[Z].subs(2, A_0, -1, -1, -1, W);
 
-		c[X].subs(2, B_0, -1, -1, -1, W);
-		c[Y].subs(2, B_0, -1, -1, -1, W);
-		c[Z].subs(2, B_0, -1, -1, -1, W);
+		ck[X].subs(2, B_0, -1, -1, -1, W);
+		ck[Y].subs(2, B_0, -1, -1, -1, W);
+		ck[Z].subs(2, B_0, -1, -1, -1, W);
 	}
 	
 	void join(int admin, int apply) throws TransException, SQLException {
-		c[admin].trb.addSynode(
-				c[admin].connId(),  // into admin's db
-				new Synode(c[apply].connId(), c[apply].trb.synode(), c[admin].robot().orgId()),
-				c[admin].robot());
+		ck[admin].trb.addSynode(
+				ck[admin].connId(),  // into admin's db
+				new Synode(ck[apply].connId(), ck[apply].trb.synode(), ck[admin].robot().orgId()),
+				ck[admin].robot());
 		
 		// exchange(admin, apply);
 	}
@@ -816,8 +816,8 @@ public class DBSyntextTest_half_duplex {
 	 * @throws IOException 
 	 */
 	void exchange(int srv, int cli) throws TransException, SQLException, IOException {
-		DBSynsactBuilder_half_duplex ctb = c[cli].trb;
-		DBSynsactBuilder_half_duplex stb = c[srv].trb;
+		DBSynsactBuilder_half_duplex ctb = ck[cli].trb;
+		DBSynsactBuilder_half_duplex stb = ck[srv].trb;
 
 		SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId()).replace();
 		SyntityMeta cphm = new T_PhotoMeta(ctb.basictx().connId()).replace();
@@ -845,30 +845,30 @@ public class DBSyntextTest_half_duplex {
 			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req, sphm);
 			Utils.logi("1: %s on exchange response\tchanges: %d\tentities: %d\tanswers: %d",
 					stb.synode(), resp.challenges(), resp.enitities(cphm.tbl), resp.answers());
-			printChangeLines(c);
-			printNyquv(c);
+			printChangeLines(ck);
+			printNyquv(ck);
 
 			// client
 			Utils.logi("\n2: %s ack exchange", ctb.synode());
 			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode());
 			Utils.logi("2: %s ack exchange acknowledge\tchanges: %d\tentities: %d\tanswers: %d",
 					ctb.synode(), ack.challenges(), ack.enitities(cphm.tbl), ack.answers());
-			printChangeLines(c);
-			printNyquv(c);
+			printChangeLines(ck);
+			printNyquv(ck);
 			
 			// server
 			Utils.logi("\n3: %s on ack", stb.synode());
 			stb.onAck(sx, ack, ctb.synode(), sphm);
-			printChangeLines(c);
-			printNyquv(c);
+			printChangeLines(ck);
+			printNyquv(ck);
 
 			// client
 			Utils.logi("\n0: %s initiate again", ctb.synode());
 			req = ctb.initExchange(cx, stb.synode(), cphm);
 			Utils.logi("0: %s initiate again\tchanges: %d\tentities: %d",
 					ctb.synode(), req.challenges(), req.enitities(cphm.tbl));
-			printChangeLines(c);
-			printNyquv(c);
+			printChangeLines(ck);
+			printNyquv(ck);
 		}
 
 		assertNotNull(req);
@@ -878,19 +878,19 @@ public class DBSyntextTest_half_duplex {
 		HashMap<String, Nyquence> nv = ctb.closexchange(cx, stb.synode(), stb.nyquvect);
 		Utils.logi("   %s on closing exchange", stb.synode());
 		stb.onclosechange(sx, ctb.synode(), nv);
-		printChangeLines(c);
-		printNyquv(c);
+		printChangeLines(ck);
+		printNyquv(ck);
 
 		if (req.challenges() > 0)
 			fail("Shouldn't has any more challenge here.");
 	}
 
 	void updatePhoto(int s, String pid) throws TransException, SQLException {
-		SyntityMeta entm = c[s].phm;
+		SyntityMeta entm = ck[s].phm;
 		String conn = conns[s];
-		String synoder = c[s].trb.synode();
-		DBSynsactBuilder_half_duplex trb = c[s].trb;
-		SyncRobot robot = (SyncRobot) c[s].robot();
+		String synoder = ck[s].trb.synode();
+		DBSynsactBuilder_half_duplex trb = ck[s].trb;
+		SyncRobot robot = (SyncRobot) ck[s].robot();
 		
 		trb.update(entm.tbl, robot)
 			.nv(entm.synoder, synoder)
@@ -919,13 +919,13 @@ public class DBSyntextTest_half_duplex {
 	}
 	
 	String[] insertPhoto(int s) throws TransException, SQLException {
-		SyntityMeta entm = c[s].phm;
+		SyntityMeta entm = ck[s].phm;
 		String conn = conns[s];
-		String synoder = c[s].trb.synode();
-		DBSynsactBuilder_half_duplex trb = c[s].trb;
-		SyncRobot robot = (SyncRobot) c[s].robot();
+		String synoder = ck[s].trb.synode();
+		DBSynsactBuilder_half_duplex trb = ck[s].trb;
+		SyncRobot robot = (SyncRobot) ck[s].robot();
 		
-		T_PhotoMeta m = c[s].phm;
+		T_PhotoMeta m = ck[s].phm;
 		String pid = ((SemanticObject) trb
 			.insert(m.tbl, robot)
 			.nv(m.uri, "")
@@ -971,21 +971,21 @@ public class DBSyntextTest_half_duplex {
 //	}
 
 	String deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
-		T_PhotoMeta m = c[s].phm;
-		AnResultset slt = ((AnResultset) c[s].trb
+		T_PhotoMeta m = ck[s].phm;
+		AnResultset slt = ((AnResultset) ck[s].trb
 				.select(chgm.tbl, conns)
 				.orderby(m.pk, "desc")
 				.limit(1)
-				.rs(c[s].trb.instancontxt(c[s].connId(), c[s].robot()))
+				.rs(ck[s].trb.instancontxt(ck[s].connId(), ck[s].robot()))
 				.rs(0))
 				.nxt();
 		String pid = slt.getString(m.pk);
 
-		pid = ((SemanticObject) c[s].trb
-			.delete(m.tbl, c[s].robot())
+		pid = ((SemanticObject) ck[s].trb
+			.delete(m.tbl, ck[s].robot())
 			.whereEq(chgm.uids, pid)
-			.d(c[s].trb.instancontxt(conns[s], c[s].robot())))
-			.resulve(c[s].phm.tbl, c[s].phm.pk);
+			.d(ck[s].trb.instancontxt(conns[s], ck[s].robot())))
+			.resulve(ck[s].phm.tbl, ck[s].phm.pk);
 		
 		assertFalse(isblank(pid));
 		
@@ -1088,7 +1088,7 @@ public class DBSyntextTest_half_duplex {
 			ArrayList<String> toIds = new ArrayList<String>();
 			for (int n : sub)
 				if (n >= 0)
-					toIds.add(c[n].trb.synode());
+					toIds.add(ck[n].trb.synode());
 			subsCount(subcount, uids, toIds.toArray(new String[0]));
 		}
 

@@ -112,7 +112,7 @@ public class DBSyntextTest {
 
 	static String runtimepath;
 
-	public static Ck[] c = new Ck[4];
+	public static Ck[] ck = new Ck[4];
 
 	static HashMap<String, DBSynmantics> synms;
 
@@ -169,7 +169,7 @@ public class DBSyntextTest {
 				 + "  CONSTRAINT oz_autoseq_pk PRIMARY KEY (sid));");
 		}
 
-		c = new Ck[4];
+		ck = new Ck[4];
 		String[] synodeIds = new String[] { "X", "Y", "Z", "W" };
 		// new for triggering ddl loading - some error here FIXME
 		// nyqm = new NyquenceMeta("");
@@ -211,17 +211,17 @@ public class DBSyntextTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			c[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
+			ck[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
 			if (s != 3)
-				c[s].trb.incNyquence();
+				ck[s].trb.incNyquence();
 
-			c[s].trb.registerEntity(conn, c[s].phm);
+			ck[s].trb.registerEntity(conn, ck[s].phm);
 		}
 
 		phm = new T_PhotoMeta(conns[0]); // all entity table is the same in this test
 		// phEntCreater = (rs) -> { return new T_Photo(rs, phm); };
 
-		assertEquals("syn.00", c[0].connId());
+		assertEquals("syn.00", ck[0].connId());
 	}
 
 	@Test
@@ -335,17 +335,23 @@ public class DBSyntextTest {
 	 */
 	void test01InsertBasic() throws TransException, SQLException, IOException {
 
-		HashMap<String, Nyquence> nvx = c[X].trb.nyquvect;
-		long Aa_ = nvx.get(c[X].trb.synode()).n;
-		long Ab_ = nvx.get(c[Y].trb.synode()).n;
+		HashMap<String, Nyquence> nvx = ck[X].trb.nyquvect;
+		long Aa_ = nvx.get(ck[X].trb.synode()).n;
+		long Ab_ = nvx.get(ck[Y].trb.synode()).n;
 		// Ab_ ++; // because no synchronization for the loading step of B
-		String x = c[X].trb.synode();
+		String x = ck[X].trb.synode();
 
-		HashMap<String, Nyquence> nvy = c[Y].trb.nyquvect;
-		long Ba_ = nvy.get(c[X].trb.synode()).n;
-		long Bb_ = nvy.get(c[Y].trb.synode()).n;
+		HashMap<String, Nyquence> nvy = ck[Y].trb.nyquvect;
+		long Ba_ = nvy.get(ck[X].trb.synode()).n;
+		long Bb_ = nvy.get(ck[Y].trb.synode()).n;
 		// Ba_ ++;
-		String y = c[Y].trb.synode();
+		String y = ck[Y].trb.synode();
+
+		HashMap<String, Nyquence> nvz = ck[Z].trb.nyquvect;
+		long Ca_ = nvy.get(ck[Z].trb.synode()).n;
+		long Cb_ = nvy.get(ck[Z].trb.synode()).n;
+		String z = ck[Z].trb.synode();
+
 
 		// 1.1 insert A
 		Utils.logi("\n1.1 insert A");
@@ -353,9 +359,9 @@ public class DBSyntextTest {
 		String A_0 = A_0_uids[0];
 
 		// syn_change.curd = C
-		c[X].change(1, C, A_0, c[X].phm);
+		ck[X].change(1, C, A_0, ck[X].phm);
 		// syn_subscribe.to = [B, C, D]
-		c[X].subs(2, A_0_uids[1], -1, Y, Z, -1);
+		ck[X].subs(2, A_0_uids[1], -1, Y, Z, -1);
 
 		// 1.2 insert B
 		Utils.logi("\n1.2 insert B");
@@ -363,67 +369,180 @@ public class DBSyntextTest {
 		String B_0 = B_0_uids[0];
 
 		// syn_change.curd = C
-		c[Y].change(1, C, B_0, c[Y].phm);
+		ck[Y].change(1, C, B_0, ck[Y].phm);
 		// syn_subscribe.to = [A, C, D]
-		c[Y].subs(2, B_0_uids[1], X, -1, Z, -1);
+		ck[Y].subs(2, B_0_uids[1], X, -1, Z, -1);
 		
-		printChangeLines(c);
-		printNyquv(c);
+		printChangeLines(ck);
+		printNyquv(ck);
 
 		// 2. X <= Y
 		Utils.logi("\n2 X <= Y");
 		exchange(X, Y);
-		c[Y].change(1, C, B_0, c[Y].phm);
-		c[Y].subs(1, B_0_uids[1], -1, -1, Z, -1);
+		ck[Y].change(1, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
+		ck[Y].change(1, C, ck[X].trb.synode(), A_0, ck[Y].phm);
+		ck[Y].subs(1, B_0_uids[1], -1, -1, Z, -1);
+		ck[Y].subs(1, A_0_uids[1], -1, -1, Z, -1);
 
 		// B.b++, A.b = B.b, B.a = A.a
 		long Ab = nvx.get(y).n;
-		long Bb = c[Y].trb.n0().n;
-		assertEquals(Bb, nvy.get(y).n);
-		assertEquals(Bb_ + 1, Bb);
-		assertEquals(Ab_ + 1, Ab);
-		assertEquals(Ab + 1, Bb);
+		long Bb = ck[Y].trb.n0().n;
+		// assertEquals(Bb, nvy.get(y).n);
+		// assertEquals(Bb_ + 1, Bb);
+		// assertEquals(Ab_ + 1, Ab);
+		// assertEquals(Ab + 1, Bb);
+		assertnv(  Bb,     Bb_ + 1, Ab_ + 1, Ab + 1,
+			 nvy.get(y).n, Bb,      Ab,      Bb);
 
 		long Aa = nvx.get(x).n;
 		long Ba = nvy.get(x).n;
-		assertEquals(Aa, c[X].trb.n0().n);
-		assertEquals(Aa_ + 1, Aa);
-		assertEquals(Ba_ + 1, Ba);
+		// assertEquals(Aa, cks[X].trb.n0().n);
+		// assertEquals(Aa_ + 1, Aa);
+		// assertEquals(Ba_ + 1, Ba);
+		assertnv(   Aa,        Aa_ + 1, Ba_ + 1,
+			ck[X].trb.n0().n, Aa,      Ba);
+
 		Ab_ = Ab;
 		Bb_ = Bb;
 		Aa_ = Aa;
 		Ba_ = Ba;
+		
+		// 3. Y <= Z
+		long Bc_ = nvy.get(z).n;
+		long Cc_ = nvz.get(z).n;
 
-		// 3. Y <= X
-//		Utils.logi("\n3 Y <= X");
-//		exchange(Y, X);
-//		c[X].change(1, C, A_0, c[X].phm);
-//		c[X].subs(1, A_0_uids[1], -1, -1, Z, -1);
-//		c[X].subs(1, B_0_uids[1], -1, -1, Z, -1);
-//
-//		// A.a++, B.a = A.a, A.b = B.b
-//		Aa = nvx.get(x).n;
-//		Ba = nvy.get(x).n;
-//		assertEquals(Aa, c[X].trb.n0().n);
-//
-//		Ab = nvx.get(y).n;
-//		Bb = nvy.get(y).n;
-//		assertEquals(Bb, c[Y].trb.n0().n);
-//		
-//		assertEquals(Aa_ + 1, Aa);
-//		assertEquals(Aa, c[X].trb.n0().n);
-//		assertEquals(Aa, Ba + 1);
-//
-//		assertEquals(Ba_, Ba);
-//		assertEquals(Ab_ + 2, Bb);
-//		Aa_ = Aa;
-//		Ab_ = Ab;
-//		Ba_ = Ba;
-//		Bb_ = Bb;
+		Utils.logi("\n3 Y <= Z");
+		exchange(Y, Z);
+		ck[Z].change(0, C, A_0, ck[Y].phm);
+		ck[Z].change(0, C, B_0, ck[Y].phm);
+		ck[Z].subs(0, A_0_uids[1], -1, -1, Z, -1);
+		ck[Z].subs(0, B_0_uids[1], -1, -1, Z, -1);
 
-//		printChangeLines(c);
+		long Bc = nvy.get(x).n;
+		long Ca = nvz.get(x).n;
+		long Cb = nvz.get(y).n;
+		long Cc = ck[Z].trb.n0().n;
+
+		assertEquals(Cc, nvz.get(z).n);
+		assertnv( Ca_, Cb_, Cc_ + 1,
+				  Ca,  Cb,  Cc );
+		assertnv( Ba_, Bb_, Bc_ + 1,
+				  Ba,  Bb,  Bc );
+
+		Ab_ = Ab;
+		Bb_ = Bb;
+		Aa_ = Aa;
+		Ba_ = Ba;
+		Bc_ = Bc;
 	}
 
+
+	/**
+	 * <pre>
+	 * A                      | B                    
+	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub
+	 *  D,   A, A:0, x0,  B   |  D,   B, B:0, y0,  A  
+	 *                    C   |                    C 
+	 *  I,   A, B:0, x0,  C   |  I,   B, A:0, y0,  C 
+	 *  U,   A, C:0, x0,  C   |  U,   B, C:0, y0,  C
+	 *
+	 *    a   b   c    d
+	 *  A x  
+	 *  B     y
+	 *  C         z
+	 *  D             w
+	 *----------------------------------------------
+	 * Sync-range: [x, A.b] vs [y, B.a]
+	 * A                      | B                    
+	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub
+	 *  D,   A, A:0, x,  [B]x |  D,   B, B:0, y,  [A] x 
+	 *                    C   |                    C 
+	 *  I,   A, B:0, x0,  C   |  I,   B, A:0, y0,  C 
+	 *  U,   A, C:0, x0,  C   |  U,   B, C:0, y0,  C
+	 *  
+	 *    a   b   c    d
+	 *  A x1  y0
+	 *  B x0  y1
+	 *  C         z0
+	 *  D             w0
+	 *  
+	 *-----------------------------------------------------------------------
+	 * B = C
+	 * A                      | B                       | C
+	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub   | crud, s, pid, n, sub
+	 *  D,   A, A:0, x,  [ ]x |  D,   B, B:0, x,  [ ]   |  
+	 *                    C   |                   [C] x |
+	 *  I,   A, B:0, x0,  C   |  I,   B, A:0, y0, [C] x |
+	 *  U,   A, C:0, x0,  C   |  U,   B, C:0, y0, [C] x |
+	 *  
+	 *    a   b   c    d
+	 *  A x1  y0
+	 *  B x0  y2  z0
+	 *  C x0  y1  z2         z2 = y2
+	 *  D             w0
+	 *  
+	 *----------------------------------------------------------------------- 
+	 * A = B
+	 * A                      | B                      | C
+	 * crud, s, pid, n,  sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
+	 *  D,   A, A:0, x,  [ ]  |                        |
+	 *                   [C]x |                        |
+	 *  I,   A, B:0, x0, [C]x |                        |
+	 *  U,   A, C:0, x0, [C]x |                        |
+	 *  
+	 * A cleaning for chg.n ≤ B.i and chg.sub = i and chg.n[sub=i] < B.i
+	 * - B:0[C].n=x0 = B.a, A.c < B.c=z0 because A can't have A.c later than or equals B.c,
+	 *   so override A with B for subscribe C, i.e. delete B:0[c], (s=A, n=x0),
+	 * - C:0[C].n=x0 = B.a, A.c < B.c=z0,
+	 *   override A with B for subscribe C, i.e. delete C:0(s=A, n=x0)
+	 *  
+	 *  NOTE
+	 *  B:0.n[sub=C] always less than, not equal to, B.c in a deletion propagation,
+	 *  because B know about C later than A.
+	 *  
+	 *    a   b   c    d
+	 *  A x3  y2  z0        x3 = y3
+	 *  B x1  y3  z0
+	 *  C x0  y1  z2    
+	 *  D             w0
+	 * </pre>
+	 * @throws Exception
+	 */
+	void test02delete() throws Exception {
+		String A_0 = deletePhoto(chm, X);
+		String B_0 = deletePhoto(chm, Y);
+
+		ck[X].change(2, CRUD.D, A_0, ck[X].phm);
+		ck[Y].change(2, CRUD.D, B_0, ck[Y].phm);
+		ck[X].subs(2, A_0, -1,  Y, Z, W);
+		ck[Y].subs(2, B_0,  X, -1, Z, W);
+		
+		exchange(X, Y);
+		ck[X].subs(2, A_0, -1, -1, Z, W);
+		ck[Y].subs(2, A_0, -1, -1, Z, W);
+
+		ck[X].subs(2, B_0, -1, -1, Z, W);
+		ck[Y].subs(2, B_0, -1, -1, Z, W);
+		
+		exchange(Y, Z);
+		ck[X].subs(2, A_0, -1, -1,  Z, W);
+		ck[Y].subs(2, A_0, -1, -1, -1, W);
+		ck[Z].subs(2, A_0, -1, -1, -1, W);
+
+		ck[X].subs(2, B_0, -1, -1,  Z, W);
+		ck[Y].subs(2, B_0, -1, -1, -1, W);
+		ck[Z].subs(2, B_0, -1, -1, -1, W);
+
+		exchange(X, Y);
+		ck[X].subs(2, A_0, -1, -1, -1, W);
+		ck[Y].subs(2, A_0, -1, -1, -1, W);
+		ck[Z].subs(2, A_0, -1, -1, -1, W);
+
+		ck[X].subs(2, B_0, -1, -1, -1, W);
+		ck[Y].subs(2, B_0, -1, -1, -1, W);
+		ck[Z].subs(2, B_0, -1, -1, -1, W);
+	}
+	
 	/**
 	 * <pre>
 	 * A                     | B                    | C                    | D
@@ -593,20 +712,20 @@ public class DBSyntextTest {
 
 		// initSynodes(0);
 
-		c[X].synodes(X, Y, Z, -1);
+		ck[X].synodes(X, Y, Z, -1);
 		join(X, W);
-		c[X].synodes(X, Y, Z, W);
+		ck[X].synodes(X, Y, Z, W);
 
-		c[X].change(1, C, c[X].trb.synode(), c[X].phm);
+		ck[X].change(1, C, ck[X].trb.synode(), ck[X].phm);
 		// i X  w  3
 		// c[X].chgEnt(C, c[X].synode, c[W].synode, c[W].phm);
 		// Y, Z
-		c[X].subs(3, c[W].trb.synode(), -1, Y, Z, -1);
+		ck[X].subs(3, ck[W].trb.synode(), -1, Y, Z, -1);
 		
 		exchange(X, Y);
-		c[Y].change(1, CRUD.C, c[X].trb.synode(), c[Y].phm);
-		c[Y].subs(3, c[W].trb.synode(),  -1, -1, Z, -1);
-		c[X].subs(3, c[W].trb.synode(),  -1, -1, Z, -1);
+		ck[Y].change(1, CRUD.C, ck[X].trb.synode(), ck[Y].phm);
+		ck[Y].subs(3, ck[W].trb.synode(),  -1, -1, Z, -1);
+		ck[X].subs(3, ck[W].trb.synode(),  -1, -1, Z, -1);
 	}
 
 	/**
@@ -678,118 +797,12 @@ public class DBSyntextTest {
 	 */
 	void test04conflict() throws Exception {
 	}
-	
-	/**
-	 * <pre>
-	 * A                      | B                    
-	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub
-	 *  D,   A, A:0, x0,  B   |  D,   B, B:0, y0,  A  
-	 *                    C   |                    C 
-	 *  I,   A, B:0, x0,  C   |  I,   B, A:0, y0,  C 
-	 *  U,   A, C:0, x0,  C   |  U,   B, C:0, y0,  C
-	 *
-	 *    a   b   c    d
-	 *  A x  
-	 *  B     y
-	 *  C         z
-	 *  D             w
-	 *----------------------------------------------
-	 * Sync-range: [x, A.b] vs [y, B.a]
-	 * A                      | B                    
-	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub
-	 *  D,   A, A:0, x,  [B]x |  D,   B, B:0, y,  [A] x 
-	 *                    C   |                    C 
-	 *  I,   A, B:0, x0,  C   |  I,   B, A:0, y0,  C 
-	 *  U,   A, C:0, x0,  C   |  U,   B, C:0, y0,  C
-	 *  
-	 *    a   b   c    d
-	 *  A x1  y0
-	 *  B x0  y1
-	 *  C         z0
-	 *  D             w0
-	 *  
-	 *-----------------------------------------------------------------------
-	 * B = C
-	 * A                      | B                       | C
-	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub   | crud, s, pid, n, sub
-	 *  D,   A, A:0, x,  [ ]x |  D,   B, B:0, x,  [ ]   |  
-	 *                    C   |                   [C] x |
-	 *  I,   A, B:0, x0,  C   |  I,   B, A:0, y0, [C] x |
-	 *  U,   A, C:0, x0,  C   |  U,   B, C:0, y0, [C] x |
-	 *  
-	 *    a   b   c    d
-	 *  A x1  y0
-	 *  B x0  y2  z0
-	 *  C x0  y1  z2         z2 = y2
-	 *  D             w0
-	 *  
-	 *----------------------------------------------------------------------- 
-	 * A = B
-	 * A                      | B                      | C
-	 * crud, s, pid, n,  sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
-	 *  D,   A, A:0, x,  [ ]  |                        |
-	 *                   [C]x |                        |
-	 *  I,   A, B:0, x0, [C]x |                        |
-	 *  U,   A, C:0, x0, [C]x |                        |
-	 *  
-	 * A cleaning for chg.n ≤ B.i and chg.sub = i and chg.n[sub=i] < B.i
-	 * - B:0[C].n=x0 = B.a, A.c < B.c=z0 because A can't have A.c later than or equals B.c,
-	 *   so override A with B for subscribe C, i.e. delete B:0[c], (s=A, n=x0),
-	 * - C:0[C].n=x0 = B.a, A.c < B.c=z0,
-	 *   override A with B for subscribe C, i.e. delete C:0(s=A, n=x0)
-	 *  
-	 *  NOTE
-	 *  B:0.n[sub=C] always less than, not equal to, B.c in a deletion propagation,
-	 *  because B know about C later than A.
-	 *  
-	 *    a   b   c    d
-	 *  A x3  y2  z0        x3 = y3
-	 *  B x1  y3  z0
-	 *  C x0  y1  z2    
-	 *  D             w0
-	 * </pre>
-	 * @throws Exception
-	 */
-	void test02delete() throws Exception {
-		String A_0 = deletePhoto(chm, X);
-		String B_0 = deletePhoto(chm, Y);
 
-		c[X].change(2, CRUD.D, A_0, c[X].phm);
-		c[Y].change(2, CRUD.D, B_0, c[Y].phm);
-		c[X].subs(2, A_0, -1,  Y, Z, W);
-		c[Y].subs(2, B_0,  X, -1, Z, W);
-		
-		exchange(X, Y);
-		c[X].subs(2, A_0, -1, -1, Z, W);
-		c[Y].subs(2, A_0, -1, -1, Z, W);
-
-		c[X].subs(2, B_0, -1, -1, Z, W);
-		c[Y].subs(2, B_0, -1, -1, Z, W);
-		
-		exchange(Y, Z);
-		c[X].subs(2, A_0, -1, -1,  Z, W);
-		c[Y].subs(2, A_0, -1, -1, -1, W);
-		c[Z].subs(2, A_0, -1, -1, -1, W);
-
-		c[X].subs(2, B_0, -1, -1,  Z, W);
-		c[Y].subs(2, B_0, -1, -1, -1, W);
-		c[Z].subs(2, B_0, -1, -1, -1, W);
-
-		exchange(X, Y);
-		c[X].subs(2, A_0, -1, -1, -1, W);
-		c[Y].subs(2, A_0, -1, -1, -1, W);
-		c[Z].subs(2, A_0, -1, -1, -1, W);
-
-		c[X].subs(2, B_0, -1, -1, -1, W);
-		c[Y].subs(2, B_0, -1, -1, -1, W);
-		c[Z].subs(2, B_0, -1, -1, -1, W);
-	}
-	
 	void join(int admin, int apply) throws TransException, SQLException {
-		c[admin].trb.addSynode(
-				c[admin].connId(),  // into admin's db
-				new Synode(c[apply].connId(), c[apply].trb.synode(), c[admin].robot().orgId()),
-				c[admin].robot());
+		ck[admin].trb.addSynode(
+				ck[admin].connId(),  // into admin's db
+				new Synode(ck[apply].connId(), ck[apply].trb.synode(), ck[admin].robot().orgId()),
+				ck[admin].robot());
 		
 		// exchange(admin, apply);
 	}
@@ -804,8 +817,8 @@ public class DBSyntextTest {
 	 * @throws IOException 
 	 */
 	void exchange(int srv, int cli) throws TransException, SQLException, IOException {
-		DBSynsactBuilder ctb = c[cli].trb;
-		DBSynsactBuilder stb = c[srv].trb;
+		DBSynsactBuilder ctb = ck[cli].trb;
+		DBSynsactBuilder stb = ck[srv].trb;
 
 		SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId()).replace();
 		SyntityMeta cphm = new T_PhotoMeta(ctb.basictx().connId()).replace();
@@ -827,36 +840,39 @@ public class DBSyntextTest {
 		Utils.logi("(0.1): %s initiate\tchanges: %d\tentities: %d",
 				ctb.synode(), req.challenges(), req.enitities(cphm.tbl));
 
-		while (req.challenges() > 0) {
+		while (req != null) {
 			// server
 			Utils.logi("\n(1.0): %s on exchange", stb.synode());
 			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req, sphm);
 			Utils.logi("(1.1): %s on exchange response\tchanges: %d\tentities: %d\tanswers: %d",
 					stb.synode(), resp.challenges(), resp.enitities(cphm.tbl), resp.answers());
-			printChangeLines(c);
-			printNyquv(c);
+			printChangeLines(ck);
+			printNyquv(ck);
 
 			// client
 			Utils.logi("\n(2.0): %s ack exchange", ctb.synode());
 			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode());
 			Utils.logi("(2.1): %s ack exchange acknowledge\tchanges: %d\tentities: %d\tanswers: %d",
 					ctb.synode(), ack.challenges(), ack.enitities(cphm.tbl), ack.answers());
-			printChangeLines(c);
-			printNyquv(c);
+			printChangeLines(ck);
+			printNyquv(ck);
 			
 			// server
 			Utils.logi("\n(3.0): %s on ack", stb.synode());
 			stb.onAck(sx, ack, ctb.synode(), sphm);
-			printChangeLines(c);
-			printNyquv(c);
+			printChangeLines(ck);
+			printNyquv(ck);
 
 			// client
 			Utils.logi("\n(4.0): %s initiate again", ctb.synode());
 			req = ctb.initExchange(cx, stb.synode(), cphm);
 			Utils.logi("(4.1): %s initiate again\tchanges: %d\tentities: %d",
 					ctb.synode(), req.challenges(), req.enitities(cphm.tbl));
-			printChangeLines(c);
-			printNyquv(c);
+			printChangeLines(ck);
+			printNyquv(ck);
+			
+			if (req.challenges() == 0)
+				break;
 		}
 
 		assertNotNull(req);
@@ -864,24 +880,24 @@ public class DBSyntextTest {
 
 		Utils.logi("\n(5.0): %s closing exchange", ctb.synode());
 		HashMap<String, Nyquence> nv = ctb.closexchange(cx, stb.synode(), stb.nyquvect);
-		printChangeLines(c);
-		printNyquv(c);
+		printChangeLines(ck);
+		printNyquv(ck);
 
 		Utils.logi("(5.1) %s on closing exchange", stb.synode());
 		stb.onclosechange(sx, ctb.synode(), nv);
-		printChangeLines(c);
-		printNyquv(c);
+		printChangeLines(ck);
+		printNyquv(ck);
 
 		if (req.challenges() > 0)
 			fail("Shouldn't has any more challenge here.");
 	}
 
 	void updatePhoto(int s, String pid) throws TransException, SQLException {
-		SyntityMeta entm = c[s].phm;
+		SyntityMeta entm = ck[s].phm;
 		String conn = conns[s];
-		String synoder = c[s].trb.synode();
-		DBSynsactBuilder trb = c[s].trb;
-		SyncRobot robot = (SyncRobot) c[s].robot();
+		String synoder = ck[s].trb.synode();
+		DBSynsactBuilder trb = ck[s].trb;
+		SyncRobot robot = (SyncRobot) ck[s].robot();
 		
 		trb.update(entm.tbl, robot)
 			.nv(entm.synoder, synoder)
@@ -910,13 +926,13 @@ public class DBSyntextTest {
 	}
 	
 	String[] insertPhoto(int s) throws TransException, SQLException {
-		SyntityMeta entm = c[s].phm;
+		SyntityMeta entm = ck[s].phm;
 		String conn = conns[s];
-		String synoder = c[s].trb.synode();
-		DBSynsactBuilder trb = c[s].trb;
-		SyncRobot robot = (SyncRobot) c[s].robot();
+		String synoder = ck[s].trb.synode();
+		DBSynsactBuilder trb = ck[s].trb;
+		SyncRobot robot = (SyncRobot) ck[s].robot();
 		
-		T_PhotoMeta m = c[s].phm;
+		T_PhotoMeta m = ck[s].phm;
 		String pid = ((SemanticObject) trb
 			.insert(m.tbl, robot)
 			.nv(m.uri, "")
@@ -962,21 +978,21 @@ public class DBSyntextTest {
 //	}
 
 	String deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
-		T_PhotoMeta m = c[s].phm;
-		AnResultset slt = ((AnResultset) c[s].trb
+		T_PhotoMeta m = ck[s].phm;
+		AnResultset slt = ((AnResultset) ck[s].trb
 				.select(chgm.tbl, conns)
 				.orderby(m.pk, "desc")
 				.limit(1)
-				.rs(c[s].trb.instancontxt(c[s].connId(), c[s].robot()))
+				.rs(ck[s].trb.instancontxt(ck[s].connId(), ck[s].robot()))
 				.rs(0))
 				.nxt();
 		String pid = slt.getString(m.pk);
 
-		pid = ((SemanticObject) c[s].trb
-			.delete(m.tbl, c[s].robot())
+		pid = ((SemanticObject) ck[s].trb
+			.delete(m.tbl, ck[s].robot())
 			.whereEq(chgm.uids, pid)
-			.d(c[s].trb.instancontxt(conns[s], c[s].robot())))
-			.resulve(c[s].phm.tbl, c[s].phm.pk);
+			.d(ck[s].trb.instancontxt(conns[s], ck[s].robot())))
+			.resulve(ck[s].phm.tbl, ck[s].phm.pk);
 		
 		assertFalse(isblank(pid));
 		
@@ -1062,7 +1078,7 @@ public class DBSyntextTest {
 			if (count > 0) {
 				assertEquals(crud, chg.getString(chm.crud));
 				assertEquals(phm.tbl, chg.getString(chm.entbl));
-				assertEquals(robot().deviceId(), chg.getString(chm.synoder));
+				assertEquals(synoder, chg.getString(chm.synoder));
 				return chg.getLong(chm.nyquence);
 			}
 			return 0;
@@ -1079,7 +1095,7 @@ public class DBSyntextTest {
 			ArrayList<String> toIds = new ArrayList<String>();
 			for (int n : sub)
 				if (n >= 0)
-					toIds.add(c[n].trb.synode());
+					toIds.add(ck[n].trb.synode());
 			subsCount(subcount, uids, toIds.toArray(new String[0]));
 		}
 
@@ -1199,5 +1215,14 @@ public class DBSyntextTest {
 	    float start = mid - (len/2);
 	    float end = start + len; 
 	    return out.substring((int)start, (int)end);
+	}
+
+	private void assertnv(long... nvs) {
+		if (nvs == null || nvs.length == 0 || nvs.length % 2 != 0)
+			fail("Invalid arguments to assert.");
+		
+		for (int i = 0; i < nvs.length/2; i++) {
+			assertEquals(nvs[i], nvs[i + nvs.length/2], String.format("nv[%d] %d : %d", i, nvs[i], nvs[i + nvs.length/2]));
+		}
 	}
 }
