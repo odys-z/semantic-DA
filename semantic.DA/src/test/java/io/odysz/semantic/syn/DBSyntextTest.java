@@ -348,7 +348,7 @@ public class DBSyntextTest {
 		String y = ck[Y].trb.synode();
 
 		HashMap<String, Nyquence> nvz = ck[Z].trb.nyquvect;
-		long Ca_ = nvy.get(ck[Z].trb.synode()).n;
+		long Ca_ = nvx.get(ck[Z].trb.synode()).n;
 		long Cb_ = nvy.get(ck[Z].trb.synode()).n;
 		String z = ck[Z].trb.synode();
 
@@ -417,6 +417,9 @@ public class DBSyntextTest {
 		ck[Z].change(0, C, B_0, ck[Y].phm);
 		ck[Z].subs(0, A_0_uids[1], -1, -1, Z, -1);
 		ck[Z].subs(0, B_0_uids[1], -1, -1, Z, -1);
+		
+		Ca_ = Ba;
+		Cb_ = Bb;
 
 		long Bc = nvy.get(x).n;
 		long Ca = nvz.get(x).n;
