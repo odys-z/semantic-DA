@@ -387,20 +387,15 @@ public class DBSyntextTest {
 		// B.b++, A.b = B.b, B.a = A.a
 		long Ab = nvx.get(y).n;
 		long Bb = ck[Y].trb.n0().n;
-		// assertEquals(Bb, nvy.get(y).n);
-		// assertEquals(Bb_ + 1, Bb);
-		// assertEquals(Ab_ + 1, Ab);
-		// assertEquals(Ab + 1, Bb);
+	
 		assertnv(  Bb,     Bb_ + 1, Ab_ + 1, Ab + 1,
 			 nvy.get(y).n, Bb,      Ab,      Bb);
 
 		long Aa = nvx.get(x).n;
 		long Ba = nvy.get(x).n;
-		// assertEquals(Aa, cks[X].trb.n0().n);
-		// assertEquals(Aa_ + 1, Aa);
-		// assertEquals(Ba_ + 1, Ba);
-		assertnv(   Aa,        Aa_ + 1, Ba_ + 1,
-			ck[X].trb.n0().n, Aa,      Ba);
+
+		assertnv(   Aa,      Aa_ + 1, Ba_ + 1,
+			ck[X].trb.n0().n, Aa,     Ba);
 
 		Ab_ = Ab;
 		Bb_ = Bb;
@@ -413,11 +408,19 @@ public class DBSyntextTest {
 
 		Utils.logi("\n3 Y <= Z");
 		exchange(Y, Z);
-		ck[Z].change(0, C, A_0, ck[Y].phm);
-		ck[Z].change(0, C, B_0, ck[Y].phm);
+		ck[Z].change(0, C, A_0, ck[Z].phm);
+		ck[Z].change(0, C, ck[X].trb.synode(), A_0, ck[Z].phm);
 		ck[Z].subs(0, A_0_uids[1], -1, -1, Z, -1);
+
+		ck[Z].change(0, C, B_0, ck[Y].phm);
+		ck[Z].change(0, C, ck[Y].trb.synode(), B_0, ck[Z].phm);
 		ck[Z].subs(0, B_0_uids[1], -1, -1, Z, -1);
 		
+		ck[Y].change(0, C, A_0, ck[Y].phm);
+		ck[Y].change(0, C, B_0, ck[Y].phm);
+		ck[Y].subs(0, A_0_uids[1], -1, -1, Z, -1);
+		ck[Y].subs(0, B_0_uids[1], -1, -1, Z, -1);
+
 		Ca_ = Ba;
 		Cb_ = Bb;
 
@@ -437,8 +440,14 @@ public class DBSyntextTest {
 		Aa_ = Aa;
 		Ba_ = Ba;
 		Bc_ = Bc;
+		
+		// 4. X <= Y
+		exchange(X, Y);
+		ck[X].change(0, C, A_0, ck[Y].phm);
+		ck[X].change(0, C, B_0, ck[Y].phm);
+		ck[X].subs(0, A_0_uids[1], -1, -1, Z, -1);
+		ck[X].subs(0, B_0_uids[1], -1, -1, Z, -1);
 	}
-
 
 	/**
 	 * <pre>
@@ -493,8 +502,8 @@ public class DBSyntextTest {
 	 *  I,   A, B:0, x0, [C]x |                        |
 	 *  U,   A, C:0, x0, [C]x |                        |
 	 *  
-	 * A cleaning for chg.n ≤ B.i and chg.sub = i and chg.n[sub=i] < B.i
-	 * - B:0[C].n=x0 = B.a, A.c < B.c=z0 because A can't have A.c later than or equals B.c,
+	 * A clean for each subscribe i, such that chg[sub=i].n ≤ B.a and A.nv[i] < B.nv[i]
+	 * - B:0[C].n=x0 = B.a, A.c < B.c=z0 because A can't have A.c later than or equal to B.c,
 	 *   so override A with B for subscribe C, i.e. delete B:0[c], (s=A, n=x0),
 	 * - C:0[C].n=x0 = B.a, A.c < B.c=z0,
 	 *   override A with B for subscribe C, i.e. delete C:0(s=A, n=x0)
@@ -712,8 +721,6 @@ public class DBSyntextTest {
 	 * @throws ClassNotFoundException 
 	 */
 	void testSynodeManage() throws Exception {
-
-		// initSynodes(0);
 
 		ck[X].synodes(X, Y, Z, -1);
 		join(X, W);
@@ -974,13 +981,9 @@ public class DBSyntextTest {
 		return new String[] {pid, chm.uids(synoder, pid)};
 	}
 	
-//	String synodes(Ck[] cks, String synode) {
-//		return Stream.of(cks)
-//				.map((Ck c) -> {return c.trb.synode();})
-//				.collect(Collectors.joining(","));
-//	}
+	String deletePhoto(SynChangeMeta chgm, int s)
+			throws TransException, SQLException {
 
-	String deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
 		T_PhotoMeta m = ck[s].phm;
 		AnResultset slt = ((AnResultset) ck[s].trb
 				.select(chgm.tbl, conns)
@@ -998,9 +1001,7 @@ public class DBSyntextTest {
 			.resulve(ck[s].phm.tbl, ck[s].phm.pk);
 		
 		assertFalse(isblank(pid));
-		
 		return pid;
-	
 	}
 
 	/**
@@ -1104,13 +1105,13 @@ public class DBSyntextTest {
 
 		public void subsCount(int subcount, String uids, String ... toIds) throws SQLException, TransException {
 			if (isNull(toIds)) {
-				AnResultset subs = trb.subscripts(connId(), org, uids, phm, robot());
+				AnResultset subs = trb.subscribes(connId(), org, uids, phm, robot());
 				assertEquals(subcount, subs.getRowCount());
 				assertEquals(phm.tbl, subs.getString(sbm.entbl));
 			}
 			else {
 				int cnt = 0;
-				AnResultset subs = trb.subscripts(connId(), org, uids, phm, robot());
+				AnResultset subs = trb.subscribes(connId(), org, uids, phm, robot());
 				subs.beforeFirst();
 				while (subs.next()) {
 					if (indexOf(toIds, subs.getString(sbm.synodee)) >= 0)
@@ -1179,7 +1180,8 @@ public class DBSyntextTest {
 		public String toString() { return s; }
 	}
 	
-	public static void printChangeLines(Ck[] ck) throws TransException, SQLException {
+	public static void printChangeLines(Ck[] ck)
+			throws TransException, SQLException {
 
 		HashMap<String, ChangeLine[]> uidss = new HashMap<String, ChangeLine[]>();
 
@@ -1220,7 +1222,7 @@ public class DBSyntextTest {
 	    return out.substring((int)start, (int)end);
 	}
 
-	private void assertnv(long... nvs) {
+	public static void assertnv(long... nvs) {
 		if (nvs == null || nvs.length == 0 || nvs.length % 2 != 0)
 			fail("Invalid arguments to assert.");
 		

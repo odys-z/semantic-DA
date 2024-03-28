@@ -19,6 +19,13 @@ public class ChangeLogs extends Anson {
 	SynChangeMeta chm;
 	
 	String entble;
+
+	HashMap<String, Nyquence> nyquvect;
+	public ChangeLogs nyquvect(HashMap<String, Nyquence> nyquvect) {
+		this.nyquvect = Nyquence.clone(nyquvect);
+		return this;
+	}
+
 	/**
 	 * 0: change statement, CRUD.C: insert, CRUD.U: remove-subs, CRUD.D: remove-log),<br>
 	 * 1: change-crud,<br> 2: synoder,<br> 3: uids,<br> 4: nyquence<br> 
@@ -85,13 +92,6 @@ public class ChangeLogs extends Anson {
 
 	// public HashMap<String, HashMap<String, ? extends SynEntity>> entities;
 	HashMap<String, AnResultset> entities;
-	HashMap<String, Nyquence> nyquvect;
-
-	public ChangeLogs nyquvect(HashMap<String, Nyquence> nyquvect) {
-		this.nyquvect = Nyquence.clone(nyquvect);
-		return this;
-	}
-
 	public ChangeLogs entities(String tbl, AnResultset entities) {
 		if (this.entities == null)
 			this.entities = new HashMap<String, AnResultset>();
