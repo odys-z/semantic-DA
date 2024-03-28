@@ -1,0 +1,167 @@
+1.1----------------- insert A -----------------
+1.2 insert B
+             X                          Y                          Z                          W             
+I  X  X,000021    1  Z    |                           |                           |                          
+I  X  X,000021    1  Y    |                           |                           |                          
+                          | I  Y  Y,000401    1  Z    |                           |                          
+                          | I  Y  Y,000401    1  X    |                           |                          
+      X    Y    Z    W
+X [   1,   0,   0 ]
+Y [   0,   1,   0 ]
+Z [   0,   0,   1 ]
+W [   0,   0,   0 ]
+
+2----------------- X <= Y ----------------- 
+(0.0): Y initiate
+(0.1): Y initiate	changes: 2	entities: 1
+(1.0): X on exchange
+(1.1): X on exchange response	changes: 2	entities: 1	answers: 1
+             X                          Y                          Z                          W             
+I  X  X,000021    1  Z    |                           |                           |                          
+I  X  X,000021    1  Y    |                           |                           |                          
+                          | I  Y  Y,000401    1  Z    |                           |                          
+                          | I  Y  Y,000401    1  X    |                           |                          
+      X    Y    Z    W
+X [   1,   0,   0 ]
+Y [   0,   1,   0 ]
+Z [   0,   0,   1 ]
+W [   0,   0,   0 ]
+
+(2.0): Y ack exchange
+(2.1): Y ack exchange acknowledge	changes: 0	entities: 0	answers: 1
+             X                          Y                          Z                          W             
+I  X  X,000021    1  Z    | I  X  X,000021    1  Z    |                           |                          
+I  X  X,000021    1  Y    |                           |                           |                          
+                          | I  Y  Y,000401    1  Z    |                           |                          
+      X    Y    Z    W
+X [   1,   0,   0 ]
+Y [   1,   1,   0 ]
+Z [   0,   0,   1 ]
+W [   0,   0,   0 ]
+
+(3.0): X on ack
+             X                          Y                          Z                          W             
+I  X  X,000021    1  Z    | I  X  X,000021    1  Z    |                           |                          
+I  Y  Y,000401    1  Z    | I  Y  Y,000401    1  Z    |                           |                          
+      X    Y    Z    W
+X [   1,   1,   0 ]
+Y [   1,   1,   0 ]
+Z [   0,   0,   1 ]
+W [   0,   0,   0 ]
+
+(4.0): Y initiate again
+
+(5.0): Y closing exchange
+      X    Y    Z    W
+X [   1,   1,   0 ]
+Y [   1,   2,   0 ]
+Z [   0,   0,   1 ]
+W [   0,   0,   0 ]
+
+(5.1) X on closing exchange
+      X    Y    Z    W
+X [   2,   1,   0 ]
+Y [   1,   2,   0 ]
+Z [   0,   0,   1 ]
+W [   0,   0,   0 ]
+
+3----------------- Y <= Z -----------------
+(0.0): Z initiate
+(0.1): Z initiate	changes: 0	entities: 0
+(1.0): Y on exchange
+(1.1): Y on exchange response	changes: 2	entities: 2	answers: 0
+      X    Y    Z    W
+X [   2,   1,   0 ]
+Y [   1,   2,   0 ]
+Z [   0,   0,   1 ]
+W [   0,   0,   0 ]
+
+(2.0): Z ack exchange
+(2.1): Z ack exchange acknowledge	changes: 0	entities: 0	answers: 2
+             X                          Y                          Z                          W             
+I  X  X,000021    1  Z    | I  X  X,000021    1  Z    |                           |                          
+I  Y  Y,000401    1  Z    | I  Y  Y,000401    1  Z    |                           |                          
+      X    Y    Z    W
+X [   2,   1,   0 ]
+Y [   1,   2,   0 ]
+Z [   1,   2,   1 ]
+W [   0,   0,   0 ]
+
+(3.0): Y on ack
+             X                          Y                          Z                          W             
+I  X  X,000021    1  Z    |                           |                           |                          
+I  Y  Y,000401    1  Z    |                           |                           |                          
+      X    Y    Z    W
+X [   2,   1,   0 ]
+Y [   1,   2,   1 ]
+Z [   1,   2,   1 ]
+W [   0,   0,   0 ]
+
+(4.0): Z initiate again
+(4.1): Z initiate again	changes: 0	entities: 0
+
+(5.0): Z closing exchange
+      X    Y    Z    W
+X [   2,   1,   0 ]
+Y [   1,   2,   1 ]
+Z [   1,   2,   2 ]
+W [   0,   0,   0 ]
+
+(5.1) Y on closing exchange
+      X    Y    Z    W
+X [   2,   1,   0 ]
+Y [   1,   3,   1 ]
+Z [   1,   2,   2 ]
+W [   0,   0,   0 ]
+
+4----------------- X <= Y -----------------
+(0.0): Y initiate
+(0.1): Y initiate	changes: 0	entities: 0
+(1.0): X on exchange
+(1.1): X on exchange response	changes: 0	entities: 0	answers: 0
+             X                          Y                          Z                          W             
+I  X  X,000021    1  Z    |                           |                           |                          
+I  Y  Y,000401    1  Z    |                           |                           |                          
+      X    Y    Z    W
+X [   2,   1,   0 ]
+Y [   1,   3,   1 ]
+Z [   1,   2,   2 ]
+W [   0,   0,   0 ]
+
+(2.0): Y ack exchange
+(2.1): Y ack exchange acknowledge	changes: 0	entities: 0	answers: 0
+(3.0): X on ack
+             X                          Y                          Z                          W             
+
+      X    Y    Z    W
+X [   2,   3,   1 ]
+Y [   2,   3,   1 ]
+Z [   1,   2,   2 ]
+W [   0,   0,   0 ]
+
+(4.0): Y initiate again
+(4.1): Y initiate again	changes: 0	entities: 0
+             X                          Y                          Z                          W             
+
+      X    Y    Z    W
+X [   2,   3,   1 ]
+Y [   2,   3,   1 ]
+Z [   1,   2,   2 ]
+W [   0,   0,   0 ]
+
+(5.0): Y closing exchange
+             X                          Y                          Z                          W             
+
+      X    Y    Z    W
+X [   2,   3,   1 ]
+Y [   2,   4,   1 ]
+Z [   1,   2,   2 ]
+W [   0,   0,   0 ]
+(5.1) X on closing exchange
+             X                          Y                          Z                          W             
+
+      X    Y    Z    W
+X [   3,   3,   1 ]
+Y [   2,   4,   1 ]
+Z [   1,   2,   2 ]
+W [   0,   0,   0 ]

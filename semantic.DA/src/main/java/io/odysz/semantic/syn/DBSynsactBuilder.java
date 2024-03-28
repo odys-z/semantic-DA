@@ -36,7 +36,6 @@ import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
-import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
@@ -344,14 +343,17 @@ public class DBSynsactBuilder extends DATranscxt {
 		String synodr0 = null;
 		String synodr1 = null;
 		String subsrb  = null;
+
 		SyntityMeta entm = null; 
+		String change    = null;
 
 		while (chal.next()) {
 			if (compareNyq(chal.getLong(chgm.nyquence), tillN) > 0)
 				break;
 
 			entm = getEntityMeta(chal.getString(chgm.entbl));
-			String change = chal.getString(chgm.crud);
+			// create / update / delete an entity
+			change = chal.getString(chgm.crud);
 
 			// current entity
 			entid1 = chal.getString(chgm.entfk);
@@ -359,7 +361,8 @@ public class DBSynsactBuilder extends DATranscxt {
 			HashMap<String, AnResultset> entbuf = x.onchanges.entities;
 			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).indices0(entid1) < 0) {
 				Utils.warn("[DBSynsactBuilder commitChallenges] Fatal error ignored: can't restore entity record answered from target node.\n"
-						+ "entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by challenge): %s", entm.tbl, srcnode, synode(), entid1);
+						+ "entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by challenge): %s",
+						entm.tbl, srcnode, synode(), entid1);
 				continue;
 			}
 			
@@ -433,8 +436,8 @@ public class DBSynsactBuilder extends DATranscxt {
 			synodr0 = synodr1;
 		}
 
-		if (entid1 != null)
-			// delete change log if no subscribers exist
+		if (entid1 != null && (eq(change, CRUD.U) || eq(change, CRUD.C)))
+			// delete operation for last change log, including creating change logs, for the only one, say, Z, the last synodee.
 			stats.add(del0subchange(entm, chorg, synodr0, chuids1, synode()));
 
 		Utils.logi("[DBSynsactBuilder.commitChallenges()] update entities...");
@@ -604,41 +607,32 @@ public class DBSynsactBuilder extends DATranscxt {
 		for (String sn : srcnv.keySet()) {
 			if (eq(sn, synode()) || eq(sn, srcn))
 				continue;
-
-			ExprPart snyq = new ExprPart(srcnv.get(sn).n);
+			if (compareNyq(nyquvect.get(sn), srcnv.get(sn)) >= 0)
+				continue;
 
 			Query cl = (Query)select(chgm.tbl, "cl")
-					.cols("cl.*").col(subm.synodee)
-					.je2(subm.tbl, "sb", constr(sn), subm.synodee,
-						chgm.org, subm.org, chgm.entbl, subm.entbl,
-						chgm.uids, subm.uids)
-					// NOTE: it's myself's n, not nv['z'].n because the change log was stamped with n0
-					// FIXME not op.lt, must implement a function to compare nyquence.
-					// FIXME
-					to be continued
-					.where(op.lt, chgm.nyquence, n0().n)
-					.where(op.ne, subm.synodee, constr(sn));
+				.cols("cl.*").col(subm.synodee)
+				.je2(subm.tbl, "sb", constr(sn), subm.synodee,
+					chgm.org, subm.org, chgm.entbl, subm.entbl,
+					chgm.uids, subm.uids)
+				// NOTE: it's myself's n, not nv['z'].n because the change log was stamped with n0
+				// FIXME not op.lt, must implement a function to compare nyquence.
+				// always true: .where(op.lt, chgm.nyquence, n0().n) // FIXME
+				.where(op.ne, subm.synodee, constr(srcn));
 
 			delete(subm.tbl, synrobot())
-				.where(op.exists, null,
-					with((Query)select(chgm.tbl, "cl")
-						.cols("cl.*")
-						.je2(subm.tbl, "sb", constr(sn), subm.synodee,
-						  chgm.org, subm.org, chgm.entbl, subm.entbl,
-						  chgm.uids, subm.uids)
-						.where(op.lt, chgm.nyquence, n0().n)) // FIXME Nyq.compare
-						.select("cl")
-						.whereEq(subm.tbl + "." + subm.org, new ExprPart("cl." + chgm.org))
-						.whereEq(subm.tbl + "." + subm.entbl, new ExprPart(subm.entbl))
-						.whereEq(subm.tbl + "." + subm.uids, new ExprPart(subm.uids)))
+				.where(op.exists, null, with(cl)
+					.select("cl")
+					.whereEq(subm.tbl, subm.org,   "cl", chgm.org) // new ExprPart("cl." + chgm.org))
+					.whereEq(subm.tbl, subm.entbl, "cl", chgm.entbl) //new ExprPart(chgm.entbl))
+					.whereEq(subm.tbl, subm.uids,  "cl", chgm.uids)) //new ExprPart(chgm.uids)))
 				.post(delete(chgm.tbl)
-					.where(op.exists, null,
-						with(cl)
+					.where(op.notexists, null, with(cl)
 						.select("cl")
 						.where(op.ne, subm.synodee, constr(sn))
-						.whereEq(chgm.tbl + "." + chgm.org, new ExprPart("cl." + chgm.org))
-						.whereEq(chgm.tbl + "." + chgm.entbl, new ExprPart(subm.entbl))
-						.whereEq(chgm.tbl + "." + chgm.uids, new ExprPart(subm.uids))))
+						.whereEq(chgm.tbl, chgm.org,  "cl", chgm.org) // ExprPart("cl." + chgm.org))
+						.whereEq(chgm.tbl, chgm.entbl,"cl", chgm.entbl) // new ExprPart(subm.entbl))
+						.whereEq(chgm.tbl, chgm.uids, "cl", chgm.uids))) // new ExprPart(subm.uids))))
 				.d(instancontxt(basictx.connId(), synrobot()));
 		}
 	}

@@ -191,9 +191,9 @@ public class DBSyntextTest {
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", sbm.tbl));
 			Connects.commit(conn, DATranscxt.dummyUser(), sbm.ddlSqlite);
 
-//			JUserMeta usm = new JUserMeta(conn);
-//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", usm.tbl));
-//			Connects.commit(conn, DATranscxt.dummyUser(), usm.ddlSqlite);
+			// JUserMeta usm = new JUserMeta(conn);
+			// Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", usm.tbl));
+			// Connects.commit(conn, DATranscxt.dummyUser(), usm.ddlSqlite);
 
 			T_PhotoMeta phm = new T_PhotoMeta(conn);
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", phm.tbl));
@@ -354,7 +354,7 @@ public class DBSyntextTest {
 
 
 		// 1.1 insert A
-		Utils.logi("\n1.1 insert A");
+		Utils.logi("\n1.1----------------- insert A -----------------");
 		String[] A_0_uids = insertPhoto(X);
 		String A_0 = A_0_uids[0];
 
@@ -377,7 +377,7 @@ public class DBSyntextTest {
 		printNyquv(ck);
 
 		// 2. X <= Y
-		Utils.logi("\n2 X <= Y");
+		Utils.logi("\n2----------------- X <= Y ----------------- ");
 		exchange(X, Y);
 		ck[Y].change(1, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
 		ck[Y].change(1, C, ck[X].trb.synode(), A_0, ck[Y].phm);
@@ -406,7 +406,7 @@ public class DBSyntextTest {
 		long Bc_ = nvy.get(z).n;
 		long Cc_ = nvz.get(z).n;
 
-		Utils.logi("\n3 Y <= Z");
+		Utils.logi("\n3----------------- Y <= Z -----------------");
 		exchange(Y, Z);
 		ck[Z].change(0, C, A_0, ck[Z].phm);
 		ck[Z].change(0, C, ck[X].trb.synode(), A_0, ck[Z].phm);
@@ -442,9 +442,10 @@ public class DBSyntextTest {
 		Bc_ = Bc;
 		
 		// 4. X <= Y
+		Utils.logi("\n4----------------- X <= Y -----------------");
 		exchange(X, Y);
-		ck[X].change(0, C, A_0, ck[Y].phm);
-		ck[X].change(0, C, B_0, ck[Y].phm);
+		ck[X].change(0, C, A_0, ck[X].phm);
+		ck[X].change(0, C, B_0, ck[X].phm);
 		ck[X].subs(0, A_0_uids[1], -1, -1, Z, -1);
 		ck[X].subs(0, B_0_uids[1], -1, -1, Z, -1);
 	}
