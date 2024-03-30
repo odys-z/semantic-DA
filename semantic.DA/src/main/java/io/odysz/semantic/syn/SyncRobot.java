@@ -37,10 +37,12 @@ public class SyncRobot extends SemanticObject implements IUser {
 
 	protected String orgId;
 	public String orgId() { return orgId; }
+	public String domain() { return orgId; }
 	public SyncRobot orgId(String org) {
 		orgId = org;
 		return this;
 	}
+	public SyncRobot domain(String dom) { return orgId(dom); }
 
 	protected final String deviceId;
 	public String deviceId() { return deviceId; }

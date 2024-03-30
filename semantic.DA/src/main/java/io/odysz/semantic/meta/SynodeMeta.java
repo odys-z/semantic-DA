@@ -26,7 +26,7 @@ public class SynodeMeta extends SyntityMeta {
 	public SynodeMeta(String conn) throws TransException {
 		super("syn_node", "synid", "org", conn, "syn_node.sqlite.ddl");
 
-		pk = "synid";
+		// pk = "synid";
 		synoder = "synid";
 		mac = "mac";
 		nyquence = "nyq";

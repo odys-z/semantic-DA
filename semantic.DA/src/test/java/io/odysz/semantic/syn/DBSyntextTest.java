@@ -12,6 +12,8 @@ import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
+import static io.odysz.semantic.syn.Nyquence.maxn;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -179,9 +181,8 @@ public class DBSyntextTest {
 
 		for (int s = 0; s < 4; s++) {
 			String conn = conns[s];
-			// String tester = testers[s];
 			
-			snm = new SynodeMeta(conn);
+			snm = new SynodeMeta(conn).replace();
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", snm.tbl));
 			Connects.commit(conn, DATranscxt.dummyUser(), snm.ddlSqlite);
 
@@ -195,7 +196,8 @@ public class DBSyntextTest {
 			// Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", usm.tbl));
 			// Connects.commit(conn, DATranscxt.dummyUser(), usm.ddlSqlite);
 
-			T_PhotoMeta phm = new T_PhotoMeta(conn);
+			T_PhotoMeta phm = new T_PhotoMeta(conn).replace();
+
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", phm.tbl));
 			Connects.commit(conn, DATranscxt.dummyUser(), phm.ddlSqlite);
 
@@ -204,7 +206,9 @@ public class DBSyntextTest {
 			sqls.add(String.format("update oz_autoseq set seq = %d where sid = 'h_photos.pid'", (long) Math.pow(64, s+1)));
 
 			sqls.add(String.format("delete from %s", snm.tbl));
-			sqls.add(Utils.loadTxt("syn_nodes.sql"));
+			if (s != W)
+				sqls.add(Utils.loadTxt("syn_nodes.sql"));
+
 			sqls.add(String.format("delete from %s", phm.tbl));
 			// sqls.add(String.format("delete from %s", usm.tbl));
 			// sqls.add(Utils.loadTxt("a_users.sql"));
@@ -212,21 +216,22 @@ public class DBSyntextTest {
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
 			ck[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
-			if (s != 3)
+			ck[s].synm = snm;
+			if (s != W)
 				ck[s].trb.incNyquence();
 
 			ck[s].trb.registerEntity(conn, ck[s].phm);
 		}
 
-		phm = new T_PhotoMeta(conns[0]); // all entity table is the same in this test
-		// phEntCreater = (rs) -> { return new T_Photo(rs, phm); };
+		phm = new T_PhotoMeta(conns[0]).replace(); // all entity table is the same in this test
 
 		assertEquals("syn.00", ck[0].connId());
 	}
 
 	@Test
 	void testChangeLogs() throws Exception {
-		test01InsertBasic();
+		// test01InsertBasic();
+		testSynodeManage();
 	}
 
 	/**
@@ -334,17 +339,16 @@ public class DBSyntextTest {
 	 * @throws IOException 
 	 */
 	void test01InsertBasic() throws TransException, SQLException, IOException {
+		Utils.logi("\n=== %s ===", new Object(){}.getClass().getEnclosingMethod().getName());
 
 		HashMap<String, Nyquence> nvx = ck[X].trb.nyquvect;
 		long Aa_ = nvx.get(ck[X].trb.synode()).n;
 		long Ab_ = nvx.get(ck[Y].trb.synode()).n;
-		// Ab_ ++; // because no synchronization for the loading step of B
 		String x = ck[X].trb.synode();
 
 		HashMap<String, Nyquence> nvy = ck[Y].trb.nyquvect;
 		long Ba_ = nvy.get(ck[X].trb.synode()).n;
 		long Bb_ = nvy.get(ck[Y].trb.synode()).n;
-		// Ba_ ++;
 		String y = ck[Y].trb.synode();
 
 		HashMap<String, Nyquence> nvz = ck[Z].trb.nyquvect;
@@ -354,35 +358,35 @@ public class DBSyntextTest {
 
 
 		// 1.1 insert A
-		Utils.logi("\n1.1----------------- insert A -----------------");
+		Utils.logi("1.1 ----------------- insert A -----------------");
 		String[] A_0_uids = insertPhoto(X);
 		String A_0 = A_0_uids[0];
 
 		// syn_change.curd = C
 		ck[X].change(1, C, A_0, ck[X].phm);
 		// syn_subscribe.to = [B, C, D]
-		ck[X].subs(2, A_0_uids[1], -1, Y, Z, -1);
+		ck[X].psubs(2, A_0_uids[1], -1, Y, Z, -1);
 
 		// 1.2 insert B
-		Utils.logi("\n1.2 insert B");
+		Utils.logi("\n1.2 ----------------- insert B -----------------");
 		String[] B_0_uids = insertPhoto(Y);
 		String B_0 = B_0_uids[0];
 
 		// syn_change.curd = C
 		ck[Y].change(1, C, B_0, ck[Y].phm);
 		// syn_subscribe.to = [A, C, D]
-		ck[Y].subs(2, B_0_uids[1], X, -1, Z, -1);
+		ck[Y].psubs(2, B_0_uids[1], X, -1, Z, -1);
 		
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		// 2. X <= Y
-		Utils.logi("\n2----------------- X <= Y ----------------- ");
+		Utils.logi("\n2 ----------------- X <= Y ----------------- ");
 		exchange(X, Y);
 		ck[Y].change(1, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
 		ck[Y].change(1, C, ck[X].trb.synode(), A_0, ck[Y].phm);
-		ck[Y].subs(1, B_0_uids[1], -1, -1, Z, -1);
-		ck[Y].subs(1, A_0_uids[1], -1, -1, Z, -1);
+		ck[Y].psubs(1, B_0_uids[1], -1, -1, Z, -1);
+		ck[Y].psubs(1, A_0_uids[1], -1, -1, Z, -1);
 
 		// B.b++, A.b = B.b, B.a = A.a
 		long Ab = nvx.get(y).n;
@@ -406,20 +410,20 @@ public class DBSyntextTest {
 		long Bc_ = nvy.get(z).n;
 		long Cc_ = nvz.get(z).n;
 
-		Utils.logi("\n3----------------- Y <= Z -----------------");
+		Utils.logi("\n3 ----------------- Y <= Z -----------------");
 		exchange(Y, Z);
 		ck[Z].change(0, C, A_0, ck[Z].phm);
 		ck[Z].change(0, C, ck[X].trb.synode(), A_0, ck[Z].phm);
-		ck[Z].subs(0, A_0_uids[1], -1, -1, Z, -1);
+		ck[Z].psubs(0, A_0_uids[1], -1, -1, Z, -1);
 
 		ck[Z].change(0, C, B_0, ck[Y].phm);
 		ck[Z].change(0, C, ck[Y].trb.synode(), B_0, ck[Z].phm);
-		ck[Z].subs(0, B_0_uids[1], -1, -1, Z, -1);
+		ck[Z].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 		
 		ck[Y].change(0, C, A_0, ck[Y].phm);
 		ck[Y].change(0, C, B_0, ck[Y].phm);
-		ck[Y].subs(0, A_0_uids[1], -1, -1, Z, -1);
-		ck[Y].subs(0, B_0_uids[1], -1, -1, Z, -1);
+		ck[Y].psubs(0, A_0_uids[1], -1, -1, Z, -1);
+		ck[Y].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 
 		Ca_ = Ba;
 		Cb_ = Bb;
@@ -430,7 +434,7 @@ public class DBSyntextTest {
 		long Cc = ck[Z].trb.n0().n;
 
 		assertEquals(Cc, nvz.get(z).n);
-		assertnv( Ca_, Cb_, Cc_ + 1,
+		assertnv( Ca_, Cb_, Cc_ + 2,
 				  Ca,  Cb,  Cc );
 		assertnv( Ba_, Bb_, Bc_ + 1,
 				  Ba,  Bb,  Bc );
@@ -440,14 +444,17 @@ public class DBSyntextTest {
 		Aa_ = Aa;
 		Ba_ = Ba;
 		Bc_ = Bc;
+		Ca_ = Ca;
+		Cb_ = Cb;
+		Cc_ = Cc;
 		
 		// 4. X <= Y
-		Utils.logi("\n4----------------- X <= Y -----------------");
+		Utils.logi("\n4 ----------------- X <= Y -----------------");
 		exchange(X, Y);
 		ck[X].change(0, C, A_0, ck[X].phm);
 		ck[X].change(0, C, B_0, ck[X].phm);
-		ck[X].subs(0, A_0_uids[1], -1, -1, Z, -1);
-		ck[X].subs(0, B_0_uids[1], -1, -1, Z, -1);
+		ck[X].psubs(0, A_0_uids[1], -1, -1, Z, -1);
+		ck[X].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 	}
 
 	/**
@@ -527,33 +534,33 @@ public class DBSyntextTest {
 
 		ck[X].change(2, CRUD.D, A_0, ck[X].phm);
 		ck[Y].change(2, CRUD.D, B_0, ck[Y].phm);
-		ck[X].subs(2, A_0, -1,  Y, Z, W);
-		ck[Y].subs(2, B_0,  X, -1, Z, W);
+		ck[X].psubs(2, A_0, -1,  Y, Z, W);
+		ck[Y].psubs(2, B_0,  X, -1, Z, W);
 		
 		exchange(X, Y);
-		ck[X].subs(2, A_0, -1, -1, Z, W);
-		ck[Y].subs(2, A_0, -1, -1, Z, W);
+		ck[X].psubs(2, A_0, -1, -1, Z, W);
+		ck[Y].psubs(2, A_0, -1, -1, Z, W);
 
-		ck[X].subs(2, B_0, -1, -1, Z, W);
-		ck[Y].subs(2, B_0, -1, -1, Z, W);
+		ck[X].psubs(2, B_0, -1, -1, Z, W);
+		ck[Y].psubs(2, B_0, -1, -1, Z, W);
 		
 		exchange(Y, Z);
-		ck[X].subs(2, A_0, -1, -1,  Z, W);
-		ck[Y].subs(2, A_0, -1, -1, -1, W);
-		ck[Z].subs(2, A_0, -1, -1, -1, W);
+		ck[X].psubs(2, A_0, -1, -1,  Z, W);
+		ck[Y].psubs(2, A_0, -1, -1, -1, W);
+		ck[Z].psubs(2, A_0, -1, -1, -1, W);
 
-		ck[X].subs(2, B_0, -1, -1,  Z, W);
-		ck[Y].subs(2, B_0, -1, -1, -1, W);
-		ck[Z].subs(2, B_0, -1, -1, -1, W);
+		ck[X].psubs(2, B_0, -1, -1,  Z, W);
+		ck[Y].psubs(2, B_0, -1, -1, -1, W);
+		ck[Z].psubs(2, B_0, -1, -1, -1, W);
 
 		exchange(X, Y);
-		ck[X].subs(2, A_0, -1, -1, -1, W);
-		ck[Y].subs(2, A_0, -1, -1, -1, W);
-		ck[Z].subs(2, A_0, -1, -1, -1, W);
+		ck[X].psubs(2, A_0, -1, -1, -1, W);
+		ck[Y].psubs(2, A_0, -1, -1, -1, W);
+		ck[Z].psubs(2, A_0, -1, -1, -1, W);
 
-		ck[X].subs(2, B_0, -1, -1, -1, W);
-		ck[Y].subs(2, B_0, -1, -1, -1, W);
-		ck[Z].subs(2, B_0, -1, -1, -1, W);
+		ck[X].psubs(2, B_0, -1, -1, -1, W);
+		ck[Y].psubs(2, B_0, -1, -1, -1, W);
+		ck[Z].psubs(2, B_0, -1, -1, -1, W);
 	}
 	
 	/**
@@ -663,7 +670,7 @@ public class DBSyntextTest {
 	}
 
 	/**
-	 * Test W join with X.
+	 * Test W join with X
 	 * 
 	 * <pre>
 	 * X                     |  Y                   |  Z
@@ -722,21 +729,22 @@ public class DBSyntextTest {
 	 * @throws ClassNotFoundException 
 	 */
 	void testSynodeManage() throws Exception {
-
 		ck[X].synodes(X, Y, Z, -1);
-		join(X, W);
-		ck[X].synodes(X, Y, Z, W);
 
-		ck[X].change(1, C, ck[X].trb.synode(), ck[X].phm);
-		// i X  w  3
-		// c[X].chgEnt(C, c[X].synode, c[W].synode, c[W].phm);
-		// Y, Z
-		ck[X].subs(3, ck[W].trb.synode(), -1, Y, Z, -1);
+		@SuppressWarnings("unused")
+		ChangeLogs w_ack = joinSubtree(Y, W);
+
+		ck[Y].synodes(X,  Y,  Z, W);
+		ck[W].synodes(-1, Y, -1, W);
+
+		ck[Y].change(1, C, "W", ck[Y].synm);
+		ck[Y].synsubs(2, "Y,W", -1, Y, Z, -1);
 		
 		exchange(X, Y);
-		ck[Y].change(1, CRUD.C, ck[X].trb.synode(), ck[Y].phm);
-		ck[Y].subs(3, ck[W].trb.synode(),  -1, -1, Z, -1);
-		ck[X].subs(3, ck[W].trb.synode(),  -1, -1, Z, -1);
+		ck[X].synodes(X, Y, Z, W);
+		ck[X].change(1, C, "W", ck[W].synm);
+		ck[X].synsubs(2, "Y,W", -1, -1, Z, -1);
+		ck[Y].synsubs(2, "Y,W", -1, -1, Z, -1);
 	}
 
 	/**
@@ -809,13 +817,35 @@ public class DBSyntextTest {
 	void test04conflict() throws Exception {
 	}
 
-	void join(int admin, int apply) throws TransException, SQLException {
-		ck[admin].trb.addSynode(
-				ck[admin].connId(),  // into admin's db
-				new Synode(ck[apply].connId(), ck[apply].trb.synode(), ck[admin].robot().orgId()),
-				ck[admin].robot());
-		
-		// exchange(admin, apply);
+	/**
+	 * apply.nv = admin.nv
+	 * admin.n0++
+	 * insert synode(apply)
+	 * 
+	 * @param admin
+	 * @param apply
+	 * @return [synid, uids]
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	ChangeLogs joinSubtree(int admin, int apply) throws TransException, SQLException {
+		// admin
+		DBSynsactBuilder atb = ck[admin].trb;
+		DBSynsactBuilder ctb = ck[apply].trb;
+
+		// atb.nyquvect.put(ctb.synode(), ctb.n0());
+		// ChangeLogs resp = new ChangeLogs(chm).nyquvect(Nyquence.clone(atb.nyquvect));
+		ChangeLogs resp = atb.onJoining(SynodeMode.child, ctb.synode(), ck[admin].domain, Ck.org);
+		ChangeLogs ack  = ctb.initDomain(ctb.synode(), resp);
+
+		atb.incN0(maxn(ack.nyquvect));
+
+		String[] syn_admin = atb.addSynode(ctb.synode(), atb.synrobot(), Ck.org, ck[admin].domain);
+
+		// apply
+		ctb.nyquvect = Nyquence.clone(resp.nyquvect);
+
+		return ack;
 	}
 	
 	/**
@@ -890,11 +920,13 @@ public class DBSyntextTest {
 		assertEquals(0, req.challenge == null ? 0 : req.challenge.size());
 
 		Utils.logi("\n(5.0): %s closing exchange", ctb.synode());
-		HashMap<String, Nyquence> nv = ctb.closexchange(cx, stb.synode(), stb.nyquvect);
+		HashMap<String, Nyquence> nv = ctb.closexchange(cx, stb.synode(), Nyquence.clone(stb.nyquvect));
+
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		Utils.logi("(5.1) %s on closing exchange", stb.synode());
+		// FIXME what if server don't agree?
 		stb.onclosechange(sx, ctb.synode(), nv);
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -1010,11 +1042,14 @@ public class DBSyntextTest {
 	 * @author Ody
 	 */
 	public static class Ck {
+		public static final String org = "URA";
+
 		public T_PhotoMeta phm;
+		public SynodeMeta synm;
 
 		final DBSynsactBuilder trb;
 
-		final String org;
+		final String domain;
 
 		public IUser robot() { return trb.synrobot(); }
 		String connId() { return trb.basictx().connId(); }
@@ -1038,7 +1073,7 @@ public class DBSyntextTest {
 		public Ck(String conn, DBSynsactBuilder trb, String org, String synid, String usrid)
 				throws SQLException, TransException, ClassNotFoundException, IOException {
 			this.trb = trb;
-			this.org = org;
+			this.domain = org;
 		}
 
 		public HashMap<String, Nyquence> cloneNv() {
@@ -1069,7 +1104,7 @@ public class DBSyntextTest {
 			AnResultset chg = (AnResultset) trb
 				.select(chm.tbl, "ch")
 				.cols(chm.cols())
-				.whereEq(chm.org, org)
+				.whereEq(chm.org, domain)
 				.whereEq(chm.entbl, entm.tbl)
 				.whereEq(chm.synoder, synoder)
 				.whereEq(chm.uids, synoder + chm.UIDsep + eid)
@@ -1082,7 +1117,7 @@ public class DBSyntextTest {
 			assertEquals(count, chg.getRowCount());
 			if (count > 0) {
 				assertEquals(crud, chg.getString(chm.crud));
-				assertEquals(phm.tbl, chg.getString(chm.entbl));
+				assertEquals(entm.tbl, chg.getString(chm.entbl));
 				assertEquals(synoder, chg.getString(chm.synoder));
 				return chg.getLong(chm.nyquence);
 			}
@@ -1090,29 +1125,38 @@ public class DBSyntextTest {
 		}
 
 		/**
-		 * verify subscriptions.
+		 * verify h_photos' subscription.
 		 * @param uids
 		 * @param sub subscriptions for X/Y/Z/W, -1 if not exists
 		 * @throws SQLException 
 		 * @throws TransException 
 		 */
-		public void subs(int subcount, String uids, int ... sub) throws SQLException, TransException {
+		public void psubs(int subcount, String uids, int ... sub) throws SQLException, TransException {
 			ArrayList<String> toIds = new ArrayList<String>();
 			for (int n : sub)
 				if (n >= 0)
 					toIds.add(ck[n].trb.synode());
-			subsCount(subcount, uids, toIds.toArray(new String[0]));
+			subsCount(phm, subcount, uids, toIds.toArray(new String[0]));
 		}
 
-		public void subsCount(int subcount, String uids, String ... toIds) throws SQLException, TransException {
+		public void synsubs(int subcount, String uids, int ... sub) throws SQLException, TransException {
+			ArrayList<String> toIds = new ArrayList<String>();
+			for (int n : sub)
+				if (n >= 0)
+					toIds.add(ck[n].trb.synode());
+			subsCount(synm, subcount, uids, toIds.toArray(new String[0]));
+		}
+
+		public void subsCount(SyntityMeta entm, int subcount, String uids, String ... toIds)
+				throws SQLException, TransException {
 			if (isNull(toIds)) {
-				AnResultset subs = trb.subscribes(connId(), org, uids, phm, robot());
+				AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
 				assertEquals(subcount, subs.getRowCount());
-				assertEquals(phm.tbl, subs.getString(sbm.entbl));
+				assertEquals(entm.tbl, subs.getString(sbm.entbl));
 			}
 			else {
 				int cnt = 0;
-				AnResultset subs = trb.subscribes(connId(), org, uids, phm, robot());
+				AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
 				subs.beforeFirst();
 				while (subs.next()) {
 					if (indexOf(toIds, subs.getString(sbm.synodee)) >= 0)
@@ -1120,20 +1164,9 @@ public class DBSyntextTest {
 				}
 
 				if (subs.beforeFirst().next())
-					assertEquals(phm.tbl, subs.getString(sbm.entbl));
+					assertEquals(entm.tbl, subs.getString(sbm.entbl));
 				assertEquals(subcount, cnt);
 			}
-
-
-			
-//			HashSet<String> synodes = subs.set(sbm.synodee);
-			
-//			int size = toIds.length;
-//			for (String n : toIds) {
-//				assertIn(n, synodes);
-//				size--;
-//			}
-//			assertEquals(0, size);
 		}
 
 		/**

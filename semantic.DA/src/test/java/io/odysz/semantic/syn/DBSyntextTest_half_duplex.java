@@ -600,7 +600,6 @@ public class DBSyntextTest_half_duplex {
 	 * @throws TransException 
 	 * @throws IOException 
 	 * @throws ClassNotFoundException 
-	 */
 	void testSynodeManage() throws Exception {
 
 		// initSynodes(0);
@@ -620,6 +619,7 @@ public class DBSyntextTest_half_duplex {
 		ck[Y].subs(3, ck[W].trb.synode(),  -1, -1, Z, -1);
 		ck[X].subs(3, ck[W].trb.synode(),  -1, -1, Z, -1);
 	}
+	 */
 
 	/**
 	 * <pre>
@@ -797,14 +797,12 @@ public class DBSyntextTest_half_duplex {
 		ck[Z].subs(2, B_0, -1, -1, -1, W);
 	}
 	
-	void join(int admin, int apply) throws TransException, SQLException {
-		ck[admin].trb.addSynode(
-				ck[admin].connId(),  // into admin's db
-				new Synode(ck[apply].connId(), ck[apply].trb.synode(), ck[admin].robot().orgId()),
-				ck[admin].robot());
-		
-		// exchange(admin, apply);
-	}
+//	void join(int admin, int apply) throws TransException, SQLException {
+//		ck[admin].trb.addSynode(
+//				ck[admin].connId(),  // into admin's db
+//				new Synode(ck[apply].connId(), ck[apply].trb.synode(), ck[admin].robot().orgId()),
+//				ck[admin].robot());
+//	}
 	
 	/**
 	 * Go through logs' exchange, where client initiate the process.

@@ -7,6 +7,7 @@ import static io.odysz.semantic.util.DAHelper.loadRecNyquence;
 import static io.odysz.semantic.util.DAHelper.loadRecString;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
+import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -36,6 +37,7 @@ import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
+import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
@@ -63,14 +65,12 @@ public class DBSynsactBuilder extends DATranscxt {
 
 	protected String synode() { return ((DBSyntext)this.basictx).synode; }
 
-	/** Nyquence vector [{synode, n0}]*/
+	/** Nyquence vector [{synode, Nyquence}]*/
 	protected HashMap<String, Nyquence> nyquvect;
 	protected Nyquence n0() { return nyquvect.get(synode()); }
 	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
 
 	private HashMap<String, SyntityMeta> entityRegists;
-
-	// private HashMap<String, AnResultset> entitybuf;
 
 	public DBSynsactBuilder(String conn, String synodeId)
 			throws SQLException, SAXException, IOException, TransException {
@@ -98,8 +98,11 @@ public class DBSynsactBuilder extends DATranscxt {
 
 
 		this.subm = subm != null ? subm : new SynSubsMeta(conn);
+		this.subm.replace();
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
+		this.chgm.replace();
 		this.synm = synm != null ? synm : new SynodeMeta(conn);
+		this.synm.replace();
 	}
 	
 	DBSynsactBuilder loadNyquvect0(String conn) throws SQLException, TransException {
@@ -116,6 +119,12 @@ public class DBSynsactBuilder extends DATranscxt {
 		return this;
 	}
 
+	/**
+	 * Inc my n0, then reload from DB.
+	 * @return this
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public DBSynsactBuilder incNyquence() throws TransException, SQLException {
 		update(synm.tbl, synrobot())
 			.nv(synm.nyquence, Funcall.add(synm.nyquence, 1))
@@ -147,7 +156,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @param uids
 	 * @param entm
 	 * @param robot
-	 * @return results with count's field named as 'cnt'
+	 * @return results with count's field named as 'cnt', see {@link SynSubsMeta#cols()}
 	 * @throws TransException
 	 * @throws SQLException
 	 */
@@ -162,6 +171,17 @@ public class DBSynsactBuilder extends DATranscxt {
 				.rs(0);
 	}
 
+	/**
+	 * 
+	 * @param conn
+	 * @param org
+	 * @param uids
+	 * @param entm
+	 * @param robot
+	 * @return see {@link #subscribes(String, String, String, SyntityMeta, IUser)
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public AnResultset subscribes(String conn, String org, Funcall uids, SyntityMeta entm, IUser robot)
 			throws TransException, SQLException {
 		return (AnResultset) select(subm.tbl, "ch")
@@ -173,10 +193,42 @@ public class DBSynsactBuilder extends DATranscxt {
 				.rs(0);
 	}
 
-	public void addSynode(String conn, Synode node, IUser robot)
+	/**
+	 * {@link SynodeMode#hub} node uses this to setup change logs for joining nodes.
+	 * 
+	 * @param applyid
+	 * @param robot
+	 * @param org
+	 * @param domain
+	 * @return [applyid, "My-id,applyid" as uids]
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public String[] changeSynodes(String applyid, IUser robot, String org, String domain)
 			throws TransException, SQLException {
-		node.insert(synm, insert(synm.tbl, robot))
-			.ins(this.instancontxt(conn, robot));
+		Synode apply = new Synode(basictx.connId(), applyid, org, domain);
+		apply.insert(synm, n0(), insert(synm.tbl, robot))
+			.post(insert(chgm.tbl, robot)
+				.nv(chgm.entfk, apply.recId)
+				.nv(chgm.entbl, synm.tbl)
+				.nv(chgm.crud, CRUD.C)
+				.nv(chgm.synoder, synode())
+				.nv(chgm.uids, concatstr(synode(), chgm.UIDsep, apply.recId))
+				.nv(chgm.nyquence, n0().n)
+				.nv(chgm.org, robot.orgId())
+				.post(insert(subm.tbl)
+					.cols(subm.entbl, subm.synodee, subm.uids, subm.org)
+					.select((Query)select(synm.tbl)
+						.col(constr(synm.tbl))
+						.col(synm.synoder)
+						.col(concatstr(synode(), chgm.UIDsep, apply.recId))
+						.col(constr(robot.orgId()))
+						.where(op.ne, synm.synoder, constr(synode()))
+						.where(op.ne, synm.synoder, constr(applyid))
+						.whereEq(synm.domain, domain))))
+			.ins(instancontxt(basictx.connId(), robot));
+		
+		return new String[] {apply.recId, synode() + chgm.UIDsep + apply.recId};
 	}
 
 	public AnResultset entities(SyntityMeta phm, String connId, IUser usr)
@@ -473,13 +525,13 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws TransException 
 	 */
 	public Nyquence incN0(long maxn) throws TransException, SQLException {
-		// FIXME, sync db
 		n0().inc(maxn);
 		DAHelper.updateField(this, basictx.connId(), synm, synode(), synm.nyquence, String.valueOf(n0().n), synrobot());
 		return n0();
 	}
+
 	public Nyquence incN0(Nyquence n) throws TransException, SQLException {
-		return incN0(n.n);
+		return incN0(n == null ? nyquvect.get(synode()).n : n.n);
 	}
 
 	/**
@@ -496,9 +548,10 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws TransException, SQLException {
 		Nyquence dn = this.nyquvect.get(target);
 		AnResultset challenge = (AnResultset) select(chgm.tbl, "ch")
-			.je("ch", subm.tbl, "sb", chgm.entbl, subm.entbl, chgm.uids, subm.uids) // FIXME line 1:7 mismatched input '<EOF>' expecting '.'
+			.je("ch", subm.tbl, "sb", chgm.entbl, subm.entbl, chgm.uids, subm.uids)
 			.cols("ch.*", subm.synodee)
-			.where(op.gt, chgm.nyquence, dn.n)
+			// FIXME not op.lt, must implement a function to compare nyquence.
+			.where(op.gt, chgm.nyquence, dn.n) // FIXME
 			.orderby(chgm.entbl)
 			.orderby(chgm.nyquence)
 			.orderby(chgm.synoder)
@@ -615,24 +668,21 @@ public class DBSynsactBuilder extends DATranscxt {
 				.je2(subm.tbl, "sb", constr(sn), subm.synodee,
 					chgm.org, subm.org, chgm.entbl, subm.entbl,
 					chgm.uids, subm.uids)
-				// NOTE: it's myself's n, not nv['z'].n because the change log was stamped with n0
-				// FIXME not op.lt, must implement a function to compare nyquence.
-				// always true: .where(op.lt, chgm.nyquence, n0().n) // FIXME
 				.where(op.ne, subm.synodee, constr(srcn));
 
 			delete(subm.tbl, synrobot())
 				.where(op.exists, null, with(cl)
 					.select("cl")
-					.whereEq(subm.tbl, subm.org,   "cl", chgm.org) // new ExprPart("cl." + chgm.org))
-					.whereEq(subm.tbl, subm.entbl, "cl", chgm.entbl) //new ExprPart(chgm.entbl))
-					.whereEq(subm.tbl, subm.uids,  "cl", chgm.uids)) //new ExprPart(chgm.uids)))
+					.whereEq(subm.tbl, subm.org,   "cl", chgm.org)
+					.whereEq(subm.tbl, subm.entbl, "cl", chgm.entbl)
+					.whereEq(subm.tbl, subm.uids,  "cl", chgm.uids))
 				.post(delete(chgm.tbl)
 					.where(op.notexists, null, with(cl)
 						.select("cl")
 						.where(op.ne, subm.synodee, constr(sn))
-						.whereEq(chgm.tbl, chgm.org,  "cl", chgm.org) // ExprPart("cl." + chgm.org))
-						.whereEq(chgm.tbl, chgm.entbl,"cl", chgm.entbl) // new ExprPart(subm.entbl))
-						.whereEq(chgm.tbl, chgm.uids, "cl", chgm.uids))) // new ExprPart(subm.uids))))
+						.whereEq(chgm.tbl, chgm.org,  "cl", chgm.org)
+						.whereEq(chgm.tbl, chgm.entbl,"cl", chgm.entbl)
+						.whereEq(chgm.tbl, chgm.uids, "cl", chgm.uids)))
 				.d(instancontxt(basictx.connId(), synrobot()));
 		}
 	}
@@ -666,6 +716,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws TransException, SQLException {
 		x.clear();
 		HashMap<String, Nyquence> snapshot = Nyquence.clone(nyquvect);
+		nv.get(sn).inc(n0());
 		incN0(maxn(nv));
 		return snapshot;
 	}
@@ -674,13 +725,23 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws SQLException, TransException {
 		x.clear();
 		synyquvectWith(sn, nv);
+		nv.get(sn).inc();
 		incN0(maxn(nv));
 	}
 
-	private DBSynsactBuilder synyquvectWith(String sn, HashMap<String, Nyquence> nv) throws TransException, SQLException {
+	/**
+	 * Update / step my nyquvect with {@code nv}, using max(my.nyquvect, nv).
+	 * @param sn
+	 * @param nv
+	 * @return this
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	private DBSynsactBuilder synyquvectWith(String sn, HashMap<String, Nyquence> nv)
+			throws TransException, SQLException {
+
 		for (String n : nv.keySet()) {
 			if (eq(n, sn) && compareNyq(nv.get(n), nyquvect.get(n)) < 0)
-				// incN0(nv.get(n));
 				throw new SemanticException("[DBSynsactBuilder.synyquvectWith()] Updating my (%s) nyquence with %s's value early than already knowns.",
 						synode(), n);
 			nyquvect.get(n).n = maxn(nv.get(n).n, nyquvect.get(n).n);
@@ -703,4 +764,43 @@ public class DBSynsactBuilder extends DATranscxt {
 		u.u(instancontxt(basictx.connId(), synrobot()));
 	}
 
+	public ChangeLogs onJoining(SynodeMode reqmode, String joining, String domain, String org)
+			throws TransException, SQLException {
+		insert(synm.tbl, synrobot())
+			.nv(synm.pk, joining)
+			.nv(synm.nyquence, new ExprPart(n0().n))
+			.nv(synm.mac,  "#"+joining)
+			.nv(synm.org(), org)
+			.nv(synm.domain, domain)
+			.ins(instancontxt(basictx.connId(), synrobot()));
+
+		// incNyquence();
+
+		ChangeLogs log = new ChangeLogs(chgm)
+			.nyquvect(Nyquence.clone(nyquvect))
+			.synodes(reqmode == SynodeMode.hub
+				? ((AnResultset) select(synm.tbl, "syn")
+					.where(op.ne, synm.synoder, joining)
+					.whereEq(synm.domain, domain)
+					.whereEq(synm.org(), org)
+					.rs(instancontxt(basictx.connId(), synrobot()))
+					.rs(0))
+				: null);
+		return log;
+	}
+
+	public ChangeLogs initDomain(String from, ChangeLogs domainstatus) throws SQLException, TransException {
+		AnResultset ns = domainstatus.synodes.beforeFirst();
+		HashMap<String, Nyquence> nv = domainstatus.nyquvect;
+		while (ns.next()) {
+			new Synode(ns, synm)
+				.insert(synm, maxn(nv), insert(synm.tbl, synrobot()))
+				.ins(instancontxt(basictx.connId(), synrobot()));
+		}
+
+		ChangeLogs rsp = new ChangeLogs(chgm).nyquvect(nv);
+		incNyquence();
+		//incN0(maxn(rsp.nyquvect));
+		return rsp;
+	}
 }

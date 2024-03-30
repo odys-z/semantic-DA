@@ -1,5 +1,6 @@
 package io.odysz.semantic.meta;
 
+import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.len;
 import static io.odysz.common.Utils.loadTxt;
 
@@ -8,10 +9,10 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.syn.ChangeLogs;
-import io.odysz.semantic.syn.DBSynsactBuilder;
+import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.syn.DBSynmantics;
 import io.odysz.semantics.meta.TableMeta;
-import io.odysz.transact.sql.Query;
+import io.odysz.transact.x.TransException;
 
 /**
  * <a href="./syn_subscribe.sqlite.ddl">syn_sbuscribe DDL</a>
@@ -83,6 +84,21 @@ public class SynSubsMeta extends TableMeta {
 			val.add(new Object[] {cols[cx], chlogs.getString(cols[cx])});
 		}
 		return val;
+	}
+
+	/**
+	 * ISSUE: why not merge with {@link SyntityMeta#replace()}?
+	 * @return
+	 * @throws SQLException
+	 * @throws TransException
+	 */
+	public SynSubsMeta replace() throws SQLException, TransException {
+		TableMeta mdb = Connects.getMeta(conn, tbl);
+		if (!(mdb instanceof SyntityMeta))
+			DBSynmantics.replaceMeta(tbl, this, conn);
+		if (isNull(this.ftypes) && mdb.ftypes() != null)
+			this.ftypes = mdb.ftypes();
+		return this;
 	}
 
 	/**

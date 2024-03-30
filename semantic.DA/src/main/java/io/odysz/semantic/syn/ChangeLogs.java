@@ -18,7 +18,7 @@ public class ChangeLogs extends Anson {
 	@AnsonField(ignoreTo=true)
 	SynChangeMeta chm;
 	
-	String entble;
+	// private String entble;
 
 	HashMap<String, Nyquence> nyquvect;
 	public ChangeLogs nyquvect(HashMap<String, Nyquence> nyquvect) {
@@ -38,12 +38,11 @@ public class ChangeLogs extends Anson {
 		return this;
 	}
 
-	@SuppressWarnings("unused")
-	private boolean dirty;
+	// private boolean dirty;
 
 	public ChangeLogs(SynChangeMeta changemeta) {
 		this.chm = changemeta;
-		dirty = false;
+		// dirty = false;
 	}
 
 	/**
@@ -62,7 +61,7 @@ public class ChangeLogs extends Anson {
 		row.add(answers.getColumex(ChangeFlag)-1, CRUD.U);
 		answers.append(row);
 
-		dirty = true;
+		// dirty = true;
 	}
 
 	public static Nyquence parseNyq(Object[] c) {
@@ -87,11 +86,12 @@ public class ChangeLogs extends Anson {
 		challenge = null;
 		answers = null;
 		entities = null;
-		dirty = false;
+		// dirty = false;
 	}
 
 	// public HashMap<String, HashMap<String, ? extends SynEntity>> entities;
 	HashMap<String, AnResultset> entities;
+
 	public ChangeLogs entities(String tbl, AnResultset entities) {
 		if (this.entities == null)
 			this.entities = new HashMap<String, AnResultset>();
@@ -101,7 +101,7 @@ public class ChangeLogs extends Anson {
 	
 	public ChangeLogs entities(HashMap<String, AnResultset> entities) throws SemanticException {
 		if (this.entities != null)
-			throw new SemanticException("There are entities already to be handled.");
+			throw new SemanticException("There are entities already exist to be handled.");
 		this.entities = entities;
 		return this;
 	}
@@ -117,5 +117,11 @@ public class ChangeLogs extends Anson {
 
 	public int answers() {
 		return answers == null ? 0 : answers.getRowCount();
+	}
+
+	AnResultset synodes;
+	public ChangeLogs synodes(AnResultset rs) {
+		synodes = rs;
+		return this;
 	}
 }

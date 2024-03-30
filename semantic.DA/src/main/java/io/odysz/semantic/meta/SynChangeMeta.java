@@ -1,7 +1,15 @@
 package io.odysz.semantic.meta;
 
+import static io.odysz.common.LangExt.isNull;
+
+import java.sql.SQLException;
+
 import io.odysz.common.Utils;
+import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.syn.DBSynmantics;
+import io.odysz.semantics.meta.Semantation;
 import io.odysz.semantics.meta.TableMeta;
+import io.odysz.transact.x.TransException;
 
 /**
  *<a href="./syn_change.sqlite.ddl">syn_change DDL</a>
@@ -11,6 +19,7 @@ import io.odysz.semantics.meta.TableMeta;
  */
 public class SynChangeMeta extends TableMeta {
 	/** Separator in uids, ",", for separating fields of pk */
+	@Semantation (noDBExists = true)
 	public final String UIDsep;
 
 	public final String org;
@@ -23,17 +32,16 @@ public class SynChangeMeta extends TableMeta {
 	public final String synoder;
 	public final String nyquence;
 
-	// public final String subs;
-
 	static {
 	}
 
 	public SynChangeMeta(String ... conn) {
 		super("syn_change", conn);
-		ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
 
 		UIDsep = ",";
-		// pk    = "uids";
+
+		ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
+
 		org   = "org";
 		entbl = "tabl";
 		entfk = "entfk";
@@ -41,8 +49,6 @@ public class SynChangeMeta extends TableMeta {
 		synoder = "synoder";
 		uids = "uids";
 		nyquence = "nyquence";
-		
-		// subs = "sub";
 	}
 
 	public String[] cols() {
@@ -52,6 +58,21 @@ public class SynChangeMeta extends TableMeta {
 	/** compose function for uids */
 	public String uids(String synode, String entityId) {
 		return synode + UIDsep + entityId; // Funcall.concatstr(synode, UIDsep, entityId);
+	}
+
+	/**
+	 * ISSUE: why not merge with {@link SyntityMeta#replace()}?
+	 * @return
+	 * @throws SQLException
+	 * @throws TransException
+	 */
+	public SynChangeMeta replace() throws SQLException, TransException {
+		TableMeta mdb = Connects.getMeta(conn, tbl);
+		if (!(mdb instanceof SyntityMeta))
+			DBSynmantics.replaceMeta(tbl, this, conn);
+		if (isNull(this.ftypes) && mdb.ftypes() != null)
+			this.ftypes = mdb.ftypes();
+		return this;
 	}
 
 }

@@ -147,11 +147,11 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 				.rs(0);
 	}
 	
-	public void addSynode(String conn, Synode node, IUser robot)
-			throws TransException, SQLException {
-		node.insert(synm, insert(synm.tbl, robot))
-			.ins(this.instancontxt(conn, robot));
-	}
+//	public void addSynode(String conn, Synode node, IUser robot)
+//			throws TransException, SQLException {
+//		node.insert(synm, insert(synm.tbl, robot))
+//			.ins(this.instancontxt(conn, robot));
+//	}
 
 	public AnResultset entities(SyntityMeta phm, String connId, IUser usr)
 			throws TransException, SQLException {
