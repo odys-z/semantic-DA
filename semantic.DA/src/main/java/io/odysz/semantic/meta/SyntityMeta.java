@@ -36,6 +36,13 @@ public abstract class SyntityMeta extends TableMeta {
 	public final HashSet<String> uids;
 
 	private HashMap<String, Integer> entCols;
+
+	boolean autopk;
+	public boolean autopk() { return autopk; }
+	public SyntityMeta autopk(boolean ak) {
+		this.autopk = ak;
+		return this;
+	}
 	
 	/**
 	 * @param tbl
@@ -49,6 +56,7 @@ public abstract class SyntityMeta extends TableMeta {
 	public SyntityMeta(String tbl, String pk, String org, String... conn) {
 		super(tbl, conn);
 
+		this.autopk = true;
 		this.pk = pk;
 		this.org = org;
 		synoder = "synode";

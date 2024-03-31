@@ -192,7 +192,7 @@ public class DBSyntextTest_half_duplex {
 			String conn = conns[s];
 			// String tester = testers[s];
 			
-			snm = new SynodeMeta(conn);
+			snm = new SynodeMeta(conn, null);
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", snm.tbl));
 			Connects.commit(conn, DATranscxt.dummyUser(), snm.ddlSqlite);
 

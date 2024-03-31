@@ -108,7 +108,7 @@ public class DBSynmantics extends DASemantics {
 				throw new SemanticException("ShSynChange (xml/smtype=s-c) requires instance of DBSynsactBuilder as the default builder.");
 
 			try {
-				snm = new SynodeMeta(trxt.basictx().connId());
+				snm = new SynodeMeta(trxt.basictx().connId(), null);
 			} catch (TransException e) {
 				e.printStackTrace();
 				throw new SemanticException(e.getMessage());

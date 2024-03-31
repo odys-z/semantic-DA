@@ -2,6 +2,10 @@ package io.odysz.semantic.meta;
 
 import static io.odysz.common.Utils.loadTxt;
 
+import io.odysz.semantic.DASemantics;
+import io.odysz.semantic.DASemantics.smtype;
+import io.odysz.semantic.DATranscxt;
+import io.odysz.semantic.syn.DBSynsactBuilder;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
@@ -21,9 +25,10 @@ public class SynodeMeta extends SyntityMeta {
 	 * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
 	 * 
 	 * @param conn
+	 * @param trb 
 	 * @throws SemanticException 
 	 */
-	public SynodeMeta(String conn) throws TransException {
+	public SynodeMeta(String conn, DBSynsactBuilder trb) throws TransException {
 		super("syn_node", "synid", "org", conn, "syn_node.sqlite.ddl");
 
 		// pk = "synid";
@@ -33,6 +38,9 @@ public class SynodeMeta extends SyntityMeta {
 		domain = "domain";
 
 		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
+
+		if (trb != null)
+			autopk = DATranscxt.hasSemantics(conn, tbl, smtype.autoInc);
 	}
 
 //	@Override

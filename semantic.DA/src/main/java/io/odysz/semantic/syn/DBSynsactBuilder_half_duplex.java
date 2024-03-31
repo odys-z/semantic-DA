@@ -64,7 +64,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 		this(conn, synodeId,
 			new SynSubsMeta(conn),
 			new SynChangeMeta(conn),
-			new SynodeMeta(conn));
+			new SynodeMeta(conn, null));
 	}
 	
 	public DBSynsactBuilder_half_duplex(String conn, String synodeId,
@@ -84,7 +84,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 
 		this.subm = subm != null ? subm : new SynSubsMeta(conn);
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
-		this.synm = synm != null ? synm : new SynodeMeta(conn);
+		this.synm = synm != null ? synm : new SynodeMeta(conn, null);
 	}
 	
 	DBSynsactBuilder_half_duplex loadNyquvect0(String conn) throws SQLException, TransException {

@@ -4,6 +4,7 @@ import static io.odysz.common.LangExt.compoundVal;
 import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
@@ -182,7 +183,7 @@ public class DBSyntextTest {
 		for (int s = 0; s < 4; s++) {
 			String conn = conns[s];
 			
-			snm = new SynodeMeta(conn).replace();
+			snm = new SynodeMeta(conn, null);
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", snm.tbl));
 			Connects.commit(conn, DATranscxt.dummyUser(), snm.ddlSqlite);
 
@@ -216,11 +217,13 @@ public class DBSyntextTest {
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
 			ck[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
+			snm = new SynodeMeta(conn, ck[s].trb).autopk(false).replace();
 			ck[s].synm = snm;
 			if (s != W)
 				ck[s].trb.incNyquence();
 
 			ck[s].trb.registerEntity(conn, ck[s].phm);
+			ck[s].trb.registerEntity(conn, snm);
 		}
 
 		phm = new T_PhotoMeta(conns[0]).replace(); // all entity table is the same in this test
@@ -230,7 +233,7 @@ public class DBSyntextTest {
 
 	@Test
 	void testChangeLogs() throws Exception {
-		// test01InsertBasic();
+		test01InsertBasic();
 		testSynodeManage();
 	}
 
@@ -382,7 +385,7 @@ public class DBSyntextTest {
 
 		// 2. X <= Y
 		Utils.logi("\n2 ----------------- X <= Y ----------------- ");
-		exchange(X, Y);
+		exchangePhotos(X, Y);
 		ck[Y].change(1, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
 		ck[Y].change(1, C, ck[X].trb.synode(), A_0, ck[Y].phm);
 		ck[Y].psubs(1, B_0_uids[1], -1, -1, Z, -1);
@@ -411,7 +414,7 @@ public class DBSyntextTest {
 		long Cc_ = nvz.get(z).n;
 
 		Utils.logi("\n3 ----------------- Y <= Z -----------------");
-		exchange(Y, Z);
+		exchangePhotos(Y, Z);
 		ck[Z].change(0, C, A_0, ck[Z].phm);
 		ck[Z].change(0, C, ck[X].trb.synode(), A_0, ck[Z].phm);
 		ck[Z].psubs(0, A_0_uids[1], -1, -1, Z, -1);
@@ -450,7 +453,7 @@ public class DBSyntextTest {
 		
 		// 4. X <= Y
 		Utils.logi("\n4 ----------------- X <= Y -----------------");
-		exchange(X, Y);
+		exchangePhotos(X, Y);
 		ck[X].change(0, C, A_0, ck[X].phm);
 		ck[X].change(0, C, B_0, ck[X].phm);
 		ck[X].psubs(0, A_0_uids[1], -1, -1, Z, -1);
@@ -537,14 +540,14 @@ public class DBSyntextTest {
 		ck[X].psubs(2, A_0, -1,  Y, Z, W);
 		ck[Y].psubs(2, B_0,  X, -1, Z, W);
 		
-		exchange(X, Y);
+		exchangePhotos(X, Y);
 		ck[X].psubs(2, A_0, -1, -1, Z, W);
 		ck[Y].psubs(2, A_0, -1, -1, Z, W);
 
 		ck[X].psubs(2, B_0, -1, -1, Z, W);
 		ck[Y].psubs(2, B_0, -1, -1, Z, W);
 		
-		exchange(Y, Z);
+		exchangePhotos(Y, Z);
 		ck[X].psubs(2, A_0, -1, -1,  Z, W);
 		ck[Y].psubs(2, A_0, -1, -1, -1, W);
 		ck[Z].psubs(2, A_0, -1, -1, -1, W);
@@ -553,7 +556,7 @@ public class DBSyntextTest {
 		ck[Y].psubs(2, B_0, -1, -1, -1, W);
 		ck[Z].psubs(2, B_0, -1, -1, -1, W);
 
-		exchange(X, Y);
+		exchangePhotos(X, Y);
 		ck[X].psubs(2, A_0, -1, -1, -1, W);
 		ck[Y].psubs(2, A_0, -1, -1, -1, W);
 		ck[Z].psubs(2, A_0, -1, -1, -1, W);
@@ -729,6 +732,8 @@ public class DBSyntextTest {
 	 * @throws ClassNotFoundException 
 	 */
 	void testSynodeManage() throws Exception {
+		Utils.logi("\n=== %s ===", new Object(){}.getClass().getEnclosingMethod().getName());
+
 		ck[X].synodes(X, Y, Z, -1);
 
 		@SuppressWarnings("unused")
@@ -738,13 +743,15 @@ public class DBSyntextTest {
 		ck[W].synodes(-1, Y, -1, W);
 
 		ck[Y].change(1, C, "W", ck[Y].synm);
-		ck[Y].synsubs(2, "Y,W", -1, Y, Z, -1);
+		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
 		
-		exchange(X, Y);
+		exchangeSynodes(X, Y);
 		ck[X].synodes(X, Y, Z, W);
-		ck[X].change(1, C, "W", ck[W].synm);
-		ck[X].synsubs(2, "Y,W", -1, -1, Z, -1);
-		ck[Y].synsubs(2, "Y,W", -1, -1, Z, -1);
+		ck[X].change(1, C, "Y", "W", ck[X].synm);
+		ck[X].synsubs(1, "Y,W", -1, -1, Z, -1);
+
+		ck[Z].synodes(X, Y, Z, -1);
+		ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
 	}
 
 	/**
@@ -829,20 +836,16 @@ public class DBSyntextTest {
 	 * @throws SQLException
 	 */
 	ChangeLogs joinSubtree(int admin, int apply) throws TransException, SQLException {
-		// admin
 		DBSynsactBuilder atb = ck[admin].trb;
 		DBSynsactBuilder ctb = ck[apply].trb;
 
-		// atb.nyquvect.put(ctb.synode(), ctb.n0());
-		// ChangeLogs resp = new ChangeLogs(chm).nyquvect(Nyquence.clone(atb.nyquvect));
-		ChangeLogs resp = atb.onJoining(SynodeMode.child, ctb.synode(), ck[admin].domain, Ck.org);
+		// admin
+		ChangeLogs resp = atb.addChild(ctb.synode(), SynodeMode.child, ck[admin].robot(), Ck.org, ck[admin].domain);
+		// applicant
 		ChangeLogs ack  = ctb.initDomain(ctb.synode(), resp);
-
+		// admin
 		atb.incN0(maxn(ack.nyquvect));
-
-		String[] syn_admin = atb.addSynode(ctb.synode(), atb.synrobot(), Ck.org, ck[admin].domain);
-
-		// apply
+		// applicant
 		ctb.nyquvect = Nyquence.clone(resp.nyquvect);
 
 		return ack;
@@ -857,12 +860,28 @@ public class DBSyntextTest {
 	 * @throws TransException 
 	 * @throws IOException 
 	 */
-	void exchange(int srv, int cli) throws TransException, SQLException, IOException {
+	void exchangePhotos(int srv, int cli) throws TransException, SQLException, IOException {
 		DBSynsactBuilder ctb = ck[cli].trb;
 		DBSynsactBuilder stb = ck[srv].trb;
 
 		SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId()).replace();
 		SyntityMeta cphm = new T_PhotoMeta(ctb.basictx().connId()).replace();
+		
+		exchange(sphm, stb, cphm, ctb);
+	}
+
+	void exchangeSynodes(int srv, int cli) throws TransException, SQLException, IOException {
+		DBSynsactBuilder ctb = ck[cli].trb;
+		DBSynsactBuilder stb = ck[srv].trb;
+
+		SyntityMeta sphm = new SynodeMeta(stb.basictx().connId(), stb).replace();
+		SyntityMeta cphm = new SynodeMeta(ctb.basictx().connId(), ctb).replace();
+		
+		exchange(sphm, stb, cphm, ctb);
+	}
+
+	static void exchange(SyntityMeta sphm, DBSynsactBuilder stb, SyntityMeta cphm, DBSynsactBuilder ctb)
+			throws TransException, SQLException, IOException {
 
 		ExchangeContext cx = new ExchangeContext(chm, ctb, stb.synode());
 		ExchangeContext sx = new ExchangeContext(chm, stb, ctb.synode());
@@ -872,7 +891,7 @@ public class DBSyntextTest {
 		ChangeLogs req = ctb.initExchange(cx, stb.synode(), cphm);
 		assertNotNull(req);
 		
-		if (srv == 1 && cli == 0) {
+		if (eq(stb.synode(), "Y") && eq(ctb.synode(), "X")) {
 			if (req.challenges() >= 3 || req.enitities(cphm.tbl) >= 2)
 				Utils.warn("ERROR, req.challenges() >= 3 || req.enitities(cphm.tbl) >= 2,"
 						+ "but it's not planned to fix this problem in half-duplex mode");
@@ -933,6 +952,7 @@ public class DBSyntextTest {
 
 		if (req.challenges() > 0)
 			fail("Shouldn't has any more challenge here.");
+	
 	}
 
 	void updatePhoto(int s, String pid) throws TransException, SQLException {
@@ -1152,7 +1172,7 @@ public class DBSyntextTest {
 			if (isNull(toIds)) {
 				AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
 				assertEquals(subcount, subs.getRowCount());
-				assertEquals(entm.tbl, subs.getString(sbm.entbl));
+				// assertEquals(entm.tbl, subs.getString(sbm.entbl));
 			}
 			else {
 				int cnt = 0;

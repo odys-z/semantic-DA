@@ -21,7 +21,12 @@ public class ChangeLogs extends Anson {
 	// private String entble;
 
 	HashMap<String, Nyquence> nyquvect;
-	public ChangeLogs nyquvect(HashMap<String, Nyquence> nyquvect) {
+	/** 
+	 * clone {@code nyquvect} into my nyq-vector.
+	 * @param nyquvect
+	 * @return
+	 */
+	public ChangeLogs nyquvect(final HashMap<String, Nyquence> nyquvect) {
 		this.nyquvect = Nyquence.clone(nyquvect);
 		return this;
 	}

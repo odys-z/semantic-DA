@@ -869,7 +869,8 @@ public class DASemantics {
 		}
 	}
 
-	/**Auto Pk Handler.<br>
+	/**
+	 * Auto Pk Handler.<br>
 	 * Generate a radix 64, 6 bit of string representation of integer.
 	 * @see smtype#autoInc
 	 * @deprecated replaced by {@link ShAutoKPrefix}

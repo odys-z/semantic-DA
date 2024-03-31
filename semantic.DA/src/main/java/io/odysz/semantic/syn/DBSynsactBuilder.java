@@ -77,7 +77,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		this(conn, synodeId,
 			new SynSubsMeta(conn),
 			new SynChangeMeta(conn),
-			new SynodeMeta(conn));
+			new SynodeMeta(conn, null));
 	}
 	
 	public DBSynsactBuilder(String conn, String synodeId,
@@ -95,14 +95,12 @@ public class DBSynsactBuilder extends DATranscxt {
 		tx.domain = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
 		((SyncRobot)tx.usr()).orgId = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
 
-
-
 		this.subm = subm != null ? subm : new SynSubsMeta(conn);
 		this.subm.replace();
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
-		this.synm = synm != null ? synm : new SynodeMeta(conn);
-		this.synm.replace();
+		this.synm = synm != null ? synm : new SynodeMeta(conn, this);
+		this.synm.replace().autopk(false);
 	}
 	
 	DBSynsactBuilder loadNyquvect0(String conn) throws SQLException, TransException {
@@ -191,44 +189,6 @@ public class DBSynsactBuilder extends DATranscxt {
 				.whereEq(subm.uids, uids)
 				.rs(instancontxt(conn, robot))
 				.rs(0);
-	}
-
-	/**
-	 * {@link SynodeMode#hub} node uses this to setup change logs for joining nodes.
-	 * 
-	 * @param applyid
-	 * @param robot
-	 * @param org
-	 * @param domain
-	 * @return [applyid, "My-id,applyid" as uids]
-	 * @throws TransException
-	 * @throws SQLException
-	 */
-	public String[] changeSynodes(String applyid, IUser robot, String org, String domain)
-			throws TransException, SQLException {
-		Synode apply = new Synode(basictx.connId(), applyid, org, domain);
-		apply.insert(synm, n0(), insert(synm.tbl, robot))
-			.post(insert(chgm.tbl, robot)
-				.nv(chgm.entfk, apply.recId)
-				.nv(chgm.entbl, synm.tbl)
-				.nv(chgm.crud, CRUD.C)
-				.nv(chgm.synoder, synode())
-				.nv(chgm.uids, concatstr(synode(), chgm.UIDsep, apply.recId))
-				.nv(chgm.nyquence, n0().n)
-				.nv(chgm.org, robot.orgId())
-				.post(insert(subm.tbl)
-					.cols(subm.entbl, subm.synodee, subm.uids, subm.org)
-					.select((Query)select(synm.tbl)
-						.col(constr(synm.tbl))
-						.col(synm.synoder)
-						.col(concatstr(synode(), chgm.UIDsep, apply.recId))
-						.col(constr(robot.orgId()))
-						.where(op.ne, synm.synoder, constr(synode()))
-						.where(op.ne, synm.synoder, constr(applyid))
-						.whereEq(synm.domain, domain))))
-			.ins(instancontxt(basictx.connId(), robot));
-		
-		return new String[] {apply.recId, synode() + chgm.UIDsep + apply.recId};
 	}
 
 	public AnResultset entities(SyntityMeta phm, String connId, IUser usr)
@@ -437,7 +397,7 @@ public class DBSynsactBuilder extends DATranscxt {
 							.nv(chgm.synoder, synodr1)
 							.nv(chgm.uids, chuids1)
 							.nv(chgm.nyquence, chal.getLong(chgm.nyquence))
-							.nv(chgm.entfk, new Resulving(entm.tbl, entm.pk))
+							.nv(chgm.entfk, entm.autopk() ? new Resulving(entm.tbl, entm.pk) : constr(entid1))
 							.post(eq(subsrb, synode()) ? null : insert(subm.tbl)
 								.cols(subm.insertCols())
 								.value(subm.insertSubVal(chal)))
@@ -504,7 +464,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 	public SyntityMeta getEntityMeta(String entbl) throws SemanticException {
 		if (entityRegists == null || !entityRegists.containsKey(entbl))
-			throw new SemanticException("Register %s first.");
+			throw new SemanticException("Register %s first.", entbl);
 			
 		return entityRegists.get(entbl);
 	}
@@ -764,6 +724,57 @@ public class DBSynsactBuilder extends DATranscxt {
 		u.u(instancontxt(basictx.connId(), synrobot()));
 	}
 
+	/**
+	 * A {@link SynodeMode#hub hub} node uses this to setup change logs for joining nodes.
+	 * 
+	 * @param childId
+	 * @param robot
+	 * @param org
+	 * @param domain
+	 * @return [applyid, "My-id,applyid" as uids]
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public ChangeLogs addChild(String childId, SynodeMode reqmode, IUser robot, String org, String domain)
+			throws TransException, SQLException {
+		Synode apply = new Synode(basictx.connId(), childId, org, domain);
+		apply.insert(synm, n0(), insert(synm.tbl, robot))
+			.post(insert(chgm.tbl, robot)
+				.nv(chgm.entfk, apply.recId)
+				.nv(chgm.entbl, synm.tbl)
+				.nv(chgm.crud, CRUD.C)
+				.nv(chgm.synoder, synode())
+				.nv(chgm.uids, concatstr(synode(), chgm.UIDsep, apply.recId))
+				.nv(chgm.nyquence, n0().n)
+				.nv(chgm.org, robot.orgId())
+				.post(insert(subm.tbl)
+					.cols(subm.entbl, subm.synodee, subm.uids, subm.org)
+					.select((Query)select(synm.tbl)
+						.col(constr(synm.tbl))
+						.col(synm.synoder)
+						.col(concatstr(synode(), chgm.UIDsep, apply.recId))
+						.col(constr(robot.orgId()))
+						.where(op.ne, synm.synoder, constr(synode()))
+						.where(op.ne, synm.synoder, constr(childId))
+						.whereEq(synm.domain, domain))))
+			.ins(instancontxt(basictx.connId(), robot));
+		
+//		if (reqmode == SynodeMode.child)
+//			incNyquence();
+
+		ChangeLogs log = new ChangeLogs(chgm)
+			.nyquvect(nyquvect)
+			.synodes(reqmode == SynodeMode.child
+				? ((AnResultset) select(synm.tbl, "syn")
+					.whereIn(synm.synoder, childId, synode())
+					.whereEq(synm.domain, domain)
+					.whereEq(synm.org(), org)
+					.rs(instancontxt(basictx.connId(), synrobot()))
+					.rs(0))
+				: null); // Following exchange is needed
+		return log;
+	}
+
 	public ChangeLogs onJoining(SynodeMode reqmode, String joining, String domain, String org)
 			throws TransException, SQLException {
 		insert(synm.tbl, synrobot())
@@ -774,18 +785,19 @@ public class DBSynsactBuilder extends DATranscxt {
 			.nv(synm.domain, domain)
 			.ins(instancontxt(basictx.connId(), synrobot()));
 
-		// incNyquence();
+		if (reqmode == SynodeMode.hub)
+			incNyquence();
 
 		ChangeLogs log = new ChangeLogs(chgm)
 			.nyquvect(Nyquence.clone(nyquvect))
-			.synodes(reqmode == SynodeMode.hub
+			.synodes(reqmode == SynodeMode.child
 				? ((AnResultset) select(synm.tbl, "syn")
-					.where(op.ne, synm.synoder, joining)
+					.whereEq(synm.synoder, synode())
 					.whereEq(synm.domain, domain)
 					.whereEq(synm.org(), org)
 					.rs(instancontxt(basictx.connId(), synrobot()))
 					.rs(0))
-				: null);
+				: null); // Following exchange is needed
 		return log;
 	}
 
