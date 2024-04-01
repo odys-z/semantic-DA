@@ -234,6 +234,7 @@ public class DBSyntextTest {
 	void testChangeLogs() throws Exception {
 		test01InsertBasic();
 		testJoinChild();
+		testBranchPropagation();
 	}
 
 	/**
@@ -566,15 +567,6 @@ public class DBSyntextTest {
 	}
 	
 	/**
-	 * <pre>
-	 * </pre>
-	 * @throws TransException
-	 * @throws SQLException
-	 */
-	void testBranchPropagation() throws TransException, SQLException {
-	}
-
-	/**
 	 * Test W join with X
 	 * 
 	 * <pre>
@@ -814,7 +806,45 @@ public class DBSyntextTest {
 			Utils.logi(e.getMessage());
 			return;
 		}
-		fail("W is not roamingable");
+		fail("W is not roaming able");
+	}
+
+	/**
+	 * <pre>
+	 * </pre>
+	 * @throws TransException
+	 * @throws SQLException
+	 * @throws IOException 
+	 */
+	void testBranchPropagation() throws TransException, SQLException, IOException {
+		Utils.logi("\n=== === %s, must call join children first === ===",
+				new Object(){}.getClass().getEnclosingMethod().getName());
+
+		ck[X].synodes(X,  Y,  Z, -1);
+		ck[Y].synodes(X,  Y,  Z, W);
+		ck[Z].synodes(X,  Y,  Z, -1);
+		ck[W].synodes(-1, Y, -1, W);
+
+		Utils.logi("\n(.1) -------- Z create photos ---------");
+		String[] z_uids = insertPhoto(Z);
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		ck[Z].change(1, C, z_uids[0], ck[Y].phm);
+		ck[Z].psubs(2, z_uids[1], X, Y, -1, -1);
+		
+		Utils.logi("\n(.2) ------------- Y vs Z ------------");
+		exchangePhotos(Y, Z);
+		ck[Y].change(1, C, z_uids[0], ck[Z].trb.synode(), ck[X].phm);
+		ck[Y].psubs(2, z_uids[1], X, -1, -1, W);
+		ck[Z].psubs(1, z_uids[1], X, -1, -1, -1);
+
+		Utils.logi("\n(.3) ------------- Y vs W ------------");
+		exchangePhotos(Y, W);
+		ck[Y].change(1, C, z_uids[0], ck[Z].trb.synode(), ck[X].phm);
+		ck[Y].psubs(1, z_uids[1], X, -1, -1, -1);
+		ck[W].change(1, C, z_uids[0], ck[Z].trb.synode(), ck[X].phm);
+		ck[W].psubs(0, z_uids[1], -1, -1, -1, -1);
 	}
 
 	/**
@@ -876,6 +906,7 @@ public class DBSyntextTest {
 		return ack;
 	}
 	
+	
 	/**
 	 * Go through logs' exchange, where client initiate the process.
 	 * 
@@ -894,6 +925,7 @@ public class DBSyntextTest {
 		
 		exchange(sphm, stb, cphm, ctb);
 	}
+	
 
 	void exchangeSynodes(int srv, int cli) throws TransException, SQLException, IOException {
 		DBSynsactBuilder ctb = ck[cli].trb;
@@ -904,6 +936,7 @@ public class DBSyntextTest {
 		
 		exchange(ssnm, stb, csnm, ctb);
 	}
+	
 
 	static void exchange(SyntityMeta sphm, DBSynsactBuilder stb, SyntityMeta cphm, DBSynsactBuilder ctb)
 			throws TransException, SQLException, IOException {
@@ -980,6 +1013,7 @@ public class DBSyntextTest {
 	
 	}
 
+
 	void updatePhoto(int s, String pid) throws TransException, SQLException {
 		SyntityMeta entm = ck[s].phm;
 		String conn = conns[s];
@@ -1012,6 +1046,7 @@ public class DBSyntextTest {
 						// concat(constr(synoder), constr(chm.UIDsep), new Resulving(pid, ""))
 			.ins(trb.instancontxt(conn, robot));
 	}
+	
 	
 	String[] insertPhoto(int s) throws TransException, SQLException {
 		SyntityMeta entm = ck[s].phm;
@@ -1059,8 +1094,8 @@ public class DBSyntextTest {
 		return new String[] {pid, chm.uids(synoder, pid)};
 	}
 	
-	String deletePhoto(SynChangeMeta chgm, int s)
-			throws TransException, SQLException {
+	
+	String deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
 
 		T_PhotoMeta m = ck[s].phm;
 		AnResultset slt = ((AnResultset) ck[s].trb
@@ -1081,6 +1116,7 @@ public class DBSyntextTest {
 		assertFalse(isblank(pid));
 		return pid;
 	}
+	
 
 	/**
 	 * Checker of each Synode.
@@ -1242,6 +1278,7 @@ public class DBSyntextTest {
 				;
 		}
 	}
+	
 
 	public static void printNyquv(Ck[] ck) {
 		Utils.logi(Stream.of(ck).map(c -> { return c.trb.synode();})
@@ -1268,6 +1305,7 @@ public class DBSyntextTest {
 		}
 	}
 	
+	
 	static class ChangeLine extends Anson {
 		String s;
 		public ChangeLine(AnResultset r) throws SQLException {
@@ -1283,6 +1321,7 @@ public class DBSyntextTest {
 		@Override
 		public String toString() { return s; }
 	}
+	
 	
 	public static void printChangeLines(Ck[] ck)
 			throws TransException, SQLException {
@@ -1318,6 +1357,7 @@ public class DBSyntextTest {
 			.collect(Collectors.joining("\n")));
 	}
 	
+	
 	public static String strcenter(String text, int len){
 	    String out = String.format("%"+len+"s%s%"+len+"s", "",text,"");
 	    float mid = (out.length()/2);
@@ -1325,6 +1365,7 @@ public class DBSyntextTest {
 	    float end = start + len; 
 	    return out.substring((int)start, (int)end);
 	}
+	
 
 	public static void assertnv(long... nvs) {
 		if (nvs == null || nvs.length == 0 || nvs.length % 2 != 0)
