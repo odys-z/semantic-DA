@@ -1,10 +1,10 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.compoundVal;
+import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
-import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
@@ -13,8 +13,6 @@ import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
-import static io.odysz.semantic.syn.Nyquence.maxn;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -569,163 +567,202 @@ public class DBSyntextTest {
 	
 	/**
 	 * <pre>
-	 * A                     | B                    | C                    | D
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
-	 *  I,   A, A:0, 1, [ ]  |  I,   B, B:0, 1, [ ] |                      |
-	 *                   C   |                   C  |                      |
-	 *                   D   |                   D  |                      |
-	 *  I,   B, B:0, 1,  C   |  I,   A, A:0, 1,  C  |                      |
-	 *                   D   |                   D  |                      |
-	 *
-	 *    a b c d
-	 *  A 1 1 0 0
-	 *  B 1 1 0 0
-	 *  C 0 0 0 0
-	 *  D 0 0 0 0
-	 *
-	 * B vs. C:
-	 * B =) C,
-	 *     [B, B:0, 1] for S=B, n=1 > C.b=0; clear SUB=C/B, C.b=B.b
-	 *     [A, A:0, 1] for S=A, n=1 > C.a=0; clear SUB=C/B, C.a=B.a
-	 *     B.c=C.c
-	 * 
-	 * A                     | B                   =) C                    | D
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
-	 *  I,   A, A:0, 1, [ ]  |  I,   B, B:0, 1, [ ] |  I,   B, B:0, 1,     |
-	 *                   C   |                  [-] |                  [ ] |
-	 *                   D   |                   D  |                   D  |
-	 *  I,   B, B:0, 1,  C   |  I,   A, A:0, 1,  C  |  I,   A, A:0, 1,     |
-	 *                   D   |                   D  |                   D  |
-	 *
-	 *    a b c d
-	 *  A 1 1 0 0
-	 *  B 1 1 0 0
-	 *  C 1 1 1 0   [C.a = max(B.a, C.a), C.b = max(B.b, C.b), C.c++, C.d=max(B.d, C.d)]
-	 *  D 0 0 0 0
-	 *
-	 * A update A:0
-	 * A
-	 * crud, s, pid, n, sub  |
-	 *  U,   A, A:0, 2,  B   |
-	 *                   C   |
-	 *                   D   |
-	 *  I,   B, B:0, 1,  C   |
-	 *                   D   |
-	 *    a b c d
-	 *  A 2 1 0 0   ++A.a
-	 *  B 1 1 0 0
-	 *  C 1 1 0 0
-	 *  D 0 0 0 0
-	 *
-	 * A vs D, max(ch[A].n)=2 > D.a, max(ch[B].n)=1 > D.b
-	 * A                                                                  A=)D
-	 * crud, s, pid, n, sub  |                                             | crud, s, pid, n, sub
-	 *  U,   A, A:0, 2,  B   |                                             |  U,   A, A:0, 2,  B   (2>D.a=0)
-	 *                   C   |                                             |                   C
-	 *                  [ ]  |                                             |
-	 *  I,   B, B:0, 1,  C   |                                             |  I,   B, B:0, 1,  C   (1>D.c=0)
-	 *                  [ ]  |                                             |
-	 *    a b c d
-	 *  A 2 1 0 0 
-	 *  B 1 1 0 0
-	 *  C 1 1 0 0
-	 *  D 2 1 0 1   [D.a=max(ch[A].n)=2, D.b=max(ch[B].n)=1, D.c (ch[C]==NULL), ++D.d]
-	 *
-	 * B update A:0 twice, C insert pC0
-	 * A                     | B                    | C                    | D
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
-	 *  U,   A, A:0, 2,  B   |  I,   B, B:0, 1,  A  |  I,   B, B:0, 1,     |  U,   A, A:0, 2,  B
-	 *                   C   |                   C  |                  [ ] |                   C
-	 *                   D   |                   D  |                   D  |
-	 *  I,   B, B:0, 1,  C   |  UU,  B, A:0, 3,  C  |  I,   A, A:0, 1,     |  I,   B, B:0, 1,  C
-	 *                  [ ]  |                   D  |                   D  |
-	 *                       |                      |  I,   C, pC0, 1,  A  |
-	 *                       |                      |                   B  |
-	 *                       |                      |                   D  |
-	 *    a b c d
-	 *  A 2 1 0 0
-	 *  B 1 3 0 0   ++B.b, ++B.b
-	 *  C 1 1 1 0   ++C.c
-	 *  D 2 1 0 1
-	 *
-	 * A vs. C, A.ch[A].n=2 > C.a, A.ch[B]=1 = C.b; A.ch[C]=NULL, A (= C[C]
-	 * A                     | B                    | C                    | D
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub | crud, s, pid, n, sub | crud, s, pid, n, sub
-	 *  U,   A, A:0, 2,  B   |  I,   B, B:0, 1,  A  |  I,   B, B:0, 1,     |  U,   A, A:0, 2,  B
-	 *                   C   |                   C  |                  [ ] |                   C
-	 *                  [D]  |                   D  |                   D  |
-	 *  I,   B, B:0, 1,  C   |  UU,  B, A:0, 3,  C  |  U,   A, A:0, 2,     |  I,   B, B:0, 1,  C
-	 *                  [ ]  |                   D  |                   B  |
-	 *                       |                      |                   D  |
-	 *  I,   C, pC0, 1,      |                      |  I,   C, pC0, 1, [A] |
-	 *                   B   |                      |                   B  |
-	 *                   D   |                      |                   D  |
-	 *    a b c d
-	 *  A 2 1 2 0   ++A.a, A.c = C.c
-	 *  B 1 3 0 0
-	 *  C 2 1 2 0   ++C.c, C.a = A.a
-	 *  D 2 1 0 0
-	 *
 	 * </pre>
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	void test02UpdateTransit() throws TransException, SQLException {
+	void testBranchPropagation() throws TransException, SQLException {
 	}
 
 	/**
 	 * Test W join with X
 	 * 
 	 * <pre>
-	 * X                     |  Y                   |  Z
-	 * crud, s, sid, n, sub  | crud, s, sid, n, sub | crud, s, sid, n, sub
-	 *  
-	 *    x y z
-	 *  X 2 1 0
-	 *  Y 1 1 0
-	 *  Z 0 0 0
+	 * 1.1 -------- Y on W joining ---------
+	 * (.1) Y accept W
+	 *       X                          Y                          Z                          W             
+	 *                    | I  Y       Y,W    4  Z    |                           |                          
+	 *                    | I  Y       Y,W    4  X    |                           |                          
+	 * X    Y    Z    W
+	 * X [   4,   3,   1,     ]
+	 * Y [   2,   4,   1,   0 ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,    ,    ,     ]
+	 * (.2) W initiate domain
+	 *       X                          Y                          Z                          W             
+     *                    | I  Y       Y,W    4  Z    |                           |                          
+     *                    | I  Y       Y,W    4  X    |                           |                          
+     *       X    Y    Z    W
+	 * X [   4,   3,   1,     ]
+	 * Y [   2,   4,   1,   0 ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,   4,    ,   4 ]
 	 * 
-	 * W (=) X, sid[X:w]: X added W
-	 * X: syn_node           |  Y                   |  Z                   |  W
-	 * crud, s, sid, n, sub  | crud, s, sid, n, sub | crud, s, sid, n, sub | crud, s, sid, n, sub
-	 *  i,   X,  w , 3,  Y   |                      |                      |  i,   X,  w , 3,  Y
-	 *                   Z   |                      |                      |                   Z
-	 *  i,   W,  x , 1,  Y   |                      |                      |  i,   W,  x , 1,  Y
-	 *                   Z   |                      |                      |                   Z
-	 *    x y z w
-	 *  X 3 1 0 1   ++X.x, X.w = W.w
-	 *  Y 1 1 0 
-	 *  Z 0 0 0 
-	 *  W 3     1   ++W.w, W.x = X.x
-	 *  
-	 *  X <=> Y, X.ch[X].n=3 > Y.x, X.ch[W].n=1 > Y.w=NULL
-	 *  Z <=> W, Z.w < W.ch[X].n=3, Z.w=NULL < W.ch[W].n=1
-	 * X: syn_node           |  Y                   |  Z                   |  W
-	 * crud, s, sid, n, sub  | crud, s, sid, n, sub | crud, s, sid, n, sub | crud, s, sid, n, sub
-	 *  i,   X,  w , 3, [Y]  |  i,   X,  w , 3,     |  i,   X,  w , 3,  Y  |  i,   X,  w , 3,  Y
-	 *                   Z   |                   Z  |                      |                  [Z]
-	 *  i,   W,  x , 1, [Y]  |  i,   W,  x , 1,     |  i,   W,  x , 1,  Y  |  i,   W,  x , 1,  Y
-	 *                   Z   |                   Z  |                      |                  [Z]
-	 *    x y z w
-	 *  X 3 1 0 1
-	 *  Y 1 1 0 1  Y.w = max(X.ch[W].n)
-	 *  Z 0 0 0 1  Z.w = W.w
-	 *  W 3   0 1  W.z = Z.z
-	 *  
-	 *  Z leaved, told X
-	 * X: syn_node           |  Y                   |  Z                   |  W
-	 * crud, s, sid, n, sub  | crud, s, sid, n, sub | crud, s, sid, n, sub | crud, s, sid, n, sub
-	 *  i,   X,  w , 3,  Z   |  i,   X,  w , 3,  Z  |  -    -  ---  -   -  |  i,   X,  w , 3,  Y
-	 *  d,   X,  z , 4,  Y   |                      |                      |
-	 *                   W   |                      |                      |
-	 *  i,   W,  x , 1,  Z   |  i,   W,  x , 1,  Z  |                      |  i,   W,  x , 1,  Y
-	 *  
-	 *    x y z w
-	 *  X 4 1[0]1   ++X.x
-	 *  Y 1 1 0 1
-	 *  ------+--
-	 *  W 3   0 1
-	 *  
+	 * (.3) Y ack initiation
+     *       X                          Y                          Z                          W             
+     *                    | I  Y       Y,W    4  Z    |                           |                          
+     *                    | I  Y       Y,W    4  X    |                           |                          
+     *      X    Y    Z    W
+	 * X [   4,   3,   1,     ]
+	 * Y [   2,   4,   1,   0 ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,   4,    ,   4 ]
+	 * 
+	 * (.4) W closing application
+     *       X                          Y                          Z                          W             
+     *                    | I  Y       Y,W    4  Z    |                           |                          
+     *                    | I  Y       Y,W    4  X    |                           |                          
+     *       X    Y    Z    W
+	 * X [   4,   3,   1,     ]
+	 * Y [   2,   4,   1,   0 ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,   4,    ,   5 ]
+	 * (.5) Y on closing
+     *       X                          Y                          Z                          W             
+     *                    | I  Y       Y,W    4  Z    |                           |                          
+     *                    | I  Y       Y,W    4  X    |                           |                          
+	 *       X    Y    Z    W
+	 * X [   4,   3,   1,     ]
+	 * Y [   2,   5,   1,   4 ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,   4,    ,   5 ]
+	 * 
+	 * 1.2 ------------- X vs Y ------------
+	 * (0.0): Y initiate
+	 * (0.1): Y initiate	changes: 2	entities: 1
+	 * (1.0): X on exchange
+	 * (1.1): X on exchange response	changes: 0	entities: 0	answers: 1
+     *       X                          Y                          Z                          W             
+     *                    | I  Y       Y,W    4  Z    |                           |                          
+     *                    | I  Y       Y,W    4  X    |                           |                          
+     *       X    Y    Z    W
+	 * X [   4,   3,   1,     ]
+	 * Y [   2,   5,   1,   4 ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,   4,    ,   5 ]
+	 * 
+	 * (2.0): Y ack exchange
+	 * (2.1): Y ack exchange acknowledge	changes: 0	entities: 0	answers: 0
+     *       X                          Y                          Z                          W             
+     *                    | I  Y       Y,W    4  Z    |                           |                          
+     *      X    Y    Z    W
+	 * X [   4,   3,   1,     ]
+	 * Y [   4,   5,   1,   4 ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,   4,    ,   5 ]
+	 * 
+	 * (3.0): X on ack
+     *              X                          Y                          Z                          W             
+	 * I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
+	 * X    Y    Z    W
+	 * X [   4,   5,   1,   4 ]
+	 * Y [   4,   5,   1,   4 ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,   4,    ,   5 ]
+	 * 
+	 * (4.0): Y initiate again
+	 * (4.1): Y initiate again	changes: 0	entities: 0
+     *        X                          Y                          Z                          W             
+	 * I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
+	 *      X    Y    Z    W
+	 * X [   4,   5,   1,   4 ]
+	 * Y [   4,   5,   1,   4 ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,   4,    ,   5 ]
+	 * 
+	 * (5.0): Y closing exchange
+	 *             X                          Y                          Z                          W             
+	 * I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
+	 *      X    Y    Z    W
+	 * X [   4,   5,   1,   4 ]
+	 * Y [   4,   6,   1,   4 ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,   4,    ,   5 ]
+	 * 
+	 * (5.1) X on closing exchange
+     *       X                          Y                          Z                          W             
+	 * I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
+	 *       X    Y    Z    W
+	 * X [   6,   5,   1,   4 ]
+	 * Y [   4,   6,   1,   4 ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,   4,    ,   5 ]
+	 * 
+	 * 2.1 ------------- X create photos ------------
+	 * 2.2 ----------------- X vs Z -----------------
+	 * (0.0): Z initiate
+	 * (0.1): Z initiate	changes: 0	entities: 0
+	 * (1.0): X on exchange
+	 * (1.1): X on exchange response	changes: 4	entities: 2	answers: 0
+     *       X                          Y                          Z                          W             
+	 * I  X  X,000023    6  Y    |                           |                           |                          
+	 * I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
+	 * I  X  X,000023    6  Z    |                           |                           |                          
+	 * I  X  X,000023    6  W    |                           |                           |                          
+	 *       X    Y    Z    W
+	 * X [   6,   5,   1,   4 ]
+	 * Y [   4,   6,   1,   4 ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,   4,    ,   5 ]
+	 * 
+	 * (2.0): Z ack exchange
+	 * (2.1): Z ack exchange acknowledge	changes: 0	entities: 0	answers: 3
+	 *        X                          Y                          Z                          W             
+	 * I  X  X,000023    6  Y    |                           |                           |                          
+	 * I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
+	 * I  X  X,000023    6  Z    |                           |                           |                          
+	 * I  X  X,000023    6  W    |                           |                           |                          
+	 *       X    Y    Z    W
+	 * X [   6,   5,   1,   4 ]
+	 * Y [   4,   6,   1,   4 ]
+	 * Z [   6,   5,   3,   4 ]
+	 * W [    ,   4,    ,   5 ]
+	 * 
+	 * (3.0): X on ack
+	 *        X                          Y                          Z                          W             
+	 * I  X  X,000023    6  Y    |                           |                           |                          
+     *                           | I  Y       Y,W    4  Z    |                           |                          
+     *       X    Y    Z    W
+	 * X [   6,   5,   3,   4 ]
+	 * Y [   4,   6,   1,   4 ]
+	 * Z [   6,   5,   3,   4 ]
+	 * W [    ,   4,    ,   5 ]
+	 * 
+	 * (4.0): Z initiate again
+	 * (4.1): Z initiate again	changes: 0	entities: 0
+     *        X                          Y                          Z                          W             
+	 * I  X  X,000023    6  Y    |                           |                           |                          
+     *                           | I  Y       Y,W    4  Z    |                           |                          
+     *       X    Y    Z    W
+	 * X [   6,   5,   3,   4 ]
+	 * Y [   4,   6,   1,   4 ]
+	 * Z [   6,   5,   3,   4 ]
+	 * W [    ,   4,    ,   5 ]
+	 *
+	 * (5.0): Z closing exchange
+     *        X                          Y                          Z                          W             
+	 * I  X  X,000023    6  Y    |                           |                           |                          
+     *                           | I  Y       Y,W    4  Z    |                           |                          
+     *       X    Y    Z    W
+	 * X [   6,   5,   3,   4 ]
+	 * Y [   4,   6,   1,   4 ]
+	 * Z [   6,   5,   7,   4 ]
+	 * W [    ,   4,    ,   5 ]
+	 *
+	 * (5.1) X on closing exchange
+     *        X                          Y                          Z                          W             
+	 * I  X  X,000023    6  Y    |                           |                           |                          
+     *                           | I  Y       Y,W    4  Z    |                           |                          
+     *       X    Y    Z    W
+	 * X [   7,   5,   3,   4 ]
+	 * Y [   4,   6,   1,   4 ]
+	 * Z [   6,   5,   7,   4 ]
+	 * W [    ,   4,    ,   5 ]
+	 * 
+	 * 2.3 ----------------- Z vs W -----------------
+	 * (0.0): W initiate
+	 * ERROR [io.odysz.semantic.syn.DBSynsactBuilder#initExchange]: Me, W, don't have knowledge about Z.
+	 * W#initExchange(), don't have knowledge about Z.
 	 * </pre>
 	 * @throws SQLException 
 	 * @throws TransException 
@@ -741,13 +778,15 @@ public class DBSyntextTest {
 		@SuppressWarnings("unused")
 		ChangeLogs w_ack = joinSubtree(Y, W);
 
+		ck[X].synodes(X,  Y,  Z, -1);
 		ck[Y].synodes(X,  Y,  Z, W);
+		ck[Z].synodes(X,  Y,  Z, -1);
 		ck[W].synodes(-1, Y, -1, W);
 
 		ck[Y].change(1, C, "W", ck[Y].synm);
 		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
 		
-		Utils.logi("1.2 ------------- X vs Y ------------");
+		Utils.logi("\n1.2 ------------- X vs Y ------------");
 		exchangeSynodes(X, Y);
 		ck[X].synodes(X, Y, Z, W);
 		ck[X].change(1, C, "Y", "W", ck[X].synm);
@@ -756,15 +795,20 @@ public class DBSyntextTest {
 		ck[Z].synodes(X, Y, Z, -1);
 		ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
 		
+		Utils.logi("\n2.1 ------------- X create photos ------------");
+		String[] x_uids = insertPhoto(X);
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		ck[X].change(1, C, x_uids[0], ck[X].phm);
+		ck[X].psubs (3, x_uids[1], -1, Y, Z, W);
+
+		ck[X].change(0, C, x_uids[0], ck[X].synm);
 		
-		Utils.logi("2.1 ------------- X create photos ------------");
-		String[] A_0_uids = insertPhoto(X);
-		String A_0 = A_0_uids[0];
-		
-		Utils.logi("2.2 ----------------- X vs Z -----------------");
+		Utils.logi("\n2.2 ----------------- X vs Z -----------------");
 		exchangeSynodes(X, Z);
 		
-		Utils.logi("2.3 ----------------- Z vs W -----------------");
+		Utils.logi("\n2.3 ----------------- Z vs W -----------------");
 		try { exchangeSynodes(Z, W); }
 		catch (SemanticException e){
 			Utils.logi(e.getMessage());
@@ -775,69 +819,6 @@ public class DBSyntextTest {
 
 	/**
 	 * <pre>
-	 * 1. A insert A:0, update C:0; B insert B:0, update C:0
-	 * A                     | B                    
-	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub
-	 *  I,   A, A:0, x1,  B   |  I,   B, B:0, y1,  A 
-	 *                    C   |                    C 
-	 *  U,   A, C:0, x1,  B   |  U,   B, C:0, y1,  A 
-	 *                    C   |                    C 
-	 *
-	 *    a  b
-	 *  A x1
-	 *  B    y1
-	 *-----------------------------------------------------------------------
-	 * 
-	 * Action:
-	 * B insert A:0 for B.a < A:0[s=A, sub=B].n=x1
-	 * A insert B:0 for A.b=0 < B:0[s=B, sub=A].n=y1
-	 * A replace C:0 with B:C:0, because B has priority
-	 * 
-	 * A                      | B                    
-	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub
-	 *  I,   A, A:0, x1, [B] x|  I,   B, B:0, y1, [A] x
-	 *                    C   |                    C 
-	 *  I,   A, B:0, x1,  C   |  I,   B, A:0, y1,  C 
-	 *  U,   A, C:0, y1, [B]  |  U,   B, C:0, y1, [A] 
-	 *                    C   |                    C 
-	 *
-	 *    a  b
-	 *  A x2 y1
-	 *  B x1 y2
-	 *-----------------------------------------------------------------------
-	 * B (=) C
-	 * A                      | B                       | C
-	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub   | crud, s, pid, n, sub
-	 *  I,   A, A:0, x1, [ ] x|  I,   B, B:0, y1, [ ]   |  
-	 *                    C   |                   [C] x |
-	 *  I,   A, B:0, x1,  C   |  I,   B, A:0, y1, [C] x |
-	 *  U,   A, C:0, y1, [ ]  |  U,   B, C:0, y1, [ ]   |
-	 *                    C   |                   [C] x |
-	 *
-	 *    a  b  c
-	 *  A x2 y1  
-	 *  B x1 y3 z0
-	 *  C x1 y2 z3
-	 *  
-	 *-----------------------------------------------------------------------
-	 * A (=) B
-	 * A                      | B                      | C
-	 * crud, s, pid, n,  sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
-	 *  I,   A, A:0, x1,      |                        |  
-	 *                   [C] x|                        |
-	 *  I,   A, B:0, x1, [C] x|                        |
-	 *  U,   A, C:0, y1,      |                        |
-	 *                   [C] x|                        |
-	 * 
-	 * Actions:
-	 * A clear changes as chg.n=x1 = B.a, and A.c < B.c (A merge with C earlier than B with C) 
-	 * A.n0 = max(B.a, B.b, B.c, ++A.n0) 
-	 * B.a = A.n0, by A.ack
-	 *
-	 *    a  b  c
-	 *  A x4 y3 z0   A.c = max(A.c, B.c) = z0 
-	 *  B x2 y4 z0
-	 *  C x1 y2 z3
 	 * </pre>
 	 */
 	void test04conflict() throws Exception {
@@ -1126,12 +1107,27 @@ public class DBSyntextTest {
 		/**
 		 * Verify all synodes information here are as expected.
 		 * 
-		 * @param x X presented here, -1 for disappearing
-		 * @param y
-		 * @param z
-		 * @param w
+		 * @param nx ck index
+		 * @throws TransException 
+		 * @throws SQLException 
 		 */
-		public void synodes(int x, int y, int z, int w) {
+		public void synodes(int ... nx) throws TransException, SQLException {
+			ArrayList<String> nodes = new ArrayList<String>();
+			int cnt = 0;
+			for (int x = 0; x < nx.length; x++) {
+				if (nx[x] >= 0) {
+					nodes.add(ck[x].trb.synode());
+					cnt++;
+				}
+			}
+
+			AnResultset rs = (AnResultset) trb.select(synm.tbl)
+				.col(synm.synoder)
+				.distinct(true)
+				.whereIn(synm.synoder, nodes)
+				.rs(trb.instancontxt(trb.basictx().connId(), trb.synrobot()))
+				.rs(0);
+			assertEquals(cnt, rs.getRowCount());
 		}
 
 		public Ck(String conn, DBSynsactBuilder trb, String org, String synid, String usrid)
