@@ -45,6 +45,7 @@ import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
+import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.condition.Predicate;
@@ -234,7 +235,7 @@ public class DBSyntextTest {
 	@Test
 	void testChangeLogs() throws Exception {
 		test01InsertBasic();
-		testSynodeManage();
+		testJoinChild();
 	}
 
 	/**
@@ -342,7 +343,7 @@ public class DBSyntextTest {
 	 * @throws IOException 
 	 */
 	void test01InsertBasic() throws TransException, SQLException, IOException {
-		Utils.logi("\n=== %s ===", new Object(){}.getClass().getEnclosingMethod().getName());
+		Utils.logi("\n=== === %s === ===", new Object(){}.getClass().getEnclosingMethod().getName());
 
 		HashMap<String, Nyquence> nvx = ck[X].trb.nyquvect;
 		long Aa_ = nvx.get(ck[X].trb.synode()).n;
@@ -731,11 +732,12 @@ public class DBSyntextTest {
 	 * @throws IOException 
 	 * @throws ClassNotFoundException 
 	 */
-	void testSynodeManage() throws Exception {
-		Utils.logi("\n=== %s ===", new Object(){}.getClass().getEnclosingMethod().getName());
+	void testJoinChild() throws Exception {
+		Utils.logi("\n=== === %s === ===", new Object(){}.getClass().getEnclosingMethod().getName());
 
 		ck[X].synodes(X, Y, Z, -1);
 
+		Utils.logi("1.1 -------- Y on W joining ---------");
 		@SuppressWarnings("unused")
 		ChangeLogs w_ack = joinSubtree(Y, W);
 
@@ -745,6 +747,7 @@ public class DBSyntextTest {
 		ck[Y].change(1, C, "W", ck[Y].synm);
 		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
 		
+		Utils.logi("1.2 ------------- X vs Y ------------");
 		exchangeSynodes(X, Y);
 		ck[X].synodes(X, Y, Z, W);
 		ck[X].change(1, C, "Y", "W", ck[X].synm);
@@ -752,6 +755,22 @@ public class DBSyntextTest {
 
 		ck[Z].synodes(X, Y, Z, -1);
 		ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
+		
+		
+		Utils.logi("2.1 ------------- X create photos ------------");
+		String[] A_0_uids = insertPhoto(X);
+		String A_0 = A_0_uids[0];
+		
+		Utils.logi("2.2 ----------------- X vs Z -----------------");
+		exchangeSynodes(X, Z);
+		
+		Utils.logi("2.3 ----------------- Z vs W -----------------");
+		try { exchangeSynodes(Z, W); }
+		catch (SemanticException e){
+			Utils.logi(e.getMessage());
+			return;
+		}
+		fail("W is not roamingable");
 	}
 
 	/**
@@ -839,14 +858,39 @@ public class DBSyntextTest {
 		DBSynsactBuilder atb = ck[admin].trb;
 		DBSynsactBuilder ctb = ck[apply].trb;
 
+		ExchangeContext ax = new ExchangeContext(chm, atb, ctb.synode());
+		ExchangeContext cx = new ExchangeContext(chm, ctb, atb.synode());
+
 		// admin
-		ChangeLogs resp = atb.addChild(ctb.synode(), SynodeMode.child, ck[admin].robot(), Ck.org, ck[admin].domain);
+		Utils.logi("(.1) %s accept %s", atb.synode(), ctb.synode());
+		ChangeLogs resp = atb.addChild(ax, ctb.synode(), SynodeMode.child, ck[admin].robot(), Ck.org, ck[admin].domain);
+		printChangeLines(ck);
+		printNyquv(ck);
+
 		// applicant
-		ChangeLogs ack  = ctb.initDomain(ctb.synode(), resp);
+		Utils.logi("(.2) %s initiate domain", ctb.synode());
+		ChangeLogs ack  = ctb.initDomain(cx, ctb.synode(), resp);
+		printChangeLines(ck);
+		printNyquv(ck);
+
 		// admin
-		atb.incN0(maxn(ack.nyquvect));
+		Utils.logi("(.3) %s ack initiation", atb.synode());
+		// atb.incN0(maxn(ack.nyquvect));
+		printChangeLines(ck);
+		printNyquv(ck);
+
 		// applicant
-		ctb.nyquvect = Nyquence.clone(resp.nyquvect);
+		Utils.logi("(.4) %s closing application", ctb.synode());
+		// ctb.nyquvect = Nyquence.clone(atb.nyquvect);
+		HashMap<String, Nyquence> closenv = ctb.closeJoining(cx, atb.synode(), Nyquence.clone(atb.nyquvect));
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		Utils.logi("(.5) %s on closing", atb.synode());
+		atb.oncloseJoiningp(ax, ctb.synode(), closenv);
+
+		printChangeLines(ck);
+		printNyquv(ck);
 
 		return ack;
 	}
@@ -874,10 +918,10 @@ public class DBSyntextTest {
 		DBSynsactBuilder ctb = ck[cli].trb;
 		DBSynsactBuilder stb = ck[srv].trb;
 
-		SyntityMeta sphm = new SynodeMeta(stb.basictx().connId(), stb).replace();
-		SyntityMeta cphm = new SynodeMeta(ctb.basictx().connId(), ctb).replace();
+		SyntityMeta ssnm = new SynodeMeta(stb.basictx().connId(), stb).replace();
+		SyntityMeta csnm = new SynodeMeta(ctb.basictx().connId(), ctb).replace();
 		
-		exchange(sphm, stb, cphm, ctb);
+		exchange(ssnm, stb, csnm, ctb);
 	}
 
 	static void exchange(SyntityMeta sphm, DBSynsactBuilder stb, SyntityMeta cphm, DBSynsactBuilder ctb)
@@ -888,7 +932,7 @@ public class DBSyntextTest {
 
 		// 0, X init
 		Utils.logi("\n(0.0): %s initiate", ctb.synode());
-		ChangeLogs req = ctb.initExchange(cx, stb.synode(), cphm);
+		ChangeLogs req = ctb.initExchange(cx, stb.synode());
 		assertNotNull(req);
 		
 		if (eq(stb.synode(), "Y") && eq(ctb.synode(), "X")) {
@@ -903,9 +947,9 @@ public class DBSyntextTest {
 		while (req != null) {
 			// server
 			Utils.logi("\n(1.0): %s on exchange", stb.synode());
-			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req, sphm);
+			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req);
 			Utils.logi("(1.1): %s on exchange response\tchanges: %d\tentities: %d\tanswers: %d",
-					stb.synode(), resp.challenges(), resp.enitities(cphm.tbl), resp.answers());
+					stb.synode(), resp.challenges(), resp.enitities(), resp.answers());
 			printChangeLines(ck);
 			printNyquv(ck);
 
@@ -913,7 +957,7 @@ public class DBSyntextTest {
 			Utils.logi("\n(2.0): %s ack exchange", ctb.synode());
 			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode());
 			Utils.logi("(2.1): %s ack exchange acknowledge\tchanges: %d\tentities: %d\tanswers: %d",
-					ctb.synode(), ack.challenges(), ack.enitities(cphm.tbl), ack.answers());
+					ctb.synode(), ack.challenges(), ack.enitities(), ack.answers());
 			printChangeLines(ck);
 			printNyquv(ck);
 			
@@ -925,9 +969,9 @@ public class DBSyntextTest {
 
 			// client
 			Utils.logi("\n(4.0): %s initiate again", ctb.synode());
-			req = ctb.initExchange(cx, stb.synode(), cphm);
+			req = ctb.initExchange(cx, stb.synode());
 			Utils.logi("(4.1): %s initiate again\tchanges: %d\tentities: %d",
-					ctb.synode(), req.challenges(), req.enitities(cphm.tbl));
+					ctb.synode(), req.challenges(), req.enitities());
 			printChangeLines(ck);
 			printNyquv(ck);
 			
@@ -946,7 +990,7 @@ public class DBSyntextTest {
 
 		Utils.logi("(5.1) %s on closing exchange", stb.synode());
 		// FIXME what if server don't agree?
-		stb.onclosechange(sx, ctb.synode(), nv);
+		stb.onclosexchange(sx, ctb.synode(), nv);
 		printChangeLines(ck);
 		printNyquv(ck);
 
@@ -1211,10 +1255,20 @@ public class DBSyntextTest {
 			DBSynsactBuilder t = ck[cx].trb;
 			Utils.logi(
 				t.synode() + " [ " +
-				t.nyquvect.keySet().stream()
-				 .map((String n) -> {return String.format("%3s", t.nyquvect.get(n).n);})
-				 .collect(Collectors.joining(", ")) +
+				Stream.of(X, Y, Z, W)
+				.map((nx) -> {
+					String n = ck[nx].trb.synode();
+					return String.format("%3s",
+						t.nyquvect.containsKey(n) ?
+						t.nyquvect.get(n).n : "");
+					})
+				.collect(Collectors.joining(", ")) +
 				" ]");
+
+//				t.nyquvect.keySet().stream()
+//				 .map((String n) -> {return String.format("%3s", t.nyquvect.get(n).n);})
+//				 .collect(Collectors.joining(", ")) +
+//				" ]");
 		}
 	}
 	

@@ -18,9 +18,8 @@ public class ChangeLogs extends Anson {
 	@AnsonField(ignoreTo=true)
 	SynChangeMeta chm;
 	
-	// private String entble;
-
 	HashMap<String, Nyquence> nyquvect;
+
 	/** 
 	 * clone {@code nyquvect} into my nyq-vector.
 	 * @param nyquvect
@@ -128,5 +127,10 @@ public class ChangeLogs extends Anson {
 	public ChangeLogs synodes(AnResultset rs) {
 		synodes = rs;
 		return this;
+	}
+
+	public Object enitities() {
+		return this.entities == null ? 0
+			: this.entities.values().stream().mapToInt(r -> r.getRowCount()).sum();
 	}
 }
