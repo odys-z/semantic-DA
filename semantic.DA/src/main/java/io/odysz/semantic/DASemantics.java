@@ -1031,7 +1031,7 @@ public class DASemantics {
 	}
 
 	/**
-	 * Delete childeren before delete parent.<br>
+	 * Delete children before delete parent.<br>
 	 * args: [0] parent's referee column\s [1] child-table1\s [2] child pk1, //
 	 * child 1, with comma ending, space separated {0] parent's referee column\s [1]
 	 * child-table2\s [2] child pk2 // child 1, without comma ending, space
