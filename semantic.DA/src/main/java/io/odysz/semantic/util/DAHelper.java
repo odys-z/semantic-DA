@@ -9,6 +9,7 @@ import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.sql.Transcxt;
+import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
@@ -56,9 +57,9 @@ public class DAHelper {
 	}
 
 	public static SemanticObject updateField(DATranscxt trb, String conn, TableMeta m, String recId,
-			String field, String v, IUser usr) throws TransException, SQLException {
+			String field, Object v, IUser usr) throws TransException, SQLException {
 		return trb.update(m.tbl, usr)
-			.nv(field, Funcall.constr((String)v))
+			.nv(field, v instanceof ExprPart ? (ExprPart)v : Funcall.constr(v.toString()))
 			.whereEq(m.pk, recId)
 			.u(trb.instancontxt(conn, usr));
 	}

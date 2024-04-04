@@ -75,6 +75,11 @@ public class Nyquence {
 		return mx;
 	}
 
+	public static Nyquence maxn(HashMap<String, Nyquence> nv, Nyquence n) {
+		Nyquence mx = maxn(nv);
+		return maxn(mx, n);
+	}
+
 	public static HashMap<String, Nyquence> clone(HashMap<String, Nyquence> from) {
 		HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(from.size());
 		for (String k : from.keySet())

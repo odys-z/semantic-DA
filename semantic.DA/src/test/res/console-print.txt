@@ -105,7 +105,7 @@ I  Y  Y,000401    1  Z    | I  Y  Y,000401    1  Z    |                         
       X    Y    Z    W
 X [   2,   1,   0,     ]
 Y [   1,   2,   0,     ]
-Z [   1,   2,   1,     ]
+Z [   1,   2,   2,     ]
 W [    ,    ,    ,     ]
 
 (3.0): Y on ack
@@ -114,8 +114,8 @@ I  X  X,000021    1  Z    |                           |                         
 I  Y  Y,000401    1  Z    |                           |                           |                          
       X    Y    Z    W
 X [   2,   1,   0,     ]
-Y [   1,   2,   1,     ]
-Z [   1,   2,   1,     ]
+Y [   1,   2,   2,     ]
+Z [   1,   2,   2,     ]
 W [    ,    ,    ,     ]
 
 (4.0): Z initiate again
@@ -125,8 +125,8 @@ I  X  X,000021    1  Z    |                           |                         
 I  Y  Y,000401    1  Z    |                           |                           |                          
       X    Y    Z    W
 X [   2,   1,   0,     ]
-Y [   1,   2,   1,     ]
-Z [   1,   2,   1,     ]
+Y [   1,   2,   2,     ]
+Z [   1,   2,   2,     ]
 W [    ,    ,    ,     ]
 
 (5.0): Z closing exchange
@@ -135,7 +135,7 @@ I  X  X,000021    1  Z    |                           |                         
 I  Y  Y,000401    1  Z    |                           |                           |                          
       X    Y    Z    W
 X [   2,   1,   0,     ]
-Y [   1,   2,   1,     ]
+Y [   1,   2,   2,     ]
 Z [   1,   2,   3,     ]
 W [    ,    ,    ,     ]
 (5.1) Y on closing exchange
@@ -144,7 +144,7 @@ I  X  X,000021    1  Z    |                           |                         
 I  Y  Y,000401    1  Z    |                           |                           |                          
       X    Y    Z    W
 X [   2,   1,   0,     ]
-Y [   1,   3,   1,     ]
+Y [   1,   3,   2,     ]
 Z [   1,   2,   3,     ]
 W [    ,    ,    ,     ]
 
@@ -160,7 +160,7 @@ I  X  X,000021    1  Z    |                           |                         
 I  Y  Y,000401    1  Z    |                           |                           |                          
       X    Y    Z    W
 X [   2,   1,   0,     ]
-Y [   1,   3,   1,     ]
+Y [   1,   3,   2,     ]
 Z [   1,   2,   3,     ]
 W [    ,    ,    ,     ]
 
@@ -171,7 +171,7 @@ I  X  X,000021    1  Z    |                           |                         
 I  Y  Y,000401    1  Z    |                           |                           |                          
       X    Y    Z    W
 X [   2,   1,   0,     ]
-Y [   2,   3,   1,     ]
+Y [   2,   3,   2,     ]
 Z [   1,   2,   3,     ]
 W [    ,    ,    ,     ]
 
@@ -179,8 +179,8 @@ W [    ,    ,    ,     ]
              X                          Y                          Z                          W             
 
       X    Y    Z    W
-X [   2,   3,   1,     ]
-Y [   2,   3,   1,     ]
+X [   3,   3,   2,     ]
+Y [   2,   3,   2,     ]
 Z [   1,   2,   3,     ]
 W [    ,    ,    ,     ]
 
@@ -189,8 +189,8 @@ W [    ,    ,    ,     ]
              X                          Y                          Z                          W             
 
       X    Y    Z    W
-X [   2,   3,   1,     ]
-Y [   2,   3,   1,     ]
+X [   3,   3,   2,     ]
+Y [   3,   3,   2,     ]
 Z [   1,   2,   3,     ]
 W [    ,    ,    ,     ]
 
@@ -198,16 +198,16 @@ W [    ,    ,    ,     ]
              X                          Y                          Z                          W             
 
       X    Y    Z    W
-X [   2,   3,   1,     ]
-Y [   2,   4,   1,     ]
+X [   3,   3,   2,     ]
+Y [   3,   4,   2,     ]
 Z [   1,   2,   3,     ]
 W [    ,    ,    ,     ]
 (5.1) X on closing exchange
              X                          Y                          Z                          W             
 
       X    Y    Z    W
-X [   4,   3,   1,     ]
-Y [   2,   4,   1,     ]
+X [   4,   3,   2,     ]
+Y [   3,   4,   2,     ]
 Z [   1,   2,   3,     ]
 W [    ,    ,    ,     ]
 
@@ -218,8 +218,8 @@ W [    ,    ,    ,     ]
                           | I  Y       Y,W    4  Z    |                           |                          
                           | I  Y       Y,W    4  X    |                           |                          
       X    Y    Z    W
-X [   4,   3,   1,     ]
-Y [   2,   4,   1,   0 ]
+X [   4,   3,   2,     ]
+Y [   3,   4,   2,   0 ]
 Z [   1,   2,   3,     ]
 W [    ,    ,    ,     ]
 (.2) W initiate domain
@@ -227,8 +227,8 @@ W [    ,    ,    ,     ]
                           | I  Y       Y,W    4  Z    |                           |                          
                           | I  Y       Y,W    4  X    |                           |                          
       X    Y    Z    W
-X [   4,   3,   1,     ]
-Y [   2,   4,   1,   0 ]
+X [   4,   3,   2,     ]
+Y [   3,   4,   2,   0 ]
 Z [   1,   2,   3,     ]
 W [    ,   4,    ,   4 ]
 (.3) Y ack initiation
@@ -236,8 +236,8 @@ W [    ,   4,    ,   4 ]
                           | I  Y       Y,W    4  Z    |                           |                          
                           | I  Y       Y,W    4  X    |                           |                          
       X    Y    Z    W
-X [   4,   3,   1,     ]
-Y [   2,   4,   1,   0 ]
+X [   4,   3,   2,     ]
+Y [   3,   4,   2,   0 ]
 Z [   1,   2,   3,     ]
 W [    ,   4,    ,   4 ]
 (.4) W closing application
@@ -245,8 +245,8 @@ W [    ,   4,    ,   4 ]
                           | I  Y       Y,W    4  Z    |                           |                          
                           | I  Y       Y,W    4  X    |                           |                          
       X    Y    Z    W
-X [   4,   3,   1,     ]
-Y [   2,   4,   1,   0 ]
+X [   4,   3,   2,     ]
+Y [   3,   4,   2,   0 ]
 Z [   1,   2,   3,     ]
 W [    ,   4,    ,   5 ]
 (.5) Y on closing
@@ -254,8 +254,8 @@ W [    ,   4,    ,   5 ]
                           | I  Y       Y,W    4  Z    |                           |                          
                           | I  Y       Y,W    4  X    |                           |                          
       X    Y    Z    W
-X [   4,   3,   1,     ]
-Y [   2,   5,   1,   4 ]
+X [   4,   3,   2,     ]
+Y [   3,   5,   2,   4 ]
 Z [   1,   2,   3,     ]
 W [    ,   4,    ,   5 ]
 
@@ -270,8 +270,8 @@ W [    ,   4,    ,   5 ]
                           | I  Y       Y,W    4  Z    |                           |                          
                           | I  Y       Y,W    4  X    |                           |                          
       X    Y    Z    W
-X [   4,   3,   1,     ]
-Y [   2,   5,   1,   4 ]
+X [   4,   3,   2,     ]
+Y [   3,   5,   2,   4 ]
 Z [   1,   2,   3,     ]
 W [    ,   4,    ,   5 ]
 
@@ -280,8 +280,8 @@ W [    ,   4,    ,   5 ]
              X                          Y                          Z                          W             
                           | I  Y       Y,W    4  Z    |                           |                          
       X    Y    Z    W
-X [   4,   3,   1,     ]
-Y [   4,   5,   1,   4 ]
+X [   4,   3,   2,     ]
+Y [   4,   5,   2,   4 ]
 Z [   1,   2,   3,     ]
 W [    ,   4,    ,   5 ]
 
@@ -289,8 +289,8 @@ W [    ,   4,    ,   5 ]
              X                          Y                          Z                          W             
 I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
       X    Y    Z    W
-X [   4,   5,   1,   4 ]
-Y [   4,   5,   1,   4 ]
+X [   5,   5,   2,   4 ]
+Y [   4,   5,   2,   4 ]
 Z [   1,   2,   3,     ]
 W [    ,   4,    ,   5 ]
 
@@ -299,8 +299,8 @@ W [    ,   4,    ,   5 ]
              X                          Y                          Z                          W             
 I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
       X    Y    Z    W
-X [   4,   5,   1,   4 ]
-Y [   4,   5,   1,   4 ]
+X [   5,   5,   2,   4 ]
+Y [   5,   5,   2,   4 ]
 Z [   1,   2,   3,     ]
 W [    ,   4,    ,   5 ]
 
@@ -308,16 +308,16 @@ W [    ,   4,    ,   5 ]
              X                          Y                          Z                          W             
 I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
       X    Y    Z    W
-X [   4,   5,   1,   4 ]
-Y [   4,   6,   1,   4 ]
+X [   5,   5,   2,   4 ]
+Y [   5,   6,   2,   4 ]
 Z [   1,   2,   3,     ]
 W [    ,   4,    ,   5 ]
 (5.1) X on closing exchange
              X                          Y                          Z                          W             
 I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
       X    Y    Z    W
-X [   6,   5,   1,   4 ]
-Y [   4,   6,   1,   4 ]
+X [   6,   5,   2,   4 ]
+Y [   5,   6,   2,   4 ]
 Z [   1,   2,   3,     ]
 W [    ,   4,    ,   5 ]
 
@@ -328,8 +328,8 @@ I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                         
 I  X  X,000023    6  Z    |                           |                           |                          
 I  X  X,000023    6  W    |                           |                           |                          
       X    Y    Z    W
-X [   6,   5,   1,   4 ]
-Y [   4,   6,   1,   4 ]
+X [   6,   5,   2,   4 ]
+Y [   5,   6,   2,   4 ]
 Z [   1,   2,   3,     ]
 W [    ,   4,    ,   5 ]
 
@@ -346,8 +346,8 @@ I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                         
 I  X  X,000023    6  Z    |                           |                           |                          
 I  X  X,000023    6  W    |                           |                           |                          
       X    Y    Z    W
-X [   6,   5,   1,   4 ]
-Y [   4,   6,   1,   4 ]
+X [   6,   5,   2,   4 ]
+Y [   5,   6,   2,   4 ]
 Z [   1,   2,   3,     ]
 W [    ,   4,    ,   5 ]
 
@@ -359,9 +359,9 @@ I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                         
 I  X  X,000023    6  Z    |                           |                           |                          
 I  X  X,000023    6  W    |                           |                           |                          
       X    Y    Z    W
-X [   6,   5,   1,   4 ]
-Y [   4,   6,   1,   4 ]
-Z [   6,   5,   3,   4 ]
+X [   6,   5,   2,   4 ]
+Y [   5,   6,   2,   4 ]
+Z [   6,   5,   6,   4 ]
 W [    ,   4,    ,   5 ]
 
 (3.0): X on ack
@@ -370,9 +370,9 @@ I  X  X,000023    6  Y    |                           | I  X  X,000023    6  Y  
                           | I  Y       Y,W    4  Z    |                           |                          
 I  X  X,000023    6  W    |                           |                           |                          
       X    Y    Z    W
-X [   6,   5,   3,   4 ]
-Y [   4,   6,   1,   4 ]
-Z [   6,   5,   3,   4 ]
+X [   6,   5,   6,   4 ]
+Y [   5,   6,   2,   4 ]
+Z [   6,   5,   6,   4 ]
 W [    ,   4,    ,   5 ]
 
 (4.0): Z initiate again
@@ -382,9 +382,9 @@ I  X  X,000023    6  Y    |                           | I  X  X,000023    6  Y  
                           | I  Y       Y,W    4  Z    |                           |                          
 I  X  X,000023    6  W    |                           |                           |                          
       X    Y    Z    W
-X [   6,   5,   3,   4 ]
-Y [   4,   6,   1,   4 ]
-Z [   6,   5,   3,   4 ]
+X [   6,   5,   6,   4 ]
+Y [   5,   6,   2,   4 ]
+Z [   6,   5,   6,   4 ]
 W [    ,   4,    ,   5 ]
 
 (5.0): Z closing exchange
@@ -393,8 +393,8 @@ I  X  X,000023    6  Y    |                           | I  X  X,000023    6  Y  
                           | I  Y       Y,W    4  Z    |                           |                          
 I  X  X,000023    6  W    |                           |                           |                          
       X    Y    Z    W
-X [   6,   5,   3,   4 ]
-Y [   4,   6,   1,   4 ]
+X [   6,   5,   6,   4 ]
+Y [   5,   6,   2,   4 ]
 Z [   6,   5,   7,   4 ]
 W [    ,   4,    ,   5 ]
 (5.1) X on closing exchange
@@ -403,8 +403,8 @@ I  X  X,000023    6  Y    |                           | I  X  X,000023    6  Y  
                           | I  Y       Y,W    4  Z    |                           |                          
 I  X  X,000023    6  W    |                           |                           |                          
       X    Y    Z    W
-X [   7,   5,   3,   4 ]
-Y [   4,   6,   1,   4 ]
+X [   7,   5,   6,   4 ]
+Y [   5,   6,   2,   4 ]
 Z [   6,   5,   7,   4 ]
 W [    ,   4,    ,   5 ]
 
@@ -420,8 +420,8 @@ W#initExchange(), don't have knowledge about Z.
 
 (.1) -------- Z create photos ---------
       X    Y    Z    W
-X [   7,   5,   3,   4 ]
-Y [   4,   6,   1,   4 ]
+X [   7,   5,   6,   4 ]
+Y [   5,   6,   2,   4 ]
 Z [   6,   5,   7,   4 ]
 W [    ,   4,    ,   5 ]
              X                          Y                          Z                          W             
@@ -432,8 +432,8 @@ I  X  X,000023    6  Y    |                           | I  X  X,000023    6  Y  
 I  X  X,000023    6  W    |                           |                           |                          
                           |                           | I  Z  Z,008004    7  W    |                          
       X    Y    Z    W
-X [   7,   5,   3,   4 ]
-Y [   4,   6,   1,   4 ]
+X [   7,   5,   6,   4 ]
+Y [   5,   6,   2,   4 ]
 Z [   6,   5,   7,   4 ]
 W [    ,   4,    ,   5 ]
 
@@ -452,8 +452,8 @@ I  X  X,000023    6  Y    |                           | I  X  X,000023    6  Y  
 I  X  X,000023    6  W    |                           |                           |                          
                           |                           | I  Z  Z,008004    7  W    |                          
       X    Y    Z    W
-X [   7,   5,   3,   4 ]
-Y [   4,   6,   1,   4 ]
+X [   7,   5,   6,   4 ]
+Y [   5,   6,   2,   4 ]
 Z [   6,   5,   7,   4 ]
 W [    ,   4,    ,   5 ]
 
@@ -466,8 +466,8 @@ I  X  X,000023    6  Y    |                           |                         
 I  X  X,000023    6  W    |                           |                           |                          
                           |                           | I  Z  Z,008004    7  W    |                          
       X    Y    Z    W
-X [   7,   5,   3,   4 ]
-Y [   4,   6,   1,   4 ]
+X [   7,   5,   6,   4 ]
+Y [   5,   6,   2,   4 ]
 Z [   6,   6,   7,   4 ]
 W [    ,   4,    ,   5 ]
 
@@ -478,26 +478,255 @@ I  X  X,000023    6  Y    |                           |                         
 I  X  X,000023    6  W    |                           |                           |                          
                           | I  Z  Z,008004    7  W    | I  Z  Z,008004    7  W    |                          
       X    Y    Z    W
-X [   7,   5,   3,   4 ]
-Y [   6,   6,   7,   4 ]
+X [   7,   5,   6,   4 ]
+Y [   6,   7,   7,   4 ]
 Z [   6,   6,   7,   4 ]
 W [    ,   4,    ,   5 ]
 
 (4.0): Z initiate again
-
-PORBLEM HERE: infinitive loop by nyquence > 6
-
-select ch.*, synodee from syn_change ch join syn_subscribe sb on ch.tabl = sb.tabl AND ch.uids = sb.uids where nyquence > 6 order by tabl asc, nyquence asc, synoder asc, synodee asc
-select tabl from syn_change ch where nyquence > 6 group by tabl
-
-(4.1): Z initiate again	changes: 2	entities: 1
+(4.1): Z initiate again	changes: 0	entities: 0
              X                          Y                          Z                          W             
 I  X  X,000023    6  Y    |                           |                           |                          
                           | I  Z  Z,008004    7  X    | I  Z  Z,008004    7  X    |                          
 I  X  X,000023    6  W    |                           |                           |                          
                           | I  Z  Z,008004    7  W    | I  Z  Z,008004    7  W    |                          
       X    Y    Z    W
-X [   7,   5,   3,   4 ]
-Y [   6,   6,   7,   4 ]
-Z [   6,   6,   7,   4 ]
+X [   7,   5,   6,   4 ]
+Y [   6,   7,   7,   4 ]
+Z [   6,   7,   7,   4 ]
 W [    ,   4,    ,   5 ]
+
+(5.0): Z closing exchange
+             X                          Y                          Z                          W             
+I  X  X,000023    6  Y    |                           |                           |                          
+                          | I  Z  Z,008004    7  X    | I  Z  Z,008004    7  X    |                          
+I  X  X,000023    6  W    |                           |                           |                          
+                          | I  Z  Z,008004    7  W    | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [   7,   5,   6,   4 ]
+Y [   6,   7,   7,   4 ]
+Z [   6,   7,   8,   4 ]
+W [    ,   4,    ,   5 ]
+(5.1) Y on closing exchange
+             X                          Y                          Z                          W             
+I  X  X,000023    6  Y    |                           |                           |                          
+                          | I  Z  Z,008004    7  X    | I  Z  Z,008004    7  X    |                          
+I  X  X,000023    6  W    |                           |                           |                          
+                          | I  Z  Z,008004    7  W    | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [   7,   5,   6,   4 ]
+Y [   6,   8,   7,   4 ]
+Z [   6,   7,   8,   4 ]
+W [    ,   4,    ,   5 ]
+
+(.3) ------------- Y vs W ------------
+
+(0.0): W initiate
+(0.1): W initiate	changes: 0	entities: 0
+
+(1.0): Y on exchange
+(1.1): Y on exchange response	changes: 2	entities: 1	answers: 0
+             X                          Y                          Z                          W             
+I  X  X,000023    6  Y    |                           |                           |                          
+                          | I  Z  Z,008004    7  X    | I  Z  Z,008004    7  X    |                          
+I  X  X,000023    6  W    |                           |                           |                          
+                          | I  Z  Z,008004    7  W    | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [   7,   5,   6,   4 ]
+Y [   6,   8,   7,   4 ]
+Z [   6,   7,   8,   4 ]
+W [    ,   4,    ,   5 ]
+
+(2.0): W ack exchange
+(2.1): W ack exchange acknowledge	changes: 0	entities: 0	answers: 1
+             X                          Y                          Z                          W             
+I  X  X,000023    6  Y    |                           |                           |                          
+                          | I  Z  Z,008004    7  X    | I  Z  Z,008004    7  X    |                          
+I  X  X,000023    6  W    |                           |                           |                          
+                          | I  Z  Z,008004    7  W    | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [   7,   5,   6,   4 ]
+Y [   6,   8,   7,   4 ]
+Z [   6,   7,   8,   4 ]
+W [   6,   8,   7,   8 ]
+
+(3.0): Y on ack
+             X                          Y                          Z                          W             
+I  X  X,000023    6  Y    |                           |                           |                          
+                          | I  Z  Z,008004    7  X    | I  Z  Z,008004    7  X    |                          
+I  X  X,000023    6  W    |                           |                           |                          
+                          |                           | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [   7,   5,   6,   4 ]
+Y [   6,   8,   7,   8 ]
+Z [   6,   7,   8,   4 ]
+W [   6,   8,   7,   8 ]
+
+(4.0): W initiate again
+(4.1): W initiate again	changes: 0	entities: 0
+             X                          Y                          Z                          W             
+I  X  X,000023    6  Y    |                           |                           |                          
+                          | I  Z  Z,008004    7  X    | I  Z  Z,008004    7  X    |                          
+I  X  X,000023    6  W    |                           |                           |                          
+                          |                           | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [   7,   5,   6,   4 ]
+Y [   6,   8,   7,   8 ]
+Z [   6,   7,   8,   4 ]
+W [   6,   8,   7,   8 ]
+
+(5.0): W closing exchange
+             X                          Y                          Z                          W             
+I  X  X,000023    6  Y    |                           |                           |                          
+                          | I  Z  Z,008004    7  X    | I  Z  Z,008004    7  X    |                          
+I  X  X,000023    6  W    |                           |                           |                          
+                          |                           | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [   7,   5,   6,   4 ]
+Y [   6,   8,   7,   8 ]
+Z [   6,   7,   8,   4 ]
+W [   6,   8,   7,   9 ]
+(5.1) Y on closing exchange
+             X                          Y                          Z                          W             
+I  X  X,000023    6  Y    |                           |                           |                          
+                          | I  Z  Z,008004    7  X    | I  Z  Z,008004    7  X    |                          
+I  X  X,000023    6  W    |                           |                           |                          
+                          |                           | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [   7,   5,   6,   4 ]
+Y [   6,   9,   7,   8 ]
+Z [   6,   7,   8,   4 ]
+W [   6,   8,   7,   9 ]
+
+(.4) ------------- X vs Y ------------
+
+(0.0): Y initiate
+(0.1): Y initiate	changes: 1	entities: 1
+
+(1.0): X on exchange
+(1.1): X on exchange response	changes: 2	entities: 1	answers: 1
+             X                          Y                          Z                          W             
+I  X  X,000023    6  Y    |                           |                           |                          
+                          | I  Z  Z,008004    7  X    | I  Z  Z,008004    7  X    |                          
+I  X  X,000023    6  W    |                           |                           |                          
+                          |                           | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [   7,   5,   6,   4 ]
+Y [   6,   9,   7,   8 ]
+Z [   6,   7,   8,   4 ]
+W [   6,   8,   7,   9 ]
+
+(2.0): Y ack exchange
+(2.1): Y ack exchange acknowledge	changes: 0	entities: 0	answers: 2
+             X                          Y                          Z                          W             
+I  X  X,000023    6  Y    |                           |                           |                          
+                          |                           | I  Z  Z,008004    7  X    |                          
+I  X  X,000023    6  W    |                           |                           |                          
+                          |                           | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [   7,   5,   6,   4 ]
+Y [   7,   9,   7,   8 ]
+Z [   6,   7,   8,   4 ]
+W [   6,   8,   7,   9 ]
+
+(3.0): X on ack
+             X                          Y                          Z                          W             
+                          |                           | I  Z  Z,008004    7  X    |                          
+                          |                           | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [   9,   9,   7,   8 ]
+Y [   7,   9,   7,   8 ]
+Z [   6,   7,   8,   4 ]
+W [   6,   8,   7,   9 ]
+
+(4.0): Y initiate again
+(4.1): Y initiate again	changes: 0	entities: 0
+             X                          Y                          Z                          W             
+                          |                           | I  Z  Z,008004    7  X    |                          
+                          |                           | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [   9,   9,   7,   8 ]
+Y [   9,   9,   7,   8 ]
+Z [   6,   7,   8,   4 ]
+W [   6,   8,   7,   9 ]
+
+(5.0): Y closing exchange
+             X                          Y                          Z                          W             
+                          |                           | I  Z  Z,008004    7  X    |                          
+                          |                           | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [   9,   9,   7,   8 ]
+Y [   9,  10,   7,   8 ]
+Z [   6,   7,   8,   4 ]
+W [   6,   8,   7,   9 ]
+(5.1) X on closing exchange
+             X                          Y                          Z                          W             
+                          |                           | I  Z  Z,008004    7  X    |                          
+                          |                           | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [  10,   9,   7,   8 ]
+Y [   9,  10,   7,   8 ]
+Z [   6,   7,   8,   4 ]
+W [   6,   8,   7,   9 ]
+
+(.5) ------------- Y vs Z ------------
+
+(0.0): Z initiate
+(0.1): Z initiate	changes: 0	entities: 0
+
+(1.0): Y on exchange
+(1.1): Y on exchange response	changes: 0	entities: 0	answers: 0
+             X                          Y                          Z                          W             
+                          |                           | I  Z  Z,008004    7  X    |                          
+                          |                           | I  Z  Z,008004    7  W    |                          
+      X    Y    Z    W
+X [  10,   9,   7,   8 ]
+Y [   9,  10,   7,   8 ]
+Z [   6,   7,   8,   4 ]
+W [   6,   8,   7,   9 ]
+
+(2.0): Z ack exchange
+(2.1): Z ack exchange acknowledge	changes: 0	entities: 0	answers: 0
+             X                          Y                          Z                          W             
+
+      X    Y    Z    W
+X [  10,   9,   7,   8 ]
+Y [   9,  10,   7,   8 ]
+Z [   9,  10,  10,   8 ]
+W [   6,   8,   7,   9 ]
+
+(3.0): Y on ack
+             X                          Y                          Z                          W             
+
+      X    Y    Z    W
+X [  10,   9,   7,   8 ]
+Y [   9,  10,  10,   8 ]
+Z [   9,  10,  10,   8 ]
+W [   6,   8,   7,   9 ]
+
+(4.0): Z initiate again
+(4.1): Z initiate again	changes: 0	entities: 0
+             X                          Y                          Z                          W             
+
+      X    Y    Z    W
+X [  10,   9,   7,   8 ]
+Y [   9,  10,  10,   8 ]
+Z [   9,  10,  10,   8 ]
+W [   6,   8,   7,   9 ]
+
+(5.0): Z closing exchange
+             X                          Y                          Z                          W             
+
+      X    Y    Z    W
+X [  10,   9,   7,   8 ]
+Y [   9,  10,  10,   8 ]
+Z [   9,  10,  11,   8 ]
+W [   6,   8,   7,   9 ]
+(5.1) Y on closing exchange
+             X                          Y                          Z                          W             
+
+      X    Y    Z    W
+X [  10,   9,   7,   8 ]
+Y [   9,  11,  10,   8 ]
+Z [   9,  10,  11,   8 ]
+W [   6,   8,   7,   9 ]

@@ -70,6 +70,11 @@ public class DBSynsactBuilder extends DATranscxt {
 	/** Nyquence vector [{synode, Nyquence}]*/
 	protected HashMap<String, Nyquence> nyquvect;
 	protected Nyquence n0() { return nyquvect.get(synode()); }
+	protected DBSynsactBuilder n0(Nyquence nyq) {
+		nyquvect.put(synode(), new Nyquence(nyq.n));
+		return this;
+	}
+
 	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
 
 	private HashMap<String, SyntityMeta> entityRegists;
@@ -162,11 +167,15 @@ public class DBSynsactBuilder extends DATranscxt {
 	 */
 	public AnResultset subscribes(String conn, String org, String uids, SyntityMeta entm, IUser robot)
 			throws TransException, SQLException {
-		return (AnResultset) select(subm.tbl, "ch")
+		Query q = select(subm.tbl, "ch")
 				.cols(subm.cols())
 				.whereEq(subm.domain, org)
-				.whereEq(subm.entbl, entm.tbl)
-				.whereEq(subm.uids, uids)
+				.whereEq(subm.entbl, entm.tbl);
+
+		if (uids != null)
+			q.whereEq(subm.uids, uids);
+
+		return (AnResultset) q.whereEq(subm.uids, uids)
 				.rs(instancontxt(conn, robot))
 				.rs(0);
 	}
@@ -699,7 +708,8 @@ public class DBSynsactBuilder extends DATranscxt {
 	 */
 	public Nyquence incN0(long maxn) throws TransException, SQLException {
 		n0().inc(maxn);
-		DAHelper.updateField(this, basictx.connId(), synm, synode(), synm.nyquence, String.valueOf(n0().n), synrobot());
+		DAHelper.updateField(this, basictx.connId(), synm, synode(),
+				synm.nyquence, new ExprPart(n0().n), synrobot());
 		return n0();
 	}
 
@@ -712,18 +722,20 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @param cx 
 	 * @param <T>
 	 * @param target exchange target (server)
-	 * @param nyv nyquevect from target 
+	 * @param nv nyquevect from target 
 	 * @return logs such that chg.n > nyv[target], i.e there are change logs to be exchanged.
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public <T extends SynEntity> ChangeLogs initExchange(ExchangeContext x, String target)
-			throws TransException, SQLException {
+	public <T extends SynEntity> ChangeLogs initExchange(ExchangeContext x, String target,
+			HashMap<String, Nyquence> nv) throws TransException, SQLException {
+		synyquvectWith(target, nv);
 		Nyquence dn = this.nyquvect.get(target);
 		ChangeLogs diff = new ChangeLogs(chgm); //.challenge(challenge);
 		if (dn == null) {
 			Utils.warn("ERROR [%s#%s]: Me, %s, don't have knowledge about %s.",
-					this.getClass().getName(), new Object(){}.getClass().getEnclosingMethod().getName(),
+					this.getClass().getName(),
+					new Object(){}.getClass().getEnclosingMethod().getName(),
 					synode(), target);
 			throw new SemanticException("%s#%s(), don't have knowledge about %s.",
 					synode(), new Object(){}.getClass().getEnclosingMethod().getName(), target);
@@ -779,7 +791,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		if (x.onchanges != null && x.onchanges.challenges() > 0)
 			Utils.warn("There are challenges buffered to be commited: %s@%s", from, synode());;
 
-		ChangeLogs myanswer = initExchange(x, from);
+		ChangeLogs myanswer = initExchange(x, from, req.nyquvect);
 
 		x.buffChanges(req.challenge.colnames(), onchanges(myanswer, req), req.entities);
 		return myanswer.nyquvect(nyquvect);
@@ -892,10 +904,11 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @param target 
 	 * @param srcnv 
 	 * @param entm 
+	 * @return nyquvect
 	 * @throws TransException 
 	 * @throws SQLException 
 	 */
-	public void onAck(ExchangeContext x, ChangeLogs ack, String target, HashMap<String, Nyquence> srcnv, SyntityMeta entm)
+	public HashMap<String,Nyquence> onAck(ExchangeContext x, ChangeLogs ack, String target, HashMap<String, Nyquence> srcnv, SyntityMeta entm)
 			throws SQLException, TransException {
 
 		cleanStaleThan(ack.nyquvect, target);
@@ -909,6 +922,8 @@ public class DBSynsactBuilder extends DATranscxt {
 			commitAnswers(x, target, n0().n);
 		}
 		synyquvectWith(target, ack.nyquvect);
+		n0(maxn(ack.nyquvect, n0()));
+		return nyquvect;
 	}
 	
 	public HashMap<String, Nyquence> closexchange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
@@ -950,34 +965,70 @@ public class DBSynsactBuilder extends DATranscxt {
 	 */
 	private DBSynsactBuilder synyquvectWith(String sn, HashMap<String, Nyquence> nv)
 			throws TransException, SQLException {
+		if (nv == null) return this;
+
+		Update u = null;
+
+		if (compareNyq(nv.get(sn), nyquvect.get(sn)) < 0)
+			throw new SemanticException(
+				"[DBSynsactBuilder.synyquvectWith()] Updating my (%s) nyquence with %s's value early than already knowns.",
+				synode(), sn);
+//		else
+//			u = update(synm.tbl, synrobot())
+//				.nv(synm.nyquence, n0().n)
+//				.whereEq(synm.pk, synode());
 
 		for (String n : nv.keySet()) {
-			if (eq(n, sn) && compareNyq(nv.get(n), nyquvect.get(n)) < 0)
-				throw new SemanticException(
-					"[DBSynsactBuilder.synyquvectWith()] Updating my (%s) nyquence with %s's value early than already knowns.",
-					synode(), n);
+			if (!eq(n, sn) && nyquvect.containsKey(n)
+				&& compareNyq(nv.get(n), nyquvect.get(n)) > 0)
+				if (u == null)
+					u = update(synm.tbl, synrobot())
+						.nv(synm.nyquence, n0().n)
+						.whereEq(synm.pk, n);
+				else
+					u.post(update(synm.tbl)
+						.nv(synm.nyquence, nv.get(n).n)
+						.whereEq(synm.pk, n));
 
 			if (nyquvect.containsKey(n))
 				nyquvect.get(n).n = maxn(nv.get(n).n, nyquvect.get(n).n);
 			else nyquvect.put(n, new Nyquence(nv.get(n).n));
 		}
-		updateSynodes(nyquvect);
+
+		nyquvect.put(synode(), maxn(n0(), nv.get(sn)));
+		if (u != null)
+			u.u(instancontxt(basictx.connId(), synrobot()));
+
 		return this;
+
+//		for (String n : nv.keySet()) {
+//			if (eq(n, sn) && compareNyq(nv.get(n), nyquvect.get(n)) < 0)
+//				throw new SemanticException(
+//					"[DBSynsactBuilder.synyquvectWith()] Updating my (%s) nyquence with %s's value early than already knowns.",
+//					synode(), n);
+//
+//			if (nyquvect.containsKey(n))
+//				nyquvect.get(n).n = maxn(nv.get(n).n, nyquvect.get(n).n);
+//			else nyquvect.put(n, new Nyquence(nv.get(n).n));
+//		}
+//		nyquvect.put(synode(), maxn(n0(), nv.get(sn)));
+//		updateSynodes(nyquvect);
+//		return this;
 	}
 		
-	private void updateSynodes(HashMap<String, Nyquence> nv) throws TransException, SQLException {
-		Update u = update(synm.tbl, synrobot())
-			.nv(synm.nyquence, n0().n)
-			.whereEq(synm.pk, synode());
-		
-		for (String n : nv.keySet())
-			if (!eq(n, synode()))
-				u.post(update(synm.tbl)
-					.nv(synm.nyquence, nv.get(n).n)
-					.whereEq(synm.pk, n));
-		
-		u.u(instancontxt(basictx.connId(), synrobot()));
-	}
+//	private void updateSynodes(HashMap<String, Nyquence> nv) throws TransException, SQLException {
+//		Update u = update(synm.tbl, synrobot())
+//			.nv(synm.nyquence, n0().n)
+//			.whereEq(synm.pk, synode());
+//		
+//		for (String n : nv.keySet())
+//			if (!eq(n, synode()))
+//				u.post(update(synm.tbl)
+//					.nv(synm.nyquence, nv.get(n).n)
+//					.whereEq(synm.pk, n));
+//		
+//		u.u(instancontxt(basictx.connId(), synrobot()));
+//	}
 
 	/**
 	 * A {@link SynodeMode#hub hub} node uses this to setup change logs for joining nodes.

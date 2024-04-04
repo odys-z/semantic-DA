@@ -847,8 +847,22 @@ public class DBSyntextTest {
 		exchangePhotos(Y, W);
 		ck[Y].change(1, C, z, z_uids[0], ck[X].phm);
 		ck[Y].psubs(1, z_uids[1], X, -1, -1, -1);
-		ck[W].change(1, C, z, z_uids[0], ck[X].phm);
+		ck[W].change(0, C, z, z_uids[0], ck[X].phm);
 		ck[W].psubs(0, z_uids[1], -1, -1, -1, -1);
+
+		Utils.logi("\n(.4) ------------- X vs Y ------------");
+		exchangePhotos(X, Y);
+		ck[X].change(0, C, null, null, ck[X].phm);
+		ck[X].psubs(0, null, X, -1, -1, -1);
+		ck[Y].change(0, C, null, null, ck[X].phm);
+		ck[Y].psubs(0, null, -1, -1, -1, -1);
+
+		Utils.logi("\n(.5) ------------- Y vs Z ------------");
+		exchangePhotos(Y, Z);
+		ck[Y].change(0, C, null, null, ck[X].phm);
+		ck[Y].psubs(0, null, X, -1, -1, -1);
+		ck[Z].change(0, C, null, null, ck[X].phm);
+		ck[Z].psubs(0, null, -1, -1, -1, -1);
 	}
 
 	/**
@@ -947,7 +961,7 @@ public class DBSyntextTest {
 
 		// 0, X init
 		Utils.logi("\n(0.0): %s initiate", ctb.synode());
-		ChangeLogs req = ctb.initExchange(cx, stb.synode());
+		ChangeLogs req = ctb.initExchange(cx, stb.synode(), null);
 		assertNotNull(req);
 		
 		if (eq(stb.synode(), "Y") && eq(ctb.synode(), "X")) {
@@ -978,13 +992,13 @@ public class DBSyntextTest {
 			
 			// server
 			Utils.logi("\n(3.0): %s on ack", stb.synode());
-			stb.onAck(sx, ack, ctb.synode(), ack.nyquvect, sphm);
+			HashMap<String, Nyquence> nv = stb.onAck(sx, ack, ctb.synode(), ack.nyquvect, sphm);
 			printChangeLines(ck);
 			printNyquv(ck);
 
 			// client
 			Utils.logi("\n(4.0): %s initiate again", ctb.synode());
-			req = ctb.initExchange(cx, stb.synode());
+			req = ctb.initExchange(cx, stb.synode(), nv);
 			Utils.logi("(4.1): %s initiate again\tchanges: %d\tentities: %d",
 					ctb.synode(), req.challenges(), req.enitities());
 			printChangeLines(ck);
@@ -1194,15 +1208,19 @@ public class DBSyntextTest {
 
 		public long change(int count, String crud, String synoder, String eid, SyntityMeta entm)
 				throws TransException, SQLException {
-			AnResultset chg = (AnResultset) trb
+			Query q = trb
 				.select(chm.tbl, "ch")
 				.cols(chm.cols())
 				.whereEq(chm.domain, domain)
-				.whereEq(chm.entbl, entm.tbl)
-				.whereEq(chm.synoder, synoder)
-				.whereEq(chm.uids, synoder + chm.UIDsep + eid)
-				.rs(trb.instancontxt(connId(), robot()))
-				.rs(0);
+				.whereEq(chm.entbl, entm.tbl);
+			if (synoder != null)
+				q.whereEq(chm.synoder, synoder);
+			if (eid != null)
+				q.whereEq(chm.uids, synoder + chm.UIDsep + eid);
+
+			AnResultset chg = (AnResultset) q
+					.rs(trb.instancontxt(connId(), robot()))
+					.rs(0);
 			
 			if (!chg.next() && count > 0)
 				fail(String.format("Expecting count == %d, but actual 0", count));
