@@ -22,7 +22,7 @@ import io.odysz.transact.x.TransException;
  */
 public class SynSubsMeta extends TableMeta {
 
-	public final String org;
+	public final String domain;
 	// public final String subs;
 	public final String entbl;
 	public final String uids;
@@ -36,15 +36,14 @@ public class SynSubsMeta extends TableMeta {
 		super("syn_subscribe", conn);
 		ddlSqlite = loadTxt(SynSubsMeta.class, "syn_subscribe.sqlite.ddl");
 
-		org = "org";
-		entbl = "tabl";
-		synodee = "synodee";
-		uids = "uids";
-		// subs = "synodee";
+		domain = "domain";
+		entbl  = "tabl";
+		synodee= "synodee";
+		uids   = "uids";
 	}
 
 	public String[] cols() {
-		return new String[] {org, entbl, synodee, uids};
+		return new String[] {domain, entbl, synodee, uids};
 	}
 
 	/**
@@ -66,7 +65,7 @@ public class SynSubsMeta extends TableMeta {
 	 */
 	public String[] insertCols() {
 		if (this.subcols == null)
-			this.subcols = new String[] { org, entbl, synodee, uids };
+			this.subcols = new String[] { domain, entbl, synodee, uids };
 		return subcols;
 	}
 
@@ -86,6 +85,16 @@ public class SynSubsMeta extends TableMeta {
 		return val;
 	}
 
+	@SuppressWarnings("serial")
+	public ArrayList<Object[]> insertSubVal(String org, String entbl, String synodee, String uds) throws SQLException {
+		return new ArrayList<Object[]>() {
+			{add(new Object[] {subcols[0], org});}
+			{add(new Object[] {subcols[1], entbl});}
+			{add(new Object[] {subcols[2], synodee});}
+			{add(new Object[] {subcols[3], uids});}
+		};
+	}
+
 	/**
 	 * ISSUE: why not merge with {@link SyntityMeta#replace()}?
 	 * @return
@@ -100,18 +109,4 @@ public class SynSubsMeta extends TableMeta {
 			this.ftypes = mdb.ftypes();
 		return this;
 	}
-
-	/**
-	 * Select clause for inserting subscribers, into {@link #tbl}.
-	 * @param synm
-	 * @param tb
-	 * @param log
-	 * @return select clause
-	public Query subs2change(SynodeMeta synm, DBSynsactBuilder tb, ChangeLogs log) {
-		return tb
-			.select(synm.tbl, "sn")
-			.whereEq("", "");
-	}
-	 */
-
 }

@@ -944,9 +944,9 @@ public class DBSyntextTest_half_duplex {
 			.nv(chm.synoder, synoder)
 			.nv(chm.uids, concatstr(synoder, chm.UIDsep, pid))
 			.nv(chm.nyquence, trb.n0().n)
-			.nv(chm.org, robot.orgId)
+			.nv(chm.domain, robot.orgId)
 			.post(trb.insert(sbm.tbl)
-				.cols(sbm.entbl, sbm.synodee, sbm.uids, sbm.org)
+				.cols(sbm.entbl, sbm.synodee, sbm.uids, sbm.domain)
 				.select((Query) trb
 					.select(snm.tbl)
 					.col(constr(entm.tbl))
@@ -1055,7 +1055,7 @@ public class DBSyntextTest_half_duplex {
 			AnResultset chg = (AnResultset) trb
 				.select(chm.tbl, "ch")
 				.cols(chm.cols())
-				.whereEq(chm.org, org)
+				.whereEq(chm.domain, org)
 				.whereEq(chm.entbl, entm.tbl)
 				.whereEq(chm.synoder, synoder)
 				.whereEq(chm.uids, synoder + chm.UIDsep + eid)
@@ -1177,7 +1177,7 @@ public class DBSyntextTest_half_duplex {
 			HashMap<String, ChangeLine> idmap = ((AnResultset) b
 					.select(chm.tbl, "ch")
 					.cols("ch.*", sbm.synodee)
-					.je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.org, sbm.org, chm.uids, sbm.uids)
+					.je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
 					.rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
 					.rs(0))
 					.<ChangeLine>map(new String[] {chm.uids, sbm.synodee}, (r) -> new ChangeLine(r));

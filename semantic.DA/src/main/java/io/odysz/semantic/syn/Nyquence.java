@@ -2,7 +2,10 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.isNull;
 
+import java.sql.SQLException;
 import java.util.HashMap;
+
+import io.odysz.module.rs.AnResultset;
 
 public class Nyquence {
 
@@ -23,10 +26,14 @@ public class Nyquence {
 		return c < 0 && c != Long.MIN_VALUE ? -1 : a == b ? 0 : 1;
 	}
 
-	public long n;
+	protected long n;
 
 	public Nyquence(long n) {
 		this.n = n;
+	}
+
+	public Nyquence(String n) {
+		this(Long.valueOf(n));
 	}
 
 	public Nyquence inc(Nyquence... maxn) {
@@ -73,6 +80,10 @@ public class Nyquence {
 		for (String k : from.keySet())
 			nv.put(k, new Nyquence(from.get(k).n));
 		return nv;
+	}
+
+	public static Nyquence getn(AnResultset chal, String nyqcol) throws SQLException {
+		return new Nyquence(chal.getString(nyqcol));
 	}
 
 }

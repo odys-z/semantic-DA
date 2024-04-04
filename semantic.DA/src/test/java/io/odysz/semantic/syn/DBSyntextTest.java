@@ -799,6 +799,7 @@ public class DBSyntextTest {
 		
 		Utils.logi("\n2.2 ----------------- X vs Z -----------------");
 		exchangeSynodes(X, Z);
+		Utils.logi("\n2.2 --- On X-Z: Now Z know X:3[Y], not X,W ---");
 		
 		Utils.logi("\n2.3 ----------------- Z vs W -----------------");
 		try { exchangeSynodes(Z, W); }
@@ -806,7 +807,7 @@ public class DBSyntextTest {
 			Utils.logi(e.getMessage());
 			return;
 		}
-		fail("W is not roaming able");
+		fail("W is not roaming able at Z.");
 	}
 
 	/**
@@ -821,11 +822,14 @@ public class DBSyntextTest {
 				new Object(){}.getClass().getEnclosingMethod().getName());
 
 		ck[X].synodes(X,  Y,  Z, -1);
-		ck[Y].synodes(X,  Y,  Z, W);
+		// ck[Y].synodes(X,  Y,  Z, W);
 		ck[Z].synodes(X,  Y,  Z, -1);
-		ck[W].synodes(-1, Y, -1, W);
+		// ck[W].synodes(-1, Y, -1, W);
+
+		String z = ck[Z].trb.synode();
 
 		Utils.logi("\n(.1) -------- Z create photos ---------");
+		printNyquv(ck);
 		String[] z_uids = insertPhoto(Z);
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -835,15 +839,15 @@ public class DBSyntextTest {
 		
 		Utils.logi("\n(.2) ------------- Y vs Z ------------");
 		exchangePhotos(Y, Z);
-		ck[Y].change(1, C, z_uids[0], ck[Z].trb.synode(), ck[X].phm);
+		ck[Y].change(1, C, z, z_uids[0], ck[Y].phm);
 		ck[Y].psubs(2, z_uids[1], X, -1, -1, W);
 		ck[Z].psubs(1, z_uids[1], X, -1, -1, -1);
 
 		Utils.logi("\n(.3) ------------- Y vs W ------------");
 		exchangePhotos(Y, W);
-		ck[Y].change(1, C, z_uids[0], ck[Z].trb.synode(), ck[X].phm);
+		ck[Y].change(1, C, z, z_uids[0], ck[X].phm);
 		ck[Y].psubs(1, z_uids[1], X, -1, -1, -1);
-		ck[W].change(1, C, z_uids[0], ck[Z].trb.synode(), ck[X].phm);
+		ck[W].change(1, C, z, z_uids[0], ck[X].phm);
 		ck[W].psubs(0, z_uids[1], -1, -1, -1, -1);
 	}
 
@@ -898,14 +902,13 @@ public class DBSyntextTest {
 		printNyquv(ck);
 
 		Utils.logi("(.5) %s on closing", atb.synode());
-		atb.oncloseJoiningp(ax, ctb.synode(), closenv);
+		atb.oncloseJoining(ax, ctb.synode(), closenv);
 
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		return ack;
 	}
-	
 	
 	/**
 	 * Go through logs' exchange, where client initiate the process.
@@ -925,7 +928,6 @@ public class DBSyntextTest {
 		
 		exchange(sphm, stb, cphm, ctb);
 	}
-	
 
 	void exchangeSynodes(int srv, int cli) throws TransException, SQLException, IOException {
 		DBSynsactBuilder ctb = ck[cli].trb;
@@ -936,7 +938,6 @@ public class DBSyntextTest {
 		
 		exchange(ssnm, stb, csnm, ctb);
 	}
-	
 
 	static void exchange(SyntityMeta sphm, DBSynsactBuilder stb, SyntityMeta cphm, DBSynsactBuilder ctb)
 			throws TransException, SQLException, IOException {
@@ -969,7 +970,7 @@ public class DBSyntextTest {
 
 			// client
 			Utils.logi("\n(2.0): %s ack exchange", ctb.synode());
-			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode());
+			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode(), resp.nyquvect);
 			Utils.logi("(2.1): %s ack exchange acknowledge\tchanges: %d\tentities: %d\tanswers: %d",
 					ctb.synode(), ack.challenges(), ack.enitities(), ack.answers());
 			printChangeLines(ck);
@@ -977,7 +978,7 @@ public class DBSyntextTest {
 			
 			// server
 			Utils.logi("\n(3.0): %s on ack", stb.synode());
-			stb.onAck(sx, ack, ctb.synode(), sphm);
+			stb.onAck(sx, ack, ctb.synode(), ack.nyquvect, sphm);
 			printChangeLines(ck);
 			printNyquv(ck);
 
@@ -1013,7 +1014,6 @@ public class DBSyntextTest {
 	
 	}
 
-
 	void updatePhoto(int s, String pid) throws TransException, SQLException {
 		SyntityMeta entm = ck[s].phm;
 		String conn = conns[s];
@@ -1047,7 +1047,6 @@ public class DBSyntextTest {
 			.ins(trb.instancontxt(conn, robot));
 	}
 	
-	
 	String[] insertPhoto(int s) throws TransException, SQLException {
 		SyntityMeta entm = ck[s].phm;
 		String conn = conns[s];
@@ -1076,9 +1075,9 @@ public class DBSyntextTest {
 			.nv(chm.synoder, synoder)
 			.nv(chm.uids, concatstr(synoder, chm.UIDsep, pid))
 			.nv(chm.nyquence, trb.n0().n)
-			.nv(chm.org, robot.orgId)
+			.nv(chm.domain, robot.orgId)
 			.post(trb.insert(sbm.tbl)
-				.cols(sbm.entbl, sbm.synodee, sbm.uids, sbm.org)
+				.cols(sbm.entbl, sbm.synodee, sbm.uids, sbm.domain)
 				.select((Query) trb
 					.select(snm.tbl)
 					.col(constr(entm.tbl))
@@ -1093,7 +1092,6 @@ public class DBSyntextTest {
 		// return pid;
 		return new String[] {pid, chm.uids(synoder, pid)};
 	}
-	
 	
 	String deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
 
@@ -1117,7 +1115,6 @@ public class DBSyntextTest {
 		return pid;
 	}
 	
-
 	/**
 	 * Checker of each Synode.
 	 * @author Ody
@@ -1200,7 +1197,7 @@ public class DBSyntextTest {
 			AnResultset chg = (AnResultset) trb
 				.select(chm.tbl, "ch")
 				.cols(chm.cols())
-				.whereEq(chm.org, domain)
+				.whereEq(chm.domain, domain)
 				.whereEq(chm.entbl, entm.tbl)
 				.whereEq(chm.synoder, synoder)
 				.whereEq(chm.uids, synoder + chm.UIDsep + eid)
@@ -1208,7 +1205,7 @@ public class DBSyntextTest {
 				.rs(0);
 			
 			if (!chg.next() && count > 0)
-				fail("Some change logs are missing...");
+				fail(String.format("Expecting count == %d, but actual 0", count));
 
 			assertEquals(count, chg.getRowCount());
 			if (count > 0) {
@@ -1278,7 +1275,6 @@ public class DBSyntextTest {
 				;
 		}
 	}
-	
 
 	public static void printNyquv(Ck[] ck) {
 		Utils.logi(Stream.of(ck).map(c -> { return c.trb.synode();})
@@ -1305,7 +1301,6 @@ public class DBSyntextTest {
 		}
 	}
 	
-	
 	static class ChangeLine extends Anson {
 		String s;
 		public ChangeLine(AnResultset r) throws SQLException {
@@ -1322,7 +1317,6 @@ public class DBSyntextTest {
 		public String toString() { return s; }
 	}
 	
-	
 	public static void printChangeLines(Ck[] ck)
 			throws TransException, SQLException {
 
@@ -1333,7 +1327,7 @@ public class DBSyntextTest {
 			HashMap<String, ChangeLine> idmap = ((AnResultset) b
 					.select(chm.tbl, "ch")
 					.cols("ch.*", sbm.synodee)
-					.je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.org, sbm.org, chm.uids, sbm.uids)
+					.je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
 					.rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
 					.rs(0))
 					.<ChangeLine>map(new String[] {chm.uids, sbm.synodee}, (r) -> new ChangeLine(r));
@@ -1357,7 +1351,6 @@ public class DBSyntextTest {
 			.collect(Collectors.joining("\n")));
 	}
 	
-	
 	public static String strcenter(String text, int len){
 	    String out = String.format("%"+len+"s%s%"+len+"s", "",text,"");
 	    float mid = (out.length()/2);
@@ -1365,7 +1358,6 @@ public class DBSyntextTest {
 	    float end = start + len; 
 	    return out.substring((int)start, (int)end);
 	}
-	
 
 	public static void assertnv(long... nvs) {
 		if (nvs == null || nvs.length == 0 || nvs.length % 2 != 0)

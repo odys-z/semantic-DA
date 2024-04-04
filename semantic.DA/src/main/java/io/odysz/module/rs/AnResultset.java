@@ -411,6 +411,7 @@ for (String coln : colnames.keySet())
 	}
 	
 	public String getString(int colIndex) throws SQLException {
+		/* 2024-04-02
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) return null;
 			if (results.get(rowIdx - 1).get(colIndex - 1) == null) return null;
@@ -422,6 +423,8 @@ for (String coln : colnames.keySet())
 		} catch (Exception e) {
 			throw new SQLException(e.getMessage() + " Empty Results?");
 		}
+		*/
+		return getStringAtRow(colIndex - 1, rowIdx);
 	}
 	
 	public String getString(String colName) throws SQLException {
@@ -488,7 +491,7 @@ for (String coln : colnames.keySet())
 	}
 
 	public String getStringAtRow(String colName, int row) throws NumberFormatException, SQLException {
-		return getStringAtRow(getColumex(colName), row);
+		return getStringAtRow(getColumex(colName)-1, row);
 	}
 
 	public String getStringAtRow(int col, int row) throws NumberFormatException, SQLException {
@@ -1137,9 +1140,20 @@ for (String coln : colnames.keySet())
 			return null;
 	}
 	
+	/**
+	 * Are there rows following current row index?
+	 * @return true if there are
+	 */
 	public boolean hasnext() {
 		return (rs != null || results != null) && rowIdx < rowCnt;
-		
+	}
+
+	/**
+	 * Are there rows before current row index?
+	 * @return true if there are
+	 */
+	public boolean hasprev() {
+		return (rs != null || results != null) && 1 < rowIdx;
 	}
 
 	/**
@@ -1155,5 +1169,38 @@ for (String coln : colnames.keySet())
 			indices0.put((String) results.get(i).get(getColumex(pk)-1), i);
 		}
 		return this;
+	}
+
+	/**
+	 * Get next row's string value. Call {@link #hasnext()} before calling this.
+	 * 
+	 * @param col
+	 * @return string value
+	 * @throws SQLException 
+	 * @since 1.4.40
+	 */
+	public String nextString(final String col) throws SQLException {
+		return getStringAtRow(col, rowIdx + 1);
+	}
+
+	/**
+	 * Get previous row's string value. Call {@link #hasprev()} before calling this.
+	 * 
+	 * @param col
+	 * @return value
+	 * @throws SQLException
+	 * @since 1.4.40
+	 */
+	public String prevString(final String col) throws SQLException {
+		return getStringAtRow(col, rowIdx - 1);
+	}
+
+	/**
+	 * Is current row index is valid?
+	 * @return true if accessing currrent row is valid.
+	 * @since 1.4.40
+	 */
+	public boolean validx() {
+		return results != null && rowIdx > 0 && rowIdx <= results.size();
 	}
 }

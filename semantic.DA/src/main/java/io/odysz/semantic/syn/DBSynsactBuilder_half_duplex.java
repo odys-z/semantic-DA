@@ -140,7 +140,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 			throws TransException, SQLException {
 		return (AnResultset) select(subm.tbl, "ch")
 				.cols(subm.cols())
-				.whereEq(subm.org, org)
+				.whereEq(subm.domain, org)
 				.whereEq(subm.entbl, entm.tbl)
 				.whereEq(subm.uids, uids)
 				.rs(instancontxt(conn, robot))
@@ -222,7 +222,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 			// current entity
 			String entid1 = rply.getString(chgm.entfk);
 
-			String rporg  = rply.getString(chgm.org);
+			String rporg  = rply.getString(chgm.domain);
 			String rpent  = rply.getString(chgm.entbl);
 			String rpuids = rply.getString(chgm.uids);
 			String rpnodr = rply.getString(chgm.synoder);
@@ -243,7 +243,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 						.value(entm.insertChallengeEnt(entid1, entbuf.get(entm.tbl)))
 						.post(insert(chgm.tbl)
 							.nv(chgm.crud, CRUD.C)
-							.nv(chgm.org, rporg)
+							.nv(chgm.domain, rporg)
 							.nv(chgm.entbl, rpent)
 							.nv(chgm.synoder, rpnodr)
 							.nv(chgm.uids, rpuids)
@@ -262,12 +262,12 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 					.whereEq(subm.uids, rpuids)
 					.post(delete(chgm.tbl) // delete change log if no subscribers exist
 						.whereEq(chgm.entbl, entm.tbl)
-						.whereEq(chgm.org, rporg)
+						.whereEq(chgm.domain, rporg)
 						.whereEq(chgm.synoder, rpnodr)
 						.whereEq(chgm.uids,    rpuids)
 						.whereEq("0", (Query)select(subm.tbl)
 							.col(count(subm.synodee))
-							.whereEq(subm.org, rporg)
+							.whereEq(subm.domain, rporg)
 							.whereEq(subm.entbl, entm.tbl)
 							.where(op.ne, subm.synodee, constr(rpscrb))
 							.whereEq(subm.uids,  rpuids))));
@@ -309,7 +309,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 				continue;
 			}
 			
-			String chorg = chal.getString(chgm.org);
+			String chorg = chal.getString(chgm.domain);
 			String chent = chal.getString(chgm.entbl);
 			String chuids = chal.getString(chgm.uids);
 			String synodr = chal.getString(chgm.synoder);
@@ -323,7 +323,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 						.value(entm.insertChallengeEnt(entid1, entbuf.get(entm.tbl)))
 						.post(insert(chgm.tbl)
 							.nv(chgm.crud, CRUD.C)
-							.nv(chgm.org, chorg)
+							.nv(chgm.domain, chorg)
 							.nv(chgm.entbl, chent)
 							.nv(chgm.synoder, synodr)
 							.nv(chgm.uids, chuids)
@@ -337,11 +337,11 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 					? delete(subm.tbl, synrobot())
 						.whereEq(subm.synodee, subsrb)
 						.whereEq(subm.entbl, chent)
-						.whereEq(subm.org, chorg)
+						.whereEq(subm.domain, chorg)
 						.whereEq(subm.uids, chuids)
 						.post(entid == null ? null : delete(chgm.tbl)
 							.whereEq(chgm.entbl, chent)
-							.whereEq(chgm.org, chorg)
+							.whereEq(chgm.domain, chorg)
 							.whereEq(chgm.synoder, synodr)
 							.whereEq(chgm.uids, chuids)
 							.post(delete(entm.tbl)
@@ -368,7 +368,7 @@ public class DBSynsactBuilder_half_duplex extends DATranscxt {
 					? delete(subm.tbl, synrobot())
 						.whereEq(subm.synodee, subsrb)
 						.whereEq(subm.entbl, chent)
-						.whereEq(subm.org, chorg)
+						.whereEq(subm.domain, chorg)
 						.whereEq(subm.uids, chuids)
 					: null); // eq(change, CRUD.U | R)
 			entid = entid1;

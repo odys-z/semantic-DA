@@ -34,6 +34,12 @@ public class ExchangeContext {
 
 	final SynChangeMeta chgm;
 
+	/**
+	 * Current nyquence stamp for selecting challenges
+	 * @deprecated
+	 */
+	public Nyquence nyqstep;
+
 	public ExchangeContext(SynChangeMeta chgm, DBSynsactBuilder localtb, String target) {
 		this.target = target;
 		this.chgm = chgm;
@@ -55,7 +61,7 @@ public class ExchangeContext {
 	 */
 	public void buffChanges(HashMap<String, Object[]> chcols, ArrayList<ArrayList<Object>> yourchallenges,
 			HashMap<String, AnResultset> entities) throws SemanticException {
-		if (onchanges != null)
+		if (onchanges != null && onchanges.challenge != null && onchanges.challenge.size() > 0)
 			throw new SemanticException("There is challenges already buffered for committing.");
 		onchanges = new ChangeLogs(chgm)
 				.challenge(new AnResultset(chcols).results(yourchallenges))

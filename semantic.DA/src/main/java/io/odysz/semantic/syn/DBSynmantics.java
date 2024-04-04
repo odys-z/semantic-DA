@@ -223,7 +223,7 @@ public class DBSynmantics extends DASemantics {
 
 				insChg.post(syb
 						.delete(sbm.tbl)
-						.whereEq(sbm.org, usr.orgId())
+						.whereEq(sbm.domain, usr.orgId())
 						.whereEq(sbm.uids, usr)
 						.whereEq(sbm.pk, usr)
 						.post(insubs));

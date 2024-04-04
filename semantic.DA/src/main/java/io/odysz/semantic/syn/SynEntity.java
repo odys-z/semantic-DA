@@ -134,7 +134,7 @@ public class SynEntity extends Anson {
 				// write subs to conn.subm.tbl
 				// DESIGN NOTES: There is no R/D/E in subscriptions, that's an attribute of Doc sharing relationship 
 				trsb.delete(subMeta.tbl, robot)
-					.whereEq(subMeta.org, ch.getString(entMeta.org()))
+					.whereEq(subMeta.domain, ch.getString(entMeta.org()))
 					.whereEq(subMeta.entbl, ch.getString(chgm.entbl))
 					.whereEq(subMeta.uids, ch.getString(chgm.uids))
 					.post(trsb
