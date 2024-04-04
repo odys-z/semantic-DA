@@ -5,6 +5,7 @@ import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.strcenter;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
@@ -52,52 +53,8 @@ import io.odysz.transact.x.TransException;
 /**
  * Full-duplex mode for exchanging logs are running.
  * 
- * <pre>
- * 1. Synodes initialized with ++n0.
+ * See test/res/console-print.txt
  * 
- *   a  b c  d
- * A x0
- * B   y0
- * C      z
- * D         w
- * 
- * --------------------------------------------------------
- * 2. A vs. B
- * A[s=A, A.b ≤ n] ⇨ B, where n ∈ {x0}
- * A ⇦ B[s=B, B.a ≤ n], where n ∈ {y0}
- * A.b = B.n0, B.a = A.n0
- * A.n0++, B.n0++
- * 
- *   a  b  c  d
- * A x1 y0
- * B x0 y1
- * C       z  
- * D          w
- * 
- * --------------------------------------------------------
- * 3. A vs. B
- * A[s=A, A.b ≤ n] ⇨ B
- * A handled B's response, buf B failed of getting response of A, A ⇦ B[s=B, B.a ≤ y1]
- * B roll back pending operations (buffered pending commitments), but A committed.
- * ++A.n0, A.b = B.n0
- * 
- *   a  b   c   d
- * A x3 y1			A can update A.a while communicating with C/D
- * B x0 y2 != x3	B can update B.b while communicating with C/D
- * C        z 
- * D            w
- * 
- * --------------------------------------------------------
- * 4. A vs. B
- * On initiation, B found buffered commitments whit n <= A.b, commit first
- * 
- *   a  b   c   d
- * A x3 y1
- * B x0 y3           y3 = x3
- * C        z 
- * D            w
- * 
- * </pre>
  * @author Ody
  */
 public class DBSyntextTest {
@@ -237,110 +194,6 @@ public class DBSyntextTest {
 		testBranchPropagation();
 	}
 
-	/**
-	 * <pre>
-	 *  ++A.a, ++B.b
-	 *     a  b  c
-	 *  A +1     
-	 *  B    +1   
-	 *  C       +1
-	 *  
-	 * 1.
-	 * A                     | B
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  I,   A, A:0, 1,  B   |  I,   B, B:0, 1, A
-	 *                   C   |                  C
-	 *                   D   |                  D
-	 *
-	 *    a b c d
-	 *  A x      
-	 *  B   y    
-	 *  C     z  
-	 *  D       w
-	 *---------------------------------------------------------------
-	 * 2. A.a > B.a, B don't know A:0 [B]/C/D, with n=x > B.a | s=A
-	 * 
-	 *  A select n in range (A.b, A.a = x]
-	 *  B merge with local DB, with records sorted by n, s, pid.
-	 *  
-	 * A                     =) B
-	 * crud, s, uids, n, sub  | crud, s, uids, n, sub
-	 *  I,   A, A:0,  x, [B]  |  I,   B, B:0,  y,  A
-	 *                    C   |                    C
-	 *                    D   |                    D
-	 *                        |
-	 *                        |  I,   A, A:0,  x,  C   b.a < chg.n = x
-	 *                        |                    D   b.a < chg.n = x
-	 *                        
-	 *
-	 * A.b < B.b, A don't know B:0 [A]/C/D, with n=y > A.b | s=B
-	 * A                    (=  B
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  I,   A, A:0, x, [ ]  |  I,   B, B:0, y, [ ]
-	 *                   C   |                   C
-	 *                   D   |                   D
-	 *  I,   B, B:0, y,  C   |  I,   A, A:0, x,  C
-	 *                   D   |                   D
-	 *                   
-	 *    a  b  c  d
-	 *  A x1 x                  [A.b = B.b, ++A.a ( = max(B.a, ++A.a))]
-	 *  B x  y1        y1 = x1, [B.a = A.a, ++B.b (= max(++B.b, A.b))]
-	 *  C       z
-	 *  D          w
-	 *  
-	 *---------------------------------------------------------------
-	 * 3. A insert A:1
-	 * A                    (=  B
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  I,   A, A:0, x, [ ]  |  I,   B, B:0, y, [ ]
-	 *                   C   |                   C
-	 *                   D   |                   D
-	 *  I,   B, B:0, y,  C   |  I,   A, A:0, x,  C
-	 *                   D   |                   D
-	 *  I,   A, A:1, x1, B   |  
-	 *                   C   |  
-	 *                   D   |  
-	 *                   
-	 *    a  b  c  d
-	 *  A x1 x
-	 *  B x  y1
-	 *  C       z
-	 *  D          w
-	 *  
-	 *---------------------------------------------------------------
-	 * 4. A Update A:1
-	 * 
-	 * A select n in range (A.b, A.a = A.n0]
-	 * B merge with local DB, with records sorted by n, s, pid, only merge with n in range (B.a, B.b = B.n0]
-	 * 
-	 * A                    (=  B
-	 * crud, s, pid, n, sub  | crud, s, pid, n, sub
-	 *  I,   A, A:0, x, [ ]  |  I,   B, B:0, y, [ ]
-	 *                   C   |                   C
-	 *                   D   |                   D
-	 *  I,   B, B:0, y,  C   |  I,   A, A:0, x,  C
-	 *                   D   |                   D
-	 *  U,   A, A:1, x1, B   |  
-	 *                   C   |  
-	 *                   D   |  
-	 *                       |  I,   A, A:1, x1, C 
-	 *                       |                   D 
-	 *                   
-	 *    a  b  c  d
-	 *  A x2 x1
-	 *  B x1 y2
-	 *  C       z
-	 *  D          w
-	 *
-	 * =============================================================
-	 * If the response to A lost, B won't commit but will send the
-	 * operations into a buffer, to discard if requested again.
-	 *  
-	 * </pre>
-	 * @throws TransException
-	 * @throws SQLException
-	 * @throws IOException 
-	 */
 	void test01InsertBasic() throws TransException, SQLException, IOException {
 		Utils.logi("\n=== === %s === ===", new Object(){}.getClass().getEnclosingMethod().getName());
 
@@ -460,307 +313,6 @@ public class DBSyntextTest {
 		ck[X].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 	}
 
-	/**
-	 * <pre>
-	 * A                      | B                    
-	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub
-	 *  D,   A, A:0, x0,  B   |  D,   B, B:0, y0,  A  
-	 *                    C   |                    C 
-	 *  I,   A, B:0, x0,  C   |  I,   B, A:0, y0,  C 
-	 *  U,   A, C:0, x0,  C   |  U,   B, C:0, y0,  C
-	 *
-	 *    a   b   c    d
-	 *  A x  
-	 *  B     y
-	 *  C         z
-	 *  D             w
-	 *----------------------------------------------
-	 * Sync-range: [x, A.b] vs [y, B.a]
-	 * A                      | B                    
-	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub
-	 *  D,   A, A:0, x,  [B]x |  D,   B, B:0, y,  [A] x 
-	 *                    C   |                    C 
-	 *  I,   A, B:0, x0,  C   |  I,   B, A:0, y0,  C 
-	 *  U,   A, C:0, x0,  C   |  U,   B, C:0, y0,  C
-	 *  
-	 *    a   b   c    d
-	 *  A x1  y0
-	 *  B x0  y1
-	 *  C         z0
-	 *  D             w0
-	 *  
-	 *-----------------------------------------------------------------------
-	 * B = C
-	 * A                      | B                       | C
-	 * crud, s, pid, n,  sub  | crud, s, pid, n,  sub   | crud, s, pid, n, sub
-	 *  D,   A, A:0, x,  [ ]x |  D,   B, B:0, x,  [ ]   |  
-	 *                    C   |                   [C] x |
-	 *  I,   A, B:0, x0,  C   |  I,   B, A:0, y0, [C] x |
-	 *  U,   A, C:0, x0,  C   |  U,   B, C:0, y0, [C] x |
-	 *  
-	 *    a   b   c    d
-	 *  A x1  y0
-	 *  B x0  y2  z0
-	 *  C x0  y1  z2         z2 = y2
-	 *  D             w0
-	 *  
-	 *----------------------------------------------------------------------- 
-	 * A = B
-	 * A                      | B                      | C
-	 * crud, s, pid, n,  sub  | crud, s, pid, n, sub   | crud, s, pid, n, sub
-	 *  D,   A, A:0, x,  [ ]  |                        |
-	 *                   [C]x |                        |
-	 *  I,   A, B:0, x0, [C]x |                        |
-	 *  U,   A, C:0, x0, [C]x |                        |
-	 *  
-	 * A clean for each subscribe i, such that chg[sub=i].n ≤ B.a and A.nv[i] < B.nv[i]
-	 * - B:0[C].n=x0 = B.a, A.c < B.c=z0 because A can't have A.c later than or equal to B.c,
-	 *   so override A with B for subscribe C, i.e. delete B:0[c], (s=A, n=x0),
-	 * - C:0[C].n=x0 = B.a, A.c < B.c=z0,
-	 *   override A with B for subscribe C, i.e. delete C:0(s=A, n=x0)
-	 *  
-	 *  NOTE
-	 *  B:0.n[sub=C] always less than, not equal to, B.c in a deletion propagation,
-	 *  because B know about C later than A.
-	 *  
-	 *    a   b   c    d
-	 *  A x3  y2  z0        x3 = y3
-	 *  B x1  y3  z0
-	 *  C x0  y1  z2    
-	 *  D             w0
-	 * </pre>
-	 * @throws Exception
-	 */
-	void test02delete() throws Exception {
-		String A_0 = deletePhoto(chm, X);
-		String B_0 = deletePhoto(chm, Y);
-
-		ck[X].change(2, CRUD.D, A_0, ck[X].phm);
-		ck[Y].change(2, CRUD.D, B_0, ck[Y].phm);
-		ck[X].psubs(2, A_0, -1,  Y, Z, W);
-		ck[Y].psubs(2, B_0,  X, -1, Z, W);
-		
-		exchangePhotos(X, Y);
-		ck[X].psubs(2, A_0, -1, -1, Z, W);
-		ck[Y].psubs(2, A_0, -1, -1, Z, W);
-
-		ck[X].psubs(2, B_0, -1, -1, Z, W);
-		ck[Y].psubs(2, B_0, -1, -1, Z, W);
-		
-		exchangePhotos(Y, Z);
-		ck[X].psubs(2, A_0, -1, -1,  Z, W);
-		ck[Y].psubs(2, A_0, -1, -1, -1, W);
-		ck[Z].psubs(2, A_0, -1, -1, -1, W);
-
-		ck[X].psubs(2, B_0, -1, -1,  Z, W);
-		ck[Y].psubs(2, B_0, -1, -1, -1, W);
-		ck[Z].psubs(2, B_0, -1, -1, -1, W);
-
-		exchangePhotos(X, Y);
-		ck[X].psubs(2, A_0, -1, -1, -1, W);
-		ck[Y].psubs(2, A_0, -1, -1, -1, W);
-		ck[Z].psubs(2, A_0, -1, -1, -1, W);
-
-		ck[X].psubs(2, B_0, -1, -1, -1, W);
-		ck[Y].psubs(2, B_0, -1, -1, -1, W);
-		ck[Z].psubs(2, B_0, -1, -1, -1, W);
-	}
-	
-	/**
-	 * Test W join with X
-	 * 
-	 * <pre>
-	 * 1.1 -------- Y on W joining ---------
-	 * (.1) Y accept W
-	 *       X                          Y                          Z                          W             
-	 *                    | I  Y       Y,W    4  Z    |                           |                          
-	 *                    | I  Y       Y,W    4  X    |                           |                          
-	 * X    Y    Z    W
-	 * X [   4,   3,   1,     ]
-	 * Y [   2,   4,   1,   0 ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,    ,    ,     ]
-	 * (.2) W initiate domain
-	 *       X                          Y                          Z                          W             
-     *                    | I  Y       Y,W    4  Z    |                           |                          
-     *                    | I  Y       Y,W    4  X    |                           |                          
-     *       X    Y    Z    W
-	 * X [   4,   3,   1,     ]
-	 * Y [   2,   4,   1,   0 ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,   4,    ,   4 ]
-	 * 
-	 * (.3) Y ack initiation
-     *       X                          Y                          Z                          W             
-     *                    | I  Y       Y,W    4  Z    |                           |                          
-     *                    | I  Y       Y,W    4  X    |                           |                          
-     *      X    Y    Z    W
-	 * X [   4,   3,   1,     ]
-	 * Y [   2,   4,   1,   0 ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,   4,    ,   4 ]
-	 * 
-	 * (.4) W closing application
-     *       X                          Y                          Z                          W             
-     *                    | I  Y       Y,W    4  Z    |                           |                          
-     *                    | I  Y       Y,W    4  X    |                           |                          
-     *       X    Y    Z    W
-	 * X [   4,   3,   1,     ]
-	 * Y [   2,   4,   1,   0 ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,   4,    ,   5 ]
-	 * (.5) Y on closing
-     *       X                          Y                          Z                          W             
-     *                    | I  Y       Y,W    4  Z    |                           |                          
-     *                    | I  Y       Y,W    4  X    |                           |                          
-	 *       X    Y    Z    W
-	 * X [   4,   3,   1,     ]
-	 * Y [   2,   5,   1,   4 ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,   4,    ,   5 ]
-	 * 
-	 * 1.2 ------------- X vs Y ------------
-	 * (0.0): Y initiate
-	 * (0.1): Y initiate	changes: 2	entities: 1
-	 * (1.0): X on exchange
-	 * (1.1): X on exchange response	changes: 0	entities: 0	answers: 1
-     *       X                          Y                          Z                          W             
-     *                    | I  Y       Y,W    4  Z    |                           |                          
-     *                    | I  Y       Y,W    4  X    |                           |                          
-     *       X    Y    Z    W
-	 * X [   4,   3,   1,     ]
-	 * Y [   2,   5,   1,   4 ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,   4,    ,   5 ]
-	 * 
-	 * (2.0): Y ack exchange
-	 * (2.1): Y ack exchange acknowledge	changes: 0	entities: 0	answers: 0
-     *       X                          Y                          Z                          W             
-     *                    | I  Y       Y,W    4  Z    |                           |                          
-     *      X    Y    Z    W
-	 * X [   4,   3,   1,     ]
-	 * Y [   4,   5,   1,   4 ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,   4,    ,   5 ]
-	 * 
-	 * (3.0): X on ack
-     *              X                          Y                          Z                          W             
-	 * I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
-	 * X    Y    Z    W
-	 * X [   4,   5,   1,   4 ]
-	 * Y [   4,   5,   1,   4 ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,   4,    ,   5 ]
-	 * 
-	 * (4.0): Y initiate again
-	 * (4.1): Y initiate again	changes: 0	entities: 0
-     *        X                          Y                          Z                          W             
-	 * I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
-	 *      X    Y    Z    W
-	 * X [   4,   5,   1,   4 ]
-	 * Y [   4,   5,   1,   4 ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,   4,    ,   5 ]
-	 * 
-	 * (5.0): Y closing exchange
-	 *             X                          Y                          Z                          W             
-	 * I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
-	 *      X    Y    Z    W
-	 * X [   4,   5,   1,   4 ]
-	 * Y [   4,   6,   1,   4 ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,   4,    ,   5 ]
-	 * 
-	 * (5.1) X on closing exchange
-     *       X                          Y                          Z                          W             
-	 * I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
-	 *       X    Y    Z    W
-	 * X [   6,   5,   1,   4 ]
-	 * Y [   4,   6,   1,   4 ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,   4,    ,   5 ]
-	 * 
-	 * 2.1 ------------- X create photos ------------
-	 * 2.2 ----------------- X vs Z -----------------
-	 * (0.0): Z initiate
-	 * (0.1): Z initiate	changes: 0	entities: 0
-	 * (1.0): X on exchange
-	 * (1.1): X on exchange response	changes: 4	entities: 2	answers: 0
-     *       X                          Y                          Z                          W             
-	 * I  X  X,000023    6  Y    |                           |                           |                          
-	 * I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
-	 * I  X  X,000023    6  Z    |                           |                           |                          
-	 * I  X  X,000023    6  W    |                           |                           |                          
-	 *       X    Y    Z    W
-	 * X [   6,   5,   1,   4 ]
-	 * Y [   4,   6,   1,   4 ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,   4,    ,   5 ]
-	 * 
-	 * (2.0): Z ack exchange
-	 * (2.1): Z ack exchange acknowledge	changes: 0	entities: 0	answers: 3
-	 *        X                          Y                          Z                          W             
-	 * I  X  X,000023    6  Y    |                           |                           |                          
-	 * I  Y       Y,W    4  Z    | I  Y       Y,W    4  Z    |                           |                          
-	 * I  X  X,000023    6  Z    |                           |                           |                          
-	 * I  X  X,000023    6  W    |                           |                           |                          
-	 *       X    Y    Z    W
-	 * X [   6,   5,   1,   4 ]
-	 * Y [   4,   6,   1,   4 ]
-	 * Z [   6,   5,   3,   4 ]
-	 * W [    ,   4,    ,   5 ]
-	 * 
-	 * (3.0): X on ack
-	 *        X                          Y                          Z                          W             
-	 * I  X  X,000023    6  Y    |                           |                           |                          
-     *                           | I  Y       Y,W    4  Z    |                           |                          
-     *       X    Y    Z    W
-	 * X [   6,   5,   3,   4 ]
-	 * Y [   4,   6,   1,   4 ]
-	 * Z [   6,   5,   3,   4 ]
-	 * W [    ,   4,    ,   5 ]
-	 * 
-	 * (4.0): Z initiate again
-	 * (4.1): Z initiate again	changes: 0	entities: 0
-     *        X                          Y                          Z                          W             
-	 * I  X  X,000023    6  Y    |                           |                           |                          
-     *                           | I  Y       Y,W    4  Z    |                           |                          
-     *       X    Y    Z    W
-	 * X [   6,   5,   3,   4 ]
-	 * Y [   4,   6,   1,   4 ]
-	 * Z [   6,   5,   3,   4 ]
-	 * W [    ,   4,    ,   5 ]
-	 *
-	 * (5.0): Z closing exchange
-     *        X                          Y                          Z                          W             
-	 * I  X  X,000023    6  Y    |                           |                           |                          
-     *                           | I  Y       Y,W    4  Z    |                           |                          
-     *       X    Y    Z    W
-	 * X [   6,   5,   3,   4 ]
-	 * Y [   4,   6,   1,   4 ]
-	 * Z [   6,   5,   7,   4 ]
-	 * W [    ,   4,    ,   5 ]
-	 *
-	 * (5.1) X on closing exchange
-     *        X                          Y                          Z                          W             
-	 * I  X  X,000023    6  Y    |                           |                           |                          
-     *                           | I  Y       Y,W    4  Z    |                           |                          
-     *       X    Y    Z    W
-	 * X [   7,   5,   3,   4 ]
-	 * Y [   4,   6,   1,   4 ]
-	 * Z [   6,   5,   7,   4 ]
-	 * W [    ,   4,    ,   5 ]
-	 * 
-	 * 2.3 ----------------- Z vs W -----------------
-	 * (0.0): W initiate
-	 * ERROR [io.odysz.semantic.syn.DBSynsactBuilder#initExchange]: Me, W, don't have knowledge about Z.
-	 * W#initExchange(), don't have knowledge about Z.
-	 * </pre>
-	 * @throws SQLException 
-	 * @throws TransException 
-	 * @throws IOException 
-	 * @throws ClassNotFoundException 
-	 */
 	void testJoinChild() throws Exception {
 		Utils.logi("\n=== === %s === ===", new Object(){}.getClass().getEnclosingMethod().getName());
 
@@ -810,13 +362,6 @@ public class DBSyntextTest {
 		fail("W is not roaming able at Z.");
 	}
 
-	/**
-	 * <pre>
-	 * </pre>
-	 * @throws TransException
-	 * @throws SQLException
-	 * @throws IOException 
-	 */
 	void testBranchPropagation() throws TransException, SQLException, IOException {
 		Utils.logi("\n=== === %s, must call join children first === ===",
 				new Object(){}.getClass().getEnclosingMethod().getName());
@@ -865,10 +410,6 @@ public class DBSyntextTest {
 		ck[Z].psubs(0, null, -1, -1, -1, -1);
 	}
 
-	/**
-	 * <pre>
-	 * </pre>
-	 */
 	void test04conflict() throws Exception {
 	}
 
@@ -1369,13 +910,13 @@ public class DBSyntextTest {
 			.collect(Collectors.joining("\n")));
 	}
 	
-	public static String strcenter(String text, int len){
-	    String out = String.format("%"+len+"s%s%"+len+"s", "",text,"");
-	    float mid = (out.length()/2);
-	    float start = mid - (len/2);
-	    float end = start + len; 
-	    return out.substring((int)start, (int)end);
-	}
+//	public static String strcenter(String text, int len){
+//	    String out = String.format("%" + len + "s%s%" + len + "s", "", text, "");
+//	    float mid = (out.length()/2);
+//	    float start = mid - (len/2);
+//	    float end = start + len; 
+//	    return out.substring((int)start, (int)end);
+//	}
 
 	public static void assertnv(long... nvs) {
 		if (nvs == null || nvs.length == 0 || nvs.length % 2 != 0)
