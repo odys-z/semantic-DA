@@ -8,7 +8,7 @@ import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.strcenter;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
-import static io.odysz.semantic.CRUD.C;
+import static io.odysz.semantic.CRUD.*;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
@@ -190,8 +190,9 @@ public class DBSyntextTest {
 	@Test
 	void testChangeLogs() throws Exception {
 		test01InsertBasic();
-		testJoinChild();
-		testBranchPropagation();
+		// testJoinChild();
+		// testBranchPropagation();
+		test02Update();
 	}
 
 	void test01InsertBasic() throws TransException, SQLException, IOException {
@@ -367,9 +368,9 @@ public class DBSyntextTest {
 				new Object(){}.getClass().getEnclosingMethod().getName());
 
 		ck[X].synodes(X,  Y,  Z, -1);
-		// ck[Y].synodes(X,  Y,  Z, W);
+		ck[Y].synodes(X,  Y,  Z, W);
 		ck[Z].synodes(X,  Y,  Z, -1);
-		// ck[W].synodes(-1, Y, -1, W);
+		ck[W].synodes(-1, Y, -1, W);
 
 		String z = ck[Z].trb.synode();
 
@@ -410,7 +411,38 @@ public class DBSyntextTest {
 		ck[Z].psubs(0, null, -1, -1, -1, -1);
 	}
 
-	void test04conflict() throws Exception {
+	void test02Update() throws Exception {
+		Utils.logi("\n=== === %s === ===", new Object(){}.getClass().getEnclosingMethod().getName());
+		Utils.logi("(U.1) -------- X update photos ---------");
+
+		String[] xu = updatePname(X);
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		ck[X].change(1, U, xu[0], ck[X].phm);
+		ck[X].psubs(2, xu[1], -1, Y, Z, -1);
+		// or ck[X].psubs(3, xu[1], -1, Y, Z, W);
+
+		Utils.logi("(U.2) -------- Y update photos ---------");
+		String[] yu = updatePname(Y);
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		ck[Y].change(1, U, yu[0], ck[Y].phm);
+		ck[Y].psubs(2, yu[1], X, -1, Z, -1);
+		// or ck[X].psubs(3, xu[1], -1, Y, Z, W);
+		
+		Utils.logi("(U.3) -------- X => Y ---------");
+		exchangePhotos(Y, X);
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		ck[X].change(1, U, null, ck[X].phm);
+		ck[X].psubs(1, null, X, Y, Z, -1);
+		ck[X].psubs(1, null, -1, -1, Z, -1);
+		ck[Y].change(1, U, null, ck[Y].phm);
+		ck[Y].psubs(1, null, X, Y, Z, -1);
+		ck[Y].psubs(1, null, -1, -1, Z, -1);
 	}
 
 	/**
@@ -569,38 +601,38 @@ public class DBSyntextTest {
 	
 	}
 
-	void updatePhoto(int s, String pid) throws TransException, SQLException {
-		SyntityMeta entm = ck[s].phm;
-		String conn = conns[s];
-		String synoder = ck[s].trb.synode();
-		DBSynsactBuilder trb = ck[s].trb;
-		SyncRobot robot = (SyncRobot) ck[s].robot();
-		
-		trb.update(entm.tbl, robot)
-			.nv(entm.synoder, synoder)
-			.whereEq(chm.pk, pid)
-			.u(trb.instancontxt(conn, robot))
-			;
-		
-		trb.insert(chm.tbl)
-			.nv(chm.crud, CRUD.U)
-			.nv(chm.synoder, synoder)
-			.nv(chm.uids, synoder + chm.UIDsep + pid)
-			.nv(chm.nyquence, trb.n0().n)
-			.post(trb
-				.delete(sbm.tbl)
-				.whereEq(sbm.entbl, entm.tbl)
-				.whereEq(sbm.synodee, synoder)
-				.whereEq(sbm.uids, concatstr(synoder, chm.UIDsep, pid))
-				.post(trb.insert(sbm.tbl)
-					.cols(sbm.entbl, sbm.synodee, sbm.uids)
-					.select(trb.select(sbm.tbl)
-						.col(constr(entm.tbl)).col(constr(synoder))
-						.col(concatstr(synoder, chm.UIDsep, pid)))))
-						// FIXME should be posted as
-						// concat(constr(synoder), constr(chm.UIDsep), new Resulving(pid, ""))
-			.ins(trb.instancontxt(conn, robot));
-	}
+//	void updatePhoto(int s, String pid) throws TransException, SQLException {
+//		SyntityMeta entm = ck[s].phm;
+//		String conn = conns[s];
+//		String synoder = ck[s].trb.synode();
+//		DBSynsactBuilder trb = ck[s].trb;
+//		SyncRobot robot = (SyncRobot) ck[s].robot();
+//		
+//		trb.update(entm.tbl, robot)
+//			.nv(entm.synoder, synoder)
+//			.whereEq(chm.pk, pid)
+//			.u(trb.instancontxt(conn, robot))
+//			;
+//		
+//		trb.insert(chm.tbl)
+//			.nv(chm.crud, CRUD.U)
+//			.nv(chm.synoder, synoder)
+//			.nv(chm.uids, synoder + chm.UIDsep + pid)
+//			.nv(chm.nyquence, trb.n0().n)
+//			.post(trb
+//				.delete(sbm.tbl)
+//				.whereEq(sbm.entbl, entm.tbl)
+//				.whereEq(sbm.synodee, synoder)
+//				.whereEq(sbm.uids, concatstr(synoder, chm.UIDsep, pid))
+//				.post(trb.insert(sbm.tbl)
+//					.cols(sbm.entbl, sbm.synodee, sbm.uids)
+//					.select(trb.select(sbm.tbl)
+//						.col(constr(entm.tbl)).col(constr(synoder))
+//						.col(concatstr(synoder, chm.UIDsep, pid)))))
+//						// FIXME should be posted as
+//						// concat(constr(synoder), constr(chm.UIDsep), new Resulving(pid, ""))
+//			.ins(trb.instancontxt(conn, robot));
+//	}
 	
 	String[] insertPhoto(int s) throws TransException, SQLException {
 		SyntityMeta entm = ck[s].phm;
@@ -613,9 +645,10 @@ public class DBSyntextTest {
 		String pid = ((SemanticObject) trb
 			.insert(m.tbl, robot)
 			.nv(m.uri, "")
+			.nv(m.resname, "photo-x")
 			.nv(m.fullpath, father)
 			.nv(m.org(), ZSUNodesDA.family)
-			.nv(m.device(), robot.uid())
+			.nv(m.device(), robot.deviceId())
 			.nv(m.folder, robot.uid())
 			.nv(m.shareDate, now())
 			.ins(trb.instancontxt(conn, robot)))
@@ -649,7 +682,6 @@ public class DBSyntextTest {
 	}
 	
 	String deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
-
 		T_PhotoMeta m = ck[s].phm;
 		AnResultset slt = ((AnResultset) ck[s].trb
 				.select(chgm.tbl, conns)
@@ -668,6 +700,34 @@ public class DBSyntextTest {
 		
 		assertFalse(isblank(pid));
 		return pid;
+	}
+	
+	String[] updatePname(int s)
+			throws SQLException, TransException {
+		T_PhotoMeta entm = ck[s].phm;
+		DBSynsactBuilder t = ck[s].trb;
+		AnResultset slt = ((AnResultset) t
+				.select(entm.tbl, "ch")
+				.whereEq(entm.synoder, t.synrobot().deviceId())
+				.orderby(entm.pk, "desc")
+				.limit(1)
+				.rs(ck[s].trb.instancontxt(ck[s].connId(), ck[s].robot()))
+				.rs(0))
+				.nxt();
+		
+		if (slt == null)
+			throw new SemanticException("No entity found: synode=%s, ck=%d",
+					t.synode(), s);
+
+		String pid   = slt.getString(entm.pk);
+		String synodr= slt.getString(entm.synoder);
+		String pname = slt.getString(entm.resname);
+
+		t.updateEntity(synodr, pid, entm,
+			entm.resname, String.format("%s,%04d", (pname == null ? "" : pname), t.n0().n),
+			entm.createDate, now());
+
+		return new String[] {pid, synodr + chm.UIDsep + pid};
 	}
 	
 	/**
@@ -910,14 +970,6 @@ public class DBSyntextTest {
 			.collect(Collectors.joining("\n")));
 	}
 	
-//	public static String strcenter(String text, int len){
-//	    String out = String.format("%" + len + "s%s%" + len + "s", "", text, "");
-//	    float mid = (out.length()/2);
-//	    float start = mid - (len/2);
-//	    float end = start + len; 
-//	    return out.substring((int)start, (int)end);
-//	}
-
 	public static void assertnv(long... nvs) {
 		if (nvs == null || nvs.length == 0 || nvs.length % 2 != 0)
 			fail("Invalid arguments to assert.");

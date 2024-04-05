@@ -32,6 +32,7 @@ import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
+import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
@@ -608,13 +609,14 @@ public class DBSynsactBuilder extends DATranscxt {
 						.nvs(entm.updateChallengeEnt(entid, entbuf.get(entm.tbl)))
 						.whereEq(entm.synoder, synodr)
 						.whereEq(entm.org(), chorg)
-						.whereEq(entm.pk, chal.getString(chgm.entfk))
+						.whereEq(entm.pk, entid)
 						.post(subscribeUC.size() <= 0 ? null :
 							insert(chgm.tbl)
 							.nv(chgm.crud, CRUD.U).nv(chgm.domain, chorg)
 							.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr).nv(chgm.uids, chuids)
-							.nv(chgm.nyquence, chal.getLong(chgm.nyquence))
-							.nv(chgm.entfk, entm.autopk() ? new Resulving(entm.tbl, entm.pk) : constr(entid))
+							.nv(chgm.nyquence, chgnyq.n)
+							// .nv(chgm.entfk, entm.autopk() ? new Resulving(entm.tbl, entm.pk) : constr(entid))
+							.nv(chgm.entfk, constr(entid))
 							.post(subscribeUC)
 							.post(del0subchange(entm, chorg, synodr, chuids, synode())))
 					: null);
@@ -973,10 +975,6 @@ public class DBSynsactBuilder extends DATranscxt {
 			throw new SemanticException(
 				"[DBSynsactBuilder.synyquvectWith()] Updating my (%s) nyquence with %s's value early than already knowns.",
 				synode(), sn);
-//		else
-//			u = update(synm.tbl, synrobot())
-//				.nv(synm.nyquence, n0().n)
-//				.whereEq(synm.pk, synode());
 
 		for (String n : nv.keySet()) {
 			if (!eq(n, sn) && nyquvect.containsKey(n)
@@ -1000,35 +998,8 @@ public class DBSynsactBuilder extends DATranscxt {
 			u.u(instancontxt(basictx.connId(), synrobot()));
 
 		return this;
-
-//		for (String n : nv.keySet()) {
-//			if (eq(n, sn) && compareNyq(nv.get(n), nyquvect.get(n)) < 0)
-//				throw new SemanticException(
-//					"[DBSynsactBuilder.synyquvectWith()] Updating my (%s) nyquence with %s's value early than already knowns.",
-//					synode(), n);
-//
-//			if (nyquvect.containsKey(n))
-//				nyquvect.get(n).n = maxn(nv.get(n).n, nyquvect.get(n).n);
-//			else nyquvect.put(n, new Nyquence(nv.get(n).n));
-//		}
-//		nyquvect.put(synode(), maxn(n0(), nv.get(sn)));
-//		updateSynodes(nyquvect);
-//		return this;
 	}
 		
-//	private void updateSynodes(HashMap<String, Nyquence> nv) throws TransException, SQLException {
-//		Update u = update(synm.tbl, synrobot())
-//			.nv(synm.nyquence, n0().n)
-//			.whereEq(synm.pk, synode());
-//		
-//		for (String n : nv.keySet())
-//			if (!eq(n, synode()))
-//				u.post(update(synm.tbl)
-//					.nv(synm.nyquence, nv.get(n).n)
-//					.whereEq(synm.pk, n));
-//		
-//		u.u(instancontxt(basictx.connId(), synrobot()));
-//	}
 
 	/**
 	 * A {@link SynodeMode#hub hub} node uses this to setup change logs for joining nodes.
@@ -1120,9 +1091,44 @@ public class DBSynsactBuilder extends DATranscxt {
 			nyquvect.put(n.recId, new Nyquence(mxn.n));
 		}
 
-		ChangeLogs rsp = new ChangeLogs(chgm).nyquvect(nyquvect);
-		// persistNyquence(nv);
-		//incN0(maxn(rsp.nyquvect));
-		return rsp;
+		return new ChangeLogs(chgm).nyquvect(nyquvect);
+	}
+	
+	/**
+	 * Syntity table updating. 
+	 * Synchronized entity table can only be updated with a pk condition.
+	 * @param entm
+	 * @param pid
+	 * @param field
+	 * @param nvs name-value pairs
+	 * @return 
+	 * @return
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public DBSynsactBuilder updateEntity(String synoder, String pid, SyntityMeta entm, Object ... nvs)
+			throws TransException, SQLException {
+		update(entm.tbl, synrobot())
+			.nvs((Object[])nvs)
+			.whereEq(entm.pk, pid)
+			.post(insert(chgm.tbl, synrobot())
+				.nv(chgm.entfk, pid)
+				.nv(chgm.entbl, entm.tbl)
+				.nv(chgm.crud, CRUD.U)
+				.nv(chgm.synoder, synode()) // U.synoder != uids[synoder]
+				.nv(chgm.uids, concatstr(synoder, chgm.UIDsep, pid))
+				.nv(chgm.nyquence, n0().n)
+				.nv(chgm.domain, synrobot().orgId())
+				.post(insert(subm.tbl)
+					.cols(subm.entbl, subm.synodee, subm.uids, subm.domain)
+					.select((Query)select(synm.tbl)
+						.col(constr(entm.tbl))
+						.col(synm.synoder)
+						.col(concatstr(synode(), chgm.UIDsep, pid))
+						.col(constr(synrobot().orgId()))
+						.where(op.ne, synm.synoder, constr(synode()))
+						.whereEq(synm.domain, synrobot().orgId()))))
+			.u(instancontxt(basictx.connId(), synrobot()));
+		return this;
 	}
 }
