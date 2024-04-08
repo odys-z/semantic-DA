@@ -1,6 +1,9 @@
 package io.odysz.semantic.meta;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+
+import io.odysz.module.rs.AnResultset;
 
 /**
  * @deprecated
@@ -29,6 +32,16 @@ public class NyquenceMeta extends SyntityMeta {
 	@Override
 	public HashSet<String> globalIds() {
 		// shouldn't reach here
+		return null;
+	}
+
+	@Override
+	public ArrayList<Object[]> updateEntNvs(SynChangeMeta chgm, String entid, AnResultset e, AnResultset ch) {
+		return null;
+	}
+
+	@Override
+	public String[] insertSelectItems(SynChangeMeta chgm, String entid, AnResultset e, AnResultset ch) {
 		return null;
 	}
 

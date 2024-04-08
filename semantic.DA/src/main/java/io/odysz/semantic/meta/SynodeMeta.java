@@ -2,7 +2,9 @@ package io.odysz.semantic.meta;
 
 import static io.odysz.common.Utils.loadTxt;
 
-import io.odysz.semantic.DASemantics;
+import java.util.ArrayList;
+
+import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.syn.DBSynsactBuilder;
@@ -43,9 +45,13 @@ public class SynodeMeta extends SyntityMeta {
 			autopk = DATranscxt.hasSemantics(conn, tbl, smtype.autoInc);
 	}
 
-//	@Override
-//	public SynodeMeta clone(TableMeta dbm) throws TransException {
-//		super.clone(dbm);
-//		return this;
-//	}
+	@Override
+	public ArrayList<Object[]> updateEntNvs(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset challenges) {
+		return null;
+	}
+
+	@Override
+	public String[] insertSelectItems(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset changes) {
+		return null;
+	}
 }

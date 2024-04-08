@@ -8,7 +8,7 @@ import io.odysz.transact.x.TransException;
  *
  * @author odys-z@github.com
  */
-public class T_DocTableMeta extends SyntityMeta {
+public abstract class T_DocTableMeta extends SyntityMeta {
 	/**
 	 * consts of share type: pub | priv 
 	 */
@@ -69,9 +69,5 @@ public class T_DocTableMeta extends SyntityMeta {
 		
 		// uids = new HashSet<String>() { {add(synoder);}; {addAll(uids);} };
 	}
-
-//	public HashSet<String> globalIds() {
-//		return globalIds;
-//	}
 
 }

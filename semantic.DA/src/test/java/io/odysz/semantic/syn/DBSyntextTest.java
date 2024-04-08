@@ -32,6 +32,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.Anson;
+import io.odysz.anson.x.AnsonException;
 import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
@@ -190,8 +191,8 @@ public class DBSyntextTest {
 	@Test
 	void testChangeLogs() throws Exception {
 		test01InsertBasic();
-		// testJoinChild();
-		// testBranchPropagation();
+		testJoinChild();
+		testBranchPropagation();
 		test02Update();
 	}
 
@@ -364,7 +365,7 @@ public class DBSyntextTest {
 	}
 
 	void testBranchPropagation() throws TransException, SQLException, IOException {
-		Utils.logi("\n=== === %s, must call join children first === ===",
+		Utils.logi("\n============================\n%s, must call join children first\n==============================\n",
 				new Object(){}.getClass().getEnclosingMethod().getName());
 
 		ck[X].synodes(X,  Y,  Z, -1);
@@ -438,11 +439,11 @@ public class DBSyntextTest {
 		printNyquv(ck);
 
 		ck[X].change(1, U, null, ck[X].phm);
-		ck[X].psubs(1, null, X, Y, Z, -1);
-		ck[X].psubs(1, null, -1, -1, Z, -1);
+		ck[X].psubs(2, null, X, Y, Z, -1);
+		ck[X].psubs(2, null, -1, -1, Z, -1);
 		ck[Y].change(1, U, null, ck[Y].phm);
-		ck[Y].psubs(1, null, X, Y, Z, -1);
-		ck[Y].psubs(1, null, -1, -1, Z, -1);
+		ck[Y].psubs(2, null, X, Y, Z, -1);
+		ck[Y].psubs(2, null, -1, -1, Z, -1);
 	}
 
 	/**
@@ -703,7 +704,7 @@ public class DBSyntextTest {
 	}
 	
 	String[] updatePname(int s)
-			throws SQLException, TransException {
+			throws SQLException, TransException, AnsonException, IOException {
 		T_PhotoMeta entm = ck[s].phm;
 		DBSynsactBuilder t = ck[s].trb;
 		AnResultset slt = ((AnResultset) t
@@ -811,7 +812,7 @@ public class DBSyntextTest {
 				throws TransException, SQLException {
 			Query q = trb
 				.select(chm.tbl, "ch")
-				.cols(chm.cols())
+				.cols((Object[])chm.cols())
 				.whereEq(chm.domain, domain)
 				.whereEq(chm.entbl, entm.tbl);
 			if (synoder != null)

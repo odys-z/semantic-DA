@@ -6,5 +6,6 @@ create table if not exists syn_change (
     crud        char(1)      NOT NULL,
     synoder     varchar2(64) not null, -- changer
     uids        text         not null, -- for h_photos.device:fullpath, or composed PK for resouce's id, not null?
-    nyquence    long         not null  -- radix64?
+    nyquence    long         not null,
+    updcols     varchar2(256)
 );

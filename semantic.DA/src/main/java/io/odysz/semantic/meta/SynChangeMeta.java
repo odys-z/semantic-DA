@@ -32,6 +32,9 @@ public class SynChangeMeta extends TableMeta {
 	public final String synoder;
 	public final String nyquence;
 
+	/** updated fields when updating an entity */
+	public final String updcols;
+
 	static {
 	}
 
@@ -42,17 +45,18 @@ public class SynChangeMeta extends TableMeta {
 
 		ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
 
-		domain = "domain";
-		entbl  = "tabl";
-		entfk  = "entfk";
-		crud   = "crud";
-		synoder= "synoder";
-		uids   = "uids";
-		nyquence = "nyquence";
+		domain  = "domain";
+		entbl   = "tabl";
+		entfk   = "entfk";
+		crud    = "crud";
+		synoder = "synoder";
+		uids    = "uids";
+		nyquence= "nyquence";
+		updcols = "updcols";
 	}
 
 	public String[] cols() {
-		return new String[] {pk, entbl, crud, synoder, uids, nyquence};
+		return new String[] {pk, entbl, crud, synoder, uids, nyquence, updcols};
 	}
 
 	/** compose function for uids */

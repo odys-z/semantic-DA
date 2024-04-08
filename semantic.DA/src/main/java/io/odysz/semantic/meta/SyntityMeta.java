@@ -121,7 +121,7 @@ public abstract class SyntityMeta extends TableMeta {
 		// TODO optimize Insert to handle this values faster
 		String[] cols = entCols();
 		ArrayList<Object[]> val = new ArrayList<Object[]> (entCols.size());
-		ArrayList<Object> row = challengents.getRowAt(challengents.indices0(pk));
+		ArrayList<Object> row = challengents.getRowAt(challengents.rowIndex0(pk));
 
 		for (int cx = 0; cx < row.size(); cx++) {
 			val.add(new Object[] {cols[cx], row.get(cx)});
@@ -129,8 +129,32 @@ public abstract class SyntityMeta extends TableMeta {
 		return val;
 	}
 
-	public ArrayList<Object[]> updateChallengeEnt(String entid1, AnResultset anResultset) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	/**
+	 * Generate set values for the Update statement which is used for updating current entity, e.g.
+	 * <pre>update t set c = v1, ...</pre>
+	 * before
+	 * <pre>insert into t select 'item-a', 'item-b' where not exists select 1 from t where condition-avoiding-duplicate</pre>
+	 * 
+	 * @param entid
+	 * @param entities
+	 * @param challenges
+	 * @return n-v pairs for argument of {@link io.odysz.transact.sql.Update#nvs(ArrayList)}
+	 * @throws SQLException 
+	 * @throws SemanticException 
+	 */
+	public abstract ArrayList<Object[]> updateEntNvs(SynChangeMeta chgm, String entid,
+			AnResultset entities, AnResultset challenges) throws TransException, SQLException;
+
+	/**
+	 * Generate select-items for select clause which is used for Insert, e.g.
+	 * <pre>insert into t select 'item-a', 'item-b' where not exists select 1 from t where condition-avoiding-duplicate</pre>
+	 * 
+	 * @param entid
+	 * @param entities
+	 * @param changes
+	 * @return select-items
+	 * @throws SQLException 
+	 */
+	public abstract Object[] insertSelectItems(SynChangeMeta chgm, String entid,
+			AnResultset entities, AnResultset changes) throws TransException, SQLException;
 }

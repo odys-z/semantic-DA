@@ -1,5 +1,6 @@
 package io.odysz.module.rs;
 
+import static io.odysz.common.LangExt.split;
 
 import java.sql.Blob;
 import java.sql.Connection;
@@ -101,7 +102,12 @@ for (String coln : colnames.keySet())
 	/** row indices, start at 0 */
 	private HashMap<String, Integer> indices0;
 	public HashMap<String, Integer> indices0() { return indices0; }
-	public int indices0(String k) { return indices0 == null ? -1 : indices0.get(k); }
+	/**
+	 * Get row index, starting at 0.
+	 * @param k
+	 * @return index starting at 0
+	 */
+	public int rowIndex0(String k) { return indices0 == null ? -1 : indices0.get(k); }
 
 	/** for deserializing */
 	public AnResultset() { }
@@ -490,15 +496,29 @@ for (String coln : colnames.keySet())
 		return (colnames.containsKey(colName.toUpperCase())) ? getString(colName) : deflt;
 	}
 
+	/**
+	 * Get row's field value
+	 * @param colName field name
+	 * @param row row index, start at 1. (If get from {@link #rowIndex0(String)}, add 1.)
+	 * @return
+	 * @throws NumberFormatException
+	 * @throws SQLException
+	 */
 	public String getStringAtRow(String colName, int row) throws NumberFormatException, SQLException {
 		return getStringAtRow(getColumex(colName)-1, row);
 	}
 
 	public String getStringAtRow(int col, int row) throws NumberFormatException, SQLException {
-		return String.valueOf(getRowAt(row - 1).get(col));
+		Object v = getRowAt(row - 1).get(col);
+		return v == null ? null : String.valueOf(v);
 	}
 
-
+	public String getStringByIndex(String colName, String entityId) throws SQLException {
+		if (indices0 == null || !indices0.containsKey(entityId))
+			throw new SQLException("No index for entity %s found", entityId);
+		return getStringAtRow(getColumex(colName)-1, rowIndex0(entityId) + 1);
+	}
+	
 	/**
 	 * if value is equals case insensitive to 1,true, yes, y, t, decimal &gt; 0.001 return true, else return false;
 	 * @param colIndex
@@ -1029,6 +1049,11 @@ for (String coln : colnames.keySet())
 			};
 		}
 		return results;
+	}
+
+	public String[] getStrArray(String udpcols) throws SQLException {
+		String v = getString(udpcols);
+		return split(v);
 	}
 
 	/**Convert results to an 1D array with elements from <i>col<i>
