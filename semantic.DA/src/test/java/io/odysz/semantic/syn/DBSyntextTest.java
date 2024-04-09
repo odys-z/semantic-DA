@@ -227,7 +227,7 @@ public class DBSyntextTest {
 		ck[X].psubs(2, A_0_uids[1], -1, Y, Z, -1);
 
 		// 1.2 insert B
-		Utils.logrst("insert A", section, 2);
+		Utils.logrst("insert B", section, 2);
 		String[] B_0_uids = insertPhoto(Y);
 		String B_0 = B_0_uids[0];
 
@@ -605,39 +605,6 @@ public class DBSyntextTest {
 			fail("Shouldn't has any more challenge here.");
 	}
 
-//	void updatePhoto(int s, String pid) throws TransException, SQLException {
-//		SyntityMeta entm = ck[s].phm;
-//		String conn = conns[s];
-//		String synoder = ck[s].trb.synode();
-//		DBSynsactBuilder trb = ck[s].trb;
-//		SyncRobot robot = (SyncRobot) ck[s].robot();
-//		
-//		trb.update(entm.tbl, robot)
-//			.nv(entm.synoder, synoder)
-//			.whereEq(chm.pk, pid)
-//			.u(trb.instancontxt(conn, robot))
-//			;
-//		
-//		trb.insert(chm.tbl)
-//			.nv(chm.crud, CRUD.U)
-//			.nv(chm.synoder, synoder)
-//			.nv(chm.uids, synoder + chm.UIDsep + pid)
-//			.nv(chm.nyquence, trb.n0().n)
-//			.post(trb
-//				.delete(sbm.tbl)
-//				.whereEq(sbm.entbl, entm.tbl)
-//				.whereEq(sbm.synodee, synoder)
-//				.whereEq(sbm.uids, concatstr(synoder, chm.UIDsep, pid))
-//				.post(trb.insert(sbm.tbl)
-//					.cols(sbm.entbl, sbm.synodee, sbm.uids)
-//					.select(trb.select(sbm.tbl)
-//						.col(constr(entm.tbl)).col(constr(synoder))
-//						.col(concatstr(synoder, chm.UIDsep, pid)))))
-//						// FIXME should be posted as
-//						// concat(constr(synoder), constr(chm.UIDsep), new Resulving(pid, ""))
-//			.ins(trb.instancontxt(conn, robot));
-//	}
-	
 	String[] insertPhoto(int s) throws TransException, SQLException {
 		SyntityMeta entm = ck[s].phm;
 		String conn = conns[s];
@@ -916,11 +883,6 @@ public class DBSyntextTest {
 					})
 				.collect(Collectors.joining(", ")) +
 				" ]");
-
-//				t.nyquvect.keySet().stream()
-//				 .map((String n) -> {return String.format("%3s", t.nyquvect.get(n).n);})
-//				 .collect(Collectors.joining(", ")) +
-//				" ]");
 		}
 	}
 	
