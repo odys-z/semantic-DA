@@ -106,6 +106,7 @@ public class DBSyntextTest {
 		// Sqlite won't commit multiple (ignore following) sql in one batch, and quit silently!
 		// Similar report: https://sqlite-users.sqlite.narkive.com/JqAIbcSi/running-multiple-ddl-statements-in-a-batch-via-jdbc
 		// To verify this, uncomment the first line in ddl.
+		Utils.tabwidth = 8;
 
 		for (int s = 0; s < 4; s++) {
 			conns[s] = String.format("syn.%02x", s);
@@ -190,14 +191,14 @@ public class DBSyntextTest {
 
 	@Test
 	void testChangeLogs() throws Exception {
-		test01InsertBasic();
-		testJoinChild();
-		testBranchPropagation();
-		test02Update();
+		test01InsertBasic(1);
+		testJoinChild(2);
+		testBranchPropagation(3);
+		test02Update(4);
 	}
 
-	void test01InsertBasic() throws TransException, SQLException, IOException {
-		Utils.logi("\n=== === %s === ===", new Object(){}.getClass().getEnclosingMethod().getName());
+	void test01InsertBasic(int section) throws TransException, SQLException, IOException {
+		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
 
 		HashMap<String, Nyquence> nvx = ck[X].trb.nyquvect;
 		long Aa_ = nvx.get(ck[X].trb.synode()).n;
@@ -216,7 +217,7 @@ public class DBSyntextTest {
 
 
 		// 1.1 insert A
-		Utils.logi("1.1 ----------------- insert A -----------------");
+		Utils.logrst("insert A", section, 1);
 		String[] A_0_uids = insertPhoto(X);
 		String A_0 = A_0_uids[0];
 
@@ -226,7 +227,7 @@ public class DBSyntextTest {
 		ck[X].psubs(2, A_0_uids[1], -1, Y, Z, -1);
 
 		// 1.2 insert B
-		Utils.logi("\n1.2 ----------------- insert B -----------------");
+		Utils.logrst("insert A", section, 2);
 		String[] B_0_uids = insertPhoto(Y);
 		String B_0 = B_0_uids[0];
 
@@ -239,8 +240,8 @@ public class DBSyntextTest {
 		printNyquv(ck);
 
 		// 2. X <= Y
-		Utils.logi("\n2 ----------------- X <= Y ----------------- ");
-		exchangePhotos(X, Y);
+		Utils.logrst("X <= Y", section, 3);
+		exchangePhotos(X, Y, section, 3);
 		ck[Y].change(1, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
 		ck[Y].change(1, C, ck[X].trb.synode(), A_0, ck[Y].phm);
 		ck[Y].psubs(1, B_0_uids[1], -1, -1, Z, -1);
@@ -268,8 +269,8 @@ public class DBSyntextTest {
 		long Bc_ = nvy.get(z).n;
 		long Cc_ = nvz.get(z).n;
 
-		Utils.logi("\n3 ----------------- Y <= Z -----------------");
-		exchangePhotos(Y, Z);
+		Utils.logrst("Y <= Z", section, 3);
+		exchangePhotos(Y, Z, section, 3);
 		ck[Z].change(0, C, A_0, ck[Z].phm);
 		ck[Z].change(0, C, ck[X].trb.synode(), A_0, ck[Z].phm);
 		ck[Z].psubs(0, A_0_uids[1], -1, -1, Z, -1);
@@ -307,20 +308,20 @@ public class DBSyntextTest {
 		Cc_ = Cc;
 		
 		// 4. X <= Y
-		Utils.logi("\n4 ----------------- X <= Y -----------------");
-		exchangePhotos(X, Y);
+		Utils.logrst("X <= Y", section, 4);
+		exchangePhotos(X, Y, section, 4);
 		ck[X].change(0, C, A_0, ck[X].phm);
 		ck[X].change(0, C, B_0, ck[X].phm);
 		ck[X].psubs(0, A_0_uids[1], -1, -1, Z, -1);
 		ck[X].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 	}
 
-	void testJoinChild() throws Exception {
-		Utils.logi("\n=== === %s === ===", new Object(){}.getClass().getEnclosingMethod().getName());
+	void testJoinChild(int section) throws Exception {
+		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
 
 		ck[X].synodes(X, Y, Z, -1);
 
-		Utils.logi("1.1 -------- Y on W joining ---------");
+		Utils.logrst("Y on W joining", section, 1);
 		@SuppressWarnings("unused")
 		ChangeLogs w_ack = joinSubtree(Y, W);
 
@@ -332,8 +333,8 @@ public class DBSyntextTest {
 		ck[Y].change(1, C, "W", ck[Y].synm);
 		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
 		
-		Utils.logi("\n1.2 ------------- X vs Y ------------");
-		exchangeSynodes(X, Y);
+		Utils.logrst("X vs Y", section, 2);
+		exchangeSynodes(X, Y, section, 2);
 		ck[X].synodes(X, Y, Z, W);
 		ck[X].change(1, C, "Y", "W", ck[X].synm);
 		ck[X].synsubs(1, "Y,W", -1, -1, Z, -1);
@@ -341,7 +342,7 @@ public class DBSyntextTest {
 		ck[Z].synodes(X, Y, Z, -1);
 		ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
 		
-		Utils.logi("\n2.1 ------------- X create photos ------------");
+		Utils.logrst("X create photos", section, 3);
 		String[] x_uids = insertPhoto(X);
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -351,12 +352,12 @@ public class DBSyntextTest {
 
 		ck[X].change(0, C, x_uids[0], ck[X].synm);
 		
-		Utils.logi("\n2.2 ----------------- X vs Z -----------------");
-		exchangeSynodes(X, Z);
-		Utils.logi("\n2.2 --- On X-Z: Now Z know X:3[Y], not X,W ---");
+		Utils.logrst("X vs Z", section, 4);
+		exchangeSynodes(X, Z, section, 4);
+		Utils.logi("On X-Z: Now Z know X:3[Y], not X,W", section, 4, 1);
 		
-		Utils.logi("\n2.3 ----------------- Z vs W -----------------");
-		try { exchangeSynodes(Z, W); }
+		Utils.logrst("Z vs W", section, 5);
+		try { exchangeSynodes(Z, W, section, 5); }
 		catch (SemanticException e){
 			Utils.logi(e.getMessage());
 			return;
@@ -364,9 +365,9 @@ public class DBSyntextTest {
 		fail("W is not roaming able at Z.");
 	}
 
-	void testBranchPropagation() throws TransException, SQLException, IOException {
-		Utils.logi("\n============================\n%s, must call join children first\n==============================\n",
-				new Object(){}.getClass().getEnclosingMethod().getName());
+	void testBranchPropagation(int section) throws TransException, SQLException, IOException {
+		Utils.logrst(new String[] { new Object(){}.getClass().getEnclosingMethod().getName(),
+							"- must call testJoinChild() first"}, section);
 
 		ck[X].synodes(X,  Y,  Z, -1);
 		ck[Y].synodes(X,  Y,  Z, W);
@@ -375,7 +376,8 @@ public class DBSyntextTest {
 
 		String z = ck[Z].trb.synode();
 
-		Utils.logi("\n(.1) -------- Z create photos ---------");
+		// Utils.logi("\n(.1) -------- Z create photos ---------");
+		Utils.logrst("Z create photos", section, 1);
 		printNyquv(ck);
 		String[] z_uids = insertPhoto(Z);
 		printChangeLines(ck);
@@ -384,47 +386,46 @@ public class DBSyntextTest {
 		ck[Z].change(1, C, z_uids[0], ck[Y].phm);
 		ck[Z].psubs(2, z_uids[1], X, Y, -1, -1);
 		
-		Utils.logi("\n(.2) ------------- Y vs Z ------------");
-		exchangePhotos(Y, Z);
+		Utils.logrst("Y vs Z", section, 2);
+		exchangePhotos(Y, Z, section, 2);
 		ck[Y].change(1, C, z, z_uids[0], ck[Y].phm);
 		ck[Y].psubs(2, z_uids[1], X, -1, -1, W);
 		ck[Z].psubs(1, z_uids[1], X, -1, -1, -1);
 
-		Utils.logi("\n(.3) ------------- Y vs W ------------");
-		exchangePhotos(Y, W);
+		Utils.logrst("Y vs W", section, 3);
+		exchangePhotos(Y, W, section, 3);
 		ck[Y].change(1, C, z, z_uids[0], ck[X].phm);
 		ck[Y].psubs(1, z_uids[1], X, -1, -1, -1);
 		ck[W].change(0, C, z, z_uids[0], ck[X].phm);
 		ck[W].psubs(0, z_uids[1], -1, -1, -1, -1);
 
-		Utils.logi("\n(.4) ------------- X vs Y ------------");
-		exchangePhotos(X, Y);
+		Utils.logrst("X vs Y", section, 4);
+		exchangePhotos(X, Y, section, 4);
 		ck[X].change(0, C, null, null, ck[X].phm);
 		ck[X].psubs(0, null, X, -1, -1, -1);
 		ck[Y].change(0, C, null, null, ck[X].phm);
 		ck[Y].psubs(0, null, -1, -1, -1, -1);
 
-		Utils.logi("\n(.5) ------------- Y vs Z ------------");
-		exchangePhotos(Y, Z);
+		Utils.logrst("Y vs Z", section, 5);
+		exchangePhotos(Y, Z, section, 4);
 		ck[Y].change(0, C, null, null, ck[X].phm);
 		ck[Y].psubs(0, null, X, -1, -1, -1);
 		ck[Z].change(0, C, null, null, ck[X].phm);
 		ck[Z].psubs(0, null, -1, -1, -1, -1);
 	}
 
-	void test02Update() throws Exception {
-		Utils.logi("\n=== === %s === ===", new Object(){}.getClass().getEnclosingMethod().getName());
-		Utils.logi("(U.1) -------- X update photos ---------");
+	void test02Update(int section) throws Exception {
+		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
 
+		Utils.logrst("X update photos", section, 1);
 		String[] xu = updatePname(X);
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		ck[X].change(1, U, xu[0], ck[X].phm);
 		ck[X].psubs(2, xu[1], -1, Y, Z, -1);
-		// or ck[X].psubs(3, xu[1], -1, Y, Z, W);
 
-		Utils.logi("(U.2) -------- Y update photos ---------");
+		Utils.logrst("Y update photos", section, 2);
 		String[] yu = updatePname(Y);
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -433,16 +434,19 @@ public class DBSyntextTest {
 		ck[Y].psubs(2, yu[1], X, -1, Z, -1);
 		// or ck[X].psubs(3, xu[1], -1, Y, Z, W);
 		
-		Utils.logi("(U.3) -------- X => Y ---------");
-		exchangePhotos(Y, X);
+		Utils.logrst("X => Y", section, 3);
+		exchangePhotos(Y, X, section, 3);
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		ck[X].change(1, U, null, ck[X].phm);
-		ck[X].psubs(2, null, X, Y, Z, -1);
+		ck[X].psubs(4, null, X, Y, Z, W);
+		ck[X].psubs(4, null, -1, -1, Z, W);
 		ck[X].psubs(2, null, -1, -1, Z, -1);
+
 		ck[Y].change(1, U, null, ck[Y].phm);
-		ck[Y].psubs(2, null, X, Y, Z, -1);
+		ck[Y].psubs(4, null, X, Y, Z, W);
+		ck[Y].psubs(4, null, -1, -1, Z, W);
 		ck[Y].psubs(2, null, -1, -1, Z, -1);
 	}
 
@@ -507,74 +511,74 @@ public class DBSyntextTest {
 	 * @throws TransException 
 	 * @throws IOException 
 	 */
-	void exchangePhotos(int srv, int cli) throws TransException, SQLException, IOException {
+	void exchangePhotos(int srv, int cli, int test, int subno) throws TransException, SQLException, IOException {
 		DBSynsactBuilder ctb = ck[cli].trb;
 		DBSynsactBuilder stb = ck[srv].trb;
 
 		SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId()).replace();
 		SyntityMeta cphm = new T_PhotoMeta(ctb.basictx().connId()).replace();
 		
-		exchange(sphm, stb, cphm, ctb);
+		exchange(sphm, stb, cphm, ctb, test, subno);
 	}
 
-	void exchangeSynodes(int srv, int cli) throws TransException, SQLException, IOException {
+	void exchangeSynodes(int srv, int cli, int test, int subno) throws TransException, SQLException, IOException {
 		DBSynsactBuilder ctb = ck[cli].trb;
 		DBSynsactBuilder stb = ck[srv].trb;
 
 		SyntityMeta ssnm = new SynodeMeta(stb.basictx().connId(), stb).replace();
 		SyntityMeta csnm = new SynodeMeta(ctb.basictx().connId(), ctb).replace();
 		
-		exchange(ssnm, stb, csnm, ctb);
+		exchange(ssnm, stb, csnm, ctb, test, subno);
 	}
 
-	static void exchange(SyntityMeta sphm, DBSynsactBuilder stb, SyntityMeta cphm, DBSynsactBuilder ctb)
+	static void exchange(SyntityMeta sphm, DBSynsactBuilder stb, SyntityMeta cphm, DBSynsactBuilder ctb, int test, int subno)
 			throws TransException, SQLException, IOException {
 
 		ExchangeContext cx = new ExchangeContext(chm, ctb, stb.synode());
 		ExchangeContext sx = new ExchangeContext(chm, stb, ctb.synode());
 
 		// 0, X init
-		Utils.logi("\n(0.0): %s initiate", ctb.synode());
+		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, 1);
 		ChangeLogs req = ctb.initExchange(cx, stb.synode(), null);
 		assertNotNull(req);
 		
-		if (eq(stb.synode(), "Y") && eq(ctb.synode(), "X")) {
-			if (req.challenges() >= 3 || req.enitities(cphm.tbl) >= 2)
-				Utils.warn("ERROR, req.challenges() >= 3 || req.enitities(cphm.tbl) >= 2,"
-						+ "but it's not planned to fix this problem in half-duplex mode");
-		}
+//		if (eq(stb.synode(), "Y") && eq(ctb.synode(), "X")) {
+//			if (req.challenges() >= 3 || req.enitities(cphm.tbl) >= 2)
+//				Utils.warn("ERROR, req.challenges() >= 3 || req.enitities(cphm.tbl) >= 2,"
+//						+ "but it's not planned to fix this problem in half-duplex mode");
+//		}
 
-		Utils.logi("(0.1): %s initiate\tchanges: %d\tentities: %d",
-				ctb.synode(), req.challenges(), req.enitities(cphm.tbl));
+		Utils.logrst(String.format("%s initiate    changes: %d    entities: %d",
+				ctb.synode(), req.challenges(), req.enitities(cphm.tbl)), test, subno, 2);
 
 		while (req != null) {
 			// server
-			Utils.logi("\n(1.0): %s on exchange", stb.synode());
+			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, 3);
 			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req);
-			Utils.logi("(1.1): %s on exchange response\tchanges: %d\tentities: %d\tanswers: %d",
-					stb.synode(), resp.challenges(), resp.enitities(), resp.answers());
+			Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
+					stb.synode(), resp.challenges(), resp.enitities(), resp.answers()), test, subno, 4);
 			printChangeLines(ck);
 			printNyquv(ck);
 
 			// client
-			Utils.logi("\n(2.0): %s ack exchange", ctb.synode());
+			Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, 4, 1);
 			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode(), resp.nyquvect);
-			Utils.logi("(2.1): %s ack exchange acknowledge\tchanges: %d\tentities: %d\tanswers: %d",
-					ctb.synode(), ack.challenges(), ack.enitities(), ack.answers());
+			Utils.logrst(String.format("%s ack exchange acknowledge    changes: %d    entities: %d    answers: %d",
+					ctb.synode(), ack.challenges(), ack.enitities(), ack.answers()), test, subno, 3, 2);
 			printChangeLines(ck);
 			printNyquv(ck);
 			
 			// server
-			Utils.logi("\n(3.0): %s on ack", stb.synode());
+			Utils.logrst(String.format("%s on ack", stb.synode()), test, subno, 5);
 			HashMap<String, Nyquence> nv = stb.onAck(sx, ack, ctb.synode(), ack.nyquvect, sphm);
 			printChangeLines(ck);
 			printNyquv(ck);
 
 			// client
-			Utils.logi("\n(4.0): %s initiate again", ctb.synode());
+			Utils.logrst(new String[] {ctb.synode(), "initiate again"}, test, subno, 6);
 			req = ctb.initExchange(cx, stb.synode(), nv);
-			Utils.logi("(4.1): %s initiate again\tchanges: %d\tentities: %d",
-					ctb.synode(), req.challenges(), req.enitities());
+			Utils.logrst(String.format("%s initiate again    changes: %d    entities: %d",
+					ctb.synode(), req.challenges(), req.enitities()), test, subno, 6, 1);
 			printChangeLines(ck);
 			printNyquv(ck);
 			
@@ -585,13 +589,13 @@ public class DBSyntextTest {
 		assertNotNull(req);
 		assertEquals(0, req.challenge == null ? 0 : req.challenge.size());
 
-		Utils.logi("\n(5.0): %s closing exchange", ctb.synode());
+		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, 7);
 		HashMap<String, Nyquence> nv = ctb.closexchange(cx, stb.synode(), Nyquence.clone(stb.nyquvect));
 
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		Utils.logi("(5.1) %s on closing exchange", stb.synode());
+		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, 8);
 		// FIXME what if server don't agree?
 		stb.onclosexchange(sx, ctb.synode(), nv);
 		printChangeLines(ck);
@@ -599,7 +603,6 @@ public class DBSyntextTest {
 
 		if (req.challenges() > 0)
 			fail("Shouldn't has any more challenge here.");
-	
 	}
 
 //	void updatePhoto(int s, String pid) throws TransException, SQLException {
@@ -948,6 +951,7 @@ public class DBSyntextTest {
 					.select(chm.tbl, "ch")
 					.cols("ch.*", sbm.synodee)
 					.je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
+					.orderby(chm.entbl, chm.uids)
 					.rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
 					.rs(0))
 					.<ChangeLine>map(new String[] {chm.uids, sbm.synodee}, (r) -> new ChangeLine(r));
@@ -960,13 +964,14 @@ public class DBSyntextTest {
 			}
 		}
 		
-		Utils.logi(Stream.of(ck).map(c -> strcenter(c.trb.synode(), 27)).collect(Collectors.joining("")));
+		Utils.logi(Stream.of(ck).map(c -> strcenter(c.trb.synode(), 27)).collect(Collectors.joining("|")));
+		Utils.logi(Stream.of(ck).map(c -> "-".repeat(27)).collect(Collectors.joining("+")));
 
-		Utils.logi(uidss.values().stream().map(
-			(ChangeLine[] line) -> {
-				return Stream.of(line)
+		Utils.logi(uidss.keySet().stream().map(
+			(String linekey) -> {
+				return Stream.of(uidss.get(linekey))
 					.map(c -> c == null ? String.format("%25s",  " ") : c.s)
-					.collect(Collectors.joining(" | "));
+					.collect(Collectors.joining(" | ", " ", " "));
 			})
 			.collect(Collectors.joining("\n")));
 	}

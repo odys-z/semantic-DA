@@ -33,6 +33,7 @@ import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
+import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
@@ -740,53 +741,86 @@ public class DBSynsactBuilder extends DATranscxt {
 		return myack;
 	}
 
+	/**
+	 * <p>Clean staleness. (Your knowledge about Z is newer than what I am presenting to)</p>
+	 * <h5>Case 1. X vs. Y</h5>
+	 * <pre>
+	 * X cleaned X,000021[Z] for X,000021[Z].n &lt; Y.z
+	 * X cleaned Y,000401[Z] for Y,000401[Z].n &lt; Y.z
+	 * 
+	 * I  X  X,000021    1  Z    |                           |                           |                          
+	 * I  Y  Y,000401    1  Z    |                           |                           |                          
+     *       X    Y    Z    W
+	 * X [   2,   1,   0,     ]
+	 * Y [   2,   3,   2,     ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,    ,    ,     ]</pre>
+	 * 
+	 * <h5>Case 2. X vs. Y</h5>
+	 * <pre>
+	 * X keeps change[z] for change[Z].n &ge; Y.z
+	 * 
+	 *              X                          Y                          Z                          W             
+	 * U  X  X,000023   10  Y    |                           |                           |                          
+	 * U  X  X,000023   10  Z    |                           |                           |                          
+	 *                           | U  Y  Y,000401   11  W    |                           |                          
+	 * U  X  X,000023   10  W    |                           |                           |                          
+	 *                           | U  Y  Y,000401   11  Z    |                           |                          
+	 *                           | U  Y  Y,000401   11  X    |                           |                          
+	 *       X    Y    Z    W
+	 * X [  10,   9,   7,   8 ]
+	 * Y [   9,  11,  10,   8 ]
+	 * Z [   9,  10,  11,   8 ]
+	 * W [   6,   8,   7,   9 ]</pre>
+	 * @param srcnv
+	 * @param srcn
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	void cleanStaleThan(HashMap<String, Nyquence> srcnv, String srcn)
 			throws TransException, SQLException {
 		for (String sn : srcnv.keySet()) {
 			if (eq(sn, synode()) || eq(sn, srcn))
 				continue;
-			if (!nyquvect.containsKey(sn) || compareNyq(nyquvect.get(sn), srcnv.get(sn)) >= 0)
+//			if (!nyquvect.containsKey(sn) || compareNyq(nyquvect.get(srcn), srcnv.get(srcn)) > 0)
+//				continue;
+			if (!nyquvect.containsKey(sn))
 				continue;
 
-			Query cl = (Query)select(chgm.tbl, "cl")
-				.cols("cl.*").col(subm.synodee)
-				.je2(subm.tbl, "sb", constr(sn), subm.synodee,
-					chgm.domain, subm.domain, chgm.entbl, subm.entbl,
-					chgm.uids, subm.uids)
-				.where(op.ne, subm.synodee, constr(srcn));
+			if (Connects.getDebug(basictx.connId()))
+				Utils.logi("%1$s.cleanStateThan(): Deleting staleness where for source %2$s, src-nyq[%1$s](%3$d) > my-change[%4$s].n ...",
+						synode(), srcn, nyquvect.get(srcn).n, sn);
 
-			/*
-			delete(subm.tbl, synrobot())
-				.where(op.exists, null, with(cl)
-					.select("cl")
-					.whereEq(subm.tbl, subm.domain,   "cl", chgm.domain)
-					.whereEq(subm.tbl, subm.entbl, "cl", chgm.entbl)
-					.whereEq(subm.tbl, subm.uids,  "cl", chgm.uids)
-					.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
-				.post(delete(chgm.tbl)
-					.where(op.notexists, null, with(cl)
-						.select("cl")
-						.where(op.ne, subm.synodee, constr(sn))
-						.whereEq(chgm.tbl, chgm.domain,  "cl", chgm.domain)
-						.whereEq(chgm.tbl, chgm.entbl,"cl", chgm.entbl)
-						.whereEq(chgm.tbl, chgm.uids, "cl", chgm.uids)))
+			SemanticObject res = (SemanticObject) ((DBSynsactBuilder)
+				with(select(chgm.tbl, "cl")
+					.cols("cl.*").col(subm.synodee)
+					.je2(subm.tbl, "sb", constr(sn), subm.synodee,
+						chgm.domain, subm.domain, chgm.entbl, subm.entbl,
+						chgm.uids, subm.uids)
+					.where(op.ne, subm.synodee, constr(srcn))
+					.where(op.lt, chgm.nyquence, srcnv.get(sn).n))) // FIXME nyquence compare
+				.delete(subm.tbl, synrobot())
+					.where(op.exists, null, select("cl")
+						.whereEq(subm.tbl, subm.domain,   "cl", chgm.domain)
+						.whereEq(subm.tbl, subm.entbl, "cl", chgm.entbl)
+						.whereEq(subm.tbl, subm.uids,  "cl", chgm.uids)
+						.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
+					.post(with(select(chgm.tbl, "cl")
+						.cols("cl.*").col(subm.synodee)
+						.je2(subm.tbl, "sb",
+							chgm.domain, subm.domain, chgm.entbl, subm.entbl,
+							chgm.uids, subm.uids)
+						.where(op.ne, subm.synodee, constr(srcn)))
+						.delete(chgm.tbl)
+						.where(op.notexists, null, select("cl")
+							.col("1")
+							.whereEq(chgm.tbl, chgm.domain,  "cl", chgm.domain)
+							.whereEq(chgm.tbl, chgm.entbl,"cl", chgm.entbl)
+							.whereEq(chgm.tbl, chgm.uids, "cl", chgm.uids)))
 				.d(instancontxt(basictx.connId(), synrobot()));
-			*/
-			((DBSynsactBuilder)with(cl))
-			.delete(subm.tbl, synrobot())
-				.where(op.exists, null, select("cl")
-					.whereEq(subm.tbl, subm.domain,   "cl", chgm.domain)
-					.whereEq(subm.tbl, subm.entbl, "cl", chgm.entbl)
-					.whereEq(subm.tbl, subm.uids,  "cl", chgm.uids)
-					.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
-				.post(with(cl)
-					.delete(chgm.tbl)
-					.where(op.notexists, null, select("cl")
-						.col("1")
-						.whereEq(chgm.tbl, chgm.domain,  "cl", chgm.domain)
-						.whereEq(chgm.tbl, chgm.entbl,"cl", chgm.entbl)
-						.whereEq(chgm.tbl, chgm.uids, "cl", chgm.uids)))
-			.d(instancontxt(basictx.connId(), synrobot()));
+			
+			if (Connects.getDebug(basictx.connId()))
+				Utils.logi("%d subscribe record(s) are affected.", ((ArrayList<?>)res.get("total")).get(0));
 		}
 	}
 

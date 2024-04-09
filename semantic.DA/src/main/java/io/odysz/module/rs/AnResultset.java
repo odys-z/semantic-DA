@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1106,7 +1107,7 @@ for (String coln : colnames.keySet())
 
 	public <T> HashMap<String, T> map(String[] keyFields, ObjCreator<T> objCreator)
 			throws SQLException {
-		HashMap<String, T> map = new HashMap<String, T>(results.size());
+		HashMap<String, T> map = new LinkedHashMap<String, T>(results.size());
 		beforeFirst();
 		while(next()) {
 			map.put(Stream.of(keyFields).map(k -> {
