@@ -1,6 +1,7 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.semantic.syn.Exchanging.*;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
 import static io.odysz.semantic.syn.Nyquence.maxn;
@@ -138,7 +139,6 @@ public class DBSynsactBuilder extends DATranscxt {
 			.whereEq(synm.pk, synode())
 			.u(instancontxt(basictx.connId(), synrobot()));
 		
-		// nyquvect.get(synode()).inc();
 		nyquvect.put(synode(), loadRecNyquence(this, basictx.connId(), synm, synode(), synm.nyquence));
 		return this;
 	}
@@ -252,6 +252,87 @@ public class DBSynsactBuilder extends DATranscxt {
 				return lx;
 		}
 		return commitBuff.size();
+	}
+
+	/**
+	 * <p>Clean staleness. (Your knowledge about Z is newer than what I am presenting to)</p>
+	 * <h5>Case 1. X vs. Y</h5>
+	 * <pre>
+	 * X cleaned X,000021[Z] for X,000021[Z].n &lt; Y.z
+	 * X cleaned Y,000401[Z] for Y,000401[Z].n &lt; Y.z
+	 * 
+	 * I  X  X,000021    1  Z    |                           |                           |                          
+	 * I  Y  Y,000401    1  Z    |                           |                           |                          
+     *       X    Y    Z    W
+	 * X [   2,   1,   0,     ]
+	 * Y [   2,   3,   2,     ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,    ,    ,     ]</pre>
+	 * 
+	 * <h5>Case 2. X vs. Y</h5>
+	 * <pre>
+	 * X keeps change[z] for change[Z].n &ge; Y.z
+	 * 
+	 *              X                          Y                          Z                          W             
+	 * U  X  X,000023   10  Y    |                           |                           |                          
+	 * U  X  X,000023   10  Z    |                           |                           |                          
+	 *                           | U  Y  Y,000401   11  W    |                           |                          
+	 * U  X  X,000023   10  W    |                           |                           |                          
+	 *                           | U  Y  Y,000401   11  Z    |                           |                          
+	 *                           | U  Y  Y,000401   11  X    |                           |                          
+	 *       X    Y    Z    W
+	 * X [  10,   9,   7,   8 ]
+	 * Y [   9,  11,  10,   8 ]
+	 * Z [   9,  10,  11,   8 ]
+	 * W [   6,   8,   7,   9 ]</pre>
+	 * @param srcnv
+	 * @param srcn
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	void cleanStaleThan(HashMap<String, Nyquence> srcnv, String srcn)
+			throws TransException, SQLException {
+		for (String sn : srcnv.keySet()) {
+			if (eq(sn, synode()) || eq(sn, srcn))
+				continue;
+			if (!nyquvect.containsKey(sn))
+				continue;
+
+			if (Connects.getDebug(basictx.connId()))
+				Utils.logi("%1$s.cleanStateThan(): Deleting staleness where for source %2$s, src-nyq[%1$s](%3$d) > my-change[%4$s].n ...",
+						synode(), srcn, nyquvect.get(srcn).n, sn);
+
+			SemanticObject res = (SemanticObject) ((DBSynsactBuilder)
+				with(select(chgm.tbl, "cl")
+					.cols("cl.*").col(subm.synodee)
+					.je2(subm.tbl, "sb", constr(sn), subm.synodee,
+						chgm.domain, subm.domain, chgm.entbl, subm.entbl,
+						chgm.uids, subm.uids)
+					.where(op.ne, subm.synodee, constr(srcn))
+					.where(op.lt, chgm.nyquence, srcnv.get(sn).n))) // FIXME nyquence compare
+				.delete(subm.tbl, synrobot())
+					.where(op.exists, null, select("cl")
+						.whereEq(subm.tbl, subm.domain,   "cl", chgm.domain)
+						.whereEq(subm.tbl, subm.entbl, "cl", chgm.entbl)
+						.whereEq(subm.tbl, subm.uids,  "cl", chgm.uids)
+						.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
+					.post(with(select(chgm.tbl, "cl")
+						.cols("cl.*").col(subm.synodee)
+						.je2(subm.tbl, "sb",
+							chgm.domain, subm.domain, chgm.entbl, subm.entbl,
+							chgm.uids, subm.uids)
+						.where(op.ne, subm.synodee, constr(srcn)))
+						.delete(chgm.tbl)
+						.where(op.notexists, null, select("cl")
+							.col("1")
+							.whereEq(chgm.tbl, chgm.domain,  "cl", chgm.domain)
+							.whereEq(chgm.tbl, chgm.entbl,"cl", chgm.entbl)
+							.whereEq(chgm.tbl, chgm.uids, "cl", chgm.uids)))
+				.d(instancontxt(basictx.connId(), synrobot()));
+			
+			if (Connects.getDebug(basictx.connId()))
+				Utils.logi("%d subscribe record(s) are affected.", ((ArrayList<?>)res.get("total")).get(0));
+		}
 	}
 
 	DBSynsactBuilder commitAnswers(ExchangeContext x, String srcnode, long tillN)
@@ -605,9 +686,12 @@ public class DBSynsactBuilder extends DATranscxt {
 	 */
 	public <T extends SynEntity> ChangeLogs initExchange(ExchangeContext x, String target,
 			HashMap<String, Nyquence> nv) throws TransException, SQLException {
+
+		x.exstate.can(init);
+
 		synyquvectWith(target, nv);
 		Nyquence dn = this.nyquvect.get(target);
-		ChangeLogs diff = new ChangeLogs(chgm); //.challenge(challenge);
+		ChangeLogs diff = new ChangeLogs(chgm);
 		if (dn == null) {
 			Utils.warn("ERROR [%s#%s]: Me, %s, don't have knowledge about %s.",
 					this.getClass().getName(),
@@ -656,6 +740,8 @@ public class DBSynsactBuilder extends DATranscxt {
 			}
 		
 			x.initChallenge(target, diff);
+		
+			x.exstate.initexchange();
 		}
 
 		return diff;
@@ -664,12 +750,16 @@ public class DBSynsactBuilder extends DATranscxt {
 	public <T extends SynEntity> ChangeLogs onExchange(ExchangeContext x, String from,
 			HashMap<String, Nyquence> remotv, ChangeLogs req) throws SQLException, TransException {
 
+		x.exstate.can(req.stepping());
+
 		if (x.onchanges != null && x.onchanges.challenges() > 0)
 			Utils.warn("There are challenges buffered to be commited: %s@%s", from, synode());;
 
 		ChangeLogs myanswer = initExchange(x, from, req.nyquvect);
 
 		x.buffChanges(req.challenge.colnames(), onchanges(myanswer, req, from), req.entities);
+
+		x.exstate.onExchange();
 		return myanswer.nyquvect(nyquvect);
 	}
 
@@ -721,6 +811,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 */
 	public ChangeLogs ackExchange(ExchangeContext x, ChangeLogs answer, String sn,
 			HashMap<String, Nyquence> srcnv) throws SQLException, TransException, IOException {
+		x.exstate.can(confirming);
 
 		ChangeLogs myack = new ChangeLogs(chgm);
 		if (answer.answers != null && answer.answers.getRowCount() > 0) {
@@ -738,90 +829,8 @@ public class DBSynsactBuilder extends DATranscxt {
 		synyquvectWith(sn, answer.nyquvect);
 		myack.nyquvect(Nyquence.clone(nyquvect));
 
+		x.exstate.confirm();
 		return myack;
-	}
-
-	/**
-	 * <p>Clean staleness. (Your knowledge about Z is newer than what I am presenting to)</p>
-	 * <h5>Case 1. X vs. Y</h5>
-	 * <pre>
-	 * X cleaned X,000021[Z] for X,000021[Z].n &lt; Y.z
-	 * X cleaned Y,000401[Z] for Y,000401[Z].n &lt; Y.z
-	 * 
-	 * I  X  X,000021    1  Z    |                           |                           |                          
-	 * I  Y  Y,000401    1  Z    |                           |                           |                          
-     *       X    Y    Z    W
-	 * X [   2,   1,   0,     ]
-	 * Y [   2,   3,   2,     ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,    ,    ,     ]</pre>
-	 * 
-	 * <h5>Case 2. X vs. Y</h5>
-	 * <pre>
-	 * X keeps change[z] for change[Z].n &ge; Y.z
-	 * 
-	 *              X                          Y                          Z                          W             
-	 * U  X  X,000023   10  Y    |                           |                           |                          
-	 * U  X  X,000023   10  Z    |                           |                           |                          
-	 *                           | U  Y  Y,000401   11  W    |                           |                          
-	 * U  X  X,000023   10  W    |                           |                           |                          
-	 *                           | U  Y  Y,000401   11  Z    |                           |                          
-	 *                           | U  Y  Y,000401   11  X    |                           |                          
-	 *       X    Y    Z    W
-	 * X [  10,   9,   7,   8 ]
-	 * Y [   9,  11,  10,   8 ]
-	 * Z [   9,  10,  11,   8 ]
-	 * W [   6,   8,   7,   9 ]</pre>
-	 * @param srcnv
-	 * @param srcn
-	 * @throws TransException
-	 * @throws SQLException
-	 */
-	void cleanStaleThan(HashMap<String, Nyquence> srcnv, String srcn)
-			throws TransException, SQLException {
-		for (String sn : srcnv.keySet()) {
-			if (eq(sn, synode()) || eq(sn, srcn))
-				continue;
-//			if (!nyquvect.containsKey(sn) || compareNyq(nyquvect.get(srcn), srcnv.get(srcn)) > 0)
-//				continue;
-			if (!nyquvect.containsKey(sn))
-				continue;
-
-			if (Connects.getDebug(basictx.connId()))
-				Utils.logi("%1$s.cleanStateThan(): Deleting staleness where for source %2$s, src-nyq[%1$s](%3$d) > my-change[%4$s].n ...",
-						synode(), srcn, nyquvect.get(srcn).n, sn);
-
-			SemanticObject res = (SemanticObject) ((DBSynsactBuilder)
-				with(select(chgm.tbl, "cl")
-					.cols("cl.*").col(subm.synodee)
-					.je2(subm.tbl, "sb", constr(sn), subm.synodee,
-						chgm.domain, subm.domain, chgm.entbl, subm.entbl,
-						chgm.uids, subm.uids)
-					.where(op.ne, subm.synodee, constr(srcn))
-					.where(op.lt, chgm.nyquence, srcnv.get(sn).n))) // FIXME nyquence compare
-				.delete(subm.tbl, synrobot())
-					.where(op.exists, null, select("cl")
-						.whereEq(subm.tbl, subm.domain,   "cl", chgm.domain)
-						.whereEq(subm.tbl, subm.entbl, "cl", chgm.entbl)
-						.whereEq(subm.tbl, subm.uids,  "cl", chgm.uids)
-						.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
-					.post(with(select(chgm.tbl, "cl")
-						.cols("cl.*").col(subm.synodee)
-						.je2(subm.tbl, "sb",
-							chgm.domain, subm.domain, chgm.entbl, subm.entbl,
-							chgm.uids, subm.uids)
-						.where(op.ne, subm.synodee, constr(srcn)))
-						.delete(chgm.tbl)
-						.where(op.notexists, null, select("cl")
-							.col("1")
-							.whereEq(chgm.tbl, chgm.domain,  "cl", chgm.domain)
-							.whereEq(chgm.tbl, chgm.entbl,"cl", chgm.entbl)
-							.whereEq(chgm.tbl, chgm.uids, "cl", chgm.uids)))
-				.d(instancontxt(basictx.connId(), synrobot()));
-			
-			if (Connects.getDebug(basictx.connId()))
-				Utils.logi("%d subscribe record(s) are affected.", ((ArrayList<?>)res.get("total")).get(0));
-		}
 	}
 
 	/**
@@ -839,6 +848,8 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws SQLException, TransException {
 
 		cleanStaleThan(ack.nyquvect, target);
+		
+		x.exstate.can(confirming);
 
 		if (ack != null && compareNyq(ack.nyquvect.get(synode()), nyquvect.get(synode())) <= 0) {
 			commitChallenges(x, target, srcnv, nyquvect.get(synode()).n);
@@ -850,6 +861,8 @@ public class DBSynsactBuilder extends DATranscxt {
 		}
 		synyquvectWith(target, ack.nyquvect);
 		n0(maxn(ack.nyquvect, n0()));
+		
+		x.exstate.onconfirm();
 		return nyquvect;
 	}
 	
@@ -925,7 +938,6 @@ public class DBSynsactBuilder extends DATranscxt {
 		return this;
 	}
 		
-
 	/**
 	 * A {@link SynodeMode#hub hub} node uses this to setup change logs for joining nodes.
 	 * @param x 

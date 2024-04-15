@@ -1,6 +1,7 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.semantic.syn.Exchanging.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,21 +35,32 @@ public class ExchangeContext {
 
 	final SynChangeMeta chgm;
 
+	Exchanging exstate;
+//	public Exchanging stepping() {
+//		return exstate;
+//	}
+
 	/**
 	 * Current nyquence stamp for selecting challenges
 	 * @deprecated
-	 */
 	public Nyquence nyqstep;
+	 */
 
-	public ExchangeContext(SynChangeMeta chgm, DBSynsactBuilder localtb, String target) {
+	/**
+	 * @param chgm
+	 * @param localtb local transaction builder
+	 * @param target
+	 */
+	public ExchangeContext(SynChangeMeta chgm, DBSynsactBuilder localtb, String target, int client_server) {
 		this.target = target;
 		this.chgm = chgm;
+		this.exstate = new Exchanging(client_server);
 	}
 
 	public void initChallenge(String target, ChangeLogs diff) throws SemanticException {
 		if (!eq(this.target, target))
 			throw new SemanticException("Contexts are mismatched: %s vs %s", this.target, target);
-		
+
 		this.mychallenge = diff;
 	}
 
@@ -81,4 +93,15 @@ public class ExchangeContext {
 					answer == null ? 0 : answer.size());
 	}
 
+	private String session;
+	public String session() { return session; }
+
+//	Exchanging exstep;
+//	public Exchanging step(Exchanging stepping) {
+//		return exstep;
+//	}
+
+//	public Exchanging step() {
+//		return exstep;
+//	}
 }

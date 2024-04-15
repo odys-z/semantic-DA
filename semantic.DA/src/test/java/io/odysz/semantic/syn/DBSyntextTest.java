@@ -1,7 +1,6 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.compoundVal;
-import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
@@ -9,6 +8,7 @@ import static io.odysz.common.LangExt.strcenter;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.*;
+import static io.odysz.semantic.syn.Exchanging.*;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
@@ -16,7 +16,10 @@ import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
@@ -191,10 +194,11 @@ public class DBSyntextTest {
 
 	@Test
 	void testChangeLogs() throws Exception {
-		test01InsertBasic(1);
-		testJoinChild(2);
-		testBranchPropagation(3);
-		test02Update(4);
+		int no = 0;
+		test01InsertBasic(++no);
+		testJoinChild(++no);
+		testBranchPropagation(++no);
+		test02Update(++no);
 	}
 
 	void test01InsertBasic(int section) throws TransException, SQLException, IOException {
@@ -323,7 +327,7 @@ public class DBSyntextTest {
 
 		Utils.logrst("Y on W joining", section, 1);
 		@SuppressWarnings("unused")
-		ChangeLogs w_ack = joinSubtree(Y, W);
+		ChangeLogs w_ack = joinSubtree(Y, W, section);
 
 		ck[X].synodes(X,  Y,  Z, -1);
 		ck[Y].synodes(X,  Y,  Z, W);
@@ -461,27 +465,28 @@ public class DBSyntextTest {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	ChangeLogs joinSubtree(int admin, int apply) throws TransException, SQLException {
+	ChangeLogs joinSubtree(int admin, int apply, int log_section) throws TransException, SQLException {
 		DBSynsactBuilder atb = ck[admin].trb;
 		DBSynsactBuilder ctb = ck[apply].trb;
 
-		ExchangeContext ax = new ExchangeContext(chm, atb, ctb.synode());
-		ExchangeContext cx = new ExchangeContext(chm, ctb, atb.synode());
+		ExchangeContext ax = new ExchangeContext(chm, atb, ctb.synode(), Exchanging.mode_server);
+		ExchangeContext cx = new ExchangeContext(chm, ctb, atb.synode(), Exchanging.mode_client);
 
+		int no = 0;
 		// admin
-		Utils.logi("(.1) %s accept %s", atb.synode(), ctb.synode());
+		Utils.logrst(String.format("%s accept %s", atb.synode(), ctb.synode()), log_section, ++no);
 		ChangeLogs resp = atb.addChild(ax, ctb.synode(), SynodeMode.child, ck[admin].robot(), Ck.org, ck[admin].domain);
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		// applicant
-		Utils.logi("(.2) %s initiate domain", ctb.synode());
+		Utils.logrst(String.format("%s initiate domain", ctb.synode()), log_section, ++no);
 		ChangeLogs ack  = ctb.initDomain(cx, ctb.synode(), resp);
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		// admin
-		Utils.logi("(.3) %s ack initiation", atb.synode());
+		Utils.logrst(String.format("%s ack initiation", atb.synode()), log_section, ++no);
 		// atb.incN0(maxn(ack.nyquvect));
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -511,7 +516,8 @@ public class DBSyntextTest {
 	 * @throws TransException 
 	 * @throws IOException 
 	 */
-	void exchangePhotos(int srv, int cli, int test, int subno) throws TransException, SQLException, IOException {
+	void exchangePhotos(int srv, int cli, int test, int subno)
+			throws TransException, SQLException, IOException {
 		DBSynsactBuilder ctb = ck[cli].trb;
 		DBSynsactBuilder stb = ck[srv].trb;
 
@@ -521,7 +527,8 @@ public class DBSyntextTest {
 		exchange(sphm, stb, cphm, ctb, test, subno);
 	}
 
-	void exchangeSynodes(int srv, int cli, int test, int subno) throws TransException, SQLException, IOException {
+	void exchangeSynodes(int srv, int cli, int test, int subno)
+			throws TransException, SQLException, IOException {
 		DBSynsactBuilder ctb = ck[cli].trb;
 		DBSynsactBuilder stb = ck[srv].trb;
 
@@ -531,56 +538,56 @@ public class DBSyntextTest {
 		exchange(ssnm, stb, csnm, ctb, test, subno);
 	}
 
-	static void exchange(SyntityMeta sphm, DBSynsactBuilder stb, SyntityMeta cphm, DBSynsactBuilder ctb, int test, int subno)
+	static void exchange(SyntityMeta sphm, DBSynsactBuilder stb, SyntityMeta cphm,
+			DBSynsactBuilder ctb, int test, int subno)
 			throws TransException, SQLException, IOException {
 
-		ExchangeContext cx = new ExchangeContext(chm, ctb, stb.synode());
-		ExchangeContext sx = new ExchangeContext(chm, stb, ctb.synode());
+		int no = 0;
+		ExchangeContext cx = new ExchangeContext(chm, ctb, stb.synode(), Exchanging.mode_client);
+		ExchangeContext sx = new ExchangeContext(chm, stb, ctb.synode(), Exchanging.mode_server);
 
-		// 0, X init
-		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, 1);
+		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ChangeLogs req = ctb.initExchange(cx, stb.synode(), null);
 		assertNotNull(req);
+		assertEquals(Exchanging.init, req.stepping());
 		
-//		if (eq(stb.synode(), "Y") && eq(ctb.synode(), "X")) {
-//			if (req.challenges() >= 3 || req.enitities(cphm.tbl) >= 2)
-//				Utils.warn("ERROR, req.challenges() >= 3 || req.enitities(cphm.tbl) >= 2,"
-//						+ "but it's not planned to fix this problem in half-duplex mode");
-//		}
-
 		Utils.logrst(String.format("%s initiate    changes: %d    entities: %d",
-				ctb.synode(), req.challenges(), req.enitities(cphm.tbl)), test, subno, 2);
+				ctb.synode(), req.challenges(), req.enitities(cphm.tbl)), test, subno, ++no);
 
 		while (req != null) {
 			// server
-			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, 3);
-			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req);
+			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
+			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), req.nyquvect, req);
 			Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
-					stb.synode(), resp.challenges(), resp.enitities(), resp.answers()), test, subno, 4);
+					stb.synode(), resp.challenges(), resp.enitities(), resp.answers()), test, subno, ++no);
 			printChangeLines(ck);
 			printNyquv(ck);
+			assertEquals(Exchanging.exchanging, sx.exstate);
 
-			// client
-			Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, 4, 1);
+			// client acknowledge exchange
+			Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, ++no);
 			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode(), resp.nyquvect);
 			Utils.logrst(String.format("%s ack exchange acknowledge    changes: %d    entities: %d    answers: %d",
-					ctb.synode(), ack.challenges(), ack.enitities(), ack.answers()), test, subno, 3, 2);
+					ctb.synode(), ack.challenges(), ack.enitities(), ack.answers()), test, subno, no, 1);
 			printChangeLines(ck);
 			printNyquv(ck);
+			assertEquals(Exchanging.exchanging, cx.exstate);
 			
-			// server
-			Utils.logrst(String.format("%s on ack", stb.synode()), test, subno, 5);
+			// server on acknowledge
+			Utils.logrst(String.format("%s on ack", stb.synode()), test, subno, ++no);
 			HashMap<String, Nyquence> nv = stb.onAck(sx, ack, ctb.synode(), ack.nyquvect, sphm);
 			printChangeLines(ck);
 			printNyquv(ck);
+			assertEquals(Exchanging.confirming, cx.exstate);
 
 			// client
-			Utils.logrst(new String[] {ctb.synode(), "initiate again"}, test, subno, 6);
+			Utils.logrst(new String[] {ctb.synode(), "initiate again"}, test, subno, ++no);
 			req = ctb.initExchange(cx, stb.synode(), nv);
 			Utils.logrst(String.format("%s initiate again    changes: %d    entities: %d",
-					ctb.synode(), req.challenges(), req.enitities()), test, subno, 6, 1);
+					ctb.synode(), req.challenges(), req.enitities()), test, subno, no, 1);
 			printChangeLines(ck);
 			printNyquv(ck);
+			assertEquals(Exchanging.exchanging, cx.exstate);
 			
 			if (req.challenges() == 0)
 				break;
@@ -588,15 +595,184 @@ public class DBSyntextTest {
 
 		assertNotNull(req);
 		assertEquals(0, req.challenge == null ? 0 : req.challenge.size());
+		assertEquals(Exchanging.ready, req.stepping());
 
-		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, 7);
+		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
 		HashMap<String, Nyquence> nv = ctb.closexchange(cx, stb.synode(), Nyquence.clone(stb.nyquvect));
 
 		printChangeLines(ck);
 		printNyquv(ck);
+		assertEquals(Exchanging.ready, cx.exstate);
 
-		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, 8);
+		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 		// FIXME what if server don't agree?
+		stb.onclosexchange(sx, ctb.synode(), nv);
+		printChangeLines(ck);
+		printNyquv(ck);
+		assertEquals(Exchanging.exchanging, sx.exstate);
+
+		if (req.challenges() > 0)
+			fail("Shouldn't has any more challenge here.");
+	}
+
+	static void ex_break_ack(SyntityMeta sphm, DBSynsactBuilder stb, SyntityMeta cphm,
+			DBSynsactBuilder ctb, int test, int subno)
+			throws TransException, SQLException, IOException, InterruptedException {
+		int no = 0;
+		ExchangeContext cx = new ExchangeContext(chm, ctb, stb.synode(), Exchanging.mode_client);
+		ExchangeContext sx = new ExchangeContext(chm, stb, ctb.synode(), Exchanging.mode_server);
+
+		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
+		ChangeLogs req = ctb.initExchange(cx, stb.synode(), null);
+		assertNotNull(req);
+		
+		Utils.logrst(String.format("%s initiate    changes: %d    entities: %d",
+				ctb.synode(), req.challenges(), req.enitities(cphm.tbl)), test, subno, ++no);
+
+		// server
+		Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
+		ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req);
+		Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
+				stb.synode(), resp.challenges(), resp.enitities(), resp.answers()), test, subno, ++no);
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		// client acknowledge exchange
+		Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, ++no);
+		ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode(), resp.nyquvect);
+		Utils.logrst(String.format("%s ack exchange acknowledge    changes: %d    entities: %d    answers: %d",
+				ctb.synode(), ack.challenges(), ack.enitities(), ack.answers()), test, subno, no, 1);
+		printChangeLines(ck);
+		printNyquv(ck);
+		
+		// client's ack lost
+		Thread.sleep(1000);
+
+		// client lost connection (shut down) and initiate new session 
+		Utils.logrst(new String[] {ctb.synode(), "initiate again (local committed)"}, test, subno, ++no);
+		cx = new ExchangeContext(chm, ctb, stb.synode(), Exchanging.mode_client);
+
+		req = ctb.initExchange(cx, stb.synode(), null);
+		assertNotNull(req);
+		assertFalse(req.challenge != null && req.challenge.size() > 0);
+		Utils.logrst(String.format("%s initiate again    changes: %d    entities: %d",
+				ctb.synode(), req.challenges(), req.enitities()), test, subno, no, 1);
+
+		Utils.logrst(new String[] {stb.synode(), "on initiate"}, test, subno, ++no);
+		assertNotEquals(sx.session(), req.session());
+		assertEquals(req.stepping(), Exchanging.init);
+
+		Utils.logrst(String.format("%s on-init, throw exception, go %s",
+				stb.synode(), confirming), test, subno, no, 1);
+		try {
+			// requires continuing on server confirming 
+			resp = stb.onExchange(sx, ctb.synode(), req.nyquvect, req);
+		}
+		catch (ExchangeException expAck) {
+			assertEquals(expAck.requires(), confirming);
+			Utils.logrst(new String[] {expAck.getName(), "continue to", name(confirming)}, test, subno, ++no);
+			HashMap<String, Nyquence> nv = stb.onAck(sx, req, ctb.synode(), req.nyquvect, sphm);
+
+			Utils.logrst(new String[] {ctb.synode(), "response to init:", name(exchanging)}, test, subno, ++no);
+			req = ctb.onExchange(sx, ctb.synode(), req.nyquvect, req);
+			Utils.logi("%s initiate again    changes: %d    entities: %d",
+						ctb.synode(), req.challenges(), req.enitities());
+			assertNull(req);
+			
+			Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
+			stb.onclosexchange(sx, ctb.synode(), nv);
+			printChangeLines(ck);
+			printNyquv(ck);
+		}
+		fail("Run state handling...");
+
+		if (req.challenges() > 0)
+			fail("Shouldn't has any more challenge here.");
+	}
+
+	/**
+	 * @param sphm
+	 * @param stb
+	 * @param cphm
+	 * @param ctb
+	 * @param test
+	 * @param subno
+	 * @throws TransException
+	 * @throws SQLException
+	 * @throws IOException
+	 */
+	static void ex_break_confirm_ex(SyntityMeta sphm, DBSynsactBuilder stb,
+			SyntityMeta cphm, DBSynsactBuilder ctb, int test, int subno)
+			throws TransException, SQLException, IOException {
+		int no = 0;
+		ExchangeContext cx = new ExchangeContext(chm, ctb, stb.synode(), Exchanging.mode_client);
+		ExchangeContext sx = new ExchangeContext(chm, stb, ctb.synode(), Exchanging.mode_server);
+
+		// client initiate
+		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
+		ChangeLogs req = ctb.initExchange(cx, stb.synode(), null);
+		assertNotNull(req);
+		assertEquals(req.stepping(), Exchanging.init);
+		assertEquals(cx.exstate,  Exchanging.init);
+		
+		Utils.logrst(String.format("%s initiate    changes: %d    entities: %d",
+				ctb.synode(), req.challenges(), req.enitities(cphm.tbl)), test, subno, ++no);
+
+		// server on exchange
+		Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
+		ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req);
+		assertEquals(resp.stepping(),Exchanging.exchanging);
+		assertEquals(sx.exstate,  Exchanging.exchanging);
+		assertEquals(cx.exstate,  Exchanging.init);
+
+		Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
+				stb.synode(), resp.challenges(), resp.enitities(), resp.answers()), test, subno, ++no);
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		// client lost acknowledgement
+		Utils.logrst(new String[] {ctb.synode(), "lost acknowledgement"}, test, subno, ++no);
+	
+		// client initiate again 
+		Utils.logrst(new String[] {ctb.synode(), "initiate again (local committed)"}, test, subno, ++no);
+		req = ctb.initExchange(cx, stb.synode(), null);
+		assertEquals(req.stepping(), Exchanging.confirming);
+		assertEquals(sx.exstate,  Exchanging.exchanging);
+		assertEquals(cx.exstate,  Exchanging.confirming);
+
+		assertNotNull(req);
+		assertFalse(req.challenge != null && req.challenge.size() > 0);
+		Utils.logrst(String.format("%s initiate again    changes: %d    entities: %d",
+				ctb.synode(), req.challenges(), req.enitities()), test, subno, no, 1);
+
+		// server continue on-ack
+		Utils.logrst(new String[] {stb.synode(), sx.exstate.name(), "on initiate"}, test, subno, ++no);
+		assertEquals(sx.session(), req.session());
+		assertTrue(sx.answer.size() > 0);
+
+//		sx.step(req.stepping());
+//		assertEquals(sx.stepping(),  Synching.confirming);
+
+		Utils.logrst(String.format("step resynchronize: %s %s, req-step %s",
+				stb.synode(), sx.exstate, req.stepping()), test, subno, no, 1);
+		Utils.logrst(new String[] {stb.synode(), "continue on Ack"}, test, subno, no, 2);
+		HashMap<String, Nyquence> nv = stb.onAck(sx, req, ctb.synode(), req.nyquvect, sphm);
+		assertEquals(req.stepping(), Exchanging.confirming);
+		assertEquals(sx.exstate,  Exchanging.exchanging);
+		assertEquals(cx.exstate,  Exchanging.confirming);
+
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		// client re-initiate
+		Utils.logrst(new String[] {ctb.synode(), "initiate again"}, test, subno, ++no);
+		req = ctb.initExchange(cx, stb.synode(), nv);
+		Utils.logi("%s initiate again    changes: %d    entities: %d",
+					ctb.synode(), req.challenges(), req.enitities());
+		assertNull(req);
+		// closing
+		
+		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 		stb.onclosexchange(sx, ctb.synode(), nv);
 		printChangeLines(ck);
 		printNyquv(ck);

@@ -90,7 +90,6 @@ public class ChangeLogs extends Anson {
 		challenge = null;
 		answers = null;
 		entities = null;
-		// dirty = false;
 	}
 
 	// public HashMap<String, HashMap<String, ? extends SynEntity>> entities;
@@ -124,6 +123,7 @@ public class ChangeLogs extends Anson {
 	}
 
 	AnResultset synodes;
+
 	public ChangeLogs synodes(AnResultset rs) {
 		synodes = rs;
 		return this;
@@ -132,5 +132,15 @@ public class ChangeLogs extends Anson {
 	public Object enitities() {
 		return this.entities == null ? 0
 			: this.entities.values().stream().mapToInt(r -> r.getRowCount()).sum();
+	}
+
+	private Exchanging step;
+	public Exchanging stepping() {
+		return step;
+	}
+
+	private String session;
+	public String session() {
+		return session;
 	}
 }
