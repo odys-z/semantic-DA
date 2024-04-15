@@ -554,7 +554,7 @@ public class DBSyntextTest {
 		while (req != null) {
 			// server
 			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, 3);
-			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, req);
+			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), req.nyquvect, req);
 			Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
 					stb.synode(), resp.challenges(), resp.enitities(), resp.answers()), test, subno, 4);
 			printChangeLines(ck);
@@ -605,39 +605,6 @@ public class DBSyntextTest {
 			fail("Shouldn't has any more challenge here.");
 	}
 
-//	void updatePhoto(int s, String pid) throws TransException, SQLException {
-//		SyntityMeta entm = ck[s].phm;
-//		String conn = conns[s];
-//		String synoder = ck[s].trb.synode();
-//		DBSynsactBuilder trb = ck[s].trb;
-//		SyncRobot robot = (SyncRobot) ck[s].robot();
-//		
-//		trb.update(entm.tbl, robot)
-//			.nv(entm.synoder, synoder)
-//			.whereEq(chm.pk, pid)
-//			.u(trb.instancontxt(conn, robot))
-//			;
-//		
-//		trb.insert(chm.tbl)
-//			.nv(chm.crud, CRUD.U)
-//			.nv(chm.synoder, synoder)
-//			.nv(chm.uids, synoder + chm.UIDsep + pid)
-//			.nv(chm.nyquence, trb.n0().n)
-//			.post(trb
-//				.delete(sbm.tbl)
-//				.whereEq(sbm.entbl, entm.tbl)
-//				.whereEq(sbm.synodee, synoder)
-//				.whereEq(sbm.uids, concatstr(synoder, chm.UIDsep, pid))
-//				.post(trb.insert(sbm.tbl)
-//					.cols(sbm.entbl, sbm.synodee, sbm.uids)
-//					.select(trb.select(sbm.tbl)
-//						.col(constr(entm.tbl)).col(constr(synoder))
-//						.col(concatstr(synoder, chm.UIDsep, pid)))))
-//						// FIXME should be posted as
-//						// concat(constr(synoder), constr(chm.UIDsep), new Resulving(pid, ""))
-//			.ins(trb.instancontxt(conn, robot));
-//	}
-	
 	String[] insertPhoto(int s) throws TransException, SQLException {
 		SyntityMeta entm = ck[s].phm;
 		String conn = conns[s];
