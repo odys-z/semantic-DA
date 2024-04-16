@@ -1,14 +1,14 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.compoundVal;
-import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.strcenter;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
-import static io.odysz.semantic.CRUD.*;
+import static io.odysz.semantic.CRUD.C;
+import static io.odysz.semantic.CRUD.U;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
