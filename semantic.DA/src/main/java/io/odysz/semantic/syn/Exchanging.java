@@ -1,6 +1,7 @@
 package io.odysz.semantic.syn;
 
 import io.odysz.anson.Anson;
+import io.odysz.semantics.x.ExchangeException;
 
 /**
  *<pre>  server                      client
@@ -25,7 +26,7 @@ public class Exchanging extends Anson {
 	public static final int mode_server = 0;
 	public static final int mode_client = 1;
 
-	int state;
+	public int state;
 	int mode;
 	
 	public Exchanging (int server0_client1) {
@@ -34,13 +35,13 @@ public class Exchanging extends Anson {
 	}
 
 	public int initexchange() {
-		if (mode == mode_client && state == ready)
+		if (mode == mode_client && (state == ready || state == confirming))
 			state = init;
 		return state;
 	}
 
 	public int onExchange () {
-		if (mode == mode_server && state == ready)
+		if (mode == mode_server && (state == ready || state == init))
 			state = exchanging;
 		return state;
 	}
@@ -58,7 +59,7 @@ public class Exchanging extends Anson {
 	}
 
 	public int close () {
-		if (mode == mode_client && state == confirming)
+		if (mode == mode_client && (state == confirming || state == init))
 			state = ready;
 		return state;
 	}
@@ -83,4 +84,38 @@ public class Exchanging extends Anson {
 			: "ready";
 	}
 
+	@Override
+	public String toString() { return name(); }
+
+	/**
+	 * Test the {@code exp} state is the right next state.
+	 * @param exp
+	 * @return current state
+	 * @throws ExchangeException expecting state if {@code exp} is not the right one.
+	 */
+	public int can(int exp) throws ExchangeException {
+		if (mode == mode_client) {
+			if (state == ready)
+				if (exp != init)
+					throw new ExchangeException(init, "Expecting init, but was %s", name(exp));
+			if (state == exchanging)
+				if (exp != confirming)
+					throw new ExchangeException(confirming, "Expecting confirming, but was %s", name(exp));
+			if (state == confirming)
+				if (exp != ready && exp != init)
+					throw new ExchangeException(ready, "Expecting ready/init, but was %s", name(exp));
+		}
+		else { // (mode == mode_server)
+			if (state == ready)
+				if (exp != exchanging && exp != init)
+					throw new ExchangeException(exchanging, "Expecting exchanging/init, but was %s", name(exp));
+			if (state == exchanging)
+				if (exp != confirming)
+					throw new ExchangeException(confirming, "Expecting confirming, but was %s", name(exp));
+			if (state == confirming)
+				if (exp != ready)
+					throw new ExchangeException(ready, "Expecting ready, but was %s", name(exp));
+		}
+		return state;
+	}
 }

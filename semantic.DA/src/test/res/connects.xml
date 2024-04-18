@@ -74,7 +74,7 @@
   		<src>syn.00</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg>false</dbg>
+  		<dbg></dbg>
   		<smtcs>synmantics.xml</smtcs>
 	</c>
 	<c>
@@ -84,7 +84,7 @@
   		<src>syn.01</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg>false</dbg>
+  		<dbg>true</dbg>
   		<smtcs>synmantics.xml</smtcs>
 	</c>
 	<c>
@@ -94,7 +94,7 @@
   		<src>syn.02</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg>false</dbg>
+  		<dbg></dbg>
   		<smtcs>synmantics.xml</smtcs>
 	</c>
 	<c>
@@ -104,7 +104,7 @@
   		<src>syn.03</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg>false</dbg>
+  		<dbg></dbg>
   		<smtcs>synmantics.xml</smtcs>
 	</c>
 

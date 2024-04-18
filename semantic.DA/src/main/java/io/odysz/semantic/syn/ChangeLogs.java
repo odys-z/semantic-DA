@@ -140,7 +140,10 @@ public class ChangeLogs extends Anson {
 	}
 
 	private String session;
-	public String session() {
-		return session;
+	public String session() { return session; }
+	public ChangeLogs session(String ss, Exchanging step) { 
+		session = ss;
+		this.step = step;
+		return this;
 	}
 }

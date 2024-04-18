@@ -6,6 +6,7 @@ import static io.odysz.semantic.syn.Exchanging.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import io.odysz.common.Radix64;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantics.x.SemanticException;
@@ -36,25 +37,32 @@ public class ExchangeContext {
 	final SynChangeMeta chgm;
 
 	Exchanging exstate;
-//	public Exchanging stepping() {
-//		return exstate;
-//	}
 
 	/**
-	 * Current nyquence stamp for selecting challenges
-	 * @deprecated
-	public Nyquence nyqstep;
-	 */
-
-	/**
+	 * Create context at client side.
 	 * @param chgm
 	 * @param localtb local transaction builder
 	 * @param target
 	 */
-	public ExchangeContext(SynChangeMeta chgm, DBSynsactBuilder localtb, String target, int client_server) {
+	public ExchangeContext(SynChangeMeta chgm, DBSynsactBuilder localtb, String target) {
 		this.target = target;
 		this.chgm = chgm;
-		this.exstate = new Exchanging(client_server);
+		this.exstate = new Exchanging(mode_client);
+		this.session = Radix64.toString((long) (Math.random() * Long.MAX_VALUE));
+	}
+
+	/**
+	 * Create context at server side.
+	 * @param session session id supplied by client
+	 * @param chgm
+	 * @param localtb
+	 * @param target
+	 */
+	public ExchangeContext(String session, SynChangeMeta chgm, DBSynsactBuilder localtb, String target) {
+		this.target = target;
+		this.chgm = chgm;
+		this.exstate = new Exchanging(mode_server);
+		this.session = session;
 	}
 
 	public void initChallenge(String target, ChangeLogs diff) throws SemanticException {

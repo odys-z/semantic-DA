@@ -563,7 +563,7 @@ public class DBSynsactBuilder extends DATranscxt {
 							.where(op.notexists, null,
 								select(entm.tbl)
 								.whereEq(entm.synoder, synodr)
-								.whereEq(entm.org(), chorg)
+								.whereEq(entm.org(), entbuf.get(entm.tbl).getStringByIndex(entm.org(), entid))
 								.whereEq(entm.pk, entid)))
 						.post(subscribeUC.size() <= 0 ? null :
 							insert(chgm.tbl)
@@ -734,7 +734,6 @@ public class DBSynsactBuilder extends DATranscxt {
 					.rs(instancontxt(basictx.connId(), synrobot()))
 					.rs(0))
 					.index0(entm.pk);
-					// .map(entm.pk, lambda);
 				
 				diff.entities(tbl, entities);
 			}
@@ -742,6 +741,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			x.initChallenge(target, diff);
 		
 			x.exstate.initexchange();
+			diff.session(x.session(), x.exstate).nyquvect(this.nyquvect);
 		}
 
 		return diff;
@@ -750,7 +750,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	public <T extends SynEntity> ChangeLogs onExchange(ExchangeContext x, String from,
 			HashMap<String, Nyquence> remotv, ChangeLogs req) throws SQLException, TransException {
 
-		x.exstate.can(req.stepping());
+		x.exstate.can(req.stepping().state);
 
 		if (x.onchanges != null && x.onchanges.challenges() > 0)
 			Utils.warn("There are challenges buffered to be commited: %s@%s", from, synode());;
@@ -760,7 +760,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		x.buffChanges(req.challenge.colnames(), onchanges(myanswer, req, from), req.entities);
 
 		x.exstate.onExchange();
-		return myanswer.nyquvect(nyquvect);
+		return myanswer.session(x.session(), x.exstate).nyquvect(nyquvect);
 	}
 
 	ArrayList<ArrayList<Object>> onchanges(ChangeLogs resp, ChangeLogs req, String srcn) throws SQLException {
@@ -830,7 +830,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		myack.nyquvect(Nyquence.clone(nyquvect));
 
 		x.exstate.confirm();
-		return myack;
+		return myack.session(x.session(), new Exchanging(confirming));
 	}
 
 	/**
@@ -844,8 +844,8 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws TransException 
 	 * @throws SQLException 
 	 */
-	public HashMap<String,Nyquence> onAck(ExchangeContext x, ChangeLogs ack, String target, HashMap<String, Nyquence> srcnv, SyntityMeta entm)
-			throws SQLException, TransException {
+	public HashMap<String, Nyquence> onAck(ExchangeContext x, ChangeLogs ack, String target,
+			HashMap<String, Nyquence> srcnv, SyntityMeta entm) throws SQLException, TransException {
 
 		cleanStaleThan(ack.nyquvect, target);
 		
@@ -869,9 +869,12 @@ public class DBSynsactBuilder extends DATranscxt {
 	public HashMap<String, Nyquence> closexchange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
 			throws TransException, SQLException {
 		x.clear();
+
 		HashMap<String, Nyquence> snapshot = Nyquence.clone(nyquvect);
 		nv.get(sn).inc(n0());
 		incN0(maxn(nv));
+
+		x.exstate.close();
 		return snapshot;
 	}
 
@@ -886,6 +889,8 @@ public class DBSynsactBuilder extends DATranscxt {
 		synyquvectWith(sn, nv);
 		nv.get(sn).inc();
 		incN0(maxn(nv));
+
+		x.exstate.onclose();
 	}
 	
 	public void oncloseJoining(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
@@ -903,7 +908,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	private DBSynsactBuilder synyquvectWith(String sn, HashMap<String, Nyquence> nv)
+	DBSynsactBuilder synyquvectWith(String sn, HashMap<String, Nyquence> nv)
 			throws TransException, SQLException {
 		if (nv == null) return this;
 
