@@ -52,6 +52,7 @@ import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Logic.op;
+import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
@@ -139,7 +140,7 @@ public class DBSyntextTest {
 		// new for triggering ddl loading - some error here FIXME
 		// nyqm = new NyquenceMeta("");
 		chm = new SynChangeMeta();
-		sbm = new SynSubsMeta();
+		sbm = new SynSubsMeta(chm);
 
 
 		for (int s = 0; s < 4; s++) {
@@ -887,7 +888,8 @@ public class DBSyntextTest {
 		
 		assertFalse(isblank(pid));
 		
-		trb .insert(chm.tbl, robot)
+		String chid = ((SemanticObject) trb
+			.insert(chm.tbl, robot)
 			.nv(chm.entfk, pid)
 			.nv(chm.entbl, m.tbl)
 			.nv(chm.crud, CRUD.C)
@@ -896,20 +898,22 @@ public class DBSyntextTest {
 			.nv(chm.nyquence, trb.n0().n)
 			.nv(chm.domain, robot.orgId)
 			.post(trb.insert(sbm.tbl)
-				.cols(sbm.entbl, sbm.synodee, sbm.uids, sbm.domain)
+				// .cols(sbm.entbl, sbm.synodee, sbm.uids, sbm.domain)
+				.cols(sbm.insertCols())
 				.select((Query) trb
 					.select(snm.tbl)
-					.col(constr(entm.tbl))
+					// .col(constr(entm.tbl))
+					.col(new Resulving(chm.tbl, chm.pk))
 					.col(snm.synoder)
-					.col(concatstr(synoder, chm.UIDsep, pid))
-					.col(constr(robot.orgId))
+					// .col(concatstr(synoder, chm.UIDsep, pid))
+					// .col(constr(robot.orgId))
 					.where(op.ne, snm.synoder, constr(trb.synode()))
 					.whereEq(snm.domain, robot.orgId)))
-			.ins(trb.instancontxt(conn, robot))
-			;
+			.ins(trb.instancontxt(conn, robot)))
+			.resulve(chm);
 		
 		// return pid;
-		return new String[] {pid, chm.uids(synoder, pid)};
+		return new String[] {pid, chid, chm.uids(synoder, pid)};
 	}
 	
 	String deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
@@ -1082,36 +1086,55 @@ public class DBSyntextTest {
 			subsCount(phm, subcount, uids, toIds.toArray(new String[0]));
 		}
 
-		public void synsubs(int subcount, String uids, int ... sub) throws SQLException, TransException {
+		public void synsubs(int subcount, String chgId, int ... sub) throws SQLException, TransException {
 			ArrayList<String> toIds = new ArrayList<String>();
 			for (int n : sub)
 				if (n >= 0)
 					toIds.add(ck[n].trb.synode());
-			subsCount(synm, subcount, uids, toIds.toArray(new String[0]));
+			subsCount(synm, subcount, chgId, toIds.toArray(new String[0]));
 		}
 
-		public void subsCount(SyntityMeta entm, int subcount, String uids, String ... toIds)
+		public void subsCount(SyntityMeta entm, int subcount, String chgId, String ... toIds)
 				throws SQLException, TransException {
 			if (isNull(toIds)) {
-				AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
+				// AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
+				AnResultset subs = subscribes(connId(), chgId, entm, robot());
 				assertEquals(subcount, subs.getRowCount());
-				// assertEquals(entm.tbl, subs.getString(sbm.entbl));
 			}
 			else {
 				int cnt = 0;
-				AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
+				// AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
+				AnResultset subs = subscribes(connId(), chgId, entm, robot());
 				subs.beforeFirst();
 				while (subs.next()) {
 					if (indexOf(toIds, subs.getString(sbm.synodee)) >= 0)
 						cnt++;
 				}
 
-				if (subs.beforeFirst().next())
-					assertEquals(entm.tbl, subs.getString(sbm.entbl));
 				assertEquals(subcount, cnt);
 			}
 		}
 
+		/**
+		 * Verify subscribes
+		 * @param connId
+		 * @param chgId
+		 * @param entm
+		 * @param robot
+		 * @return results
+		 */
+		private AnResultset subscribes(String connId, String chgId, SyntityMeta entm, IUser robot) 
+			throws TransException, SQLException {
+			Query q = trb.select(sbm.tbl, "ch")
+					.cols((Object[])sbm.cols())
+					.whereEq(sbm.changeId, chgId)
+					;
+
+			return (AnResultset) q
+					.rs(trb.instancontxt(connId, robot))
+					.rs(0);
+		}
+		
 		/**
 		 * Verify if and only if one instance exists on this node.
 		 * 
@@ -1172,7 +1195,8 @@ public class DBSyntextTest {
 			HashMap<String, ChangeLine> idmap = ((AnResultset) b
 					.select(chm.tbl, "ch")
 					.cols("ch.*", sbm.synodee)
-					.je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
+					// .je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
+					.je2(sbm.tbl, "sub", chm.pk, sbm.changeId)
 					.orderby(chm.entbl, chm.uids)
 					.rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
 					.rs(0))

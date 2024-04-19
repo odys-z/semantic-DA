@@ -22,6 +22,7 @@ public class SynChangeMeta extends TableMeta {
 	@Semantation (noDBExists = true)
 	public final String UIDsep;
 
+	// public final String cid;
 	public final String domain;
 	public final String entbl;
 	/** Entity fk, redundant for convenient, not for synchronizing */
@@ -40,11 +41,11 @@ public class SynChangeMeta extends TableMeta {
 
 	public SynChangeMeta(String ... conn) {
 		super("syn_change", conn);
-
 		UIDsep = ",";
 
 		ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
 
+		pk      = "cid";
 		domain  = "domain";
 		entbl   = "tabl";
 		entfk   = "entfk";

@@ -9,6 +9,14 @@
   		args: arguments for sementics handlers. For args for different handlers, see above javadoc link.
    -->
   	<s>
+  		<id>00</id>
+ 		<smtc>autopk</smtc>
+  		<tabl>syn_change</tabl>
+  		<pk>cid</pk>
+  		<args>cid</args>
+  	</s>
+
+  	<s>
   		<id>01</id>
  		<smtc>autopk</smtc>
   		<tabl>h_photos</tabl>
@@ -37,7 +45,6 @@
 	<!-- syn_change
 		args: pk, crud-flag, n pk2 ...,         [col-value-on-del, ...]
 		e.g.: pid,crud,      synoder clientpath,exif,uri "",clientpath
-	-->
   	<s>
   		<id>02</id>
   		<smtc>syn-change</smtc>
@@ -53,6 +60,7 @@
   		<pk>synid</pk>
   		<args>io.odysz.semantic.meta.SynodeMeta,crud,org synid,remarks</args>
   	</s>
+	-->
 
   </t>
 </semantics>

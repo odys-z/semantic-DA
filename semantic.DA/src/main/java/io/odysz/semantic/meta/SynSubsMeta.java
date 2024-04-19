@@ -12,6 +12,7 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.syn.DBSynmantics;
 import io.odysz.semantics.meta.TableMeta;
+import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -22,26 +23,31 @@ import io.odysz.transact.x.TransException;
  */
 public class SynSubsMeta extends TableMeta {
 
+	final SynChangeMeta chgm;
+
 	public final String changeId;
-	public final String domain;
-	public final String entbl;
-	public final String uids;
+	// public final String domain;
+	// public final String entbl;
+	// public final String uids;
 	public final String synodee;
 	private String[] subcols;
 
-	public SynSubsMeta(String ... conn) {
+	public SynSubsMeta(SynChangeMeta chgm, String ... conn) {
 		super("syn_subscribe", conn);
 		ddlSqlite = loadTxt(SynSubsMeta.class, "syn_subscribe.sqlite.ddl");
 
 		changeId= "changeId";
-		domain  = "domain";
-		entbl   = "tabl";
+		// domain  = "domain";
+		// entbl   = "tabl";
 		synodee = "synodee";
-		uids    = "uids";
+		// uids    = "uids";
+		
+		this.chgm = chgm;
 	}
 
 	public String[] cols() {
-		return new String[] {domain, entbl, synodee, uids};
+		// return new String[] {domain, entbl, synodee, uids};
+		return new String[] {changeId, synodee};
 	}
 
 	/**
@@ -59,11 +65,12 @@ public class SynSubsMeta extends TableMeta {
 	}
 
 	/**
-	 * @return [org, entbl, synodee, uids]
+	 * @return [changeId, synodee]
 	 */
 	public String[] insertCols() {
 		if (this.subcols == null)
-			this.subcols = new String[] { domain, entbl, synodee, uids };
+			// this.subcols = new String[] { domain, entbl, synodee, uids };
+			this.subcols = new String[] {changeId, synodee}; // FIXME TODO add "domain"
 		return subcols;
 	}
 
@@ -77,19 +84,29 @@ public class SynSubsMeta extends TableMeta {
 		String[] cols = insertCols();
 		ArrayList<Object[]> val = new ArrayList<Object[]> (cols.length);
 
+		/*
 		for (int cx = 0; cx < cols.length; cx++) {
 			val.add(new Object[] {cols[cx], chlogs.getString(cols[cx])});
 		}
+		*/
+		val.add(new Object[] {cols[0], chlogs.getString(chgm.pk)});
+		val.add(new Object[] {cols[1], chlogs.getString(synodee)});
+
 		return val;
 	}
 
 	@SuppressWarnings("serial")
 	public ArrayList<Object[]> insertSubVal(String org, String entbl, String synodee, String uds) throws SQLException {
 		return new ArrayList<Object[]>() {
+
+			/*
 			{add(new Object[] {subcols[0], org});}
 			{add(new Object[] {subcols[1], entbl});}
 			{add(new Object[] {subcols[2], synodee});}
 			{add(new Object[] {subcols[3], uids});}
+			*/
+			{add(new Object[] {changeId, new Resulving(chgm.tbl, chgm.pk)});}
+			{add(new Object[] {subcols[2], synodee});}
 		};
 	}
 

@@ -3,11 +3,9 @@ package io.odysz.semantic.syn;
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.len;
-import static io.odysz.common.LangExt.split;
 import static io.odysz.common.LangExt.str;
 import static io.odysz.common.LangExt.trim;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
-import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
@@ -40,6 +38,7 @@ import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.Logic.op;
+import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Condit;
 import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.x.TransException;
@@ -82,7 +81,8 @@ public class DBSynmantics extends DASemantics {
 		/** Ultra high frequency mode, the data frequency need to be reduced with some cost */
 		// private final boolean UHF;
 		private final String entflag;
-		private final ExprPart entGID;
+		// private final ExprPart entGID;
+		private final Resulving entChangeId;
 
 		/**
 		 * Target synchronzed table meta's name, configured in xml. E.g. io.oz.album.PhotoMeta.
@@ -114,7 +114,7 @@ public class DBSynmantics extends DASemantics {
 				throw new SemanticException(e.getMessage());
 			}
 			chm = new SynChangeMeta();
-			sbm = new SynSubsMeta();
+			sbm = new SynSubsMeta(chm);
 			
 			this.metacls = args[0];
 			
@@ -135,7 +135,8 @@ public class DBSynmantics extends DASemantics {
 
 			entflag = trim(args[1]);
 			
-			entGID = compound(split(args[2], " "));
+			// entGID = compound(split(args[2], " "));
+			entChangeId = new Resulving(sbm.tbl, sbm.pk);
 		}
 
 		protected void onInsert(ISyncontext stx, Insert insrt,
@@ -217,14 +218,17 @@ public class DBSynmantics extends DASemantics {
 				Insert insubs = syb.insert(sbm.tbl)
 						.select(syb
 							.select(snm.tbl)
-							.col(snm.synoder, sbm.synodee).col(entGID, sbm.uids)
+							.col(snm.synoder, sbm.synodee)
+							//.col(entGID, sbm.uids)
+							.col(entChangeId, sbm.changeId)
 							.where(op.ne, snm.synoder, usr.uid())
 							.whereEq(snm.domain, usr.orgId()));
 
 				insChg.post(syb
 						.delete(sbm.tbl)
-						.whereEq(sbm.domain, usr.orgId())
-						.whereEq(sbm.uids, usr)
+						// .whereEq(sbm.domain, usr.orgId())
+						// .whereEq(sbm.uids, usr)
+						.whereEq(sbm.changeId, entChangeId)
 						.whereEq(sbm.pk, usr)
 						.post(insubs));
 			} catch (TransException e) {
