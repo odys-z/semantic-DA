@@ -834,7 +834,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		synyquvectWith(sn, answer.nyquvect);
 		myack.nyquvect(Nyquence.clone(nyquvect));
 
-		x.exstate.confirm();
+		x.exstate.ack();
 		return myack.session(x.session(), new Exchanging(confirming));
 	}
 
@@ -867,7 +867,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		synyquvectWith(target, ack.nyquvect);
 		n0(maxn(ack.nyquvect, n0()));
 		
-		x.exstate.onconfirm();
+		x.exstate.onAck();
 		return nyquvect;
 	}
 	

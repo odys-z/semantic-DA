@@ -19,10 +19,10 @@ class ExchangingTest {
 		clt.onExchange();
 		assertEquals(ready, clt.state);
 
-		clt.confirm();
+		clt.ack();
 		assertEquals(ready, clt.state);
 
-		clt.onconfirm();
+		clt.onAck();
 		assertEquals(ready, clt.state);
 
 		clt.close();
@@ -34,14 +34,14 @@ class ExchangingTest {
 		srv.initexchange();
 		assertEquals(ready, clt.state);
 
-		srv.confirm();
+		srv.ack();
 		assertEquals(ready, clt.state);
 
 		clt.initexchange();
 		assertEquals(init, clt.state);
 
 		// 
-		srv.onconfirm();
+		srv.onAck();
 		assertEquals(ready, srv.state);
 
 		srv.close();
@@ -54,10 +54,10 @@ class ExchangingTest {
 		assertEquals(exchanging, srv.state);
 
 		//
-		clt.confirm();
+		clt.ack();
 		assertEquals(confirming, clt.state);
 
-		srv.onconfirm();
+		srv.onAck();
 		assertEquals(confirming, srv.state);
 
 		clt.close();

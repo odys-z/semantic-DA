@@ -8,7 +8,7 @@ import io.odysz.semantics.x.ExchangeException;
  * ready                       ready
  *                             exchanging [{@link #initexchange()}]
  * exchanging [{@link #onExchange()}]
- *                             confirming [{@link #confirm()}]
+ *                             confirming [{@link #ack()}]
  * confirming [{@link #onAck()}]
  *                             ready [{@link #closexchange()}]
  * ready [{@link #onclose()}]
@@ -46,15 +46,15 @@ public class Exchanging extends Anson {
 		return state;
 	}
 
-	public int confirm () {
+	public int ack () {
 		if (mode == mode_client && state == init)
 			state = confirming;
 		return state;
 	}
 
-	public int onconfirm () {
+	public int onAck () {
 		if (mode == mode_server && state == exchanging)
-			state = confirming;
+			state = ready;
 		return state;
 	}
 
@@ -65,7 +65,7 @@ public class Exchanging extends Anson {
 	}
 
 	public int onclose () {
-		if (mode == mode_server && state == confirming)
+		if (mode == mode_server && state == ready)
 			state = ready;
 		return state;
 	}

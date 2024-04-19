@@ -478,12 +478,12 @@ public class DBSyntextTest {
 
 		Utils.logrst("X <= Y", section, ++no);
 		ex_break_ack(ck[X].phm, ck[X].trb, ck[Y].phm, ck[Y].trb, section, ++no);
-		ck[X].change(1, C, ck[Y].trb.synode(), xu[0], ck[X].phm);
-		ck[X].change(1, C, ck[X].trb.synode(), yi[0], ck[X].phm);
+		ck[X].change(1, C, ck[X].trb.synode(), xu[0], ck[X].phm);
+		ck[X].change(1, C, ck[Y].trb.synode(), yi[0], ck[X].phm);
 		ck[X].psubs(2, xu[1], -1, -1, Z, W);
 		ck[X].psubs(2, yi[1], -1, -1, Z, W);
-		ck[Y].change(1, C, ck[Y].trb.synode(), xu[0], ck[Y].phm);
-		ck[Y].change(1, C, ck[X].trb.synode(), yi[0], ck[Y].phm);
+		ck[Y].change(1, C, ck[X].trb.synode(), xu[0], ck[Y].phm);
+		ck[Y].change(1, C, ck[Y].trb.synode(), yi[0], ck[Y].phm);
 		ck[Y].psubs(2, xu[1], -1, -1, Z, W);
 		ck[Y].psubs(2, yi[1], -1, -1, Z, W);
 	}
@@ -612,7 +612,7 @@ public class DBSyntextTest {
 			HashMap<String, Nyquence> nv = stb.onAck(sx, ack, ctb.synode(), ack.nyquvect, sphm);
 			printChangeLines(ck);
 			printNyquv(ck);
-			assertEquals(Exchanging.confirming, sx.exstate.state);
+			assertEquals(Exchanging.ready, sx.exstate.state);
 
 			// client
 			Utils.logrst(new String[] {ctb.synode(), "initiate again"}, test, subno, ++no);
@@ -728,7 +728,7 @@ public class DBSyntextTest {
 						stb.synode(), resp.challenges(), resp.enitities(), resp.answers()), test, subno, ++no);
 				printChangeLines(ck);
 				printNyquv(ck);
-				assertEquals(Exchanging.exchanging, sx.exstate);
+				assertEquals(Exchanging.exchanging, sx.exstate.state);
 
 				// client acknowledge exchange
 				Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, ++no);
@@ -737,14 +737,14 @@ public class DBSyntextTest {
 						ctb.synode(), ack.challenges(), ack.enitities(), ack.answers()), test, subno, no, 1);
 				printChangeLines(ck);
 				printNyquv(ck);
-				assertEquals(Exchanging.exchanging, cx.exstate);
+				assertEquals(Exchanging.confirming, cx.exstate.state);
 				
 				// server on acknowledge
 				Utils.logrst(String.format("%s on ack", stb.synode()), test, subno, ++no);
 				nv = stb.onAck(sx, ack, ctb.synode(), ack.nyquvect, sphm);
 				printChangeLines(ck);
 				printNyquv(ck);
-				assertEquals(Exchanging.confirming, cx.exstate);
+				assertEquals(Exchanging.ready, sx.exstate.state);
 
 				// client
 				Utils.logrst(new String[] {ctb.synode(), "initiate again"}, test, subno, ++no);
@@ -753,7 +753,7 @@ public class DBSyntextTest {
 						ctb.synode(), req.challenges(), req.enitities()), test, subno, no, 1);
 				printChangeLines(ck);
 				printNyquv(ck);
-				assertEquals(Exchanging.exchanging, cx.exstate);
+				assertEquals(Exchanging.init, cx.exstate.state);
 				
 				if (req.challenges() == 0)
 					break;
@@ -761,20 +761,20 @@ public class DBSyntextTest {
 
 			assertNotNull(req);
 			assertEquals(0, req.challenge == null ? 0 : req.challenge.size());
-			assertEquals(Exchanging.ready, req.stepping());
+			assertEquals(Exchanging.init, req.stepping().state);
 
 			Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
 			nv = ctb.closexchange(cx, stb.synode(), Nyquence.clone(stb.nyquvect));
 
 			printChangeLines(ck);
 			printNyquv(ck);
-			assertEquals(Exchanging.ready, cx.exstate);
+			assertEquals(Exchanging.ready, cx.exstate.state);
 
 			Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 			stb.onclosexchange(sx, ctb.synode(), nv);
 			printChangeLines(ck);
 			printNyquv(ck);
-			assertEquals(Exchanging.exchanging, sx.exstate);
+			assertEquals(Exchanging.ready, sx.exstate.state);
 
 			if (req.challenges() > 0)
 				fail("Shouldn't has any more challenge here.");
