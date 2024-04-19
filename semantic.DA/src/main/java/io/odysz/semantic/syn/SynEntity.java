@@ -121,7 +121,8 @@ public class SynEntity extends Anson {
 		AnResultset ch = (AnResultset) trsb
 				.select(entMeta.tbl, "ent")
 				.je("ent", chgm.tbl, "ch", chgm.uids, concatstr(trsb.synode(), chgm.UIDsep, chgm.pk), chgm.uids, chgm.synoder, trsb.synode())
-				.cols(chgm.cols()).cols(subMeta.cols())
+				.cols((Object[])chgm.cols())
+				.cols((Object[])subMeta.cols())
 				.whereEq(chgm.synoder, synode)
 				.whereEq(chgm.uids, uids)
 				.rs(trsb.instancontxt(conn, robot))
@@ -150,10 +151,6 @@ public class SynEntity extends Anson {
 
 		return this;
 	}
-	public AnResultset subs() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
+	
+	// public AnResultset subs() { return null; }
 }

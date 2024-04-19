@@ -22,24 +22,22 @@ import io.odysz.transact.x.TransException;
  */
 public class SynSubsMeta extends TableMeta {
 
+	public final String changeId;
 	public final String domain;
-	// public final String subs;
 	public final String entbl;
 	public final String uids;
 	public final String synodee;
 	private String[] subcols;
 
-	static {
-	}
-
 	public SynSubsMeta(String ... conn) {
 		super("syn_subscribe", conn);
 		ddlSqlite = loadTxt(SynSubsMeta.class, "syn_subscribe.sqlite.ddl");
 
-		domain = "domain";
-		entbl  = "tabl";
-		synodee= "synodee";
-		uids   = "uids";
+		changeId= "changeId";
+		domain  = "domain";
+		entbl   = "tabl";
+		synodee = "synodee";
+		uids    = "uids";
 	}
 
 	public String[] cols() {
