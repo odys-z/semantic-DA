@@ -655,7 +655,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				diff.entities(tbl, entities);
 			}
 		
-			x.initChallenge(target, diff);
+			x.initChallenge(target, diff.nyquvect(this.nyquvect));
 		}
 
 		return diff;
@@ -667,7 +667,12 @@ public class DBSynsactBuilder extends DATranscxt {
 		if (x.onchanges != null && x.onchanges.challenges() > 0)
 			Utils.warn("There are challenges buffered to be commited: %s@%s", from, synode());;
 
-		ChangeLogs myanswer = initExchange(x, from, req.nyquvect);
+		// 2024-04-24 debug notes:
+		// initExchange() will sync parameter nv, which will step nv[target] ahead.
+		// This is not expected by onchanges().
+		// My nyquvect should updated after onAck().
+		// ChangeLogs myanswer = initExchange(x, from, req.nyquvect);
+		ChangeLogs myanswer = initExchange(x, from, null);
 
 		x.buffChanges(req.challenge.colnames(), onchanges(myanswer, req, from), req.entities);
 		return myanswer.nyquvect(nyquvect);
