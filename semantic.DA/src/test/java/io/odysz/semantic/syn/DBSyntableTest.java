@@ -62,7 +62,7 @@ import io.odysz.transact.x.TransException;
  * 
  * @author Ody
  */
-public class DBSyntextTest {
+public class DBSyntableTest {
 	public static final String[] conns;
 	public static final String[] testers;
 	public static final String logconn = "log";
@@ -173,12 +173,10 @@ public class DBSyntextTest {
 				sqls.add(Utils.loadTxt("syn_nodes.sql"));
 
 			sqls.add(String.format("delete from %s", phm.tbl));
-			// sqls.add(String.format("delete from %s", usm.tbl));
-			// sqls.add(Utils.loadTxt("a_users.sql"));
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			ck[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
+			ck[s] = new Ck(s, new DBSyntableBuilder(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
 			snm = new SynodeMeta(conn).autopk(false).replace();
 			ck[s].synm = snm;
 			if (s != W)
@@ -203,7 +201,8 @@ public class DBSyntextTest {
 		testBreakAck(++no);
 	}
 
-	void test01InsertBasic(int section) throws TransException, SQLException, IOException {
+	void test01InsertBasic(int section)
+			throws TransException, SQLException, IOException {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
 
 		HashMap<String, Nyquence> nvx = ck[X].trb.nyquvect;
@@ -371,7 +370,9 @@ public class DBSyntextTest {
 		fail("W is not roaming able at Z.");
 	}
 
-	void testBranchPropagation(int section) throws TransException, SQLException, IOException {
+	void testBranchPropagation(int section)
+			throws TransException, SQLException, IOException {
+
 		Utils.logrst(new String[] { new Object(){}.getClass().getEnclosingMethod().getName(),
 							"- must call testJoinChild() first"}, section);
 
@@ -508,9 +509,10 @@ public class DBSyntextTest {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	String[] joinSubtree(int admin, int apply, int log_section) throws TransException, SQLException {
-		DBSynsactBuilder atb = ck[admin].trb;
-		DBSynsactBuilder ctb = ck[apply].trb;
+	String[] joinSubtree(int admin, int apply, int log_section)
+			throws TransException, SQLException {
+		DBSyntableBuilder atb = ck[admin].trb;
+		DBSyntableBuilder ctb = ck[apply].trb;
 
 		ExchangeContext cx = new ExchangeContext(chm, atb.synode());
 		ExchangeContext ax = new ExchangeContext(cx.session(), chm, ctb.synode());
@@ -562,8 +564,8 @@ public class DBSyntextTest {
 	 */
 	void exchangePhotos(int srv, int cli, int test, int subno)
 			throws TransException, SQLException, IOException {
-		DBSynsactBuilder ctb = ck[cli].trb;
-		DBSynsactBuilder stb = ck[srv].trb;
+		DBSyntableBuilder ctb = ck[cli].trb;
+		DBSyntableBuilder stb = ck[srv].trb;
 
 		SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId()).replace();
 		SyntityMeta cphm = new T_PhotoMeta(ctb.basictx().connId()).replace();
@@ -573,8 +575,8 @@ public class DBSyntextTest {
 
 	void exchangeSynodes(int srv, int cli, int test, int subno)
 			throws TransException, SQLException, IOException {
-		DBSynsactBuilder ctb = ck[cli].trb;
-		DBSynsactBuilder stb = ck[srv].trb;
+		DBSyntableBuilder ctb = ck[cli].trb;
+		DBSyntableBuilder stb = ck[srv].trb;
 
 		SyntityMeta ssnm = new SynodeMeta(stb.basictx().connId()).replace();
 		SyntityMeta csnm = new SynodeMeta(ctb.basictx().connId()).replace();
@@ -582,8 +584,8 @@ public class DBSyntextTest {
 		exchange(ssnm, stb, csnm, ctb, test, subno);
 	}
 
-	static void exchange(SyntityMeta sphm, DBSynsactBuilder stb, SyntityMeta cphm,
-			DBSynsactBuilder ctb, int test, int subno)
+	static void exchange(SyntityMeta sphm, DBSyntableBuilder stb, SyntityMeta cphm,
+			DBSyntableBuilder ctb, int test, int subno)
 			throws TransException, SQLException, IOException {
 
 		int no = 0;
@@ -658,12 +660,12 @@ public class DBSyntextTest {
 			fail("Shouldn't has any more challenge here.");
 	}
 
-	static void ex_break_ack(SyntityMeta sphm, DBSynsactBuilder stb, SyntityMeta cphm,
-			DBSynsactBuilder ctb, int test, int subno)
+	static void ex_break_ack(SyntityMeta sphm, DBSyntableBuilder stb, SyntityMeta cphm,
+			DBSyntableBuilder ctb, int test, int subno)
 			throws TransException, SQLException, IOException, InterruptedException {
 		int no = 0;
-		ExchangeContext cx = new ExchangeContext(chm, ctb, stb.synode());
-		ExchangeContext sx = new ExchangeContext(cx.session(), chm, stb, ctb.synode());
+		ExchangeContext cx = new ExchangeContext(chm, stb.synode());
+		ExchangeContext sx = new ExchangeContext(cx.session(), chm, ctb.synode());
 
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ChangeLogs ini2srv = ctb.initExchange(cx, stb.synode(), null);
@@ -695,7 +697,7 @@ public class DBSyntextTest {
 
 		// client lost connection (shut down) and initiate new session 
 		Utils.logrst(new String[] {ctb.synode(), "initiate new exchange (local committed)"}, test, subno, ++no);
-		cx = new ExchangeContext(chm, ctb, stb.synode());
+		cx = new ExchangeContext(chm, stb.synode());
 
 		ini2srv = ctb.initExchange(cx, stb.synode(), null);
 		assertNotNull(ini2srv);
@@ -745,7 +747,7 @@ public class DBSyntextTest {
 			// Utils.logrst(new String[] {stb.synode(), "reset, state", name(sx.exstate.state)}, test, subno, ++no);
 			assertEquals(sx.exstate.state, ready);
 
-			sx = new ExchangeContext(cx.session(), chm, stb, ctb.synode());
+			sx = new ExchangeContext(cx.session(), chm, ctb.synode());
 			assertEquals(sx.session(), cx.session());
 			assertEquals(sx.exstate.state, ready);
 
@@ -825,7 +827,7 @@ public class DBSyntextTest {
 		SyntityMeta entm = ck[s].phm;
 		String conn = conns[s];
 		String synoder = ck[s].trb.synode();
-		DBSynsactBuilder trb = ck[s].trb;
+		DBSyntableBuilder trb = ck[s].trb;
 		SyncRobot robot = (SyncRobot) ck[s].robot();
 		
 		T_PhotoMeta m = ck[s].phm;
@@ -895,7 +897,7 @@ public class DBSyntextTest {
 	String[] updatePname(int s)
 			throws SQLException, TransException, AnsonException, IOException {
 		T_PhotoMeta entm = ck[s].phm;
-		DBSynsactBuilder t = ck[s].trb;
+		DBSyntableBuilder t = ck[s].trb;
 		AnResultset slt = ((AnResultset) t
 				.select(entm.tbl, "ch")
 				.whereEq(entm.synoder, t.synrobot().deviceId())
@@ -930,15 +932,15 @@ public class DBSyntextTest {
 		public T_PhotoMeta phm;
 		public SynodeMeta synm;
 
-		final DBSynsactBuilder trb;
+		final DBSyntableBuilder trb;
 
 		final String domain;
 
 		public IUser robot() { return trb.synrobot(); }
 		String connId() { return trb.basictx().connId(); }
 
-		public Ck(int s, DBSynsactBuilder trb, String org) throws SQLException, TransException, ClassNotFoundException, IOException {
-			this(conns[s], trb, org, String.format("s%s", s), "rob-" + s);
+		public Ck(int s, DBSyntableBuilder dbSyntableBuilder, String org) throws SQLException, TransException, ClassNotFoundException, IOException {
+			this(conns[s], dbSyntableBuilder, org, String.format("s%s", s), "rob-" + s);
 			phm = new T_PhotoMeta(conns[s]);
 		}
 
@@ -968,9 +970,9 @@ public class DBSyntextTest {
 			assertEquals(cnt, rs.getRowCount());
 		}
 
-		public Ck(String conn, DBSynsactBuilder trb, String org, String synid, String usrid)
+		public Ck(String conn, DBSyntableBuilder dbSyntableBuilder, String org, String synid, String usrid)
 				throws SQLException, TransException, ClassNotFoundException, IOException {
-			this.trb = trb;
+			this.trb = dbSyntableBuilder;
 			this.domain = org;
 		}
 
@@ -1131,7 +1133,7 @@ public class DBSyntextTest {
 				.collect(Collectors.joining("    ", "      ", "")));
 
 		for (int cx = 0; cx < ck.length; cx++) {
-			DBSynsactBuilder t = ck[cx].trb;
+			DBSyntableBuilder t = ck[cx].trb;
 			Utils.logi(
 				t.synode() + " [ " +
 				Stream.of(X, Y, Z, W)
@@ -1169,7 +1171,7 @@ public class DBSyntextTest {
 		HashMap<String, ChangeLine[]> uidss = new HashMap<String, ChangeLine[]>();
 
 		for (int cx = 0; cx < ck.length; cx++) {
-			DBSynsactBuilder b = ck[cx].trb;
+			DBSyntableBuilder b = ck[cx].trb;
 			HashMap<String, ChangeLine> idmap = ((AnResultset) b
 					.select(chm.tbl, "ch")
 					.cols("ch.*", sbm.synodee)

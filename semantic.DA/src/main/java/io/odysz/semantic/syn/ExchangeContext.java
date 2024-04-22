@@ -44,7 +44,7 @@ public class ExchangeContext {
 	 * @param localtb local transaction builder
 	 * @param target
 	 */
-	public ExchangeContext(SynChangeMeta chgm, DBSynsactBuilder localtb, String target) {
+	public ExchangeContext(SynChangeMeta chgm, String target) {
 		this.target = target;
 		this.chgm = chgm;
 		this.exstate = new Exchanging(mode_client);
@@ -58,7 +58,7 @@ public class ExchangeContext {
 	 * @param localtb
 	 * @param target
 	 */
-	public ExchangeContext(String session, SynChangeMeta chgm, DBSynsactBuilder localtb, String target) {
+	public ExchangeContext(String session, SynChangeMeta chgm, String target) {
 		this.target = target;
 		this.chgm = chgm;
 		this.exstate = new Exchanging(mode_server);
