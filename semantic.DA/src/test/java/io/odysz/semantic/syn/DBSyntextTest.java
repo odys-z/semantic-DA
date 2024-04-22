@@ -481,7 +481,13 @@ public class DBSyntextTest {
 
 		Utils.logrst("X <= Y", section, ++no);
 		ex_break_ack(ck[X].phm, ck[X].trb, ck[Y].phm, ck[Y].trb, section, no);
+
+		// FIXME This change log can't synchronized without client's answer, which is lost
+		// Test runing at commit id: 85636f5807bf809a587695c9edb8598b32efd0af
+		// also see tag: issue-answer-lost
+		//  U  X.000004  X,000023   12  Y |
 		ck[X].change(1, C, ck[X].trb.synode(), xu[0], ck[X].phm);
+
 		ck[X].change(1, C, ck[Y].trb.synode(), yi[0], ck[X].phm);
 		ck[X].psubs(2, xu[1], -1, -1, Z, W);
 		ck[X].psubs(2, yi[1], -1, -1, Z, W);
