@@ -18,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -146,7 +145,7 @@ public class DBSyntextTest {
 		for (int s = 0; s < 4; s++) {
 			String conn = conns[s];
 			
-			snm = new SynodeMeta(conn, null);
+			snm = new SynodeMeta(conn);
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", snm.tbl));
 			Connects.commit(conn, DATranscxt.dummyUser(), snm.ddlSqlite);
 
@@ -180,7 +179,7 @@ public class DBSyntextTest {
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
 			ck[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
-			snm = new SynodeMeta(conn, ck[s].trb).autopk(false).replace();
+			snm = new SynodeMeta(conn).autopk(false).replace();
 			ck[s].synm = snm;
 			if (s != W)
 				ck[s].trb.incNyquence();
@@ -577,8 +576,8 @@ public class DBSyntextTest {
 		DBSynsactBuilder ctb = ck[cli].trb;
 		DBSynsactBuilder stb = ck[srv].trb;
 
-		SyntityMeta ssnm = new SynodeMeta(stb.basictx().connId(), stb).replace();
-		SyntityMeta csnm = new SynodeMeta(ctb.basictx().connId(), ctb).replace();
+		SyntityMeta ssnm = new SynodeMeta(stb.basictx().connId()).replace();
+		SyntityMeta csnm = new SynodeMeta(ctb.basictx().connId()).replace();
 		
 		exchange(ssnm, stb, csnm, ctb, test, subno);
 	}

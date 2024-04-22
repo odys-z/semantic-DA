@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.syn.DBSynsactBuilder;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
@@ -30,7 +29,7 @@ public class SynodeMeta extends SyntityMeta {
 	 * @param trb 
 	 * @throws SemanticException 
 	 */
-	public SynodeMeta(String conn, DBSynsactBuilder trb) throws TransException {
+	public SynodeMeta(String conn) throws TransException {
 		super("syn_node", "synid", "org", conn, "syn_node.sqlite.ddl");
 
 		// pk = "synid";
@@ -41,8 +40,7 @@ public class SynodeMeta extends SyntityMeta {
 
 		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
 
-		if (trb != null)
-			autopk = DATranscxt.hasSemantics(conn, tbl, smtype.autoInc);
+		autopk = DATranscxt.hasSemantics(conn, tbl, smtype.autoInc);
 	}
 
 	@Override

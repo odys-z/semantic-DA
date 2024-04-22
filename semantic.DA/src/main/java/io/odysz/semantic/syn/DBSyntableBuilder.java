@@ -31,6 +31,7 @@ import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.syn.DBSynsactBuilder.SynmanticsMap;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -52,17 +53,17 @@ import io.odysz.transact.x.TransException;
  * @author Ody
  *
  */
-public class DBSynsactBuilder extends DATranscxt {
-	public static class SynmanticsMap extends SemanticsMap {
-		public SynmanticsMap(String conn) {
-			super(conn);
-		}
-
-		@Override
-		public DASemantics createSemantics(Transcxt trb, String tabl, String pk, boolean debug) {
-			return new DBSynmantics(trb, tabl, pk, debug);
-		}
-	}
+public class DBSyntableBuilder extends DATranscxt {
+//	public static class SynmanticsMap extends SemanticsMap {
+//		public SynmanticsMap(String conn) {
+//			super(conn);
+//		}
+//
+//		@Override
+//		public DASemantics createSemantics(Transcxt trb, String tabl, String pk, boolean debug) {
+//			return new DBSynmantics(trb, tabl, pk, debug);
+//		}
+//	}
 
 	protected SynodeMeta synm;
 	protected SynSubsMeta subm;
@@ -73,7 +74,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	/** Nyquence vector [{synode, Nyquence}]*/
 	protected HashMap<String, Nyquence> nyquvect;
 	protected Nyquence n0() { return nyquvect.get(synode()); }
-	protected DBSynsactBuilder n0(Nyquence nyq) {
+	protected DBSyntableBuilder n0(Nyquence nyq) {
 		nyquvect.put(synode(), new Nyquence(nyq.n));
 		return this;
 	}
@@ -82,14 +83,14 @@ public class DBSynsactBuilder extends DATranscxt {
 
 	private HashMap<String, SyntityMeta> entityRegists;
 
-	public DBSynsactBuilder(String conn, String synodeId)
+	public DBSyntableBuilder(String conn, String synodeId)
 			throws SQLException, SAXException, IOException, TransException {
 		this(conn, synodeId,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
 	}
 	
-	public DBSynsactBuilder(String conn, String synodeId,
+	public DBSyntableBuilder(String conn, String synodeId,
 			SynChangeMeta chgm, SynodeMeta synm)
 			throws SQLException, SAXException, IOException, TransException {
 
@@ -112,7 +113,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		this.synm.replace().autopk(false);
 	}
 	
-	DBSynsactBuilder loadNyquvect0(String conn) throws SQLException, TransException {
+	DBSyntableBuilder loadNyquvect0(String conn) throws SQLException, TransException {
 		AnResultset rs = ((AnResultset) select(synm.tbl)
 				.cols(synm.pk, synm.nyquence)
 				.rs(instancontxt(conn, synrobot()))
@@ -132,7 +133,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public DBSynsactBuilder incNyquence() throws TransException, SQLException {
+	public DBSyntableBuilder incNyquence() throws TransException, SQLException {
 		update(synm.tbl, synrobot())
 			.nv(synm.nyquence, Funcall.add(synm.nyquence, 1))
 			.whereEq(synm.pk, synode())
@@ -301,7 +302,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				Utils.logi("%1$s.cleanStateThan(): Deleting staleness where for source %2$s, src-nyq[%1$s](%3$d) > my-change[%4$s].n ...",
 						synode(), srcn, nyquvect.get(srcn).n, sn);
 
-			SemanticObject res = (SemanticObject) ((DBSynsactBuilder)
+			SemanticObject res = (SemanticObject) ((DBSyntableBuilder)
 				with(select(chgm.tbl, "cl")
 					.cols("cl.*").col(subm.synodee)
 					// .je2(subm.tbl, "sb", constr(sn), subm.synodee,
@@ -337,7 +338,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		}
 	}
 
-	DBSynsactBuilder commitAnswers(ExchangeContext x, String srcnode, long tillN)
+	DBSyntableBuilder commitAnswers(ExchangeContext x, String srcnode, long tillN)
 			throws SQLException, TransException {
 
 		List<Statement<?>> stats = new ArrayList<Statement<?>>();
@@ -454,7 +455,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	DBSynsactBuilder commitChallenges(ExchangeContext x, String srcnode, HashMap<String, Nyquence> srcnv, long tillN)
+	DBSyntableBuilder commitChallenges(ExchangeContext x, String srcnode, HashMap<String, Nyquence> srcnv, long tillN)
 			throws SQLException, TransException {
 		List<Statement<?>> stats = new ArrayList<Statement<?>>();
 
@@ -661,7 +662,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		return entityRegists.get(entbl);
 	}
 	
-	public DBSynsactBuilder registerEntity(String conn, SyntityMeta m)
+	public DBSyntableBuilder registerEntity(String conn, SyntityMeta m)
 			throws SemanticException, TransException, SQLException {
 		if (entityRegists == null)
 			entityRegists = new HashMap<String, SyntityMeta>();
@@ -957,7 +958,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	DBSynsactBuilder synyquvectWith(String sn, HashMap<String, Nyquence> nv)
+	DBSyntableBuilder synyquvectWith(String sn, HashMap<String, Nyquence> nv)
 			throws TransException, SQLException {
 		if (nv == null) return this;
 
