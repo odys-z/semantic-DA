@@ -38,6 +38,8 @@ import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.condition.Condit;
 import io.odysz.transact.x.TransException;
 
+import static io.odysz.common.LangExt.isNull;
+
 /**A basic semantic context for generating sql.
  * Handling semantics defined in runtime-root/semantics.xml file.
  *
@@ -236,8 +238,11 @@ public class DASemantext implements ISemantext {
 	// auto ID
 	///////////////////////////////////////////////////////////////////////////
 	@Override
-	public String genId(String conn, String tabl, String col) throws SQLException, TransException {
-		String newv = genId(conn, tabl, col, null);
+	public String genId(String conn, String tabl, String col, String ... preval ) throws SQLException, TransException {
+		String newv = genIdPrefix(conn, tabl, col, null);
+		
+		if (!isNull(preval))
+			newv = String.format("%s.%s", preval[0], newv);
 
 		if (autoVals == null)
 			autoVals = new SemanticObject();
@@ -309,7 +314,7 @@ end;
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public static String genId(String conn, String target, String idField, String subCate) throws SQLException, TransException {
+	protected static String genIdPrefix(String conn, String target, String idField, String subCate) throws SQLException, TransException {
 		// String connId = ""; 
 		dbtype dt = Connects.driverType(null);
 		if (dt == dbtype.sqlite)

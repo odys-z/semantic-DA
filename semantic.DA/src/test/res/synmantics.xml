@@ -13,7 +13,7 @@
  		<smtc>autopk</smtc>
   		<tabl>syn_change</tabl>
   		<pk>cid</pk>
-  		<args>cid</args>
+  		<args>cid,synoder</args>
   	</s>
 
   	<s>

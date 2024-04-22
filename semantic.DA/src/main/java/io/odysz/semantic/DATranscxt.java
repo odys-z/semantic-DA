@@ -19,19 +19,6 @@ import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DASemantics.SemanticHandler;
-import io.odysz.semantic.DASemantics.ShAutoK;
-import io.odysz.semantic.DASemantics.ShChkCntDel;
-import io.odysz.semantic.DASemantics.ShChkPCInsert;
-import io.odysz.semantic.DASemantics.ShDefltVal;
-import io.odysz.semantic.DASemantics.ShDencrypt;
-import io.odysz.semantic.DASemantics.ShExtFilev2;
-import io.odysz.semantic.DASemantics.ShFkInsCates;
-import io.odysz.semantic.DASemantics.ShFkOnIns;
-import io.odysz.semantic.DASemantics.ShFullpath;
-import io.odysz.semantic.DASemantics.ShOperTime;
-import io.odysz.semantic.DASemantics.ShPCDelAll;
-import io.odysz.semantic.DASemantics.ShPCDelByCate;
-import io.odysz.semantic.DASemantics.ShPostFk;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
@@ -161,53 +148,53 @@ public class DATranscxt extends Transcxt {
 	/** { conn: map{table: DASemantics[handlers]} } */
 	protected static HashMap<String, SemanticsMap> smtMaps;
 
-	public SemanticHandler parseHandler(Transcxt basicTsx, String tabl, smtype semantic,
-			String recId, String argstr, boolean ... debug) {
-		// checkParas(tabl, pk, args);
-		SemanticHandler handler = null;
-
-		String[] args = split(argstr);
-
-		try {
-		if (smtype.fullpath == semantic)
-				handler = new ShFullpath(basicTsx, tabl, recId, args);
-		else if (smtype.autoInc == semantic)
-			handler = new ShAutoK(basicTsx, tabl, recId, args);
-		else if (smtype.fkIns == semantic)
-			handler = new ShFkOnIns(basicTsx, tabl, recId, args);
-		else if (smtype.fkCateIns == semantic)
-			handler = new ShFkInsCates(basicTsx, tabl, recId, args);
-		else if (smtype.parentChildrenOnDel == semantic)
-			handler = new ShPCDelAll(basicTsx, tabl, recId, args);
-		else if (smtype.parentChildrenOnDelByCate == semantic)
-			handler = new ShPCDelByCate(basicTsx, tabl, recId, args);
-		else if (smtype.defltVal == semantic)
-			handler = new ShDefltVal(basicTsx, tabl, recId, args);
-		else if (smtype.dencrypt == semantic)
-			handler = new ShDencrypt(basicTsx, tabl, recId, args);
-		// else if (smtype.orclob == semantic)
-		// addClob(tabl, recId, argss);
-		else if (smtype.opTime == semantic)
-			handler = new ShOperTime(basicTsx, tabl, recId, args);
-		else if (smtype.checkSqlCountOnDel == semantic)
-			handler = new ShChkCntDel(basicTsx, tabl, recId, args);
-		else if (smtype.checkSqlCountOnInsert == semantic)
-			handler = new ShChkPCInsert(basicTsx, tabl, recId, args);
-		else if (smtype.postFk == semantic)
-			handler = new ShPostFk(basicTsx, tabl, recId, args);
-		else if (smtype.extFile == semantic)
-			// throw new SemanticException("Since 1.5.0, smtype.extFile is replaced by extFilev2!");
-			handler = new ShExtFilev2(basicTsx, tabl, recId, args);
-		else if (smtype.extFilev2 == semantic)
-			handler = new ShExtFilev2(basicTsx, tabl, recId, args);
-		else
-			throw new SemanticException("Cannot load configured semantics of key: %s", semantic);
-
-		} catch (SemanticException e) {
-			e.printStackTrace();
-		}
-		return handler;
-	}
+//	public SemanticHandler parseHandler(Transcxt basicTsx, String tabl, smtype semantic,
+//			String recId, String argstr, boolean ... debug) {
+//		// checkParas(tabl, pk, args);
+//		SemanticHandler handler = null;
+//
+//		String[] args = split(argstr);
+//
+//		try {
+//		if (smtype.fullpath == semantic)
+//				handler = new ShFullpath(basicTsx, tabl, recId, args);
+//		else if (smtype.autoInc == semantic)
+//			handler = new ShAutoK(basicTsx, tabl, recId, args);
+//		else if (smtype.fkIns == semantic)
+//			handler = new ShFkOnIns(basicTsx, tabl, recId, args);
+//		else if (smtype.fkCateIns == semantic)
+//			handler = new ShFkInsCates(basicTsx, tabl, recId, args);
+//		else if (smtype.parentChildrenOnDel == semantic)
+//			handler = new ShPCDelAll(basicTsx, tabl, recId, args);
+//		else if (smtype.parentChildrenOnDelByCate == semantic)
+//			handler = new ShPCDelByCate(basicTsx, tabl, recId, args);
+//		else if (smtype.defltVal == semantic)
+//			handler = new ShDefltVal(basicTsx, tabl, recId, args);
+//		else if (smtype.dencrypt == semantic)
+//			handler = new ShDencrypt(basicTsx, tabl, recId, args);
+//		// else if (smtype.orclob == semantic)
+//		// addClob(tabl, recId, argss);
+//		else if (smtype.opTime == semantic)
+//			handler = new ShOperTime(basicTsx, tabl, recId, args);
+//		else if (smtype.checkSqlCountOnDel == semantic)
+//			handler = new ShChkCntDel(basicTsx, tabl, recId, args);
+//		else if (smtype.checkSqlCountOnInsert == semantic)
+//			handler = new ShChkPCInsert(basicTsx, tabl, recId, args);
+//		else if (smtype.postFk == semantic)
+//			handler = new ShPostFk(basicTsx, tabl, recId, args);
+//		else if (smtype.extFile == semantic)
+//			// throw new SemanticException("Since 1.5.0, smtype.extFile is replaced by extFilev2!");
+//			handler = new ShExtFilev2(basicTsx, tabl, recId, args);
+//		else if (smtype.extFilev2 == semantic)
+//			handler = new ShExtFilev2(basicTsx, tabl, recId, args);
+//		else
+//			throw new SemanticException("Cannot load configured semantics of key: %s", semantic);
+//
+//		} catch (SemanticException e) {
+//			e.printStackTrace();
+//		}
+//		return handler;
+//	}
 
 	/**
 	 * <p>Create a new semantext instance with the static resources.</p>

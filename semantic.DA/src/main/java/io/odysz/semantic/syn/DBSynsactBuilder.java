@@ -361,7 +361,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			String rpuids = rply.getString(chgm.uids);
 			String rpnodr = rply.getString(chgm.synoder);
 			String rpscrb = rply.getString(subm.synodee);
-			String chgid  = rply.getString(chgm.pk);
+			String rpcid  = rply.getString(chgm.pk);
 
 			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(entid1) < 0) {
 				Utils.warn("[DBSynsactBuilder commitTill] Fatal error ignored: can't restore entity record answered from target node.\n"
@@ -376,6 +376,7 @@ public class DBSynsactBuilder extends DATranscxt {
 						.cols(entm.entCols())
 						.value(entm.insertChallengeEnt(entid1, entbuf.get(entm.tbl)))
 						.post(insert(chgm.tbl)
+							.nv(chgm.pk, rpcid)
 							.nv(chgm.crud, CRUD.C)
 							.nv(chgm.domain, rporg)
 							.nv(chgm.entbl, rpent)
@@ -393,9 +394,9 @@ public class DBSynsactBuilder extends DATranscxt {
 				: delete(subm.tbl, synrobot())
 					// .whereEq(subm.entbl, entm.tbl)
 					// .whereEq(subm.uids, rpuids)
-					.whereEq(subm.changeId, chgid)
+					.whereEq(subm.changeId, rpcid)
 					.whereEq(subm.synodee, rpscrb)
-					.post(del0subchange(entm, rporg, rpnodr, rpuids, rpscrb)
+					.post(del0subchange(entm, rporg, rpnodr, rpuids, rpcid, rpscrb)
 					));
 			entid = entid1;
 		}
@@ -422,17 +423,19 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws TransException
 	 */
 	Statement<?> del0subchange(SyntityMeta entitymeta,
-			String org, String synoder, String uids, String deliffnode) throws TransException {
+			String org, String synoder, String uids, String changeId, String deliffnode) throws TransException {
 		return delete(chgm.tbl) // delete change log if no subscribers exist
+			.whereEq(chgm.pk, changeId)
 			.whereEq(chgm.entbl, entitymeta.tbl)
 			.whereEq(chgm.domain, org)
 			.whereEq(chgm.synoder, synoder)
-			.whereEq(chgm.uids,    uids)
+			// .whereEq(chgm.uids,    uids)
 			.whereEq("0", (Query)select(subm.tbl)
 				.col(count(subm.synodee))
 				// .whereEq(subm.domain, org)
 				// .whereEq(subm.entbl, entitymeta.tbl)
 				// .whereEq(subm.uids,  uids))
+				.whereEq(chgm.pk, changeId)
 				.where(op.eq, chgm.pk, subm.changeId)
 				.where(op.ne, subm.synodee, constr(deliffnode)))
 			;
@@ -472,7 +475,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			String entid  = chal.getString(chgm.entfk);
 			String synodr = chal.getString(chgm.synoder);
 			String chuids = chal.getString(chgm.uids);
-			String chpk   = chal.getString(chgm.pk);
+			String chgid  = chal.getString(chgm.pk);
 
 			HashMap<String, AnResultset> entbuf = x.onchanges.entities;
 			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(entid) < 0) {
@@ -495,7 +498,7 @@ public class DBSynsactBuilder extends DATranscxt {
 					// .whereEq(subm.entbl, chentbl)
 					// .whereEq(subm.domain, chorg)
 					// .whereEq(subm.uids, chuids)
-					.whereEq(subm.changeId, chpk)
+					.whereEq(subm.changeId, chgid)
 					.post(ofLastEntity(chal, entid, chentbl, chorg)
 						? delete(chgm.tbl)
 							.whereEq(chgm.entbl, chentbl)
@@ -552,36 +555,38 @@ public class DBSynsactBuilder extends DATranscxt {
 						.value(entm.insertChallengeEnt(entid, entbuf.get(entm.tbl)))
 						.post(subscribeUC.size() <= 0 ? null :
 							insert(chgm.tbl)
+							.nv(chgm.pk, chgid)
 							.nv(chgm.crud, CRUD.C).nv(chgm.domain, chorg)
 							.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr).nv(chgm.uids, chuids)
 							.nv(chgm.nyquence, chal.getLong(chgm.nyquence))
 							.nv(chgm.entfk, entm.autopk() ? new Resulving(entm.tbl, entm.pk) : constr(entid))
 							.post(subscribeUC)
-							.post(del0subchange(entm, chorg, synodr, chuids, synode())))
+							.post(del0subchange(entm, chorg, synodr, chuids, chgid, synode())))
 					: eq(change, CRUD.U)
 					? update(entm.tbl, synrobot())
 						.nvs(entm.updateEntNvs(chgm, entid, entbuf.get(entm.tbl), chal))
 						.whereEq(entm.synoder, synodr)
 						.whereEq(entm.org(), chorg)
 						.whereEq(entm.pk, entid)
-						.post(insert(entm.tbl, synrobot())
-							.cols(entm.entCols())
-							.select(select(null)
-									.cols(entm.insertSelectItems(chgm, entid, entbuf.get(entm.tbl), chal)))
-							.where(op.notexists, null,
-								select(entm.tbl)
-								.whereEq(entm.synoder, synodr)
-								.whereEq(entm.org(), entbuf.get(entm.tbl).getStringByIndex(entm.org(), entid))
-								.whereEq(entm.pk, entid)))
-						.post(subscribeUC.size() <= 0 ? null :
-							insert(chgm.tbl)
+						// FIXME there shouldn't be an UPSERT if the change-log is handled in orignal order?
+//						.post(insert(entm.tbl, synrobot()) 
+//							.cols(entm.entCols())
+//							.select(select(null)
+//									.cols(entm.insertSelectItems(chgm, entid, entbuf.get(entm.tbl), chal)))
+//							.where(op.notexists, null,
+//								select(entm.tbl)
+//								.whereEq(entm.synoder, synodr)
+//								.whereEq(entm.org(), entbuf.get(entm.tbl).getStringByIndex(entm.org(), entid))
+//								.whereEq(entm.pk, entid)))
+						.post(subscribeUC.size() <= 0
+							? null : insert(chgm.tbl)
+							.nv(chgm.pk, chgid)
 							.nv(chgm.crud, CRUD.U).nv(chgm.domain, chorg)
 							.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr).nv(chgm.uids, chuids)
 							.nv(chgm.nyquence, chgnyq.n)
-							// .nv(chgm.entfk, entm.autopk() ? new Resulving(entm.tbl, entm.pk) : constr(entid))
 							.nv(chgm.entfk, constr(entid))
 							.post(subscribeUC)
-							.post(del0subchange(entm, chorg, synodr, chuids, synode())))
+							.post(del0subchange(entm, chorg, synodr, chuids, chgid, synode())))
 					: null);
 				}
 
@@ -735,8 +740,9 @@ public class DBSynsactBuilder extends DATranscxt {
 				SyntityMeta entm = entityRegists.get(tbl);
 
 				AnResultset entities = ((AnResultset) select(tbl, "e")
-					.je("e", chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
-					.cols_byAlias("e", entm.entCols())
+					// .je("e", chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
+					.je2(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
+					.cols_byAlias("e", entm.entCols()).col("e." + entm.pk)
 					.where(op.gt, chgm.nyquence, dn.n)
 					.orderby(chgm.nyquence)
 					.orderby(chgm.synoder)
@@ -771,13 +777,14 @@ public class DBSynsactBuilder extends DATranscxt {
 		// ChangeLogs myanswer = initExchange(x, from, req.nyquvect);
 		ChangeLogs myanswer = initExchange(x, from, null);
 
-		x.buffChanges(req.challenge.colnames(), onchanges(myanswer, req, from), req.entities);
+		x.buffChanges(nyquvect, req.challenge.colnames(), onchanges(myanswer, req, from), req.entities);
 
 		x.exstate.onExchange();
 		return myanswer.session(x.session(), x.exstate).nyquvect(nyquvect);
 	}
 
-	ArrayList<ArrayList<Object>> onchanges(ChangeLogs resp, ChangeLogs req, String srcn) throws SQLException {
+	ArrayList<ArrayList<Object>> onchanges(ChangeLogs resp, ChangeLogs req, String srcn)
+			throws SQLException {
 		ArrayList<ArrayList<Object>> changes = new ArrayList<ArrayList<Object>>();
 		while (req != null && req.challenge != null && req.challenge.next()) {
 			String subscribe = req.challenge.getString(subm.synodee);
@@ -793,15 +800,12 @@ public class DBSynsactBuilder extends DATranscxt {
 					changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
 				else if (!nyquvect.containsKey(subscribe))
 						; // I have no idea
-				// else if (compareNyq(subnyq, nyquvect.get(subscribe)) <= 0) {
 				else if (compareNyq(subnyq, nyquvect.get(srcn)) <= 0) {
-
 					// ref: _answer-to-remove
 					// knowledge about the sub from req is older than this node's knowledge 
 					// see #commitChallenges ref: merge-older-version
 					// FIXME how to abstract into one method?
 					resp.remove_sub(req.challenge, subscribe);	
-
 				}
 				else
 					changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
@@ -835,7 +839,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		cleanStaleThan(answer.nyquvect, sn);
 
-		x.buffChanges(answer.challenge.colnames(), onchanges(myack, answer, sn), answer.entities);
+		x.buffChanges(nyquvect, answer.challenge.colnames(), onchanges(myack, answer, sn), answer.entities);
 		if (x.onchanges.challenges() > 0) {
 			commitChallenges(x, sn, srcnv, nyquvect.get(synode()).n);
 		}
@@ -861,6 +865,40 @@ public class DBSynsactBuilder extends DATranscxt {
 	public HashMap<String, Nyquence> onAck(ExchangeContext x, ChangeLogs ack, String target,
 			HashMap<String, Nyquence> srcnv, SyntityMeta entm) throws SQLException, TransException {
 
+//		cleanStaleThan(ack.nyquvect, target);
+//		
+//		x.exstate.can(confirming);
+//
+//		if (ack != null && compareNyq(ack.nyquvect.get(synode()), nyquvect.get(synode())) <= 0) {
+//			commitChallenges(x, target, srcnv, nyquvect.get(synode()).n);
+//		}
+//
+//		if (ack.answers != null && ack.answers.getRowCount() > 0) {
+//			x.addAnswer(ack.answers);
+//			commitAnswers(x, target, n0().n);
+//		}
+		cleanAckBuffer(x, ack, target, srcnv, entm);
+		
+		synyquvectWith(target, ack.nyquvect);
+		n0(maxn(ack.nyquvect, n0()));
+		
+		return nyquvect;
+	}
+	
+	/**
+	 * Commit challenges, append answers.
+	 * 
+	 * @param x
+	 * @param ack
+	 * @param target
+	 * @param srcnv
+	 * @param entm
+	 * @throws SQLException
+	 * @throws TransException
+	 */
+	void cleanAckBuffer(ExchangeContext x, ChangeLogs ack, String target,
+			HashMap<String, Nyquence> srcnv, SyntityMeta entm) throws SQLException, TransException {
+
 		cleanStaleThan(ack.nyquvect, target);
 		
 		x.exstate.can(confirming);
@@ -873,11 +911,8 @@ public class DBSynsactBuilder extends DATranscxt {
 			x.addAnswer(ack.answers);
 			commitAnswers(x, target, n0().n);
 		}
-		synyquvectWith(target, ack.nyquvect);
-		n0(maxn(ack.nyquvect, n0()));
-		
+		synyquvectWith(target, x.exNyquvect);
 		x.exstate.onAck();
-		return nyquvect;
 	}
 	
 	public HashMap<String, Nyquence> closexchange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
@@ -934,7 +969,8 @@ public class DBSynsactBuilder extends DATranscxt {
 				synode(), sn);
 
 		for (String n : nv.keySet()) {
-			if (!eq(n, sn) && nyquvect.containsKey(n)
+			// if (!eq(n, sn) && nyquvect.containsKey(n)
+			if (nyquvect.containsKey(n)
 				&& compareNyq(nv.get(n), nyquvect.get(n)) > 0)
 				if (u == null)
 					u = update(synm.tbl, synrobot())
@@ -965,14 +1001,14 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @param robot
 	 * @param org
 	 * @param domain
-	 * @return [applyid, "My-id,applyid" as uids]
+	 * @return {session: changeId, uids: "My-id,applyid"}
 	 * @throws TransException
 	 * @throws SQLException
 	 */
 	public ChangeLogs addChild(ExchangeContext x, String childId, SynodeMode reqmode, IUser robot, String org, String domain)
 			throws TransException, SQLException {
 		Synode apply = new Synode(basictx.connId(), childId, org, domain);
-		apply.insert(synm, n0(), insert(synm.tbl, robot))
+		String chgid = ((SemanticObject) apply.insert(synm, n0(), insert(synm.tbl, robot))
 			.post(insert(chgm.tbl, robot)
 				.nv(chgm.entfk, apply.recId)
 				.nv(chgm.entbl, synm.tbl)
@@ -993,7 +1029,8 @@ public class DBSynsactBuilder extends DATranscxt {
 						.where(op.ne, synm.synoder, constr(synode()))
 						.where(op.ne, synm.synoder, constr(childId))
 						.whereEq(synm.domain, domain))))
-			.ins(instancontxt(basictx.connId(), robot));
+			.ins(instancontxt(basictx.connId(), robot)))
+			.resulve(chgm.tbl, chgm.pk);
 		
 		nyquvect.put(apply.recId, new Nyquence(apply.nyquence));
 
@@ -1007,7 +1044,7 @@ public class DBSynsactBuilder extends DATranscxt {
 					.rs(instancontxt(basictx.connId(), synrobot()))
 					.rs(0))
 				: null); // Following exchange is needed
-		return log;
+		return log.session(chgid, new Exchanging(init));
 	}
 
 	public ChangeLogs onJoining(SynodeMode reqmode, String joining, String domain, String org)
@@ -1066,13 +1103,13 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws IOException 
 	 * @throws AnsonException 
 	 */
-	public DBSynsactBuilder updateEntity(String synoder, String pid, SyntityMeta entm, Object ... nvs)
+	public String updateEntity(String synoder, String pid, SyntityMeta entm, Object ... nvs)
 			throws TransException, SQLException, AnsonException, IOException {
 		String [] updcols = new String[nvs.length/2];
 		for (int i = 0; i < nvs.length; i += 2)
 			updcols[i/2] = (String) nvs[i];
 
-		update(entm.tbl, synrobot())
+		String chgid = update(entm.tbl, synrobot())
 			.nvs((Object[])nvs)
 			.whereEq(entm.pk, pid)
 			.post(insert(chgm.tbl, synrobot())
@@ -1095,7 +1132,8 @@ public class DBSynsactBuilder extends DATranscxt {
 						// .col(constr(synrobot().orgId()))
 						.where(op.ne, synm.synoder, constr(synode()))
 						.whereEq(synm.domain, synrobot().orgId()))))
-			.u(instancontxt(basictx.connId(), synrobot()));
-		return this;
+			.u(instancontxt(basictx.connId(), synrobot()))
+			.resulve(chgm.tbl, chgm.pk);
+		return chgid;
 	}
 }

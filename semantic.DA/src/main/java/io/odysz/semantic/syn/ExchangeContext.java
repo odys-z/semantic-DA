@@ -72,20 +72,26 @@ public class ExchangeContext {
 		this.mychallenge = diff;
 	}
 
+	/** Local (server) nyquences when accepted exchanging request, used for restore onAck step at server.*/
+	public HashMap<String, Nyquence> exNyquvect;
+
 	/**
 	 * Buffering changes while responding to {@code challenges}.
+	 * @param myNyquvect 
 	 * @param chcols
 	 * @param yourchallenges
 	 * @param entities
 	 * @throws SemanticException
 	 */
-	public void buffChanges(HashMap<String, Object[]> chcols, ArrayList<ArrayList<Object>> yourchallenges,
+	public void buffChanges(HashMap<String,Nyquence> myNyquvect, HashMap<String, Object[]> chcols, ArrayList<ArrayList<Object>> yourchallenges,
 			HashMap<String, AnResultset> entities) throws SemanticException {
 		if (onchanges != null && onchanges.challenge != null && onchanges.challenge.size() > 0)
 			throw new SemanticException("There is challenges already buffered for committing.");
 		onchanges = new ChangeLogs(chgm)
 				.challenge(new AnResultset(chcols).results(yourchallenges))
 				.entities(entities);
+
+		exNyquvect = Nyquence.clone(myNyquvect);
 	}
 
 	public void addAnswer(AnResultset answer) throws SemanticException {
@@ -102,14 +108,6 @@ public class ExchangeContext {
 	}
 
 	private String session;
+
 	public String session() { return session; }
-
-//	Exchanging exstep;
-//	public Exchanging step(Exchanging stepping) {
-//		return exstep;
-//	}
-
-//	public Exchanging step() {
-//		return exstep;
-//	}
 }

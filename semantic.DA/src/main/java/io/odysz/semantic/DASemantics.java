@@ -9,6 +9,7 @@ import static io.odysz.common.LangExt.str;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -924,7 +925,7 @@ public class DASemantics {
 	}
 
 	static class ShAutoKPrefix extends SemanticHandler {
-		String prefixCol;
+		String[] prefixCols;
 
 		ShAutoKPrefix(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.autoInc, tabl, pk, args);
@@ -932,7 +933,7 @@ public class DASemantics {
 				throw new SemanticException("AUTO pk with profix (autok)'s configuration is not correct. tabl = %s, pk = %s, args: %s",
 						tabl, pk, LangExt.toString(args));
 			else if (args.length >= 2)
-				prefixCol = args[1];
+				prefixCols = Arrays.copyOfRange(args, 1, args.length);
 
 			insert = true;
 		}
@@ -943,7 +944,6 @@ public class DASemantics {
 			if (cols.containsKey(args[0]) // with nv from client
 					&& cols.get(args[0]) < row.size()) { // with nv must been generated from semantics
 				autonv = row.get(cols.get(args[0]));
-
 			}
 			else {
 				autonv = new Object[2];
@@ -953,32 +953,61 @@ public class DASemantics {
 			autonv[0] = args[0];
 
 			// prefix
+			/*
 			Object[] prefixnv = null;
 			if (cols.containsKey(prefixCol))
 				prefixnv = row.get(cols.get(prefixCol));
 			else
 				prefixnv = new Object[] {prefixCol, null};
 			Object prefixVal = (len(prefixnv) > 1) ? prefixnv[1] : null;// ix(prefixnv, 1);
+			*/
+			String prefix = "";
+			if (prefixCols != null)
+				for (String precol : prefixCols)
+					if (cols.containsKey(precol)) {
+						if (prefix.length() > 0)
+							prefix += ".";
 
+						Object[] v = row.get(cols.get(precol));
+						if (v[1] instanceof AbsPart)
+							try {
+								prefix += unquote((AbsPart)v[1]);
+							} catch (TransException e) {
+								e.printStackTrace();
+								prefix += precol;
+							}
+						else prefix += v[1] == null ? "" : v[1].toString();
+					}
 
 			try {
 				Object alreadyResulved = stx.resulvedVal(target, args[0]);
-				if (verbose && alreadyResulved != null)
+				if (verbose && alreadyResulved != null && isNull(prefixCols))
 					// 1. When cross fk referencing happened, this branch will reached by handling post inserts.
 					// 2. When multiple children inserting, this happens
 					Utils.warn(
 						"Debug Notes(verbose): Found an already resulved value (%s) while handling %s auto-key generation. Replacing ...",
 						alreadyResulved, target);
-				// side effect: generated auto key already been put into autoVals, which can be referenced later.
-				String ak = isblank(prefixCol)
+				
+				if (alreadyResulved == null && isblank(autonv[1])) {
+					// side effect: generated auto key already been put into autoVals, which can be referenced later.
+					String ak = isblank(prefix)
 						? stx.genId(stx.connId(), target, args[0])
-						: String.format("%s.%s",
-								isblank(prefixVal) ? prefixCol : prefixVal.toString(),
-								stx.genId(stx.connId(), target, args[0]));
-				autonv[1] = trxt.quotation(ak, stx.connId(), target, args[0]);
+						: stx.genId(stx.connId(), target, args[0], prefix);
+					autonv[1] = trxt.quotation(ak, stx.connId(), target, args[0]);
+				}
+				else if (alreadyResulved != null && isblank(autonv[1]))
+					autonv[1] = alreadyResulved;
+				// else use user providen autonv[1]
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();
 			}
+		}
+
+		private String unquote(AbsPart prefixVal) throws TransException {
+			return prefixVal == null ? ""
+					: prefixVal.sql(null)
+					.replaceAll("^\s*'", "")
+					.replaceAll("'\s*$", "");
 		}
 	}
 
