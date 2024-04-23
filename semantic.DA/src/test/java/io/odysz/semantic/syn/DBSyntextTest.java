@@ -662,8 +662,8 @@ public class DBSyntextTest {
 			DBSynsactBuilder ctb, int test, int subno)
 			throws TransException, SQLException, IOException, InterruptedException {
 		int no = 0;
-		ExchangeContext cx = new ExchangeContext(chm, ctb, stb.synode());
-		ExchangeContext sx = new ExchangeContext(cx.session(), chm, stb, ctb.synode());
+		ExchangeContext cx = new ExchangeContext(chm, stb.synode());
+		ExchangeContext sx = new ExchangeContext(cx.session(), chm, ctb.synode());
 
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ChangeLogs ini2srv = ctb.initExchange(cx, stb.synode(), null);
@@ -695,7 +695,7 @@ public class DBSyntextTest {
 
 		// client lost connection (shut down) and initiate new session 
 		Utils.logrst(new String[] {ctb.synode(), "initiate new exchange (local committed)"}, test, subno, ++no);
-		cx = new ExchangeContext(chm, ctb, stb.synode());
+		cx = new ExchangeContext(chm, stb.synode());
 
 		ini2srv = ctb.initExchange(cx, stb.synode(), null);
 		assertNotNull(ini2srv);
@@ -745,7 +745,7 @@ public class DBSyntextTest {
 			// Utils.logrst(new String[] {stb.synode(), "reset, state", name(sx.exstate.state)}, test, subno, ++no);
 			assertEquals(sx.exstate.state, ready);
 
-			sx = new ExchangeContext(cx.session(), chm, stb, ctb.synode());
+			sx = new ExchangeContext(cx.session(), chm, ctb.synode());
 			assertEquals(sx.session(), cx.session());
 			assertEquals(sx.exstate.state, ready);
 

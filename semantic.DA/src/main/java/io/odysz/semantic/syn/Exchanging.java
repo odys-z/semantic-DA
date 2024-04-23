@@ -59,7 +59,8 @@ public class Exchanging extends Anson {
 	}
 
 	public int close () {
-		if (mode == mode_client && (state == confirming || state == init))
+		if (mode == mode_client && (state == confirming || state == init)
+		 || mode == mode_server && state == ready)
 			state = ready;
 		return state;
 	}

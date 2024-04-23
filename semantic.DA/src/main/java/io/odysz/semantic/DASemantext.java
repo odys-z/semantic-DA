@@ -40,7 +40,8 @@ import io.odysz.transact.x.TransException;
 
 import static io.odysz.common.LangExt.isNull;
 
-/**A basic semantic context for generating sql.
+/**
+ * A basic semantic context for generating sql.
  * Handling semantics defined in runtime-root/semantics.xml file.
  *
  * <p>For example, {@link #pageSql(String, int, int)} is an example that must
@@ -345,9 +346,12 @@ end;
 	}
 
 	public static int file_sys = 0; 
-	/**Try generate a radix 64 string of v.
+
+	/**
+	 * Try generate a radix 64 string of v.
 	 * String length is controlled by connfigs.xml/k=db-len, overriding default 8 for windows, or 6 for others.
 	 * If configs.xml/k=filesys is "windows", then generate a radix 32 string.
+	 * 
 	 * @param v
 	 * @return radix 64/32
 	 */

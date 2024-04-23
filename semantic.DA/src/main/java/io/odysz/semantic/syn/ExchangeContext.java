@@ -83,8 +83,9 @@ public class ExchangeContext {
 	 * @param entities
 	 * @throws SemanticException
 	 */
-	public void buffChanges(HashMap<String,Nyquence> myNyquvect, HashMap<String, Object[]> chcols, ArrayList<ArrayList<Object>> yourchallenges,
-			HashMap<String, AnResultset> entities) throws SemanticException {
+	public void buffChanges(HashMap<String,Nyquence> myNyquvect, HashMap<String, Object[]> chcols,
+			ArrayList<ArrayList<Object>> yourchallenges, HashMap<String, AnResultset> entities)
+			throws SemanticException {
 		if (onchanges != null && onchanges.challenge != null && onchanges.challenge.size() > 0)
 			throw new SemanticException("There is challenges already buffered for committing.");
 		onchanges = new ChangeLogs(chgm)

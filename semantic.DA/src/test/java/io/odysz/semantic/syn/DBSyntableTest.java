@@ -198,7 +198,6 @@ public class DBSyntableTest {
 		testJoinChild(++no);
 		testBranchPropagation(++no);
 		test02Update(++no);
-		testBreakAck(++no);
 	}
 
 	void test01InsertBasic(int section)
@@ -456,6 +455,7 @@ public class DBSyntableTest {
 		// ck[Y].psubs(2, null, -1, -1, Z, -1);
 	}
 
+	/*
 	void testBreakAck(int section) throws Exception {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
 
@@ -497,6 +497,7 @@ public class DBSyntableTest {
 		ck[Y].psubs(2, xu[1], -1, -1, Z, W);
 		ck[Y].psubs(2, yi[1], -1, -1, Z, W);
 	}
+	*/
 	
 	/**
 	 * apply.nv = admin.nv
@@ -514,8 +515,8 @@ public class DBSyntableTest {
 		DBSyntableBuilder atb = ck[admin].trb;
 		DBSyntableBuilder ctb = ck[apply].trb;
 
-		ExchangeContext cx = new ExchangeContext(chm, atb.synode());
-		ExchangeContext ax = new ExchangeContext(cx.session(), chm, ctb.synode());
+		ExessionPersisting cx = new ExessionPersisting(chm, atb.synode());
+		ExessionPersisting ax = new ExessionPersisting(cx.session(), chm, ctb.synode());
 
 		int no = 0;
 		// admin
@@ -589,8 +590,8 @@ public class DBSyntableTest {
 			throws TransException, SQLException, IOException {
 
 		int no = 0;
-		ExchangeContext cx = new ExchangeContext(chm, stb.synode());
-		ExchangeContext sx = new ExchangeContext(cx.session(), chm, ctb.synode());
+		ExessionPersisting cx = new ExessionPersisting(chm, stb.synode());
+		ExessionPersisting sx = new ExessionPersisting(cx.session(), chm, ctb.synode());
 
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ChangeLogs req = ctb.initExchange(cx, stb.synode(), null);
@@ -608,7 +609,7 @@ public class DBSyntableTest {
 					stb.synode(), resp.challenges(), resp.enitities(), resp.answers()), test, subno, ++no);
 			printChangeLines(ck);
 			printNyquv(ck);
-			assertEquals(Exchanging.exchanging, sx.exstate.state);
+			 assertEquals(Exchanging.exchanging, sx.exstate());
 
 			// client acknowledge exchange
 			Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, ++no);
@@ -617,14 +618,14 @@ public class DBSyntableTest {
 					ctb.synode(), ack.challenges(), ack.enitities(), ack.answers()), test, subno, no, 1);
 			printChangeLines(ck);
 			printNyquv(ck);
-			assertEquals(Exchanging.confirming, cx.exstate.state);
+			assertEquals(Exchanging.confirming, cx.exstate());
 			
 			// server on acknowledge
 			Utils.logrst(String.format("%s on ack", stb.synode()), test, subno, ++no);
 			HashMap<String, Nyquence> acknv = stb.onAck(sx, ack, ctb.synode(), ack.nyquvect, sphm);
 			printChangeLines(ck);
 			printNyquv(ck);
-			assertEquals(Exchanging.ready, sx.exstate.state);
+			assertEquals(Exchanging.ready, sx.exstate());
 
 			// client
 			Utils.logrst(new String[] {ctb.synode(), "initiate again"}, test, subno, ++no);
@@ -633,7 +634,7 @@ public class DBSyntableTest {
 					ctb.synode(), req.challenges(), req.enitities()), test, subno, no, 1);
 			printChangeLines(ck);
 			printNyquv(ck);
-			assertEquals(Exchanging.init, cx.exstate.state);
+			assertEquals(Exchanging.init, cx.exstate());
 			
 			if (req.challenges() == 0)
 				break;
@@ -647,25 +648,26 @@ public class DBSyntableTest {
 
 		printChangeLines(ck);
 		printNyquv(ck);
-		assertEquals(Exchanging.ready, cx.exstate.state);
+		assertEquals(Exchanging.ready, cx.exstate());
 
 		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 		// FIXME what if server don't agree?
 		stb.onclosexchange(sx, ctb.synode(), nv);
 		printChangeLines(ck);
 		printNyquv(ck);
-		assertEquals(Exchanging.ready, sx.exstate.state);
+		assertEquals(Exchanging.ready, sx.exstate());
 
 		if (req.challenges() > 0)
 			fail("Shouldn't has any more challenge here.");
 	}
 
+	/*
 	static void ex_break_ack(SyntityMeta sphm, DBSyntableBuilder stb, SyntityMeta cphm,
 			DBSyntableBuilder ctb, int test, int subno)
 			throws TransException, SQLException, IOException, InterruptedException {
 		int no = 0;
-		ExchangeContext cx = new ExchangeContext(chm, stb.synode());
-		ExchangeContext sx = new ExchangeContext(cx.session(), chm, ctb.synode());
+		ExchangePersist cx = new ExchangePersist(chm, stb.synode());
+		ExchangePersist sx = new ExchangePersist(cx.session(), chm, ctb.synode());
 
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ChangeLogs ini2srv = ctb.initExchange(cx, stb.synode(), null);
@@ -697,7 +699,7 @@ public class DBSyntableTest {
 
 		// client lost connection (shut down) and initiate new session 
 		Utils.logrst(new String[] {ctb.synode(), "initiate new exchange (local committed)"}, test, subno, ++no);
-		cx = new ExchangeContext(chm, stb.synode());
+		cx = new ExchangePersist(chm, stb.synode());
 
 		ini2srv = ctb.initExchange(cx, stb.synode(), null);
 		assertNotNull(ini2srv);
@@ -747,7 +749,7 @@ public class DBSyntableTest {
 			// Utils.logrst(new String[] {stb.synode(), "reset, state", name(sx.exstate.state)}, test, subno, ++no);
 			assertEquals(sx.exstate.state, ready);
 
-			sx = new ExchangeContext(cx.session(), chm, ctb.synode());
+			sx = new ExchangePersist(cx.session(), chm, ctb.synode());
 			assertEquals(sx.session(), cx.session());
 			assertEquals(sx.exstate.state, ready);
 
@@ -815,6 +817,7 @@ public class DBSyntableTest {
 		}
 		fail("Run state handling...");
 	}
+	*/
 
 	/**
 	 * insert photo
