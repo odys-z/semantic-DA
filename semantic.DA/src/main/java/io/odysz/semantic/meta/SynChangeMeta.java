@@ -36,6 +36,8 @@ public class SynChangeMeta extends TableMeta {
 	/** updated fields when updating an entity */
 	public final String updcols;
 
+	public final String timestamp;
+
 	static {
 	}
 
@@ -45,15 +47,16 @@ public class SynChangeMeta extends TableMeta {
 
 		ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
 
-		pk      = "cid";
-		domain  = "domain";
-		entbl   = "tabl";
-		entfk   = "entfk";
-		crud    = "crud";
-		synoder = "synoder";
-		uids    = "uids";
-		nyquence= "nyquence";
-		updcols = "updcols";
+		pk       = "cid";
+		domain   = "domain";
+		entbl    = "tabl";
+		entfk    = "entfk";
+		crud     = "crud";
+		synoder  = "synoder";
+		uids     = "uids";
+		nyquence = "nyquence";
+		updcols  = "updcols";
+		timestamp= "timestamp";
 	}
 
 	public String[] cols() {
