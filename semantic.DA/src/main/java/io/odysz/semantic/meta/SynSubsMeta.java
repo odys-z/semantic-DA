@@ -1,6 +1,5 @@
 package io.odysz.semantic.meta;
 
-import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.len;
 import static io.odysz.common.Utils.loadTxt;
 
@@ -9,11 +8,7 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.syn.DBSynmantics;
-import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.sql.parts.Resulving;
-import io.odysz.transact.x.TransException;
 
 /**
  * <a href="./syn_subscribe.sqlite.ddl">syn_sbuscribe DDL</a>
@@ -21,7 +16,7 @@ import io.odysz.transact.x.TransException;
  * @author Ody
  *
  */
-public class SynSubsMeta extends TableMeta {
+public class SynSubsMeta extends SemanticTableMeta {
 
 	final SynChangeMeta chgm;
 
@@ -115,7 +110,6 @@ public class SynSubsMeta extends TableMeta {
 	 * @return
 	 * @throws SQLException
 	 * @throws TransException
-	 */
 	public SynSubsMeta replace() throws SQLException, TransException {
 		TableMeta mdb = Connects.getMeta(conn, tbl);
 		if (!(mdb instanceof SyntityMeta))
@@ -124,4 +118,5 @@ public class SynSubsMeta extends TableMeta {
 			this.ftypes = mdb.ftypes();
 		return this;
 	}
+	 */
 }
