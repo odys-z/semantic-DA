@@ -7,7 +7,6 @@ import io.odysz.semantics.meta.Semantation;
  *<a href="./syn_change.sqlite.ddl">syn_change DDL</a>
  *
  * @author odys-z@github.com
- *
  */
 public class SynChangeMeta extends SemanticTableMeta {
 	/** Separator in uids, ",", for separating fields of pk */
@@ -56,20 +55,4 @@ public class SynChangeMeta extends SemanticTableMeta {
 	public String uids(String synode, String entityId) {
 		return synode + UIDsep + entityId; // Funcall.concatstr(synode, UIDsep, entityId);
 	}
-
-	/**
-	 * ISSUE: why not merge with {@link SyntityMeta#replace()}?
-	 * @return
-	 * @throws SQLException
-	 * @throws TransException
-	public SynChangeMeta replace() throws SQLException, TransException {
-		TableMeta mdb = Connects.getMeta(conn, tbl);
-		if (!(mdb instanceof SyntityMeta))
-			DBSynmantics.replaceMeta(tbl, this, conn);
-		if (isNull(this.ftypes) && mdb.ftypes() != null)
-			this.ftypes = mdb.ftypes();
-		return this;
-	}
-	 */
-
 }
