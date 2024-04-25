@@ -55,7 +55,10 @@ import io.odysz.transact.x.TransException;
  * Improved by temporary tables for broken network (and shutdown), concurrency and memory usage.
  * 
  * <pre>
+ * 1 X <= Y
  * 1.1 X.inc(nyqstamp), Y.inc(nyqstamp), and later Y insert new entity
+ * NOTE: in concurrency, inc(nyqstamp) is not reversible, so an exchange is starting from here
+ * 
  * X.challenge = 0, X.answer = 0
  * Y.challenge = 0, Y.answer = 0
  * 
@@ -74,24 +77,41 @@ import io.odysz.transact.x.TransException;
  * Z [   0,   0,   1,     ]
  * W [    ,    ,    ,     ]
  * 
- * 1.2
- * Y push changes block by block, by setting change.syn = challenging
- * X save challenges, save and reply answers block by block, and reply with X's challenges (saved)
+ * 1.2 Y init exchange
  * 
- * Y.req = {challenge: 0, answer: null}
- * Y.challeng++, X.answer = Y.challenge
+ * Y.exchange[X] = select changes where n > Y.x
+ * X.exchange[Y] = select changes where n > X.y
  * 
- * X.rep = {challenge: 0, ..., answer: req.challenge}
- * X.challeng++, Y.answer = X.challenge
+ * x.expectChallenge = y.challengeId = 0
+ * y.expectAnswer = x.answerId = 0
  * 
- * 1.2.1 Y on exchange reply
+ * y.challenge = y.exchange[X][i]
+ * yreq = { y.challengeId, y.challenge
+ * 			y.answerId, answer: null}
+ * y.challengeId++
+ *     
+ * for i++:
+ *     if x.expectChallenge != yreq.challengeId:
+ *         xrep = {requires: x.expectChallenge, answered: x.answerId}
+ *     else:
+ *         xrep = { x.challengeId, challenge: X.exchange[Y][j],
+ *     			answerId: y.challengeId, answer: X.answer(yreq.challenge)}
+ *     x.challengeId++
+ * 
+ * 1.2.1 onRequires()
+ * Y:
+ *     if rep.answerId == my.challengeId:
+ *         # what's here?
+ *     else:
+ *         i = rep.requires
+ *         go for i loop
+ * 
+ * 1.3 Y closing
+ * 
  * Y update challenges with X's answer, block by block
- * X clear saved answers, block-wisely
+ * Y clear saved answers, block-wisely
  * 
- * Y.ack = {challenge: 0, ..., answer: rep.challenge}
- * 
- * 1.2.2 X on confirming
- * X update challenges with Y's answer, block by block
+ * Y.ack = {challenge, ..., answer: rep.challenge}
  * 
  *                X               |               Y               |               Z               |               W               
  * -------------------------------+-------------------------------+-------------------------------+-------------------------------
@@ -203,6 +223,29 @@ public class DBSyntableBuilder extends DATranscxt {
 		this.synm.replace().autopk(false);
 	}
 	
+
+	public void abortExchange(ExessionPersisting cx, String synode, Object object) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public ChangeLogs onInit(ExessionPersisting sx, String synode, HashMap<String, Nyquence> nyquvect2,
+			ChangeLogs req) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object nextblock() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	public ChangeLogs changeblock(ExessionPersisting cx, String synode, Object object) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////
 	DBSyntableBuilder loadNyquvect0(String conn) throws SQLException, TransException {
 		AnResultset rs = ((AnResultset) select(synm.tbl)
 				.cols(synm.pk, synm.nyquence)

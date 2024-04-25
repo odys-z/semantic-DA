@@ -597,47 +597,35 @@ public class DBSyntableTest {
 		ChangeLogs req = ctb.initExchange(cx, stb.synode(), null);
 		assertNotNull(req);
 		assertEquals(Exchanging.init, req.stepping().state);
+
+		ctb.abortExchange(cx, stb.synode(), null);
+		req = ctb.initExchange(cx, stb.synode(), null);
+		Utils.logrst(String.format("%s initiate:   changes: %d    entities: %d",
+				ctb.synode(), req.challenges(), req.enitities(cphm.tbl)), test, subno, ++no);
 		
-		Utils.logrst(String.format("%s initiate    changes: %d    entities: %d",
+		ChangeLogs rep = stb.onInit(sx, ctb.synode(), req.nyquvect, req);
+		Utils.logrst(String.format("%s on initiate: changes: %d    entities: %d",
 				ctb.synode(), req.challenges(), req.enitities(cphm.tbl)), test, subno, ++no);
 
-		while (req != null) {
+		while (ctb.nextblock() != null) {
+			req = ctb.changeblock(cx, stb.synode(), null);
 			// server
 			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
-			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), req.nyquvect, req);
+			rep = stb.onExchange(sx, ctb.synode(), req.nyquvect, req);
 			Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
-					stb.synode(), resp.challenges(), resp.enitities(), resp.answers()), test, subno, ++no);
+					stb.synode(), rep.challenges(), rep.enitities(), rep.answers()), test, subno, ++no);
 			printChangeLines(ck);
 			printNyquv(ck);
-			 assertEquals(Exchanging.exchanging, sx.exstate());
+			assertEquals(Exchanging.exchanging, sx.exstate());
 
-			// client acknowledge exchange
+			// client
 			Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, ++no);
-			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode(), resp.nyquvect);
-			Utils.logrst(String.format("%s ack exchange acknowledge    changes: %d    entities: %d    answers: %d",
-					ctb.synode(), ack.challenges(), ack.enitities(), ack.answers()), test, subno, no, 1);
+			ChangeLogs cnf = ctb.confirm(cx, rep, stb.synode(), rep.nyquvect);
+			Utils.logrst(String.format("%s confirm    changes: %d    entities: %d    answers: %d",
+					ctb.synode(), cnf.challenges(), cnf.enitities(), cnf.answers()), test, subno, no, 1);
 			printChangeLines(ck);
 			printNyquv(ck);
 			assertEquals(Exchanging.confirming, cx.exstate());
-			
-			// server on acknowledge
-			Utils.logrst(String.format("%s on ack", stb.synode()), test, subno, ++no);
-			HashMap<String, Nyquence> acknv = stb.onAck(sx, ack, ctb.synode(), ack.nyquvect, sphm);
-			printChangeLines(ck);
-			printNyquv(ck);
-			assertEquals(Exchanging.ready, sx.exstate());
-
-			// client
-			Utils.logrst(new String[] {ctb.synode(), "initiate again"}, test, subno, ++no);
-			req = ctb.initExchange(cx, stb.synode(), acknv);
-			Utils.logrst(String.format("%s initiate again    changes: %d    entities: %d",
-					ctb.synode(), req.challenges(), req.enitities()), test, subno, no, 1);
-			printChangeLines(ck);
-			printNyquv(ck);
-			assertEquals(Exchanging.init, cx.exstate());
-			
-			if (req.challenges() == 0)
-				break;
 		}
 
 		assertNotNull(req);
@@ -660,164 +648,6 @@ public class DBSyntableTest {
 		if (req.challenges() > 0)
 			fail("Shouldn't has any more challenge here.");
 	}
-
-	/*
-	static void ex_break_ack(SyntityMeta sphm, DBSyntableBuilder stb, SyntityMeta cphm,
-			DBSyntableBuilder ctb, int test, int subno)
-			throws TransException, SQLException, IOException, InterruptedException {
-		int no = 0;
-		ExchangePersist cx = new ExchangePersist(chm, stb.synode());
-		ExchangePersist sx = new ExchangePersist(cx.session(), chm, ctb.synode());
-
-		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
-		ChangeLogs ini2srv = ctb.initExchange(cx, stb.synode(), null);
-		assertNotNull(ini2srv);
-		assertEquals(sx.session(), ini2srv.session());
-		
-		Utils.logrst(String.format("%s initiate    changes: %d    entities: %d",
-				ctb.synode(), ini2srv.challenges(), ini2srv.enitities(cphm.tbl)), test, subno, ++no);
-
-		// server
-		Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
-		ChangeLogs resp2client = stb.onExchange(sx, ctb.synode(), ctb.nyquvect, ini2srv);
-		Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
-				stb.synode(), resp2client.challenges(), resp2client.enitities(), resp2client.answers()), test, subno, ++no);
-		printChangeLines(ck);
-		printNyquv(ck);
-
-		// client acknowledge exchange
-		Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, ++no);
-		ChangeLogs ack2srv = ctb.ackExchange(cx, resp2client, stb.synode(), resp2client.nyquvect);
-		Utils.logrst(String.format("%s ack exchange acknowledge    changes: %d    entities: %d    answers: %d",
-				ctb.synode(), ack2srv.challenges(), ack2srv.enitities(), ack2srv.answers()), test, subno, no, 1);
-		printChangeLines(ck);
-		printNyquv(ck);
-		
-		// client's ack lost
-		Utils.logrst(new String[] {"lost client", ctb.synode(), "'s ack"}, test, subno, ++no);
-		Thread.sleep(100);
-
-		// client lost connection (shut down) and initiate new session 
-		Utils.logrst(new String[] {ctb.synode(), "initiate new exchange (local committed)"}, test, subno, ++no);
-		cx = new ExchangePersist(chm, stb.synode());
-
-		ini2srv = ctb.initExchange(cx, stb.synode(), null);
-		assertNotNull(ini2srv);
-		assertFalse(ini2srv.challenge != null && ini2srv.challenge.size() > 0);
-		Utils.logrst(String.format("%s initiate again    changes: %d    entities: %d",
-				ctb.synode(), ini2srv.challenges(), ini2srv.enitities()), test, subno, no, 1);
-
-		Utils.logrst(new String[] {stb.synode(), "on initiate exchange"}, test, subno, ++no);
-		assertNotEquals(sx.session(), ini2srv.session());
-		assertEquals(ini2srv.stepping().state, init);
-
-		Utils.logrst(String.format("%s on-exchange, throw exception, go %s",
-				stb.synode(), name(confirming)), test, subno, no, 1);
-
-		Nyquence nyqClient = null; 
-		try {
-			// requires continuing on server confirming 
-			assertEquals(exchanging, sx.exstate.state);
-			nyqClient = stb.nyquvect.get(ctb.synode());
-			resp2client = stb.onExchange(sx, ctb.synode(), ini2srv.nyquvect, ini2srv);
-
-			// shouldn't step X.y
-			assertEquals(0, Nyquence.compareNyq(nyqClient, stb.nyquvect.get(ctb.synode())));
-		}
-		catch (ExchangeException expAck) {
-			assertEquals(confirming, expAck.requires());
-			Utils.logrst(String.format("%s, continue to %s", expAck.getClass().getName(), name(confirming)),
-						test, subno, ++no);
-
-			Utils.logrst(new String[] {stb.synode(), "abort session", sx.session(), ", clean buffer"}, test, subno, ++no);
-			// HashMap<String, Nyquence> nv = stb.onAck(sx, req, ctb.synode(), req.nyquvect, sphm);
-			stb.cleanAckBuffer(sx, ini2srv, ctb.synode(), sx.exNyquvect, cphm);
-
-			assertTrue(sx.mychallenge.challenges() > 0);
-			assertEquals(0, Nyquence.compareNyq(nyqClient, stb.nyquvect.get(ctb.synode())));
-			// stb.onclosexchange(sx, ctb.synode(), nv);
-			// client now is expecting reply of initExchange() 
-
-			printChangeLines(ck);
-			printNyquv(ck);
-
-			Utils.logrst(new String[] {stb.synode(), "closse session", sx.session(), ", clean buffer"}, test, subno, ++no);
-			stb.onclosexchange(sx, ctb.synode(), ini2srv.nyquvect);
-			printChangeLines(ck);
-			printNyquv(ck);
-
-			// Utils.logrst(new String[] {stb.synode(), "reset, state", name(sx.exstate.state)}, test, subno, ++no);
-			assertEquals(sx.exstate.state, ready);
-
-			sx = new ExchangePersist(cx.session(), chm, ctb.synode());
-			assertEquals(sx.session(), cx.session());
-			assertEquals(sx.exstate.state, ready);
-
-			HashMap<String, Nyquence> nv = null;
-			while (ini2srv != null) {
-				// server
-				Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
-				resp2client = stb.onExchange(sx, ctb.synode(), ini2srv.nyquvect, ini2srv);
-				Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
-						stb.synode(), resp2client.challenges(), resp2client.enitities(), resp2client.answers()), test, subno, ++no);
-				printChangeLines(ck);
-				printNyquv(ck);
-				assertEquals(Exchanging.exchanging, sx.exstate.state);
-
-				// client acknowledge exchange
-				Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, ++no);
-				ack2srv = ctb.ackExchange(cx, resp2client, stb.synode(), resp2client.nyquvect);
-				Utils.logrst(String.format("%s ack exchange acknowledge    changes: %d    entities: %d    answers: %d",
-						ctb.synode(), ack2srv.challenges(), ack2srv.enitities(), ack2srv.answers()), test, subno, no, 1);
-				printChangeLines(ck);
-				printNyquv(ck);
-				assertEquals(Exchanging.confirming, cx.exstate.state);
-
-				// server on acknowledge
-				Utils.logrst(String.format("%s on ack", stb.synode()), test, subno, ++no);
-				nv = stb.onAck(sx, ack2srv, ctb.synode(), ack2srv.nyquvect, sphm);
-				printChangeLines(ck);
-				printNyquv(ck);
-				assertEquals(Exchanging.ready, sx.exstate.state);
-
-				// client
-				Utils.logrst(new String[] {ctb.synode(), "initiate again"}, test, subno, ++no);
-				ini2srv = ctb.initExchange(cx, stb.synode(), nv);
-				Utils.logrst(String.format("%s initiate again    changes: %d    entities: %d",
-						ctb.synode(), ini2srv.challenges(), ini2srv.enitities()), test, subno, no, 1);
-				printChangeLines(ck);
-				printNyquv(ck);
-				assertEquals(Exchanging.init, cx.exstate.state);
-				
-				if (ini2srv.challenges() == 0)
-					break;
-			}
-
-			assertNotNull(ini2srv);
-			assertEquals(0, ini2srv.challenge == null ? 0 : ini2srv.challenge.size());
-			assertEquals(Exchanging.init, ini2srv.stepping().state);
-
-			Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
-			nv = ctb.closexchange(cx, stb.synode(), Nyquence.clone(stb.nyquvect));
-
-			printChangeLines(ck);
-			printNyquv(ck);
-			assertEquals(Exchanging.ready, cx.exstate.state);
-
-			Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
-			stb.onclosexchange(sx, ctb.synode(), nv);
-			printChangeLines(ck);
-			printNyquv(ck);
-			assertEquals(Exchanging.ready, sx.exstate.state);
-
-			if (ini2srv.challenges() > 0)
-				fail("Shouldn't has any more challenge here.");
-
-			return;
-		}
-		fail("Run state handling...");
-	}
-	*/
 
 	/**
 	 * insert photo
