@@ -587,7 +587,7 @@ public class DBSyntableTest {
 		ExchangeBlock toExchange = ctb.initExchange(cp, stb.synode(), null);
 		assertTrue(toExchange.changes() > 0);
 
-		ctb.abortExchange(cp, stb.synode(), null);
+		ctb.abortExchange(cp, stb.synode(), new ExchangeBlock(sp.session(), stb.nyquvect));
 		toExchange = ctb.initExchange(cp, stb.synode(), null);
 		Utils.logrst(String.format("%s initiate changes: %d",
 				ctb.synode(), toExchange.changes()), test, subno, ++no);

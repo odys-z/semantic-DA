@@ -226,6 +226,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		this.synm.replace();
 	}
 	
+	////////////////////////////// protocol API ////////////////////////////////
 	/**
 	 * insert into exchanges select * from change_logs where n > nyquvect[target].n
 	 * 
@@ -244,20 +245,18 @@ public class DBSyntableBuilder extends DATranscxt {
 		return new ExchangeBlock(synode(), nyquvect);
 	}
 
-	public void abortExchange(ExessionPersisting cx, String target, Object object) {
+	public void abortExchange(ExessionPersisting cx, String target, ExchangeBlock rep) {
 	}
 	
 	public ExchangeBlock onInit(ExessionPersisting sx, ExchangeBlock inireq) {
 		return null;
 	}
 
-	public Object nextblock() {
-		// TODO Auto-generated method stub
+	public ExchangeBlock nextblock() {
 		return null;
 	}
 	
 	public ExchangeBlock exchangeBlock(ExessionPersisting cx, String synode, Object object) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
