@@ -108,8 +108,8 @@ public class DBSynsactBuilder extends DATranscxt {
 		this.chgm.replace();
 		this.subm = subm != null ? subm : new SynSubsMeta(chgm, conn);
 		this.subm.replace();
-		this.synm = synm != null ? synm : new SynodeMeta(conn, this);
-		this.synm.replace().autopk(false);
+		this.synm = synm != null ? synm : (SynodeMeta) new SynodeMeta(conn, this).autopk(false);
+		this.synm.replace();
 	}
 	
 	DBSynsactBuilder loadNyquvect0(String conn) throws SQLException, TransException {

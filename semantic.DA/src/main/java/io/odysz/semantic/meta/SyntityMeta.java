@@ -1,7 +1,6 @@
 package io.odysz.semantic.meta;
 
 import static io.odysz.common.LangExt.eq;
-import static io.odysz.common.LangExt.isNull;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -10,8 +9,6 @@ import java.util.HashSet;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.syn.DBSynmantics;
-import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
@@ -22,7 +19,7 @@ import io.odysz.transact.x.TransException;
  * @author odys-z@github.com
  *
  */
-public abstract class SyntityMeta extends TableMeta {
+public abstract class SyntityMeta extends SemanticTableMeta {
 
 	/**
 	 * exposed to subclass to change
@@ -71,7 +68,6 @@ public abstract class SyntityMeta extends TableMeta {
 	 * @return this
 	 * @throws TransException
 	 * @throws SQLException 
-	 */
 	@SuppressWarnings("unchecked")
 	public <T extends SyntityMeta> T replace() throws TransException, SQLException {
 		TableMeta mdb = Connects.getMeta(conn, tbl);
@@ -81,6 +77,7 @@ public abstract class SyntityMeta extends TableMeta {
 			this.ftypes = mdb.ftypes();
 		return (T) this;
 	}
+	 */
 	
 	public HashSet<String> globalIds() { return uids; }
 
