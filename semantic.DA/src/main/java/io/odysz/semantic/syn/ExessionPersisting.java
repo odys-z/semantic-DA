@@ -23,7 +23,6 @@ public class ExessionPersisting {
 	final SynChangeMeta chgm;
 
 	String target;
-	private Exchanging exstate;
 
 	/**
 	 * My challenges initiated by
@@ -88,9 +87,9 @@ public class ExessionPersisting {
 			ArrayList<ArrayList<Object>> yourchallenges, HashMap<String, AnResultset> entities)
 			throws SemanticException {
 
-		onchanges = new ChangeLogs(chgm)
-				.challenge(new AnResultset(chcols).results(yourchallenges))
-				.entities(entities);
+//		onchanges = new ExchangeBlock(srcnode, null)
+//				.challenge(new AnResultset(chcols).results(yourchallenges))
+//				.entities(entities);
 
 		exNyquvect = Nyquence.clone(myNyquvect);
 	}
@@ -100,12 +99,18 @@ public class ExessionPersisting {
 	}
 
 	private String session;
-
 	public String session() { return session; }
+
+	private Exchanging exstate;
+	public int exstate() { return exstate.state; }
 
 	public void can(int go) throws ExchangeException {
 		exstate.can(go);
 	}
 
-	public int exstate() { return exstate.state; }
+	public int expChallengeID;
+	public int expAnswerID;
+
+	public int challengeId;
+	public int answerId;
 }

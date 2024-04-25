@@ -1,15 +1,7 @@
 package io.odysz.semantic.meta;
 
-import static io.odysz.common.LangExt.isNull;
-
-import java.sql.SQLException;
-
 import io.odysz.common.Utils;
-import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.syn.DBSynmantics;
 import io.odysz.semantics.meta.Semantation;
-import io.odysz.semantics.meta.TableMeta;
-import io.odysz.transact.x.TransException;
 
 /**
  *<a href="./syn_change.sqlite.ddl">syn_change DDL</a>
@@ -17,12 +9,12 @@ import io.odysz.transact.x.TransException;
  * @author odys-z@github.com
  *
  */
-public class SynChangeTempMeta extends TableMeta {
+public class SynExhangeBuffMeta extends SemanticTableMeta {
 	/** Separator in uids, ",", for separating fields of pk */
 	@Semantation (noDBExists = true)
 	public final String UIDsep;
 
-	public final String peernode;
+	public final String peer;
 	public final String domain;
 	public final String entbl;
 	/** Entity fk, redundant for convenient, not for synchronizing */
@@ -39,14 +31,14 @@ public class SynChangeTempMeta extends TableMeta {
 	static {
 	}
 
-	public SynChangeTempMeta(String ... conn) {
-		super("syn_change", conn);
+	public SynExhangeBuffMeta(String ... conn) {
+		super("syn_exchanging", conn);
 		UIDsep = ",";
 
-		ddlSqlite = Utils.loadTxt(SynChangeTempMeta.class, "syn_change.sqlite.ddl");
+		ddlSqlite = Utils.loadTxt(SynExhangeBuffMeta.class, "syn_change.sqlite.ddl");
 
 		pk      = "cid";
-		peernode= "peernode";
+		peer    = "peernode";
 		domain  = "domain";
 		entbl   = "tabl";
 		entfk   = "entfk";
@@ -71,7 +63,6 @@ public class SynChangeTempMeta extends TableMeta {
 	 * @return
 	 * @throws SQLException
 	 * @throws TransException
-	 */
 	public SynChangeTempMeta replace() throws SQLException, TransException {
 		TableMeta mdb = Connects.getMeta(conn, tbl);
 		if (!(mdb instanceof SyntityMeta))
@@ -80,5 +71,6 @@ public class SynChangeTempMeta extends TableMeta {
 			this.ftypes = mdb.ftypes();
 		return this;
 	}
+	 */
 
 }

@@ -108,8 +108,8 @@ public class DBSynsactBuilder extends DATranscxt {
 		this.chgm.replace();
 		this.subm = subm != null ? subm : new SynSubsMeta(chgm, conn);
 		this.subm.replace();
-		this.synm = synm != null ? synm : new SynodeMeta(conn);
-		this.synm.replace().autopk(false);
+		this.synm = synm != null ? synm : (SynodeMeta) new SynodeMeta(conn).autopk(false);
+		this.synm.replace();
 	}
 	
 	DBSynsactBuilder loadNyquvect0(String conn) throws SQLException, TransException {
@@ -154,54 +154,6 @@ public class DBSynsactBuilder extends DATranscxt {
 			throw new TransException(e.getMessage());
 		}
 	}
-
-	/**
-	 * Get DB record change's subscriptions.
-	 * 
-	 * @param conn
-	 * @param uids
-	 * @param entm
-	 * @param robot
-	 * @return results 
-	 * @throws TransException
-	 * @throws SQLException
-	public AnResultset subscribes(String conn, String org, String uids, SyntityMeta entm, IUser robot)
-			throws TransException, SQLException {
-		Query q = select(subm.tbl, "ch")
-				.cols((Object[])subm.cols())
-				.whereEq(subm.domain, org)
-				.whereEq(subm.entbl, entm.tbl);
-
-		if (uids != null)
-			q.whereEq(subm.uids, uids);
-
-		return (AnResultset) q
-				.rs(instancontxt(conn, robot))
-				.rs(0);
-	}
-	 */
-
-	/**
-	 * 
-	 * @param conn
-	 * @param org
-	 * @param uids
-	 * @param entm
-	 * @param robot
-	 * @return results
-	 * @throws TransException
-	 * @throws SQLException
-	public AnResultset subscribes(String conn, String org, Funcall uids, SyntityMeta entm, IUser robot)
-			throws TransException, SQLException {
-		return (AnResultset) select(subm.tbl, "ch")
-				.cols((Object[])subm.cols())
-				.whereEq(subm.domain, org)
-				.whereEq(subm.entbl, entm.tbl)
-				.whereEq(subm.uids, uids)
-				.rs(instancontxt(conn, robot))
-				.rs(0);
-	}
-	 */
 
 	public AnResultset entities(SyntityMeta phm, String connId, IUser usr)
 			throws TransException, SQLException {
