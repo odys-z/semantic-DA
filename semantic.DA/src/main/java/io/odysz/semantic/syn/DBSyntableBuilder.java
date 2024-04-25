@@ -52,8 +52,106 @@ import io.odysz.transact.x.TransException;
 /**
  * Sql statement builder for {@link DBSyntext} for handling database synchronization. 
  * 
- * @author Ody
+ * Improved by temporary tables for broken network (and shutdown), concurrency and memory usage.
+ * 
+ * <pre>
+ * 1.1 X.inc(nyqstamp), Y.inc(nyqstamp), and later Y insert new entity
+ * X.challenge = 0, X.answer = 0
+ * Y.challenge = 0, Y.answer = 0
+ * 
+ *                X               |               Y               |               Z               |               W               
+ * -------------------------------+-------------------------------+-------------------------------+-------------------------------
+ *  I  X.000001  X,000021    1  Z |                               |                               |                               
+ *  I  X.000001  X,000021    1  Y |                               |                               |                               
+ *                                | I  Y.000001  Y,000401    1  X |                               |                               
+ *                                | I  Y.000001  Y,000401    1  Z |                               |                               
+ * -------------------------------+-------------------------------+-------------------------------+-------------------------------
+ *                                | I  Y.000002  Y,000402    2  X |                               |                               
+ *                                | I  Y.000002  Y,000402    2  Z |                               |                               
+ *      X    Y    Z    W
+ * X [   1,   0,   0,     ]
+ * Y [   0,   1,   0,     ]
+ * Z [   0,   0,   1,     ]
+ * W [    ,    ,    ,     ]
+ * 
+ * 1.2
+ * Y push changes block by block, by setting change.syn = challenging
+ * X save challenges, save and reply answers block by block, and reply with X's challenges (saved)
+ * 
+ * Y.req = {challenge: 0, answer: null}
+ * Y.challeng++, X.answer = Y.challenge
+ * 
+ * X.rep = {challenge: 0, ..., answer: req.challenge}
+ * X.challeng++, Y.answer = X.challenge
+ * 
+ * 1.2.1 Y on exchange reply
+ * Y update challenges with X's answer, block by block
+ * X clear saved answers, block-wisely
+ * 
+ * Y.ack = {challenge: 0, ..., answer: rep.challenge}
+ * 
+ * 1.2.2 X on confirming
+ * X update challenges with Y's answer, block by block
+ * 
+ *                X               |               Y               |               Z               |               W               
+ * -------------------------------+-------------------------------+-------------------------------+-------------------------------
+ *  I  X.000001  X,000021    1  Z | I  X.000001  X,000021    1  Z |                               |                               
+ *  I  X.000001  X,000021    1  Y |                               |                               |                               
+ *                                | I  Y.000001  Y,000401    1  Z |                               |                               
+ * -------------------------------+-------------------------------+-------------------------------+-------------------------------
+ *                                | I  Y.000002  Y,000402    2  X |                               |                               
+ *                                | I  Y.000002  Y,000402    2  Z |                               |                               
+ *       X    Y    Z    W
+ * X [   1,   0,   0,     ]
+ * Y [   1,   1,   0,     ]
+ * Z [   0,   0,   1,     ]
+ * W [    ,    ,    ,     ]
+ * 
+ * 1.4 X on finishing
+ *                X               |               Y               |               Z               |               W               
+ * -------------------------------+-------------------------------+-------------------------------+-------------------------------
+ *  I  X.000001  X,000021    1  Z | I  X.000001  X,000021    1  Z |                               |                               
+ *  I  Y.000001  Y,000401    1  Z | I  Y.000001  Y,000401    1  Z |                               |                               
+ * -------------------------------+-------------------------------+-------------------------------+-------------------------------
+ *                                | I  Y.000002  Y,000402    2  X |                               |                               
+ *                                | I  Y.000002  Y,000402    2  Z |                               |                               
+ *  
+ *       X    Y    Z    W
+ * X [   1,   1,   0,     ]
+ * Y [   1,   1,   0,     ]
+ * Z [   0,   0,   1,     ]
+ * W [    ,    ,    ,     ]
+ * 
+ * 1.5 Y closing exchange (no change.n < nyqstamp)
+ *                X               |               Y               |               Z               |               W               
+ * -------------------------------+-------------------------------+-------------------------------+-------------------------------
+ *  I  X.000001  X,000021    1  Z | I  X.000001  X,000021    1  Z |                               |                               
+ *  I  Y.000001  Y,000401    1  Z | I  Y.000001  Y,000401    1  Z |                               |                               
+ * -------------------------------+-------------------------------+-------------------------------+-------------------------------
+ *                                | I  Y.000002  Y,000402    2  X |                               |                               
+ *                                | I  Y.000002  Y,000402    2  Z |                               |                               
+ *       X    Y    Z    W
+ * X [   1,   1,   0,     ]
+ * Y [   1,   2,   0,     ]
+ * Z [   0,   0,   1,     ]
+ * W [    ,    ,    ,     ]
  *
+ * 1.3.9 X on closing exchange
+ *                X               |               Y               |               Z               |               W               
+ * -------------------------------+-------------------------------+-------------------------------+-------------------------------
+ *  I  X.000001  X,000021    1  Z | I  X.000001  X,000021    1  Z |                               |                               
+ *  I  Y.000001  Y,000401    1  Z | I  Y.000001  Y,000401    1  Z |                               |                               
+ * -------------------------------+-------------------------------+-------------------------------+-------------------------------
+ *                                | I  Y.000002  Y,000402    2  X |                               |                               
+ *                                | I  Y.000002  Y,000402    2  Z |                               |                               
+ *       X    Y    Z    W
+ * X [   2,   1,   0,     ]
+ * Y [   1,   2,   0,     ]
+ * Z [   0,   0,   1,     ]
+ * W [    ,    ,    ,     ]
+ * </pre>
+ * 
+ * @author Ody
  */
 public class DBSyntableBuilder extends DATranscxt {
 
@@ -407,6 +505,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @return this
 	 * @throws SQLException
 	 * @throws TransException
+	 * @deprecated should move to ExessionPersisting
 	 */
 	DBSyntableBuilder commitChallenges(ExessionPersisting x, String srcnode,
 			HashMap<String, Nyquence> srcnv, long tillN) throws SQLException, TransException {
@@ -420,8 +519,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		missings.remove(synode());
 
 		while (chal.next()) {
-			// if (compareNyq(chal.getLong(chgm.nyquence), tillN) > 0) break;
-
 			String change = chal.getString(chgm.crud);
 			Nyquence chgnyq = getn(chal, chgm.nyquence);
 
@@ -635,6 +732,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	/**
 	 * Find if there are change logs such that chg.n &gt; myvect[remote].n, to be exchanged.
+	 * 
 	 * @param cx 
 	 * @param <T>
 	 * @param target exchange target (server)
@@ -661,7 +759,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 		else {
 			AnResultset challenge = (AnResultset) select(chgm.tbl, "ch")
-				// .je("ch", subm.tbl, "sb", chgm.entbl, subm.entbl, chgm.uids, subm.uids)
 				.je2(subm.tbl, "sb", chgm.pk, subm.changeId)
 				.cols("ch.*", subm.synodee)
 				// FIXME not op.lt, must implement a function to compare nyquence.
@@ -712,8 +809,8 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		x.can(req.stepping().state);
 
-		if (x.onchanges != null && x.onchanges.challenges() > 0)
-			Utils.warn("There are challenges buffered to be commited: %s@%s", from, synode());;
+		// if (x.onchanges != null && x.onchanges.challenges() > 0)
+		// 	Utils.warn("There are challenges buffered to be commited: %s@%s", from, synode());;
 
 		// 2024-04-24 debug notes:
 		// initExchange() will sync parameter nv, which will step nv[target] ahead.
@@ -721,12 +818,15 @@ public class DBSyntableBuilder extends DATranscxt {
 		// My nyquvect should updated after onAck().
 		ChangeLogs myanswer = initExchange(x, from, null);
 
-		x.buffChanges(nyquvect, req.challenge.colnames(), onchanges(myanswer, req, from), req.entities);
-
-		x.exstate.onExchange();
+		// x.buffChanges(nyquvect, req.challenge.colnames(), onchanges(myanswer, req, from), req.entities);
+		// x.exstate.onExchange();
+		x.onExchange(from, nyquvect, req.challenge, req.entities, myanswer);
 		return myanswer.session(x.session()).nyquvect(nyquvect);
 	}
 
+	/**
+	 * @deprecated
+	 */
 	ArrayList<ArrayList<Object>> onchanges(ChangeLogs resp, ChangeLogs req, String srcn)
 			throws SQLException {
 		ArrayList<ArrayList<Object>> changes = new ArrayList<ArrayList<Object>>();
@@ -826,7 +926,8 @@ public class DBSyntableBuilder extends DATranscxt {
 		synyquvectWith(target, ack.nyquvect);
 		n0(maxn(ack.nyquvect, n0()));
 
-		x.exstate.onAck();
+		// x.exstate.onAck();
+		x.onAck();
 		return nyquvect;
 	}
 	
@@ -864,9 +965,8 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	/**
 	 * Update / step my nyquvect with {@code nv}, using max(my.nyquvect, nv).
-	 * If nv[sn] &lt; my_nv[sn], throw SemanticException: can't update my nyquence with early knowledge.
 	 * 
-	 * @param sn whose nyquence in {@code nv} is required to be newer.
+	 * @param sn source node whose nyquence in {@code nv} is required to be newer.
 	 * @param nv
 	 * @return this
 	 * @throws TransException

@@ -20,9 +20,10 @@ import io.odysz.semantics.x.SemanticException;
  * @author Ody
  */
 public class ExessionPersisting {
+	final SynChangeMeta chgm;
 
-	/** Changes to be committed according to the other's challenges */
-	// ChangeLogs onchanges;
+	String target;
+	private Exchanging exstate;
 
 	/**
 	 * My challenges initiated by
@@ -35,12 +36,6 @@ public class ExessionPersisting {
 
 	/** Answers to my challenges, {@link #mychallenge}, with entities in it. */
 	AnResultset saveAnswer(AnResultset answer) { return answer;}
-	
-	String target;
-
-	final SynChangeMeta chgm;
-
-	private Exchanging exstate;
 
 	/**
 	 * Create context at client side.
@@ -82,6 +77,7 @@ public class ExessionPersisting {
 
 	/**
 	 * Buffering changes while responding to {@code challenges}.
+	 * 
 	 * @param myNyquvect 
 	 * @param chcols
 	 * @param yourchallenges
@@ -91,8 +87,7 @@ public class ExessionPersisting {
 	public void buffChanges(HashMap<String,Nyquence> myNyquvect, HashMap<String, Object[]> chcols,
 			ArrayList<ArrayList<Object>> yourchallenges, HashMap<String, AnResultset> entities)
 			throws SemanticException {
-		if (onchanges != null && onchanges.challenge != null && onchanges.challenge.size() > 0)
-			throw new SemanticException("There is challenges already buffered for committing.");
+
 		onchanges = new ChangeLogs(chgm)
 				.challenge(new AnResultset(chcols).results(yourchallenges))
 				.entities(entities);
@@ -100,20 +95,7 @@ public class ExessionPersisting {
 		exNyquvect = Nyquence.clone(myNyquvect);
 	}
 
-//	public void addAnswer(AnResultset answer) throws SemanticException {
-//		// if (mychallenge == null || mychallenge.challenge == null || mychallenge.challenge.size() == 0)
-//		// 	throw new SemanticException("There is no challenge awaiting for any answer.");
-//		// this.answer = answer;
-//		saveAnswer(answer);
-//	}
-
 	public void clear() throws SemanticException {
-		/*
-		if (onchanges != null && onchanges.challenge != null && onchanges.challenge.size() > 0 || answer != null && answer.size() > 0)
-			throw new SemanticException("There are suspending operations needed tobe handled before clearing exchange conctext.\nChallenges: %s, Answers: %s",
-					onchanges == null || onchanges.challenge == null ? 0 : onchanges.challenge.size(),
-					answer == null ? 0 : answer.size());
-		*/
 		exstate.close();
 	}
 

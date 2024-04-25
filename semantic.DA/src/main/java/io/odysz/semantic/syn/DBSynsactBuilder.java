@@ -756,7 +756,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			x.initChallenge(target, diff);
 		
 			x.exstate.initexchange();
-			diff.session(x.session(), x.exstate).nyquvect(this.nyquvect);
+			diff.session(x.session()).nyquvect(this.nyquvect);
 		}
 
 		return diff;
@@ -780,7 +780,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		x.buffChanges(nyquvect, req.challenge.colnames(), onchanges(myanswer, req, from), req.entities);
 
 		x.exstate.onExchange();
-		return myanswer.session(x.session(), x.exstate).nyquvect(nyquvect);
+		return myanswer.session(x.session()).nyquvect(nyquvect);
 	}
 
 	ArrayList<ArrayList<Object>> onchanges(ChangeLogs resp, ChangeLogs req, String srcn)
@@ -848,7 +848,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		myack.nyquvect(Nyquence.clone(nyquvect));
 
 		x.exstate.ack();
-		return myack.session(x.session(), new Exchanging(confirming));
+		return myack.session(x.session());
 	}
 
 	/**
@@ -1044,7 +1044,7 @@ public class DBSynsactBuilder extends DATranscxt {
 					.rs(instancontxt(basictx.connId(), synrobot()))
 					.rs(0))
 				: null); // Following exchange is needed
-		return log.session(chgid, new Exchanging(init));
+		return log.session(chgid);
 	}
 
 	public ChangeLogs onJoining(SynodeMode reqmode, String joining, String domain, String org)
