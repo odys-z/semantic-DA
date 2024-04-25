@@ -14,7 +14,6 @@ public class SynChangeMeta extends SemanticTableMeta {
 	@Semantation (noDBExists = true)
 	public final String UIDsep;
 
-	// public final String cid;
 	public final String domain;
 	public final String entbl;
 	/** Entity fk, redundant for convenient, not for synchronizing */
@@ -29,9 +28,6 @@ public class SynChangeMeta extends SemanticTableMeta {
 	public final String updcols;
 
 	public final String timestamp;
-
-	static {
-	}
 
 	public SynChangeMeta(String ... conn) {
 		super("syn_change", conn);
@@ -59,20 +55,4 @@ public class SynChangeMeta extends SemanticTableMeta {
 	public String uids(String synode, String entityId) {
 		return synode + UIDsep + entityId; // Funcall.concatstr(synode, UIDsep, entityId);
 	}
-
-//	/**
-//	 * ISSUE: why not merge with {@link SyntityMeta#replace()}?
-//	 * @return
-//	 * @throws SQLException
-//	 * @throws TransException
-//	 */
-//	public SynChangeMeta replace() throws SQLException, TransException {
-//		TableMeta mdb = Connects.getMeta(conn, tbl);
-//		if (!(mdb instanceof SyntityMeta))
-//			DBSynmantics.replaceMeta(tbl, this, conn);
-//		if (isNull(this.ftypes) && mdb.ftypes() != null)
-//			this.ftypes = mdb.ftypes();
-//		return this;
-//	}
-
 }
