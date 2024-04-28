@@ -1,28 +1,21 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
-import static io.odysz.semantic.syn.Exchanging.confirming;
-import static io.odysz.semantic.syn.Exchanging.init;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
-import static io.odysz.semantic.syn.Nyquence.maxn;
 import static io.odysz.semantic.util.DAHelper.loadRecNyquence;
 import static io.odysz.semantic.util.DAHelper.loadRecString;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
-import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 
 import org.xml.sax.SAXException;
 
 import io.odysz.anson.x.AnsonException;
-import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DATranscxt;
@@ -36,18 +29,12 @@ import io.odysz.semantic.syn.DBSynsactBuilder.SynmanticsMap;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
-import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
-import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
-import io.odysz.transact.sql.Update;
-import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
-import io.odysz.transact.sql.parts.Sql;
-import io.odysz.transact.sql.parts.condition.Condit;
-import io.odysz.transact.sql.parts.condition.ExprPart;
+import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
@@ -182,7 +169,22 @@ public class DBSyntableBuilder extends DATranscxt {
 	protected SynChangeMeta chgm;
 	protected SynExhangeBuffMeta exbm;
 
+	/**
+	 * Get synchronization meta connection id.
+	 * 
+	 * @return conn-id
+	 */
+	public String synconn() { return basictx.connId(); }
+
 	protected String synode() { return ((DBSyntext)this.basictx).synode; }
+
+	protected Nyquence stamp;
+	public DBSyntableBuilder incStamp() throws ExchangeException {
+		stamp.inc();
+		if (Nyquence.abs(stamp, nyquvect.get(synode())) >= 2)
+			throw new ExchangeException(0, "Nyquence stamp increased too much or out of range.");
+		return this;
+	}
 
 	/** Nyquence vector [{synode, Nyquence}]*/
 	protected HashMap<String, Nyquence> nyquvect;
@@ -203,8 +205,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			new SynodeMeta(conn));
 	}
 	
-	public DBSyntableBuilder(String conn, String synodeId,
-			SynChangeMeta chgm, SynodeMeta synm)
+	public DBSyntableBuilder(String conn, String synodeId, SynChangeMeta chgm, SynodeMeta synm)
 			throws SQLException, SAXException, IOException, TransException {
 
 		super ( new DBSyntext(conn,
@@ -230,58 +231,166 @@ public class DBSyntableBuilder extends DATranscxt {
 	/**
 	 * insert into exchanges select * from change_logs where n > nyquvect[target].n
 	 * 
-	 * @param cx
+	 * @param cp
 	 * @param target
 	 * @param nv
 	 * @return {total: change-logs to be exchanged} 
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public ExchangeBlock initExchange(ExessionPersisting cx, String target,
-			HashMap<String, Nyquence> nv) throws TransException, SQLException {
+	public ExchangeBlock initExchange(ExessionPersist cp, String target,
+			HashMap<String, Nyquence> srcnv) throws TransException, SQLException {
 		if (DAHelper.count(this, basictx().connId(), exbm.tbl, exbm.peer, target) > 0)
-			throw new ExchangeException(Exchanging.ready, "Can't initate new exchange session. There are exchanging records to be finished.");
+			throw new ExchangeException(Exchanging.ready,
+				"Can't initate new exchange session. There are exchanging records to be finished.");
+		incStamp();
+		cp.init(target, 0);
 
-		return new ExchangeBlock(synode(), nyquvect);
-	}
-
-	public void abortExchange(ExessionPersisting cx, String target, ExchangeBlock rep) {
+		return new ExchangeBlock(synode(), cp.session()).nv(nyquvect)
+				.totalChallenges(DAHelper.count(this, synconn(), exbm.tbl, exbm.peer, cp.peer))
+				.seq(cp);
 	}
 	
-	public ExchangeBlock onInit(ExessionPersisting sx, ExchangeBlock inireq) {
-		return null;
+	/**
+	 * insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
+	 * 
+	 * @param sp
+	 * @param inireq
+	 * @return response block
+	 * @throws TransException 
+	 * @throws SQLException 
+	 */
+	public ExchangeBlock onInit(ExessionPersist sp, ExchangeBlock inireq)
+			throws SQLException, TransException {
+		try {
+			// insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
+			return new ExchangeBlock(synode(), sp.session()).nv(nyquvect)
+				.totalChallenges(DAHelper.count(this, synconn(), exbm.tbl, exbm.peer, sp.peer))
+				.seq(sp);
+		} finally {
+			incStamp();
+		}
 	}
 
-	public ExchangeBlock nextblock() {
-		return null;
-	}
-	
-	public ExchangeBlock exchangeBlock(ExessionPersisting cx, String synode, Object object) {
-		return null;
+	public void abortExchange(ExessionPersist cx, String target, ExchangeBlock rep) {
 	}
 
-	public ExchangeBlock confirm(ExessionPersisting cx, ExchangeBlock rep, String synode,
-			HashMap<String, Nyquence> nyquvect2) {
-		return null;
+	/**
+	 * Push a block, with piggyback answers of previous confirming's challenges.
+	 * 
+	 * @param cp
+	 * @param peer
+	 * @param lastcnf
+	 * @return pushing block
+	 * @throws SQLException 
+	 * @throws ExchangeException 
+	 */
+	public ExchangeBlock exchangeBlock(ExessionPersist cp, String peer,
+			ExchangeBlock lastcnf) throws SQLException, ExchangeException {
+		cp.expect(peer, lastcnf);
+		AnResultset rs = cp.chpage();
+		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
+		return cp.exchange(peer, lastcnf)
+			.nv(nyquvect)
+			.challengePage(rs)
+			.answers(answer(cp, lastcnf, peer));
+			// .seq(cp.exchange(peer, lastcnf));
 	}
 	
-	public ExchangeBlock onExchange(ExessionPersisting sx, String synode,
-			HashMap<String, Nyquence> nyquvect2, ExchangeBlock req) throws ExchangeException {
-		return null;
+	public ExchangeBlock onExchange(ExessionPersist sp, String peer, ExchangeBlock req)
+			throws ExchangeException, SQLException {
+		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
+		// for ch in challenges:
+		//     answer.add(answer(ch))
+		sp.expect(peer, req)
+		  .onExchange(peer, req);
+
+		return new ExchangeBlock(peer, sp.session())
+			.nv(nyquvect)
+			.challengePage(sp.chpage())
+			.answers(answer(sp, req, peer))
+			.seq(sp);
+	}
+	
+	ExessionPersist answer(ExessionPersist sp, ExchangeBlock req, String srcn)
+			throws SQLException {
+		if (req == null) return sp;
+		
+		ArrayList<ArrayList<Object>> changes = new ArrayList<ArrayList<Object>>();
+		ExchangeBlock resp = new ExchangeBlock(srcn, sp.session()).nv(nyquvect);
+
+		AnResultset challenge = req.chpage;
+		if (challenge == null) return sp;
+
+		while (req != null && req.challenges > 0 && req.chpage.next()) {
+			String subscribe = req.chpage.getString(subm.synodee);
+
+			if (eq(subscribe, synode())) {
+				resp.removeChgsub(synode());	
+				changes.add(challenge.getRowAt(challenge.getRow() - 1));
+			}
+			else {
+				Nyquence subnyq = getn(challenge, chgm.nyquence);
+				if (!nyquvect.containsKey(subscribe) // I don't have information of the subscriber
+					&& eq(synm.tbl, challenge.getString(chgm.entbl))) // adding synode
+					changes.add(challenge.getRowAt(challenge.getRow() - 1));
+				else if (!nyquvect.containsKey(subscribe))
+						; // I have no idea
+				else if (compareNyq(subnyq, nyquvect.get(srcn)) <= 0) {
+					// ref: _answer-to-remove
+					// knowledge about the sub from req is older than this node's knowledge 
+					// see #commitChallenges ref: merge-older-version
+					// FIXME how to abstract into one method?
+					resp.removeChgsub(subscribe);	
+				}
+				else
+					changes.add(challenge.getRowAt(challenge.getRow() - 1));
+			}
+		}
+
+		return sp.saveChallenges(changes);
 	}
 
-	public HashMap<String, Nyquence> closexchange(ExessionPersisting cx, String synode,
-			HashMap<String, Nyquence> clone) {
-		return null;
+	public HashMap<String, Nyquence> closexchange(ExessionPersist cx, String synode,
+			HashMap<String, Nyquence> nv) {
+		return nv;
 	}
 
-	public void onclosexchange(ExessionPersisting sx, String synode, HashMap<String, Nyquence> nv) {
+	public void onclosexchange(ExessionPersist sx, String synode, HashMap<String, Nyquence> nv) {
 	}
 	
-	public void onRequires(ExessionPersisting cx, ExchangeBlock rep) { }
+	public void onRequires(ExessionPersist cp, ExchangeBlock req) throws ExchangeException {
+		if (req.act == ExessionAct.restore) {
+			// TODO check step leakings
+			if (cp.challengeSeq <= req.challengeId) {
+				// server is actually handled my challenge. Just step ahead 
+				cp.challengeSeq = req.challengeId;
+			}
+			else if (cp.challengeSeq == req.challengeId + 1) {
+				// server haven't got the previous package
+				// setup for send again
+				cp.challengeSeq = req.challengeId;
+			}
+			else {
+				// not correct
+				cp.challengeSeq = req.challengeId;
+			}
+
+			if (cp.answerSeq < req.answerId) {
+				cp.answerSeq = req.answerId;
+			}
+			
+			// cp.expChallengeId = rep.challengeId;
+			cp.expAnswerSeq = cp.challengeSeq;
+		}
+		else throw new ExchangeException(0, "TODO");
+	}
 	
-	public ExchangeBlock requirestore(ExessionPersisting sx, String peer, HashMap<String,Nyquence> mynv) {
-		return null;
+	public ExchangeBlock requirestore(ExessionPersist xp, String peer) {
+		return new ExchangeBlock(peer, xp.session())
+				.nv(nyquvect)
+				.requirestore()
+				.seq(xp);
 	}
 
 	/**
@@ -290,9 +399,38 @@ public class DBSyntableBuilder extends DATranscxt {
 	public void restorexchange() { }
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
-	public String updateEntity(String synodr, String pid, SyntityMeta entm, String resname,
-			String format, String createDate, Funcall now) {
-		return null;
+	public String updateEntity(String synoder, String pid, SyntityMeta entm, Object ... nvs)
+			throws TransException, SQLException, IOException {
+		String [] updcols = new String[nvs.length/2];
+		for (int i = 0; i < nvs.length; i += 2)
+			updcols[i/2] = (String) nvs[i];
+
+		String chgid = update(entm.tbl, synrobot())
+			.nvs((Object[])nvs)
+			.whereEq(entm.pk, pid)
+			.post(insert(chgm.tbl, synrobot())
+				.nv(chgm.entfk, pid)
+				.nv(chgm.entbl, entm.tbl)
+				.nv(chgm.crud, CRUD.U)
+				.nv(chgm.synoder, synode()) // U.synoder != uids[synoder]
+				.nv(chgm.uids, concatstr(synoder, chgm.UIDsep, pid))
+				.nv(chgm.nyquence, n0().n)
+				.nv(chgm.domain, synrobot().orgId())
+				.nv(chgm.updcols, updcols)
+				.post(insert(subm.tbl)
+					// .cols(subm.entbl, subm.synodee, subm.uids, subm.domain)
+					.cols(subm.insertCols())
+					.select((Query)select(synm.tbl)
+						// .col(constr(entm.tbl))
+						.col(new Resulving(chgm.tbl, chgm.pk))
+						.col(synm.synoder)
+						// .col(concatstr(synode(), chgm.UIDsep, pid))
+						// .col(constr(synrobot().orgId()))
+						.where(op.ne, synm.synoder, constr(synode()))
+						.whereEq(synm.domain, synrobot().orgId()))))
+			.u(instancontxt(basictx.connId(), synrobot()))
+			.resulve(chgm.tbl, chgm.pk);
+		return chgid;
 	}
 	
 	public DBSyntableBuilder registerEntity(String conn, SyntityMeta m)
@@ -346,17 +484,35 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 	}
 
-	public ExchangeBlock addChild(ExessionPersisting ap, String synode, SynodeMode child,
+	public ExchangeBlock addChild(ExessionPersist ap, String synode, SynodeMode child,
 			IUser robot, String org, String domain) {
 		return null;
 	}
 
-	public ExchangeBlock initDomain(ExessionPersisting cp, String synode, ExchangeBlock resp) {
+	public ExchangeBlock initDomain(ExessionPersist cp, String synode, ExchangeBlock resp) {
 		return null;
 	}
 
-	public HashMap<String, Nyquence> closeJoining(ExessionPersisting cp, String synode,
+	public HashMap<String, Nyquence> closeJoining(ExessionPersist cp, String synode,
 			HashMap<String, Nyquence> clone) {
 		return null;
 	}
+	
+	/**
+	 * Check and extend column {@link #ChangeFlag}, which is for changing flag of change-logs.
+	 * 
+	 * @param answer
+	 * @return this
+	 */
+	public static HashMap<String,Object[]> checkChangeCol(HashMap<String, Object[]> colnames) {
+		if (!colnames.containsKey(ExchangeBlock.ExchangeFlagCol.toUpperCase())) {
+			colnames.put(ExchangeBlock.ExchangeFlagCol.toUpperCase(),
+				new Object[] {Integer.valueOf(colnames.size() + 1), ExchangeBlock.ExchangeFlagCol});
+		}
+		return colnames;
+	}
+
+//	static void verifyseq(ExessionPersist ex, ExchangeBlock rep) throws ExchangeException {
+//		throw new ExchangeException(ex.expChallengeId, "TODO");
+//	}
 }

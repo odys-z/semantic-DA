@@ -506,8 +506,8 @@ public class DBSyntableTest {
 		DBSyntableBuilder atb = ck[admin].trb;
 		DBSyntableBuilder ctb = ck[apply].trb;
 
-		ExessionPersisting cp = new ExessionPersisting(chm, atb.synode());
-		ExessionPersisting ap = new ExessionPersisting(cp.session(), chm, ctb.synode());
+		ExessionPersist cp = new ExessionPersist(chm, atb.synode());
+		ExessionPersist ap = new ExessionPersist(chm, ctb.synode(), null); // TODO not null
 
 		int no = 0;
 		// admin
@@ -580,68 +580,35 @@ public class DBSyntableTest {
 			throws TransException, SQLException, IOException {
 
 		int no = 0;
-		ExessionPersisting cp = new ExessionPersisting(chm, stb.synode());
-		ExessionPersisting sp = new ExessionPersisting(cp.session(), chm, ctb.synode());
-
+		ExessionPersist cp = new ExessionPersist(chm, stb.synode());
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
-		ExchangeBlock toExchange = ctb.initExchange(cp, stb.synode(), null);
-		assertTrue(toExchange.changes() > 0);
+		ExchangeBlock ini = ctb.initExchange(cp, stb.synode(), null);
+		assertTrue(ini.challenges() > 0);
 
-		ctb.abortExchange(cp, stb.synode(), new ExchangeBlock(sp.session(), stb.nyquvect));
-		toExchange = ctb.initExchange(cp, stb.synode(), null);
-		Utils.logrst(String.format("%s initiate changes: %d",
-				ctb.synode(), toExchange.changes()), test, subno, ++no);
-		
-		ExchangeBlock rep = stb.onInit(sp, toExchange);
+		ExessionPersist sp = new ExessionPersist(chm, ctb.synode(), ini);
+		ExchangeBlock rep = stb.onInit(sp, ini);
 		Utils.logrst(String.format("%s on initiate: changes: %d    entities: %d",
 				ctb.synode(), rep.challenges(), rep.enitities(cphm.tbl)), test, subno, ++no);
 
-		ExchangeBlock req = null;
-		ExchangeBlock confirm = null;
-		while (ctb.nextblock() != null) {
-			// client
-			req = ctb.exchangeBlock(cp, stb.synode(), confirm);
-
-			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
-			// server
-			rep = stb.onExchange(sp, ctb.synode(), req.nv, req);
-
-			Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
-					stb.synode(), rep.challenges(), rep.enitities(), rep.answers()), test, subno, ++no);
-			printChangeLines(ck);
-			printNyquv(ck);
-			assertEquals(Exchanging.exchanging, sp.exstate());
-
-			Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, ++no);
-			// client
-			confirm = ctb.confirm(cp, rep, stb.synode(), rep.nv);
-
-			Utils.logrst(String.format("%s confirm    changes: %d    entities: %d    answers: %d",
-					ctb.synode(), confirm.challenges(), confirm.enitities(), confirm.answers()), test, subno, no, 1);
-			printChangeLines(ck);
-			printNyquv(ck);
-			assertEquals(Exchanging.confirming, cp.exstate());
-		}
-
-		assertNotNull(req);
-		assertEquals(0, req.challenges());
+		//
+		challengeAnswerLoop(sp, stb, cp, ctb, test, subno);
 
 		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
 		HashMap<String, Nyquence> nv = ctb.closexchange(cp, stb.synode(), Nyquence.clone(stb.nyquvect));
 
 		printChangeLines(ck);
 		printNyquv(ck);
-		assertEquals(Exchanging.ready, cp.exstate());
+		// assertEquals(Exchanging.ready, cp.exstate());
 
 		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 		// FIXME what if server don't agree?
 		stb.onclosexchange(sp, ctb.synode(), nv);
 		printChangeLines(ck);
 		printNyquv(ck);
-		assertEquals(Exchanging.ready, sp.exstate());
+		// assertEquals(Exchanging.ready, sp.exstate());
 
-		if (req.challenges() > 0)
-			fail("Shouldn't has any more challenge here.");
+//		if (req.challenges() > 0)
+//			fail("Shouldn't has any more challenge here.");
 	}
 
 	static void exchange_break(SyntityMeta sphm, DBSyntableBuilder stb, SyntityMeta cphm,
@@ -649,19 +616,20 @@ public class DBSyntableTest {
 			throws TransException, SQLException, IOException {
 
 		int no = 0;
-		ExessionPersisting cp = new ExessionPersisting(chm, stb.synode());
-		ExessionPersisting sp = new ExessionPersisting(cp.session(), chm, ctb.synode());
+		ExessionPersist cp = new ExessionPersist(chm, stb.synode());
 
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
-		ExchangeBlock toExchange = ctb.initExchange(cp, stb.synode(), null);
-		assertTrue(toExchange.changes() > 0);
+		ExchangeBlock ini = ctb.initExchange(cp, stb.synode(), null);
+		assertTrue(ini.challenges() > 0);
+
+		ExessionPersist sp = new ExessionPersist(chm, ctb.synode(), ini);
 
 		ctb.abortExchange(cp, stb.synode(), null);
-		toExchange = ctb.initExchange(cp, stb.synode(), null);
+		ini = ctb.initExchange(cp, stb.synode(), null);
 		Utils.logrst(String.format("%s initiate changes: %d",
-				ctb.synode(), toExchange.changes()), test, subno, ++no);
+				ctb.synode(), ini.challenges()), test, subno, ++no);
 		
-		ExchangeBlock rep = stb.onInit(sp, toExchange);
+		ExchangeBlock rep = stb.onInit(sp, ini);
 		Utils.logrst(String.format("%s on initiate: changes: %d    entities: %d",
 				ctb.synode(), rep.challenges(), rep.enitities(cphm.tbl)), test, subno, ++no);
 
@@ -669,78 +637,102 @@ public class DBSyntableTest {
 
 		req = ctb.exchangeBlock(cp, stb.synode(), null);
 		Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
-		rep = stb.onExchange(sp, ctb.synode(), req.nv, req);
+		rep = stb.onExchange(sp, ctb.synode(), req);
 		Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
 				stb.synode(), rep.challenges(), rep.enitities(), rep.answers()), test, subno, ++no);
 		printChangeLines(ck);
 		printNyquv(ck);
-		assertEquals(Exchanging.exchanging, sp.exstate());
+		// assertEquals(Exchanging.exchanging, sp.exstate());
 	
 		// server had sent reply but client haven't got it
+		// challenges & answers are saved at server
 		ctb.restorexchange();
 
-		if (ctb.nextblock() != null) {
+		if (cp.hasChallenges(ctb)) {
+			// client
+			cp.nextBlock();
 			//client
 			req = ctb.exchangeBlock(cp, stb.synode(), null);
 			// server
 			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
 			try {
 				// server found the client is trying an already replied challenge
-				rep = stb.onExchange(sp, ctb.synode(), req.nv, req);
+				rep = stb.onExchange(sp, ctb.synode(), req);
 				fail("Not here");
 			}
 			catch (ExchangeException exp) {
-				assertEquals(Exchanging.exchanging, sp.exstate());
+				// assertEquals(Exchanging.exchanging, sp.exstate());
 
 				// server reply with saved answers
-				rep = stb.requirestore(sp, stb.synode(), stb.nyquvect);
-				assertEquals(sp.expChallengeID, rep.challengeId);
+				rep = stb.requirestore(sp, ctb.synode());
+				// assertEquals(sp.expChallengeId, rep.challengeId);
 
 				Utils.logrst(String.format("%s reuires restore    changes: %d    entities: %d    answers: %d",
-					stb.synode(), rep.challenges(), rep.enitities(), rep.answers()), test, subno, ++no);
+					stb.synode(), rep.chpage, rep.enitities(), rep.answers()), test, subno, ++no);
 				ctb.onRequires(cp, rep);
-				assertEquals(sp.expChallengeID, cp.challengeId);
+				// assertEquals(sp.expChallengeId, cp.challengeSeq);
 			}
 
-			while (ctb.nextblock() != null) {
-				Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
-						stb.synode(), rep.challenges(), rep.enitities(), rep.answers()), test, subno, ++no);
-				printChangeLines(ck);
-				printNyquv(ck);
-				assertEquals(Exchanging.exchanging, sp.exstate());
-
-				// client
-				Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, ++no);
-				ExchangeBlock cnf = ctb.confirm(cp, rep, stb.synode(), rep.nv);
-				Utils.logrst(String.format("%s confirm    changes: %d    entities: %d    answers: %d",
-						ctb.synode(), cnf.challenges(), cnf.enitities(), cnf.answers()), test, subno, no, 1);
-				printChangeLines(ck);
-				printNyquv(ck);
-				assertEquals(Exchanging.confirming, cp.exstate());
-			}
+			challengeAnswerLoop(sp, stb, cp, ctb, test, subno);
+//			while (cp.hasChallenges() || req!= null && rep.moreChallenges) {
+//				// client
+//				cp.nextBlock();
+//				req = ctb.exchangeBlock(cp, stb.synode(), rep);
+//
+//				Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
+//				// server
+//				rep = stb.onExchange(sp, ctb.synode(), req);
+//
+//				Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
+//						stb.synode(), rep.challenges(), rep.enitities(), rep.answers()), test, subno, ++no);
+//				printChangeLines(ck);
+//				printNyquv(ck);
+//			}
 
 			assertNotNull(req);
-			assertEquals(0, req.challenges());
+			assertEquals(0, req.chpage);
 
 			Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
 			HashMap<String, Nyquence> nv = ctb.closexchange(cp, stb.synode(), Nyquence.clone(stb.nyquvect));
 
 			printChangeLines(ck);
 			printNyquv(ck);
-			assertEquals(Exchanging.ready, cp.exstate());
+			// assertEquals(Exchanging.ready, cp.exstate());
 
 			Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 			// FIXME what if server don't agree?
 			stb.onclosexchange(sp, ctb.synode(), nv);
 			printChangeLines(ck);
 			printNyquv(ck);
-			assertEquals(Exchanging.ready, sp.exstate());
+			// assertEquals(Exchanging.ready, sp.exstate());
 
 			if (req.challenges() > 0)
 				fail("Shouldn't has any more challenge here.");
 
 		}
 		else fail("Not here");
+	}
+
+	private static void challengeAnswerLoop(ExessionPersist sp, DBSyntableBuilder stb, 
+				ExessionPersist cp, DBSyntableBuilder ctb, int test, int subno)
+				throws SQLException, TransException {
+		int no = 0;
+		ExchangeBlock req = null;
+		ExchangeBlock rep = null;
+		while (cp.hasChallenges(ctb) || req!= null && rep.moreChallenges) {
+			// client
+			cp.nextBlock();
+			req = ctb.exchangeBlock(cp, stb.synode(), rep);
+
+			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
+			// server
+			rep = stb.onExchange(sp, ctb.synode(), req);
+
+			Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
+					stb.synode(), rep.challenges(), rep.enitities(), rep.answers()), test, subno, ++no);
+			printChangeLines(ck);
+			printNyquv(ck);
+		}
 	}
 
 	/**

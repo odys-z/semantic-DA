@@ -91,4 +91,15 @@ public class Nyquence {
 		return new Nyquence(chal.getString(nyqcol));
 	}
 
+	/**
+	 * Get absolute distance.
+	 * 
+	 * @param a
+	 * @param b
+	 * @return | a - b |
+	 */
+	public static long abs(Nyquence a, Nyquence b) {
+		return Math.abs(Math.min(a.n - b.n, b.n - a.n));
+	}
+
 }
