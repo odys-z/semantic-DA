@@ -45,8 +45,8 @@ public class T_Photo extends T_SyncDoc {
 	/**
 	 * Composed css json, saved as string.
 	 * @see #css()
-	 * */
 	public String css;
+	 * */
 
 	/**
 	 * Compose a string representing json object for saving in DB.
@@ -68,34 +68,29 @@ public class T_Photo extends T_SyncDoc {
 	
 	public T_Photo() {}
 	
-	public T_Photo(AnResultset rs) throws SQLException {
-		this.recId = rs.getString("pid");
-		this.pname = rs.getString("pname");
-		this.uri = rs.getString("uri");
-		this.folder = rs.getString("folder");
-		this.createDate = rs.getString("pdate");
-		this.shareby = rs.getString("owner");
-		this.geox = rs.getString("geox");
-		this.geoy = rs.getString("geoy");
+	public T_Photo(AnResultset rs, T_PhotoMeta m) throws SQLException {
+		this.recId = rs.getString(m.pk);
+		this.pname = rs.getString(m.resname);
+		this.uri = rs.getString(m.uri);
+		this.folder = rs.getString(m.folder);
+		this.createDate = rs.getString(m.shareDate);
+		this.shareby = rs.getString(m.shareby);
+		// this.geox = rs.getString(m.geox);
+		// this.geoy = rs.getString(m.geoy);
+		// this.css = rs.getString(m.css);
 		
-		this.css = rs.getString("css");
-		
-		// TODO debug
-		this.clientpath =  rs.getString("clientpath");
-		this.device =  rs.getString("device");
+		this.clientpath =  rs.getString(m.fullpath);
+		this.device =  rs.getString(m.device());
 		
 		try {
 			this.sharedate = DateFormat.formatime(rs.getDate("sharedate"));
 		} catch (SQLException ex) {
 			this.sharedate = rs.getString("pdate");
 		}
-		this.geox = rs.getString("geox");
-		this.geoy = rs.getString("geoy");
-		
 	}
 
-	public T_Photo(String collectId, AnResultset rs) throws SQLException {
-		this(rs);
+	public T_Photo(String collectId, AnResultset rs, T_PhotoMeta m) throws SQLException {
+		this(rs, m);
 		this.collectId = collectId;
 	}
 

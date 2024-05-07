@@ -1204,3 +1204,4 @@ public class DBSyntextTest_half_duplex {
 	    return out.substring((int)start, (int)end);
 	}
 }
+

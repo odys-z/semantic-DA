@@ -3,6 +3,8 @@ package io.odysz.semantic.syn;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import org.xml.sax.SAXException;
+
 import io.odysz.semantic.syn.DBSyntextTest.Ck;
 import io.odysz.transact.x.TransException;
 
@@ -30,7 +32,7 @@ public class ZSUNodesDA {
 	public static ZSUNodesDA kharkiv;
 	public static ZSUNodesDA anDevice;
 	
-	static void init() throws ClassNotFoundException, SQLException, TransException, IOException {
+	static void init() throws ClassNotFoundException, SQLException, TransException, IOException, SAXException {
 		kyiv = new ZSUNodesDA(0);
 		kharkiv = new ZSUNodesDA(1);
 		anDevice  = new ZSUNodesDA(3);
@@ -38,12 +40,12 @@ public class ZSUNodesDA {
 		anDevice.userId = "user-3";
 	}
 
-	public ZSUNodesDA(int sid) throws ClassNotFoundException, SQLException, TransException, IOException {
+	public ZSUNodesDA(int sid) throws ClassNotFoundException, SQLException, TransException, IOException, SAXException {
 		this.sid = sid;
 		folder = "zsu-" + sid;
 		conn = DBSyntextTest.conns[sid];
-		ck = new Ck(sid); 
-		robot = (SyncRobot) ck.robot;
+		ck = new Ck(sid, new DBSynsactBuilder(null, "zsu-dev-" + sid), "zsu");
+		robot = (SyncRobot) ck.robot();
 		nodeId = robot.deviceId;
 		worker = robot.uid();
 	}

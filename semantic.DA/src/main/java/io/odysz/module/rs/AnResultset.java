@@ -1,7 +1,7 @@
 package io.odysz.module.rs;
 
+import static io.odysz.common.LangExt.split;
 
-import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -13,7 +13,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
@@ -43,7 +46,13 @@ public class AnResultset extends Anson {
 	 * @since 1.4.12
 	 */
 	@FunctionalInterface
-	public interface ObjCreator<T extends Anson> {
+	public interface ObjCreator<T> {
+		/**
+		 * @param rs resultset at current row, iteration is driven by AnResultset, 
+		 * by calling {@link AnResultset#map(String, ObjCreator).
+		 * @return
+		 * @throws SQLException
+		 */
 		T create(AnResultset rs) throws SQLException;
 	}
 
@@ -51,7 +60,7 @@ public class AnResultset extends Anson {
 	/**current row index, start at 1. */
 	private int rowIdx = -1;
 	/**
-	 * current row index
+	 * current row index, start from 1. If used for {@link #getRowAt(int)}, must - 1.
 	 * @since 1.4.25
 	 * @return
 	 */
@@ -60,7 +69,7 @@ public class AnResultset extends Anson {
 
 	// TODO docs
 	@AnsonField(valType="java.util.ArrayList")
-	private ArrayList<ArrayList<Object>> results;
+	ArrayList<ArrayList<Object>> results;
 
 	/**col-index start at 1, map: [alais(upper-case), [col-index, db-col-name(in raw case)]<br>
 	 * case 1<pre>
@@ -74,6 +83,7 @@ for (String coln : colnames.keySet())
 	 * */
 	@AnsonField(valType="[Ljava.lang.Object;")
 	private HashMap<String, Object[]> colnames;
+	public HashMap<String, Object[]> colnames() { return colnames; }
 
 	/** In cs version, it's Datatable */
 	@AnsonField(ignoreTo = true)
@@ -89,6 +99,16 @@ for (String coln : colnames.keySet())
 	private int total = 0;
 
 	private HashMap<Class<?>,String> stringFormats;
+
+	/** row indices, start at 0 */
+	private HashMap<String, Integer> indices0;
+	public HashMap<String, Integer> indices0() { return indices0; }
+	/**
+	 * Get row index, starting at 0.
+	 * @param k
+	 * @return index starting at 0
+	 */
+	public int rowIndex0(String k) { return indices0 == null ? -1 : indices0.get(k); }
 
 	/** for deserializing */
 	public AnResultset() { }
@@ -223,14 +243,14 @@ for (String coln : colnames.keySet())
 	 * @param rows
 	 * @param cols
 	 */
-	public AnResultset(int rows, int cols, String... colPrefix) {
+	public AnResultset(int rows, int cols, String colPrefix) {
 		if (rows <= 0 || cols <= 0)
 			return;
 		results = new ArrayList<ArrayList<Object>>(rows);
 		colCnt = cols;
 		colnames = new HashMap<String, Object[]>(cols);
 		for (int i = colCnt; i >= 1; i--) {
-			String colName = (colPrefix == null || colPrefix.length != 1) ? String.valueOf(i) : String.format("%s%s", colPrefix[0].trim(), i);
+			String colName = colPrefix == null  ? String.valueOf(i) : String.format("%s%s", colPrefix.trim(), i);
 			colnames.put(colName.toUpperCase(), new Object[] {i, colName});
 		}
 		rowIdx = 0;
@@ -240,6 +260,30 @@ for (String coln : colnames.keySet())
 			ArrayList<Object> row = new ArrayList<Object>(colCnt);
 			for (int j = 1; j <= colCnt; j++) {
 				row.add(String.format("%s, %s", r, j));
+			}
+			results.add(row);
+		}
+	}
+	
+	public AnResultset(int rows, int cols) throws Exception {
+		if (rows <= 0 || cols <= 0)
+			return;
+
+		results = new ArrayList<ArrayList<Object>>(rows);
+		colCnt = cols;
+		colnames = new HashMap<String, Object[]>(cols);
+
+		for (int i = colCnt; i >= 1; i--) {
+			String colName = String.format("c-%1$s", i);
+			colnames.put(colName.toUpperCase(), new Object[] {i, colName});
+		}
+		rowIdx = 0;
+		rowCnt = 0;
+		for (int r = 0; r < rows; r++) {
+			rowCnt++;
+			ArrayList<Object> row = new ArrayList<Object>(colCnt);
+			for (int j = 0; j < colCnt; j++) {
+				row.add(String.valueOf(r * cols + j));
 			}
 			results.add(row);
 		}
@@ -293,6 +337,29 @@ for (String coln : colnames.keySet())
 		}
 		rowIdx = 0;
 		rowCnt = 0;
+	}
+
+	public AnResultset(HashMap<String, Object[]> columns) {
+		this.colnames = columns;
+		rowIdx = 0;
+		rowCnt = 0;
+	}
+
+	public AnResultset results(ArrayList<ArrayList<Object>> rows) {
+		this.results = rows;
+		/*
+		colCnt = colNames.size();
+		this.colnames = new HashMap<String, Object[]>(colCnt);
+		for (int i = colCnt; i >= 1; i--) {
+			// colnames.put(colNames.get(i - 1) == null ? String.valueOf(i): colNames.get(i - 1).toUpperCase(), i);
+			String cn = colNames.get(i - 1) == null ? String.valueOf(i): colNames.get(i - 1);
+			colnames.put(cn.toUpperCase(), new Object[] {i, cn});
+		}
+		*/
+		rowIdx = 0;
+		rowCnt = rows.size();
+
+		return this;
 	}
 
 	/** @return column names */
@@ -351,6 +418,7 @@ for (String coln : colnames.keySet())
 	}
 	
 	public String getString(int colIndex) throws SQLException {
+		/* 2024-04-02
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) return null;
 			if (results.get(rowIdx - 1).get(colIndex - 1) == null) return null;
@@ -362,6 +430,8 @@ for (String coln : colnames.keySet())
 		} catch (Exception e) {
 			throw new SQLException(e.getMessage() + " Empty Results?");
 		}
+		*/
+		return getStringAtRow(colIndex - 1, rowIdx);
 	}
 	
 	public String getString(String colName) throws SQLException {
@@ -414,6 +484,40 @@ for (String coln : colnames.keySet())
 		if (colName == null) return "";
 		String s = getString((Integer)colnames.get(colName.toUpperCase())[0]);
 		return s == null? "" : s;
+	}
+	
+	/**
+	 * Get string. If not exists, return {@code deflt}.
+	 * @param colName
+	 * @param deflt
+	 * @return string value or {@code deflt}
+	 * @throws SQLException
+	 */
+	public String getString(String colName, String deflt) throws SQLException {
+		return (colnames.containsKey(colName.toUpperCase())) ? getString(colName) : deflt;
+	}
+
+	/**
+	 * Get row's field value
+	 * @param colName field name
+	 * @param row row index, start at 1. (If get from {@link #rowIndex0(String)}, add 1.)
+	 * @return
+	 * @throws NumberFormatException
+	 * @throws SQLException
+	 */
+	public String getStringAtRow(String colName, int row) throws NumberFormatException, SQLException {
+		return getStringAtRow(getColumex(colName)-1, row);
+	}
+
+	public String getStringAtRow(int col, int row) throws NumberFormatException, SQLException {
+		Object v = getRowAt(row - 1).get(col);
+		return v == null ? null : String.valueOf(v);
+	}
+
+	public String getStringByIndex(String colName, String entityId) throws SQLException {
+		if (indices0 == null || !indices0.containsKey(entityId))
+			throw new SQLException("No index for entity %s found", entityId);
+		return getStringAtRow(getColumex(colName)-1, rowIndex0(entityId) + 1);
 	}
 	
 	/**
@@ -474,13 +578,13 @@ for (String coln : colnames.keySet())
 		return getDouble((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
-	public BigDecimal getBigDecimal(int colIndex) throws SQLException {
-		return BigDecimal.valueOf(getDouble(colIndex));
-	}
-
-	public BigDecimal getBigDecimal(String colName) throws SQLException {
-		return BigDecimal.valueOf(getDouble((Integer)colnames.get(colName.toUpperCase())[0]));
-	}
+//	public BigDecimal getBigDecimal(int colIndex) throws SQLException {
+//		return BigDecimal.valueOf(getDouble(colIndex));
+//	}
+//
+//	public BigDecimal getBigDecimal(String colName) throws SQLException {
+//		return BigDecimal.valueOf(getDouble((Integer)colnames.get(colName.toUpperCase())[0]));
+//	}
 	
 	public Date getDate(int index)throws SQLException{
 		try {
@@ -551,10 +655,16 @@ for (String coln : colnames.keySet())
 	
 	public long getLong(int colIndex) throws SQLException {
 		try {
-			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
-			if (results.get(rowIdx - 1).get(colIndex - 1) == null) throw new SQLException("Null value to be converted to long.");
-			else return Long.valueOf(results.get(rowIdx - 1).get(colIndex - 1).toString());
-		}catch (Exception e) {throw new SQLException(e.getMessage());}
+			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null)
+				throw new SQLException("Null row to be accessed.");
+			if (results.get(rowIdx - 1).get(colIndex - 1) == null)
+				throw new SQLException("Null value to be converted to long.");
+			else
+				return Long.valueOf(results.get(rowIdx - 1).get(colIndex - 1).toString());
+		}
+		catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		}
 	}
 
 	public long getLong(String size, long empty) {
@@ -564,6 +674,28 @@ for (String coln : colnames.keySet())
 
 	public long getLong(String colName) throws SQLException {
 		return getLong((Integer)colnames.get(colName.toUpperCase())[0]);
+	}
+	
+	/**
+	 * @param colName
+	 * @param row0 index start at 0
+	 * @return v
+	 * @throws NumberFormatException
+	 * @throws SQLException
+	 */
+	public long getLongAt(String colName, int row) throws NumberFormatException, SQLException {
+		return getLongAtRow(getColumex(colName) - 1, row);
+	}
+
+	/**
+	 * @param col column index start at 0
+	 * @param row0 index start at 0
+	 * @return v
+	 * @throws NumberFormatException
+	 * @throws SQLException
+	 */
+	public long getLongAtRow(int col, int row0) throws NumberFormatException, SQLException {
+		return Long.valueOf(String.valueOf(getRowAt(row0).get(col)));
 	}
 
 	public int getInt(String colName) throws SQLException {
@@ -581,6 +713,10 @@ for (String coln : colnames.keySet())
 	
 	public Blob getBlob(String colName) throws SQLException {
 		return getBlob((Integer)colnames.get(colName.toUpperCase())[0]);
+	}
+
+	public Object getObject(String colName) throws SQLException {
+		return getObject((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
 	public Object getObject(int colIndex) throws SQLException {
@@ -621,7 +757,7 @@ for (String coln : colnames.keySet())
 	 * Get current row index.<br>
 	 * Row index start from 1.<br>
 	 * The last row indix == getRowCount()
-	 * @return string value
+	 * @return row index
 	 */
 	public int getRow() {
 		if (results == null) return 0;
@@ -707,20 +843,27 @@ for (String coln : colnames.keySet())
 		}
 	}
 	
-	/**/
 	public int getRowCount() {
 		return rowCnt;
+	}
+	
+	public int size() {
+		return getRowCount();
 	}
 
 	public int getColCount() {
 		return colCnt;
 	}
 	
-	/**idx start at 0 */
-	public ArrayList<Object> getRowAt(int idx) throws SQLException {
-		if (results == null || idx < 0 || idx >= results.size()) 
-			throw new SQLException("Row index out of boundary. idx: " + idx);
-		return results.get(idx);
+	/**
+	 * @param idx0 start at 0 
+	 * @return row
+	 * @throws SQLException
+	 */
+	public ArrayList<Object> getRowAt(int idx0) throws SQLException {
+		if (results == null || idx0 < 0 || idx0 >= results.size()) 
+			throw new SQLException("Row index out of boundary. idx: " + idx0);
+		return results.get(idx0);
 	}
 
 	/**Set value to current row
@@ -909,6 +1052,11 @@ for (String coln : colnames.keySet())
 		return results;
 	}
 
+	public String[] getStrArray(String udpcols) throws SQLException {
+		String v = getString(udpcols);
+		return split(v);
+	}
+
 	/**Convert results to an 1D array with elements from <i>col<i>
 	 * @param col column name
 	 * @return list of string
@@ -946,7 +1094,7 @@ for (String coln : colnames.keySet())
 	 * @return the hash map
 	 * @throws SQLException
 	 */
-	public <T extends Anson> HashMap<String, T> map(String keyField, ObjCreator<T> objCreator)
+	public <T> HashMap<String, T> map(String keyField, ObjCreator<T> objCreator)
 			throws SQLException {
 		HashMap<String, T> map = new HashMap<String, T>(results.size());
 		beforeFirst();
@@ -956,6 +1104,25 @@ for (String coln : colnames.keySet())
 		beforeFirst();
 		return map;
 	}
+
+	public <T> HashMap<String, T> map(String[] keyFields, ObjCreator<T> objCreator)
+			throws SQLException {
+		HashMap<String, T> map = new LinkedHashMap<String, T>(results.size());
+		beforeFirst();
+		while(next()) {
+			map.put(Stream.of(keyFields).map(k -> {
+				try { return getString(k); }
+				catch (SQLException e) {
+					e.printStackTrace();
+					return e.getMessage();
+				}
+			}).collect(Collectors.joining(",")),
+			objCreator.create(this));
+		}
+		beforeFirst();
+		return map;
+	}
+
 
 	/**
 	 * Construct a hash set using all value of field f.
@@ -975,7 +1142,8 @@ for (String coln : colnames.keySet())
 	}
 
 	/**
-	 * A mutation of {@link #next()}. If has a next row, return this, otherwise null.
+	 * A mutation of {@link #next()}. If has a next row, move index and
+	 * return this, otherwise null.
 	 * <p>For convenience if only needs to check the first row.</p>
 	 * E.g. to check the updating records' existence:
 	 * <pre>return ((AnResultset) transbuilder
@@ -997,15 +1165,79 @@ for (String coln : colnames.keySet())
 		else
 			return null;
 	}
+	
+	/**
+	 * Are there rows following current row index?
+	 * @return true if there are
+	 */
+	public boolean hasnext() {
+		return (rs != null || results != null) && rowIdx < rowCnt;
+	}
 
-//	/**
-//	 * Force escape all value from db.
-//	 */
-//	@Override
-//	public Anson toBlock(OutputStream stream, JsonOpt... opts) throws AnsonException, IOException {
-//		if (isNull(opts))
-//			opts = new JsonOpt[] {new JsonOpt()};
-//		opts[0].escape4DB(true);
-//		return super.toBlock(stream, opts);
-//	}
+	/**
+	 * Are there rows before current row index?
+	 * @return true if there are
+	 */
+	public boolean hasprev() {
+		return (rs != null || results != null) && 1 < rowIdx;
+	}
+
+	/**
+	 * Generate row indices, start at 0.
+	 * FIXME move this method to Query and be called before rs construction.
+	 * @param pk
+	 * @return this
+	 */
+	public AnResultset index0(String pk) {
+		if (indices0 == null)
+			indices0 = new HashMap<String, Integer>();
+		for (int i = 0; i < results.size(); i++) {
+			indices0.put((String) results.get(i).get(getColumex(pk)-1), i);
+		}
+		return this;
+	}
+
+	/**
+	 * Get next row's string value. Call {@link #hasnext()} before calling this.
+	 * 
+	 * @param col
+	 * @return string value
+	 * @throws SQLException 
+	 * @since 1.4.40
+	 */
+	public String nextString(final String col) throws SQLException {
+		return getStringAtRow(col, rowIdx + 1);
+	}
+
+	/**
+	 * Get previous row's string value. Call {@link #hasprev()} before calling this.
+	 * 
+	 * @param col
+	 * @return value
+	 * @throws SQLException
+	 * @since 1.4.40
+	 */
+	public String prevString(final String col) throws SQLException {
+		return getStringAtRow(col, rowIdx - 1);
+	}
+
+	/**
+	 * Is current row index is valid?
+	 * @return true if accessing currrent row is valid.
+	 * @since 1.4.40
+	 */
+	public boolean validx() {
+		return results != null && rowIdx > 0 && rowIdx <= results.size();
+	}
+
+	/**
+	 * Get current row
+	 * 
+	 * @return current row
+	 * @throws SQLException
+	 * @since 1.4.40
+	 */
+	public ArrayList<Object> getRowAt() throws SQLException {
+		return getRowAt(getRow() - 1);
+	}
 }

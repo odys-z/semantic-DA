@@ -8,7 +8,6 @@ import java.nio.file.attribute.FileTime;
 import java.sql.SQLException;
 import java.util.Date;
 
-import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
 import io.odysz.common.DateFormat;
 import io.odysz.module.rs.AnResultset;
@@ -22,7 +21,7 @@ import static io.odysz.common.LangExt.*;
  * 
  * @author ody
  */
-public class T_SyncDoc extends Anson {
+public class T_SyncDoc extends SynEntity {
 	protected static String[] synpageCols;
 
 	public String recId;
@@ -119,7 +118,7 @@ public class T_SyncDoc extends Anson {
 
 	protected String mime;
 	
-	public T_SyncDoc() {}
+	public T_SyncDoc() {super(null);}
 	
 	/**
 	 * A helper used to make sure query fields are correct.
@@ -162,6 +161,7 @@ public class T_SyncDoc extends Anson {
 	}
 
 	public T_SyncDoc(AnResultset rs, T_DocTableMeta meta) throws SQLException {
+		super(meta);
 		this.docMeta = meta;
 		this.recId = rs.getString(meta.pk);
 		this.pname = rs.getString(meta.resname);

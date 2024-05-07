@@ -94,7 +94,7 @@
   		<src>syn.02</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg>true</dbg>
+  		<dbg></dbg>
   		<smtcs>synmantics.xml</smtcs>
 	</c>
 	<c>
@@ -104,7 +104,7 @@
   		<src>syn.03</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg>true</dbg>
+  		<dbg></dbg>
   		<smtcs>synmantics.xml</smtcs>
 	</c>
 
