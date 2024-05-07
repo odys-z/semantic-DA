@@ -9,7 +9,7 @@ import io.odysz.semantics.meta.Semantation;
  * @author odys-z@github.com
  *
  */
-public class SynExhangeBuffMeta extends SemanticTableMeta {
+public class SynchangeBuffMeta extends SemanticTableMeta {
 	/** Separator in uids, ",", for separating fields of pk */
 	@Semantation (noDBExists = true)
 	public final String UIDsep;
@@ -31,11 +31,11 @@ public class SynExhangeBuffMeta extends SemanticTableMeta {
 	static {
 	}
 
-	public SynExhangeBuffMeta(String ... conn) {
+	public SynchangeBuffMeta(String ... conn) {
 		super("syn_exchanging", conn);
 		UIDsep = ",";
 
-		ddlSqlite = Utils.loadTxt(SynExhangeBuffMeta.class, "syn_change.sqlite.ddl");
+		ddlSqlite = Utils.loadTxt(SynchangeBuffMeta.class, "syn_change.sqlite.ddl");
 
 		pk      = "cid";
 		peer    = "peernode";

@@ -42,6 +42,7 @@ import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
@@ -83,6 +84,7 @@ public class DBSyntableTest {
 	static SynodeMeta snm;
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
+	static SynchangeBuffMeta xbm;
 
 	static {
 		printCaller(false);
@@ -140,7 +142,7 @@ public class DBSyntableTest {
 		// nyqm = new NyquenceMeta("");
 		chm = new SynChangeMeta();
 		sbm = new SynSubsMeta(chm);
-
+		xbm = new SynchangeBuffMeta();
 
 		for (int s = 0; s < 4; s++) {
 			String conn = conns[s];
@@ -155,14 +157,18 @@ public class DBSyntableTest {
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", sbm.tbl));
 			Connects.commit(conn, DATranscxt.dummyUser(), sbm.ddlSqlite);
 
+			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", xbm.tbl));
+			Connects.commit(conn, DATranscxt.dummyUser(), sbm.ddlSqlite);
+
 			// JUserMeta usm = new JUserMeta(conn);
 			// Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", usm.tbl));
 			// Connects.commit(conn, DATranscxt.dummyUser(), usm.ddlSqlite);
 
-			T_PhotoMeta phm = new T_PhotoMeta(conn).replace();
+			T_PhotoMeta phm = new T_PhotoMeta(conn); //.replace();
 
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", phm.tbl));
 			Connects.commit(conn, DATranscxt.dummyUser(), phm.ddlSqlite);
+			phm.replace();
 
 			ArrayList<String> sqls = new ArrayList<String>();
 			sqls.addAll(Arrays.asList(Utils.loadTxt("../oz_autoseq.sql").split(";-- --\n")));

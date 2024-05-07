@@ -487,11 +487,13 @@ public class DASemantics {
 		String conn = isNull(connId) ? Connects.defltConn() : connId[0];
 		try {
 			TableMeta mdb = Connects.getMeta(conn, m.tbl);
+			if (mdb == null)
+				throw new TransException("Can't find table %s from DB connection %s.", m.tbl, conn);
 			Connects.setMeta(conn, m.clone(mdb));
 			return mdb;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return null;
+			throw new TransException(e.getMessage());
 		}
 	}
 

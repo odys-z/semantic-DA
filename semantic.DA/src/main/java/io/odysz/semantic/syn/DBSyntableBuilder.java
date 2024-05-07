@@ -21,7 +21,7 @@ import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
-import io.odysz.semantic.meta.SynExhangeBuffMeta;
+import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
@@ -167,7 +167,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	protected SynodeMeta synm;
 	protected SynSubsMeta subm;
 	protected SynChangeMeta chgm;
-	protected SynExhangeBuffMeta exbm;
+	protected SynchangeBuffMeta exbm;
 
 	/**
 	 * Get synchronization meta connection id.
