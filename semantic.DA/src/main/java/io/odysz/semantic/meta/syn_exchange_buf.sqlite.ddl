@@ -1,5 +1,5 @@
 -- drop table if exists syn_change_buf;
-create table if not exists syn_change_buf (
+create table if not exists syn_exchange_buf (
     peer        varchar2(12) not null, -- session peer
     -- cid         varchar2(12) not null, -- change ID, auto key
     entfk       varchar2(12) not null, -- entity fk, redundant for convenient, not for synchronizing

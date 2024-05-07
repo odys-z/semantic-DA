@@ -32,13 +32,13 @@ public class SynchangeBuffMeta extends SemanticTableMeta {
 	}
 
 	public SynchangeBuffMeta(String ... conn) {
-		super("syn_exchanging", conn);
+		super("syn_exchange_buf", conn);
 		UIDsep = ",";
 
-		ddlSqlite = Utils.loadTxt(SynchangeBuffMeta.class, "syn_change_buf.sqlite.ddl");
+		ddlSqlite = Utils.loadTxt(SynchangeBuffMeta.class, "syn_exchange_buf.sqlite.ddl");
 
-		pk      = "cid";
-		peer    = "peernode";
+		// pk      = "cid";
+		peer    = "peer";
 		domain  = "domain";
 		entbl   = "tabl";
 		entfk   = "entfk";

@@ -221,10 +221,14 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
+		this.exbm = exbm != null ? exbm : new SynchangeBuffMeta(conn);
+		this.exbm.replace();
 		this.subm = subm != null ? subm : new SynSubsMeta(chgm, conn);
 		this.subm.replace();
 		this.synm = synm != null ? synm : (SynodeMeta) new SynodeMeta(conn).autopk(false);
 		this.synm.replace();
+		
+		stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence, synm.synoder, synodeId, synm.domain, tx.domain);
 	}
 	
 	////////////////////////////// protocol API ////////////////////////////////
