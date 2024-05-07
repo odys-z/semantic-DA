@@ -11,14 +11,18 @@ import io.odysz.transact.x.TransException;
 		super(format, args);
 	}
 
-	/**Get the exception message object that can be serialized to json and send to client.
+	/**
+	 * Get the exception message object that can be serialized to json and send to client.
 	 * @return ex object
 	 */
 	public SemanticObject ex() {
+		if (ex == null)
+			ex = new SemanticObject();
 		return ex;
 	}
 
-	/**Set object for details of exception
+	/**
+	 * Set object for details of exception
 	 * 
 	 * @param ex
 	 * @return this
@@ -27,5 +31,5 @@ import io.odysz.transact.x.TransException;
 		this.ex = ex;
 		return this;
 	}
-	
+
 }

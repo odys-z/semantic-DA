@@ -32,7 +32,7 @@ public abstract class SyntityMeta extends TableMeta {
 	 * @param pk
 	 * @param org DB field of orgnization - {@link io.odysz.semantic.syn.DBSynmantics}
 	 * uses this to filter data for synchronization.
-	 * Could be changed in the future.
+	 * Could be changed in the future. (What is this if using DB synchronization, data filter?)
 	 * @param conn
 	 */
 	@SuppressWarnings("serial")

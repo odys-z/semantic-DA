@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.odys-z</groupId>
   <artifactId>semantic.DA</artifactId>
-  <version>1.4.35</version>
+  <version>1.4.39</version>
   <packaging>jar</packaging>
 
   <name>semantic.DA</name>
@@ -45,7 +45,7 @@
 	<dependency>
     	<groupId>org.junit.jupiter</groupId>
     	<artifactId>junit-jupiter-engine</artifactId>
-        <version>5.9.1</version>
+        <version>5.7.1</version>
 	    <scope>test</scope>
     </dependency>
 
@@ -63,14 +63,14 @@
 			to update immediately. -->
 	    <groupId>io.github.odys-z</groupId>
 	    <artifactId>semantics.transact</artifactId>
-	    <version>1.4.35</version>
+	    <version>1.4.39</version>
 	</dependency>
 
 	<!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
 	<dependency>
 	    <groupId>org.xerial</groupId>
 	    <artifactId>sqlite-jdbc</artifactId>
-	    <version>3.36.0</version>
+	    <version>3.44.0.0</version>
 	</dependency>
 
 	<!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
@@ -119,6 +119,11 @@
   </distributionManagement>
 
   <build>
+    <testResources>
+   	<testResource><directory>${project.basedir}/src/test/java</directory>
+   	</testResource>
+    </testResources>
+
     <plugins>
       <plugin>
       	<artifactId>maven-compiler-plugin</artifactId>

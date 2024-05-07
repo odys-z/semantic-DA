@@ -70,7 +70,7 @@ public class DatasetHelper {
 			throws SQLException, TransException {
 		page.mergeArgs();
 		return loadStree(conn, sk, (int)page.page, (int)page.size,
-						len(page.arrCondts) > 0 ? page.arrCondts.get(0) : null, noder);
+						len(page.arrCondts) > 0 ? page.arrCondts2args() : null, noder);
 	}
 	
 	/**
