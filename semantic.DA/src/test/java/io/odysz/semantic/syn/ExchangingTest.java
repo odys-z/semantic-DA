@@ -1,15 +1,17 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.semantic.syn.Exchanging.*;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static io.odysz.semantic.syn.Exchanging.confirming;
+import static io.odysz.semantic.syn.Exchanging.exchanging;
+import static io.odysz.semantic.syn.Exchanging.init;
+import static io.odysz.semantic.syn.Exchanging.mode_client;
+import static io.odysz.semantic.syn.Exchanging.mode_server;
+import static io.odysz.semantic.syn.Exchanging.ready;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.semantic.meta.SynChangeMeta;
-import io.odysz.semantic.meta.SynSubsMeta;
-import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.transact.x.TransException;
 
 class ExchangingTest {
