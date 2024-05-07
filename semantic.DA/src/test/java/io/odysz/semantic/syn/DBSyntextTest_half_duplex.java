@@ -185,7 +185,7 @@ public class DBSyntextTest_half_duplex {
 		// new for triggering ddl loading - some error here FIXME
 		// nyqm = new NyquenceMeta("");
 		chm = new SynChangeMeta();
-		sbm = new SynSubsMeta();
+		sbm = new SynSubsMeta(chm);
 
 
 		for (int s = 0; s < 4; s++) {
