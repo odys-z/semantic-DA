@@ -158,7 +158,7 @@ public class DBSyntableTest {
 			Connects.commit(conn, DATranscxt.dummyUser(), sbm.ddlSqlite);
 
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", xbm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), sbm.ddlSqlite);
+			Connects.commit(conn, DATranscxt.dummyUser(), xbm.ddlSqlite);
 
 			// JUserMeta usm = new JUserMeta(conn);
 			// Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", usm.tbl));
