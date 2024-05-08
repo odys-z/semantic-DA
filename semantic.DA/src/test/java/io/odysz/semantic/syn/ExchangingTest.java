@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.transact.x.TransException;
 
 class ExchangingTest {
@@ -81,15 +82,16 @@ class ExchangingTest {
 		String conn = "syn.00";
 		// SynodeMeta snm = new SynodeMeta(conn);
 		SynChangeMeta chm = new SynChangeMeta(conn);
+		SynchangeBuffMeta xbm = new SynchangeBuffMeta();
 		// SynSubsMeta sbm = new SynSubsMeta(chm, conn);
 		// T_PhotoMeta phm = new T_PhotoMeta(conn);
 
 		String client = "client";
 		String server = "server";
-		ExessionPersist cp = new ExessionPersist(chm, server);
+		ExessionPersist cp = new ExessionPersist(null, chm, xbm, server);
 		ExchangeBlock req = cp.init(server, 3);
 
-		ExessionPersist sp = new ExessionPersist(chm, client, req);
+		ExessionPersist sp = new ExessionPersist(null, chm, xbm, client, req);
 		ExchangeBlock rep = sp.onInit(client, req, 4);
 		
 		// ch: 1, ans: 0

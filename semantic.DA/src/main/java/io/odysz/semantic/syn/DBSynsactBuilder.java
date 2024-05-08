@@ -5,8 +5,8 @@ import static io.odysz.semantic.syn.Exchanging.*;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
 import static io.odysz.semantic.syn.Nyquence.maxn;
-import static io.odysz.semantic.util.DAHelper.loadRecNyquence;
-import static io.odysz.semantic.util.DAHelper.loadRecString;
+import static io.odysz.semantic.util.DAHelper.getNyquence;
+import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
@@ -82,27 +82,27 @@ public class DBSynsactBuilder extends DATranscxt {
 
 	private HashMap<String, SyntityMeta> entityRegists;
 
-	public DBSynsactBuilder(String conn, String synodeId)
+	public DBSynsactBuilder(String conn, String synodeId, String syndomain)
 			throws SQLException, SAXException, IOException, TransException {
-		this(conn, synodeId,
+		this(conn, synodeId, syndomain,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
 	}
 	
-	public DBSynsactBuilder(String conn, String synodeId,
+	public DBSynsactBuilder(String conn, String synodeId, String syndomain,
 			SynChangeMeta chgm, SynodeMeta synm)
 			throws SQLException, SAXException, IOException, TransException {
 
 		super ( new DBSyntext(conn,
 			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(c)),
-			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId)
+			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId, syndomain)
 			    	, runtimepath));
 
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;
 		tx.synode = synodeId;
-		tx.domain = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
-		((SyncRobot)tx.usr()).orgId = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
+		tx.domain = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
+		((SyncRobot)tx.usr()).orgId = getValstr((Transcxt) this, conn, synm, synm.org(), synm.pk, synodeId);
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
@@ -138,7 +138,8 @@ public class DBSynsactBuilder extends DATranscxt {
 			.whereEq(synm.pk, synode())
 			.u(instancontxt(basictx.connId(), synrobot()));
 		
-		nyquvect.put(synode(), loadRecNyquence(this, basictx.connId(), synm, synode(), synm.nyquence));
+		// nyquvect.put(synode(), loadRecNyquence(this, basictx.connId(), synm, synode(), synm.nyquence));
+		nyquvect.put(synode(), getNyquence(this, basictx.connId(), synm, synm.nyquence, synm.pk, synode()));
 		return this;
 	}
 
@@ -259,7 +260,7 @@ public class DBSynsactBuilder extends DATranscxt {
 					// .je2(subm.tbl, "sb", constr(sn), subm.synodee,
 					// 	chgm.domain, subm.domain, chgm.entbl, subm.entbl,
 					// 	chgm.uids, subm.uids)
-					.je2(subm.tbl, "sb", constr(sn), subm.synodee, chgm.pk, subm.changeId)
+					.je_(subm.tbl, "sb", constr(sn), subm.synodee, chgm.pk, subm.changeId)
 					.where(op.ne, subm.synodee, constr(srcn))
 					.where(op.lt, chgm.nyquence, srcnv.get(sn).n))) // FIXME nyquence compare
 				.delete(subm.tbl, synrobot())
@@ -271,7 +272,7 @@ public class DBSynsactBuilder extends DATranscxt {
 						.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
 					.post(with(select(chgm.tbl, "cl")
 						.cols("cl.*").col(subm.synodee)
-						.je2(subm.tbl, "sb",
+						.je_(subm.tbl, "sb",
 						//	chgm.domain, subm.domain, chgm.entbl, subm.entbl,
 						//	chgm.uids, subm.uids)
 							chgm.pk, subm.changeId)
@@ -668,7 +669,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		else {
 			AnResultset challenge = (AnResultset) select(chgm.tbl, "ch")
 				// .je("ch", subm.tbl, "sb", chgm.entbl, subm.entbl, chgm.uids, subm.uids)
-				.je2(subm.tbl, "sb", chgm.pk, subm.changeId)
+				.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
 				.cols("ch.*", subm.synodee)
 				// FIXME not op.lt, must implement a function to compare nyquence.
 				.where(op.gt, chgm.nyquence, dn.n) // FIXME
@@ -693,7 +694,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 				AnResultset entities = ((AnResultset) select(tbl, "e")
 					// .je("e", chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
-					.je2(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
+					.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
 					.cols_byAlias("e", entm.entCols()).col("e." + entm.pk)
 					.where(op.gt, chgm.nyquence, dn.n)
 					.orderby(chgm.nyquence)

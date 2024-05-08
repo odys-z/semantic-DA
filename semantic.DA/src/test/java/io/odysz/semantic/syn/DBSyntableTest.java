@@ -1,25 +1,12 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.compoundVal;
-import static io.odysz.common.LangExt.indexOf;
-import static io.odysz.common.LangExt.isNull;
-import static io.odysz.common.LangExt.isblank;
-import static io.odysz.common.LangExt.repeat;
-import static io.odysz.common.LangExt.strcenter;
-import static io.odysz.common.Utils.logi;
-import static io.odysz.common.Utils.printCaller;
-import static io.odysz.semantic.CRUD.C;
-import static io.odysz.semantic.CRUD.U;
+import static io.odysz.common.LangExt.*;
+import static io.odysz.common.Utils.*;
+import static io.odysz.semantic.CRUD.*;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
-import static io.odysz.transact.sql.parts.condition.Funcall.compound;
-import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
-import static io.odysz.transact.sql.parts.condition.Funcall.count;
-import static io.odysz.transact.sql.parts.condition.Funcall.now;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static io.odysz.transact.sql.parts.condition.Funcall.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import io.odysz.anson.Anson;
 import io.odysz.anson.x.AnsonException;
 import io.odysz.common.Configs;
+import io.odysz.common.LangExt;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
@@ -177,13 +165,15 @@ public class DBSyntableTest {
 			sqls.add(String.format("delete from %s", snm.tbl));
 			if (s != W)
 				sqls.add(Utils.loadTxt("syn_nodes.sql"));
+			else
+				sqls.add(Utils.loadTxt("syn_nodes_w.sql"));
 
 			sqls.add(String.format("delete from %s", phm.tbl));
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			ck[s] = new Ck(s, new DBSyntableBuilder(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
-			snm = new SynodeMeta(conn).autopk(false).replace();
+			ck[s] = new Ck(s, new DBSyntableBuilder(conn, synodeIds[s], "zsu").loadNyquvect0(conn));
+			snm = (SynodeMeta) new SynodeMeta(conn).autopk(false); // .replace();
 			ck[s].synm = snm;
 			if (s != W)
 				ck[s].trb.incNyquence();
@@ -513,8 +503,8 @@ public class DBSyntableTest {
 		DBSyntableBuilder atb = ck[admin].trb;
 		DBSyntableBuilder ctb = ck[apply].trb;
 
-		ExessionPersist cp = new ExessionPersist(chm, atb.synode());
-		ExessionPersist ap = new ExessionPersist(chm, ctb.synode(), null); // TODO not null
+		ExessionPersist cp = new ExessionPersist(atb, chm, sbm, xbm, atb.synode());
+		ExessionPersist ap = new ExessionPersist(ctb, chm, sbm, xbm, ctb.synode(), null); // TODO not null
 
 		int no = 0;
 		// admin
@@ -587,12 +577,12 @@ public class DBSyntableTest {
 			throws TransException, SQLException, IOException {
 
 		int no = 0;
-		ExessionPersist cp = new ExessionPersist(chm, stb.synode());
+		ExessionPersist cp = new ExessionPersist(stb, chm, sbm, xbm, stb.synode());
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ExchangeBlock ini = ctb.initExchange(cp, stb.synode(), null);
 		assertTrue(ini.challenges() > 0);
 
-		ExessionPersist sp = new ExessionPersist(chm, ctb.synode(), ini);
+		ExessionPersist sp = new ExessionPersist(ctb, chm, sbm, xbm, ctb.synode(), ini);
 		ExchangeBlock rep = stb.onInit(sp, ini);
 		Utils.logrst(String.format("%s on initiate: changes: %d    entities: %d",
 				ctb.synode(), rep.challenges(), rep.enitities(cphm.tbl)), test, subno, ++no);
@@ -623,13 +613,13 @@ public class DBSyntableTest {
 			throws TransException, SQLException, IOException {
 
 		int no = 0;
-		ExessionPersist cp = new ExessionPersist(chm, stb.synode());
+		ExessionPersist cp = new ExessionPersist(stb, chm, sbm, xbm, stb.synode());
 
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ExchangeBlock ini = ctb.initExchange(cp, stb.synode(), null);
 		assertTrue(ini.challenges() > 0);
 
-		ExessionPersist sp = new ExessionPersist(chm, ctb.synode(), ini);
+		ExessionPersist sp = new ExessionPersist(ctb, chm, sbm, xbm, ctb.synode(), ini);
 
 		ctb.abortExchange(cp, stb.synode(), null);
 		ini = ctb.initExchange(cp, stb.synode(), null);
@@ -642,7 +632,7 @@ public class DBSyntableTest {
 
 		ExchangeBlock req = null;
 
-		req = ctb.exchangeBlock(cp, stb.synode(), null);
+		req = ctb.exchangePage(cp, stb.synode(), null);
 		Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
 		rep = stb.onExchange(sp, ctb.synode(), req);
 		Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
@@ -659,7 +649,7 @@ public class DBSyntableTest {
 			// client
 			cp.nextBlock();
 			//client
-			req = ctb.exchangeBlock(cp, stb.synode(), null);
+			req = ctb.exchangePage(cp, stb.synode(), null);
 			// server
 			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
 			try {
@@ -729,7 +719,7 @@ public class DBSyntableTest {
 		while (cp.hasChallenges(ctb) || req!= null && rep.moreChallenges) {
 			// client
 			cp.nextBlock();
-			req = ctb.exchangeBlock(cp, stb.synode(), rep);
+			req = ctb.exchangePage(cp, stb.synode(), rep);
 
 			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
 			// server
@@ -762,7 +752,7 @@ public class DBSyntableTest {
 			.nv(m.uri, "")
 			.nv(m.resname, "photo-x")
 			.nv(m.fullpath, father)
-			.nv(m.org(), ZSUNodesDA.family)
+			.nv(m.org(), robot.domain())
 			.nv(m.device(), robot.deviceId())
 			.nv(m.folder, robot.uid())
 			.nv(m.shareDate, now())
@@ -779,7 +769,7 @@ public class DBSyntableTest {
 			.nv(chm.synoder, synoder)
 			.nv(chm.uids, concatstr(synoder, chm.UIDsep, pid))
 			.nv(chm.nyquence, trb.n0().n)
-			.nv(chm.domain, robot.orgId)
+			.nv(chm.domain, robot.domain())
 			.post(trb.insert(sbm.tbl)
 				// .cols(sbm.entbl, sbm.synodee, sbm.uids, sbm.domain)
 				.cols(sbm.insertCols())
@@ -791,7 +781,7 @@ public class DBSyntableTest {
 					// .col(concatstr(synoder, chm.UIDsep, pid))
 					// .col(constr(robot.orgId))
 					.where(op.ne, snm.synoder, constr(trb.synode()))
-					.whereEq(snm.domain, robot.orgId)))
+					.whereEq(snm.domain, robot.domain)))
 			.ins(trb.instancontxt(conn, robot)))
 			.resulve(chm);
 		
@@ -865,8 +855,8 @@ public class DBSyntableTest {
 		public IUser robot() { return trb.synrobot(); }
 		String connId() { return trb.basictx().connId(); }
 
-		public Ck(int s, DBSyntableBuilder dbSyntableBuilder, String org) throws SQLException, TransException, ClassNotFoundException, IOException {
-			this(conns[s], dbSyntableBuilder, org, String.format("s%s", s), "rob-" + s);
+		public Ck(int s, DBSyntableBuilder dbSyntableBuilder) throws SQLException, TransException, ClassNotFoundException, IOException {
+			this(conns[s], dbSyntableBuilder, String.format("s%s", s), "rob-" + s);
 			phm = new T_PhotoMeta(conns[s]);
 		}
 
@@ -896,10 +886,10 @@ public class DBSyntableTest {
 			assertEquals(cnt, rs.getRowCount());
 		}
 
-		public Ck(String conn, DBSyntableBuilder dbSyntableBuilder, String org, String synid, String usrid)
+		public Ck(String conn, DBSyntableBuilder dbSyntableBuilder, String synid, String usrid)
 				throws SQLException, TransException, ClassNotFoundException, IOException {
-			this.trb = dbSyntableBuilder;
-			this.domain = org;
+			trb = dbSyntableBuilder;
+			this.domain = trb.domain();
 		}
 
 		public HashMap<String, Nyquence> cloneNv() {
@@ -929,7 +919,7 @@ public class DBSyntableTest {
 				throws TransException, SQLException {
 			Query q = trb
 				.select(chm.tbl, "ch")
-				.cols((Object[])chm.cols())
+				.cols((Object[])chm.insertCols())
 				.whereEq(chm.domain, domain)
 				.whereEq(chm.entbl, entm.tbl);
 			if (synoder != null)
@@ -980,7 +970,7 @@ public class DBSyntableTest {
 				// AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
 				AnResultset subs = (AnResultset) trb
 						.select(chm.tbl, "ch")
-						.je2(sbm.tbl, "sb", chm.pk, sbm.changeId)
+						.je_(sbm.tbl, "sb", chm.pk, sbm.changeId)
 						.cols_byAlias("sb", sbm.cols())
 						.whereEq(chm.uids, uids)
 						.rs(trb.instancontxt(connId(), robot()))
@@ -1102,7 +1092,7 @@ public class DBSyntableTest {
 					.select(chm.tbl, "ch")
 					.cols("ch.*", sbm.synodee)
 					// .je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
-					.je2(sbm.tbl, "sub", chm.pk, sbm.changeId)
+					.je_(sbm.tbl, "sub", chm.pk, sbm.changeId)
 					.orderby(chm.entbl, chm.uids)
 					.rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
 					.rs(0))
@@ -1117,7 +1107,7 @@ public class DBSyntableTest {
 		}
 		
 		Utils.logi(Stream.of(ck).map(c -> strcenter(c.trb.synode(), 31)).collect(Collectors.joining("|")));
-		Utils.logi(Stream.of(ck).map(c -> repeat("-", 31)).collect(Collectors.joining("+")));
+		Utils.logi(Stream.of(ck).map(c -> LangExt.repeat("-", 31)).collect(Collectors.joining("+")));
 
 		Utils.logi(uidss.keySet().stream().map(
 			(String linekey) -> {

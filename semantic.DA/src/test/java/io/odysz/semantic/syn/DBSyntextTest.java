@@ -1,6 +1,5 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.common.LangExt.compoundVal;
 import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
@@ -11,16 +10,9 @@ import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.*;
 import static io.odysz.semantic.syn.Exchanging.*;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
-import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
-import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,7 +45,6 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
-import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -179,7 +170,7 @@ public class DBSyntextTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			ck[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
+			ck[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s], "zsu").loadNyquvect0(conn), "zsu");
 			snm = new SynodeMeta(conn).autopk(false).replace();
 			ck[s].synm = snm;
 			if (s != W)
@@ -925,7 +916,7 @@ public class DBSyntextTest {
 	 * Checker of each Synode.
 	 * @author Ody
 	 */
-	public static class Ck {
+	private static class Ck {
 		public static final String org = "URA";
 
 		public T_PhotoMeta phm;
@@ -975,12 +966,12 @@ public class DBSyntextTest {
 			this.domain = org;
 		}
 
-		public HashMap<String, Nyquence> cloneNv() {
-			HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(4);
-			for (String n : trb.nyquvect.keySet())
-				nv.put(n, new Nyquence(trb.nyquvect.get(n).n));
-			return nv;
-		}
+//		public HashMap<String, Nyquence> cloneNv() {
+//			HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(4);
+//			for (String n : trb.nyquvect.keySet())
+//				nv.put(n, new Nyquence(trb.nyquvect.get(n).n));
+//			return nv;
+//		}
 
 		/**
 		 * Verify change flag, crud, where tabl = entm.tbl, entity-id = eid.
@@ -1053,7 +1044,7 @@ public class DBSyntextTest {
 				// AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
 				AnResultset subs = (AnResultset) trb
 						.select(chm.tbl, "ch")
-						.je2(sbm.tbl, "sb", chm.pk, sbm.changeId)
+						.je_(sbm.tbl, "sb", chm.pk, sbm.changeId)
 						.cols_byAlias("sb", sbm.cols())
 						.whereEq(chm.uids, uids)
 						.rs(trb.instancontxt(connId(), robot()))
@@ -1119,12 +1110,12 @@ public class DBSyntextTest {
 		 * @param synoder
 		 * @param clientpath
 		 */
-		public void verifile(String synoder, String clientpath, T_PhotoMeta phm) {
-			trb.select(phm.tbl)
-				.col(count(phm.pk), "c")
-				.where(new Predicate(op.eq, compound(chm.uids), compoundVal(synoder, clientpath)))
-				;
-		}
+//		public void verifile(String synoder, String clientpath, T_PhotoMeta phm) {
+//			trb.select(phm.tbl)
+//				.col(count(phm.pk), "c")
+//				.where(new Predicate(op.eq, compound(chm.uids), compoundVal(synoder, clientpath)))
+//				;
+//		}
 	}
 
 	public static void printNyquv(Ck[] ck) {
@@ -1175,7 +1166,7 @@ public class DBSyntextTest {
 					.select(chm.tbl, "ch")
 					.cols("ch.*", sbm.synodee)
 					// .je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
-					.je2(sbm.tbl, "sub", chm.pk, sbm.changeId)
+					.je_(sbm.tbl, "sub", chm.pk, sbm.changeId)
 					.orderby(chm.entbl, chm.uids)
 					.rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
 					.rs(0))

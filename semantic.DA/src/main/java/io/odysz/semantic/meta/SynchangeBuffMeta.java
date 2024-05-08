@@ -4,7 +4,7 @@ import io.odysz.common.Utils;
 import io.odysz.semantics.meta.Semantation;
 
 /**
- *<a href="./syn_change.sqlite.ddl">syn_change DDL</a>
+ * <a href="./syn_change.sqlite.ddl">syn_change DDL</a>
  *
  * @author odys-z@github.com
  *
@@ -56,6 +56,10 @@ public class SynchangeBuffMeta extends SemanticTableMeta {
 	/** compose function for uids */
 	public String uids(String synode, String entityId) {
 		return synode + UIDsep + entityId; // Funcall.concatstr(synode, UIDsep, entityId);
+	}
+
+	public String[] insertCols() {
+		return null;
 	}
 
 	/**

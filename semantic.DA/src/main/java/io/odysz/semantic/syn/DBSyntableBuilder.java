@@ -1,10 +1,11 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.isblank;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
-import static io.odysz.semantic.util.DAHelper.loadRecNyquence;
-import static io.odysz.semantic.util.DAHelper.loadRecString;
+import static io.odysz.semantic.util.DAHelper.getNyquence;
+import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
 
@@ -15,14 +16,14 @@ import java.util.HashMap;
 
 import org.xml.sax.SAXException;
 
-import io.odysz.anson.x.AnsonException;
+import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
-import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
+import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.syn.DBSynsactBuilder.SynmanticsMap;
@@ -33,8 +34,8 @@ import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Transcxt;
-import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.Logic.op;
+import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
@@ -198,26 +199,30 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	private HashMap<String, SyntityMeta> entityRegists;
 
-	public DBSyntableBuilder(String conn, String synodeId)
+	public DBSyntableBuilder(String conn, String synodeId, String syndomain)
 			throws SQLException, SAXException, IOException, TransException {
-		this(conn, synodeId,
+		this(conn, synodeId, syndomain,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
 	}
 	
-	public DBSyntableBuilder(String conn, String synodeId, SynChangeMeta chgm, SynodeMeta synm)
+	public DBSyntableBuilder(String conn, String synodeId, String syndomain, SynChangeMeta chgm, SynodeMeta synm)
 			throws SQLException, SAXException, IOException, TransException {
 
 		super ( new DBSyntext(conn,
 			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(c)),
-			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId)
+			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId, syndomain)
 			    	, runtimepath));
 
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;
 		tx.synode = synodeId;
-		tx.domain = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
-		((SyncRobot)tx.usr()).orgId = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
+		// tx.domain = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
+		tx.domain = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
+		// ((SyncRobot)tx.usr()).orgId = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
+		((SyncRobot)tx.usr())
+			.orgId(getValstr((Transcxt) this, conn, synm, synm.org(), synm.pk, synodeId))
+			.domain(getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId));
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
@@ -229,6 +234,10 @@ public class DBSyntableBuilder extends DATranscxt {
 		this.synm.replace();
 		
 		stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence, synm.synoder, synodeId, synm.domain, tx.domain);
+
+		if (isblank(tx.domain))
+			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
+				this.getClass().getName(), tx.synode);
 	}
 	
 	////////////////////////////// protocol API ////////////////////////////////
@@ -248,7 +257,9 @@ public class DBSyntableBuilder extends DATranscxt {
 			throw new ExchangeException(Exchanging.ready,
 				"Can't initate new exchange session. There are exchanging records to be finished.");
 		incStamp();
-		cp.init(target, 0);
+
+		// select change 
+		cp.init();
 
 		return new ExchangeBlock(synode(), cp.session()).nv(nyquvect)
 				.totalChallenges(DAHelper.count(this, synconn(), exbm.tbl, exbm.peer, cp.peer))
@@ -268,6 +279,8 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws SQLException, TransException {
 		try {
 			// insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
+			sp.onInit(inireq);
+
 			return new ExchangeBlock(synode(), sp.session()).nv(nyquvect)
 				.totalChallenges(DAHelper.count(this, synconn(), exbm.tbl, exbm.peer, sp.peer))
 				.seq(sp);
@@ -280,17 +293,17 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	/**
-	 * Push a block, with piggyback answers of previous confirming's challenges.
+	 * Push a change-logs page, with piggyback answers of previous confirming's challenges.
 	 * 
 	 * @param cp
 	 * @param peer
 	 * @param lastcnf
 	 * @return pushing block
 	 * @throws SQLException 
-	 * @throws ExchangeException 
+	 * @throws TransException 
 	 */
-	public ExchangeBlock exchangeBlock(ExessionPersist cp, String peer,
-			ExchangeBlock lastcnf) throws SQLException, ExchangeException {
+	public ExchangeBlock exchangePage(ExessionPersist cp, String peer,
+			ExchangeBlock lastcnf) throws SQLException, TransException {
 		cp.expect(peer, lastcnf);
 		AnResultset rs = cp.chpage();
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
@@ -298,11 +311,10 @@ public class DBSyntableBuilder extends DATranscxt {
 			.nv(nyquvect)
 			.challengePage(rs)
 			.answers(answer(cp, lastcnf, peer));
-			// .seq(cp.exchange(peer, lastcnf));
 	}
 	
 	public ExchangeBlock onExchange(ExessionPersist sp, String peer, ExchangeBlock req)
-			throws ExchangeException, SQLException {
+			throws SQLException, TransException {
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
 		// for ch in challenges:
 		//     answer.add(answer(ch))
@@ -316,15 +328,15 @@ public class DBSyntableBuilder extends DATranscxt {
 			.seq(sp);
 	}
 	
-	ExessionPersist answer(ExessionPersist sp, ExchangeBlock req, String srcn)
+	ExessionPersist answer(ExessionPersist xp, ExchangeBlock req, String srcn)
 			throws SQLException {
-		if (req == null) return sp;
+		if (req == null) return xp;
 		
 		ArrayList<ArrayList<Object>> changes = new ArrayList<ArrayList<Object>>();
-		ExchangeBlock resp = new ExchangeBlock(srcn, sp.session()).nv(nyquvect);
+		ExchangeBlock resp = new ExchangeBlock(srcn, xp.session()).nv(nyquvect);
 
 		AnResultset challenge = req.chpage;
-		if (challenge == null) return sp;
+		if (challenge == null) return xp;
 
 		while (req != null && req.challenges > 0 && req.chpage.next()) {
 			String subscribe = req.chpage.getString(subm.synodee);
@@ -352,7 +364,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			}
 		}
 
-		return sp.saveChallenges(changes);
+		return xp.saveAnswer(resp.answers()).saveChallenges(changes);
 	}
 
 	public HashMap<String, Nyquence> closexchange(ExessionPersist cx, String synode,
@@ -398,7 +410,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	/**
-	 * Client found unfinished exchange session and retry it.
+	 * Client have found unfinished exchange session then retry it.
 	 */
 	public void restorexchange() { }
 
@@ -457,7 +469,8 @@ public class DBSyntableBuilder extends DATranscxt {
 			.whereEq(synm.pk, synode())
 			.u(instancontxt(basictx.connId(), synrobot()));
 		
-		nyquvect.put(synode(), loadRecNyquence(this, basictx.connId(), synm, synode(), synm.nyquence));
+		nyquvect.put(synode(), getNyquence(this, basictx.connId(), synm, synm.nyquence,
+				synm.pk, synode(), synm.domain, ((DBSyntext)this.basictx).domain));
 		return this;
 	}
 
@@ -516,7 +529,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		return colnames;
 	}
 
-//	static void verifyseq(ExessionPersist ex, ExchangeBlock rep) throws ExchangeException {
-//		throw new ExchangeException(ex.expChallengeId, "TODO");
-//	}
+	public String domain() {
+		return basictx() == null ? null : ((DBSyntext) basictx()).domain;
+	}
 }

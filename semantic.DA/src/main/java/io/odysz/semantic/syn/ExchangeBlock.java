@@ -116,7 +116,7 @@ public class ExchangeBlock extends Anson {
 		return this;
 	}
 
-	public ExchangeBlock allChanges(int total) {
+	public ExchangeBlock totalChanges(int total) {
 		this.challenges = total;
 		return this;
 	}

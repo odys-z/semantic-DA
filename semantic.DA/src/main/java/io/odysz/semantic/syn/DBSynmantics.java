@@ -55,7 +55,8 @@ public class DBSynmantics extends DASemantics {
 		if (smtype.synChange == smtp)
 			try {
 				return new DBSynmantics.ShSynChange(
-						new DBSynsactBuilder(tsx.basictx().connId(), "dummy-loader"),
+						new DBSynsactBuilder(tsx.basictx().connId(),
+							"dummy-loader", ((DBSyntableBuilder) tsx).domain()),
 						tabl, pk, args);
 			} catch (TransException | SQLException | SAXException | IOException e) {
 				e.printStackTrace();

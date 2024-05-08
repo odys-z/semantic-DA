@@ -11,12 +11,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import io.odysz.common.Radix64;
+import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynSubsMeta;
+import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
+import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -28,11 +32,15 @@ import io.odysz.transact.x.TransException;
  */
 public class ExessionPersist {
 	final SynChangeMeta chgm;
+	final SynSubsMeta subm;
+	final SynchangeBuffMeta exbm;
 
-	String peer;
+	final String peer;
 
 	public ArrayList<ArrayList<Object>> answerPage;
 	// public AnResultset challengePage;
+
+	DBSyntableBuilder trb;
 
 	/**
 	 * My challenges initiated by
@@ -44,73 +52,125 @@ public class ExessionPersist {
 	}
 
 	/** Answers to my challenges, {@link #mychallenge}, with entities in it. */
-	AnResultset saveAnswer(AnResultset answer) { return answer;}
+	ExessionPersist saveAnswer(AnResultset answer) {
+		return this;
+	}
 
 	/**
 	 * Create context at client side.
+	 * @param tb 
 	 * @param chgm
 	 * @param localtb local transaction builder
 	 * @param target
+	 * @param exbm 
+	 * @param subm 
 	 * @param builder 
 	 */
-	public ExessionPersist(SynChangeMeta chgm, String target) {
+	public ExessionPersist(DBSyntableBuilder tb, SynChangeMeta chgm, SynSubsMeta subm, SynchangeBuffMeta exbm, String target) {
+		this.trb  = tb; 
+		this.exbm = exbm;
 		this.peer = target;
 		this.chgm = chgm;
+		this.subm = subm;
 		this.exstate = new ExessionAct(mode_client, ready);
 		this.session = Radix64.toString((long) (Math.random() * Long.MAX_VALUE));
 	}
 
 	/**
 	 * Create context at server side.
+	 * @param tb 
 	 * @param session session id supplied by client
 	 * @param chgm
 	 * @param localtb
 	 * @param target
 	 */
-	public ExessionPersist(SynChangeMeta chgm, String peer, ExchangeBlock ini) {
+	public ExessionPersist(DBSyntableBuilder tb, SynChangeMeta chgm, SynSubsMeta subm, SynchangeBuffMeta exbm, String peer, ExchangeBlock ini) {
+		this.trb = tb;
+		this.exbm = exbm;
 		this.session = ini.session;
 		this.peer = peer;
 		this.chgm = chgm;
+		this.subm = subm;
 		this.exstate = new ExessionAct(mode_server, ready);
 	}
 
 	/**
+	 * Setup exchange buffer table.
 	 * <pre>
 	 * exstate.state = init;
-	 * expChallengeId = -1;
-	 * expAnswerId = -1;
-	 * challengeId = 0;
-	 * answerId = -1;
+	 * expAnswerSeq = 0;
+	 * challengeSeq = 0;
+	 * answerSeq = 0;
 	 * </pre>
-	 * @param target
 	 * @param i 
 	 * @return 
+	 * @throws TransException 
+	 * @throws SQLException 
 	 * @throws SemanticException
 	 */
-	public ExchangeBlock init(String target, int total) {
-		// if (!isblank(this.peer)) throw new SemanticException("Contexts are mismatched: %s vs %s", this.peer, target);
-
+	public void init() throws TransException, SQLException {
+		if (trb != null) {
+			Nyquence dn = trb.nyquvect.get(peer);
+			trb.insert(exbm.tbl)
+				.cols(exbm.insertCols())
+				.select(trb.select(chgm.tbl, "ch")
+					.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
+					.cols("ch.*", subm.synodee)
+					// FIXME not op.lt, must implement a function to compare nyquence.
+					.where(op.gt, chgm.nyquence, dn.n) // FIXME
+					.orderby(chgm.entbl)
+					.orderby(chgm.nyquence)
+					.orderby(chgm.synoder)
+					.orderby(subm.synodee))
+				.ins(trb.instancontxt(trb.synconn(), trb.synrobot()));
+		}
+		else 
+			Utils.warn("[%s#%s()] Null transact builder. - null builder only for test",
+				getClass().getName(),
+				new Object(){}.getClass().getEnclosingMethod().getName());
+		
 		exstate = new ExessionAct(mode_client, init);
-		// expChallengeId = 1;
+
 		expAnswerSeq = 0;
 		challengeSeq = 0;
 		answerSeq = 0;
 		
-		return new ExchangeBlock(target, session)
-				.allChanges(total)
-				.seq(challengeSeq, answerSeq);
+//		return new ExchangeBlock(peer, session)
+//				.totalChanges(DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer))
+//				.seq(challengeSeq, answerSeq);
 	}
 
-	public ExchangeBlock onInit(String client, ExchangeBlock ini, int total) {
+	public void onInit(ExchangeBlock ini) throws TransException, SQLException {
 		exstate = new ExessionAct(mode_server, init);
-		// expChallengeId = 1;
+		
+		String conn = trb.basictx().connId();
+		if (trb != null) {
+			Nyquence dn = trb.nyquvect.get(peer);
+			trb.insert(exbm.tbl)
+				.cols(exbm.insertCols())
+				.select(trb.select(chgm.tbl, "ch")
+					.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
+					.cols("ch.*", subm.synodee)
+					// FIXME not op.lt, must implement a function to compare nyquence.
+					.where(op.gt, chgm.nyquence, dn.n) // FIXME
+					.orderby(chgm.entbl)
+					.orderby(chgm.nyquence)
+					.orderby(chgm.synoder)
+					.orderby(subm.synodee))
+				.ins(trb.instancontxt(conn, trb.synrobot()));
+		}
+		else 
+			Utils.warn("[%s#%s()] Null transact builder. - null builder only for test",
+				getClass().getName(),
+				new Object(){}.getClass().getEnclosingMethod().getName());
+		
 		challengeSeq = 1;
 		expAnswerSeq = challengeSeq;
 		answerSeq = 0;
 	
-		return new ExchangeBlock(client, session)
-				.allChanges(total)
-				.seq(challengeSeq, answerSeq);
+//		return new ExchangeBlock(peer, session)
+//				.totalChanges(DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer))
+//				.seq(challengeSeq, answerSeq);
 	}
 
 	/**
@@ -250,9 +310,16 @@ public class ExessionPersist {
 	/**
 	 * Get challenge page
 	 * @return ch-page
+	 * @throws SQLException 
+	 * @throws TransException 
 	 */
-	public AnResultset chpage() {
-		return null;
+	public AnResultset chpage() throws TransException, SQLException {
+		// 
+		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
+		return (AnResultset)trb
+			.select(exbm.tbl, "bf")
+			.whereEq(exbm.peer, peer)
+			.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
+			.rs(0);
 	}
-
 }

@@ -5,7 +5,7 @@ import java.sql.SQLException;
 
 import org.xml.sax.SAXException;
 
-import io.odysz.semantic.syn.DBSyntextTest.Ck;
+import io.odysz.semantic.syn.DBSyntableTest.Ck;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -13,7 +13,10 @@ import io.odysz.transact.x.TransException;
  * @author odys-z@github.com
  */
 public class ZSUNodesDA {
-	public static final String family = "ZSU";
+	/**
+	 * @since 1.4.40, this is the synchronizing domain
+	 */
+	public static final String family = "zsu";
 	
 	public final String folder;
 	public String png;
@@ -44,7 +47,7 @@ public class ZSUNodesDA {
 		this.sid = sid;
 		folder = "zsu-" + sid;
 		conn = DBSyntextTest.conns[sid];
-		ck = new Ck(sid, new DBSynsactBuilder(null, "zsu-dev-" + sid), "zsu");
+		ck = new Ck(sid, new DBSyntableBuilder(null, "zsu-dev-" + sid, "zsu"));
 		robot = (SyncRobot) ck.robot();
 		nodeId = robot.deviceId;
 		worker = robot.uid();

@@ -17,24 +17,31 @@ import io.odysz.transact.x.TransException;
 public class DAHelper {
 
 	/**
-	 * Load a field from db.
+	 * Load a field from table m.tbl.
+	 * 
+	 * @param trb transaction builder
+	 * @param conn
 	 * @param m the table must have a pk.
-	 * @param recId
-	 * @param field
-	 * @return field value in row[pk = recId]
-	 * @throws TransException 
-	 * @throws SQLException 
+	 * @param valfield
+	 * @param kvs
+	 * @return field's value in row[kvs[0] = kvs[1], kvs[1] = kvs[2], ...]
+	 * @throws SQLException
+	 * @throws TransException
 	 */
-	public static String loadRecString(Transcxt trb, String conn, TableMeta m, String recId, String field)
+	public static String getValstr(Transcxt trb, String conn, TableMeta m, String valfield, Object ... kvs)
 			throws SQLException, TransException {
-		AnResultset rs = (AnResultset) trb.select(m.tbl)
-				.col(field)
-				.whereEq(m.pk, recId)
+		Query q = trb.select(m.tbl);
+
+		for (int i = 0; i < kvs.length; i+=2)
+			q.whereEq((String)kvs[i], kvs[i+1]);
+
+		AnResultset rs = (AnResultset) q
+				.col(valfield)
 				.rs(trb.instancontxt(conn, DATranscxt.dummyUser()))
 				.rs(0);
 		
 		if (rs.next())
-			return rs.getString(field);
+			return rs.getString(valfield);
 		else return null;
 	}
 
@@ -81,14 +88,25 @@ public class DAHelper {
 			.format("Record not found: %s.%s = '%s' ... ", m.tbl, kvs[0], kvs[1]));
 	}
 
+	/**
+	 * @deprecated replaced by {@link #getNyquence(DATranscxt, String, TableMeta, String, String...)}.
+	 * @param trb
+	 * @param conn
+	 * @param m
+	 * @param recId
+	 * @param field
+	 * @return Nyquence
+	 * @throws SQLException
+	 * @throws TransException
+	 */
 	public static Nyquence loadRecNyquence(DATranscxt trb, String conn, TableMeta m, String recId, String field)
 			throws SQLException, TransException {
 		return new Nyquence(loadRecLong(trb, conn, m, recId, field));
 	}
 
-	public static Nyquence getNyquence(DATranscxt trb, String conn, TableMeta m, String field, String... wheres)
+	public static Nyquence getNyquence(DATranscxt trb, String conn, TableMeta m, String nyqfield, String... where_eqs)
 			throws SQLException, TransException {
-		return new Nyquence(getValong(trb, conn, m, field, wheres));
+		return new Nyquence(getValong(trb, conn, m, nyqfield, where_eqs));
 	}
 
 	public static SemanticObject updateField(DATranscxt trb, String conn, TableMeta m, String recId,
