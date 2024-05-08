@@ -13,7 +13,6 @@ public class SynChangeMeta extends SemanticTableMeta {
 	@Semantation (noDBExists = true)
 	public final String UIDsep;
 
-	// public final String cid;
 	public final String domain;
 	public final String entbl;
 	/** Entity fk, redundant for convenient, not for synchronizing */
@@ -27,8 +26,7 @@ public class SynChangeMeta extends SemanticTableMeta {
 	/** updated fields when updating an entity */
 	public final String updcols;
 
-	static {
-	}
+	public final String timestamp;
 
 	public SynChangeMeta(String ... conn) {
 		super("syn_change", conn);
@@ -36,15 +34,16 @@ public class SynChangeMeta extends SemanticTableMeta {
 
 		ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
 
-		pk      = "cid";
-		domain  = "domain";
-		entbl   = "tabl";
-		entfk   = "entfk";
-		crud    = "crud";
-		synoder = "synoder";
-		uids    = "uids";
-		nyquence= "nyquence";
-		updcols = "updcols";
+		pk       = "cid";
+		domain   = "domain";
+		entbl    = "tabl";
+		entfk    = "entfk";
+		crud     = "crud";
+		synoder  = "synoder";
+		uids     = "uids";
+		nyquence = "nyquence";
+		updcols  = "updcols";
+		timestamp= "timestamp";
 	}
 
 	public String[] cols() {
