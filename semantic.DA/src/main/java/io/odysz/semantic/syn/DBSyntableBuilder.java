@@ -226,7 +226,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
-		this.exbm = exbm != null ? exbm : new SynchangeBuffMeta(conn);
+		this.exbm = exbm != null ? exbm : new SynchangeBuffMeta(chgm, conn);
 		this.exbm.replace();
 		this.subm = subm != null ? subm : new SynSubsMeta(chgm, conn);
 		this.subm.replace();
@@ -256,14 +256,14 @@ public class DBSyntableBuilder extends DATranscxt {
 		if (DAHelper.count(this, basictx().connId(), exbm.tbl, exbm.peer, target) > 0)
 			throw new ExchangeException(Exchanging.ready,
 				"Can't initate new exchange session. There are exchanging records to be finished.");
-		incStamp();
 
 		// select change 
-		cp.init();
+		try { return cp.init().nv(nyquvect); }
+		finally { incStamp(); }
 
-		return new ExchangeBlock(synode(), cp.session()).nv(nyquvect)
-				.totalChallenges(DAHelper.count(this, synconn(), exbm.tbl, exbm.peer, cp.peer))
-				.seq(cp);
+//		return new ExchangeBlock(synode(), cp.session()).nv(nyquvect)
+//				.totalChallenges(DAHelper.count(this, synconn(), exbm.tbl, exbm.peer, cp.peer))
+//				.seq(cp);
 	}
 	
 	/**
@@ -279,11 +279,11 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws SQLException, TransException {
 		try {
 			// insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
-			sp.onInit(inireq);
+			return sp.onInit(inireq).nv(nyquvect);
 
-			return new ExchangeBlock(synode(), sp.session()).nv(nyquvect)
-				.totalChallenges(DAHelper.count(this, synconn(), exbm.tbl, exbm.peer, sp.peer))
-				.seq(sp);
+//			return new ExchangeBlock(synode(), sp.session()).nv(nyquvect)
+//				.totalChallenges(DAHelper.count(this, synconn(), exbm.tbl, exbm.peer, sp.peer))
+//				.seq(sp);
 		} finally {
 			incStamp();
 		}

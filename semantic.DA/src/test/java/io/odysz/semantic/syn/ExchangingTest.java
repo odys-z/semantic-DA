@@ -8,10 +8,13 @@ import static io.odysz.semantic.syn.Exchanging.mode_server;
 import static io.odysz.semantic.syn.Exchanging.ready;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.sql.SQLException;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.transact.x.TransException;
 
@@ -78,21 +81,21 @@ class ExchangingTest {
 	}
 
 	@Test
-	void testRestore() throws TransException {
+	void testRestore() throws TransException, SQLException {
 		String conn = "syn.00";
 		// SynodeMeta snm = new SynodeMeta(conn);
 		SynChangeMeta chm = new SynChangeMeta(conn);
-		SynchangeBuffMeta xbm = new SynchangeBuffMeta();
-		// SynSubsMeta sbm = new SynSubsMeta(chm, conn);
+		SynchangeBuffMeta xbm = new SynchangeBuffMeta(chm);
+		SynSubsMeta sbm = new SynSubsMeta(chm, conn);
 		// T_PhotoMeta phm = new T_PhotoMeta(conn);
 
 		String client = "client";
 		String server = "server";
-		ExessionPersist cp = new ExessionPersist(null, chm, xbm, server);
-		ExchangeBlock req = cp.init(server, 3);
+		ExessionPersist cp = new ExessionPersist(null, chm, sbm, xbm, server);
+		ExchangeBlock req = cp.init();
 
-		ExessionPersist sp = new ExessionPersist(null, chm, xbm, client, req);
-		ExchangeBlock rep = sp.onInit(client, req, 4);
+		ExessionPersist sp = new ExessionPersist(null, chm, sbm, xbm, client, req);
+		ExchangeBlock rep = sp.onInit(req);
 		
 		// ch: 1, ans: 0
 		req = cp.exchange(server, rep);

@@ -8,7 +8,6 @@ import static io.odysz.semantic.syn.Exchanging.ready;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import io.odysz.common.Radix64;
 import io.odysz.common.Utils;
@@ -19,7 +18,6 @@ import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
-import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.x.TransException;
 
@@ -38,7 +36,6 @@ public class ExessionPersist {
 	final String peer;
 
 	public ArrayList<ArrayList<Object>> answerPage;
-	// public AnResultset challengePage;
 
 	DBSyntableBuilder trb;
 
@@ -67,6 +64,9 @@ public class ExessionPersist {
 	 * @param builder 
 	 */
 	public ExessionPersist(DBSyntableBuilder tb, SynChangeMeta chgm, SynSubsMeta subm, SynchangeBuffMeta exbm, String target) {
+		if (tb != null && eq(tb.synode(), target))
+			Utils.warn("Creating persisting context for local builder, i.e. peer(%s) = this.synode?", target);;
+
 		this.trb  = tb; 
 		this.exbm = exbm;
 		this.peer = target;
@@ -104,22 +104,24 @@ public class ExessionPersist {
 	 * </pre>
 	 * @param i 
 	 * @return 
+	 * @return 
 	 * @throws TransException 
 	 * @throws SQLException 
 	 * @throws SemanticException
 	 */
-	public void init() throws TransException, SQLException {
+	public ExchangeBlock init() throws TransException, SQLException {
 		if (trb != null) {
 			Nyquence dn = trb.nyquvect.get(peer);
-			trb.insert(exbm.tbl)
+			trb.insert(exbm.tbl, trb.synrobot())
 				.cols(exbm.insertCols())
 				.select(trb.select(chgm.tbl, "ch")
+					.distinct()
 					.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
-					.cols("ch.*", subm.synodee)
+					.cols(exbm.selectCols(peer, 0))
 					// FIXME not op.lt, must implement a function to compare nyquence.
 					.where(op.gt, chgm.nyquence, dn.n) // FIXME
-					.orderby(chgm.entbl)
 					.orderby(chgm.nyquence)
+					.orderby(chgm.entbl)
 					.orderby(chgm.synoder)
 					.orderby(subm.synodee))
 				.ins(trb.instancontxt(trb.synconn(), trb.synrobot()));
@@ -135,22 +137,23 @@ public class ExessionPersist {
 		challengeSeq = 0;
 		answerSeq = 0;
 		
-//		return new ExchangeBlock(peer, session)
-//				.totalChanges(DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer))
-//				.seq(challengeSeq, answerSeq);
+		return new ExchangeBlock(peer, session)
+				.totalChanges(trb == null ? 0 : DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer))
+				.seq(challengeSeq, answerSeq);
 	}
 
-	public void onInit(ExchangeBlock ini) throws TransException, SQLException {
+	public ExchangeBlock onInit(ExchangeBlock ini) throws TransException, SQLException {
 		exstate = new ExessionAct(mode_server, init);
 		
 		String conn = trb.basictx().connId();
 		if (trb != null) {
 			Nyquence dn = trb.nyquvect.get(peer);
-			trb.insert(exbm.tbl)
+			trb.insert(exbm.tbl, trb.synrobot())
 				.cols(exbm.insertCols())
 				.select(trb.select(chgm.tbl, "ch")
+					.distinct()
 					.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
-					.cols("ch.*", subm.synodee)
+					.cols(exbm.selectCols(peer, 0))
 					// FIXME not op.lt, must implement a function to compare nyquence.
 					.where(op.gt, chgm.nyquence, dn.n) // FIXME
 					.orderby(chgm.entbl)
@@ -168,9 +171,9 @@ public class ExessionPersist {
 		expAnswerSeq = challengeSeq;
 		answerSeq = 0;
 	
-//		return new ExchangeBlock(peer, session)
-//				.totalChanges(DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer))
-//				.seq(challengeSeq, answerSeq);
+		return new ExchangeBlock(peer, session)
+				.totalChanges(trb == null ? 0 : DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer))
+				.seq(challengeSeq, answerSeq);
 	}
 
 	/**
@@ -181,12 +184,12 @@ public class ExessionPersist {
 	 * @param yourchallenges
 	 * @param entities
 	 * @throws SemanticException
-	 */
 	public void buffChanges(HashMap<String,Nyquence> mynv, HashMap<String, Object[]> chcols,
 			ArrayList<ArrayList<Object>> yourchallenges, HashMap<String, AnResultset> entities)
 			throws SemanticException {
 		ArrayList<Insert> ins = new ArrayList<Insert>();
 	}
+	 */
 
 	public void clear() throws SemanticException {
 	}
@@ -198,12 +201,20 @@ public class ExessionPersist {
 	public int exstate() { return exstate.state; }
 
 	public int expAnswerSeq;
+	/** Challenging sequence number, i. e. current page */
 	public int challengeSeq;
 	public int answerSeq;
 
-	public boolean hasChallenges(DBSyntableBuilder b)
+	/**
+	 * Has pages to be send to in {@link SynchangeBuffMeta}.tbl.
+	 * @param b synchronizing transaction builder
+	 * @return
+	 * @throws SQLException
+	 * @throws TransException
+	 */
+	public boolean hasNextChpages(DBSyntableBuilder b)
 			throws SQLException, TransException {
-		return DAHelper.count(b, b.synconn(), chgm.tbl, chgm.synoder, peer) > 0;
+		return DAHelper.count(b, b.synconn(), exbm.tbl, exbm.peer, peer, exbm.seq, challengeSeq + 1) > 0;
 	}
 
 	public void nextBlock() {

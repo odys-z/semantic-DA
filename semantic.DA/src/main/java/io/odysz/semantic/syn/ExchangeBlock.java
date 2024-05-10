@@ -32,9 +32,9 @@ public class ExchangeBlock extends Anson {
 		return this;
 	}
 
-	public int challenges() {
-		return chpage  == null ? 0 : chpage.size();
-	}
+//	public int challenges() {
+//		return challenges; // chpage  == null ? 0 : chpage.size();
+//	}
 
 	public ExchangeBlock challengePage(AnResultset page) {
 		chpage  = page;

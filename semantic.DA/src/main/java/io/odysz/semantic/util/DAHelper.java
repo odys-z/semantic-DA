@@ -1,5 +1,7 @@
 package io.odysz.semantic.util;
 
+import static io.odysz.common.LangExt.isNull;
+
 import java.sql.SQLException;
 
 import io.odysz.module.rs.AnResultset;
@@ -117,12 +119,35 @@ public class DAHelper {
 			.u(trb.instancontxt(conn, usr));
 	}
 
-	public static int count(DATranscxt b, String conn, String t, String field, String v)
+	/**
+	 * @deprecated replaced by {@link #count(DATranscxt, String, String, Object...)}
+	 * @param b
+	 * @param conn
+	 * @param t
+	 * @param field
+	 * @param v
+	 * @return
+	 * @throws SQLException
+	 * @throws TransException
+	 */
+	public static int count_(DATranscxt b, String conn, String t, String field, String v)
 			throws SQLException, TransException {
 		return ((AnResultset) b.select(t)
 				.col(Funcall.count(), "cnt")
 				.whereEq(field, v)
 				.rs(b.instancontxt(conn, DATranscxt.dummyUser()))
+				.rs(0)).nxt().getInt("cnt");
+	}
+
+	public static int count(DATranscxt b, String conn, String t, Object ... kvs)
+			throws SQLException, TransException {
+		Query q = b.select(t)
+				.col(Funcall.count(), "cnt");
+		if (!isNull(kvs))
+			for (int i = 0; i < kvs.length; i+=2)
+				q.whereEq((String)kvs[i], kvs[i+1]);
+
+		return ((AnResultset) q.rs(b.instancontxt(conn, DATranscxt.dummyUser()))
 				.rs(0)).nxt().getInt("cnt");
 	}
 }

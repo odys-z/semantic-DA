@@ -993,7 +993,7 @@ public class DBSyntextTest {
 				throws TransException, SQLException {
 			Query q = trb
 				.select(chm.tbl, "ch")
-				.cols((Object[])chm.cols())
+				.cols((Object[])chm.insertCols())
 				.whereEq(chm.domain, domain)
 				.whereEq(chm.entbl, entm.tbl);
 			if (synoder != null)
