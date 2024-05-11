@@ -19,6 +19,7 @@ import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.parts.Logic.op;
+import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -40,16 +41,16 @@ public class ExessionPersist {
 	DBSyntableBuilder trb;
 
 	/**
-	 * My challenges initiated by
+	 * Append local changes according to challenges initiated by
 	 * {@link DBSynsactBuilder#initExchange(ExchangePersist, String, io.odysz.semantic.meta.SyntityMeta) initExchange()}.
 	 * @param changes 
 	 */
-	ExessionPersist saveChallenges(ArrayList<ArrayList<Object>> changes) {
+	ExessionPersist addChangeBuf(ArrayList<ArrayList<Object>> changes) {
 		return this;
 	}
 
 	/** Answers to my challenges, {@link #mychallenge}, with entities in it. */
-	ExessionPersist saveAnswer(AnResultset answer) {
+	ExessionPersist saveAnswer(ArrayList<ArrayList<Object>> answer) {
 		return this;
 	}
 
@@ -74,6 +75,7 @@ public class ExessionPersist {
 		this.subm = subm;
 		this.exstate = new ExessionAct(mode_client, ready);
 		this.session = Radix64.toString((long) (Math.random() * Long.MAX_VALUE));
+		this.chsize = 480;
 	}
 
 	/**
@@ -92,6 +94,7 @@ public class ExessionPersist {
 		this.chgm = chgm;
 		this.subm = subm;
 		this.exstate = new ExessionAct(mode_server, ready);
+		this.chsize = 480;
 	}
 
 	/**
@@ -117,7 +120,7 @@ public class ExessionPersist {
 				.select(trb.select(chgm.tbl, "ch")
 					.distinct()
 					.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
-					.cols(exbm.selectCols(peer, 0))
+					.cols(exbm.selectCols(peer, -1))
 					// FIXME not op.lt, must implement a function to compare nyquence.
 					.where(op.gt, chgm.nyquence, dn.n) // FIXME
 					.orderby(chgm.nyquence)
@@ -133,13 +136,13 @@ public class ExessionPersist {
 		
 		exstate = new ExessionAct(mode_client, init);
 
-		expAnswerSeq = 0;
-		challengeSeq = 0;
-		answerSeq = 0;
+		challengeSeq = -1;
+		expAnswerSeq = challengeSeq;
+		answerSeq = -1;
 		
 		return new ExchangeBlock(peer, session)
-				.totalChanges(trb == null ? 0 : DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer))
-				.seq(challengeSeq, answerSeq);
+			.totalChanges(trb == null ? 0 : DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer))
+			.seq(challengeSeq, answerSeq);
 	}
 
 	public ExchangeBlock onInit(ExchangeBlock ini) throws TransException, SQLException {
@@ -152,8 +155,8 @@ public class ExessionPersist {
 				.cols(exbm.insertCols())
 				.select(trb.select(chgm.tbl, "ch")
 					.distinct()
-					.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
-					.cols(exbm.selectCols(peer, 0))
+					.je_(subm.tbl, "sb", chgm.pk, subm.changeId) // filter zero subscriber
+					.cols(exbm.selectCols(peer, -1))
 					// FIXME not op.lt, must implement a function to compare nyquence.
 					.where(op.gt, chgm.nyquence, dn.n) // FIXME
 					.orderby(chgm.entbl)
@@ -167,9 +170,9 @@ public class ExessionPersist {
 				getClass().getName(),
 				new Object(){}.getClass().getEnclosingMethod().getName());
 		
-		challengeSeq = 1;
+		challengeSeq = -1;
 		expAnswerSeq = challengeSeq;
-		answerSeq = 0;
+		answerSeq = ini.challengeSeq;
 	
 		return new ExchangeBlock(peer, session)
 				.totalChanges(trb == null ? 0 : DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer))
@@ -191,8 +194,7 @@ public class ExessionPersist {
 	}
 	 */
 
-	public void clear() throws SemanticException {
-	}
+	public void clear() throws SemanticException { }
 
 	private String session;
 	public String session() { return session; }
@@ -203,6 +205,9 @@ public class ExessionPersist {
 	public int expAnswerSeq;
 	/** Challenging sequence number, i. e. current page */
 	public int challengeSeq;
+	/** challenge page size */
+	protected final int chsize;
+
 	public int answerSeq;
 
 	/**
@@ -214,41 +219,55 @@ public class ExessionPersist {
 	 */
 	public boolean hasNextChpages(DBSyntableBuilder b)
 			throws SQLException, TransException {
-		return DAHelper.count(b, b.synconn(), exbm.tbl, exbm.peer, peer, exbm.seq, challengeSeq + 1) > 0;
+		return DAHelper.count(b, b.synconn(), exbm.tbl, exbm.peer, peer, exbm.seq, -1) > 0;
 	}
 
-	public void nextBlock() {
-		challengeSeq++;
-		expAnswerSeq = challengeSeq;
-	}
+//	public void nextBlock() {
+//		challengeSeq++;
+//		expAnswerSeq = challengeSeq;
+//	}
 
 	public ExessionPersist expect(String peer, ExchangeBlock req) throws ExchangeException {
 		// if ( expChallengeId == req.challengeId && expAnswerSeq == req.answerId
-		if ( expAnswerSeq == req.answerId
+		if ( req == null
+		  || expAnswerSeq == req.answerSeq
 		  && eq(peer, this.peer) && eq(session, req.session))
 			return this;
 		throw new ExchangeException(ExessionAct.unexpected,
 			// "exp-challenge %s : challenge %s, exp-answer %s : answer %s",
 			"req challenge %s, exp-answer %s : answer %s",
-			req.challengeId, expAnswerSeq, req.answerId);
+			req.challengeSeq, expAnswerSeq, req.answerSeq);
+	}
+	
+	public ExessionPersist nextChpage() {
+		challengeSeq++;
+		expAnswerSeq = challengeSeq;
+		return this;
 	}
 
-	public ExchangeBlock exchange(String peer, ExchangeBlock rep) throws ExchangeException {
+	public ExchangeBlock exchange(String peer, ExchangeBlock rep) throws TransException, SQLException {
 		expect(peer, rep);
 
-		answerSeq = rep.challengeId;
-		challengeSeq++; 
+		if (rep != null)
+			answerSeq = rep.challengeSeq;
+		// challengeSeq++; 
 		expAnswerSeq = challengeSeq; 
-		return new ExchangeBlock(peer, session).seq(this);
+
+		AnResultset rs = chpage();
+
+		return new ExchangeBlock(peer, session).chpage(rs).seq(this);
 	}
 
-	public ExchangeBlock onExchange(String peer, ExchangeBlock req) throws ExchangeException {
+	public ExchangeBlock onExchange(String peer, ExchangeBlock req) throws TransException, SQLException {
 		expect(peer, req);
 
-		answerSeq = req.challengeId;
-		challengeSeq++;
+		if (req != null)
+			answerSeq = req.challengeSeq;
+		// challengeSeq++;
 		expAnswerSeq = challengeSeq; 
-		return new ExchangeBlock(peer, session).seq(this);
+
+		AnResultset rs = chpage();
+		return new ExchangeBlock(peer, session).chpage(rs).seq(this);
 	}
 
 	public ExchangeBlock closexchange(String server, ExchangeBlock rep) throws ExchangeException {
@@ -305,7 +324,7 @@ public class ExessionPersist {
 		}
 		*/
 
-		answerSeq = req.challengeId;
+		answerSeq = req.challengeSeq;
 		expAnswerSeq = challengeSeq;
 
 		answerPage = loadAnswers(answerSeq);
@@ -329,6 +348,10 @@ public class ExessionPersist {
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
 		return (AnResultset)trb
 			.select(exbm.tbl, "bf")
+			.cols("chg.*", "sub." + subm.synodee)
+			.je_(chgm.tbl, "chg", exbm.changeId, chgm.pk, exbm.peer, Funcall.constr(peer))
+			.je_(subm.tbl, "sub", "chg." + chgm.pk, subm.changeId)
+			.page(challengeSeq, chsize)
 			.whereEq(exbm.peer, peer)
 			.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 			.rs(0);

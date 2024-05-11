@@ -36,15 +36,15 @@ public class ExchangeBlock extends Anson {
 //		return challenges; // chpage  == null ? 0 : chpage.size();
 //	}
 
-	public ExchangeBlock challengePage(AnResultset page) {
-		chpage  = page;
-		return this;
-	}
+//	public ExchangeBlock challengePage(AnResultset page) {
+//		chpage  = page;
+//		return this;
+//	}
 
 	public int enitities() { return 0; }
 
-	public AnResultset  answers() {
-		return null;
+	public ArrayList<ArrayList<Object>>  answers() {
+		return anspage;
 	}
 
 	public int enitities(String tbl) {
@@ -89,8 +89,8 @@ public class ExchangeBlock extends Anson {
 
 	String session;
 	int act;
-	int challengeId;
-	int answerId;
+	int challengeSeq;
+	int answerSeq;
 
 	/**
 	 * Set challengeId &amp; answerId
@@ -110,14 +110,19 @@ public class ExchangeBlock extends Anson {
 		return this;
 	}
 
-	public ExchangeBlock seq(int chid, int ansid) {
-		challengeId = chid;
-		answerId    = ansid;
+	public ExchangeBlock seq(int chidx, int ansidx) {
+		challengeSeq = chidx;
+		answerSeq    = ansidx;
 		return this;
 	}
 
 	public ExchangeBlock totalChanges(int total) {
 		this.challenges = total;
+		return this;
+	}
+
+	public ExchangeBlock chpage(AnResultset rs) {
+		this.chpage = rs;
 		return this;
 	}
 }

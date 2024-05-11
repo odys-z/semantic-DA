@@ -555,8 +555,8 @@ public class DBSyntableTest {
 		DBSyntableBuilder ctb = ck[cli].trb;
 		DBSyntableBuilder stb = ck[srv].trb;
 
-		SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId()).replace();
-		SyntityMeta cphm = new T_PhotoMeta(ctb.basictx().connId()).replace();
+		SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId());
+		SyntityMeta cphm = new T_PhotoMeta(ctb.basictx().connId());
 		
 		exchange(sphm, stb, cphm, ctb, test, subno);
 	}
@@ -650,7 +650,7 @@ public class DBSyntableTest {
 
 		if (cp.hasNextChpages(ctb)) {
 			// client
-			cp.nextBlock();
+			cp.nextChpage();
 			//client
 			req = ctb.exchangePage(cp, stb.synode(), null);
 			// server
@@ -722,11 +722,12 @@ public class DBSyntableTest {
 		while (cp.hasNextChpages(ctb) // FIXME not correct
 			|| rep!= null && rep.moreChallenges) {
 			// client
-			cp.nextBlock();
+			cp.nextChpage();
 			req = ctb.exchangePage(cp, stb.synode(), rep);
 
 			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
 			// server
+			sp.nextChpage();
 			rep = stb.onExchange(sp, ctb.synode(), req);
 
 			Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",

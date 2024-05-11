@@ -87,6 +87,13 @@ public class Nyquence {
 		return nv;
 	}
 
+	/**
+	 * Parse Nyquence from result set.
+	 * @param chal
+	 * @param nyqcol
+	 * @return Nyquence
+	 * @throws SQLException
+	 */
 	public static Nyquence getn(AnResultset chal, String nyqcol) throws SQLException {
 		return new Nyquence(chal.getString(nyqcol));
 	}

@@ -99,51 +99,51 @@ class ExchangingTest {
 		
 		// ch: 1, ans: 0
 		req = cp.exchange(server, rep);
-		assertEquals(1, req.challengeId);
-		assertEquals(1, req.answerId);
+		assertEquals(1, req.challengeSeq);
+		assertEquals(1, req.answerSeq);
 		assertEquals(1, cp.expAnswerSeq);
 
 		// ch: 2, ans: 1
 		rep = sp.onExchange(client, req);
-		assertEquals(2, rep.challengeId);
-		assertEquals(1, rep.answerId);
+		assertEquals(2, rep.challengeSeq);
+		assertEquals(1, rep.answerSeq);
 		
 		// IOException: rep lost
 		req = cp.retry(server);
 		// requires: ch: 1, ans: 1
 		assertEquals(ExessionAct.restore, req.act);
-		assertEquals(1, req.challengeId);
-		assertEquals(1, req.answerId);
+		assertEquals(1, req.challengeSeq);
+		assertEquals(1, req.answerSeq);
 
 		rep = sp.onRetry(server, req);
 		assertEquals(ExessionAct.restore, rep.act);
-		assertEquals(2, rep.challengeId);
-		assertEquals(1, rep.answerId);
+		assertEquals(2, rep.challengeSeq);
+		assertEquals(1, rep.answerSeq);
 		
 		req = cp.exchange(server, rep);
-		assertEquals(2, req.challengeId);
-		assertEquals(2, req.answerId);
+		assertEquals(2, req.challengeSeq);
+		assertEquals(2, req.answerSeq);
 
 		// ch: 2, ans: 2
 		rep = sp.onExchange(client, req);
-		assertEquals(3, rep.challengeId);
-		assertEquals(2, rep.answerId);
+		assertEquals(3, rep.challengeSeq);
+		assertEquals(2, rep.answerSeq);
 		
 		// ch: 3, ans: 3
 		req = cp.exchange(server, rep);
-		assertEquals(3, req.challengeId);
-		assertEquals(3, req.answerId);
+		assertEquals(3, req.challengeSeq);
+		assertEquals(3, req.answerSeq);
 
 		// IOException: req lost
 		// ch: 3, ans: 2
 		req = cp.retry(server);
-		assertEquals(3, req.challengeId);
-		assertEquals(3, req.answerId);
+		assertEquals(3, req.challengeSeq);
+		assertEquals(3, req.answerSeq);
 
 		// ch: 3, ans: 3
 		rep = sp.onRetry(client, req);
-		assertEquals(3, rep.challengeId);
-		assertEquals(3, rep.answerId);
+		assertEquals(3, rep.challengeSeq);
+		assertEquals(3, rep.answerSeq);
 		
 		// ch: -, ans: 3
 		req = cp.exchange(server, rep);

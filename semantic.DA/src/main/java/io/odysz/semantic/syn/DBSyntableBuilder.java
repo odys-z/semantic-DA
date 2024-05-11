@@ -297,20 +297,19 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * 
 	 * @param cp
 	 * @param peer
-	 * @param lastcnf
+	 * @param lastconf
 	 * @return pushing block
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
 	public ExchangeBlock exchangePage(ExessionPersist cp, String peer,
-			ExchangeBlock lastcnf) throws SQLException, TransException {
-		cp.expect(peer, lastcnf);
-		AnResultset rs = cp.chpage();
+			ExchangeBlock lastconf) throws SQLException, TransException {
+		cp.expect(peer, lastconf);
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
-		return cp.exchange(peer, lastcnf)
+		return cp
+			.exchange(peer, lastconf)
 			.nv(nyquvect)
-			.challengePage(rs)
-			.answers(answer(cp, lastcnf, peer));
+			.answers(answer_save(cp, lastconf, peer));
 	}
 	
 	public ExchangeBlock onExchange(ExessionPersist sp, String peer, ExchangeBlock req)
@@ -319,37 +318,36 @@ public class DBSyntableBuilder extends DATranscxt {
 		// for ch in challenges:
 		//     answer.add(answer(ch))
 		sp.expect(peer, req)
-		  .onExchange(peer, req);
+		  // .nextChpage()
+		  .onExchange(peer, req); // The challenge page is ready
 
 		return new ExchangeBlock(peer, sp.session())
 			.nv(nyquvect)
-			.challengePage(sp.chpage())
-			.answers(answer(sp, req, peer))
+			.answers(answer_save(sp, req, peer))
 			.seq(sp);
 	}
 	
-	ExessionPersist answer(ExessionPersist xp, ExchangeBlock req, String srcn)
+	ExessionPersist answer_save(ExessionPersist xp, ExchangeBlock req, String srcn)
 			throws SQLException {
-		if (req == null) return xp;
+		if (req == null || req.chpage == null) return xp;
 		
 		ArrayList<ArrayList<Object>> changes = new ArrayList<ArrayList<Object>>();
 		ExchangeBlock resp = new ExchangeBlock(srcn, xp.session()).nv(nyquvect);
 
-		AnResultset challenge = req.chpage;
-		if (challenge == null) return xp;
+		AnResultset reqChgs = req.chpage;
 
-		while (req != null && req.challenges > 0 && req.chpage.next()) {
+		while (req.challenges > 0 && reqChgs.next()) {
 			String subscribe = req.chpage.getString(subm.synodee);
 
 			if (eq(subscribe, synode())) {
 				resp.removeChgsub(synode());	
-				changes.add(challenge.getRowAt(challenge.getRow() - 1));
+				changes.add(reqChgs.getRowAt(reqChgs.getRow() - 1));
 			}
 			else {
-				Nyquence subnyq = getn(challenge, chgm.nyquence);
+				Nyquence subnyq = getn(reqChgs, chgm.nyquence);
 				if (!nyquvect.containsKey(subscribe) // I don't have information of the subscriber
-					&& eq(synm.tbl, challenge.getString(chgm.entbl))) // adding synode
-					changes.add(challenge.getRowAt(challenge.getRow() - 1));
+					&& eq(synm.tbl, reqChgs.getString(chgm.entbl))) // adding synode
+					changes.add(reqChgs.getRowAt(reqChgs.getRow() - 1));
 				else if (!nyquvect.containsKey(subscribe))
 						; // I have no idea
 				else if (compareNyq(subnyq, nyquvect.get(srcn)) <= 0) {
@@ -360,11 +358,11 @@ public class DBSyntableBuilder extends DATranscxt {
 					resp.removeChgsub(subscribe);	
 				}
 				else
-					changes.add(challenge.getRowAt(challenge.getRow() - 1));
+					changes.add(reqChgs.getRowAt(reqChgs.getRow() - 1));
 			}
 		}
 
-		return xp.saveAnswer(resp.answers()).saveChallenges(changes);
+		return xp.saveAnswer(resp.answers()).addChangeBuf(changes);
 	}
 
 	public HashMap<String, Nyquence> closexchange(ExessionPersist cx, String synode,
@@ -378,22 +376,22 @@ public class DBSyntableBuilder extends DATranscxt {
 	public void onRequires(ExessionPersist cp, ExchangeBlock req) throws ExchangeException {
 		if (req.act == ExessionAct.restore) {
 			// TODO check step leakings
-			if (cp.challengeSeq <= req.challengeId) {
+			if (cp.challengeSeq <= req.challengeSeq) {
 				// server is actually handled my challenge. Just step ahead 
-				cp.challengeSeq = req.challengeId;
+				cp.challengeSeq = req.challengeSeq;
 			}
-			else if (cp.challengeSeq == req.challengeId + 1) {
+			else if (cp.challengeSeq == req.challengeSeq + 1) {
 				// server haven't got the previous package
 				// setup for send again
-				cp.challengeSeq = req.challengeId;
+				cp.challengeSeq = req.challengeSeq;
 			}
 			else {
 				// not correct
-				cp.challengeSeq = req.challengeId;
+				cp.challengeSeq = req.challengeSeq;
 			}
 
-			if (cp.answerSeq < req.answerId) {
-				cp.answerSeq = req.answerId;
+			if (cp.answerSeq < req.answerSeq) {
+				cp.answerSeq = req.answerSeq;
 			}
 			
 			// cp.expChallengeId = rep.challengeId;
