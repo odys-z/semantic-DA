@@ -7,6 +7,9 @@ import static io.odysz.semantic.syn.Exchanging.mode_client;
 import static io.odysz.semantic.syn.Exchanging.mode_server;
 import static io.odysz.semantic.syn.Exchanging.ready;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.SQLException;
 
@@ -91,67 +94,190 @@ class ExchangingTest {
 
 		String client = "client";
 		String server = "server";
-		ExessionPersist cp = new ExessionPersist(null, chm, sbm, xbm, server);
-		ExchangeBlock req = cp.init();
+
+										ExessionPersist cp = new ExessionPersist(null, chm, sbm, xbm, server);
+
+										// -1 : -1
+										ExchangeBlock req = cp.init();
+										cp.forcetest(182, 50);
+										req.totalChallenges(cp.totalChallenges, cp.chsize);
+
+										assertEquals(182, req.totalChallenges);
+										assertEquals(4, cp.pages());
+										assertEquals(50, req.chpagesize);
+
+										assertEquals(ExessionAct.init, req.act);
+										assertEquals(-1, req.challengeSeq);
+										assertEquals(-1, req.answerSeq);
+										assertEquals(-1, cp.expAnswerSeq);
 
 		ExessionPersist sp = new ExessionPersist(null, chm, sbm, xbm, client, req);
+		
+		// -1 : -1
 		ExchangeBlock rep = sp.onInit(req);
-		
-		// ch: 1, ans: 0
-		req = cp.exchange(server, rep);
-		assertEquals(1, req.challengeSeq);
-		assertEquals(1, req.answerSeq);
-		assertEquals(1, cp.expAnswerSeq);
+		sp.forcetest(245);
+		assertEquals(50, sp.chsize);
+		rep.totalChallenges(sp.totalChallenges);
 
-		// ch: 2, ans: 1
+		assertEquals(245, rep.totalChallenges);
+		assertEquals(5, sp.pages());
+		assertEquals(50, rep.chpagesize);
+
+		assertEquals(ExessionAct.init, req.act);
+		assertEquals(-1, rep.challengeSeq);
+		assertEquals(-1, rep.answerSeq);
+		assertEquals(-1, sp.expAnswerSeq);
+
+		// ch   ans   exp           |     ch   ans   exp 
+		// -1   -1    -1            |     -1   -1    -1
+										assertTrue(cp.expect(rep).nextChpage());
+										req = cp.exchange(server, rep);
+										assertEquals(ExessionAct.exchange, req.act);
+										assertEquals(182, req.totalChallenges);
+										assertEquals(0, req.challengeSeq);
+										assertEquals(-1, req.answerSeq);
+										assertEquals(0, cp.expAnswerSeq);
+
+		// -1   -1    -1            |      0   -1     0
+
+		assertTrue(sp.expect(req).nextChpage());
 		rep = sp.onExchange(client, req);
-		assertEquals(2, rep.challengeSeq);
+		assertEquals(ExessionAct.exchange, req.act);
+		assertEquals(245, rep.totalChallenges);
+		assertEquals(0, rep.challengeSeq);
+		assertEquals(0, rep.answerSeq);
+		assertEquals(0, sp.expAnswerSeq);
+
+		//  0    0     0            |      0   -1     0
+										assertTrue(cp.expect(rep).nextChpage());
+										req = cp.exchange(server, rep);
+										assertEquals(ExessionAct.exchange, req.act);
+										assertEquals(1, req.challengeSeq);
+										assertEquals(0, req.answerSeq);
+										assertEquals(1, cp.expAnswerSeq);
+
+		//  0    0     0            |      1    0     1
+										
+		assertTrue(sp.expect(req).nextChpage());
+		rep = sp.onExchange(client, req);
+		assertEquals(ExessionAct.exchange, rep.act);
+		assertEquals(1, rep.challengeSeq);
 		assertEquals(1, rep.answerSeq);
+		assertEquals(1, sp.expAnswerSeq);
+	
+		//  1    1     1            |      1    0     1
 		
-		// IOException: rep lost
-		req = cp.retry(server);
-		// requires: ch: 1, ans: 1
+										// IOException: rep lost
+										req = cp.retryLast(server);
+										assertEquals(ExessionAct.restore, req.act);
+										assertEquals(1, req.challengeSeq);
+										assertEquals(0, req.answerSeq);
+										assertEquals(1, cp.expAnswerSeq);
+
+		//  0    0     0            |      1    0     1
 		assertEquals(ExessionAct.restore, req.act);
-		assertEquals(1, req.challengeSeq);
-		assertEquals(1, req.answerSeq);
 
-		rep = sp.onRetry(server, req);
+		rep = sp.onRetryLast(client, req);
 		assertEquals(ExessionAct.restore, rep.act);
-		assertEquals(2, rep.challengeSeq);
+		assertEquals(1, rep.challengeSeq);
 		assertEquals(1, rep.answerSeq);
+		assertEquals(1, sp.expAnswerSeq);
 		
-		req = cp.exchange(server, rep);
-		assertEquals(2, req.challengeSeq);
-		assertEquals(2, req.answerSeq);
+		//  0    0     0            |      0   -1     0
+										cp.expect(rep);
+										assertEquals(ExessionAct.restore, rep.act);
+										cp.exstat().go(ExessionAct.exchange);
 
-		// ch: 2, ans: 2
+										assertTrue(cp.expect(rep).nextChpage());
+										req = cp.exchange(server, rep);
+										assertEquals(ExessionAct.exchange, req.act);
+										assertEquals(2, req.challengeSeq);
+										assertEquals(1, req.answerSeq);
+										assertEquals(2, cp.expAnswerSeq);
+
+		// 
+		assertEquals(ExessionAct.restore, sp.exstate());
+		assertEquals(ExessionAct.exchange, req.act);
+		sp.exstat().go(ExessionAct.exchange);
+		assertTrue(sp.expect(req).nextChpage());
+
 		rep = sp.onExchange(client, req);
-		assertEquals(3, rep.challengeSeq);
+		assertEquals(ExessionAct.exchange, rep.act);
+		assertEquals(2, rep.challengeSeq);
 		assertEquals(2, rep.answerSeq);
+		assertEquals(2, sp.expAnswerSeq);
 		
-		// ch: 3, ans: 3
-		req = cp.exchange(server, rep);
-		assertEquals(3, req.challengeSeq);
-		assertEquals(3, req.answerSeq);
+										//
+										assertTrue(cp.expect(rep).nextChpage());
+										req = cp.exchange(server, rep);
+										assertEquals(ExessionAct.exchange, req.act);
+										assertEquals(3, req.challengeSeq);
+										assertEquals(2, req.answerSeq);
+										assertEquals(3, cp.expAnswerSeq);
 
-		// IOException: req lost
-		// ch: 3, ans: 2
-		req = cp.retry(server);
-		assertEquals(3, req.challengeSeq);
-		assertEquals(3, req.answerSeq);
+										// IOException: req lost
+										req = cp.retryLast(server);
+										assertNull(req.srcnode);
+										req.srcnode = client;
 
-		// ch: 3, ans: 3
-		rep = sp.onRetry(client, req);
+										assertEquals(ExessionAct.restore, req.act);
+										assertEquals(3, req.challengeSeq);
+										assertEquals(2, req.answerSeq);
+										assertEquals(3, cp.expAnswerSeq);
+
+		// 
+		assertTrue(sp.expect(req).nextChpage());
+		rep = sp.exchange(client, req);
+		assertEquals(ExessionAct.exchange, rep.act);
 		assertEquals(3, rep.challengeSeq);
 		assertEquals(3, rep.answerSeq);
+		assertEquals(3, sp.expAnswerSeq);
 		
-		// ch: -, ans: 3
-		req = cp.exchange(server, rep);
-		// ch: 4, ans: -
-		rep = sp.onExchange(client, req);
+										// 
+										assertFalse(cp.expect(rep).nextChpage());
+										assertTrue(rep.moreChallenge());
+										req = cp.exchange(server, rep);
+										assertEquals(ExessionAct.exchange, req.act);
+										assertEquals(-1, req.challengeSeq);
+										assertEquals(3, req.answerSeq);
+										assertEquals(-1, cp.expAnswerSeq);
 
-		// ch: -, ans: 4
-		req = cp.closexchange(server, rep);
+		//
+		assertTrue(sp.expect(req).nextChpage());
+		rep = sp.onExchange(client, req);
+		assertEquals(ExessionAct.exchange, rep.act);
+		assertEquals(4, rep.challengeSeq);
+		assertEquals(4, rep.answerSeq);
+		assertEquals(4, sp.expAnswerSeq);
+
+										//
+										assertTrue(cp.expect(rep).nextChpage());
+										req = cp.exchange(client, rep);
+										assertEquals(ExessionAct.exchange, req.act);
+										assertEquals(-1, req.challengeSeq);
+										assertEquals(3, req.answerSeq);
+										assertEquals(-1, cp.expAnswerSeq);
+
+		//
+		assertTrue(sp.expect(req).nextChpage());
+		rep = sp.onExchange(client, req);
+		assertEquals(ExessionAct.exchange, rep.act);
+		assertEquals(-1, rep.challengeSeq);
+		assertEquals(-1, rep.answerSeq);
+		assertEquals(-1, sp.expAnswerSeq);
+
+										//
+										assertTrue(cp.expect(rep).nextChpage());
+										req = cp.closexchange(server, rep);
+										assertEquals(ExessionAct.close, req.act);
+										assertEquals(ExessionAct.ready, cp.exstate());
+										assertEquals(-1, req.challengeSeq);
+										assertEquals(-1, req.answerSeq);
+										assertEquals(-1, cp.expAnswerSeq);
+
+		// 
+		assertTrue(sp.expect(req).nextChpage());
 		sp.onclose(client, req);
+		assertEquals(ExessionAct.ready, sp.exstate());
 	}
 }

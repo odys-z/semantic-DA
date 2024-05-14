@@ -304,7 +304,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 */
 	public ExchangeBlock exchangePage(ExessionPersist cp, String peer,
 			ExchangeBlock lastconf) throws SQLException, TransException {
-		cp.expect(peer, lastconf);
+		cp.expect(lastconf);
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
 		return cp
 			.exchange(peer, lastconf)
@@ -317,11 +317,10 @@ public class DBSyntableBuilder extends DATranscxt {
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
 		// for ch in challenges:
 		//     answer.add(answer(ch))
-		sp.expect(peer, req)
-		  // .nextChpage()
+		sp.expect(req)
 		  .onExchange(peer, req); // The challenge page is ready
 
-		return new ExchangeBlock(peer, sp.session())
+		return new ExchangeBlock(synode(), peer, sp.session(), sp.exstat())
 			.nv(nyquvect)
 			.answers(answer_save(sp, req, peer))
 			.seq(sp);
@@ -332,11 +331,11 @@ public class DBSyntableBuilder extends DATranscxt {
 		if (req == null || req.chpage == null) return xp;
 		
 		ArrayList<ArrayList<Object>> changes = new ArrayList<ArrayList<Object>>();
-		ExchangeBlock resp = new ExchangeBlock(srcn, xp.session()).nv(nyquvect);
+		ExchangeBlock resp = new ExchangeBlock(synode(), srcn, xp.session(), xp.exstat()).nv(nyquvect);
 
 		AnResultset reqChgs = req.chpage;
 
-		while (req.challenges > 0 && reqChgs.next()) {
+		while (req.totalChallenges > 0 && reqChgs.next()) {
 			String subscribe = req.chpage.getString(subm.synodee);
 
 			if (eq(subscribe, synode())) {
@@ -401,7 +400,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 	
 	public ExchangeBlock requirestore(ExessionPersist xp, String peer) {
-		return new ExchangeBlock(peer, xp.session())
+		return new ExchangeBlock(synode(), peer, xp.session(), xp.exstat())
 				.nv(nyquvect)
 				.requirestore()
 				.seq(xp);

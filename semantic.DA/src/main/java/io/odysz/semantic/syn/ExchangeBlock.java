@@ -12,19 +12,23 @@ public class ExchangeBlock extends Anson {
 
 	public static final String ExchangeFlagCol = "change";
 
+
 	String srcnode;
+	String peer;
 	HashMap<String, Nyquence> nv;
 
 	public AnResultset chpage;
-	public int challenges;
+	// public int challenges;
 	public ArrayList<ArrayList<Object>> anspage;
 
 	/**Server has more challenge blocks, which need to be pulled before closing exchange */
 	public boolean moreChallenges;
 
-	public ExchangeBlock(String synode, String sessionId) {
-		srcnode = synode;
+	public ExchangeBlock(String src, String peer, String sessionId, ExessionAct exstate) {
+		srcnode = src;
 		session = sessionId;
+		act = exstate.state;
+		this.peer = peer;
 	}
 	
 	public ExchangeBlock nv(HashMap<String, Nyquence> nyquvect) {
@@ -79,9 +83,21 @@ public class ExchangeBlock extends Anson {
 		return colnames;
 	}
 
+	int chpagesize;
+	public ExchangeBlock chpagesize(int size) {
+		chpagesize = size;
+		return this;
+	}
+
 	int totalChallenges;
 	public ExchangeBlock totalChallenges(int count) {
 		totalChallenges = count; 
+		return this;
+	}
+	
+	public ExchangeBlock totalChallenges(int count, int chsize) {
+		totalChallenges = count; 
+		chpagesize = chsize; 
 		return this;
 	}
 
@@ -116,13 +132,17 @@ public class ExchangeBlock extends Anson {
 		return this;
 	}
 
-	public ExchangeBlock totalChanges(int total) {
-		this.challenges = total;
-		return this;
-	}
+//	public ExchangeBlock totalChanges(int total) {
+//		this.challenges = total;
+//		return this;
+//	}
 
 	public ExchangeBlock chpage(AnResultset rs) {
 		this.chpage = rs;
 		return this;
+	}
+
+	public boolean moreChallenge() {
+		return totalChallenges > 0 && chpagesize > 0 && (challengeSeq + 1) * chpagesize < totalChallenges;
 	}
 }

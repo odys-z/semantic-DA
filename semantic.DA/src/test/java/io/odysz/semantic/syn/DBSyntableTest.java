@@ -580,15 +580,15 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ExessionPersist cp = new ExessionPersist(ctb, chm, sbm, xbm, stb.synode());
 		ExchangeBlock ini = ctb.initExchange(cp, stb.synode(), null);
-		assertTrue(ini.challenges > 0);
+		assertTrue(ini.totalChallenges > 0);
 		Utils.logrst(String.format("%s initiate: changes: %d    entities: %d",
-				ctb.synode(), ini.challenges, ini.enitities(cphm.tbl)), test, subno, no, 1);
+				ctb.synode(), ini.totalChallenges, ini.enitities(cphm.tbl)), test, subno, no, 1);
 
 		Utils.logrst(new String[] {ctb.synode(), "on initiate"}, test, subno, ++no);
 		ExessionPersist sp = new ExessionPersist(stb, chm, sbm, xbm, ctb.synode(), ini);
 		ExchangeBlock rep = stb.onInit(sp, ini);
 		Utils.logrst(String.format("%s on initiate: changes: %d    entities: %d",
-				ctb.synode(), rep.challenges, rep.enitities(cphm.tbl)), test, subno, no, 1);
+				ctb.synode(), rep.totalChallenges, rep.enitities(cphm.tbl)), test, subno, no, 1);
 
 		//
 		challengeAnswerLoop(sp, stb, cp, ctb, test, subno);
@@ -620,18 +620,18 @@ public class DBSyntableTest {
 
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ExchangeBlock ini = ctb.initExchange(cp, stb.synode(), null);
-		assertTrue(ini.challenges > 0);
+		assertTrue(ini.totalChallenges > 0);
 
 		ExessionPersist sp = new ExessionPersist(ctb, chm, sbm, xbm, ctb.synode(), ini);
 
 		ctb.abortExchange(cp, stb.synode(), null);
 		ini = ctb.initExchange(cp, stb.synode(), null);
 		Utils.logrst(String.format("%s initiate changes: %d",
-				ctb.synode(), ini.challenges), test, subno, ++no);
+				ctb.synode(), ini.totalChallenges), test, subno, ++no);
 		
 		ExchangeBlock rep = stb.onInit(sp, ini);
 		Utils.logrst(String.format("%s on initiate: changes: %d    entities: %d",
-				ctb.synode(), rep.challenges, rep.enitities(cphm.tbl)), test, subno, ++no);
+				ctb.synode(), rep.totalChallenges, rep.enitities(cphm.tbl)), test, subno, ++no);
 
 		ExchangeBlock req = null;
 
@@ -639,7 +639,7 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
 		rep = stb.onExchange(sp, ctb.synode(), req);
 		Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
-				stb.synode(), rep.challenges, rep.enitities(), rep.answers()), test, subno, ++no);
+				stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, ++no);
 		printChangeLines(ck);
 		printNyquv(ck);
 		// assertEquals(Exchanging.exchanging, sp.exstate());
@@ -706,7 +706,7 @@ public class DBSyntableTest {
 			printNyquv(ck);
 			// assertEquals(Exchanging.ready, sp.exstate());
 
-			if (req.challenges > 0)
+			if (req.totalChallenges > 0)
 				fail("Shouldn't has any more challenge here.");
 
 		}
@@ -731,7 +731,7 @@ public class DBSyntableTest {
 			rep = stb.onExchange(sp, ctb.synode(), req);
 
 			Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
-					stb.synode(), rep.challenges, rep.enitities(), rep.answers()), test, subno, ++no);
+					stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, ++no);
 			printChangeLines(ck);
 			printNyquv(ck);
 		}
@@ -1042,7 +1042,7 @@ public class DBSyntableTest {
 		 * @param clientpath
 		 */
 		public void verifile(String synoder, String clientpath, T_PhotoMeta phm) {
-			trb.select(phm.tbl)
+			trb.select(phm.tbl	)
 				.col(count(phm.pk), "c")
 				.where(new Predicate(op.eq, compound(chm.uids), compoundVal(synoder, clientpath)))
 				;
