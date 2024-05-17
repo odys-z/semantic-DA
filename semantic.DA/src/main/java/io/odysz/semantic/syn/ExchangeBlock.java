@@ -36,15 +36,6 @@ public class ExchangeBlock extends Anson {
 		return this;
 	}
 
-//	public int challenges() {
-//		return challenges; // chpage  == null ? 0 : chpage.size();
-//	}
-
-//	public ExchangeBlock challengePage(AnResultset page) {
-//		chpage  = page;
-//		return this;
-//	}
-
 	public int enitities() { return 0; }
 
 	public ArrayList<ArrayList<Object>>  answers() {
@@ -60,13 +51,15 @@ public class ExchangeBlock extends Anson {
 		return this;
 	}
 
-	public void removeChgsub(String synode) throws SQLException {
+	public void removeChgsub(AnResultset challenpage, String synode) throws SQLException {
 		if (anspage == null) 
 			anspage = new ArrayList<ArrayList<Object>>();
 
-		ArrayList<Object> row = chpage.getRowAt(chpage.currentRow()-1);
-		row.add(row.size(), CRUD.U);
-		anspage.add(row);
+		if (challenpage != null) {
+			ArrayList<Object> row = challenpage.getRowAt(challenpage.currentRow() - 1);
+			row.add(row.size(), CRUD.U);
+			anspage.add(row);
+		}
 	}
 	
 	/**

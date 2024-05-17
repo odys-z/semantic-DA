@@ -339,7 +339,8 @@ public class DBSyntableBuilder extends DATranscxt {
 			String subscribe = req.chpage.getString(subm.synodee);
 
 			if (eq(subscribe, synode())) {
-				resp.removeChgsub(synode());	
+				// resp.remove_sub(req.challenge, synode());	
+				resp.removeChgsub(req.chpage, synode());	
 				changes.add(reqChgs.getRowAt(reqChgs.getRow() - 1));
 			}
 			else {
@@ -354,7 +355,9 @@ public class DBSyntableBuilder extends DATranscxt {
 					// knowledge about the sub from req is older than this node's knowledge 
 					// see #commitChallenges ref: merge-older-version
 					// FIXME how to abstract into one method?
-					resp.removeChgsub(subscribe);	
+					
+					// resp.remove_sub(req.challenge, synode());	
+					resp.removeChgsub(req.chpage, subscribe);	
 				}
 				else
 					changes.add(reqChgs.getRowAt(reqChgs.getRow() - 1));

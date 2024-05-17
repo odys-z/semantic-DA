@@ -1,12 +1,26 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.compoundVal;
-import static io.odysz.common.LangExt.*;
-import static io.odysz.common.Utils.*;
-import static io.odysz.semantic.CRUD.*;
+import static io.odysz.common.LangExt.ifnull;
+import static io.odysz.common.LangExt.indexOf;
+import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.strcenter;
+import static io.odysz.common.Utils.logi;
+import static io.odysz.common.Utils.printCaller;
+import static io.odysz.semantic.CRUD.C;
+import static io.odysz.semantic.CRUD.U;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
-import static io.odysz.transact.sql.parts.condition.Funcall.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static io.odysz.transact.sql.parts.condition.Funcall.compound;
+import static io.odysz.transact.sql.parts.condition.Funcall.concat;
+import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
+import static io.odysz.transact.sql.parts.condition.Funcall.count;
+import static io.odysz.transact.sql.parts.condition.Funcall.now;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +34,6 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import io.odysz.anson.Anson;
 import io.odysz.anson.x.AnsonException;
 import io.odysz.common.Configs;
 import io.odysz.common.LangExt;
@@ -30,8 +43,8 @@ import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
-import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
+import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.IUser;
@@ -222,7 +235,7 @@ public class DBSyntableTest {
 		String A_0 = A_0_uids[0];
 
 		// syn_change.curd = C
-		ck[X].change(1, C, A_0, ck[X].phm);
+		ck[X].changelog(1, C, A_0, ck[X].phm);
 		// syn_subscribe.to = [B, C, D]
 		ck[X].psubs(2, A_0_uids[1], -1, Y, Z, -1);
 
@@ -232,7 +245,7 @@ public class DBSyntableTest {
 		String B_0 = B_0_uids[0];
 
 		// syn_change.curd = C
-		ck[Y].change(1, C, B_0, ck[Y].phm);
+		ck[Y].changelog(1, C, B_0, ck[Y].phm);
 		// syn_subscribe.to = [A, C, D]
 		ck[Y].psubs(2, B_0_uids[1], X, -1, Z, -1);
 		
@@ -242,8 +255,8 @@ public class DBSyntableTest {
 		// 2. X <= Y
 		Utils.logrst("X <= Y", section, 3);
 		exchangePhotos(X, Y, section, 3);
-		ck[Y].change(1, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
-		ck[Y].change(1, C, ck[X].trb.synode(), A_0, ck[Y].phm);
+		ck[Y].buf_change(1, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
+		ck[Y].buf_change(1, C, ck[X].trb.synode(), A_0, ck[Y].phm);
 		ck[Y].psubs(1, B_0_uids[1], -1, -1, Z, -1);
 		ck[Y].psubs(1, A_0_uids[1], -1, -1, Z, -1);
 
@@ -271,16 +284,16 @@ public class DBSyntableTest {
 
 		Utils.logrst("Y <= Z", section, 3);
 		exchangePhotos(Y, Z, section, 3);
-		ck[Z].change(0, C, A_0, ck[Z].phm);
-		ck[Z].change(0, C, ck[X].trb.synode(), A_0, ck[Z].phm);
+		ck[Z].buf_change(0, C, A_0, ck[Z].phm);
+		ck[Z].buf_change(0, C, ck[X].trb.synode(), A_0, ck[Z].phm);
 		ck[Z].psubs(0, A_0_uids[1], -1, -1, Z, -1);
 
-		ck[Z].change(0, C, B_0, ck[Y].phm);
-		ck[Z].change(0, C, ck[Y].trb.synode(), B_0, ck[Z].phm);
+		ck[Z].buf_change(0, C, B_0, ck[Y].phm);
+		ck[Z].buf_change(0, C, ck[Y].trb.synode(), B_0, ck[Z].phm);
 		ck[Z].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 		
-		ck[Y].change(0, C, A_0, ck[Y].phm);
-		ck[Y].change(0, C, B_0, ck[Y].phm);
+		ck[Y].buf_change(0, C, A_0, ck[Y].phm);
+		ck[Y].buf_change(0, C, B_0, ck[Y].phm);
 		ck[Y].psubs(0, A_0_uids[1], -1, -1, Z, -1);
 		ck[Y].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 
@@ -310,8 +323,8 @@ public class DBSyntableTest {
 		// 4. X <= Y
 		Utils.logrst("X <= Y", section, 4);
 		exchangePhotos(X, Y, section, 4);
-		ck[X].change(0, C, A_0, ck[X].phm);
-		ck[X].change(0, C, B_0, ck[X].phm);
+		ck[X].buf_change(0, C, A_0, ck[X].phm);
+		ck[X].buf_change(0, C, B_0, ck[X].phm);
 		ck[X].psubs(0, A_0_uids[1], -1, -1, Z, -1);
 		ck[X].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 	}
@@ -330,13 +343,13 @@ public class DBSyntableTest {
 		ck[Z].synodes(X,  Y,  Z, -1);
 		ck[W].synodes(-1, Y, -1, W);
 
-		ck[Y].change(1, C, "W", ck[Y].synm);
+		ck[Y].buf_change(1, C, "W", ck[Y].synm);
 		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
 		
 		Utils.logrst("X vs Y", section, 2);
 		exchangeSynodes(X, Y, section, 2);
 		ck[X].synodes(X, Y, Z, W);
-		ck[X].change(1, C, "Y", "W", ck[X].synm);
+		ck[X].buf_change(1, C, "Y", "W", ck[X].synm);
 		ck[X].synsubs(1, "Y,W", -1, -1, Z, -1);
 
 		ck[Z].synodes(X, Y, Z, -1);
@@ -347,10 +360,10 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[X].change(1, C, x_uids[0], ck[X].phm);
+		ck[X].buf_change(1, C, x_uids[0], ck[X].phm);
 		ck[X].psubs (3, x_uids[1], -1, Y, Z, W);
 
-		ck[X].change(0, C, x_uids[0], ck[X].synm);
+		ck[X].buf_change(0, C, x_uids[0], ck[X].synm);
 		
 		Utils.logrst("X vs Z", section, 4);
 		exchangeSynodes(X, Z, section, 4);
@@ -385,34 +398,34 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[Z].change(1, C, z_uids[0], ck[Y].phm);
+		ck[Z].buf_change(1, C, z_uids[0], ck[Y].phm);
 		ck[Z].psubs(3, z_uids[1], X, Y, -1, W);
 		
 		Utils.logrst("Y vs Z", section, 2);
 		exchangePhotos(Y, Z, section, 2);
-		ck[Y].change(1, C, z, z_uids[0], ck[Y].phm);
+		ck[Y].buf_change(1, C, z, z_uids[0], ck[Y].phm);
 		ck[Y].psubs(2, z_uids[1], X, -1, -1, W);
 		ck[Z].psubs(2, z_uids[1], X, -1, -1, W);
 
 		Utils.logrst("Y vs W", section, 3);
 		exchangePhotos(Y, W, section, 3);
-		ck[Y].change(1, C, z, z_uids[0], ck[X].phm);
+		ck[Y].buf_change(1, C, z, z_uids[0], ck[X].phm);
 		ck[Y].psubs(1, z_uids[1], X, -1, -1, -1);
-		ck[W].change(0, C, z, z_uids[0], ck[X].phm);
+		ck[W].buf_change(0, C, z, z_uids[0], ck[X].phm);
 		ck[W].psubs(0, z_uids[1], -1, -1, -1, -1);
 
 		Utils.logrst("X vs Y", section, 4);
 		exchangePhotos(X, Y, section, 4);
-		ck[X].change(0, C, null, null, ck[X].phm);
+		ck[X].buf_change(0, C, null, null, ck[X].phm);
 		ck[X].psubs(0, null, X, -1, -1, -1);
-		ck[Y].change(0, C, null, null, ck[X].phm);
+		ck[Y].buf_change(0, C, null, null, ck[X].phm);
 		ck[Y].psubs(0, null, -1, -1, -1, -1);
 
 		Utils.logrst("Y vs Z", section, 5);
 		exchangePhotos(Y, Z, section, 4);
-		ck[Y].change(0, C, null, null, ck[X].phm);
+		ck[Y].buf_change(0, C, null, null, ck[X].phm);
 		ck[Y].psubs(0, null, X, -1, -1, -1);
-		ck[Z].change(0, C, null, null, ck[X].phm);
+		ck[Z].buf_change(0, C, null, null, ck[X].phm);
 		ck[Z].psubs(0, null, -1, -1, -1, -1);
 	}
 
@@ -424,7 +437,7 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[X].change(1, U, xu[0], ck[X].phm);
+		ck[X].buf_change(1, U, xu[0], ck[X].phm);
 		ck[X].psubs(3, xu[1], -1, Y, Z, W);
 
 		Utils.logrst("Y update photos", section, 2);
@@ -432,7 +445,7 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[Y].change(1, U, yu[0], ck[Y].phm);
+		ck[Y].buf_change(1, U, yu[0], ck[Y].phm);
 		ck[Y].psubs(3, yu[1], X, -1, Z, W);
 		
 		Utils.logrst("X => Y", section, 3);
@@ -440,12 +453,12 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[X].change(1, U, null, ck[X].phm);
+		ck[X].buf_change(1, U, null, ck[X].phm);
 		ck[X].psubs(4, null, X, Y, Z, W);
 		ck[X].psubs(4, null, -1, -1, Z, W);
 		// ck[X].psubs(2, null, -1, -1, Z, -1);
 
-		ck[Y].change(1, U, null, ck[Y].phm);
+		ck[Y].buf_change(1, U, null, ck[Y].phm);
 		ck[Y].psubs(4, null, X, Y, Z, W);
 		ck[Y].psubs(4, null, -1, -1, Z, W);
 		// ck[Y].psubs(2, null, -1, -1, Z, -1);
@@ -461,14 +474,14 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[X].change(1 + 1, // already have 1
+		ck[X].buf_change(1 + 1, // already have 1
 				U, xu[0], ck[X].phm);
 		ck[X].psubs(4 + 3,  // already have 4 
 				null, -1, Y, Z, W);
 		ck[X].psubs(3, xu[1], -1, Y, Z, W);
 
 		String[] yi = insertPhoto(Y);
-		ck[Y].change(1, C, yi[0], ck[Y].phm);
+		ck[Y].buf_change(1, C, yi[0], ck[Y].phm);
 		ck[Y].psubs(3, yi[1], X, -1, Z, W);
 
 		printChangeLines(ck);
@@ -477,12 +490,12 @@ public class DBSyntableTest {
 		Utils.logrst("X <= Y", section, ++no);
 		exchange_break(ck[X].phm, ck[X].trb, ck[Y].phm, ck[Y].trb, section, no);
 
-		ck[X].change(1, C, ck[X].trb.synode(), xu[0], ck[X].phm);
-		ck[X].change(1, C, ck[Y].trb.synode(), yi[0], ck[X].phm);
+		ck[X].buf_change(1, C, ck[X].trb.synode(), xu[0], ck[X].phm);
+		ck[X].buf_change(1, C, ck[Y].trb.synode(), yi[0], ck[X].phm);
 		ck[X].psubs(2, xu[1], -1, -1, Z, W);
 		ck[X].psubs(2, yi[1], -1, -1, Z, W);
-		ck[Y].change(1, C, ck[X].trb.synode(), xu[0], ck[Y].phm);
-		ck[Y].change(1, C, ck[Y].trb.synode(), yi[0], ck[Y].phm);
+		ck[Y].buf_change(1, C, ck[X].trb.synode(), xu[0], ck[Y].phm);
+		ck[Y].buf_change(1, C, ck[Y].trb.synode(), yi[0], ck[Y].phm);
 		ck[Y].psubs(2, xu[1], -1, -1, Z, W);
 		ck[Y].psubs(2, yi[1], -1, -1, Z, W);
 	}
@@ -591,7 +604,7 @@ public class DBSyntableTest {
 				ctb.synode(), rep.totalChallenges, rep.enitities(cphm.tbl)), test, subno, no, 1);
 
 		//
-		challengeAnswerLoop(sp, stb, cp, ctb, test, subno);
+		challengeAnswerLoop(sp, stb, cp, ctb, test, subno, ++no);
 
 		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
 		HashMap<String, Nyquence> nv = ctb.closexchange(cp, stb.synode(), Nyquence.clone(stb.nyquvect));
@@ -651,7 +664,6 @@ public class DBSyntableTest {
 		if (cp.hasNextChpages(ctb)) {
 			// client
 			cp.nextChpage();
-			//client
 			req = ctb.exchangePage(cp, stb.synode(), null);
 			// server
 			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
@@ -661,33 +673,15 @@ public class DBSyntableTest {
 				fail("Not here");
 			}
 			catch (ExchangeException exp) {
-				// assertEquals(Exchanging.exchanging, sp.exstate());
-
 				// server reply with saved answers
 				rep = stb.requirestore(sp, ctb.synode());
-				// assertEquals(sp.expChallengeId, rep.challengeId);
 
 				Utils.logrst(String.format("%s reuires restore    changes: %d    entities: %d    answers: %d",
 					stb.synode(), rep.chpage, rep.enitities(), rep.answers()), test, subno, ++no);
 				ctb.onRequires(cp, rep);
-				// assertEquals(sp.expChallengeId, cp.challengeSeq);
 			}
 
-			challengeAnswerLoop(sp, stb, cp, ctb, test, subno);
-//			while (cp.hasChallenges() || req!= null && rep.moreChallenges) {
-//				// client
-//				cp.nextBlock();
-//				req = ctb.exchangeBlock(cp, stb.synode(), rep);
-//
-//				Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
-//				// server
-//				rep = stb.onExchange(sp, ctb.synode(), req);
-//
-//				Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
-//						stb.synode(), rep.challenges(), rep.enitities(), rep.answers()), test, subno, ++no);
-//				printChangeLines(ck);
-//				printNyquv(ck);
-//			}
+			challengeAnswerLoop(sp, stb, cp, ctb, test, subno, ++no);
 
 			assertNotNull(req);
 			assertEquals(0, req.chpage);
@@ -714,24 +708,28 @@ public class DBSyntableTest {
 	}
 
 	private static void challengeAnswerLoop(ExessionPersist sp, DBSyntableBuilder stb, 
-				ExessionPersist cp, DBSyntableBuilder ctb, int test, int subno)
+				ExessionPersist cp, DBSyntableBuilder ctb, int test, int subno, int step)
 				throws SQLException, TransException {
 		int no = 0;
+
+		Utils.logrst(new String[] {"exchanges", stb.synode(), "<=>", ctb.synode()}, test, subno, step);
+
 		ExchangeBlock req = null;
 		ExchangeBlock rep = null;
-		while (cp.hasNextChpages(ctb) // FIXME not correct
+		while (cp.hasNextChpages(ctb)
 			|| rep!= null && rep.moreChallenges) {
 			// client
+			Utils.logrst(new String[] {ctb.synode(), "exchange"}, test, subno, step, ++no);
 			cp.nextChpage();
 			req = ctb.exchangePage(cp, stb.synode(), rep);
 
-			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
 			// server
+			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, step, ++no);
 			sp.nextChpage();
 			rep = stb.onExchange(sp, ctb.synode(), req);
 
 			Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
-					stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, ++no);
+					stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, ++no);
 			printChangeLines(ck);
 			printNyquv(ck);
 		}
@@ -915,12 +913,47 @@ public class DBSyntableTest {
 		 * @throws TransException
 		 * @throws SQLException
 		 */
-		public long change(int count, String crud, String eid, SyntityMeta entm)
+		public long buf_change(int count, String crud, String eid, SyntityMeta entm)
 				throws TransException, SQLException {
-			return change(count, crud, trb.synode(), eid, entm);
+			return buf_change(count, crud, trb.synode(), eid, entm);
 		}
 
-		public long change(int count, String crud, String synoder, String eid, SyntityMeta entm)
+		public long buf_change(int count, String crud, String synoder, String eid, SyntityMeta entm)
+				throws TransException, SQLException {
+			Query q = trb
+				.select(chm.tbl, "ch")
+				.je_(xbm.tbl, "xb", chm.pk, xbm.changeId, chm.synoder, xbm.peer)
+				.cols((Object[])chm.insertCols())
+				.whereEq(chm.domain, domain)
+				.whereEq(chm.entbl, entm.tbl);
+			if (synoder != null)
+				q.whereEq(chm.synoder, synoder);
+			if (eid != null)
+				q.whereEq(chm.uids, synoder + chm.UIDsep + eid);
+
+			AnResultset chg = (AnResultset) q
+					.rs(trb.instancontxt(connId(), robot()))
+					.rs(0);
+			
+			if (!chg.next() && count > 0)
+				fail(String.format("Expecting count == %d, but is actual 0", count));
+
+			assertEquals(count, chg.getRowCount());
+			if (count > 0) {
+				assertEquals(crud, chg.getString(chm.crud));
+				assertEquals(entm.tbl, chg.getString(chm.entbl));
+				assertEquals(synoder, chg.getString(chm.synoder));
+				return chg.getLong(chm.nyquence);
+			}
+			return 0;
+		}
+
+		public long changelog(int count, String crud, String eid, SyntityMeta entm)
+				throws TransException, SQLException {
+			return changelog(count, crud, trb.synode(), eid, entm);
+		}
+
+		public long changelog(int count, String crud, String synoder, String eid, SyntityMeta entm)
 				throws TransException, SQLException {
 			Query q = trb
 				.select(chm.tbl, "ch")
@@ -1069,60 +1102,83 @@ public class DBSyntableTest {
 		}
 	}
 	
-	static class ChangeLine extends Anson {
-		String s;
-		public ChangeLine(AnResultset r) throws SQLException {
-			this.s = String.format("%1$1s %2$9s %3$9s %4$4s %5$2s",
+//	static class ChangeLine extends Anson {
+//		String s;
+//		public ChangeLine(AnResultset r) throws SQLException {
+//			this.s = String.format("%1$1s %2$9s %3$9s %4$4s %5$2s",
+//				r.getString(chm.crud),
+//				r.getString(chm.pk),
+//				r.getString(chm.uids),
+//				r.getString(chm.nyquence),
+//				r.getString(sbm.synodee)
+//				// r.getString(ChangeLogs.ChangeFlag, " ")
+//				);
+//		}
+//		
+//		@Override
+//		public String toString() { return s; }
+//	}
+	static String changeLine(AnResultset r) throws SQLException {
+		String seq = r.getString(xbm.seq, " ");
+
+		return String.format("%1$1s %2$9s %3$9s %4$2s %5$2s [%6$4s]",
 				r.getString(chm.crud),
 				r.getString(chm.pk),
 				r.getString(chm.uids),
 				r.getString(chm.nyquence),
-				r.getString(sbm.synodee)
-				// r.getString(ChangeLogs.ChangeFlag, " ")
+				r.getString(sbm.synodee),
+				seq == null ? " " : seq
 				);
-		}
-		
-		@Override
-		public String toString() { return s; }
 	}
 	
 	public static void printChangeLines(Ck[] ck)
 			throws TransException, SQLException {
 
-		HashMap<String, ChangeLine[]> uidss = new HashMap<String, ChangeLine[]>();
+		HashMap<String, String[]> uidss = new HashMap<String, String[]>();
 
 		for (int cx = 0; cx < ck.length; cx++) {
 			DBSyntableBuilder b = ck[cx].trb;
-			HashMap<String, ChangeLine> idmap = ((AnResultset) b
+			HashMap<String,String> idmap = ((AnResultset) b
 					.select(chm.tbl, "ch")
-					.cols("ch.*", sbm.synodee)
+					.cols("ch.*", sbm.synodee).col(concat(ifnull(xbm.peer, " "), "':'", xbm.seq), xbm.seq)
 					// .je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
 					.je_(sbm.tbl, "sub", chm.pk, sbm.changeId)
-					.orderby(chm.entbl, chm.uids)
+					.l_(xbm.tbl, "xb", chm.pk, xbm.changeId)
+					.orderby(xbm.seq, chm.entbl, chm.uids)
 					.rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
 					.rs(0))
-					.<ChangeLine>map(new String[] {chm.pk, sbm.synodee}, (r) -> new ChangeLine(r));
+					.<String>map(new String[] {chm.pk, sbm.synodee}, (r) -> changeLine(r));
 
 			for(String cid : idmap.keySet()) {
 				if (!uidss.containsKey(cid))
-					uidss.put(cid, new ChangeLine[4]);
+					uidss.put(cid, new String[ck.length]);
 
 				uidss.get(cid)[cx] = idmap.get(cid);
 			}
 		}
 		
-		Utils.logi(Stream.of(ck).map(c -> strcenter(c.trb.synode(), 31)).collect(Collectors.joining("|")));
-		Utils.logi(Stream.of(ck).map(c -> LangExt.repeat("-", 31)).collect(Collectors.joining("+")));
+		Utils.logi(Stream.of(ck).map(c -> strcenter(c.trb.synode(), 36)).collect(Collectors.joining("|")));
+		Utils.logi(Stream.of(ck).map(c -> LangExt.repeat("-", 36)).collect(Collectors.joining("+")));
 
 		Utils.logi(uidss.keySet().stream().map(
 			(String linekey) -> {
 				return Stream.of(uidss.get(linekey))
-					.map(c -> c == null ? String.format("%29s",  " ") : c.s)
+					.map(c -> c == null ? String.format("%34s",  " ") : c)
 					.collect(Collectors.joining(" | ", " ", " "));
 			})
 			.collect(Collectors.joining("\n")));
 	}
 	
+	static String buffChangeLine(AnResultset r) throws SQLException {
+		return String.format("%1$1s %2$9s %3$9s %4$4s %5$2s",
+				r.getString(chm.crud),
+				r.getString(chm.pk),
+				r.getString(chm.uids),
+				r.getString(chm.nyquence),
+				r.getString(sbm.synodee)
+				);
+	}
+
 	public static void assertnv(long... nvs) {
 		if (nvs == null || nvs.length == 0 || nvs.length % 2 != 0)
 			fail("Invalid arguments to assert.");

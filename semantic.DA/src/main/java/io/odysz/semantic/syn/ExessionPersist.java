@@ -17,6 +17,7 @@ import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
@@ -220,15 +221,21 @@ public class ExessionPersist {
 	public int answerSeq;
 
 	/**
-	 * Has pages to be send to in {@link SynchangeBuffMeta}.tbl.
+	 * Has another page in {@link SynchangeBuffMeta}.tbl to be send to.
 	 * @param b synchronizing transaction builder
-	 * @return
+	 * @return true if has another page
 	 * @throws SQLException
 	 * @throws TransException
 	 */
 	public boolean hasNextChpages(DBSyntableBuilder b)
 			throws SQLException, TransException {
-		return DAHelper.count(b, b.synconn(), exbm.tbl, exbm.peer, peer, exbm.seq, -1) > 0;
+		// return DAHelper.count(b, b.synconn(), exbm.tbl, exbm.peer, peer, exbm.seq, -1) > 0;
+		
+		int pages = pages();
+		if (pages > 0 && challengeSeq + 1 < pages)
+			return true;
+		else
+			return false;
 	}
 
 	public ExessionPersist expect(ExchangeBlock req) throws ExchangeException {
@@ -385,15 +392,25 @@ public class ExessionPersist {
 	public AnResultset chpage() throws TransException, SQLException {
 		// 
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
-		return trb == null ? null : (AnResultset)trb
-			.select(exbm.tbl, "bf")
-			.cols("chg.*", "sub." + subm.synodee)
-			.je_(chgm.tbl, "chg", exbm.changeId, chgm.pk, exbm.peer, Funcall.constr(peer))
-			.je_(subm.tbl, "sub", "chg." + chgm.pk, subm.changeId)
-			.page(challengeSeq, chsize)
-			.whereEq(exbm.peer, peer)
-			.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
-			.rs(0);
+		if (trb != null) {
+			Query bf = trb
+				.select(exbm.tbl, "bf")
+				.cols("chg.*", "sub." + subm.synodee)
+				.je_(chgm.tbl, "chg", exbm.changeId, chgm.pk, exbm.peer, Funcall.constr(peer))
+				.je_(subm.tbl, "sub", "chg." + chgm.pk, subm.changeId)
+				.page(challengeSeq, chsize) // page() is not working in with clause
+				.whereEq(exbm.peer, peer)
+				;
+			trb.update(exbm.tbl, trb.synrobot())
+				.nv(exbm.seq, challengeSeq)
+				.whereIn(exbm.changeId, trb.with(bf).select("bf").col(exbm.changeId))
+				.u(trb.instancontxt(trb.synconn(), trb.synrobot()))
+				;
+			return trb == null ? null : (AnResultset)bf
+				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
+				.rs(0);
+		}
+		return null;
 	}
 
 	public int pages() {
