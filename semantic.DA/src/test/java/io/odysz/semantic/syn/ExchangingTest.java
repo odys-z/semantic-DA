@@ -247,19 +247,19 @@ class ExchangingTest {
 		rep = sp.onExchange(client, req);
 		assertEquals(ExessionAct.exchange, rep.act);
 		assertEquals(4, rep.challengeSeq);
-		assertEquals(4, rep.answerSeq);
+		assertEquals(-1, rep.answerSeq);
 		assertEquals(4, sp.expAnswerSeq);
 
 										//
-										assertTrue(cp.expect(rep).nextChpage());
-										req = cp.exchange(client, rep);
+										assertFalse(cp.expect(rep).nextChpage());
+										req = cp.exchange(server, rep);
 										assertEquals(ExessionAct.exchange, req.act);
 										assertEquals(-1, req.challengeSeq);
-										assertEquals(3, req.answerSeq);
+										assertEquals(4, req.answerSeq);
 										assertEquals(-1, cp.expAnswerSeq);
 
 		//
-		assertTrue(sp.expect(req).nextChpage());
+		assertFalse(sp.expect(req).nextChpage());
 		rep = sp.onExchange(client, req);
 		assertEquals(ExessionAct.exchange, rep.act);
 		assertEquals(-1, rep.challengeSeq);
@@ -267,7 +267,8 @@ class ExchangingTest {
 		assertEquals(-1, sp.expAnswerSeq);
 
 										//
-										assertTrue(cp.expect(rep).nextChpage());
+										assertFalse(cp.expect(rep).nextChpage());
+										assertFalse(rep.moreChallenge());
 										req = cp.closexchange(server, rep);
 										assertEquals(ExessionAct.close, req.act);
 										assertEquals(ExessionAct.ready, cp.exstate());
@@ -276,7 +277,8 @@ class ExchangingTest {
 										assertEquals(-1, cp.expAnswerSeq);
 
 		// 
-		assertTrue(sp.expect(req).nextChpage());
+		assertFalse(sp.expect(req).nextChpage());
+		assertFalse(req.moreChallenge());
 		sp.onclose(client, req);
 		assertEquals(ExessionAct.ready, sp.exstate());
 	}

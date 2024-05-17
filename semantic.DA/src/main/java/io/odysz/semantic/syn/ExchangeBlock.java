@@ -118,7 +118,7 @@ public class ExchangeBlock extends Anson {
 	 * @return this
 	 */
 	public ExchangeBlock seq(ExessionPersist xp) {
-		return seq(xp.challengeSeq, xp.answerSeq);
+		return seq(xp.challengeSeq < xp.pages() ? xp.challengeSeq : -1, xp.answerSeq);
 	}
 
 	public ExchangeBlock requirestore() {
@@ -143,6 +143,7 @@ public class ExchangeBlock extends Anson {
 	}
 
 	public boolean moreChallenge() {
-		return totalChallenges > 0 && chpagesize > 0 && (challengeSeq + 1) * chpagesize < totalChallenges;
+		return challengeSeq >= 0 && totalChallenges > 0 && chpagesize > 0
+				&& (challengeSeq + 1) * chpagesize < totalChallenges;
 	}
 }

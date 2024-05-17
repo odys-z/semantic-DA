@@ -1,5 +1,9 @@
 package io.odysz.semantic.syn;
 
+import java.lang.reflect.Field;
+
+import io.odysz.common.Utils;
+
 public class ExessionAct {
 	public static final int restore = -2;
 	public static final int unexpected = -1;
@@ -21,6 +25,22 @@ public class ExessionAct {
 
 	public void go(int stat) {
 		state = stat;
+	}
+
+	public static String nameOf(int s) {
+		Field[] fs = ExessionAct.class.getFields();
+		for (Field f : fs) {
+			try {
+				Class<?> t = f.getType();
+				if(t == int.class) {
+					if (f.getInt(null) == s)
+						return f.getName();
+				}
+			}catch (Exception ex) {
+				Utils.warn("ExessionAct#name(): Can't find name of %d.", s);
+			}
+		}
+		return "NA";
 	}
 
 }

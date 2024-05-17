@@ -235,8 +235,9 @@ public class ExessionPersist {
 		if (req == null)
 			return this;
 		if (!eq(req.srcnode, this.peer) || !eq(session, req.session))
-			throw new ExchangeException(ExessionAct.unexpected, "Session Id or peer mismatched %s: %s vs %s : %s "
-					, this.peer, session, req.srcnode, req.session);
+			throw new ExchangeException(ExessionAct.unexpected,
+					"Session Id or peer mismatched [%s : %s vs %s : %s]",
+					this.peer, session, req.srcnode, req.session);
 
 		if (expAnswerSeq == 0 && req.answerSeq == -1 // first exchange
 			|| expAnswerSeq == req.answerSeq)
@@ -249,9 +250,13 @@ public class ExessionPersist {
 	}
 	
 	public boolean nextChpage() {
-		challengeSeq++;
+		int pages = pages();
+		if (challengeSeq < pages)
+			challengeSeq++;
+
 		expAnswerSeq = challengeSeq;
-		return challengeSeq < pages();
+
+		return challengeSeq < pages;
 	}
 
 	/**
@@ -267,20 +272,25 @@ public class ExessionPersist {
 		return challengeSeq < pages();
 	}
 
-	public ExchangeBlock exchange(String peer, ExchangeBlock rep) throws TransException, SQLException {
-		if (exstate.state != init && exstate.state != exchange)
-			throw new ExchangeException(exchange, "Can't handle exchanging state on state = %s", exstate.state); 
+	public ExchangeBlock exchange(String peer, ExchangeBlock rep)
+			throws TransException, SQLException {
+		if (exstate.state == restore && rep.act == exchange)
+			; // exstate.state = exchange; // got answer
+		else if (exstate.state != init && exstate.state != exchange)
+			throw new ExchangeException(exchange,
+				"Can't handle exchanging states from %s to %s.",
+				ExessionAct.nameOf(exstate.state), ExessionAct.nameOf(exchange)); 
 
 		if (rep != null)
 			answerSeq = rep.challengeSeq;
-		// challengeSeq++; 
-		expAnswerSeq = challengeSeq; 
+		expAnswerSeq = challengeSeq < pages() ? challengeSeq : -1; 
 
 		AnResultset rs = chpage();
 
 		exstate.state = exchange;
 
-		return new ExchangeBlock(trb == null ? rep.peer : trb.synode(), peer, session, exstate).chpage(rs)
+		return new ExchangeBlock(trb == null
+				? rep.peer : trb.synode(), peer, session, exstate).chpage(rs)
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
 				.seq(this);
@@ -293,7 +303,7 @@ public class ExessionPersist {
 		if (req != null)
 			answerSeq = req.challengeSeq;
 		// challengeSeq++;
-		expAnswerSeq = challengeSeq; 
+		expAnswerSeq = challengeSeq < pages() ? challengeSeq : -1; 
 
 		AnResultset rs = chpage();
 
@@ -311,7 +321,9 @@ public class ExessionPersist {
 			throw new ExchangeException(exchange, "Can't handle closing state on state %s", exstate.state); 
 
 		expAnswerSeq = -1; 
-		answerSeq = challengeSeq;
+		if (rep != null)
+			answerSeq = rep.challengeSeq;
+		else answerSeq = -1;
 		challengeSeq = -1; 
 
 		exstate.state = ready;
@@ -354,13 +366,6 @@ public class ExessionPersist {
 		if (!eq(session, req.session))
 			throw new ExchangeException(ExessionAct.unexpected,
 				"[local-session, peer, req-session]:%s,%s,%s", session, client, req.session);
-
-		// challengeSeq = req.answerSeq;
-		// expAnswerSeq = challengeSeq + 1;
-
-		// answerSeq = req.challengeSeq;
-
-		// answerPage = loadAnswers(answerSeq);
 
 		exstate.state = restore;
 
