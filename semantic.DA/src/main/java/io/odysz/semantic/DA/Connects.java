@@ -271,7 +271,7 @@ public class Connects {
 						") t order by rownum) t where r_n_ > ", r1, " and r_n_ <= ", r2);
 		else if (dt == dbtype.ms2k)
 			s = Stream.of("select * from (SELECT ROW_NUMBER() OVER(ORDER BY (select NULL as noorder)) AS RowNum, * from (", sql,
-						") t) t where rownum > ", r1, " and rownum <= %s", r2);
+						") t) t where rownum > ", r1, " and rownum <= %s", r2);// FIXME "%s" is tested?
 		else if (dt == dbtype.sqlite)
 			// https://stackoverflow.com/a/51380906
 			s = Stream.of("select * from (", sql, ") limit ", String.valueOf(pgSize), " offset ", r1);

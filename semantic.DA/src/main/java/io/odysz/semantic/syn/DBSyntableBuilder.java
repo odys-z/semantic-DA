@@ -532,4 +532,13 @@ public class DBSyntableBuilder extends DATranscxt {
 	public String domain() {
 		return basictx() == null ? null : ((DBSyntext) basictx()).domain;
 	}
+
+//	public Query selectCols(Query subq, String changeId) {
+//		Query q = select(subq);
+//		return q;
+//	}
+//
+//	private Query select(Query subq) {
+//		return null;
+//	}
 }

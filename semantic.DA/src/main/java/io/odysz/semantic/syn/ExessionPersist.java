@@ -398,12 +398,14 @@ public class ExessionPersist {
 				.cols("chg.*", "sub." + subm.synodee)
 				.je_(chgm.tbl, "chg", exbm.changeId, chgm.pk, exbm.peer, Funcall.constr(peer))
 				.je_(subm.tbl, "sub", "chg." + chgm.pk, subm.changeId)
-				.page(challengeSeq, chsize) // page() is not working in with clause
 				.whereEq(exbm.peer, peer)
 				;
 			trb.update(exbm.tbl, trb.synrobot())
 				.nv(exbm.seq, challengeSeq)
-				.whereIn(exbm.changeId, trb.with(bf).select("bf").col(exbm.changeId))
+				.whereIn(exbm.changeId, trb
+						.selectPage(bf)
+						.page(challengeSeq, chsize)
+						.col(exbm.changeId))
 				.u(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				;
 			return trb == null ? null : (AnResultset)bf
