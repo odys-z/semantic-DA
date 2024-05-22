@@ -889,7 +889,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws SQLException, TransException {
 		x.clear();
 		synyquvectWith(sn, nv);
-		nv.get(sn).inc();
+		// nv.get(sn).inc();
 		incN0(maxn(nv));
 
 		x.exstate.onclose();
