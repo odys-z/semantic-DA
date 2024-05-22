@@ -18,7 +18,7 @@ public class ExchangeException extends SemanticException {
 		this.exstep.state = state;
 	}
 
-	public Integer requires() {
+	public int requires() {
 		return exstep.state;
 	}
 }

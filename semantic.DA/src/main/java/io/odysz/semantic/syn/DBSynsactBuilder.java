@@ -705,9 +705,10 @@ public class DBSynsactBuilder extends DATranscxt {
 				diff.entities(tbl, entities);
 			}
 		
-			x.exstate.initexchange();
 			x.initChallenge(target, diff);
-			diff.session(x.session()).nyquvect(this.nyquvect);
+		
+			x.exstate.initexchange();
+			diff.stepping(x.exstate.mode, x.exstate.state).session(x.session()).nyquvect(this.nyquvect);
 		}
 
 		return diff;

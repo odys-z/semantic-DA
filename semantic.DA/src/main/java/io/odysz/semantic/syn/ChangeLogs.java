@@ -138,6 +138,12 @@ public class ChangeLogs extends Anson {
 	public Exchanging stepping() {
 		return step;
 	}
+	
+	public ChangeLogs stepping(int m, int s) {
+		step = new Exchanging(m);
+		step.state = s;
+		return this;
+	}
 
 	private String session;
 	public String session() { return session; }
