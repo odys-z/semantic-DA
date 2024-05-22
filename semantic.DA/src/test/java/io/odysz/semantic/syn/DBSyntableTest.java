@@ -4,6 +4,7 @@ import static io.odysz.common.LangExt.compoundVal;
 import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.repeat;
 import static io.odysz.common.LangExt.strcenter;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
@@ -973,7 +974,7 @@ public class DBSyntableTest {
 				// AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
 				AnResultset subs = (AnResultset) trb
 						.select(chm.tbl, "ch")
-						.je2(sbm.tbl, "sb", chm.pk, sbm.changeId)
+						.je_(sbm.tbl, "sb", chm.pk, sbm.changeId)
 						.cols_byAlias("sb", sbm.cols())
 						.whereEq(chm.uids, uids)
 						.rs(trb.instancontxt(connId(), robot()))
@@ -1095,7 +1096,7 @@ public class DBSyntableTest {
 					.select(chm.tbl, "ch")
 					.cols("ch.*", sbm.synodee)
 					// .je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
-					.je2(sbm.tbl, "sub", chm.pk, sbm.changeId)
+					.je_(sbm.tbl, "sub", chm.pk, sbm.changeId)
 					.orderby(chm.entbl, chm.uids)
 					.rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
 					.rs(0))
@@ -1110,7 +1111,7 @@ public class DBSyntableTest {
 		}
 		
 		Utils.logi(Stream.of(ck).map(c -> strcenter(c.trb.synode(), 31)).collect(Collectors.joining("|")));
-		Utils.logi(Stream.of(ck).map(c -> "-".repeat(31)).collect(Collectors.joining("+")));
+		Utils.logi(Stream.of(ck).map(c -> repeat("-", 31)).collect(Collectors.joining("+")));
 
 		Utils.logi(uidss.keySet().stream().map(
 			(String linekey) -> {

@@ -259,7 +259,7 @@ public class DBSynsactBuilder extends DATranscxt {
 					// .je2(subm.tbl, "sb", constr(sn), subm.synodee,
 					// 	chgm.domain, subm.domain, chgm.entbl, subm.entbl,
 					// 	chgm.uids, subm.uids)
-					.je2(subm.tbl, "sb", constr(sn), subm.synodee, chgm.pk, subm.changeId)
+					.je_(subm.tbl, "sb", constr(sn), subm.synodee, chgm.pk, subm.changeId)
 					.where(op.ne, subm.synodee, constr(srcn))
 					.where(op.lt, chgm.nyquence, srcnv.get(sn).n))) // FIXME nyquence compare
 				.delete(subm.tbl, synrobot())
@@ -271,7 +271,7 @@ public class DBSynsactBuilder extends DATranscxt {
 						.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
 					.post(with(select(chgm.tbl, "cl")
 						.cols("cl.*").col(subm.synodee)
-						.je2(subm.tbl, "sb",
+						.je_(subm.tbl, "sb",
 						//	chgm.domain, subm.domain, chgm.entbl, subm.entbl,
 						//	chgm.uids, subm.uids)
 							chgm.pk, subm.changeId)
@@ -668,7 +668,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		else {
 			AnResultset challenge = (AnResultset) select(chgm.tbl, "ch")
 				// .je("ch", subm.tbl, "sb", chgm.entbl, subm.entbl, chgm.uids, subm.uids)
-				.je2(subm.tbl, "sb", chgm.pk, subm.changeId)
+				.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
 				.cols("ch.*", subm.synodee)
 				// FIXME not op.lt, must implement a function to compare nyquence.
 				.where(op.gt, chgm.nyquence, dn.n) // FIXME
@@ -693,7 +693,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 				AnResultset entities = ((AnResultset) select(tbl, "e")
 					// .je("e", chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
-					.je2(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
+					.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
 					.cols_byAlias("e", entm.entCols()).col("e." + entm.pk)
 					.where(op.gt, chgm.nyquence, dn.n)
 					.orderby(chgm.nyquence)
@@ -705,9 +705,8 @@ public class DBSynsactBuilder extends DATranscxt {
 				diff.entities(tbl, entities);
 			}
 		
-			x.initChallenge(target, diff);
-		
 			x.exstate.initexchange();
+			x.initChallenge(target, diff);
 			diff.session(x.session()).nyquvect(this.nyquvect);
 		}
 

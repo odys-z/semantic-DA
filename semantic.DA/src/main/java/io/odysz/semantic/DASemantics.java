@@ -1006,8 +1006,8 @@ public class DASemantics {
 		private String unquote(AbsPart prefixVal) throws TransException {
 			return prefixVal == null ? ""
 					: prefixVal.sql(null)
-					.replaceAll("^\s*'", "")
-					.replaceAll("'\s*$", "");
+					.replaceAll("^\\s*'", "")
+					.replaceAll("'\\s*$", "");
 		}
 	}
 
