@@ -202,6 +202,8 @@ public class DBSyntableTest {
 
 	@Test
 	void testChangeLogs() throws Exception {
+		printNyquv(ck);
+
 		int no = 0;
 		test01InsertBasic(++no);
 		testJoinChild(++no);
@@ -255,8 +257,10 @@ public class DBSyntableTest {
 		// 2. X <= Y
 		Utils.logrst("X <= Y", section, 3);
 		exchangePhotos(X, Y, section, 3);
-		ck[Y].buf_change(1, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
-		ck[Y].buf_change(1, C, ck[X].trb.synode(), A_0, ck[Y].phm);
+		ck[Y].buf_change(0, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
+		ck[Y].change_log(1, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
+		ck[Y].buf_change(0, C, ck[X].trb.synode(), A_0, ck[Y].phm);
+		ck[Y].change_log(1, C, ck[X].trb.synode(), A_0, ck[Y].phm);
 		ck[Y].psubs(1, B_0_uids[1], -1, -1, Z, -1);
 		ck[Y].psubs(1, A_0_uids[1], -1, -1, Z, -1);
 
@@ -717,11 +721,13 @@ public class DBSyntableTest {
 		ExchangeBlock req = null;
 		ExchangeBlock rep = null;
 		while (cp.hasNextChpages(ctb)
-			|| rep!= null && rep.moreChallenges) {
+			|| rep!= null && rep.hasmore()) {
 			// client
 			Utils.logrst(new String[] {ctb.synode(), "exchange"}, test, subno, step, ++no);
 			cp.nextChpage();
 			req = ctb.exchangePage(cp, stb.synode(), rep);
+			Utils.logrst(String.format("%s exchange challenge    changes: %d    entities: %d    answers: %d",
+					ctb.synode(), req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, 1);
 
 			// server
 			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, step, ++no);
@@ -729,7 +735,7 @@ public class DBSyntableTest {
 			rep = stb.onExchange(sp, ctb.synode(), req);
 
 			Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
-					stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, ++no);
+					stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, no, 1);
 			printChangeLines(ck);
 			printNyquv(ck);
 		}
@@ -918,6 +924,35 @@ public class DBSyntableTest {
 			return buf_change(count, crud, trb.synode(), eid, entm);
 		}
 
+		public long change_log(int count, String crud, String synoder, String eid, SyntityMeta entm)
+				throws TransException, SQLException {
+			Query q = trb
+					.select(chm.tbl, "ch")
+					.cols((Object[])chm.insertCols())
+					.whereEq(chm.domain, domain)
+					.whereEq(chm.entbl, entm.tbl);
+				if (synoder != null)
+					q.whereEq(chm.synoder, synoder);
+				if (eid != null)
+					q.whereEq(chm.uids, synoder + chm.UIDsep + eid);
+
+				AnResultset chg = (AnResultset) q
+						.rs(trb.instancontxt(connId(), robot()))
+						.rs(0);
+				
+				if (!chg.next() && count > 0)
+					fail(String.format("Expecting count == %d, but is actual 0", count));
+
+				assertEquals(count, chg.getRowCount());
+				if (count > 0) {
+					assertEquals(crud, chg.getString(chm.crud));
+					assertEquals(entm.tbl, chg.getString(chm.entbl));
+					assertEquals(synoder, chg.getString(chm.synoder));
+					return chg.getLong(chm.nyquence);
+				}
+				return 0;
+		}
+
 		public long buf_change(int count, String crud, String synoder, String eid, SyntityMeta entm)
 				throws TransException, SQLException {
 			Query q = trb
@@ -1084,7 +1119,7 @@ public class DBSyntableTest {
 
 	public static void printNyquv(Ck[] ck) {
 		Utils.logi(Stream.of(ck).map(c -> { return c.trb.synode();})
-				.collect(Collectors.joining("    ", "      ", "")));
+			.collect(Collectors.joining("    ", "      ", "")));
 
 		for (int cx = 0; cx < ck.length; cx++) {
 			DBSyntableBuilder t = ck[cx].trb;
@@ -1102,22 +1137,6 @@ public class DBSyntableTest {
 		}
 	}
 	
-//	static class ChangeLine extends Anson {
-//		String s;
-//		public ChangeLine(AnResultset r) throws SQLException {
-//			this.s = String.format("%1$1s %2$9s %3$9s %4$4s %5$2s",
-//				r.getString(chm.crud),
-//				r.getString(chm.pk),
-//				r.getString(chm.uids),
-//				r.getString(chm.nyquence),
-//				r.getString(sbm.synodee)
-//				// r.getString(ChangeLogs.ChangeFlag, " ")
-//				);
-//		}
-//		
-//		@Override
-//		public String toString() { return s; }
-//	}
 	static String changeLine(AnResultset r) throws SQLException {
 		String seq = r.getString(xbm.seq, " ");
 

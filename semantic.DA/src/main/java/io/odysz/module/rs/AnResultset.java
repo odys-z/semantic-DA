@@ -233,6 +233,9 @@ for (String coln : colnames.keySet())
 	}
 	
 	public AnResultset append(ArrayList<Object> includingRow) {
+		if (results == null)
+			results = new ArrayList<ArrayList<Object>>();
+
 		results.add(includingRow);
 		rowCnt++;
 		rowIdx = results.size();

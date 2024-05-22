@@ -43,4 +43,8 @@ public class ExessionAct {
 		return "NA";
 	}
 
+	public void onclose() {
+		this.state = ready;
+	}
+
 }

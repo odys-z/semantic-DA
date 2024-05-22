@@ -2,8 +2,10 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.isNull;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
+import static io.odysz.semantic.syn.Nyquence.maxn;
 import static io.odysz.semantic.util.DAHelper.getNyquence;
 import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
@@ -11,7 +13,6 @@ import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.xml.sax.SAXException;
@@ -36,6 +37,7 @@ import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
+import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
@@ -199,6 +201,10 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	private HashMap<String, SyntityMeta> entityRegists;
 
+	public SyntityMeta getSyntityMeta(String tbl) {
+		return entityRegists == null ? null : entityRegists.get(tbl);
+	} 
+
 	public DBSyntableBuilder(String conn, String synodeId, String syndomain)
 			throws SQLException, SAXException, IOException, TransException {
 		this(conn, synodeId, syndomain,
@@ -289,6 +295,21 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 	}
 
+	/**
+	 * this.n0++, this.n0 = max(n0, maxn)
+	 * @param maxn
+	 * @return n0
+	 * @throws SQLException 
+	 * @throws TransException 
+	 */
+	public Nyquence incN0(Nyquence... n) throws TransException, SQLException {
+		n0().inc(isNull(n) ? nyquvect.get(synode()).n : n[0].n);
+		DAHelper.updateField(this, basictx.connId(), synm, synode(),
+				synm.nyquence, new ExprPart(n0().n), synrobot());
+		return n0();
+	}
+
+
 	public void abortExchange(ExessionPersist cx, String target, ExchangeBlock rep) {
 	}
 
@@ -307,9 +328,11 @@ public class DBSyntableBuilder extends DATranscxt {
 		cp.expect(lastconf);
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
 		return cp
+			.commitAnswers(lastconf, peer, n0().n)
 			.exchange(peer, lastconf)
 			.nv(nyquvect)
-			.answers(answer_save(cp, lastconf, peer));
+			.answers(answer_save(cp, lastconf, peer))
+			.seq(cp.persisession());
 	}
 	
 	public ExchangeBlock onExchange(ExessionPersist sp, String peer, ExchangeBlock req)
@@ -317,21 +340,24 @@ public class DBSyntableBuilder extends DATranscxt {
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
 		// for ch in challenges:
 		//     answer.add(answer(ch))
-		sp.expect(req)
-		  .onExchange(peer, req); // The challenge page is ready
+		sp.expect(req);
 
-		return new ExchangeBlock(synode(), peer, sp.session(), sp.exstat())
+		// return new ExchangeBlock(synode(), peer, sp.session(), sp.exstat())
+		return sp
+			.commitAnswers(req, peer, n0().n)
+			.onExchange(peer, req) // The challenge page is ready
 			.nv(nyquvect)
 			.answers(answer_save(sp, req, peer))
-			.seq(sp);
+			.seq(sp.persisession());
 	}
 	
-	ExessionPersist answer_save(ExessionPersist xp, ExchangeBlock req, String srcn)
-			throws SQLException {
+	ExessionPersist answer_save(ExessionPersist xp, ExchangeBlock req, String peer)
+			throws SQLException, TransException {
 		if (req == null || req.chpage == null) return xp;
 		
-		ArrayList<ArrayList<Object>> changes = new ArrayList<ArrayList<Object>>();
-		ExchangeBlock resp = new ExchangeBlock(synode(), srcn, xp.session(), xp.exstat()).nv(nyquvect);
+		// ArrayList<ArrayList<Object>> changes = new ArrayList<ArrayList<Object>>();
+		AnResultset changes = new AnResultset(req.chpage.colnames());
+		ExchangeBlock resp = new ExchangeBlock(synode(), peer, xp.session(), xp.exstat()).nv(nyquvect);
 
 		AnResultset reqChgs = req.chpage;
 
@@ -341,16 +367,16 @@ public class DBSyntableBuilder extends DATranscxt {
 			if (eq(subscribe, synode())) {
 				// resp.remove_sub(req.challenge, synode());	
 				resp.removeChgsub(req.chpage, synode());	
-				changes.add(reqChgs.getRowAt(reqChgs.getRow() - 1));
+				changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
 			}
 			else {
 				Nyquence subnyq = getn(reqChgs, chgm.nyquence);
 				if (!nyquvect.containsKey(subscribe) // I don't have information of the subscriber
 					&& eq(synm.tbl, reqChgs.getString(chgm.entbl))) // adding synode
-					changes.add(reqChgs.getRowAt(reqChgs.getRow() - 1));
+					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
 				else if (!nyquvect.containsKey(subscribe))
 						; // I have no idea
-				else if (compareNyq(subnyq, nyquvect.get(srcn)) <= 0) {
+				else if (compareNyq(subnyq, nyquvect.get(peer)) <= 0) {
 					// ref: _answer-to-remove
 					// knowledge about the sub from req is older than this node's knowledge 
 					// see #commitChallenges ref: merge-older-version
@@ -360,16 +386,29 @@ public class DBSyntableBuilder extends DATranscxt {
 					resp.removeChgsub(req.chpage, subscribe);	
 				}
 				else
-					changes.add(reqChgs.getRowAt(reqChgs.getRow() - 1));
+					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
 			}
 		}
 
-		return xp.saveAnswer(resp.answers()).addChangeBuf(changes);
+		return xp.saveAnswer(resp.anspage)
+				.saveChanges(changes, req.nv, req.entities);
 	}
 
-	public HashMap<String, Nyquence> closexchange(ExessionPersist cx, String synode,
-			HashMap<String, Nyquence> nv) {
+	public HashMap<String, Nyquence> closexchange(ExessionPersist cx, String peer,
+			HashMap<String, Nyquence> nv) throws TransException, SQLException {
+
+		cx.clear();
+		synyquvectWith(peer, nv.get(peer));
+		// nv.get(sn).inc();
+		incN0(maxn(nv));
+
+		cx.exstat().onclose();
+
 		return nv;
+	}
+
+	private void synyquvectWith(String peer, Nyquence nyquence) {
+		// TODO Auto-generated method stub
 	}
 
 	public void onclosexchange(ExessionPersist sx, String synode, HashMap<String, Nyquence> nv) {
@@ -457,6 +496,13 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 
+	public SyntityMeta getEntityMeta(String entbl) throws SemanticException {
+		if (entityRegists == null || !entityRegists.containsKey(entbl))
+			throw new SemanticException("Register %s first.", entbl);
+			
+		return entityRegists.get(entbl);
+	}
+
 	/**
 	 * Inc my n0, then reload from DB.
 	 * @return this
@@ -532,13 +578,4 @@ public class DBSyntableBuilder extends DATranscxt {
 	public String domain() {
 		return basictx() == null ? null : ((DBSyntext) basictx()).domain;
 	}
-
-//	public Query selectCols(Query subq, String changeId) {
-//		Query q = select(subq);
-//		return q;
-//	}
-//
-//	private Query select(Query subq) {
-//		return null;
-//	}
 }

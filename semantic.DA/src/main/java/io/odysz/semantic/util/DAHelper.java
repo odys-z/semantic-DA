@@ -142,7 +142,7 @@ public class DAHelper {
 	public static int count(DATranscxt b, String conn, String t, Object ... kvs)
 			throws SQLException, TransException {
 		Query q = b.select(t)
-				.col(Funcall.count(), "cnt");
+				.col(Funcall.count("*"), "cnt");
 		if (!isNull(kvs))
 			for (int i = 0; i < kvs.length; i+=2)
 				q.whereEq((String)kvs[i], kvs[i+1]);

@@ -18,11 +18,15 @@ public class ExchangeBlock extends Anson {
 	HashMap<String, Nyquence> nv;
 
 	public AnResultset chpage;
-	// public int challenges;
-	public ArrayList<ArrayList<Object>> anspage;
+	public HashMap<String, AnResultset> entities;
 
-	/**Server has more challenge blocks, which need to be pulled before closing exchange */
-	public boolean moreChallenges;
+	// public ArrayList<ArrayList<Object>> anspage;
+	public AnResultset anspage;
+
+	/**Server has more challenge blocks, which is need to be handled before closing exchange */
+	public boolean hasmore() {
+		return chpage != null && chpage.size() > 0 || anspage != null && anspage.size() > 0;
+	}
 
 	public ExchangeBlock(String src, String peer, String sessionId, ExessionAct exstate) {
 		srcnode = src;
@@ -38,12 +42,13 @@ public class ExchangeBlock extends Anson {
 
 	public int enitities() { return 0; }
 
-	public ArrayList<ArrayList<Object>>  answers() {
-		return anspage;
+	public int answers() {
+		return anspage != null ? anspage.size() : 0;
 	}
 
 	public int enitities(String tbl) {
-		return 0;
+		return entities == null || !entities.containsKey(tbl)
+			? 0 : entities.get(tbl).getRowCount();
 	}
 
 	public ExchangeBlock answers(ExessionPersist p) {
@@ -52,13 +57,23 @@ public class ExchangeBlock extends Anson {
 	}
 
 	public void removeChgsub(AnResultset challenpage, String synode) throws SQLException {
-		if (anspage == null) 
-			anspage = new ArrayList<ArrayList<Object>>();
+		if (challenpage == null)
+			return;
+		
+		if (anspage == null) {
+			// anspage = new ArrayList<ArrayList<Object>>();
+			HashMap<String, Object[]> cols = challenpage.colnames();
+			if (!cols.containsKey(ChangeLogs.ChangeFlag.toUpperCase()))
+				cols.put(ChangeLogs.ChangeFlag.toUpperCase(),
+						new Object[] {cols.size(), ChangeLogs.ChangeFlag});
+			anspage = new AnResultset(cols);
+		}
 
 		if (challenpage != null) {
 			ArrayList<Object> row = challenpage.getRowAt(challenpage.currentRow() - 1);
-			row.add(row.size(), CRUD.U);
-			anspage.add(row);
+			int flagIx = (int) anspage.colnames().get(ChangeLogs.ChangeFlag.toUpperCase())[0];
+			row.add(flagIx, CRUD.U);
+			anspage.append(row);
 		}
 	}
 	
@@ -125,13 +140,9 @@ public class ExchangeBlock extends Anson {
 		return this;
 	}
 
-//	public ExchangeBlock totalChanges(int total) {
-//		this.challenges = total;
-//		return this;
-//	}
-
-	public ExchangeBlock chpage(AnResultset rs) {
+	public ExchangeBlock chpage(AnResultset rs, HashMap<String, AnResultset> entities) {
 		this.chpage = rs;
+		this.entities = entities;
 		return this;
 	}
 
