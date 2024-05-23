@@ -45,6 +45,12 @@ public class Nyquence {
 			return inc(maxn[0].n);
 	}
 
+	/**
+	 * Increase n, if less than {@code maxn}, set to {@code maxn}.
+	 * 
+	 * @param maxn
+	 * @return this
+	 */
 	Nyquence inc(long maxn) {
 		this.n++;
 		this.n = Math.max(maxn, this.n );

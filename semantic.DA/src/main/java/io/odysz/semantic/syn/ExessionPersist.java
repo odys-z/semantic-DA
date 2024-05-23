@@ -590,35 +590,45 @@ public class ExessionPersist {
 //		return this;
 //	}
 
-	public ExchangeBlock closexchange(String server, ExchangeBlock rep) throws ExchangeException {
+	public ExchangeBlock closexchange(ExchangeBlock rep) throws ExchangeException {
 		if (exstate.state != init && exstate.state != exchange)
 			throw new ExchangeException(exchange, "Can't handle closing state on state %s", exstate.state); 
 
-		expAnswerSeq = -1; 
-		if (rep != null)
-			answerSeq = rep.challengeSeq;
-		else answerSeq = -1;
-		challengeSeq = -1; 
+		try {
+			expAnswerSeq = -1; 
+			if (rep != null)
+				answerSeq = rep.challengeSeq;
+			else answerSeq = -1;
+			challengeSeq = -1; 
 
-		exstate.state = ready;
+			exstate.state = ready;
 
-		return new ExchangeBlock(trb == null ? rep.peer : trb.synode(), server, session, new ExessionAct(exstate.mode, close))
+			return new ExchangeBlock(trb == null ? rep.peer : trb.synode(), peer, session, new ExessionAct(exstate.mode, close))
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
 				.seq(this);
+		} finally {
+			try {
+				trb.delete(exbm.tbl, trb.synrobot())
+					.whereEq(exbm.peer, peer)
+					.d(trb.instancontxt(trb.synconn(), trb.synrobot()));
+			} catch (TransException | SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
-	public ExchangeBlock onclose(String peer, ExchangeBlock req) throws ExchangeException {
-
-		expAnswerSeq = -1; 
-		challengeSeq = -1; 
-
-		exstate.state = ready;
-		return new ExchangeBlock(trb == null ? req.peer : trb.synode(), peer, session, exstate)
-				.totalChallenges(totalChallenges)
-				.chpagesize(this.chsize)
-				.seq(this);
-	}
+//	public ExchangeBlock onclose(String peer, ExchangeBlock req) throws ExchangeException {
+//
+//		expAnswerSeq = -1; 
+//		challengeSeq = -1; 
+//
+//		exstate.state = ready;
+//		return new ExchangeBlock(trb == null ? req.peer : trb.synode(), peer, session, exstate)
+//				.totalChallenges(totalChallenges)
+//				.chpagesize(this.chsize)
+//				.seq(this);
+//	}
 
 	/**
 	 * Retry last page

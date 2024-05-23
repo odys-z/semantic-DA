@@ -631,7 +631,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 */
 	public Nyquence incN0(long maxn) throws TransException, SQLException {
 		n0().inc(maxn);
-		DAHelper.updateField(this, basictx.connId(), synm, synode(),
+		DAHelper.updateFieldByPk(this, basictx.connId(), synm, synode(),
 				synm.nyquence, new ExprPart(n0().n), synrobot());
 		return n0();
 	}

@@ -269,7 +269,7 @@ class ExchangingTest {
 										//
 										assertFalse(cp.expect(rep).nextChpage());
 										assertFalse(rep.moreChallenge());
-										req = cp.closexchange(server, rep);
+										req = cp.closexchange(rep);
 										assertEquals(ExessionAct.close, req.act);
 										assertEquals(ExessionAct.ready, cp.exstate());
 										assertEquals(-1, req.challengeSeq);
@@ -279,7 +279,7 @@ class ExchangingTest {
 		// 
 		assertFalse(sp.expect(req).nextChpage());
 		assertFalse(req.moreChallenge());
-		sp.onclose(client, req);
+		sp.closexchange(req);
 		assertEquals(ExessionAct.ready, sp.exstate());
 	}
 }

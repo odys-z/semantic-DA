@@ -12,6 +12,7 @@ import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Transcxt;
+import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
@@ -111,12 +112,56 @@ public class DAHelper {
 		return new Nyquence(getValong(trb, conn, m, nyqfield, where_eqs));
 	}
 
-	public static SemanticObject updateField(DATranscxt trb, String conn, TableMeta m, String recId,
+	/**
+	 * Commit to DB({@code conn}) as user {@code usr}, with SQL:<br>
+	 * 
+	 * update m.tbl set field = v where m.pk = recId
+	 * 
+	 * @param trb
+	 * @param conn
+	 * @param m
+	 * @param recId
+	 * @param field
+	 * @param v
+	 * @param usr
+	 * @return affected rows
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public static SemanticObject updateFieldByPk(DATranscxt trb, String conn, TableMeta m, String recId,
 			String field, Object v, IUser usr) throws TransException, SQLException {
 		return trb.update(m.tbl, usr)
 			.nv(field, v instanceof ExprPart ? (ExprPart)v : Funcall.constr(v.toString()))
 			.whereEq(m.pk, recId)
 			.u(trb.instancontxt(conn, usr));
+	}
+
+	/**
+	 * Commit to DB({@code conn}) as user {@code usr}, with SQL:<br>
+	 * 
+	 * update m.tbl set field = v where whereqs[0] = whereqs[1] and whereqs[2] = whereqs[3] ...
+	 * 
+	 * @param trb
+	 * @param conn
+	 * @param usr
+	 * @param m
+	 * @param field
+	 * @param v
+	 * @param whereqs
+	 * @return affected rows
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public static SemanticObject updateFieldWhereEqs(DATranscxt trb, String conn, IUser usr,
+			TableMeta m, String field, Object v, Object... whereqs) throws TransException, SQLException {
+		Update u = trb.update(m.tbl, usr)
+			.nv(field, v instanceof ExprPart ? (ExprPart)v : Funcall.constr(v.toString()));
+		
+		for (int x = 0; x < whereqs.length; x+=2) {
+			u.whereEq((String)whereqs[x], whereqs[x+1]);
+		}
+
+		return u.u(trb.instancontxt(conn, usr));
 	}
 
 	/**

@@ -25,7 +25,8 @@ public class ExchangeBlock extends Anson {
 
 	/**Server has more challenge blocks, which is need to be handled before closing exchange */
 	public boolean hasmore() {
-		return chpage != null && chpage.size() > 0 || anspage != null && anspage.size() > 0;
+		return // totalChallenges > 0 && challengeSeq < 0 || // not begin yet 
+			chpage != null && chpage.size() > 0 || anspage != null && anspage.size() > 0;
 	}
 
 	public ExchangeBlock(String src, String peer, String sessionId, ExessionAct exstate) {

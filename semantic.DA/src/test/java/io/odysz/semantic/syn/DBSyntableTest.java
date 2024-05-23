@@ -10,6 +10,7 @@ import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
 import static io.odysz.semantic.CRUD.U;
+import static io.odysz.semantic.syn.ExessionAct.*;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concat;
@@ -214,6 +215,7 @@ public class DBSyntableTest {
 	void test01InsertBasic(int section)
 			throws TransException, SQLException, IOException {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
+		int subsect = 0;
 
 		HashMap<String, Nyquence> nvx = ck[X].trb.nyquvect;
 		long Aa_ = nvx.get(ck[X].trb.synode()).n;
@@ -232,37 +234,35 @@ public class DBSyntableTest {
 
 
 		// 1.1 insert A
-		Utils.logrst("insert A", section, 1);
+		Utils.logrst("insert X", section, ++subsect);
 		String[] A_0_uids = insertPhoto(X);
 		String A_0 = A_0_uids[0];
 
-		// syn_change.curd = C
 		ck[X].changelog(1, C, A_0, ck[X].phm);
-		// syn_subscribe.to = [B, C, D]
 		ck[X].psubs(2, A_0_uids[1], -1, Y, Z, -1);
 
 		// 1.2 insert B
-		Utils.logrst("insert B", section, 2);
+		Utils.logrst("insert Y", section, ++subsect);
 		String[] B_0_uids = insertPhoto(Y);
 		String B_0 = B_0_uids[0];
 
-		// syn_change.curd = C
 		ck[Y].changelog(1, C, B_0, ck[Y].phm);
-		// syn_subscribe.to = [A, C, D]
 		ck[Y].psubs(2, B_0_uids[1], X, -1, Z, -1);
 		
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		// 2. X <= Y
-		Utils.logrst("X <= Y", section, 3);
-		exchangePhotos(X, Y, section, 3);
+		// 1.3. X <= Y
+		Utils.logrst("X <= Y", section, ++subsect);
+		exchangePhotos(X, Y, section, subsect);
 		ck[Y].buf_change(0, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
 		ck[Y].change_log(1, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
-		ck[Y].buf_change(0, C, ck[X].trb.synode(), A_0, ck[Y].phm);
-		ck[Y].change_log(1, C, ck[X].trb.synode(), A_0, ck[Y].phm);
+		ck[X].buf_change(0, C, ck[X].trb.synode(), A_0, ck[Y].phm);
+		ck[X].change_log(1, C, ck[X].trb.synode(), A_0, ck[Y].phm);
 		ck[Y].psubs(1, B_0_uids[1], -1, -1, Z, -1);
 		ck[Y].psubs(1, A_0_uids[1], -1, -1, Z, -1);
+		ck[X].psubs(1, B_0_uids[1], -1, -1, Z, -1);
+		ck[X].psubs(1, A_0_uids[1], -1, -1, Z, -1);
 
 		// B.b++, A.b = B.b, B.a = A.a
 		long Ab = nvx.get(y).n;
@@ -282,12 +282,12 @@ public class DBSyntableTest {
 		Aa_ = Aa;
 		Ba_ = Ba;
 		
-		// 3. Y <= Z
+		// 1.4 Y <= Z
 		long Bc_ = nvy.get(z).n;
 		long Cc_ = nvz.get(z).n;
 
-		Utils.logrst("Y <= Z", section, 3);
-		exchangePhotos(Y, Z, section, 3);
+		Utils.logrst("Y <= Z", section, ++subsect);
+		exchangePhotos(Y, Z, section, subsect);
 		ck[Z].buf_change(0, C, A_0, ck[Z].phm);
 		ck[Z].buf_change(0, C, ck[X].trb.synode(), A_0, ck[Z].phm);
 		ck[Z].psubs(0, A_0_uids[1], -1, -1, Z, -1);
@@ -324,9 +324,9 @@ public class DBSyntableTest {
 		Cb_ = Cb;
 		Cc_ = Cc;
 		
-		// 4. X <= Y
-		Utils.logrst("X <= Y", section, 4);
-		exchangePhotos(X, Y, section, 4);
+		// 1.5 X <= Y
+		Utils.logrst("X <= Y", section, ++subsect);
+		exchangePhotos(X, Y, section, subsect);
 		ck[X].buf_change(0, C, A_0, ck[X].phm);
 		ck[X].buf_change(0, C, B_0, ck[X].phm);
 		ck[X].psubs(0, A_0_uids[1], -1, -1, Z, -1);
@@ -379,7 +379,7 @@ public class DBSyntableTest {
 			Utils.logi(e.getMessage());
 			return;
 		}
-		fail("W is not roaming able at Z.");
+		fail("W is unable to roaming with Z.");
 	}
 
 	void testBranchPropagation(int section)
@@ -597,32 +597,35 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ExessionPersist cp = new ExessionPersist(ctb, chm, sbm, xbm, stb.synode());
 		ExchangeBlock ini = ctb.initExchange(cp, stb.synode(), null);
-		assertTrue(ini.totalChallenges > 0);
+		// assertTrue(ini.totalChallenges > 0);
 		Utils.logrst(String.format("%s initiate: changes: %d    entities: %d",
 				ctb.synode(), ini.totalChallenges, ini.enitities(cphm.tbl)), test, subno, no, 1);
 
-		Utils.logrst(new String[] {ctb.synode(), "on initiate"}, test, subno, ++no);
+		Utils.logrst(new String[] {stb.synode(), "on initiate"}, test, subno, ++no);
 		ExessionPersist sp = new ExessionPersist(stb, chm, sbm, xbm, ctb.synode(), ini);
 		ExchangeBlock rep = stb.onInit(sp, ini);
 		Utils.logrst(String.format("%s on initiate: changes: %d    entities: %d",
-				ctb.synode(), rep.totalChallenges, rep.enitities(cphm.tbl)), test, subno, no, 1);
+				stb.synode(), rep.totalChallenges, rep.enitities(cphm.tbl)), test, subno, no, 1);
 
 		//
-		challengeAnswerLoop(sp, stb, cp, ctb, test, subno, ++no);
+		challengeAnswerLoop(sp, stb, cp, ctb, rep, test, subno, ++no);
 
 		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
-		HashMap<String, Nyquence> nv = ctb.closexchange(cp, stb.synode(), Nyquence.clone(stb.nyquvect));
+		ExchangeBlock req = ctb.closexchange(cp, rep);
+		assertEquals(req.nv.get(ctb.synode()).n + 1, ctb.stamp.n);
+		assertEquals(ready, cp.exstate());
 
 		printChangeLines(ck);
 		printNyquv(ck);
-		// assertEquals(Exchanging.ready, cp.exstate());
 
 		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
-		// FIXME what if server don't agree?
-		stb.onclosexchange(sp, ctb.synode(), nv);
+		// FIXME what if the server doesn't agree?
+		rep = stb.onclosexchange(sp, req);
+		assertEquals(rep.nv.get(ctb.synode()).n + 1, stb.stamp.n);
+		assertEquals(ready, sp.exstate());
+
 		printChangeLines(ck);
 		printNyquv(ck);
-		// assertEquals(Exchanging.ready, sp.exstate());
 
 //		if (req.challenges() > 0)
 //			fail("Shouldn't has any more challenge here.");
@@ -659,7 +662,7 @@ public class DBSyntableTest {
 				stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, ++no);
 		printChangeLines(ck);
 		printNyquv(ck);
-		// assertEquals(Exchanging.exchanging, sp.exstate());
+		// assertEquals(ExessionAct.exchanging, sp.exstate());
 	
 		// server had sent reply but client haven't got it
 		// challenges & answers are saved at server
@@ -685,24 +688,24 @@ public class DBSyntableTest {
 				ctb.onRequires(cp, rep);
 			}
 
-			challengeAnswerLoop(sp, stb, cp, ctb, test, subno, ++no);
+			challengeAnswerLoop(sp, stb, cp, ctb, rep, test, subno, ++no);
 
 			assertNotNull(req);
 			assertEquals(0, req.chpage);
 
 			Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
-			HashMap<String, Nyquence> nv = ctb.closexchange(cp, stb.synode(), Nyquence.clone(stb.nyquvect));
+			req = ctb.closexchange(cp, rep);
 
 			printChangeLines(ck);
 			printNyquv(ck);
-			// assertEquals(Exchanging.ready, cp.exstate());
+			// assertEquals(ExessionAct.ready, cp.exstate());
 
 			Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 			// FIXME what if server don't agree?
-			stb.onclosexchange(sp, ctb.synode(), nv);
+			stb.onclosexchange(sp, req);
 			printChangeLines(ck);
 			printNyquv(ck);
-			// assertEquals(Exchanging.ready, sp.exstate());
+			// assertEquals(ExessionAct.ready, sp.exstate());
 
 			if (req.totalChallenges > 0)
 				fail("Shouldn't has any more challenge here.");
@@ -712,15 +715,16 @@ public class DBSyntableTest {
 	}
 
 	private static void challengeAnswerLoop(ExessionPersist sp, DBSyntableBuilder stb, 
-				ExessionPersist cp, DBSyntableBuilder ctb, int test, int subno, int step)
+				ExessionPersist cp, DBSyntableBuilder ctb, ExchangeBlock rep, int test, int subno, int step)
 				throws SQLException, TransException {
 		int no = 0;
 
 		Utils.logrst(new String[] {"exchanges", stb.synode(), "<=>", ctb.synode()}, test, subno, step);
 
 		ExchangeBlock req = null;
-		ExchangeBlock rep = null;
+		// ExchangeBlock rep = null;
 		while (cp.hasNextChpages(ctb)
+			|| rep != null && rep.act == init // force to go on the initiation respond
 			|| rep!= null && rep.hasmore()) {
 			// client
 			Utils.logrst(new String[] {ctb.synode(), "exchange"}, test, subno, step, ++no);

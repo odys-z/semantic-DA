@@ -35,6 +35,7 @@ import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Transcxt;
+import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.ExprPart;
@@ -182,10 +183,17 @@ public class DBSyntableBuilder extends DATranscxt {
 	protected String synode() { return ((DBSyntext)this.basictx).synode; }
 
 	protected Nyquence stamp;
-	public DBSyntableBuilder incStamp() throws ExchangeException {
+	void stampersist(Nyquence n) throws TransException, SQLException {
+		DAHelper.updateFieldWhereEqs(this, synconn(), synrobot(), synm, synm.nstamp, n.n,
+				synm.pk, synode());
+		stamp.n = n.n;
+	}
+
+	DBSyntableBuilder incStamp() throws TransException, SQLException {
 		stamp.inc();
 		if (Nyquence.abs(stamp, nyquvect.get(synode())) >= 2)
 			throw new ExchangeException(0, "Nyquence stamp increased too much or out of range.");
+		stampersist(stamp);
 		return this;
 	}
 
@@ -295,21 +303,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 	}
 
-	/**
-	 * this.n0++, this.n0 = max(n0, maxn)
-	 * @param maxn
-	 * @return n0
-	 * @throws SQLException 
-	 * @throws TransException 
-	 */
-	public Nyquence incN0(Nyquence... n) throws TransException, SQLException {
-		n0().inc(isNull(n) ? nyquvect.get(synode()).n : n[0].n);
-		DAHelper.updateField(this, basictx.connId(), synm, synode(),
-				synm.nyquence, new ExprPart(n0().n), synrobot());
-		return n0();
-	}
-
-
 	public void abortExchange(ExessionPersist cx, String target, ExchangeBlock rep) {
 	}
 
@@ -355,7 +348,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws SQLException, TransException {
 		if (req == null || req.chpage == null) return xp;
 		
-		// ArrayList<ArrayList<Object>> changes = new ArrayList<ArrayList<Object>>();
 		AnResultset changes = new AnResultset(req.chpage.colnames());
 		ExchangeBlock resp = new ExchangeBlock(synode(), peer, xp.session(), xp.exstat()).nv(nyquvect);
 
@@ -365,7 +357,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			String subscribe = req.chpage.getString(subm.synodee);
 
 			if (eq(subscribe, synode())) {
-				// resp.remove_sub(req.challenge, synode());	
 				resp.removeChgsub(req.chpage, synode());	
 				changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
 			}
@@ -394,26 +385,46 @@ public class DBSyntableBuilder extends DATranscxt {
 				.saveChanges(changes, req.nv, req.entities);
 	}
 
-	public HashMap<String, Nyquence> closexchange(ExessionPersist cx, String peer,
-			HashMap<String, Nyquence> nv) throws TransException, SQLException {
+	public ExchangeBlock closexchange(ExessionPersist cx,
+			ExchangeBlock rep) throws TransException, SQLException {
 
 		cx.clear();
-		synyquvectWith(peer, nv.get(peer));
+		HashMap<String, Nyquence> nv = rep.nv; 
+
+		if (Nyquence.compareNyq(n0(), nv.get(synode())) < 0)
+			throw new SemanticException("Synchronizing Nyquence exception: my.n0 = %d < peer.nv[me] = %d",
+					n0().n, nv.get(synode()).n);
+
+		synyquvectWith(cx.peer, nv);
+		HashMap<String, Nyquence> snapshot = Nyquence.clone(nyquvect);
+
 		// nv.get(sn).inc();
 		incN0(maxn(nv));
+		
+		if (Nyquence.compareNyq(stamp, n0()) > 0)
+			throw new SemanticException("Synchronizing Nyquence exception: stamp = %d > n0 = %d",
+					stamp.n, n0().n);
+		
+		stampersist(maxn(stamp, n0()));
+		// cx.exstat().onclose();
 
-		cx.exstat().onclose();
+		return cx.closexchange(rep).nv(snapshot);
 
-		return nv;
+		// return snapshot;
 	}
 
-	private void synyquvectWith(String peer, Nyquence nyquence) {
-		// TODO Auto-generated method stub
-	}
-
-	public void onclosexchange(ExessionPersist sx, String synode, HashMap<String, Nyquence> nv) {
+	public ExchangeBlock onclosexchange(ExessionPersist sx,
+			ExchangeBlock rep) throws TransException, SQLException {
+		return closexchange(sx, rep);
 	}
 	
+	public ExchangeBlock requirestore(ExessionPersist xp, String peer) {
+		return new ExchangeBlock(synode(), peer, xp.session(), xp.exstat())
+				.nv(nyquvect)
+				.requirestore()
+				.seq(xp);
+	}
+
 	public void onRequires(ExessionPersist cp, ExchangeBlock req) throws ExchangeException {
 		if (req.act == ExessionAct.restore) {
 			// TODO check step leakings
@@ -430,7 +441,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				// not correct
 				cp.challengeSeq = req.challengeSeq;
 			}
-
+	
 			if (cp.answerSeq < req.answerSeq) {
 				cp.answerSeq = req.answerSeq;
 			}
@@ -439,13 +450,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			cp.expAnswerSeq = cp.challengeSeq;
 		}
 		else throw new ExchangeException(0, "TODO");
-	}
-	
-	public ExchangeBlock requirestore(ExessionPersist xp, String peer) {
-		return new ExchangeBlock(synode(), peer, xp.session(), xp.exstat())
-				.nv(nyquvect)
-				.requirestore()
-				.seq(xp);
 	}
 
 	/**
@@ -520,6 +524,20 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 
+	/**
+	 * this.n0++, this.n0 = max(n0, maxn)
+	 * @param maxn
+	 * @return n0
+	 * @throws SQLException 
+	 * @throws TransException 
+	 */
+	public Nyquence incN0(Nyquence... n) throws TransException, SQLException {
+		n0().inc(isNull(n) ? nyquvect.get(synode()).n : n[0].n);
+		DAHelper.updateFieldByPk(this, basictx.connId(), synm, synode(),
+				synm.nyquence, new ExprPart(n0().n), synrobot());
+		return n0();
+	}
+
 	DBSyntableBuilder loadNyquvect0(String conn) throws SQLException, TransException {
 		AnResultset rs = ((AnResultset) select(synm.tbl)
 				.cols(synm.pk, synm.nyquence)
@@ -531,6 +549,42 @@ public class DBSyntableBuilder extends DATranscxt {
 			nyquvect.put(rs.getString(synm.synoder), new Nyquence(rs.getLong(synm.nyquence)));
 		}
 		
+		return this;
+	}
+
+	private DBSyntableBuilder synyquvectWith(String peer, HashMap<String, Nyquence> nv) 
+		throws TransException, SQLException {
+		if (nv == null) return this;
+
+		Update u = null;
+
+		if (compareNyq(nv.get(peer), nyquvect.get(peer)) < 0)
+			throw new SemanticException(
+				"[DBSynsactBuilder.synyquvectWith()] Updating my (%s) nyquence with %s's value early than already knowns.",
+				synode(), peer);
+
+		for (String n : nv.keySet()) {
+			// if (!eq(n, sn) && nyquvect.containsKey(n)
+			if (nyquvect.containsKey(n)
+				&& compareNyq(nv.get(n), nyquvect.get(n)) > 0)
+				if (u == null)
+					u = update(synm.tbl, synrobot())
+						.nv(synm.nyquence, n0().n)
+						.whereEq(synm.pk, n);
+				else
+					u.post(update(synm.tbl)
+						.nv(synm.nyquence, nv.get(n).n)
+						.whereEq(synm.pk, n));
+
+			if (nyquvect.containsKey(n))
+				nyquvect.get(n).n = maxn(nv.get(n).n, nyquvect.get(n).n);
+			else nyquvect.put(n, new Nyquence(nv.get(n).n));
+		}
+
+		nyquvect.put(synode(), maxn(n0(), nv.get(peer)));
+		if (u != null)
+			u.u(instancontxt(basictx.connId(), synrobot()));
+
 		return this;
 	}
 
