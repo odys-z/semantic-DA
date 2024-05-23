@@ -3,9 +3,12 @@ package io.odysz.semantic.syn;
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.hasGt;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
 import static io.odysz.semantic.syn.Nyquence.maxn;
+import static io.odysz.semantic.syn.ExessionAct.*;
+
 import static io.odysz.semantic.util.DAHelper.getNyquence;
 import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
@@ -13,6 +16,7 @@ import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.xml.sax.SAXException;
@@ -31,6 +35,7 @@ import io.odysz.semantic.syn.DBSynsactBuilder.SynmanticsMap;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
+import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
@@ -260,13 +265,13 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * 
 	 * @param cp
 	 * @param target
-	 * @param nv
 	 * @return {total: change-logs to be exchanged} 
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public ExchangeBlock initExchange(ExessionPersist cp, String target,
-			HashMap<String, Nyquence> srcnv) throws TransException, SQLException {
+	public ExchangeBlock initExchange(ExessionPersist cp, String target
+//			HashMap<String, Nyquence> srcnv
+			) throws TransException, SQLException {
 		if (DAHelper.count(this, basictx().connId(), exbm.tbl, exbm.peer, target) > 0)
 			throw new ExchangeException(Exchanging.ready,
 				"Can't initate new exchange session. There are exchanging records to be finished.");
@@ -292,6 +297,9 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ExchangeBlock onInit(ExessionPersist sp, ExchangeBlock inireq)
 			throws SQLException, TransException {
 		try {
+		
+			cleanStaleThan(inireq.nv, sp.peer);
+
 			// insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
 			return sp.onInit(inireq).nv(nyquvect);
 
@@ -316,15 +324,19 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public ExchangeBlock exchangePage(ExessionPersist cp, String peer,
-			ExchangeBlock lastconf) throws SQLException, TransException {
+	public ExchangeBlock exchangePage(ExessionPersist cp, ExchangeBlock lastconf)
+			throws SQLException, TransException {
 		cp.expect(lastconf);
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
+		
+		if (lastconf != null && lastconf.act == init)
+			cleanStaleThan(lastconf.nv, cp.peer);
+		
 		return cp
-			.commitAnswers(lastconf, peer, n0().n)
-			.exchange(peer, lastconf)
+			.commitAnswers(lastconf, cp.peer, n0().n)
+			.exchange(cp.peer, lastconf)
 			.nv(nyquvect)
-			.answers(answer_save(cp, lastconf, peer))
+			.answers(answer_save(cp, lastconf, cp.peer))
 			.seq(cp.persisession());
 	}
 	
@@ -342,6 +354,98 @@ public class DBSyntableBuilder extends DATranscxt {
 			.nv(nyquvect)
 			.answers(answer_save(sp, req, peer))
 			.seq(sp.persisession());
+	}
+	
+	/**
+	 * <p>Clean staleness. (Your knowledge about Z is newer than what I am presenting to)</p>
+	 * <h5>Case 1. X vs. Y</h5>
+	 * <pre>
+	 * X cleaned X,000021[Z] for X,000021[Z].n &lt; Y.z
+	 * X cleaned Y,000401[Z] for Y,000401[Z].n &lt; Y.z
+	 * 
+	 * I  X  X,000021    1  Z    |                           |                           |                          
+	 * I  Y  Y,000401    1  Z    |                           |                           |                          
+     *       X    Y    Z    W
+	 * X [   2,   1,   0,     ]
+	 * Y [   2,   3,   2,     ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,    ,    ,     ]</pre>
+	 * 
+	 * <h5>Case 2. X vs. Y</h5>
+	 * <pre>
+	 * X keeps change[z] for change[Z].n &ge; Y.z
+	 * 
+	 *              X                          Y                          Z                          W             
+	 * U  X  X,000023   10  Y    |                           |                           |                          
+	 * U  X  X,000023   10  Z    |                           |                           |                          
+	 *                           | U  Y  Y,000401   11  W    |                           |                          
+	 * U  X  X,000023   10  W    |                           |                           |                          
+	 *                           | U  Y  Y,000401   11  Z    |                           |                          
+	 *                           | U  Y  Y,000401   11  X    |                           |                          
+	 *       X    Y    Z    W
+	 * X [  10,   9,   7,   8 ]
+	 * Y [   9,  11,  10,   8 ]
+	 * Z [   9,  10,  11,   8 ]
+	 * W [   6,   8,   7,   9 ]</pre>
+	 * @param srcnv
+	 * @param srcn
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	void cleanStaleThan(HashMap<String, Nyquence> srcnv, String srcn)
+			throws TransException, SQLException {
+		for (String sn : srcnv.keySet()) {
+			if (eq(sn, synode()) || eq(sn, srcn))
+				continue;
+			if (!nyquvect.containsKey(sn))
+				continue;
+
+			if (Connects.getDebug(basictx.connId()))
+				Utils.logi("%1$s.cleanStateThan(): Deleting staleness where for source %2$s, my-change[%4$s].n < src-nyq[%1$s] = %3$d ...",
+						synode(), srcn, nyquvect.get(srcn).n, sn);
+
+			SemanticObject res = (SemanticObject) ((DBSyntableBuilder)
+				with(select(chgm.tbl, "cl")
+					.cols("cl.*").col(subm.synodee)
+					// .je2(subm.tbl, "sb", constr(sn), subm.synodee,
+					// 	chgm.domain, subm.domain, chgm.entbl, subm.entbl,
+					// 	chgm.uids, subm.uids)
+					.je_(subm.tbl, "sb", constr(sn), subm.synodee, chgm.pk, subm.changeId)
+					.where(op.ne, subm.synodee, constr(srcn))
+					.where(op.lt, chgm.nyquence, srcnv.get(sn).n))) // FIXME nyquence compare
+				.delete(subm.tbl, synrobot())
+					.where(op.exists, null, select("cl")
+						// .whereEq(subm.tbl, subm.domain,"cl", chgm.domain)
+						// .whereEq(subm.tbl, subm.entbl, "cl", chgm.entbl)
+						// .whereEq(subm.tbl, subm.uids,  "cl", chgm.uids)
+						.where(op.eq, subm.changeId, chgm.pk)
+						.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
+					.post(with(select(chgm.tbl, "cl")
+							.cols("cl.*").col(subm.synodee)
+							.je_(subm.tbl, "sb",
+							//	chgm.domain, subm.domain, chgm.entbl, subm.entbl,
+							//	chgm.uids, subm.uids)
+								chgm.pk, subm.changeId)
+							.where(op.ne, subm.synodee, constr(srcn)))
+						.delete(chgm.tbl)
+						.where(op.notexists, null, select("cl")
+							.col("1")
+							.whereEq(chgm.tbl, chgm.domain,  "cl", chgm.domain)
+							.whereEq(chgm.tbl, chgm.entbl,"cl", chgm.entbl)
+							.whereEq(chgm.tbl, chgm.uids, "cl", chgm.uids)))
+				.d(instancontxt(basictx.connId(), synrobot()));
+			
+			if (Connects.getDebug(basictx.connId())) {
+				try {
+					@SuppressWarnings("unchecked")
+					ArrayList<Integer> chgsubs = ((ArrayList<Integer>)res.get("total"));
+					if (chgsubs != null && chgsubs.size() > 1 && hasGt(chgsubs, 0)) {
+						Utils.logi("Subscribe record(s) are affected:");
+						Utils.<Integer>logi(chgsubs);
+					}
+				} catch (Exception e) { e.printStackTrace(); }
+			}
+		}
 	}
 	
 	ExessionPersist answer_save(ExessionPersist xp, ExchangeBlock req, String peer)
@@ -426,7 +530,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	public void onRequires(ExessionPersist cp, ExchangeBlock req) throws ExchangeException {
-		if (req.act == ExessionAct.restore) {
+		if (req.act == restore) {
 			// TODO check step leakings
 			if (cp.challengeSeq <= req.challengeSeq) {
 				// server is actually handled my challenge. Just step ahead 
@@ -560,7 +664,8 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		if (compareNyq(nv.get(peer), nyquvect.get(peer)) < 0)
 			throw new SemanticException(
-				"[DBSynsactBuilder.synyquvectWith()] Updating my (%s) nyquence with %s's value early than already knowns.",
+				"[%s.%s()] Updating my (%s) nyquence with %s's value early than already knowns.",
+				getClass().getName(), new Object(){}.getClass().getEnclosingMethod().getName(),
 				synode(), peer);
 
 		for (String n : nv.keySet()) {

@@ -596,7 +596,7 @@ public class DBSyntableTest {
 		int no = 0;
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ExessionPersist cp = new ExessionPersist(ctb, chm, sbm, xbm, stb.synode());
-		ExchangeBlock ini = ctb.initExchange(cp, stb.synode(), null);
+		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
 		// assertTrue(ini.totalChallenges > 0);
 		Utils.logrst(String.format("%s initiate: changes: %d    entities: %d",
 				ctb.synode(), ini.totalChallenges, ini.enitities(cphm.tbl)), test, subno, no, 1);
@@ -639,13 +639,13 @@ public class DBSyntableTest {
 		ExessionPersist cp = new ExessionPersist(stb, chm, sbm, xbm, stb.synode());
 
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
-		ExchangeBlock ini = ctb.initExchange(cp, stb.synode(), null);
+		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
 		assertTrue(ini.totalChallenges > 0);
 
 		ExessionPersist sp = new ExessionPersist(ctb, chm, sbm, xbm, ctb.synode(), ini);
 
 		ctb.abortExchange(cp, stb.synode(), null);
-		ini = ctb.initExchange(cp, stb.synode(), null);
+		ini = ctb.initExchange(cp, stb.synode());
 		Utils.logrst(String.format("%s initiate changes: %d",
 				ctb.synode(), ini.totalChallenges), test, subno, ++no);
 		
@@ -655,7 +655,7 @@ public class DBSyntableTest {
 
 		ExchangeBlock req = null;
 
-		req = ctb.exchangePage(cp, stb.synode(), null);
+		req = ctb.exchangePage(cp, rep);
 		Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
 		rep = stb.onExchange(sp, ctb.synode(), req);
 		Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
@@ -671,7 +671,7 @@ public class DBSyntableTest {
 		if (cp.hasNextChpages(ctb)) {
 			// client
 			cp.nextChpage();
-			req = ctb.exchangePage(cp, stb.synode(), null);
+			req = ctb.exchangePage(cp, null);
 			// server
 			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
 			try {
@@ -729,7 +729,7 @@ public class DBSyntableTest {
 			// client
 			Utils.logrst(new String[] {ctb.synode(), "exchange"}, test, subno, step, ++no);
 			cp.nextChpage();
-			req = ctb.exchangePage(cp, stb.synode(), rep);
+			req = ctb.exchangePage(cp, rep);
 			Utils.logrst(String.format("%s exchange challenge    changes: %d    entities: %d    answers: %d",
 					ctb.synode(), req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, 1);
 
