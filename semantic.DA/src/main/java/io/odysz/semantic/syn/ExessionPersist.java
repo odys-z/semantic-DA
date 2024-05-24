@@ -797,18 +797,15 @@ public class ExessionPersist {
 	 * @throws TransException
 	 */
 	Statement<?> del0subchange(SyntityMeta entitymeta,
-			String org, String synoder, String uids, String changeId, String deliffnode) throws TransException {
+			String org, String synoder, String uids, String changeId, String deliffnode)
+				throws TransException {
 		return trb.delete(chgm.tbl) // delete change log if no subscribers exist
 			.whereEq(chgm.pk, changeId)
 			.whereEq(chgm.entbl, entitymeta.tbl)
 			.whereEq(chgm.domain, org)
 			.whereEq(chgm.synoder, synoder)
-			// .whereEq(chgm.uids,    uids)
 			.whereEq("0", (Query)trb.select(subm.tbl)
 				.col(count(subm.synodee))
-				// .whereEq(subm.domain, org)
-				// .whereEq(subm.entbl, entitymeta.tbl)
-				// .whereEq(subm.uids,  uids))
 				.whereEq(chgm.pk, changeId)
 				.where(op.eq, chgm.pk, subm.changeId)
 				.where(op.ne, subm.synodee, constr(deliffnode)))
