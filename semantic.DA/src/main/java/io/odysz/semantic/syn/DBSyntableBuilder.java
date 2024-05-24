@@ -428,6 +428,7 @@ public class DBSyntableBuilder extends DATranscxt {
 								chgm.pk, subm.changeId)
 							.where(op.ne, subm.synodee, constr(srcn)))
 						.delete(chgm.tbl)
+						.where(op.lt, chgm.nyquence, srcnv.get(sn).n) // FIXME nyquence compare
 						.where(op.notexists, null, select("cl")
 							.col("1")
 							.whereEq(chgm.tbl, chgm.domain,  "cl", chgm.domain)
