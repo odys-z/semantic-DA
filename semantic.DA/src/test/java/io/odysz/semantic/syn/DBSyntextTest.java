@@ -223,8 +223,9 @@ public class DBSyntextTest {
 		String z = ck[Z].trb.synode();
 
 
+		int no = 0;
 		// 1.1 insert A
-		Utils.logrst("insert A", section, 1);
+		Utils.logrst("insert A", section, ++no);
 		String[] A_0_uids = insertPhoto(X);
 		String A_0 = A_0_uids[0];
 
@@ -234,7 +235,7 @@ public class DBSyntextTest {
 		ck[X].psubs(2, A_0_uids[1], -1, Y, Z, -1);
 
 		// 1.2 insert B
-		Utils.logrst("insert B", section, 2);
+		Utils.logrst("insert B", section, ++no);
 		String[] B_0_uids = insertPhoto(Y);
 		String B_0 = B_0_uids[0];
 
@@ -247,8 +248,8 @@ public class DBSyntextTest {
 		printNyquv(ck);
 
 		// 2. X <= Y
-		Utils.logrst("X <= Y", section, 3);
-		exchangePhotos(X, Y, section, 3);
+		Utils.logrst("X <= Y", section, ++no);
+		exchangePhotos(X, Y, section, no);
 		ck[Y].change(1, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
 		ck[Y].change(1, C, ck[X].trb.synode(), A_0, ck[Y].phm);
 		ck[Y].psubs(1, B_0_uids[1], -1, -1, Z, -1);
@@ -276,8 +277,8 @@ public class DBSyntextTest {
 		long Bc_ = nvy.get(z).n;
 		long Cc_ = nvz.get(z).n;
 
-		Utils.logrst("Y <= Z", section, 3);
-		exchangePhotos(Y, Z, section, 3);
+		Utils.logrst("Y <= Z", section, ++no);
+		exchangePhotos(Y, Z, section, no);
 		ck[Z].change(0, C, A_0, ck[Z].phm);
 		ck[Z].change(0, C, ck[X].trb.synode(), A_0, ck[Z].phm);
 		ck[Z].psubs(0, A_0_uids[1], -1, -1, Z, -1);
@@ -315,8 +316,8 @@ public class DBSyntextTest {
 		Cc_ = Cc;
 		
 		// 4. X <= Y
-		Utils.logrst("X <= Y", section, 4);
-		exchangePhotos(X, Y, section, 4);
+		Utils.logrst("X <= Y", section, ++no);
+		exchangePhotos(X, Y, section, no);
 		ck[X].change(0, C, A_0, ck[X].phm);
 		ck[X].change(0, C, B_0, ck[X].phm);
 		ck[X].psubs(0, A_0_uids[1], -1, -1, Z, -1);

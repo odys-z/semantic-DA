@@ -1,6 +1,7 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.str;
 import static io.odysz.semantic.syn.Exchanging.*;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
@@ -277,6 +278,7 @@ public class DBSynsactBuilder extends DATranscxt {
 							chgm.pk, subm.changeId)
 						.where(op.ne, subm.synodee, constr(srcn)))
 						.delete(chgm.tbl)
+						.where(op.lt, chgm.nyquence, srcnv.get(sn).n) // FIXME nyquence compare
 						.where(op.notexists, null, select("cl")
 							.col("1")
 							.whereEq(chgm.tbl, chgm.domain,  "cl", chgm.domain)
@@ -285,7 +287,8 @@ public class DBSynsactBuilder extends DATranscxt {
 				.d(instancontxt(basictx.connId(), synrobot()));
 			
 			if (Connects.getDebug(basictx.connId()))
-				Utils.logi("%d subscribe record(s) are affected.", ((ArrayList<?>)res.get("total")).get(0));
+				Utils.logi("%s subscribe & changes record(s) are affected.",
+						str(((ArrayList<?>)res.get("total"))));
 		}
 	}
 
