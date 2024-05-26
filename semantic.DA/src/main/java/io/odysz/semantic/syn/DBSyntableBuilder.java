@@ -712,8 +712,32 @@ public class DBSyntableBuilder extends DATranscxt {
 		return null;
 	}
 
-	public ExchangeBlock initDomain(ExessionPersist cp, String synode, ExchangeBlock resp) {
+	public ExchangeBlock domainSignup() {
 		return null;
+	}
+
+	public ExchangeBlock initDomain(ExessionPersist cp, String admin, ExchangeBlock domainstatus)
+			throws TransException, SQLException {
+
+		Nyquence mxn = domainstatus.nv.get(admin); 
+
+		AnResultset ns = domainstatus.synodes.beforeFirst();
+		nyquvect = new HashMap<String, Nyquence>(ns.getRowCount());
+
+		while (ns.next()) {
+			Synode n = new Synode(ns, synm);
+			mxn = maxn(domainstatus.nv);
+			n.insert(synm, mxn, insert(synm.tbl, synrobot()))
+				.ins(instancontxt(basictx.connId(), synrobot()));
+
+			nyquvect.put(n.recId, new Nyquence(mxn.n));
+		}
+
+		stampersist(mxn);
+
+		return new ExchangeBlock(synode(), admin, domainstatus.session,
+				new ExessionAct(ExessionAct.mode_client, setupDom)
+			).nv(nyquvect);
 	}
 
 	public HashMap<String, Nyquence> closeJoining(ExessionPersist cp, String synode,

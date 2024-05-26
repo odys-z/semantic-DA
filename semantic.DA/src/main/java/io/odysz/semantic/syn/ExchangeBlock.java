@@ -109,6 +109,17 @@ public class ExchangeBlock extends Anson {
 		chpagesize = chsize; 
 		return this;
 	}
+	
+	
+	/////////////////////// Protocol for synode management /////////////////////
+	
+	AnResultset synodes;
+
+	public ExchangeBlock synodes(AnResultset rs) {
+		synodes = rs;
+		return this;
+	}
+
 
 	////////////////////////////////// states //////////////////////////////////
 

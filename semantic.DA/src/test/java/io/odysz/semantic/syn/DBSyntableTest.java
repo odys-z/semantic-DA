@@ -521,10 +521,11 @@ public class DBSyntableTest {
 		DBSyntableBuilder ctb = ck[apply].trb;
 
 		ExessionPersist cp = new ExessionPersist(atb, chm, sbm, xbm, atb.synode());
+		ExchangeBlock req  = ctb.domainSignup(); 
 		ExessionPersist ap = new ExessionPersist(ctb, chm, sbm, xbm, ctb.synode(), null); // TODO not null
 
 		int no = 0;
-		// admin
+		// admin on joining request
 		Utils.logrst(String.format("%s accept %s", atb.synode(), ctb.synode()), log_section, ++no);
 		ExchangeBlock resp = atb.addChild(ap, ctb.synode(), SynodeMode.child, ck[admin].robot(), Ck.org, ck[admin].domain);
 		Utils.logrst(String.format("changeId at %s: %s", atb.synode(), resp.session), log_section, ++no);
@@ -732,6 +733,8 @@ public class DBSyntableTest {
 			req = ctb.exchangePage(cp, rep);
 			Utils.logrst(String.format("%s exchange challenge    changes: %d    entities: %d    answers: %d",
 					ctb.synode(), req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, 1);
+			printChangeLines(ck);
+			printNyquv(ck);
 
 			// server
 			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, step, ++no);

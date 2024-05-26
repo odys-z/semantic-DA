@@ -11,6 +11,9 @@ public class ExessionAct {
 	public static final int init = 1;
 	public static final int exchange = 2;
 	public static final int close = 3;
+
+	/** setup domain request */
+	public static final int setupDom = 4;
 	
 	public static final int mode_server = 0;
 	public static final int mode_client = 1;
