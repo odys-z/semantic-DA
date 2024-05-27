@@ -1026,7 +1026,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		return log;
 	}
 
-	public ChangeLogs initDomain(ExchangeContext x, String from, ChangeLogs domainstatus)
+	public ChangeLogs initDomain(ExchangeContext x, ChangeLogs domainstatus)
 			throws SQLException, TransException {
 		AnResultset ns = domainstatus.synodes.beforeFirst();
 		nyquvect = new HashMap<String, Nyquence>(ns.getRowCount());

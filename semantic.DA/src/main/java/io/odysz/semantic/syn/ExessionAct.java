@@ -4,6 +4,12 @@ import java.lang.reflect.Field;
 
 import io.odysz.common.Utils;
 
+/**
+ * Action such as restore, ready, exchange, ...
+ * 
+ * @author odys-z@github.com
+ *
+ */
 public class ExessionAct {
 	public static final int restore = -2;
 	public static final int unexpected = -1;
@@ -12,8 +18,10 @@ public class ExessionAct {
 	public static final int exchange = 2;
 	public static final int close = 3;
 
+	/** sign up */
+	public static final int signup   = 4;
 	/** setup domain request */
-	public static final int setupDom = 4;
+	public static final int setupDom = 5;
 	
 	public static final int mode_server = 0;
 	public static final int mode_client = 1;

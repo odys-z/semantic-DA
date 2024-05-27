@@ -517,7 +517,7 @@ public class DBSyntextTest {
 
 		// applicant
 		Utils.logrst(String.format("%s initiate domain", ctb.synode()), log_section, ++no);
-		ChangeLogs ack  = ctb.initDomain(cx, ctb.synode(), resp);
+		ChangeLogs ack  = ctb.initDomain(cx, resp);
 		printChangeLines(ck);
 		printNyquv(ck);
 

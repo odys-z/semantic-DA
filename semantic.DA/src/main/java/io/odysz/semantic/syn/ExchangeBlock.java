@@ -124,6 +124,7 @@ public class ExchangeBlock extends Anson {
 	////////////////////////////////// states //////////////////////////////////
 
 	String session;
+	/**One of {@link ExessionAct}'s constants. */
 	int act;
 	int challengeSeq;
 	int answerSeq;

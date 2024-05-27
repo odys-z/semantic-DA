@@ -4,7 +4,7 @@ CREATE TABLE if not exists syn_node (
 	synid     varchar2(64) NOT NULL,   -- user input
 	nyq       long NOT NULL DEFAULT 0, -- for synchronizing
 	nstamp    long NOT NULL DEFAULT 0, -- for stamping new change logs
-	domain    varchar2(12) NOT NULL,   -- usually org id
+	domain    varchar2(12),            -- usually org id, null only for new nodes befor joining
 	remarks   varchar2(256),
 	mac       varchar2(64),
 	oper      varchar2(12),

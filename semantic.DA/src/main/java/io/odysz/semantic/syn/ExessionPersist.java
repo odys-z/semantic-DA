@@ -2,13 +2,7 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.isNull;
-import static io.odysz.semantic.syn.ExessionAct.close;
-import static io.odysz.semantic.syn.ExessionAct.exchange;
-import static io.odysz.semantic.syn.ExessionAct.init;
-import static io.odysz.semantic.syn.ExessionAct.mode_client;
-import static io.odysz.semantic.syn.ExessionAct.mode_server;
-import static io.odysz.semantic.syn.ExessionAct.ready;
-import static io.odysz.semantic.syn.ExessionAct.restore;
+import static io.odysz.semantic.syn.ExessionAct.*;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
@@ -353,6 +347,18 @@ public class ExessionPersist {
 		this.chsize = 480;
 	}
 
+	public ExchangeBlock signup(String admin) {
+		exstate.state = signup;
+	
+		return new ExchangeBlock(trb == null
+				? null
+				: trb.synode(), peer, session, exstate)
+			.totalChallenges(1)
+			.chpagesize(this.chsize)
+			.seq(this);
+	}
+
+
 	/**
 	 * Setup exchange buffer table.
 	 * <pre>
@@ -564,7 +570,9 @@ public class ExessionPersist {
 				.seq(this);
 	}
 
-	public ExchangeBlock onExchange(String peer, ExchangeBlock req) throws TransException, SQLException {
+	public ExchangeBlock onExchange(String peer, ExchangeBlock req)
+			throws TransException, SQLException {
+
 		if (exstate.state != init && exstate.state != exchange)
 			throw new ExchangeException(exchange, "Can't handle exchanging state on state %s", exstate.state); 
 
@@ -585,10 +593,6 @@ public class ExessionPersist {
 				.chpagesize(this.chsize)
 				.seq(this);
 	}
-
-//	public ExessionPersist ackAnswer(ExchangeBlock rep) {
-//		return this;
-//	}
 
 	public ExchangeBlock closexchange(ExchangeBlock rep) throws ExchangeException {
 		if (exstate.state != init && exstate.state != exchange)
@@ -617,18 +621,6 @@ public class ExessionPersist {
 			}
 		}
 	}
-
-//	public ExchangeBlock onclose(String peer, ExchangeBlock req) throws ExchangeException {
-//
-//		expAnswerSeq = -1; 
-//		challengeSeq = -1; 
-//
-//		exstate.state = ready;
-//		return new ExchangeBlock(trb == null ? req.peer : trb.synode(), peer, session, exstate)
-//				.totalChallenges(totalChallenges)
-//				.chpagesize(this.chsize)
-//				.seq(this);
-//	}
 
 	/**
 	 * Retry last page

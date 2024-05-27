@@ -252,7 +252,8 @@ public class DBSyntableBuilder extends DATranscxt {
 		this.synm = synm != null ? synm : (SynodeMeta) new SynodeMeta(conn).autopk(false);
 		this.synm.replace();
 		
-		stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence, synm.synoder, synodeId, synm.domain, tx.domain);
+		stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
+				synm.synoder, synodeId, synm.domain, tx.domain);
 
 		if (isblank(tx.domain))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
@@ -269,9 +270,8 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public ExchangeBlock initExchange(ExessionPersist cp, String target
-//			HashMap<String, Nyquence> srcnv
-			) throws TransException, SQLException {
+	public ExchangeBlock initExchange(ExessionPersist cp, String target)
+			throws TransException, SQLException {
 		if (DAHelper.count(this, basictx().connId(), exbm.tbl, exbm.peer, target) > 0)
 			throw new ExchangeException(Exchanging.ready,
 				"Can't initate new exchange session. There are exchanging records to be finished.");
@@ -712,8 +712,8 @@ public class DBSyntableBuilder extends DATranscxt {
 		return null;
 	}
 
-	public ExchangeBlock domainSignup() {
-		return null;
+	public ExchangeBlock domainSignup(ExessionPersist app, String admin) {
+		return app.signup(admin);
 	}
 
 	public ExchangeBlock initDomain(ExessionPersist cp, String admin, ExchangeBlock domainstatus)
@@ -721,16 +721,31 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		Nyquence mxn = domainstatus.nv.get(admin); 
 
-		AnResultset ns = domainstatus.synodes.beforeFirst();
-		nyquvect = new HashMap<String, Nyquence>(ns.getRowCount());
+		if (domainstatus.synodes != null) {
+			AnResultset ns = domainstatus.synodes.beforeFirst();
+			nyquvect = new HashMap<String, Nyquence>(ns.getRowCount());
 
-		while (ns.next()) {
-			Synode n = new Synode(ns, synm);
-			mxn = maxn(domainstatus.nv);
-			n.insert(synm, mxn, insert(synm.tbl, synrobot()))
-				.ins(instancontxt(basictx.connId(), synrobot()));
+			while (ns.next()) {
+				if (eq(synode(), ns.getString(synm.pk))) {
+					update(synm.tbl, synrobot())
+					.nv(synm.domain, ns.getString(synm.domain))
+					.whereEq(synm.pk, synode())
+					.whereEq(synm.org(), synrobot().orgId())
+					.whereEq(synm.domain, domain())
+					.u(instancontxt(basictx.connId(), synrobot()));
 
-			nyquvect.put(n.recId, new Nyquence(mxn.n));
+					domain(ns.getString(synm.domain));
+					nyquvect.put(synode(), new Nyquence(mxn.n));
+				}
+				else {
+					Synode n = new Synode(ns, synm);
+					mxn = maxn(domainstatus.nv);
+					n.insert(synm, mxn, insert(synm.tbl, synrobot()))
+						.ins(instancontxt(basictx.connId(), synrobot()));
+
+					nyquvect.put(n.recId, new Nyquence(mxn.n));
+				}
+			}
 		}
 
 		stampersist(mxn);
@@ -761,5 +776,60 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	public String domain() {
 		return basictx() == null ? null : ((DBSyntext) basictx()).domain;
+	}
+
+	private DBSyntableBuilder domain(String domain) {
+		if (basictx() != null)
+			((DBSyntext) basictx()).domain = domain;
+		return this;
+	}
+
+
+	public ExchangeBlock addMyChild(ExessionPersist ap, ExchangeBlock req, String org)
+			throws TransException, SQLException {
+
+		String childId = req.srcnode;
+		IUser robot = synrobot();
+
+		Synode apply = new Synode(basictx.connId(), childId, org, domain());
+
+		@SuppressWarnings("unused")
+		String chgid = ((SemanticObject) apply.insert(synm, n0(), insert(synm.tbl, robot))
+			.post(insert(chgm.tbl, robot)
+				.nv(chgm.entfk, apply.recId)
+				.nv(chgm.entbl, synm.tbl)
+				.nv(chgm.crud, CRUD.C)
+				.nv(chgm.synoder, synode())
+				.nv(chgm.uids, concatstr(synode(), chgm.UIDsep, apply.recId))
+				.nv(chgm.nyquence, n0().n)
+				.nv(chgm.domain, robot.orgId())
+				.post(insert(subm.tbl)
+					// .cols(subm.entbl, subm.synodee, subm.uids, subm.domain)
+					.cols(subm.insertCols())
+					.select((Query)select(synm.tbl)
+						// .col(constr(synm.tbl))
+						.col(new Resulving(chgm.tbl, chgm.pk))
+						.col(synm.synoder)
+						// .col(concatstr(synode(), chgm.UIDsep, apply.recId))
+						// .col(constr(robot.orgId()))
+						.where(op.ne, synm.synoder, constr(synode()))
+						.where(op.ne, synm.synoder, constr(childId))
+						.whereEq(synm.domain, domain()))))
+			.ins(instancontxt(basictx.connId(), robot)))
+			.resulve(chgm.tbl, chgm.pk);
+		
+		nyquvect.put(apply.recId, new Nyquence(apply.nyquence));
+
+		ExchangeBlock rep = new ExchangeBlock(synode(), childId, ap.session(), ap.exstat())
+			.nv(nyquvect)
+			.synodes(req.act == ExessionAct.signup
+				? ((AnResultset) select(synm.tbl, "syn")
+					.whereIn(synm.synoder, childId, synode())
+					.whereEq(synm.domain, domain())
+					.whereEq(synm.org(), org)
+					.rs(instancontxt(basictx.connId(), synrobot()))
+					.rs(0))
+				: null);
+		return rep;
 	}
 }
