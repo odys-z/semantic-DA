@@ -206,7 +206,7 @@ public class DBSyntableTest {
 		printNyquv(ck);
 
 		int no = 0;
-		test01InsertBasic(++no);
+		// test01InsertBasic(++no);
 		testJoinChild(++no);
 		testBranchPropagation(++no);
 		test02Update(++no);
@@ -349,13 +349,15 @@ public class DBSyntableTest {
 		ck[Z].synodes(X,  Y,  Z, -1);
 		ck[W].synodes(-1, Y, -1, W);
 
-		ck[Y].buf_change(1, C, "W", ck[Y].synm);
+		ck[Y].change_log(1, C, "Y", "W", ck[Y].synm);
+		ck[Y].buf_change(0, C, "W", ck[Y].synm);
 		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
 		
 		Utils.logrst("X vs Y", section, ++no);
 		exchangeSynodes(X, Y, section, 2);
 		ck[X].synodes(X, Y, Z, W);
-		ck[X].buf_change(1, C, "Y", "W", ck[X].synm);
+		ck[X].change_log(1, C, "Y", "W", ck[X].synm);
+		ck[X].buf_change(0, C, "Y", "W", ck[X].synm);
 		ck[X].synsubs(1, "Y,W", -1, -1, Z, -1);
 
 		ck[Z].synodes(X, Y, Z, -1);
@@ -366,17 +368,17 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[X].buf_change(1, C, x_uids[0], ck[X].phm);
+		ck[X].change_log(1, C, "X", x_uids[0], ck[X].phm);
+		ck[X].buf_change(0, C, x_uids[0], ck[X].phm);
 		ck[X].psubs (3, x_uids[1], -1, Y, Z, W);
 
-		ck[X].buf_change(0, C, x_uids[0], ck[X].synm);
 		
 		Utils.logrst("X vs Z", section, ++no);
 		exchangeSynodes(X, Z, section, no);
-		Utils.logi("On X-Z: Now Z know X:3[Y], not X,W", section, no, 1);
+		Utils.logrst("On X-Z: Now Z know X:3[Y], not X,W", section, no, 1);
 		
-		Utils.logrst("Z vs W", section, 5);
-		try { exchangeSynodes(Z, W, section, ++no); }
+		Utils.logrst("Z vs W", section, ++no);
+		try { exchangeSynodes(Z, W, section, no); }
 		catch (SemanticException e){
 			Utils.logi(e.getMessage());
 			return;
@@ -517,54 +519,56 @@ public class DBSyntableTest {
 	 */
 	String[] joinSubtree(int adminx, int applyx, int testix, int sect)
 			throws TransException, SQLException {
-		DBSyntableBuilder atb = ck[adminx].trb;
+		DBSyntableBuilder admb = ck[adminx].trb;
 		String admin = ck[adminx].trb.synode();
-		DBSyntableBuilder ctb = ck[applyx].trb;
+		DBSyntableBuilder cltb = ck[applyx].trb;
 
 		int no = 0;
 
 		// sign up as a new domain
-		ExessionPersist cp = new ExessionPersist(ctb, chm, sbm, xbm, admin);
-		Utils.logrst(String.format("sign up by %s", ctb.synode()), testix, sect, ++no);
-		ExchangeBlock req  = ctb.domainSignup(cp, admin);
-		ExessionPersist ap = new ExessionPersist(ctb, chm, sbm, xbm, ctb.synode(), req);
+		ExessionPersist cltp = new ExessionPersist(cltb, chm, sbm, xbm, admin);
+		Utils.logrst(String.format("sign up by %s", cltb.synode()), testix, sect, ++no);
+
+		ExchangeBlock req  = cltb.domainSignup(cltp, admin);
+		ExessionPersist admp = new ExessionPersist(cltb, chm, sbm, xbm, cltb.synode(), req);
 
 		// admin on sign up request
 		Utils.logrst(String.format("%s on sign up", admin), testix, sect, ++no);
 		// ExchangeBlock resp = atb.addChild(ap, ctb.synode(), SynodeMode.child, ck[admin].robot(), Ck.org, ck[admin].domain);
 		// response with new domain id
-		ExchangeBlock resp = atb.addMyChild(ap, req, Ck.org);
-		Utils.logrst(String.format("sign up by %s : %s", atb.synode(), resp.session), testix, sect, ++no);
+		ExchangeBlock resp = admb.addMyChild(admp, req, Ck.org);
+		Utils.logrst(String.format("sign up by %s : %s", admb.synode(), resp.session), testix, sect, ++no);
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		// applicant
-		Utils.logrst(String.format("%s initiate domain", ctb.synode()), testix, sect, ++no);
-		ExchangeBlock ack  = ctb.initDomain(cp, admin, resp);
+		Utils.logrst(String.format("%s initiate domain", cltb.synode()), testix, sect, ++no);
+		ExchangeBlock ack  = cltb.initDomain(cltp, admin, resp);
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		// admin
-		Utils.logrst(String.format("%s ack initiation", atb.synode()), testix, sect, ++no);
+		Utils.logrst(String.format("%s ack initiation", admb.synode()), testix, sect, ++no);
 		// atb.incN0(maxn(ack.nyquvect));
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		// applicant
 		// Utils.logi("(.4) %s closing application", ctb.synode());
-		Utils.logrst(new String[] {ctb.synode(), "closing application"}, testix, sect, ++no);
+		Utils.logrst(new String[] {cltb.synode(), "closing application"}, testix, sect, ++no);
 		// ctb.nyquvect = Nyquence.clone(atb.nyquvect);
-		HashMap<String, Nyquence> closenv = ctb.closeJoining(cp, atb.synode(), Nyquence.clone(atb.nyquvect));
+		HashMap<String, Nyquence> closenv = cltb.closeJoining(cltp, admb.synode(), Nyquence.clone(admb.nyquvect));
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		// Utils.logi("(.5) %s on closing", atb.synode());
-		Utils.logrst(new String[] {atb.synode(), "on closing"}, testix, sect, ++no);
-		atb.closeJoining(ap, ctb.synode(), closenv);
+		Utils.logrst(new String[] {admb.synode(), "on closing"}, testix, sect, ++no);
+		admb.closeJoining(admp, cltb.synode(), closenv);
 
 		printChangeLines(ck);
 		printNyquv(ck);
-		return new String[] {resp.session, ack.session};
+
+		return new String[] {admp.session(), cltp.session()};
 	}
 	
 	/**

@@ -802,7 +802,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				.nv(chgm.synoder, synode())
 				.nv(chgm.uids, concatstr(synode(), chgm.UIDsep, apply.recId))
 				.nv(chgm.nyquence, n0().n)
-				.nv(chgm.domain, robot.orgId())
+				.nv(chgm.domain, domain())
 				.post(insert(subm.tbl)
 					// .cols(subm.entbl, subm.synodee, subm.uids, subm.domain)
 					.cols(subm.insertCols())
