@@ -338,6 +338,7 @@ public class DBSyntextTest {
 		ck[Z].synodes(X,  Y,  Z, -1);
 		ck[W].synodes(-1, Y, -1, W);
 
+		// memo to branch refactor: one change, two subs
 		ck[Y].change(1, C, "W", ck[Y].synm);
 		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
 		
