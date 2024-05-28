@@ -299,7 +299,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				continue;
 
 			if (Connects.getDebug(basictx.connId()))
-				Utils.logi("%1$s.cleanStateThan(): Deleting staleness where for source %2$s, src-nyq[%1$s](%3$d) > my-change[%4$s].n ...",
+				Utils.logi("%1$s.cleanStaleThan(): Deleting staleness where for source %2$s, src-nyq[%1$s](%3$d) > my-change[%4$s].n ...",
 						synode(), srcn, nyquvect.get(srcn).n, sn);
 
 			SemanticObject res = (SemanticObject) ((DBSynsactBuilder)
