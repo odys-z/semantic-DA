@@ -194,10 +194,10 @@ public class DBSyntableBuilder extends DATranscxt {
 		stamp.n = n.n;
 	}
 
-	DBSyntableBuilder incStamp() throws TransException, SQLException {
+	DBSyntableBuilder incStamp(ExessionPersist xp) throws TransException, SQLException {
 		stamp.inc();
 		if (Nyquence.abs(stamp, nyquvect.get(synode())) >= 2)
-			throw new ExchangeException(0, "Nyquence stamp increased too much or out of range.");
+			throw new ExchangeException(0, xp, "Nyquence stamp increased too much or out of range.");
 		stampersist(stamp);
 		return this;
 	}
@@ -273,12 +273,12 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ExchangeBlock initExchange(ExessionPersist cp, String target)
 			throws TransException, SQLException {
 		if (DAHelper.count(this, basictx().connId(), exbm.tbl, exbm.peer, target) > 0)
-			throw new ExchangeException(Exchanging.ready,
+			throw new ExchangeException(Exchanging.ready, cp,
 				"Can't initate new exchange session. There are exchanging records to be finished.");
 
 		// select change 
 		try { return cp.init().nv(nyquvect); }
-		finally { incStamp(); }
+		finally { incStamp(cp); }
 
 //		return new ExchangeBlock(synode(), cp.session()).nv(nyquvect)
 //				.totalChallenges(DAHelper.count(this, synconn(), exbm.tbl, exbm.peer, cp.peer))
@@ -307,7 +307,7 @@ public class DBSyntableBuilder extends DATranscxt {
 //				.totalChallenges(DAHelper.count(this, synconn(), exbm.tbl, exbm.peer, sp.peer))
 //				.seq(sp);
 		} finally {
-			incStamp();
+			incStamp(sp);
 		}
 	}
 
@@ -395,36 +395,29 @@ public class DBSyntableBuilder extends DATranscxt {
 	void cleanStaleThan(HashMap<String, Nyquence> srcnv, String srcn)
 			throws TransException, SQLException {
 		for (String sn : srcnv.keySet()) {
-			if (eq(sn, synode()) || eq(sn, srcn))
-				continue;
+//			if (eq(sn, synode()) || eq(sn, srcn))
+//				continue;
 			if (!nyquvect.containsKey(sn))
 				continue;
 
 			if (Connects.getDebug(basictx.connId()))
-				Utils.logi("%1$s.cleanStateThan(): Deleting staleness where for source %2$s, my-change[%4$s].n < src-nyq[%1$s] = %3$d ...",
-						synode(), srcn, nyquvect.get(srcn).n, sn);
+				Utils.logi("%1$s.cleanStateThan(): Deleting staleness where for peer %2$s, such that\n"
+						+ "my-change[%4$s].n < %2$s.%4$s = %3$d ...",
+						synode(), srcn, srcnv.get(sn).n, sn);
 
 			SemanticObject res = (SemanticObject) ((DBSyntableBuilder)
 				with(select(chgm.tbl, "cl")
 					.cols("cl.*").col(subm.synodee)
-					// .je2(subm.tbl, "sb", constr(sn), subm.synodee,
-					// 	chgm.domain, subm.domain, chgm.entbl, subm.entbl,
-					// 	chgm.uids, subm.uids)
 					.je_(subm.tbl, "sb", constr(sn), subm.synodee, chgm.pk, subm.changeId)
 					.where(op.ne, subm.synodee, constr(srcn))
 					.where(op.lt, chgm.nyquence, srcnv.get(sn).n))) // FIXME nyquence compare
 				.delete(subm.tbl, synrobot())
 					.where(op.exists, null, select("cl")
-						// .whereEq(subm.tbl, subm.domain,"cl", chgm.domain)
-						// .whereEq(subm.tbl, subm.entbl, "cl", chgm.entbl)
-						// .whereEq(subm.tbl, subm.uids,  "cl", chgm.uids)
 						.where(op.eq, subm.changeId, chgm.pk)
 						.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
 					.post(with(select(chgm.tbl, "cl")
 							.cols("cl.*").col(subm.synodee)
 							.je_(subm.tbl, "sb",
-							//	chgm.domain, subm.domain, chgm.entbl, subm.entbl,
-							//	chgm.uids, subm.uids)
 								chgm.pk, subm.changeId)
 							.where(op.ne, subm.synodee, constr(srcn)))
 						.delete(chgm.tbl)
@@ -518,9 +511,21 @@ public class DBSyntableBuilder extends DATranscxt {
 		// return snapshot;
 	}
 
+	public ExchangeBlock abortExchange(ExessionPersist cx)
+			throws TransException, SQLException {
+		HashMap<String, Nyquence> snapshot = Nyquence.clone(nyquvect);
+		incN0(stamp);
+		stampersist(maxn(stamp, n0()));
+		return cx.abortExchange().nv(snapshot);
+	}
+
 	public ExchangeBlock onclosexchange(ExessionPersist sx,
 			ExchangeBlock rep) throws TransException, SQLException {
 		return closexchange(sx, rep);
+	}
+
+	public void onAbort(ExchangeBlock req)
+			throws TransException, SQLException {
 	}
 	
 	public ExchangeBlock requirestore(ExessionPersist xp, String peer) {
@@ -554,7 +559,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			// cp.expChallengeId = rep.challengeId;
 			cp.expAnswerSeq = cp.challengeSeq;
 		}
-		else throw new ExchangeException(0, "TODO");
+		else throw new ExchangeException(0, cp, "TODO");
 	}
 
 	/**
@@ -755,7 +760,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			).nv(nyquvect);
 	}
 
-	public HashMap<String, Nyquence> closeJoining(ExessionPersist cp, String synode,
+	public HashMap<String, Nyquence> closeJoining(ExessionPersist cp,
 			HashMap<String, Nyquence> clone) {
 		return null;
 	}

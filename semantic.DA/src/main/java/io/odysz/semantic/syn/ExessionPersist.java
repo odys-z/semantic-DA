@@ -377,6 +377,17 @@ public class ExessionPersist {
 	public ExchangeBlock init() throws TransException, SQLException {
 		if (trb != null) {
 			Nyquence dn = trb.nyquvect.get(peer);
+
+			if (dn == null) {
+				Utils.printag = true;
+				Utils.warn(
+						"ERROR: Me, %s, don't have knowledge about %s.",
+						trb.synode(), peer);
+				Utils.printag = false;
+				throw new ExchangeException(ready, this,
+						"%s#%s(), don't have knowledge about %s.",
+						trb.synode(), new Object(){}.getClass().getEnclosingMethod().getName(), peer);
+			}
 			trb.insert(exbm.tbl, trb.synrobot())
 				.cols(exbm.insertCols())
 				.select(trb.select(chgm.tbl, "ch")
@@ -489,7 +500,7 @@ public class ExessionPersist {
 		if (req == null)
 			return this;
 		if (!eq(req.srcnode, this.peer) || !eq(session, req.session))
-			throw new ExchangeException(ExessionAct.unexpected,
+			throw new ExchangeException(ExessionAct.unexpected, this,
 					"Session Id or peer mismatched [%s : %s vs %s : %s]",
 					this.peer, session, req.srcnode, req.session);
 
@@ -497,7 +508,7 @@ public class ExessionPersist {
 			|| expAnswerSeq == req.answerSeq)
 			return this;
 
-		throw new ExchangeException(ExessionAct.unexpected,
+		throw new ExchangeException(ExessionAct.unexpected, this,
 			// "exp-challenge %s : challenge %s, exp-answer %s : answer %s",
 			"req challenge %s, exp-answer %s : answer %s",
 			req.challengeSeq, expAnswerSeq, req.answerSeq);
@@ -549,7 +560,7 @@ public class ExessionPersist {
 		if (exstate.state == restore && rep.act == exchange)
 			; // exstate.state = exchange; // got answer
 		else if (exstate.state != init && exstate.state != exchange)
-			throw new ExchangeException(exchange,
+			throw new ExchangeException(exchange, this,
 				"Can't handle exchanging states from %s to %s.",
 				ExessionAct.nameOf(exstate.state), ExessionAct.nameOf(exchange)); 
 
@@ -574,7 +585,8 @@ public class ExessionPersist {
 			throws TransException, SQLException {
 
 		if (exstate.state != init && exstate.state != exchange)
-			throw new ExchangeException(exchange, "Can't handle exchanging state on state %s", exstate.state); 
+			throw new ExchangeException(exchange, this,
+					"Can't handle exchanging state on state %s", exstate.state); 
 
 		if (req != null)
 			answerSeq = req.challengeSeq;
@@ -596,7 +608,8 @@ public class ExessionPersist {
 
 	public ExchangeBlock closexchange(ExchangeBlock rep) throws ExchangeException {
 		if (exstate.state != init && exstate.state != exchange)
-			throw new ExchangeException(exchange, "Can't handle closing state on state %s", exstate.state); 
+			throw new ExchangeException(exchange, this,
+					"Can't handle closing state on state %s", exstate.state); 
 
 		try {
 			expAnswerSeq = -1; 
@@ -608,6 +621,30 @@ public class ExessionPersist {
 			exstate.state = ready;
 
 			return new ExchangeBlock(trb == null ? rep.peer : trb.synode(), peer, session, new ExessionAct(exstate.mode, close))
+				.totalChallenges(totalChallenges)
+				.chpagesize(this.chsize)
+				.seq(this);
+		} finally {
+			try {
+				trb.delete(exbm.tbl, trb.synrobot())
+					.whereEq(exbm.peer, peer)
+					.d(trb.instancontxt(trb.synconn(), trb.synrobot()));
+			} catch (TransException | SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public ExchangeBlock abortExchange() {
+		try {
+			expAnswerSeq = -1; 
+			answerSeq = -1;
+			challengeSeq = -1; 
+			totalChallenges = 0;
+
+			exstate.state = ready;
+
+			return new ExchangeBlock(trb == null ? null : trb.synode(), peer, session, new ExessionAct(exstate.mode, close))
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
 				.seq(this);
@@ -640,7 +677,7 @@ public class ExessionPersist {
 
 	public ExchangeBlock onRetryLast(String client, ExchangeBlock req) throws ExchangeException {
 		if (!eq(session, req.session))
-			throw new ExchangeException(ExessionAct.unexpected,
+			throw new ExchangeException(ExessionAct.unexpected, this,
 				"[local-session, peer, req-session]:%s,%s,%s", session, client, req.session);
 
 		exstate.state = restore;
@@ -779,13 +816,14 @@ public class ExessionPersist {
 
 	/**
 	 * Generate delete statement when change logs don't have synodees. 
+	 * 
 	 * @param entitymeta
 	 * @param org
 	 * @param synoder
 	 * @param uids
 	 * @param deliffnode delete the change-log iff the node, i.e. only the subscriber, exists.
 	 * For answers, it's the node himself, for challenge, it's the source node.
-	 * @return
+	 * @return the delete statement
 	 * @throws TransException
 	 */
 	Statement<?> del0subchange(SyntityMeta entitymeta,

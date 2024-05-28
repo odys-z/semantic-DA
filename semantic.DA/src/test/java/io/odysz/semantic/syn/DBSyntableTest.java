@@ -107,6 +107,12 @@ public class DBSyntableTest {
 
 	static T_PhotoMeta phm;
 
+	/**
+	 * Admin context will handling signing up request, for exposing the context to caller
+	 * after exception been thrown.
+	static ExessionPersist admin_xp;
+	 */
+
 	@BeforeAll
 	public static void testInit() throws Exception {
 		// DDL
@@ -379,8 +385,18 @@ public class DBSyntableTest {
 		
 		Utils.logrst("Z vs W", section, ++no);
 		try { exchangeSynodes(Z, W, section, no); }
-		catch (SemanticException e){
-			Utils.logi(e.getMessage());
+		catch (ExchangeException ex_at_w){
+			DBSyntableBuilder ctb = ck[W].trb;
+			DBSyntableBuilder stb = ck[Z].trb;
+
+			Utils.logi(ex_at_w.getMessage());
+
+			ExchangeBlock req = ctb.abortExchange(ex_at_w.persist);
+
+			stb.onAbort(req);
+
+			assertEquals(ck[W].trb.n0().n, ctb.stamp.n);
+			assertEquals(ck[Z].trb.n0().n, stb.stamp.n);
 			return;
 		}
 		fail("W is unable to roaming with Z.");
@@ -391,6 +407,7 @@ public class DBSyntableTest {
 
 		Utils.logrst(new String[] { new Object(){}.getClass().getEnclosingMethod().getName(),
 							"- must call testJoinChild() first"}, section);
+		int no = 0;
 
 		ck[X].synodes(X,  Y,  Z, -1);
 		ck[Y].synodes(X,  Y,  Z, W);
@@ -400,36 +417,42 @@ public class DBSyntableTest {
 		String z = ck[Z].trb.synode();
 
 		// Utils.logi("\n(.1) -------- Z create photos ---------");
-		Utils.logrst("Z create photos", section, 1);
-		printNyquv(ck);
-		String[] z_uids = insertPhoto(Z);
-		printChangeLines(ck);
+		Utils.logrst("Z create photos", section, ++no);
 		printNyquv(ck);
 
-		ck[Z].buf_change(1, C, z_uids[0], ck[Y].phm);
+		String[] z_uids = insertPhoto(Z);
+
+		ck[Z].buf_change(0, C, z_uids[0], ck[Y].phm);
+		ck[Z].change_log(1, C, "Z", z_uids[0], ck[Y].phm);
 		ck[Z].psubs(3, z_uids[1], X, Y, -1, W);
+
+		printChangeLines(ck);
+		printNyquv(ck);
 		
-		Utils.logrst("Y vs Z", section, 2);
+		Utils.logrst("Y vs Z", section, ++no);
 		exchangePhotos(Y, Z, section, 2);
-		ck[Y].buf_change(1, C, z, z_uids[0], ck[Y].phm);
+		assertEquals(ck[Z].trb.n0().n, ck[Z].trb.stamp.n);
+		ck[Y].buf_change(0, C, z, z_uids[0], ck[Y].phm);
+		ck[Y].change_log(1, C, z, z_uids[0], ck[Y].phm);
 		ck[Y].psubs(2, z_uids[1], X, -1, -1, W);
 		ck[Z].psubs(2, z_uids[1], X, -1, -1, W);
 
-		Utils.logrst("Y vs W", section, 3);
+		Utils.logrst("Y vs W", section, ++no);
 		exchangePhotos(Y, W, section, 3);
-		ck[Y].buf_change(1, C, z, z_uids[0], ck[X].phm);
+		ck[Y].buf_change(0, C, z, z_uids[0], ck[X].phm);
+		ck[Y].change_log(1, C, z, z_uids[0], ck[X].phm);
 		ck[Y].psubs(1, z_uids[1], X, -1, -1, -1);
 		ck[W].buf_change(0, C, z, z_uids[0], ck[X].phm);
 		ck[W].psubs(0, z_uids[1], -1, -1, -1, -1);
 
-		Utils.logrst("X vs Y", section, 4);
+		Utils.logrst("X vs Y", section, ++no);
 		exchangePhotos(X, Y, section, 4);
 		ck[X].buf_change(0, C, null, null, ck[X].phm);
 		ck[X].psubs(0, null, X, -1, -1, -1);
 		ck[Y].buf_change(0, C, null, null, ck[X].phm);
 		ck[Y].psubs(0, null, -1, -1, -1, -1);
 
-		Utils.logrst("Y vs Z", section, 5);
+		Utils.logrst("Y vs Z", section, ++no);
 		exchangePhotos(Y, Z, section, 4);
 		ck[Y].buf_change(0, C, null, null, ck[X].phm);
 		ck[Y].psubs(0, null, X, -1, -1, -1);
@@ -557,13 +580,13 @@ public class DBSyntableTest {
 		// Utils.logi("(.4) %s closing application", ctb.synode());
 		Utils.logrst(new String[] {cltb.synode(), "closing application"}, testix, sect, ++no);
 		// ctb.nyquvect = Nyquence.clone(atb.nyquvect);
-		HashMap<String, Nyquence> closenv = cltb.closeJoining(cltp, admb.synode(), Nyquence.clone(admb.nyquvect));
+		HashMap<String, Nyquence> closenv = cltb.closeJoining(cltp, Nyquence.clone(admb.nyquvect));
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		// Utils.logi("(.5) %s on closing", atb.synode());
 		Utils.logrst(new String[] {admb.synode(), "on closing"}, testix, sect, ++no);
-		admb.closeJoining(admp, cltb.synode(), closenv);
+		admb.closeJoining(admp, closenv);
 
 		printChangeLines(ck);
 		printNyquv(ck);
