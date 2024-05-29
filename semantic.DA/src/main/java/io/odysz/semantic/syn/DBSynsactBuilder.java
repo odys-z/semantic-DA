@@ -518,9 +518,9 @@ public class DBSynsactBuilder extends DATranscxt {
 					if (eq(subsrb, synode())) {
 					/** conflict: Y try send Z a record that Z already got from X.
 					 *        X           Y               Z
-                     *             | I Y Y,W 4 Z -> 4 < Z.y, ignore |
+					 *             | I Y Y,W 4 Z -> 4 < Z.y, ignore |
 					 *
-      				 *		  X    Y    Z    W
+					 *		  X    Y    Z    W
 					 *	X [   7,   5,   3,   4 ]
 					 *	Y [   4,   6,   1,   4 ]
 					 *	Z [   6,   5,   7,   4 ]   change[Z].n < Z.y, that is Z knows later than the log
