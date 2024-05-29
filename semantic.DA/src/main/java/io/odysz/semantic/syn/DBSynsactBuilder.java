@@ -1,6 +1,7 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.hasGt;
 import static io.odysz.common.LangExt.str;
 import static io.odysz.semantic.syn.Exchanging.*;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
@@ -251,8 +252,9 @@ public class DBSynsactBuilder extends DATranscxt {
 				continue;
 
 			if (Connects.getDebug(basictx.connId()))
-				Utils.logi("%1$s.cleanStateThan(): Deleting staleness where for source %2$s, src-nyq[%1$s](%3$d) > my-change[%4$s].n ...",
-						synode(), srcn, nyquvect.get(srcn).n, sn);
+				Utils.logi("%1$s.cleanStaleThan(): Deleting staleness where for source %2$s, %2$s.%4$s = %3$d > my-change[%4$s].n ...",
+					synode(), srcn, srcnv.get(sn).n, sn);
+
 
 			SemanticObject res = (SemanticObject) ((DBSynsactBuilder)
 				with(select(chgm.tbl, "cl")
@@ -287,8 +289,15 @@ public class DBSynsactBuilder extends DATranscxt {
 				.d(instancontxt(basictx.connId(), synrobot()));
 			
 			if (Connects.getDebug(basictx.connId()))
-				Utils.logi("%s subscribe & changes record(s) are affected.",
-						str(((ArrayList<?>)res.get("total"))));
+				// Utils.logi("%d subscribe record(s) are affected.", ((ArrayList<?>)res.get("total")).get(0));
+				try {
+					@SuppressWarnings("unchecked")
+					ArrayList<Integer> chgsubs = ((ArrayList<Integer>)res.get("total"));
+					if (chgsubs != null && chgsubs.size() > 1 && hasGt(chgsubs, 0)) {
+						Utils.logi("Subscribe record(s) are affected:");
+						Utils.<Integer>logi(chgsubs);
+					}
+				} catch (Exception e) { e.printStackTrace(); }
 		}
 	}
 
