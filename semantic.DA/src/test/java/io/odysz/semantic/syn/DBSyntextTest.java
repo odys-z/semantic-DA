@@ -367,6 +367,7 @@ public class DBSyntextTest {
 		try { exchangeSynodes(Z, W, section, 5); }
 		catch (SemanticException e){
 			Utils.logi(e.getMessage());
+			Utils.warn("Confusing without finishing Y <= Z on syn_node. See branch issue-answer-lost.");
 			return;
 		}
 		fail("W is not roaming able at Z.");
