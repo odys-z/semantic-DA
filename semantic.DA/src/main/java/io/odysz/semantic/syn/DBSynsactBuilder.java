@@ -295,7 +295,7 @@ public class DBSynsactBuilder extends DATranscxt {
 					ArrayList<Integer> chgsubs = ((ArrayList<Integer>)res.get("total"));
 					if (chgsubs != null && chgsubs.size() > 1 && hasGt(chgsubs, 0)) {
 						Utils.logi("Subscribe record(s) are affected:");
-						Utils.<Integer>logi(chgsubs);
+						Utils.logi(str(chgsubs, new String[] {"subscribe", "change"}));
 					}
 				} catch (Exception e) { e.printStackTrace(); }
 		}

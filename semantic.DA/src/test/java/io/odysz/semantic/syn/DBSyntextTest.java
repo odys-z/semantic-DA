@@ -326,12 +326,13 @@ public class DBSyntextTest {
 
 	void testJoinChild(int section) throws Exception {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
+		int no = 0;
 
 		ck[X].synodes(X, Y, Z, -1);
 
-		Utils.logrst("Y on W joining", section, 1);
+		Utils.logrst("Y on W joining", section, ++no);
 		@SuppressWarnings("unused")
-		String[] w_ack = joinSubtree(Y, W, section);
+		String[] w_ack = joinSubtree(Y, W, section, no);
 
 		ck[X].synodes(X,  Y,  Z, -1);
 		ck[Y].synodes(X,  Y,  Z, W);
@@ -342,8 +343,8 @@ public class DBSyntextTest {
 		ck[Y].change(1, C, "W", ck[Y].synm);
 		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
 		
-		Utils.logrst("X vs Y", section, 2);
-		exchangeSynodes(X, Y, section, 2);
+		Utils.logrst("X vs Y", section, ++no);
+		exchangeSynodes(X, Y, section, no);
 		ck[X].synodes(X, Y, Z, W);
 		ck[X].change(1, C, "Y", "W", ck[X].synm);
 		ck[X].synsubs(1, "Y,W", -1, -1, Z, -1);
@@ -363,7 +364,7 @@ public class DBSyntextTest {
 		
 		Utils.logrst("X vs Z", section, 4);
 		exchangeSynodes(X, Z, section, 4);
-		Utils.logi("On X-Z: Now Z know X:3[Y], not X,W", section, 4, 1);
+		Utils.logi("On X-Z: Now Z know X,0023[Y], not X,W", section, 4, 1);
 		
 		Utils.logrst("Z vs W", section, 5);
 		try { exchangeSynodes(Z, W, section, 5); }
@@ -511,7 +512,7 @@ public class DBSyntextTest {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	String[] joinSubtree(int admin, int apply, int log_section) throws TransException, SQLException {
+	String[] joinSubtree(int admin, int apply, int test, int sect) throws TransException, SQLException {
 		DBSynsactBuilder atb = ck[admin].trb;
 		DBSynsactBuilder ctb = ck[apply].trb;
 
@@ -520,32 +521,32 @@ public class DBSyntextTest {
 
 		int no = 0;
 		// admin
-		Utils.logrst(String.format("%s accept %s", atb.synode(), ctb.synode()), log_section, ++no);
+		Utils.logrst(String.format("%s accept %s", atb.synode(), ctb.synode()), test, sect, ++no);
 		ChangeLogs resp = atb.addChild(ax, ctb.synode(), SynodeMode.child, ck[admin].robot(), Ck.org, ck[admin].domain);
-		Utils.logrst(String.format("changeId at %s: %s", atb.synode(), resp.session()), log_section, ++no);
+		Utils.logrst(String.format("changeId at %s: %s", atb.synode(), resp.session()), test, sect, ++no);
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		// applicant
-		Utils.logrst(String.format("%s initiate domain", ctb.synode()), log_section, ++no);
+		Utils.logrst(String.format("%s initiate domain", ctb.synode()), test, sect, ++no);
 		ChangeLogs ack  = ctb.initDomain(cx, resp);
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		// admin
-		Utils.logrst(String.format("%s ack initiation", atb.synode()), log_section, ++no);
+		Utils.logrst(String.format("%s ack initiation", atb.synode()), test, sect, ++no);
 		// atb.incN0(maxn(ack.nyquvect));
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		// applicant
-		Utils.logi("(.4) %s closing application", ctb.synode());
+		Utils.logrst(String.format("%s closing application", ctb.synode()), test, sect, ++no);
 		// ctb.nyquvect = Nyquence.clone(atb.nyquvect);
 		HashMap<String, Nyquence> closenv = ctb.closeJoining(cx, atb.synode(), Nyquence.clone(atb.nyquvect));
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		Utils.logi("(.5) %s on closing", atb.synode());
+		Utils.logrst(String.format("%s on closing", atb.synode()), test, sect, ++no);
 		atb.oncloseJoining(ax, ctb.synode(), closenv);
 
 		printChangeLines(ck);
