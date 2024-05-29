@@ -316,10 +316,11 @@ public class DBSyntextTest {
 
 	void testJoinChild(int section) throws Exception {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
+		int no = 0;
 
 		ck[X].synodes(X, Y, Z, -1);
 
-		Utils.logrst("Y on W joining", section, 1);
+		Utils.logrst("Y on W joining", section, ++no);
 		@SuppressWarnings("unused")
 		String[] w_ack = joinSubtree(Y, W, section);
 
@@ -331,8 +332,8 @@ public class DBSyntextTest {
 		ck[Y].change(1, C, "W", ck[Y].synm);
 		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
 		
-		Utils.logrst("X vs Y", section, 2);
-		exchangeSynodes(X, Y, section, 2);
+		Utils.logrst("X vs Y", section, ++no);
+		exchangeSynodes(X, Y, section, no);
 		ck[X].synodes(X, Y, Z, W);
 		ck[X].change(1, C, "Y", "W", ck[X].synm);
 		ck[X].synsubs(1, "Y,W", -1, -1, Z, -1);
@@ -340,7 +341,7 @@ public class DBSyntextTest {
 		ck[Z].synodes(X, Y, Z, -1);
 		ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
 		
-		Utils.logrst("X create photos", section, 3);
+		Utils.logrst("X create photos", section, ++no);
 		String[] x_uids = insertPhoto(X);
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -350,14 +351,25 @@ public class DBSyntextTest {
 
 		ck[X].change(0, C, x_uids[0], ck[X].synm);
 		
-		Utils.logrst("X vs Z", section, 4);
-		exchangeSynodes(X, Z, section, 4);
-		Utils.logi("On X-Z: Now Z know X:3[Y], not X,W", section, 4, 1);
+		Utils.logrst("X vs Z", section, ++no);
+		exchangeSynodes(X, Z, section, no);
+		Utils.logi("On X-Z: Now Z know X:3[Y], not X,W", section, no, 1);
 		
-		Utils.logrst("Z vs W", section, 5);
-		try { exchangeSynodes(Z, W, section, 5); }
+		Utils.logrst("Z vs W", section, ++no);
+		try { exchangeSynodes(Z, W, section, no); }
 		catch (SemanticException e){
 			Utils.logi(e.getMessage());
+
+			Utils.logrst("Y <= Z", section, ++no);
+			exchangeSynodes(Y, Z, section, no);
+			ck[Y].synodes(X, Y, Z, W);
+			ck[Y].change(0, C, "Y", "W", ck[Y].synm);
+			ck[Y].synsubs(0, "Y,W", -1, -1, Z, -1);
+
+			ck[Z].synodes(X, Y, Z, W);
+			ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
+			ck[Z].synsubs(0, "Y,W", -1, Y, Z, W);
+
 			return;
 		}
 		fail("W is not roaming able at Z.");
