@@ -2,6 +2,7 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.hasGt;
+import static io.odysz.common.LangExt.str;
 import static io.odysz.semantic.syn.Exchanging.*;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
@@ -340,7 +341,7 @@ public class DBSynsactBuilder extends DATranscxt {
 					ArrayList<Integer> chgsubs = ((ArrayList<Integer>)res.get("total"));
 					if (chgsubs != null && chgsubs.size() > 1 && hasGt(chgsubs, 0)) {
 						Utils.logi("Subscribe record(s) are affected:");
-						Utils.<Integer>logi(chgsubs);
+						Utils.logi(str(chgsubs, new String[] {"subscribes", "change-log"}));
 					}
 				} catch (Exception e) { e.printStackTrace(); }
 		}
