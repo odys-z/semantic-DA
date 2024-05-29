@@ -401,8 +401,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				continue;
 
 			if (Connects.getDebug(basictx.connId()))
-				Utils.logi("%1$s.cleanStateThan(): Deleting staleness where for peer %2$s, such that\n"
-						+ "my-change[%4$s].n < %2$s.%4$s = %3$d ...",
+				Utils.logi("%1$s: cleanStaleThan(): Deleting staleness where for peer %2$s, %2$s.%4$s = %3$d > my-change[%4$s].n ...",
 						synode(), srcn, srcnv.get(sn).n, sn);
 
 			SemanticObject res = (SemanticObject) ((DBSyntableBuilder)
