@@ -308,7 +308,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			SemanticObject res = (SemanticObject) ((DBSynsactBuilder)
 				with(select(chgm.tbl, "cl")
 					.cols("cl.*").col(subm.synodee)
-					.je2(subm.tbl, "sb", constr(sn), subm.synodee,
+					.je_(subm.tbl, "sb", constr(sn), subm.synodee,
 						chgm.domain, subm.domain, chgm.entbl, subm.entbl,
 						chgm.uids, subm.uids)
 					.where(op.ne, subm.synodee, constr(srcn))
@@ -321,7 +321,7 @@ public class DBSynsactBuilder extends DATranscxt {
 						.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
 					.post(with(select(chgm.tbl, "cl")
 						.cols("cl.*").col(subm.synodee)
-						.je2(subm.tbl, "sb",
+						.je_(subm.tbl, "sb",
 							chgm.domain, subm.domain, chgm.entbl, subm.entbl,
 							chgm.uids, subm.uids)
 						.where(op.ne, subm.synodee, constr(srcn)))
