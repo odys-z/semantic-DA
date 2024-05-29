@@ -570,7 +570,7 @@ public class DBSynsactBuilder extends DATranscxt {
 						.whereEq(entm.pk, entid)
 						.post(insert(entm.tbl, synrobot())
 							.cols(entm.entCols())
-							.select(select(null)
+							.select(select("")
 									.cols(entm.insertSelectItems(chgm, entid, entbuf.get(entm.tbl), chal)))
 							.where(op.notexists, null,
 								select(entm.tbl)
