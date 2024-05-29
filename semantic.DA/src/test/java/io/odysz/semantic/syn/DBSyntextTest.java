@@ -370,9 +370,20 @@ public class DBSyntextTest {
 		try { exchangeSynodes(Z, W, section, no); }
 		catch (SemanticException e){
 			Utils.logi(e.getMessage());
+			
+			Utils.logrst("Y <= Z", section, ++no);
+			exchangeSynodes(Y, Z, section, no);
+			ck[Y].synodes(X, Y, Z, W);
+			ck[Y].change(0, C, "Y", "W", ck[Y].synm);
+			ck[Y].synsubs(0, "Y,W", -1, -1, Z, -1);
+
+			ck[Z].synodes(X, Y, Z, W);
+			ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
+			ck[Z].synsubs(0, "Y,W", -1, Y, Z, W);
+
 			return;
 		}
-		fail("W is not roaming able at Z.");
+		fail("W is not able to roam at Z.");
 	}
 
 	void testBranchPropagation(int section) throws TransException, SQLException, IOException {
