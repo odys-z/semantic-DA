@@ -4,6 +4,7 @@ import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.hasGt;
+import static io.odysz.common.LangExt.str;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
 import static io.odysz.semantic.syn.Nyquence.maxn;
@@ -395,8 +396,8 @@ public class DBSyntableBuilder extends DATranscxt {
 	void cleanStaleThan(HashMap<String, Nyquence> srcnv, String srcn)
 			throws TransException, SQLException {
 		for (String sn : srcnv.keySet()) {
-//			if (eq(sn, synode()) || eq(sn, srcn))
-//				continue;
+			if (eq(sn, synode()) || eq(sn, srcn))
+				continue;
 			if (!nyquvect.containsKey(sn))
 				continue;
 
@@ -434,13 +435,13 @@ public class DBSyntableBuilder extends DATranscxt {
 					ArrayList<Integer> chgsubs = ((ArrayList<Integer>)res.get("total"));
 					if (chgsubs != null && chgsubs.size() > 1 && hasGt(chgsubs, 0)) {
 						Utils.logi("Subscribe record(s) are affected:");
-						Utils.<Integer>logi(chgsubs);
+						Utils.logi(str(chgsubs, new String[] {"subscribes", "change-log"}));
 					}
 				} catch (Exception e) { e.printStackTrace(); }
 			}
 		}
 	}
-	
+
 	ExessionPersist answer_save(ExessionPersist xp, ExchangeBlock req, String peer)
 			throws SQLException, TransException {
 		if (req == null || req.chpage == null) return xp;
