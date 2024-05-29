@@ -264,7 +264,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * 
 	 * I  X  X,000021    1  Z    |                           |                           |                          
 	 * I  Y  Y,000401    1  Z    |                           |                           |                          
-     *       X    Y    Z    W
+	 *       X    Y    Z    W
 	 * X [   2,   1,   0,     ]
 	 * Y [   2,   3,   2,     ]
 	 * Z [   1,   2,   3,     ]
