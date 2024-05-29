@@ -352,7 +352,7 @@ public class DBSyntextTest {
 		ck[Z].synodes(X, Y, Z, -1);
 		ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
 		
-		Utils.logrst("X create photos", section, 3);
+		Utils.logrst("X create photos", section, ++no);
 		String[] x_uids = insertPhoto(X);
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -362,12 +362,12 @@ public class DBSyntextTest {
 
 		ck[X].change(0, C, x_uids[0], ck[X].synm);
 		
-		Utils.logrst("X vs Z", section, 4);
-		exchangeSynodes(X, Z, section, 4);
-		Utils.logi("On X-Z: Now Z know X,0023[Y], not X,W", section, 4, 1);
+		Utils.logrst("X vs Z", section, ++no);
+		exchangeSynodes(X, Z, section, no);
+		Utils.logi("On X-Z: Now Z know X,0023[Y], not X,W. Not synode's sychronization has been initiated.");
 		
-		Utils.logrst("Z vs W", section, 5);
-		try { exchangeSynodes(Z, W, section, 5); }
+		Utils.logrst("Z vs W", section, ++no);
+		try { exchangeSynodes(Z, W, section, no); }
 		catch (SemanticException e){
 			Utils.logi(e.getMessage());
 			return;
@@ -378,6 +378,7 @@ public class DBSyntextTest {
 	void testBranchPropagation(int section) throws TransException, SQLException, IOException {
 		Utils.logrst(new String[] { new Object(){}.getClass().getEnclosingMethod().getName(),
 							"- must call testJoinChild() first"}, section);
+		int no = 0;
 
 		ck[X].synodes(X,  Y,  Z, -1);
 		ck[Y].synodes(X,  Y,  Z, W);
@@ -387,7 +388,7 @@ public class DBSyntextTest {
 		String z = ck[Z].trb.synode();
 
 		// Utils.logi("\n(.1) -------- Z create photos ---------");
-		Utils.logrst("Z create photos", section, 1);
+		Utils.logrst("Z create photos", section, ++no);
 		printNyquv(ck);
 		String[] z_uids = insertPhoto(Z);
 		printChangeLines(ck);
@@ -396,28 +397,28 @@ public class DBSyntextTest {
 		ck[Z].change(1, C, z_uids[0], ck[Y].phm);
 		ck[Z].psubs(3, z_uids[1], X, Y, -1, W);
 		
-		Utils.logrst("Y vs Z", section, 2);
-		exchangePhotos(Y, Z, section, 2);
+		Utils.logrst("Y vs Z", section, ++no);
+		exchangePhotos(Y, Z, section, no);
 		ck[Y].change(1, C, z, z_uids[0], ck[Y].phm);
 		ck[Y].psubs(2, z_uids[1], X, -1, -1, W);
 		ck[Z].psubs(2, z_uids[1], X, -1, -1, W);
 
-		Utils.logrst("Y vs W", section, 3);
-		exchangePhotos(Y, W, section, 3);
+		Utils.logrst("Y vs W", section, +no);
+		exchangePhotos(Y, W, section, no);
 		ck[Y].change(1, C, z, z_uids[0], ck[X].phm);
 		ck[Y].psubs(1, z_uids[1], X, -1, -1, -1);
 		ck[W].change(0, C, z, z_uids[0], ck[X].phm);
 		ck[W].psubs(0, z_uids[1], -1, -1, -1, -1);
 
-		Utils.logrst("X vs Y", section, 4);
-		exchangePhotos(X, Y, section, 4);
+		Utils.logrst("X vs Y", section, +no);
+		exchangePhotos(X, Y, section, no);
 		ck[X].change(0, C, null, null, ck[X].phm);
 		ck[X].psubs(0, null, X, -1, -1, -1);
 		ck[Y].change(0, C, null, null, ck[X].phm);
 		ck[Y].psubs(0, null, -1, -1, -1, -1);
 
-		Utils.logrst("Y vs Z", section, 5);
-		exchangePhotos(Y, Z, section, 4);
+		Utils.logrst("Y vs Z", section, +no);
+		exchangePhotos(Y, Z, section, no);
 		ck[Y].change(0, C, null, null, ck[X].phm);
 		ck[Y].psubs(0, null, X, -1, -1, -1);
 		ck[Z].change(0, C, null, null, ck[X].phm);
