@@ -325,6 +325,7 @@ public class DBSynsactBuilder extends DATranscxt {
 							chgm.uids, subm.uids)
 						.where(op.ne, subm.synodee, constr(srcn)))
 						.delete(chgm.tbl)
+						.where(op.lt, chgm.nyquence, srcnv.get(sn).n) // TODO test FIXME nyquence compare
 						.where(op.notexists, null, select("cl")
 							.col("1")
 							.whereEq(chgm.tbl, chgm.domain,  "cl", chgm.domain)
