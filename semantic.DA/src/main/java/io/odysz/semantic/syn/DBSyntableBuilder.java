@@ -348,7 +348,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		//     answer.add(answer(ch))
 		sp.expect(req);
 
-		// return new ExchangeBlock(synode(), peer, sp.session(), sp.exstat())
 		return sp
 			.commitAnswers(req, peer, n0().n)
 			.onExchange(peer, req) // The challenge page is ready
@@ -358,7 +357,35 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	/**
+	 * clean: change[z].n < y.z when X &lt;= Y or change[z].n <= z.synoder when Y &lt;= Z ,
+	 * i.e.<pre>
+	 * my-change[him].n < your-nv[him]
+	 * or
+	 * my-change[by him][you].n <= your-nv[him]</pre>
+	 * 
 	 * <p>Clean staleness. (Your knowledge about Z is newer than what I am presenting to)</p>
+	 * 
+	 * <ul>
+	 * <li>When propagating 3rd node's information, clean the older one
+	 * <pre>
+	 *   Z
+	 * [n=2]  ←     ←
+	 * [n=1]        |
+	 *              |
+	 *   X          Y
+	 * [n.z=1] → [n.z=2]
+	 *  late
+	 * </pre></li>
+	 * <li>When accepting subscriptions, clean the older one than got from the other route
+	 * <pre>
+	 * synoder     X
+	 *  n=2   →  [n=1]
+	 *   ↓         ↓
+	 *   Y         Z
+	 * [n=1]  →  n.synoder=1
+	 * </pre></li> 
+	 * </ul>
+	 * 
 	 * <h5>Case 1. X vs. Y</h5>
 	 * <pre>
 	 * X cleaned X,000021[Z] for X,000021[Z].n &lt; Y.z
@@ -464,14 +491,21 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * 2.2.1 Z initiate
 	 * 2.2.2 Y on initiate
 	 * 
-	 * NOW THE TIME TO REMOVE REDUNDENT RECORD ON Y.
+	 * NOW THE TIME TO REMOVE REDUNDENT RECORD ON Y. That is
+	 * on Y, y.z = 0 < z.z
 	 * </pre>
+	 * 
+	 * <ol>
+	 * <li>Y has later knowledge about Z. X should clean staleness</li>
+	 * <li>X has later knowledge about Z. X has no staleness, and Y will update with it</li>
+	 * <li>Z has later knowledge from Y via X. Y can ignore it (clean staleness)</li>
+	 * </ol>
 	 * @param srcnv
 	 * @param srcn
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	void cleanStale(HashMap<String, Nyquence> srcnv, String srcn)
+	void cleanStale(HashMap<String, Nyquence> srcnv, String peer)
 			throws TransException, SQLException {
 
 	}
