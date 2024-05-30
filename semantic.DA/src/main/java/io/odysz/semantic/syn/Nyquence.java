@@ -1,11 +1,13 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.isblank;
 
 import java.sql.SQLException;
 import java.util.HashMap;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.transact.sql.parts.condition.ExprPart;
 
 public class Nyquence {
 
@@ -26,7 +28,7 @@ public class Nyquence {
 		return c < 0 && c != Long.MIN_VALUE ? -1 : a == b ? 0 : 1;
 	}
 
-	protected long n;
+	public long n;
 
 	public Nyquence(long n) {
 		this.n = n;
@@ -115,4 +117,19 @@ public class Nyquence {
 		return Math.abs(Math.min(a.n - b.n, b.n - a.n));
 	}
 
+	///////////////////////// sql helpers ///////////////////////////
+
+	public static ExprPart sqlCompare(String alias, String nyqcol, Nyquence n) {
+		return isblank(alias)
+			? new ExprPart(String.format("%s - %d", nyqcol, n.n))
+			: new ExprPart(String.format("%s.%s - %d", alias, nyqcol, n.n)); // FIXME
+	}
+
+	public static ExprPart sqlCompare(String lcol, String rcol) {
+		return new ExprPart(String.format("%s - %s", lcol, rcol)); // FIXME
+	}
+
+	public static ExprPart sqlCompare(String lalias, String lcol, String ralias, String rcol) {
+		return sqlCompare(String.format("%s.%s", lalias, lcol), String.format("%s.%s", ralias, rcol));
+	}
 }

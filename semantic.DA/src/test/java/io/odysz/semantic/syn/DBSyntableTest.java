@@ -43,6 +43,7 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
@@ -87,6 +88,9 @@ public class DBSyntableTest {
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
 	static SynchangeBuffMeta xbm;
+	static PeersMeta prm;
+
+	static T_PhotoMeta phm;
 
 	static {
 		printCaller(false);
@@ -104,14 +108,6 @@ public class DBSyntableTest {
 		String rootkey = System.getProperty("rootkey");
 		DATranscxt.key("user-pswd", rootkey);
 	}
-
-	static T_PhotoMeta phm;
-
-	/**
-	 * Admin context will handling signing up request, for exposing the context to caller
-	 * after exception been thrown.
-	static ExessionPersist admin_xp;
-	 */
 
 	@BeforeAll
 	public static void testInit() throws Exception {
@@ -151,6 +147,7 @@ public class DBSyntableTest {
 		chm = new SynChangeMeta();
 		sbm = new SynSubsMeta(chm);
 		xbm = new SynchangeBuffMeta(chm);
+		prm = new PeersMeta();
 
 		for (int s = 0; s < 4; s++) {
 			String conn = conns[s];
@@ -168,9 +165,8 @@ public class DBSyntableTest {
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", xbm.tbl));
 			Connects.commit(conn, DATranscxt.dummyUser(), xbm.ddlSqlite);
 
-			// JUserMeta usm = new JUserMeta(conn);
-			// Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", usm.tbl));
-			// Connects.commit(conn, DATranscxt.dummyUser(), usm.ddlSqlite);
+			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", prm.tbl));
+			Connects.commit(conn, DATranscxt.dummyUser(), prm.ddlSqlite);
 
 			T_PhotoMeta phm = new T_PhotoMeta(conn); //.replace();
 
@@ -212,7 +208,7 @@ public class DBSyntableTest {
 		printNyquv(ck);
 
 		int no = 0;
-		// test01InsertBasic(++no);
+		test01InsertBasic(++no);
 		testJoinChild(++no);
 		testBranchPropagation(++no);
 		test02Update(++no);
