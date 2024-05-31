@@ -29,6 +29,7 @@ import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -70,6 +71,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	protected SynodeMeta synm;
 	protected SynSubsMeta subm;
 	protected SynChangeMeta chgm;
+	protected PeersMeta pnvm;
 
 	protected String synode() { return ((DBSyntext)this.basictx).synode; }
 
@@ -78,6 +80,16 @@ public class DBSynsactBuilder extends DATranscxt {
 	protected Nyquence n0() { return nyquvect.get(synode()); }
 	protected DBSynsactBuilder n0(Nyquence nyq) {
 		nyquvect.put(synode(), new Nyquence(nyq.n));
+		return this;
+	}
+
+	public String domain() {
+		return basictx() == null ? null : ((DBSyntext) basictx()).domain;
+	}
+
+	private DBSynsactBuilder domain(String domain) {
+		if (basictx() != null)
+			((DBSyntext) basictx()).domain = domain;
 		return this;
 	}
 
@@ -113,6 +125,8 @@ public class DBSynsactBuilder extends DATranscxt {
 		this.subm.replace();
 		this.synm = synm != null ? synm : (SynodeMeta) new SynodeMeta(conn).autopk(false);
 		this.synm.replace();
+		this.pnvm = pnvm != null ? pnvm : new PeersMeta(conn);
+		this.pnvm.replace();
 	}
 	
 	DBSynsactBuilder loadNyquvect0(String conn) throws SQLException, TransException {
