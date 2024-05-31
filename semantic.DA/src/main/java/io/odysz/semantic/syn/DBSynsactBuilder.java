@@ -93,12 +93,6 @@ public class DBSynsactBuilder extends DATranscxt {
 		return basictx() == null ? null : ((DBSyntext) basictx()).domain;
 	}
 
-	private DBSynsactBuilder domain(String domain) {
-		if (basictx() != null)
-			((DBSyntext) basictx()).domain = domain;
-		return this;
-	}
-
 	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
 
 	private HashMap<String, SyntityMeta> entityRegists;
@@ -253,7 +247,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 *  n=2   →  [n=1]
 	 *   ↓         ↓
 	 *   Y         Z
-	 * [n=1]  → way 1: n.synoder=1 + 1
+	 * [n=1]  → way 1: z.synoder=1 + 1
 	 *          (can't be concurrently working with multiple peers in the same domain)
 	 * </pre></li> 
 	 * </ul>
@@ -418,16 +412,22 @@ public class DBSynsactBuilder extends DATranscxt {
 					.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee)))
 
 			// clean changes without subscribes
-			.post(with(select(chgm.tbl, "cl")
-					.cols(chgm.pk, chgm.domain, chgm.entbl)
-					.col(count(subm.synodee), "subs")
-					.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId))
-				.delete(chgm.tbl)
-					.where(op.notexists, null, select("cl")
-						.whereEq(chgm.tbl, chgm.domain,  "cl", chgm.domain)
-						.whereEq(chgm.tbl, chgm.entbl,"cl", chgm.entbl)
-						.whereEq(chgm.tbl, chgm.pk, "cl", chgm.pk)))
-						// .whereEq(chgm.tbl, chgm.uids, "cl", chgm.uids)))
+			// 
+			// delete from syn_change where not exists ( 
+			//   with cl as (select changeId, domain, tabl, synodee 
+			//               from syn_change cl join syn_subscribe sb on cid = changeId)
+			//   select * from cl join syn_change ch on changeId = cid and cl.domain = ch.domain);
+
+			.post(delete(chgm.tbl)
+				.where(op.notexists, null,
+						with(select(chgm.tbl, "cl")
+							.cols(subm.changeId, chgm.domain, chgm.entbl, subm.synodee)
+							.je_(subm.tbl, "sb", chgm.pk, subm.changeId))
+						.select("cl")
+						.je_(chgm.tbl, "ch",
+							"ch." + chgm.domain,  "cl." + chgm.domain,
+							"ch." + chgm.entbl, "cl." + chgm.entbl,
+							subm.changeId, chgm.pk)))
 			.d(instancontxt(basictx.connId(), synrobot()));
 			
 		if (Connects.getDebug(basictx.connId())) {
@@ -436,7 +436,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				ArrayList<Integer> chgsubs = ((ArrayList<Integer>)res.get("total"));
 				if (chgsubs != null && chgsubs.size() > 1 && hasGt(chgsubs, 0)) {
 					Utils.logi("Subscribe record(s) are affected:");
-					Utils.logi(str(chgsubs, new String[] {"subscribes", "change-logs", "propagations"}));
+					Utils.logi(str(chgsubs, new String[] {"subscribes", "propagations", "change-logs"}));
 				}
 			} catch (Exception e) { e.printStackTrace(); }
 		}
@@ -477,7 +477,6 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @param srcn
 	 * @throws TransException
 	 * @throws SQLException
-	 */
 	void cleanStaleThan(HashMap<String, Nyquence> srcnv, String srcn)
 			throws TransException, SQLException {
 		for (String sn : srcnv.keySet()) {
@@ -535,7 +534,17 @@ public class DBSynsactBuilder extends DATranscxt {
 				} catch (Exception e) { e.printStackTrace(); }
 		}
 	}
+	 */
 
+	/**
+	 * commit answers in x.
+	 * @param x
+	 * @param srcnode
+	 * @param tillN max nyquence. Later than this is ignored - shouldn't happen
+	 * @return this
+	 * @throws SQLException
+	 * @throws TransException
+	 */
 	DBSynsactBuilder commitAnswers(ExchangeContext x, String srcnode, long tillN)
 			throws SQLException, TransException {
 
@@ -1036,7 +1045,8 @@ public class DBSynsactBuilder extends DATranscxt {
 			commitAnswers(x, sn, n0().n);
 		}
 
-		cleanStaleThan(answer.nyquvect, sn);
+		// cleanStaleThan(answer.nyquvect, sn);
+		cleanStale(answer.nyquvect, sn);
 
 		x.buffChanges(nyquvect, answer.challenge.colnames(), onchanges(myack, answer, sn), answer.entities);
 		if (x.onchanges.challenges() > 0) {
@@ -1098,7 +1108,8 @@ public class DBSynsactBuilder extends DATranscxt {
 	void cleanAckBuffer(ExchangeContext x, ChangeLogs ack, String target,
 			HashMap<String, Nyquence> srcnv, SyntityMeta entm) throws SQLException, TransException {
 
-		cleanStaleThan(ack.nyquvect, target);
+		// cleanStaleThan(ack.nyquvect, target);
+		cleanStale(ack.nyquvect, target);
 		
 		x.exstate.can(confirming);
 
