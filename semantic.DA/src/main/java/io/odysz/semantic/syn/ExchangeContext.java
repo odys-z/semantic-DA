@@ -37,6 +37,11 @@ public class ExchangeContext {
 	final SynChangeMeta chgm;
 
 	Exchanging exstate;
+	
+	/**
+	 * {entity-name: Nyquvect}
+	 */
+	HashMap<String,HashMap<String,Long>> sessionv;
 
 	/**
 	 * Create context at client side.

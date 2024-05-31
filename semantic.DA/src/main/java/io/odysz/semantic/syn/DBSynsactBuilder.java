@@ -11,6 +11,7 @@ import static io.odysz.semantic.util.DAHelper.loadRecString;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
+import static io.odysz.transact.sql.parts.condition.Funcall.max;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -910,6 +911,9 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		x.exstate.can(init);
 
+		x.sessionv = loadSessionv(domain());
+		if (Connects.getDebug(synconn()))
+			Utils.logMap(x.sessionv);
 		cleanStale(nv, target);
 
 		synyquvectWith(target, nv);
@@ -978,8 +982,11 @@ public class DBSynsactBuilder extends DATranscxt {
 		x.exstate.can(req.stepping().state);
 		
 		if (x.exstate.state == ready) {
-			if (Connects.getDebug(synconn()))
+			x.sessionv = loadSessionv(domain());
+			if (Connects.getDebug(synconn())) {
 				Utils.warn("Should only once to be here ...");
+				Utils.logMap(x.sessionv);
+			}
 
 			cleanStale(req.nyquvect, from);
 		}
@@ -998,6 +1005,29 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		x.exstate.onExchange();
 		return myanswer.session(x.session()).nyquvect(nyquvect);
+	}
+
+	HashMap<String,HashMap<String,Long>> loadSessionv(String domain) throws TransException, SQLException {
+		HashMap<String, HashMap<String, Long>> maxnv = new HashMap<String, HashMap<String, Long>> ();
+		AnResultset rs = (AnResultset) select(chgm.tbl, "cl")
+			.je_(subm.tbl, "sb", chgm.pk, subm.changeId,
+					chgm.domain, constr(domain))
+			.cols(chgm.entbl, subm.synodee)
+			.col(max(chgm.nyquence), "n")
+			.groupby(chgm.tbl)
+			.groupby(chgm.domain)
+			.groupby(subm.synodee)
+			.rs(instancontxt(synconn(), synrobot()))
+			.rs(0);
+		
+		if (rs.next()) {
+			String entbl = rs.getString(chgm.entbl);
+			if (!maxnv.containsKey(entbl))
+				maxnv.put(entbl, new HashMap<String, Long>());
+			HashMap<String, Long> entnv = maxnv.get(entbl);
+			entnv.put(rs.getString(subm.synodee), rs.getLong("n"));
+		}
+		return maxnv;
 	}
 
 	ArrayList<ArrayList<Object>> onchanges(ChangeLogs resp, ChangeLogs req, String srcn)
