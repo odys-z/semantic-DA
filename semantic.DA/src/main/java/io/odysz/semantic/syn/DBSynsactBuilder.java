@@ -5,8 +5,7 @@ import static io.odysz.common.LangExt.hasGt;
 import static io.odysz.common.LangExt.str;
 import static io.odysz.semantic.syn.Exchanging.*;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
-import static io.odysz.semantic.syn.Nyquence.getn;
-import static io.odysz.semantic.syn.Nyquence.maxn;
+import static io.odysz.semantic.syn.Nyquence.*;
 import static io.odysz.semantic.util.DAHelper.loadRecNyquence;
 import static io.odysz.semantic.util.DAHelper.loadRecString;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
@@ -72,6 +71,13 @@ public class DBSynsactBuilder extends DATranscxt {
 	protected SynSubsMeta subm;
 	protected SynChangeMeta chgm;
 	protected PeersMeta pnvm;
+
+	/**
+	 * Get synchronization meta connection id.
+	 * 
+	 * @return conn-id
+	 */
+	public String synconn() { return basictx.connId(); }
 
 	protected String synode() { return ((DBSyntext)this.basictx).synode; }
 
@@ -241,7 +247,14 @@ public class DBSynsactBuilder extends DATranscxt {
 	 *            [n=2]
 	 *            [n=1]
 	 * </pre></li>
-doc
+	 * <li>When accepting subscriptions, clean the older one than got from the other route
+	 * <pre>
+	 * synoder     X
+	 *  n=2   →  [n=1]
+	 *   ↓         ↓
+	 *   Y         Z
+	 * [n=1]  → way 1: n.synoder=1 + 1
+	 *          (can't be concurrently working with multiple peers in the same domain)
 	 * </pre></li> 
 	 * </ul>
 	 * 
@@ -378,7 +391,7 @@ doc
 				.values(pnvm.insVals(srcnv, peer, domain())))
 			.d(instancontxt(synconn(), synrobot()));
 
-		SemanticObject res = (SemanticObject) ((DBSyntableBuilder)
+		SemanticObject res = (SemanticObject) ((DBSynsactBuilder)
 			// clean while accepting subscriptions
 			with(select(chgm.tbl, "cl")
 				.cols("cl.*").col(subm.synodee)

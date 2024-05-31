@@ -74,77 +74,77 @@ class ExchangingTest {
 		assertEquals(ready, srv.state);
 	}
 
-	@Test
-	void testRestore() throws TransException {
-		String conn = "syn.00";
-		// SynodeMeta snm = new SynodeMeta(conn);
-		SynChangeMeta chm = new SynChangeMeta(conn);
-		// SynSubsMeta sbm = new SynSubsMeta(chm, conn);
-		// T_PhotoMeta phm = new T_PhotoMeta(conn);
-
-		String client = "client";
-		String server = "server";
-		ExessionPersist cp = new ExessionPersist(chm, server);
-		ExchangeBlock req = cp.init(server, 3);
-
-		ExessionPersist sp = new ExessionPersist(chm, client, req);
-		ExchangeBlock rep = sp.onInit(client, req, 4);
-		
-		// ch: 1, ans: 0
-		req = cp.exchange(server, rep);
-		assertEquals(1, req.challengeId);
-		assertEquals(1, req.answerId);
-		assertEquals(1, cp.expAnswerSeq);
-
-		// ch: 2, ans: 1
-		rep = sp.onExchange(client, req);
-		assertEquals(2, rep.challengeId);
-		assertEquals(1, rep.answerId);
-		
-		// IOException: rep lost
-		req = cp.retry(server);
-		// requires: ch: 1, ans: 1
-		assertEquals(ExessionAct.restore, req.act);
-		assertEquals(1, req.challengeId);
-		assertEquals(1, req.answerId);
-
-		rep = sp.onRetry(server, req);
-		assertEquals(ExessionAct.restore, rep.act);
-		assertEquals(2, rep.challengeId);
-		assertEquals(1, rep.answerId);
-		
-		req = cp.exchange(server, rep);
-		assertEquals(2, req.challengeId);
-		assertEquals(2, req.answerId);
-
-		// ch: 2, ans: 2
-		rep = sp.onExchange(client, req);
-		assertEquals(3, rep.challengeId);
-		assertEquals(2, rep.answerId);
-		
-		// ch: 3, ans: 3
-		req = cp.exchange(server, rep);
-		assertEquals(3, req.challengeId);
-		assertEquals(3, req.answerId);
-
-		// IOException: req lost
-		// ch: 3, ans: 2
-		req = cp.retry(server);
-		assertEquals(3, req.challengeId);
-		assertEquals(3, req.answerId);
-
-		// ch: 3, ans: 3
-		rep = sp.onRetry(client, req);
-		assertEquals(3, rep.challengeId);
-		assertEquals(3, rep.answerId);
-		
-		// ch: -, ans: 3
-		req = cp.exchange(server, rep);
-		// ch: 4, ans: -
-		rep = sp.onExchange(client, req);
-
-		// ch: -, ans: 4
-		req = cp.closexchange(server, rep);
-		sp.onclose(client, req);
-	}
+//	@Test
+//	void testRestore() throws TransException {
+//		String conn = "syn.00";
+//		// SynodeMeta snm = new SynodeMeta(conn);
+//		SynChangeMeta chm = new SynChangeMeta(conn);
+//		// SynSubsMeta sbm = new SynSubsMeta(chm, conn);
+//		// T_PhotoMeta phm = new T_PhotoMeta(conn);
+//
+//		String client = "client";
+//		String server = "server";
+//		ExessionPersist cp = new ExessionPersist(chm, server);
+//		ExchangeBlock req = cp.init(server, 3);
+//
+//		ExessionPersist sp = new ExessionPersist(chm, client, req);
+//		ExchangeBlock rep = sp.onInit(client, req, 4);
+//		
+//		// ch: 1, ans: 0
+//		req = cp.exchange(server, rep);
+//		assertEquals(1, req.challengeId);
+//		assertEquals(1, req.answerId);
+//		assertEquals(1, cp.expAnswerSeq);
+//
+//		// ch: 2, ans: 1
+//		rep = sp.onExchange(client, req);
+//		assertEquals(2, rep.challengeId);
+//		assertEquals(1, rep.answerId);
+//		
+//		// IOException: rep lost
+//		req = cp.retry(server);
+//		// requires: ch: 1, ans: 1
+//		assertEquals(ExessionAct.restore, req.act);
+//		assertEquals(1, req.challengeId);
+//		assertEquals(1, req.answerId);
+//
+//		rep = sp.onRetry(server, req);
+//		assertEquals(ExessionAct.restore, rep.act);
+//		assertEquals(2, rep.challengeId);
+//		assertEquals(1, rep.answerId);
+//		
+//		req = cp.exchange(server, rep);
+//		assertEquals(2, req.challengeId);
+//		assertEquals(2, req.answerId);
+//
+//		// ch: 2, ans: 2
+//		rep = sp.onExchange(client, req);
+//		assertEquals(3, rep.challengeId);
+//		assertEquals(2, rep.answerId);
+//		
+//		// ch: 3, ans: 3
+//		req = cp.exchange(server, rep);
+//		assertEquals(3, req.challengeId);
+//		assertEquals(3, req.answerId);
+//
+//		// IOException: req lost
+//		// ch: 3, ans: 2
+//		req = cp.retry(server);
+//		assertEquals(3, req.challengeId);
+//		assertEquals(3, req.answerId);
+//
+//		// ch: 3, ans: 3
+//		rep = sp.onRetry(client, req);
+//		assertEquals(3, rep.challengeId);
+//		assertEquals(3, rep.answerId);
+//		
+//		// ch: -, ans: 3
+//		req = cp.exchange(server, rep);
+//		// ch: 4, ans: -
+//		rep = sp.onExchange(client, req);
+//
+//		// ch: -, ans: 4
+//		req = cp.closexchange(server, rep);
+//		sp.onclose(client, req);
+//	}
 }

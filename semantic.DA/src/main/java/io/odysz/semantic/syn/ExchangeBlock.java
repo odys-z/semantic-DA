@@ -51,10 +51,10 @@ public class ExchangeBlock extends Anson {
 		return 0;
 	}
 
-	public ExchangeBlock answers(ExessionPersist p) {
-		this.anspage = p.answerPage;
-		return this;
-	}
+//	public ExchangeBlock answers(ExessionPersist p) {
+//		this.anspage = p.answerPage;
+//		return this;
+//	}
 
 	public void removeChgsub(String synode) throws SQLException {
 		if (anspage == null) 
@@ -101,9 +101,9 @@ public class ExchangeBlock extends Anson {
 	 * @param xp Persist
 	 * @return this
 	 */
-	public ExchangeBlock seq(ExessionPersist xp) {
-		return seq(xp.challengeSeq, xp.answerSeq);
-	}
+//	public ExchangeBlock seq(ExessionPersist xp) {
+//		return seq(xp.challengeSeq, xp.answerSeq);
+//	}
 
 	public ExchangeBlock requirestore() {
 		this.act = ExessionAct.restore;
