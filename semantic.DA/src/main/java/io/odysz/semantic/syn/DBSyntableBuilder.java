@@ -216,6 +216,16 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 
+	public String domain() {
+		return basictx() == null ? null : ((DBSyntext) basictx()).domain;
+	}
+
+	private DBSyntableBuilder domain(String domain) {
+		if (basictx() != null)
+			((DBSyntext) basictx()).domain = domain;
+		return this;
+	}
+
 	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
 
 	private HashMap<String, SyntityMeta> entityRegists;
@@ -1023,20 +1033,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		return colnames;
 	}
 	
-
-	public String domain() {
-		return basictx() == null ? null : ((DBSyntext) basictx()).domain;
-	}
-	
-	
-
-	private DBSyntableBuilder domain(String domain) {
-		if (basictx() != null)
-			((DBSyntext) basictx()).domain = domain;
-		return this;
-	}
-
-
 	public ExchangeBlock addMyChild(ExessionPersist ap, ExchangeBlock req, String org)
 			throws TransException, SQLException {
 
