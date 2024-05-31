@@ -430,7 +430,7 @@ public class DBSynsactBuilder extends DATranscxt {
 							subm.changeId, chgm.pk)))
 			.d(instancontxt(basictx.connId(), synrobot()));
 			
-		if (Connects.getDebug(basictx.connId())) {
+		if (Connects.getDebug(synconn())) {
 			try {
 				@SuppressWarnings("unchecked")
 				ArrayList<Integer> chgsubs = ((ArrayList<Integer>)res.get("total"));
@@ -910,6 +910,8 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		x.exstate.can(init);
 
+		cleanStale(nv, target);
+
 		synyquvectWith(target, nv);
 		Nyquence dn = this.nyquvect.get(target);
 		ChangeLogs diff = new ChangeLogs(chgm);
@@ -974,6 +976,13 @@ public class DBSynsactBuilder extends DATranscxt {
 			HashMap<String, Nyquence> remotv, ChangeLogs req) throws SQLException, TransException {
 
 		x.exstate.can(req.stepping().state);
+		
+		if (x.exstate.state == ready) {
+			if (Connects.getDebug(synconn()))
+				Utils.warn("Should only once to be here ...");
+
+			cleanStale(req.nyquvect, from);
+		}
 
 		if (x.onchanges != null && x.onchanges.challenges() > 0)
 			Utils.warn("There are challenges buffered to be commited: %s@%s", from, synode());;
@@ -1046,7 +1055,6 @@ public class DBSynsactBuilder extends DATranscxt {
 		}
 
 		// cleanStaleThan(answer.nyquvect, sn);
-		cleanStale(answer.nyquvect, sn);
 
 		x.buffChanges(nyquvect, answer.challenge.colnames(), onchanges(myack, answer, sn), answer.entities);
 		if (x.onchanges.challenges() > 0) {
@@ -1109,7 +1117,6 @@ public class DBSynsactBuilder extends DATranscxt {
 			HashMap<String, Nyquence> srcnv, SyntityMeta entm) throws SQLException, TransException {
 
 		// cleanStaleThan(ack.nyquvect, target);
-		cleanStale(ack.nyquvect, target);
 		
 		x.exstate.can(confirming);
 

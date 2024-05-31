@@ -848,7 +848,7 @@ public class DBSyntextTest {
 		String pid = ((SemanticObject) trb
 			.insert(m.tbl, robot)
 			.nv(m.uri, "")
-			.nv(m.resname, "photo-x")
+			.nv(m.resname, "photo-" + robot.deviceId)
 			.nv(m.fullpath, father)
 			.nv(m.org(), ZSUNodesDA.family)
 			.nv(m.device(), robot.deviceId())
