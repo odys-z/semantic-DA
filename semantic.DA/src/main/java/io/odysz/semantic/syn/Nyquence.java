@@ -26,7 +26,7 @@ public class Nyquence {
 		return c < 0 && c != Long.MIN_VALUE ? -1 : a == b ? 0 : 1;
 	}
 
-	protected long n;
+	public long n;
 
 	public Nyquence(long n) {
 		this.n = n;

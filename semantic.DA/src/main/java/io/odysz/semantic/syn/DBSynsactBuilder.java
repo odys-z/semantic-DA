@@ -44,6 +44,7 @@ import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
+import io.odysz.transact.sql.parts.Sql;
 import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
@@ -207,6 +208,213 @@ public class DBSynsactBuilder extends DATranscxt {
 		return commitBuff.size();
 	}
 
+	/**
+	 * clean: change[z].n < y.z when X &lt;= Y or change[z].n <= z.synoder when Y &lt;= Z ,
+	 * i.e.<pre>
+	 * my-change[him].n < your-nv[him]
+	 * or
+	 * my-change[by him][you].n < your-nv[him]</pre>
+	 * 
+	 * <p>Clean staleness. (Your knowledge about Z is newer than what I am presenting to)</p>
+	 * 
+	 * <ul>
+	 * <li>When propagating 3rd node's information, clean the older one
+	 * <pre>
+	 *    X         Y
+	 * [n.z=1] → [n.z=2]
+	 * clean late   ↓
+	 *     →x       Z
+	 *            [n=2]
+	 *            [n=1]
+	 * </pre></li>
+doc
+	 * </pre></li> 
+	 * </ul>
+	 * 
+	 * <h5>Case 1. X vs. Y</h5>
+	 * <pre>
+	 * X cleaned X,000021[Z] for X,000021[Z].n &lt; Y.z
+	 * X cleaned Y,000401[Z] for Y,000401[Z].n &lt; Y.z
+	 * 
+	 * I  X  X,000021    1  Z    |                           |                           |                          
+	 * I  Y  Y,000401    1  Z    |                           |                           |                          
+     *       X    Y    Z    W
+	 * X [   2,   1,   0,     ]
+	 * Y [   2,   3,   2,     ]
+	 * Z [   1,   2,   3,     ]
+	 * W [    ,    ,    ,     ]</pre>
+	 * 
+	 * <h5>Case 2. X vs. Y</h5>
+	 * <pre>
+	 * X keeps change[z] for change[Z].n &ge; Y.z
+	 * 
+	 *              X                          Y                          Z                          W             
+	 * U  X  X,000023   10  Y    |                           |                           |                          
+	 * U  X  X,000023   10  Z    |                           |                           |                          
+	 *                           | U  Y  Y,000401   11  W    |                           |                          
+	 * U  X  X,000023   10  W    |                           |                           |                          
+	 *                           | U  Y  Y,000401   11  Z    |                           |                          
+	 *                           | U  Y  Y,000401   11  X    |                           |                          
+	 *       X    Y    Z    W
+	 * X [  10,   9,   7,   8 ]
+	 * Y [   9,  11,  10,   8 ]
+	 * Z [   9,  10,  11,   8 ]
+	 * W [   6,   8,   7,   9 ]</pre>
+	 * 
+	 * <h5>Case 3. X &lt;= Y</h5>
+	 * For a change log where synodee is the target / peer node, it is stale {@code iff} X.change[Y] < Y.X,
+	 * <pre>e.g. in
+	 * 2 testBranchPropagation - must call testJoinChild() first
+	 * 2.4 X vs Y
+	 * 2.4.1 Y initiate
+	 * 2.4.2 X on initiate,
+	 * 
+	 *                X                    |                  Y                 |                  Z                 |                  W                 
+	 * ------------------------------------+------------------------------------+------------------------------------+------------------------------------
+	 *  I  X.000001  X,000021  2  W [    ] |                                    |                                    |                                    
+	 *                                     |                                    | I  Z.000001  Z,008002  3  W [ Y:0] |                                    
+	 *  I  X.000001  X,000021  2  Y [    ] |                                    | I  X.000001  X,000021  2  Y [ Y:0] |                                    
+	 *       X    Y    Z    W
+	 * X [   3,   1,   2,   0 ]
+	 * Y [   1,   2,   0,   0 ]
+	 * Z [   2,   1,   3,   0 ]
+	 * W [    ,   1,    ,   2 ]</pre>
+	 * 
+	 * where y.x = 1 < X.00001[Y] = 2, so the subscribes can not be cleared,
+	 * while Y,W should be cleared in the following when Y &lt;= Z, in which it has already been synchronized via X.
+	 * 
+	 * <pre>
+	 * 
+	 *                   X                 |                  Y                 |                  Z                 |                  W                 
+	 * ------------------------------------+------------------------------------+------------------------------------+------------------------------------
+	 *                                     | I  Y.000001       Y,W  1  X [    ] |                                    |                                    
+	 *                                     | I  Y.000001       Y,W  1  Z [    ] |                                    |                                    
+	 *       X    Y    Z    W
+	 * X [   1,   0,   0,     ]
+	 * Y [   0,   1,   0,   0 ]
+	 * Z [   0,   0,   1,     ]
+	 * W [    ,   1,    ,   1 ]
+	 * 
+	 * 1.2 X vs Y
+	 *                   X                 |                  Y                 |                  Z                 |                  W                 
+	 * ------------------------------------+------------------------------------+------------------------------------+------------------------------------
+	 *  I  Y.000001       Y,W  1  Z [    ] | I  Y.000001       Y,W  1  Z [    ] |                                    |                                    
+	 *  
+	 * 1.3 X create photos
+	 * 
+	 * ------------------------------------+------------------------------------+------------------------------------+------------------------------------
+	 *  I  X.000001  X,000021  2  W [    ] |                                    |                                    |                                    
+	 *  I  X.000001  X,000021  2  Z [    ] |                                    |                                    |                                    
+	 *  I  X.000001  X,000021  2  Y [    ] |                                    |                                    |                                    
+	 *  I  Y.000001       Y,W  1  Z [    ] | I  Y.000001       Y,W  1  Z [    ] |                                    |                                    
+	 *
+	 * 1.4 X vs Z
+	 * 
+	 * ------------------------------------+------------------------------------+------------------------------------+------------------------------------
+	 * I  X.000001  X,000021  2  W [    ] |                                    |                                    |                                    
+	 * I  X.000001  X,000021  2  Y [    ] |                                    | I  X.000001  X,000021  2  Y [    ] |                                    
+	 *                                    | I  Y.000001       Y,W  1  Z [    ] |                                    |                                    
+	 *
+	 * 1.5 Z vs W
+	 * 2 testBranchPropagation - must call testJoinChild() first
+	 * 
+	 * ------------------------------------+------------------------------------+------------------------------------+------------------------------------
+	 *  I  X.000001  X,000021  2  W [    ] |                                    |                                    |                                    
+	 *                                     |                                    | I  Z.000001  Z,008002  3  W [    ] |                                    
+	 *  I  X.000001  X,000021  2  Y [    ] |                                    | I  X.000001  X,000021  2  Y [    ] |                                    
+	 *                                     |                                    | I  Z.000001  Z,008002  3  X [    ] |                                    
+	 *                                     |                                    | I  Z.000001  Z,008002  3  Y [    ] |                                    
+	 *                                     | I  Y.000001       Y,W  1  Z [    ] |                                    |                                    
+	 *                                     
+	 *       X    Y    Z    W
+	 * X [   3,   1,   2,   0 ]
+	 * Y [   1,   2,   0,   0 ]
+	 * Z [   2,   1,   3,   0 ]
+	 * W [    ,   1,    ,   2 ]                                    
+	 * 
+	 * 2.2 Y vs Z
+	 * 2.2.1 Z initiate
+	 * 2.2.2 Y on initiate
+	 * 
+	 * NOW THE TIME TO REMOVE REDUNDENT RECORD ON Y. That is
+	 * on Y, y.z = 0 < z.z
+	 * </pre>
+	 * 
+	 * <ol>
+	 * <li>Y has later knowledge about Z. X should clean staleness</li>
+	 * <li>X has later knowledge about Z. X has no staleness, and Y will update with it</li>
+	 * <li>Z has later knowledge from Y via X. Y can ignore it (clean staleness)</li>
+	 * </ol>
+	 * @param srcnv
+	 * @param srcn
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	void cleanStale(HashMap<String, Nyquence> srcnv, String peer)
+			throws TransException, SQLException {
+		
+		if (Connects.getDebug(basictx.connId()))
+			Utils.logi("Cleaning staleness at %s, peer %s ...", synode(), peer);
+
+		delete(pnvm.tbl, synrobot())
+			.whereEq(pnvm.peer, peer)
+			.whereEq(pnvm.domain, domain())
+			.post(insert(pnvm.tbl)
+				.cols(pnvm.inscols)
+				.values(pnvm.insVals(srcnv, peer, domain())))
+			.d(instancontxt(synconn(), synrobot()));
+
+		SemanticObject res = (SemanticObject) ((DBSyntableBuilder)
+			// clean while accepting subscriptions
+			with(select(chgm.tbl, "cl")
+				.cols("cl.*").col(subm.synodee)
+				.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId)
+				.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
+				.where(op.lt, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0)))
+			.delete(subm.tbl, synrobot())
+				.where(op.exists, null, select("cl")
+				.where(op.eq, subm.changeId, chgm.pk)
+				.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
+
+			// clean 3rd part nodes' propagation
+			.post(with(select(chgm.tbl, "cl")
+					.cols("cl.*").col(subm.synodee)
+					.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
+											.and(Sql.condt(op.ne, constr(peer), subm.synodee)))
+					.je_(synm.tbl, "sn", chgm.synoder, synm.pk, constr(domain()), synm.domain)
+					.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
+					.where(op.lt, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0))
+					// .where(op.ne, subm.synodee, constr(peer)))
+				.delete(subm.tbl)
+					.where(op.exists, null, select("cl")
+					.where(op.eq, subm.changeId, chgm.pk)
+					.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee)))
+
+			// clean changes without subscribes
+			.post(with(select(chgm.tbl, "cl")
+					.cols(chgm.pk, chgm.domain, chgm.entbl)
+					.col(count(subm.synodee), "subs")
+					.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId))
+				.delete(chgm.tbl)
+					.where(op.notexists, null, select("cl")
+						.whereEq(chgm.tbl, chgm.domain,  "cl", chgm.domain)
+						.whereEq(chgm.tbl, chgm.entbl,"cl", chgm.entbl)
+						.whereEq(chgm.tbl, chgm.pk, "cl", chgm.pk)))
+						// .whereEq(chgm.tbl, chgm.uids, "cl", chgm.uids)))
+			.d(instancontxt(basictx.connId(), synrobot()));
+			
+		if (Connects.getDebug(basictx.connId())) {
+			try {
+				@SuppressWarnings("unchecked")
+				ArrayList<Integer> chgsubs = ((ArrayList<Integer>)res.get("total"));
+				if (chgsubs != null && chgsubs.size() > 1 && hasGt(chgsubs, 0)) {
+					Utils.logi("Subscribe record(s) are affected:");
+					Utils.logi(str(chgsubs, new String[] {"subscribes", "change-logs", "propagations"}));
+				}
+			} catch (Exception e) { e.printStackTrace(); }
+		}
+	}
+	
 	/**
 	 * <p>Clean staleness. (Your knowledge about Z is newer than what I am presenting to)</p>
 	 * <h5>Case 1. X vs. Y</h5>
