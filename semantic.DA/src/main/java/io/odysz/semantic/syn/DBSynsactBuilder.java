@@ -918,7 +918,8 @@ public class DBSynsactBuilder extends DATranscxt {
 		if (Connects.getDebug(synconn()))
 			Utils.logMap(xnv);
 
-		synyquvectWith(target, nv);
+		// synyquvectWith(target, nv);
+
 		Nyquence dn = this.nyquvect.get(target);
 		ChangeLogs diff = new ChangeLogs(chgm);
 		if (dn == null) {
@@ -1102,7 +1103,8 @@ public class DBSynsactBuilder extends DATranscxt {
 			commitChallenges(x, sn, answer.nyquvect, nyquvect.get(synode()).n);
 		}
 
-		synyquvectWith(sn, answer.nyquvect);
+		// synyquvectWith(sn, answer.nyquvect);
+
 		myack.nyquvect(Nyquence.clone(nyquvect));
 
 		x.exstate.ack();
@@ -1124,7 +1126,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			HashMap<String, Nyquence> srcnv, SyntityMeta entm) throws SQLException, TransException {
 		cleanAckBuffer(x, ack, target, srcnv, entm);
 		
-		synyquvectWith(target, ack.nyquvect);
+		// synyquvectWith(target, ack.nyquvect);
 		n0(maxn(ack.nyquvect, n0()));
 		
 		return nyquvect;
@@ -1156,7 +1158,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			x.addAnswer(ack.answers);
 			commitAnswers(x, target, n0().n);
 		}
-		synyquvectWith(target, x.exNyquvect);
+		// synyquvectWith(target, x.exNyquvect);
 		x.exstate.onAck();
 	}
 	
@@ -1180,8 +1182,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	public void onclosexchange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
 			throws SQLException, TransException {
 		x.clear();
-		synyquvectWith(sn, nv);
-		// nv.get(sn).inc();
+		// synyquvectWith(sn, nv);
 		incN0(maxn(nv));
 
 		x.exstate.onclose();
