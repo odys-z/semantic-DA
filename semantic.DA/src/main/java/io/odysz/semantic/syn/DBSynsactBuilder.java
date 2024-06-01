@@ -914,11 +914,13 @@ public class DBSynsactBuilder extends DATranscxt {
 		x.exstate.can(init);
 
 		cleanStale(nv, target);
-		HashMap<String, HashMap<String, Long>> xnv = synodeesKnowledge(domain());
+		HashMap<String,Long> xnv = synodeesKnowledge(domain());
 		if (Connects.getDebug(synconn()))
 			Utils.logMap(xnv);
+		x.maxnv = xnv;
 
 		// synyquvectWith(target, nv);
+		synyquvect(target, nv, null);
 
 		Nyquence dn = this.nyquvect.get(target);
 		ChangeLogs diff = new ChangeLogs(chgm);
@@ -985,14 +987,14 @@ public class DBSynsactBuilder extends DATranscxt {
 		x.exstate.can(req.stepping().state);
 		
 		if (x.exstate.state == ready) {
-			HashMap<String, HashMap<String, Long>> xnv = synodeesKnowledge(domain());
-			// x.peerMaxnv = req.maxnv;
+			x.maxnv = synodeesKnowledge(domain());
 			if (Connects.getDebug(synconn())) {
 				Utils.warn("Should only once to be here. xnv:");
-				Utils.logMap(xnv);
+				Utils.logMap(x.maxnv);
 			}
 
 			cleanStale(req.nyquvect, from);
+			synyquvect(from, req.nyquvect, req.exchangenv);
 		}
 
 		if (x.onchanges != null && x.onchanges.challenges() > 0)
@@ -1015,29 +1017,25 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * Get max nyquence for each synodee, the knowledge that this node knows for each synodee.
 	 * 
 	 * @param domain
-	 * @return {entity-table: {synodee: Nyquence}}
+	 * @return {synodee: max Nyquence group by domian, synodee}
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	HashMap<String,HashMap<String,Long>> synodeesKnowledge(String domain) throws TransException, SQLException {
-		HashMap<String, HashMap<String, Long>> maxnv = new HashMap<String, HashMap<String, Long>> ();
+	HashMap<String,Long> synodeesKnowledge(String domain) throws TransException, SQLException {
+		HashMap<String, Long> maxnv = new HashMap<String, Long> ();
 		AnResultset rs = (AnResultset) select(chgm.tbl, "cl")
 			.je_(subm.tbl, "sb", chgm.pk, subm.changeId,
 					chgm.domain, constr(domain))
 			.cols(chgm.entbl, subm.synodee)
 			.col(max(chgm.nyquence), "n")
-			.groupby(chgm.entbl)
+			// .groupby(chgm.entbl)
 			.groupby(chgm.domain)
 			.groupby(subm.synodee)
 			.rs(instancontxt(synconn(), synrobot()))
 			.rs(0);
 		
 		if (rs.next()) {
-			String entbl = rs.getString(chgm.entbl);
-			if (!maxnv.containsKey(entbl))
-				maxnv.put(entbl, new HashMap<String, Long>());
-			HashMap<String, Long> entnv = maxnv.get(entbl);
-			entnv.put(rs.getString(subm.synodee), rs.getLong("n"));
+			maxnv.put(rs.getString(subm.synodee), rs.getLong("n"));
 		}
 		return maxnv;
 	}
@@ -1127,6 +1125,8 @@ public class DBSynsactBuilder extends DATranscxt {
 		cleanAckBuffer(x, ack, target, srcnv, entm);
 		
 		// synyquvectWith(target, ack.nyquvect);
+		synyquvect(target, ack.nyquvect, ack.exchangenv);
+
 		n0(maxn(ack.nyquvect, n0()));
 		
 		return nyquvect;
@@ -1179,18 +1179,20 @@ public class DBSynsactBuilder extends DATranscxt {
 		return closexchange(x, sn, nv);
 	}
 	
-	public void onclosexchange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
+	public void onclosexchange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv, HashMap<String, Long> maxnv)
 			throws SQLException, TransException {
 		x.clear();
 		// synyquvectWith(sn, nv);
+		synyquvect(sn, nv, maxnv);
+
 		incN0(maxn(nv));
 
 		x.exstate.onclose();
 	}
 	
-	public void oncloseJoining(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
+	public void oncloseJoining(ExchangeContext x, String sn, HashMap<String, Nyquence> nv, HashMap<String, Long> maxnv)
 			throws SQLException, TransException {
-		onclosexchange(x, sn, nv);
+		onclosexchange(x, sn, nv, maxnv);
 	}
 
 	/**
@@ -1199,11 +1201,12 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * 
 	 * @param sn whose nyquence in {@code nv} is required to be newer.
 	 * @param nv
+	 * @param maxnv 
 	 * @return this
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	DBSynsactBuilder synyquvectWith(String sn, HashMap<String, Nyquence> nv)
+	DBSynsactBuilder synyquvect(String sn, HashMap<String, Nyquence> nv, HashMap<String, Long> maxnv)
 			throws TransException, SQLException {
 		if (nv == null) return this;
 

@@ -20,6 +20,8 @@ public class ChangeLogs extends Anson {
 	
 	HashMap<String, Nyquence> nyquvect;
 
+	HashMap<String, Long> exchangenv;
+
 	/** 
 	 * clone {@code nyquvect} into my nyq-vector.
 	 * @param nyquvect

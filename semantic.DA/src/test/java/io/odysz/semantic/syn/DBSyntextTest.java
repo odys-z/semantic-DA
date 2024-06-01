@@ -559,7 +559,7 @@ public class DBSyntextTest {
 		printNyquv(ck);
 
 		Utils.logrst(String.format("%s on closing", atb.synode()), test, sect, ++no);
-		atb.oncloseJoining(ax, ctb.synode(), closenv);
+		atb.oncloseJoining(ax, ctb.synode(), closenv, cx.maxnv);
 
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -665,7 +665,7 @@ public class DBSyntextTest {
 
 		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 		// FIXME what if server don't agree?
-		stb.onclosexchange(sx, ctb.synode(), nv);
+		stb.onclosexchange(sx, ctb.synode(), nv, cx.maxnv);
 		printChangeLines(ck);
 		printNyquv(ck);
 		assertEquals(Exchanging.ready, sx.exstate.state);
@@ -674,6 +674,9 @@ public class DBSyntextTest {
 			fail("Shouldn't has any more challenge here.");
 	}
 
+	/**
+	 * @deprecated as this is not the case for new protocol schema.
+	 */
 	static void ex_break_ack(SyntityMeta sphm, DBSynsactBuilder stb, SyntityMeta cphm,
 			DBSynsactBuilder ctb, int test, int subno)
 			throws TransException, SQLException, IOException, InterruptedException {
@@ -743,7 +746,7 @@ public class DBSyntextTest {
 
 			Utils.logrst(new String[] {stb.synode(), "abort session", sx.session(), ", clean buffer"}, test, subno, ++no);
 			// HashMap<String, Nyquence> nv = stb.onAck(sx, req, ctb.synode(), req.nyquvect, sphm);
-			stb.cleanAckBuffer(sx, ini2srv, ctb.synode(), sx.exNyquvect, cphm);
+			stb.cleanAckBuffer(sx, ini2srv, ctb.synode(), /* try new nv schema: sx.exNyquvect */null, cphm);
 
 			assertTrue(sx.mychallenge.challenges() > 0);
 			assertEquals(0, Nyquence.compareNyq(nyqClient, stb.nyquvect.get(ctb.synode())));
@@ -754,7 +757,7 @@ public class DBSyntextTest {
 			printNyquv(ck);
 
 			Utils.logrst(new String[] {stb.synode(), "closse session", sx.session(), ", clean buffer"}, test, subno, ++no);
-			stb.onclosexchange(sx, ctb.synode(), ini2srv.nyquvect);
+			stb.onclosexchange(sx, ctb.synode(), ini2srv.nyquvect, ini2srv.exchangenv);
 			printChangeLines(ck);
 			printNyquv(ck);
 
@@ -817,7 +820,7 @@ public class DBSyntextTest {
 			assertEquals(Exchanging.ready, cx.exstate.state);
 
 			Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
-			stb.onclosexchange(sx, ctb.synode(), nv);
+			stb.onclosexchange(sx, ctb.synode(), nv, cx.maxnv);
 			printChangeLines(ck);
 			printNyquv(ck);
 			assertEquals(Exchanging.ready, sx.exstate.state);
