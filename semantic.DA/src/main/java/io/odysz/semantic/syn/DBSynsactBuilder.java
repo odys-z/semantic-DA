@@ -375,6 +375,8 @@ public class DBSynsactBuilder extends DATranscxt {
 	void cleanStale(HashMap<String, Nyquence> srcnv, String peer)
 			throws TransException, SQLException {
 		
+		if (srcnv == null) return;
+		
 		if (Connects.getDebug(basictx.connId()))
 			Utils.logi("Cleaning staleness at %s, peer %s ...", synode(), peer);
 
@@ -983,9 +985,9 @@ public class DBSynsactBuilder extends DATranscxt {
 		
 		if (x.exstate.state == ready) {
 			HashMap<String, HashMap<String, Long>> xnv = synodeesKnowledge(domain());
-			x.peerMaxnv = req.maxnv;
+			// x.peerMaxnv = req.maxnv;
 			if (Connects.getDebug(synconn())) {
-				Utils.warn("Should only once to be here ...");
+				Utils.warn("Should only once to be here. xnv:");
 				Utils.logMap(xnv);
 			}
 
@@ -1083,8 +1085,8 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public ChangeLogs ackExchange(ExchangeContext x, ChangeLogs answer, String sn,
-			HashMap<String, Nyquence> srcnv) throws SQLException, TransException, IOException {
+	public ChangeLogs ackExchange(ExchangeContext x, ChangeLogs answer, String sn)
+			throws SQLException, TransException, IOException {
 		x.exstate.can(confirming);
 
 		ChangeLogs myack = new ChangeLogs(chgm);
@@ -1097,7 +1099,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		x.buffChanges(nyquvect, answer.challenge.colnames(), onchanges(myack, answer, sn), answer.entities);
 		if (x.onchanges.challenges() > 0) {
-			commitChallenges(x, sn, srcnv, nyquvect.get(synode()).n);
+			commitChallenges(x, sn, answer.nyquvect, nyquvect.get(synode()).n);
 		}
 
 		synyquvectWith(sn, answer.nyquvect);

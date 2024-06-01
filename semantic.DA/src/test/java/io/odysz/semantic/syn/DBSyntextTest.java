@@ -626,7 +626,7 @@ public class DBSyntextTest {
 
 			// client acknowledge exchange
 			Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, ++no);
-			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode(), resp.nyquvect);
+			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode());
 			Utils.logrst(String.format("%s ack exchange acknowledge    changes: %d    entities: %d    answers: %d",
 					ctb.synode(), ack.challenges(), ack.enitities(), ack.answers()), test, subno, no, 1);
 			printChangeLines(ck);
@@ -699,7 +699,7 @@ public class DBSyntextTest {
 
 		// client acknowledge exchange
 		Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, ++no);
-		ChangeLogs ack2srv = ctb.ackExchange(cx, resp2client, stb.synode(), resp2client.nyquvect);
+		ChangeLogs ack2srv = ctb.ackExchange(cx, resp2client, stb.synode());
 		Utils.logrst(String.format("%s ack exchange acknowledge    changes: %d    entities: %d    answers: %d",
 				ctb.synode(), ack2srv.challenges(), ack2srv.enitities(), ack2srv.answers()), test, subno, no, 1);
 		printChangeLines(ck);
@@ -778,7 +778,7 @@ public class DBSyntextTest {
 
 				// client acknowledge exchange
 				Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, ++no);
-				ack2srv = ctb.ackExchange(cx, resp2client, stb.synode(), resp2client.nyquvect);
+				ack2srv = ctb.ackExchange(cx, resp2client, stb.synode());
 				Utils.logrst(String.format("%s ack exchange acknowledge    changes: %d    entities: %d    answers: %d",
 						ctb.synode(), ack2srv.challenges(), ack2srv.enitities(), ack2srv.answers()), test, subno, no, 1);
 				printChangeLines(ck);
