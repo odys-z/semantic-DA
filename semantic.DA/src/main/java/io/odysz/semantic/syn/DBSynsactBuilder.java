@@ -901,7 +901,10 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		x.exstate.can(init);
 
+		// from commit 8e691cbaf57a293361f41e5c2422d2f4735cf0b8
+		// keep this as needed updating
 		synyquvectWith(target, nv);
+
 		Nyquence dn = this.nyquvect.get(target);
 		ChangeLogs diff = new ChangeLogs(chgm);
 		if (dn == null) {
@@ -968,6 +971,11 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		if (x.onchanges != null && x.onchanges.challenges() > 0)
 			Utils.warn("There are challenges buffered to be commited: %s@%s", from, synode());;
+
+		// from commit 8e691cbaf57a293361f41e5c2422d2f4735cf0b8
+		// This cause problem:
+		// if (x.exstate.state == ready)
+		//		synyquvectWith(from, req.nyquvect);
 
 		// 2024-04-24 debug notes:
 		// initExchange() will sync parameter nv, which will step nv[target] ahead.
@@ -1042,7 +1050,10 @@ public class DBSynsactBuilder extends DATranscxt {
 			commitChallenges(x, sn, answer.nyquvect, nyquvect.get(synode()).n);
 		}
 
+		// from commit 8e691cbaf57a293361f41e5c2422d2f4735cf0b8
+		// all tests passed except broken ack be send again
 		synyquvectWith(sn, answer.nyquvect);
+
 		myack.nyquvect(Nyquence.clone(nyquvect));
 
 		x.exstate.ack();
@@ -1064,7 +1075,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			HashMap<String, Nyquence> srcnv, SyntityMeta entm) throws SQLException, TransException {
 
 //		cleanStaleThan(ack.nyquvect, target);
-//		
+//
 //		x.exstate.can(confirming);
 //
 //		if (ack != null && compareNyq(ack.nyquvect.get(synode()), nyquvect.get(synode())) <= 0) {
@@ -1075,9 +1086,13 @@ public class DBSynsactBuilder extends DATranscxt {
 //			x.addAnswer(ack.answers);
 //			commitAnswers(x, target, n0().n);
 //		}
+
 		cleanAckBuffer(x, ack, target, srcnv, entm);
 		
+		// from commit 8e691cbaf57a293361f41e5c2422d2f4735cf0b8
+		// all tests passed except broken ack be send again
 		synyquvectWith(target, ack.nyquvect);
+
 		n0(maxn(ack.nyquvect, n0()));
 		
 		return nyquvect;
@@ -1109,7 +1124,11 @@ public class DBSynsactBuilder extends DATranscxt {
 			x.addAnswer(ack.answers);
 			commitAnswers(x, target, n0().n);
 		}
+
+		// from commit 8e691cbaf57a293361f41e5c2422d2f4735cf0b8
+		// all tests passed except broken ack be send again
 		synyquvectWith(target, x.exNyquvect);
+
 		x.exstate.onAck();
 	}
 	
@@ -1133,8 +1152,11 @@ public class DBSynsactBuilder extends DATranscxt {
 	public void onclosexchange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
 			throws SQLException, TransException {
 		x.clear();
+
+		// from commit 8e691cbaf57a293361f41e5c2422d2f4735cf0b8
+		// keep this as needed updating
 		synyquvectWith(sn, nv);
-		// nv.get(sn).inc();
+
 		incN0(maxn(nv));
 
 		x.exstate.onclose();

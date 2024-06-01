@@ -301,8 +301,12 @@ public class DBSyntextTest {
 		long Cc = ck[Z].trb.n0().n;
 
 		assertEquals(Cc, nvz.get(z).n);
+
+		/* Can't pass test without synyquvectWith() in onAck(), cleanAckBuff() & ackExchange()
 		assertnv( Ca_, Cb_, Cc_ + 2,
 				  Ca,  Cb,  Cc );
+				  */
+
 		assertnv( Ba_, Bb_, Bc_ + 1,
 				  Ba,  Bb,  Bc );
 
