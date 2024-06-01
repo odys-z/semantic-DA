@@ -911,10 +911,10 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		x.exstate.can(init);
 
-		x.sessionv = loadSessionv(domain());
-		if (Connects.getDebug(synconn()))
-			Utils.logMap(x.sessionv);
 		cleanStale(nv, target);
+		HashMap<String, HashMap<String, Long>> xnv = synodeesKnowledge(domain());
+		if (Connects.getDebug(synconn()))
+			Utils.logMap(xnv);
 
 		synyquvectWith(target, nv);
 		Nyquence dn = this.nyquvect.get(target);
@@ -982,10 +982,11 @@ public class DBSynsactBuilder extends DATranscxt {
 		x.exstate.can(req.stepping().state);
 		
 		if (x.exstate.state == ready) {
-			x.sessionv = loadSessionv(domain());
+			HashMap<String, HashMap<String, Long>> xnv = synodeesKnowledge(domain());
+			x.peerMaxnv = req.maxnv;
 			if (Connects.getDebug(synconn())) {
 				Utils.warn("Should only once to be here ...");
-				Utils.logMap(x.sessionv);
+				Utils.logMap(xnv);
 			}
 
 			cleanStale(req.nyquvect, from);
@@ -1007,14 +1008,22 @@ public class DBSynsactBuilder extends DATranscxt {
 		return myanswer.session(x.session()).nyquvect(nyquvect);
 	}
 
-	HashMap<String,HashMap<String,Long>> loadSessionv(String domain) throws TransException, SQLException {
+	/**
+	 * Get max nyquence for each synodee, the knowledge that this node knows for each synodee.
+	 * 
+	 * @param domain
+	 * @return {entity-table: {synodee: Nyquence}}
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	HashMap<String,HashMap<String,Long>> synodeesKnowledge(String domain) throws TransException, SQLException {
 		HashMap<String, HashMap<String, Long>> maxnv = new HashMap<String, HashMap<String, Long>> ();
 		AnResultset rs = (AnResultset) select(chgm.tbl, "cl")
 			.je_(subm.tbl, "sb", chgm.pk, subm.changeId,
 					chgm.domain, constr(domain))
 			.cols(chgm.entbl, subm.synodee)
 			.col(max(chgm.nyquence), "n")
-			.groupby(chgm.tbl)
+			.groupby(chgm.entbl)
 			.groupby(chgm.domain)
 			.groupby(subm.synodee)
 			.rs(instancontxt(synconn(), synrobot()))
@@ -1111,19 +1120,6 @@ public class DBSynsactBuilder extends DATranscxt {
 	 */
 	public HashMap<String, Nyquence> onAck(ExchangeContext x, ChangeLogs ack, String target,
 			HashMap<String, Nyquence> srcnv, SyntityMeta entm) throws SQLException, TransException {
-
-//		cleanStaleThan(ack.nyquvect, target);
-//		
-//		x.exstate.can(confirming);
-//
-//		if (ack != null && compareNyq(ack.nyquvect.get(synode()), nyquvect.get(synode())) <= 0) {
-//			commitChallenges(x, target, srcnv, nyquvect.get(synode()).n);
-//		}
-//
-//		if (ack.answers != null && ack.answers.getRowCount() > 0) {
-//			x.addAnswer(ack.answers);
-//			commitAnswers(x, target, n0().n);
-//		}
 		cleanAckBuffer(x, ack, target, srcnv, entm);
 		
 		synyquvectWith(target, ack.nyquvect);

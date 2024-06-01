@@ -41,7 +41,7 @@ public class ExchangeContext {
 	/**
 	 * {entity-name: Nyquvect}
 	 */
-	HashMap<String,HashMap<String,Long>> sessionv;
+	// HashMap<String,HashMap<String,Long>> exessionKnowledge;
 
 	/**
 	 * Create context at client side.
