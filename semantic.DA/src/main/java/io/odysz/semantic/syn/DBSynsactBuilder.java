@@ -93,11 +93,11 @@ public class DBSynsactBuilder extends DATranscxt {
 		return basictx() == null ? null : ((DBSyntext) basictx()).domain;
 	}
 
-	private DBSynsactBuilder domain(String domain) {
-		if (basictx() != null)
-			((DBSyntext) basictx()).domain = domain;
-		return this;
-	}
+//	private DBSynsactBuilder domain(String domain) {
+//		if (basictx() != null)
+//			((DBSyntext) basictx()).domain = domain;
+//		return this;
+//	}
 
 	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
 
@@ -1021,13 +1021,12 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @param x exchange execution instance 
 	 * @param answer
 	 * @param sn 
-	 * @param srcnv 
 	 * @return acknowledge, answer to the destination node's commitment, and have be committed at source.
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public ChangeLogs ackExchange(ExchangeContext x, ChangeLogs answer, String sn,
-			HashMap<String, Nyquence> srcnv) throws SQLException, TransException, IOException {
+	public ChangeLogs ackExchange(ExchangeContext x, ChangeLogs answer, String sn)
+			throws SQLException, TransException, IOException {
 		x.exstate.can(confirming);
 
 		ChangeLogs myack = new ChangeLogs(chgm);
@@ -1040,7 +1039,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		x.buffChanges(nyquvect, answer.challenge.colnames(), onchanges(myack, answer, sn), answer.entities);
 		if (x.onchanges.challenges() > 0) {
-			commitChallenges(x, sn, srcnv, nyquvect.get(synode()).n);
+			commitChallenges(x, sn, answer.nyquvect, nyquvect.get(synode()).n);
 		}
 
 		synyquvectWith(sn, answer.nyquvect);
