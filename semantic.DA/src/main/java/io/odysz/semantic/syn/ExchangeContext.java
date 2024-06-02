@@ -117,5 +117,5 @@ public class ExchangeContext {
 
 	public String session() { return session; }
 
-	public HashMap<String,Long> maxnv;
+	// public HashMap<String,Long> maxnv;
 }

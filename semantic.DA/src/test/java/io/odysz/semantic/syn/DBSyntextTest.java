@@ -46,6 +46,7 @@ import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.syn.DBSyntextTest.Ck;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
@@ -208,31 +209,34 @@ public class DBSyntextTest {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
 
 		HashMap<String, Nyquence> nvx = ck[X].trb.nyquvect;
-		long Aa_ = nvx.get(ck[X].trb.synode()).n;
-		long Ab_ = nvx.get(ck[Y].trb.synode()).n;
+		// long Xx_ = nvx.get(ck[X].trb.synode()).n;
+		// long Xy_ = nvx.get(ck[Y].trb.synode()).n;
+		HashMap<String, Nyquence> nvx_ = Nyquence.clone(nvx);
 		String x = ck[X].trb.synode();
 
 		HashMap<String, Nyquence> nvy = ck[Y].trb.nyquvect;
-		long Ba_ = nvy.get(ck[X].trb.synode()).n;
-		long Bb_ = nvy.get(ck[Y].trb.synode()).n;
+		// long Yx_ = nvy.get(ck[X].trb.synode()).n;
+		// long Yy_ = nvy.get(ck[Y].trb.synode()).n;
+		HashMap<String, Nyquence> nvy_ = Nyquence.clone(nvy);
 		String y = ck[Y].trb.synode();
 
 		HashMap<String, Nyquence> nvz = ck[Z].trb.nyquvect;
-		long Ca_ = nvx.get(ck[Z].trb.synode()).n;
-		long Cb_ = nvy.get(ck[Z].trb.synode()).n;
+		// long Zx_ = nvx.get(ck[Z].trb.synode()).n;
+		// long Zy_ = nvy.get(ck[Z].trb.synode()).n;
+		HashMap<String, Nyquence> nvz_ = Nyquence.clone(nvz);
 		String z = ck[Z].trb.synode();
 
 
 		int no = 0;
 		// 1.1 insert A
 		Utils.logrst("insert A", section, ++no);
-		String[] A_0_uids = insertPhoto(X);
-		String A_0 = A_0_uids[0];
+		String[] X_0_uids = insertPhoto(X);
+		String X_0 = X_0_uids[0];
 
 		// syn_change.curd = C
-		ck[X].change(1, C, A_0, ck[X].phm);
+		ck[X].change(1, C, X_0, ck[X].phm);
 		// syn_subscribe.to = [B, C, D]
-		ck[X].psubs(2, A_0_uids[1], -1, Y, Z, -1);
+		ck[X].psubs(2, X_0_uids[1], -1, Y, Z, -1);
 
 		// 1.2 insert B
 		Utils.logrst("insert B", section, ++no);
@@ -253,76 +257,78 @@ public class DBSyntextTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 		ck[Y].change(1, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
-		ck[Y].change(1, C, ck[X].trb.synode(), A_0, ck[Y].phm);
+		ck[Y].change(1, C, ck[X].trb.synode(), X_0, ck[Y].phm);
 		ck[Y].psubs(1, B_0_uids[1], -1, -1, Z, -1);
-		ck[Y].psubs(1, A_0_uids[1], -1, -1, Z, -1);
+		ck[Y].psubs(1, X_0_uids[1], -1, -1, Z, -1);
+
+		assertI(ck, nvx, nvy, nvz);
+		assertnv(nvy_, nvy,
+				+1, +1, +1);
 
 		// B.b++, A.b = B.b, B.a = A.a
-		long Ab = nvx.get(y).n;
-		long Bb = ck[Y].trb.n0().n;
+		long Xy = nvx.get(y).n;
+		long Yy = nvy.get(y).n;
 	
-		assertnv(  Bb,     Bb_ + 1, Ab_ + 1, Ab + 1,
-			 nvy.get(y).n, Bb,      Ab,      Bb);
+//		assertnv(  Yy,     Yy_ + 1, Xy_ + 1, Xy + 1,
+//			 nvy.get(y).n, Yy,      Xy,      Yy);
 
 		long Aa = nvx.get(x).n;
 		long Ba = nvy.get(x).n;
 
-		assertnv(   Aa,      Aa_ + 1, Ba_ + 1,
-			ck[X].trb.n0().n, Aa,     Ba);
+//		assertnv(   Aa,      Xx_ + 1, Yx_ + 1,
+//			ck[X].trb.n0().n, Aa,     Ba);
+		assertnv(nvx_, nvx,
+				1, 1, 0);
 
-		Ab_ = Ab;
-		Bb_ = Bb;
-		Aa_ = Aa;
-		Ba_ = Ba;
+		nvx_ = nvx;
+		nvy_ = nvy;
 		
 		// 3. Y <= Z
-		long Bc_ = nvy.get(z).n;
-		long Cc_ = nvz.get(z).n;
+		long Yz = nvy.get(z).n;
+		long Zz_ = nvz.get(z).n;
 
 		Utils.logrst("Y <= Z", section, ++no);
 		exchangePhotos(Y, Z, section, no);
-		ck[Z].change(0, C, A_0, ck[Z].phm);
-		ck[Z].change(0, C, ck[X].trb.synode(), A_0, ck[Z].phm);
-		ck[Z].psubs(0, A_0_uids[1], -1, -1, Z, -1);
+		ck[Z].change(0, C, X_0, ck[Z].phm);
+		ck[Z].change(0, C, ck[X].trb.synode(), X_0, ck[Z].phm);
+		ck[Z].psubs(0, X_0_uids[1], -1, -1, Z, -1);
 
 		ck[Z].change(0, C, B_0, ck[Y].phm);
 		ck[Z].change(0, C, ck[Y].trb.synode(), B_0, ck[Z].phm);
 		ck[Z].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 		
-		ck[Y].change(0, C, A_0, ck[Y].phm);
+		ck[Y].change(0, C, X_0, ck[Y].phm);
 		ck[Y].change(0, C, B_0, ck[Y].phm);
-		ck[Y].psubs(0, A_0_uids[1], -1, -1, Z, -1);
+		ck[Y].psubs(0, X_0_uids[1], -1, -1, Z, -1);
 		ck[Y].psubs(0, B_0_uids[1], -1, -1, Z, -1);
-
-		Ca_ = Ba;
-		Cb_ = Bb;
 
 		long Bc = nvy.get(x).n;
 		long Ca = nvz.get(x).n;
 		long Cb = nvz.get(y).n;
 		long Cc = ck[Z].trb.n0().n;
 
-		assertEquals(Cc, nvz.get(z).n);
-		assertnv( Ca_, Cb_, Cc_ + 2,
-				  Ca,  Cb,  Cc );
-		assertnv( Ba_, Bb_, Bc_ + 1,
-				  Ba,  Bb,  Bc );
+		assertI(ck, nvx, nvy, nvz);
+//		assertEquals(Cc, nvz.get(z).n);
+//		assertnv( Zx_, Zy_, Zz_ + 2,
+//				  Ca,  Cb,  Cc );
+		assertnv(nvz_, nvz,
+				0, 0, 2);
 
-		Ab_ = Ab;
-		Bb_ = Bb;
-		Aa_ = Aa;
-		Ba_ = Ba;
-		Bc_ = Bc;
-		Ca_ = Ca;
-		Cb_ = Cb;
-		Cc_ = Cc;
+//		assertnv( Yx_, Yy_, Yz + 1,
+//				  Ba,  Yy,  Bc );
+		assertnv(nvy_, nvy,
+				0, 0, 1);
+
+		nvx_ = nvx;
+		nvy_ = nvy;
+		nvz_ = nvz;
 		
 		// 4. X <= Y
 		Utils.logrst("X <= Y", section, ++no);
 		exchangePhotos(X, Y, section, no);
-		ck[X].change(0, C, A_0, ck[X].phm);
+		ck[X].change(0, C, X_0, ck[X].phm);
 		ck[X].change(0, C, B_0, ck[X].phm);
-		ck[X].psubs(0, A_0_uids[1], -1, -1, Z, -1);
+		ck[X].psubs(0, X_0_uids[1], -1, -1, Z, -1);
 		ck[X].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 	}
 
@@ -561,7 +567,7 @@ public class DBSyntextTest {
 		printNyquv(ck);
 
 		Utils.logrst(String.format("%s on closing", atb.synode()), test, sect, ++no);
-		atb.oncloseJoining(ax, ctb.synode(), closenv, cx.maxnv);
+		atb.oncloseJoining(ax, ctb.synode(), closenv);
 
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -601,6 +607,84 @@ public class DBSyntextTest {
 	}
 
 	static void exchange(SyntityMeta sphm, DBSynsactBuilder stb, SyntityMeta cphm,
+			DBSynsactBuilder ctb, int test, int subno)
+			throws TransException, SQLException, IOException {
+		int no = 0;
+		ExchangeContext cx = new ExchangeContext(chm, stb.synode());
+		ExchangeContext sx = new ExchangeContext(cx.session(), chm, ctb.synode());
+
+		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
+		ChangeLogs req = ctb.initExchange(cx, stb.synode(), null);
+		assertNotNull(req);
+		assertEquals(Exchanging.init, req.stepping().state);
+		
+		Utils.logrst(String.format("%s initiate    changes: %d    entities: %d",
+				ctb.synode(), req.challenges(), req.enitities(cphm.tbl)), test, subno, ++no);
+
+			// server
+			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
+			ChangeLogs resp = stb.onExchange(sx, ctb.synode(), req.nyquvect, req);
+			Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
+					stb.synode(), resp.challenges(), resp.enitities(), resp.answers()), test, subno, ++no);
+			printChangeLines(ck);
+			printNyquv(ck);
+			assertEquals(Exchanging.exchanging, sx.exstate.state);
+
+			// client acknowledge exchange
+			Utils.logrst(new String[] {ctb.synode(), "ack exchange"}, test, subno, ++no);
+			ChangeLogs ack = ctb.ackExchange(cx, resp, stb.synode());
+			Utils.logrst(String.format("%s ack exchange acknowledge    changes: %d    entities: %d    answers: %d",
+					ctb.synode(), ack.challenges(), ack.enitities(), ack.answers()), test, subno, no, 1);
+			printChangeLines(ck);
+			printNyquv(ck);
+			assertEquals(Exchanging.confirming, cx.exstate.state);
+			
+			// server on acknowledge
+			Utils.logrst(String.format("%s on ack", stb.synode()), test, subno, ++no);
+			HashMap<String, Nyquence> acknv = stb.onAck(sx, ack, ctb.synode(), ack.nyquvect, sphm);
+			printChangeLines(ck);
+			printNyquv(ck);
+			assertEquals(Exchanging.ready, sx.exstate.state);
+
+//			if (req.challenges() != 0)
+//				throw new ExchangeException(Exchanging.ready,
+//					"More challenges shouldn't come here as this test is only for the upgraded protocol layer.");
+
+//		assertNotNull(req);
+//		assertEquals(0, req.challenge == null ? 0 : req.challenge.size());
+
+		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
+		HashMap<String, Nyquence> nv = ctb.closexchange(cx, stb.synode(), acknv);
+
+		printChangeLines(ck);
+		printNyquv(ck);
+		assertEquals(Exchanging.ready, cx.exstate.state);
+
+		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
+		stb.onclosexchange(sx, ctb.synode(), nv);
+		printChangeLines(ck);
+		printNyquv(ck);
+		assertEquals(Exchanging.ready, sx.exstate.state);
+
+//		if (req.challenges() > 0)
+//			fail("Shouldn't has any more challenge here.");
+	}
+
+	/**
+	 * @deprecated exchange now is using simplified protocol for verifying nyquence schema.
+	 * New protocol supporting continuing on broken link will no longer needing semantic layer's support.
+	 * 
+	 * @param sphm
+	 * @param stb
+	 * @param cphm
+	 * @param ctb
+	 * @param test
+	 * @param subno
+	 * @throws TransException
+	 * @throws SQLException
+	 * @throws IOException
+	 */
+	static void exchange_deprecated(SyntityMeta sphm, DBSynsactBuilder stb, SyntityMeta cphm,
 			DBSynsactBuilder ctb, int test, int subno)
 			throws TransException, SQLException, IOException {
 
@@ -667,7 +751,7 @@ public class DBSyntextTest {
 
 		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 		// FIXME what if server don't agree?
-		stb.onclosexchange(sx, ctb.synode(), nv, cx.maxnv);
+		stb.onclosexchange(sx, ctb.synode(), nv);
 		printChangeLines(ck);
 		printNyquv(ck);
 		assertEquals(Exchanging.ready, sx.exstate.state);
@@ -759,7 +843,7 @@ public class DBSyntextTest {
 			printNyquv(ck);
 
 			Utils.logrst(new String[] {stb.synode(), "closse session", sx.session(), ", clean buffer"}, test, subno, ++no);
-			stb.onclosexchange(sx, ctb.synode(), ini2srv.nyquvect, ini2srv.exchangenv);
+			stb.onclosexchange(sx, ctb.synode(), ini2srv.nyquvect);
 			printChangeLines(ck);
 			printNyquv(ck);
 
@@ -822,7 +906,7 @@ public class DBSyntextTest {
 			assertEquals(Exchanging.ready, cx.exstate.state);
 
 			Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
-			stb.onclosexchange(sx, ctb.synode(), nv, cx.maxnv);
+			stb.onclosexchange(sx, ctb.synode(), nv);
 			printChangeLines(ck);
 			printNyquv(ck);
 			assertEquals(Exchanging.ready, sx.exstate.state);
@@ -1227,6 +1311,25 @@ public class DBSyntextTest {
 		
 		for (int i = 0; i < nvs.length/2; i++) {
 			assertEquals(nvs[i], nvs[i + nvs.length/2], String.format("nv[%d] %d : %d", i, nvs[i], nvs[i + nvs.length/2]));
+		}
+	}
+
+	public static void assertI(Ck[] ck, HashMap<?, ?>... nvs) {
+		for (int i = 0; i < nvs.length; i++) {
+			assertEquals(ck[i].trb.n0().n, ((Nyquence)nvs[i].get(ck[i].trb.synode())).n);
+		}
+	}
+	
+	public static void assertnv(HashMap<String, Nyquence> nv_, HashMap<String, Nyquence> nv, int ... delta) {
+		if (nv_ == null || nv == null || nv_.size() != nv.size() || nv.size() != delta.length)
+			fail("Invalid arguments to assert.");
+		
+		for (int i = 0; i < ck.length; i++) {
+			assertEquals(nv_.get(ck[i].trb.synode()).n, nv.get(ck[i].trb.synode()).n + delta[i],
+				String.format("nv[%d] %d : %d + %d",
+						i, nv_.get(ck[i].trb.synode()).n,
+						nv.get(ck[i].trb.synode()).n,
+						delta[i]));
 		}
 	}
 }

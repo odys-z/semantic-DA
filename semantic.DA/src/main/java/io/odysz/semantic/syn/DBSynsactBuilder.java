@@ -917,20 +917,26 @@ public class DBSynsactBuilder extends DATranscxt {
 		HashMap<String,Long> xnv = sessionMaxnv(domain());
 		if (Connects.getDebug(synconn()))
 			Utils.logMap(xnv);
-		x.maxnv = xnv;
+		// x.maxnv = xnv;
 
 		// synyquvectWith(target, nv);
-		synyquvect(target, nv, null);
 
-		Nyquence dn = this.nyquvect.get(target);
+		ChangeLogs diff = initChallenges(x, target);
+		return diff;
+	}
+	
+	protected ChangeLogs initChallenges(ExchangeContext x, String peer)
+			throws SecurityException, TransException, SQLException {
+
 		ChangeLogs diff = new ChangeLogs(chgm);
+		Nyquence dn = this.nyquvect.get(peer);
 		if (dn == null) {
 			Utils.warn("ERROR [%s#%s]: Me, %s, don't have knowledge about %s.",
 					this.getClass().getName(),
 					new Object(){}.getClass().getEnclosingMethod().getName(),
-					synode(), target);
+					synode(), peer);
 			throw new SemanticException("%s#%s(), don't have knowledge about %s.",
-					synode(), new Object(){}.getClass().getEnclosingMethod().getName(), target);
+					synode(), new Object(){}.getClass().getEnclosingMethod().getName(), peer);
 		}
 		else {
 			AnResultset challenge = (AnResultset) select(chgm.tbl, "ch")
@@ -972,7 +978,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				diff.entities(tbl, entities);
 			}
 		
-			x.initChallenge(target, diff);
+			x.initChallenge(peer, diff);
 		
 			x.exstate.initexchange();
 
@@ -990,20 +996,20 @@ public class DBSynsactBuilder extends DATranscxt {
 		x.exstate.can(req.stepping().state);
 		
 		if (x.exstate.state == ready) {
-			x.maxnv = sessionMaxnv(domain());
 			if (Connects.getDebug(synconn())) {
-				Utils.warn("Should only once to be here. xnv:");
-				Utils.logi(x.maxnv);
+				HashMap<String, Long> maxnv = sessionMaxnv(domain());
+				Utils.warn("Should only once to be here.\nSession Max Nv:");
+				Utils.logi(maxnv);
 			}
 
 			cleanStale(req.nyquvect, from);
-			synyquvect(from, req.nyquvect, req.exchangenv);
 		}
 
 		if (x.onchanges != null && x.onchanges.challenges() > 0)
 			Utils.warn("There are challenges buffered to be commited: %s@%s", from, synode());;
 
-		ChangeLogs myanswer = initExchange(x, from, null);
+		// ChangeLogs myanswer = initExchange(x, from, null);
+		ChangeLogs myanswer = initChallenges(x, from);
 
 		x.buffChanges(nyquvect, req.challenge.colnames(), onchanges(myanswer, req, from), req.entities);
 
@@ -1127,7 +1133,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		cleanAckBuffer(x, ack, target, srcnv, entm);
 		
 		// synyquvectWith(target, ack.nyquvect);
-		synyquvect(target, ack.nyquvect, ack.exchangenv);
+		// synyquvect(target, ack.nyquvect);
 
 		n0(maxn(ack.nyquvect, n0()));
 		
@@ -1181,65 +1187,73 @@ public class DBSynsactBuilder extends DATranscxt {
 		return closexchange(x, sn, nv);
 	}
 	
-	public void onclosexchange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv, HashMap<String, Long> maxnv)
+	public void onclosexchange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
 			throws SQLException, TransException {
 		x.clear();
 		// synyquvectWith(sn, nv);
-		synyquvect(sn, nv, maxnv);
+		synyquvect(sn, nv);
 
 		incN0(maxn(nv));
 
 		x.exstate.onclose();
 	}
 	
-	public void oncloseJoining(ExchangeContext x, String sn, HashMap<String, Nyquence> nv, HashMap<String, Long> maxnv)
+	public void oncloseJoining(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
 			throws SQLException, TransException {
-		onclosexchange(x, sn, nv, maxnv);
+		onclosexchange(x, sn, nv);
 	}
 
 	/**
 	 * Update / step my nyquvect with {@code nv}, using max(my.nyquvect, nv).
 	 * If nv[sn] &lt; my_nv[sn], throw SemanticException: can't update my nyquence with early knowledge.
 	 * 
-	 * @param sn whose nyquence in {@code nv} is required to be newer.
+	 * @param peer whose nyquence in {@code nv} is required to be newer.
 	 * @param nv
 	 * @param maxnv 
 	 * @return this
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	DBSynsactBuilder synyquvect(String sn, HashMap<String, Nyquence> nv, HashMap<String, Long> maxnv)
+	DBSynsactBuilder synyquvect(String peer, HashMap<String, Nyquence> nv)
 			throws TransException, SQLException {
 		if (nv == null) return this;
 
 		Update u = null;
 
-		if (compareNyq(nv.get(sn), nyquvect.get(sn)) < 0)
+		if (compareNyq(nv.get(peer), nyquvect.get(peer)) < 0)
 			throw new SemanticException(
-				"[DBSynsactBuilder.synyquvectWith()] Updating my (%s) nyquence with %s's value early than already knowns.",
-				synode(), sn);
+				"[DBSynsactBuilder.synyquvectWith()] Updating nyquence at %s, peer %s, unexpected: %2$s.nv[%s] < %1$s.nv[peer].",
+				synode(), peer);
 
 		for (String n : nv.keySet()) {
-			// if (!eq(n, sn) && nyquvect.containsKey(n)
-			if (nyquvect.containsKey(n)
-				&& compareNyq(nv.get(n), nyquvect.get(n)) > 0)
+			Nyquence nyq = null;
+			if (eq(n, synode()))
+				continue;
+			else if (eq(peer, n))
+				nyq = maxn(new Nyquence(nv.get(n).n).inc(), n0());
+			else if (nyquvect.containsKey(n))
+				// && compareNyq(nv.get(n), nyquvect.get(n)) > 0)
+				nyq = maxn(nv.get(n), nyquvect.get(n));
+
+			if (nyq.n != nv.get(n).n) {
 				if (u == null)
 					u = update(synm.tbl, synrobot())
-						.nv(synm.nyquence, n0().n)
+						.nv(synm.nyquence, nyq.n)
 						.whereEq(synm.pk, n);
 				else
 					u.post(update(synm.tbl)
-						.nv(synm.nyquence, nv.get(n).n)
+						.nv(synm.nyquence, nyq.n)
 						.whereEq(synm.pk, n));
-
-			if (nyquvect.containsKey(n))
-				nyquvect.get(n).n = maxn(nv.get(n).n, nyquvect.get(n).n);
-			else nyquvect.put(n, new Nyquence(nv.get(n).n));
+		
+				// nyquvect.put(n, nyq);
+			}
 		}
 
-		nyquvect.put(synode(), maxn(n0(), nv.get(sn)));
-		if (u != null)
-			u.u(instancontxt(basictx.connId(), synrobot()));
+		if (u != null) {
+			u.u(instancontxt(synconn(), synrobot()));
+
+			loadNyquvect0(synconn());
+		}
 
 		return this;
 	}

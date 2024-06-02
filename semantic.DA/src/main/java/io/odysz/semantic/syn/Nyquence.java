@@ -40,7 +40,7 @@ public class Nyquence {
 
 	public Nyquence inc(Nyquence... maxn) {
 		if (isNull(maxn)) {
-			++this.n;
+			++this.n;    // FIXME
 			return this;
 		}
 		else
