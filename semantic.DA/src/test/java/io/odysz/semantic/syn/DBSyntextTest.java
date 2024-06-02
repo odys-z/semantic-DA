@@ -250,6 +250,8 @@ public class DBSyntextTest {
 		// 2. X <= Y
 		Utils.logrst("X <= Y", section, ++no);
 		exchangePhotos(X, Y, section, no);
+		printChangeLines(ck);
+		printNyquv(ck);
 		ck[Y].change(1, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
 		ck[Y].change(1, C, ck[X].trb.synode(), A_0, ck[Y].phm);
 		ck[Y].psubs(1, B_0_uids[1], -1, -1, Z, -1);

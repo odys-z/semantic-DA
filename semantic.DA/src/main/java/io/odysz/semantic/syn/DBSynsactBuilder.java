@@ -914,7 +914,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		x.exstate.can(init);
 
 		cleanStale(nv, target);
-		HashMap<String,Long> xnv = synodeesKnowledge(domain());
+		HashMap<String,Long> xnv = sessionMaxnv(domain());
 		if (Connects.getDebug(synconn()))
 			Utils.logMap(xnv);
 		x.maxnv = xnv;
@@ -975,7 +975,10 @@ public class DBSynsactBuilder extends DATranscxt {
 			x.initChallenge(target, diff);
 		
 			x.exstate.initexchange();
-			diff.stepping(x.exstate.mode, x.exstate.state).session(x.session()).nyquvect(this.nyquvect);
+
+			diff.stepping(x.exstate.mode, x.exstate.state)
+				.session(x.session())
+				.nyquvect(this.nyquvect);
 		}
 
 		return diff;
@@ -987,10 +990,10 @@ public class DBSynsactBuilder extends DATranscxt {
 		x.exstate.can(req.stepping().state);
 		
 		if (x.exstate.state == ready) {
-			x.maxnv = synodeesKnowledge(domain());
+			x.maxnv = sessionMaxnv(domain());
 			if (Connects.getDebug(synconn())) {
 				Utils.warn("Should only once to be here. xnv:");
-				Utils.logMap(x.maxnv);
+				Utils.logi(x.maxnv);
 			}
 
 			cleanStale(req.nyquvect, from);
@@ -1000,11 +1003,6 @@ public class DBSynsactBuilder extends DATranscxt {
 		if (x.onchanges != null && x.onchanges.challenges() > 0)
 			Utils.warn("There are challenges buffered to be commited: %s@%s", from, synode());;
 
-		// 2024-04-24 debug notes:
-		// initExchange() will sync parameter nv, which will step nv[target] ahead.
-		// This is not expected by onchanges().
-		// My nyquvect should updated after onAck().
-		// ChangeLogs myanswer = initExchange(x, from, req.nyquvect);
 		ChangeLogs myanswer = initExchange(x, from, null);
 
 		x.buffChanges(nyquvect, req.challenge.colnames(), onchanges(myanswer, req, from), req.entities);
@@ -1014,14 +1012,15 @@ public class DBSynsactBuilder extends DATranscxt {
 	}
 
 	/**
-	 * Get max nyquence for each synodee, the knowledge that this node knows for each synodee.
+	 * Get max nyquence for each synodee, the knowledge of max nyquvect
+	 * that this node knows for each synodee.
 	 * 
 	 * @param domain
 	 * @return {synodee: max Nyquence group by domian, synodee}
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	HashMap<String,Long> synodeesKnowledge(String domain) throws TransException, SQLException {
+	HashMap<String,Long> sessionMaxnv(String domain) throws TransException, SQLException {
 		HashMap<String, Long> maxnv = new HashMap<String, Long> ();
 		AnResultset rs = (AnResultset) select(chgm.tbl, "cl")
 			.je_(subm.tbl, "sb", chgm.pk, subm.changeId,
@@ -1062,7 +1061,10 @@ public class DBSynsactBuilder extends DATranscxt {
 					// knowledge about the sub from req is older than this node's knowledge 
 					// see #commitChallenges ref: merge-older-version
 					// FIXME how to abstract into one method?
-					resp.remove_sub(req.challenge, subscribe);	
+					
+					// 2024.6.2 client shouldn't have older knowledge than me now,
+					// which is cleanded when initiating.
+					// resp.remove_sub(req.challenge, subscribe);	
 				}
 				else
 					changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
