@@ -407,7 +407,7 @@ public class DBSynsactBuilder extends DATranscxt {
 											.and(Sql.condt(op.ne, constr(peer), subm.synodee)))
 					.je_(synm.tbl, "sn", chgm.synoder, synm.pk, constr(domain()), synm.domain)
 					.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
-					.where(op.lt, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0))
+					.where(op.le, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0))
 					// .where(op.ne, subm.synodee, constr(peer)))
 				.delete(subm.tbl)
 					.where(op.exists, null, select("cl")
@@ -1135,7 +1135,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		// synyquvectWith(target, ack.nyquvect);
 		// synyquvect(target, ack.nyquvect);
 
-		n0(maxn(ack.nyquvect, n0()));
+		// n0(maxn(ack.nyquvect, n0()));
 		
 		return nyquvect;
 	}
@@ -1174,11 +1174,67 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws TransException, SQLException {
 		x.clear();
 
+		/*
 		HashMap<String, Nyquence> snapshot = Nyquence.clone(nyquvect);
-		nv.get(sn).inc(n0());
-		incN0(maxn(nv));
+		incN0(maxn(maxn(nv), new Nyquence(nv.get(sn).n).inc()));
+
+		synyquvect(sn, nv);
+		*/
+		HashMap<String, Nyquence> snapshot = synyquvectMax(sn, nv, nyquvect);
 
 		x.exstate.close();
+		return snapshot;
+	}
+
+	protected HashMap<String, Nyquence> synyquvectMax(String peer,
+			HashMap<String, Nyquence> nv, HashMap<String, Nyquence> mynv)
+					throws TransException, SQLException {
+
+		if (nv == null) return mynv;
+		Update u = null;
+
+		HashMap<String, Nyquence> snapshot =  new HashMap<String, Nyquence>();
+
+		for (String n : nv.keySet()) {
+			if (!nyquvect.containsKey(n))
+				continue;
+			Nyquence nyq = null;
+//			if (eq(n, synode()))
+//				continue;
+//			else
+//			if (eq(peer, n))
+//				nyq = maxn(new Nyquence(nv.get(n).n).inc(), n0());
+//			else if (nyquvect.containsKey(n))
+//				nyq = maxn(nv.get(n), nyquvect.get(n));
+			
+			if (eq(synode(), n)) {
+				Nyquence mx = maxn(nv.get(n), n0(), nv.get(peer));
+				snapshot.put(n, new Nyquence(mx.n));
+				incN0(mx);
+			}
+			else
+				snapshot.put(n, nv.get(n));
+
+			nyq = maxn(nv.get(n), nyquvect.get(n));
+
+			if (compareNyq(nyq, nyquvect.get(n)) != 0) {
+				if (u == null)
+					u = update(synm.tbl, synrobot())
+						.nv(synm.nyquence, nyq.n)
+						.whereEq(synm.pk, n);
+				else
+					u.post(update(synm.tbl)
+						.nv(synm.nyquence, nyq.n)
+						.whereEq(synm.pk, n));
+			}
+		}
+
+		if (u != null) {
+			u.u(instancontxt(synconn(), synrobot()));
+
+			loadNyquvect0(synconn());
+		}
+
 		return snapshot;
 	}
 
@@ -1189,13 +1245,9 @@ public class DBSynsactBuilder extends DATranscxt {
 	
 	public void onclosexchange(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
 			throws SQLException, TransException {
-		x.clear();
-		// synyquvectWith(sn, nv);
-		synyquvect(sn, nv);
 
-		incN0(maxn(nv));
-
-		x.exstate.onclose();
+		try { closexchange(x, sn, nv); }
+		finally { x.exstate.onclose(); }
 	}
 	
 	public void oncloseJoining(ExchangeContext x, String sn, HashMap<String, Nyquence> nv)
@@ -1217,7 +1269,6 @@ public class DBSynsactBuilder extends DATranscxt {
 	DBSynsactBuilder synyquvect(String peer, HashMap<String, Nyquence> nv)
 			throws TransException, SQLException {
 		if (nv == null) return this;
-
 		Update u = null;
 
 		if (compareNyq(nv.get(peer), nyquvect.get(peer)) < 0)
@@ -1227,15 +1278,16 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		for (String n : nv.keySet()) {
 			Nyquence nyq = null;
-			if (eq(n, synode()))
-				continue;
-			else if (eq(peer, n))
-				nyq = maxn(new Nyquence(nv.get(n).n).inc(), n0());
-			else if (nyquvect.containsKey(n))
-				// && compareNyq(nv.get(n), nyquvect.get(n)) > 0)
-				nyq = maxn(nv.get(n), nyquvect.get(n));
+//			if (eq(n, synode()))
+//				continue;
+//			else
+//			if (eq(peer, n))
+//				nyq = maxn(new Nyquence(nv.get(n).n).inc(), n0());
+//			else if (nyquvect.containsKey(n))
+//				nyq = maxn(nv.get(n), nyquvect.get(n));
+			nyq = maxn(nv.get(n), nyquvect.get(n));
 
-			if (nyq.n != nv.get(n).n) {
+			if (compareNyq(nyq, nyquvect.get(n)) != 0) {
 				if (u == null)
 					u = update(synm.tbl, synrobot())
 						.nv(synm.nyquence, nyq.n)
@@ -1244,8 +1296,6 @@ public class DBSynsactBuilder extends DATranscxt {
 					u.post(update(synm.tbl)
 						.nv(synm.nyquence, nyq.n)
 						.whereEq(synm.pk, n));
-		
-				// nyquvect.put(n, nyq);
 			}
 		}
 

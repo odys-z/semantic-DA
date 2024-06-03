@@ -28,6 +28,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -208,23 +210,29 @@ public class DBSyntextTest {
 	void test01InsertBasic(int section) throws TransException, SQLException, IOException {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
 
-		HashMap<String, Nyquence> nvx = ck[X].trb.nyquvect;
+		// HashMap<String, Nyquence> nvx = ck[X].trb.nyquvect;
 		// long Xx_ = nvx.get(ck[X].trb.synode()).n;
 		// long Xy_ = nvx.get(ck[Y].trb.synode()).n;
-		HashMap<String, Nyquence> nvx_ = Nyquence.clone(nvx);
-		String x = ck[X].trb.synode();
+		// HashMap<String, Nyquence> nvx_ = Nyquence.clone(nvx);
+		// String x = ck[X].trb.synode();
 
-		HashMap<String, Nyquence> nvy = ck[Y].trb.nyquvect;
+		// HashMap<String, Nyquence> nvy = ck[Y].trb.nyquvect;
 		// long Yx_ = nvy.get(ck[X].trb.synode()).n;
 		// long Yy_ = nvy.get(ck[Y].trb.synode()).n;
-		HashMap<String, Nyquence> nvy_ = Nyquence.clone(nvy);
-		String y = ck[Y].trb.synode();
+		// HashMap<String, Nyquence> nvy_ = Nyquence.clone(nvy);
+		// String y = ck[Y].trb.synode();
 
-		HashMap<String, Nyquence> nvz = ck[Z].trb.nyquvect;
+		// HashMap<String, Nyquence> nvz = ck[Z].trb.nyquvect;
 		// long Zx_ = nvx.get(ck[Z].trb.synode()).n;
 		// long Zy_ = nvy.get(ck[Z].trb.synode()).n;
-		HashMap<String, Nyquence> nvz_ = Nyquence.clone(nvz);
-		String z = ck[Z].trb.synode();
+		// HashMap<String, Nyquence> nvz_ = Nyquence.clone(nvz);
+		// String z = ck[Z].trb.synode();
+
+		@SuppressWarnings("unchecked")
+		HashMap<String, Nyquence>[] nvs = (HashMap<String, Nyquence>[]) new HashMap[] {
+				ck[X].trb.nyquvect, ck[Y].trb.nyquvect, ck[Z].trb.nyquvect
+		};
+		HashMap<String, Nyquence>[] nvs_ = Nyquence.clone(nvs);
 
 
 		int no = 0;
@@ -255,40 +263,23 @@ public class DBSyntextTest {
 		Utils.logrst("X <= Y", section, ++no);
 		exchangePhotos(X, Y, section, no);
 		printChangeLines(ck);
-		printNyquv(ck);
+		nvs = printNyquv(ck);
 		ck[Y].change(1, C, ck[Y].trb.synode(), B_0, ck[Y].phm);
 		ck[Y].change(1, C, ck[X].trb.synode(), X_0, ck[Y].phm);
 		ck[Y].psubs(1, B_0_uids[1], -1, -1, Z, -1);
 		ck[Y].psubs(1, X_0_uids[1], -1, -1, Z, -1);
 
-		assertI(ck, nvx, nvy, nvz);
-		assertnv(nvy_, nvy,
-				+1, +1, +1);
+		assertI(ck, nvs);
+		assertnv(nvs_[X], nvs[X], 1, 1, 0);
+		assertnv(nvs_[Y], nvs[Y], 1, 1, 0);
+		assertnv(nvs_[Z], nvs[Z], 0, 0, 0);
 
-		// B.b++, A.b = B.b, B.a = A.a
-		long Xy = nvx.get(y).n;
-		long Yy = nvy.get(y).n;
-	
-//		assertnv(  Yy,     Yy_ + 1, Xy_ + 1, Xy + 1,
-//			 nvy.get(y).n, Yy,      Xy,      Yy);
-
-		long Aa = nvx.get(x).n;
-		long Ba = nvy.get(x).n;
-
-//		assertnv(   Aa,      Xx_ + 1, Yx_ + 1,
-//			ck[X].trb.n0().n, Aa,     Ba);
-		assertnv(nvx_, nvx,
-				1, 1, 0);
-
-		nvx_ = nvx;
-		nvy_ = nvy;
-		
 		// 3. Y <= Z
-		long Yz = nvy.get(z).n;
-		long Zz_ = nvz.get(z).n;
-
+		nvs_ = nvs.clone();
 		Utils.logrst("Y <= Z", section, ++no);
 		exchangePhotos(Y, Z, section, no);
+		nvs = printNyquv(ck);
+
 		ck[Z].change(0, C, X_0, ck[Z].phm);
 		ck[Z].change(0, C, ck[X].trb.synode(), X_0, ck[Z].phm);
 		ck[Z].psubs(0, X_0_uids[1], -1, -1, Z, -1);
@@ -302,26 +293,12 @@ public class DBSyntextTest {
 		ck[Y].psubs(0, X_0_uids[1], -1, -1, Z, -1);
 		ck[Y].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 
-		long Bc = nvy.get(x).n;
-		long Ca = nvz.get(x).n;
-		long Cb = nvz.get(y).n;
-		long Cc = ck[Z].trb.n0().n;
+		assertI(ck, nvs);
+		assertnv(nvs_[X], nvs[X], 0, 0, 0);
+		assertnv(nvs_[Y], nvs[Y], 0, 1, 2);
+		assertnv(nvs_[Z], nvs[Z], 1, 2, 2);
 
-		assertI(ck, nvx, nvy, nvz);
-//		assertEquals(Cc, nvz.get(z).n);
-//		assertnv( Zx_, Zy_, Zz_ + 2,
-//				  Ca,  Cb,  Cc );
-		assertnv(nvz_, nvz,
-				0, 0, 2);
-
-//		assertnv( Yx_, Yy_, Yz + 1,
-//				  Ba,  Yy,  Bc );
-		assertnv(nvy_, nvy,
-				0, 0, 1);
-
-		nvx_ = nvx;
-		nvy_ = nvy;
-		nvz_ = nvz;
+		nvs_ = nvs.clone();
 		
 		// 4. X <= Y
 		Utils.logrst("X <= Y", section, ++no);
@@ -404,6 +381,7 @@ public class DBSyntextTest {
 		ck[Z].synodes(X,  Y,  Z, -1);
 		ck[W].synodes(-1, Y, -1, W);
 
+		String x = ck[X].trb.synode();
 		String z = ck[Z].trb.synode();
 
 		// Utils.logi("\n(.1) -------- Z create photos ---------");
@@ -431,17 +409,24 @@ public class DBSyntextTest {
 
 		Utils.logrst("X vs Y", section, +no);
 		exchangePhotos(X, Y, section, no);
+
+		/** So the tests are incorrect in previous tests?
 		ck[X].change(0, C, null, null, ck[X].phm);
 		ck[X].psubs(0, null, X, -1, -1, -1);
 		ck[Y].change(0, C, null, null, ck[X].phm);
 		ck[Y].psubs(0, null, -1, -1, -1, -1);
+		*/
+		ck[X].change(1, C, x, null, ck[X].phm);
+		ck[X].psubs(1, null, -1, -1, -1, W);
+		ck[Y].change(1, C, x, null, ck[X].phm);
+		ck[Y].psubs(1, null, -1, -1, -1, W);
 
 		Utils.logrst("Y vs Z", section, +no);
 		exchangePhotos(Y, Z, section, no);
 		ck[Y].change(0, C, null, null, ck[X].phm);
 		ck[Y].psubs(0, null, X, -1, -1, -1);
-		ck[Z].change(0, C, null, null, ck[X].phm);
-		ck[Z].psubs(0, null, -1, -1, -1, -1);
+		ck[Z].change(1, C, z, null, ck[Z].phm);
+		ck[Z].psubs(2, null, X, -1, -1, W);
 	}
 
 	void test02Update(int section) throws Exception {
@@ -1231,12 +1216,17 @@ public class DBSyntextTest {
 		}
 	}
 
-	public static void printNyquv(Ck[] ck) {
+	@SuppressWarnings("unchecked")
+	public static HashMap<String, Nyquence>[] printNyquv(Ck[] ck) {
 		Utils.logi(Stream.of(ck).map(c -> { return c.trb.synode();})
 				.collect(Collectors.joining("    ", "      ", "")));
+		
+		final HashMap<?, ?>[] nv2 = new HashMap[ck.length];
 
 		for (int cx = 0; cx < ck.length; cx++) {
 			DBSynsactBuilder t = ck[cx].trb;
+			nv2[cx] = Nyquence.clone(t.nyquvect);
+
 			Utils.logi(
 				t.synode() + " [ " +
 				Stream.of(X, Y, Z, W)
@@ -1249,6 +1239,8 @@ public class DBSyntextTest {
 				.collect(Collectors.joining(", ")) +
 				" ]");
 		}
+
+		return (HashMap<String, Nyquence>[]) nv2;
 	}
 	
 	static class ChangeLine extends Anson {
@@ -1314,21 +1306,23 @@ public class DBSyntextTest {
 		}
 	}
 
-	public static void assertI(Ck[] ck, HashMap<?, ?>... nvs) {
+	public static void assertI(Ck[] ck, HashMap<?, ?>[] nvs) {
 		for (int i = 0; i < nvs.length; i++) {
-			assertEquals(ck[i].trb.n0().n, ((Nyquence)nvs[i].get(ck[i].trb.synode())).n);
+			if (nvs[i] != null && nvs[i].size() > 0)
+				assertEquals(ck[i].trb.n0().n, ((Nyquence)nvs[i].get(ck[i].trb.synode())).n);
+			else break;
 		}
 	}
 	
-	public static void assertnv(HashMap<String, Nyquence> nv_, HashMap<String, Nyquence> nv, int ... delta) {
-		if (nv_ == null || nv == null || nv_.size() != nv.size() || nv.size() != delta.length)
+	public static void assertnv(HashMap<String, Nyquence> nv0, HashMap<String, Nyquence> nv1, int ... delta) {
+		if (nv0 == null || nv1 == null || nv0.size() != nv1.size() || nv1.size() != delta.length)
 			fail("Invalid arguments to assert.");
 		
-		for (int i = 0; i < ck.length; i++) {
-			assertEquals(nv_.get(ck[i].trb.synode()).n, nv.get(ck[i].trb.synode()).n + delta[i],
+		for (int i = 0; i < nv0.size(); i++) {
+			assertEquals(nv0.get(ck[i].trb.synode()).n + delta[i], nv1.get(ck[i].trb.synode()).n,
 				String.format("nv[%d] %d : %d + %d",
-						i, nv_.get(ck[i].trb.synode()).n,
-						nv.get(ck[i].trb.synode()).n,
+						i, nv0.get(ck[i].trb.synode()).n,
+						nv1.get(ck[i].trb.synode()).n,
 						delta[i]));
 		}
 	}
