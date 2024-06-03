@@ -406,9 +406,10 @@ public class DBSynsactBuilder extends DATranscxt {
 					.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
 											.and(Sql.condt(op.ne, constr(peer), subm.synodee)))
 					.je_(synm.tbl, "sn", chgm.synoder, synm.pk, constr(domain()), synm.domain)
-					.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
+					// ???
+					//.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
+					.je_(pnvm.tbl, "nv", "sb." + subm.synodee, pnvm.synid, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
 					.where(op.le, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0))
-					// .where(op.ne, subm.synodee, constr(peer)))
 				.delete(subm.tbl)
 					.where(op.exists, null, select("cl")
 					.where(op.eq, subm.changeId, chgm.pk)
