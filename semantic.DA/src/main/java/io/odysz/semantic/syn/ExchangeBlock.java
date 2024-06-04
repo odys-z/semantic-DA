@@ -12,7 +12,6 @@ public class ExchangeBlock extends Anson {
 
 	public static final String ExchangeFlagCol = "change";
 
-
 	String srcnode;
 	String peer;
 	HashMap<String, Nyquence> nv;
@@ -110,7 +109,6 @@ public class ExchangeBlock extends Anson {
 		return this;
 	}
 	
-	
 	/////////////////////// Protocol for synode management /////////////////////
 	
 	AnResultset synodes;
@@ -119,7 +117,6 @@ public class ExchangeBlock extends Anson {
 		synodes = rs;
 		return this;
 	}
-
 
 	////////////////////////////////// states //////////////////////////////////
 
