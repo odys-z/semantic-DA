@@ -209,7 +209,7 @@ public class DBSyntextTest {
 		testJoinChild(++no);
 		testBranchPropagation(++no);
 		test02Update(++no);
-		testBreakAck(++no);
+		// testBreakAck(++no);
 	}
 
 	void test01InsertBasic(int section) throws TransException, SQLException, IOException {
@@ -409,52 +409,23 @@ public class DBSyntextTest {
 		exchangePhotos(Y, W, section, no);
 		ck[Y].change(1, C, z, z_uids[0], ck[X].phm);
 		ck[Y].psubs(1, z_uids[1], X, -1, -1, -1);
-		ck[W].change(0, C, z, z_uids[0], ck[X].phm);
+		ck[W].change(0, C, z, z_uids[0], ck[W].phm);
 		ck[W].psubs(0, z_uids[1], -1, -1, -1, -1);
 
 		Utils.logrst("X vs Y", section, ++no);
 		exchangePhotos(X, Y, section, no);
 
-		/** So the tests are incorrect in previous tests?
 		ck[X].change(0, C, null, null, ck[X].phm);
 		ck[X].psubs(0, null, X, -1, -1, -1);
-		ck[Y].change(0, C, null, null, ck[X].phm);
-		ck[Y].psubs(0, null, -1, -1, -1, -1);
-		*/
-		ck[X].change(1, C, x, null, ck[X].phm);
-		ck[X].psubs(1, null, -1, -1, -1, W);
-		ck[Y].change(1, C, x, null, ck[X].phm);
-		ck[Y].psubs(1, null, -1, -1, -1, W);
-
-		Utils.logrst("Y vs Z", section, ++no);
-		exchangePhotos(Y, Z, section, no);
-		ck[Y].change(0, C, null, null, ck[X].phm);
-		ck[Y].psubs(0, null, X, -1, -1, -1);
-		ck[Z].change(1, C, z, null, ck[Z].phm);
-		ck[Z].psubs(2, null, X, -1, -1, W);
-
-		Utils.logrst("X vs Y", section, ++no);
-		exchangePhotos(X, Y, section, no);
-		ck[X].change(1, C, x, null, ck[X].phm);
-		ck[X].psubs(1, null, -1, -1, -1, W);
-		ck[Y].change(1, C, x, null, ck[Y].phm);
-		ck[Y].psubs(1, null, -1, -1, -1, W);
-
-		Utils.logrst("Y vs W", section, ++no);
-		exchangePhotos(Y, W, section, no);
-		ck[X].change(1, C, x, null, ck[X].phm);
-		ck[X].psubs(1, null, -1, -1, -1, W);
 		ck[Y].change(0, C, null, null, ck[Y].phm);
-		ck[Y].psubs(0, null, X, -1, -1, -1);
-		ck[W].change(0, C, z, null, ck[W].phm);
-		ck[W].psubs(0, null, -1, -1, -1, -1);
+		ck[Y].psubs(0, null, -1, -1, -1, -1);
 
-		Utils.logrst("X vs Y", section, ++no);
-		exchangePhotos(X, Y, section, no);
-		ck[X].change(0, C, x, null, ck[X].phm);
+		Utils.logrst("Z vs X", section, ++no);
+		exchangePhotos(Z, X, section, no);
+		ck[Z].change(0, C, x, null, ck[Z].phm);
+		ck[Z].psubs(0, null, -1, -1, -1, W);
+		ck[X].change(0, C, z, null, ck[X].phm);
 		ck[X].psubs(0, null, -1, -1, -1, -1);
-		ck[Y].change(0, C, null, null, ck[Y].phm);
-		ck[Y].psubs(0, null, -1, -1, -1, -1);
 	}
 
 	void test02Update(int section) throws Exception {

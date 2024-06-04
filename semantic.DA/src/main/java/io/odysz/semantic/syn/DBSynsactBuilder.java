@@ -445,12 +445,6 @@ public class DBSynsactBuilder extends DATranscxt {
 					.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee)))
 
 			// clean changes without subscribes
-			// 
-			// delete from syn_change where not exists ( 
-			//   with cl as (select changeId, domain, tabl, synodee 
-			//               from syn_change cl join syn_subscribe sb on cid = changeId)
-			//   select * from cl join syn_change ch on changeId = cid and cl.domain = ch.domain);
-
 			.post(delete(chgm.tbl)
 				.where(op.notexists, null,
 						with(select(chgm.tbl, "cl")
