@@ -184,6 +184,11 @@ public class DBSyntableBuilder extends DATranscxt {
 	protected SynChangeMeta chgm;
 	protected SynchangeBuffMeta exbm;
 
+	public static final int peermode = 0; 
+	public static final int leafmode = 1; 
+
+	final int nodemode;
+
 	/**
 	 * Get synchronization meta connection id.
 	 * 
@@ -234,20 +239,23 @@ public class DBSyntableBuilder extends DATranscxt {
 		return entityRegists == null ? null : entityRegists.get(tbl);
 	} 
 
-	public DBSyntableBuilder(String conn, String synodeId, String syndomain)
+	public DBSyntableBuilder(String conn, String synodeId, String syndomain, int mode)
 			throws SQLException, SAXException, IOException, TransException {
-		this(conn, synodeId, syndomain,
+		this(conn, synodeId, syndomain, mode,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
 	}
 	
-	public DBSyntableBuilder(String conn, String synodeId, String syndomain, SynChangeMeta chgm, SynodeMeta synm)
+	public DBSyntableBuilder(String conn, String synodeId, String syndomain,
+			int mode, SynChangeMeta chgm, SynodeMeta synm)
 			throws SQLException, SAXException, IOException, TransException {
 
 		super ( new DBSyntext(conn,
 			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(c)),
 			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId, syndomain)
 			    	, runtimepath));
+		
+		nodemode = mode;
 
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;

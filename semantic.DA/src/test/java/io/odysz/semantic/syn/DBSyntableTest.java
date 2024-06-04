@@ -188,7 +188,9 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			ck[s] = new Ck(s, new DBSyntableBuilder(conn, synodeIds[s], "zsu").loadNyquvect0(conn));
+			ck[s] = new Ck(s, new DBSyntableBuilder(conn, synodeIds[s], "zsu",
+					s != W ? DBSyntableBuilder.peermode : DBSyntableBuilder.leafmode)
+					.loadNyquvect0(conn));
 			snm = (SynodeMeta) new SynodeMeta(conn).autopk(false); // .replace();
 			ck[s].synm = snm;
 			if (s != W)
