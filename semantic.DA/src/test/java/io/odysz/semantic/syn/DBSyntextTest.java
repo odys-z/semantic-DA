@@ -4,6 +4,7 @@ import static io.odysz.common.LangExt.compoundVal;
 import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.repeat;
 import static io.odysz.common.LangExt.strcenter;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
@@ -932,7 +933,7 @@ public class DBSyntextTest {
 		}
 		
 		Utils.logi(Stream.of(ck).map(c -> strcenter(c.trb.synode(), 27)).collect(Collectors.joining("|")));
-		Utils.logi(Stream.of(ck).map(c -> "-".repeat(27)).collect(Collectors.joining("+")));
+		Utils.logi(Stream.of(ck).map(c -> repeat("-", 27)).collect(Collectors.joining("+")));
 
 		Utils.logi(uidss.keySet().stream().map(
 			(String linekey) -> {
