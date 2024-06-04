@@ -52,10 +52,10 @@ public class ExchangeBlock extends Anson {
 			? 0 : entities.get(tbl).getRowCount();
 	}
 
-//	public ExchangeBlock answers(ExessionPersist p) {
-//		this.anspage = p.answerPage;
-//		return this;
-//	}
+	public ExchangeBlock answers(ExessionPersist p) {
+		this.anspage = p.answerPage;
+		return this;
+	}
 
 	public void removeChgsub(AnResultset challenpage, String synode) throws SQLException {
 		if (challenpage == null)
