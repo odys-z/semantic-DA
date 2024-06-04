@@ -1066,10 +1066,10 @@ public class DBSynsactBuilder extends DATranscxt {
 					// I have no idea
 					if (!warnflags.contains(subscribe)) {
 						warnflags.add(subscribe);
-						Utils.warn("%s has no idea about %s. The change isn't be committed at this node. This can either be automatically fixed or causing data lost later.",
+						Utils.warn("%s has no idea about %s. The change is committed at this node. This can either be automatically fixed or causing data lost later.",
 								synode(), subscribe);
 					}
-					// changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
+					changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
 				}
 				else if (compareNyq(subnyq, nyquvect.get(srcn)) <= 0) {
 					// ref: _answer-to-remove
