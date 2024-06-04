@@ -1,6 +1,5 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.common.LangExt.compoundVal;
 import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
@@ -16,16 +15,9 @@ import static io.odysz.semantic.syn.Exchanging.init;
 import static io.odysz.semantic.syn.Exchanging.name;
 import static io.odysz.semantic.syn.Exchanging.ready;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
-import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
-import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,7 +50,6 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
-import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -185,7 +176,7 @@ public class DBSyntextTest {
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
 			ck[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s],
-					s != W ? DBSynsactBuilder.peermode : DBSynsactBuilder.leafmode)
+					"zsu", s != W ? DBSynsactBuilder.peermode : DBSynsactBuilder.leafmode)
 					.loadNyquvect0(conn), "zsu");
 
 			snm = new SynodeMeta(conn).autopk(false).replace();
@@ -334,7 +325,7 @@ public class DBSyntextTest {
 		
 		Utils.logrst("X vs Z", section, ++no);
 		exchangeSynodes(X, Z, section, no);
-		Utils.logi("On X-Z: Now Z know X,0023[Y], not X,W. Not synode's sychronization has been initiated.");
+		Utils.logi("On X-Z: Now Z know X,0023[Y], no X,W. Not synode's sychronization has been initiated.");
 		
 		Utils.logrst("Z vs W", section, ++no);
 		try { exchangeSynodes(Z, W, section, no); }
@@ -993,7 +984,7 @@ public class DBSyntextTest {
 	 * Checker of each Synode.
 	 * @author Ody
 	 */
-	public static class Ck {
+	private static class Ck {
 		public static final String org = "URA";
 
 		public T_PhotoMeta phm;
@@ -1050,12 +1041,12 @@ public class DBSyntextTest {
 			this.domain = org;
 		}
 
-		public HashMap<String, Nyquence> cloneNv() {
-			HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(4);
-			for (String n : trb.nyquvect.keySet())
-				nv.put(n, new Nyquence(trb.nyquvect.get(n).n));
-			return nv;
-		}
+//		public HashMap<String, Nyquence> cloneNv() {
+//			HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(4);
+//			for (String n : trb.nyquvect.keySet())
+//				nv.put(n, new Nyquence(trb.nyquvect.get(n).n));
+//			return nv;
+//		}
 
 		/**
 		 * Verify change flag, crud, where tabl = entm.tbl, entity-id = eid.
@@ -1077,7 +1068,7 @@ public class DBSyntextTest {
 				throws TransException, SQLException {
 			Query q = trb
 				.select(chm.tbl, "ch")
-				.cols((Object[])chm.cols())
+				.cols((Object[])chm.insertCols())
 				.whereEq(chm.domain, domain)
 				.whereEq(chm.entbl, entm.tbl);
 			if (synoder != null)
@@ -1194,12 +1185,12 @@ public class DBSyntextTest {
 		 * @param synoder
 		 * @param clientpath
 		 */
-		public void verifile(String synoder, String clientpath, T_PhotoMeta phm) {
-			trb.select(phm.tbl)
-				.col(count(phm.pk), "c")
-				.where(new Predicate(op.eq, compound(chm.uids), compoundVal(synoder, clientpath)))
-				;
-		}
+//		public void verifile(String synoder, String clientpath, T_PhotoMeta phm) {
+//			trb.select(phm.tbl)
+//				.col(count(phm.pk), "c")
+//				.where(new Predicate(op.eq, compound(chm.uids), compoundVal(synoder, clientpath)))
+//				;
+//		}
 	}
 
 	@SuppressWarnings("unchecked")

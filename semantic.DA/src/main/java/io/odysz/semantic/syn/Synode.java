@@ -44,7 +44,7 @@ public class Synode extends Anson {
 	 * 
 	 * @param synm
 	 * @param insert
-	 * @return insert
+	 * @return {@link Insert} statement
 	 * @throws TransException
 	 */
 	public Insert insert(SynodeMeta synm, Nyquence n0, Insert insert) throws TransException {

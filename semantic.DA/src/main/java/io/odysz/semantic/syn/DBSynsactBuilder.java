@@ -6,8 +6,10 @@ import static io.odysz.common.LangExt.str;
 import static io.odysz.semantic.syn.Exchanging.*;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.*;
-import static io.odysz.semantic.util.DAHelper.loadRecNyquence;
-import static io.odysz.semantic.util.DAHelper.loadRecString;
+import static io.odysz.semantic.syn.Nyquence.getn;
+import static io.odysz.semantic.syn.Nyquence.maxn;
+import static io.odysz.semantic.util.DAHelper.getNyquence;
+import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
@@ -102,20 +104,20 @@ public class DBSynsactBuilder extends DATranscxt {
 
 	private HashMap<String, SyntityMeta> entityRegists;
 
-	public DBSynsactBuilder(String conn, String synodeId, int nodemode)
+	public DBSynsactBuilder(String conn, String synodeId, String syndomain, int nodemode)
 			throws SQLException, SAXException, IOException, TransException {
-		this(conn, synodeId, nodemode,
+		this(conn, synodeId, syndomain, nodemode,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
 	}
 	
-	public DBSynsactBuilder(String conn, String synodeId, int nodemode,
+	public DBSynsactBuilder(String conn, String synodeId, String syndomain, int nodemode,
 			SynChangeMeta chgm, SynodeMeta synm)
 			throws SQLException, SAXException, IOException, TransException {
 
 		super ( new DBSyntext(conn,
 			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(c)),
-			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId)
+			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId, syndomain)
 			    	, runtimepath));
 		
 		synmode = nodemode;
@@ -123,8 +125,8 @@ public class DBSynsactBuilder extends DATranscxt {
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;
 		tx.synode = synodeId;
-		tx.domain = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
-		((SyncRobot)tx.usr()).orgId = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
+		tx.domain = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
+		((SyncRobot)tx.usr()).orgId = getValstr((Transcxt) this, conn, synm, synm.org(), synm.pk, synodeId);
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
@@ -162,7 +164,8 @@ public class DBSynsactBuilder extends DATranscxt {
 			.whereEq(synm.pk, synode())
 			.u(instancontxt(basictx.connId(), synrobot()));
 		
-		nyquvect.put(synode(), loadRecNyquence(this, basictx.connId(), synm, synode(), synm.nyquence));
+		// nyquvect.put(synode(), loadRecNyquence(this, basictx.connId(), synm, synode(), synm.nyquence));
+		nyquvect.put(synode(), getNyquence(this, basictx.connId(), synm, synm.nyquence, synm.pk, synode()));
 		return this;
 	}
 
@@ -913,7 +916,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 */
 	public Nyquence incN0(long maxn) throws TransException, SQLException {
 		n0().inc(maxn);
-		DAHelper.updateField(this, basictx.connId(), synm, synode(),
+		DAHelper.updateFieldByPk(this, basictx.connId(), synm, synode(),
 				synm.nyquence, new ExprPart(n0().n), synrobot());
 		return n0();
 	}

@@ -46,7 +46,7 @@ public class SynChangeMeta extends SemanticTableMeta {
 		timestamp= "timestamp";
 	}
 
-	public String[] cols() {
+	public String[] insertCols() {
 		return new String[] {pk, entbl, crud, synoder, uids, nyquence, updcols};
 	}
 

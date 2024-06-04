@@ -48,7 +48,7 @@ public class Nyquence {
 	}
 
 	/**
-	 * If less than {@code maxn}, set to {@code maxn}. then increase n,
+	 * Increase n, if less than {@code maxn}, set to {@code maxn}.
 	 * 
 	 * @param maxn
 	 * @return this

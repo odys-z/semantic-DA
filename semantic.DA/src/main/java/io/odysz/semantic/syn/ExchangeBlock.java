@@ -12,19 +12,28 @@ public class ExchangeBlock extends Anson {
 
 	public static final String ExchangeFlagCol = "change";
 
+
 	String srcnode;
+	String peer;
 	HashMap<String, Nyquence> nv;
 
 	public AnResultset chpage;
-	public int challenges;
-	public ArrayList<ArrayList<Object>> anspage;
+	public HashMap<String, AnResultset> entities;
 
-	/**Server has more challenge blocks, which need to be pulled before closing exchange */
-	public boolean moreChallenges;
+	// public ArrayList<ArrayList<Object>> anspage;
+	public AnResultset anspage;
 
-	public ExchangeBlock(String synode, String sessionId) {
-		srcnode = synode;
+	/**Server has more challenge blocks, which is need to be handled before closing exchange */
+	public boolean hasmore() {
+		return // totalChallenges > 0 && challengeSeq < 0 || // not begin yet 
+			chpage != null && chpage.size() > 0 || anspage != null && anspage.size() > 0;
+	}
+
+	public ExchangeBlock(String src, String peer, String sessionId, ExessionAct exstate) {
+		srcnode = src;
 		session = sessionId;
+		act = exstate.state;
+		this.peer = peer;
 	}
 	
 	public ExchangeBlock nv(HashMap<String, Nyquence> nyquvect) {
@@ -32,23 +41,15 @@ public class ExchangeBlock extends Anson {
 		return this;
 	}
 
-	public int challenges() {
-		return chpage  == null ? 0 : chpage.size();
-	}
-
-	public ExchangeBlock challengePage(AnResultset page) {
-		chpage  = page;
-		return this;
-	}
-
 	public int enitities() { return 0; }
 
-	public AnResultset  answers() {
-		return null;
+	public int answers() {
+		return anspage != null ? anspage.size() : 0;
 	}
 
 	public int enitities(String tbl) {
-		return 0;
+		return entities == null || !entities.containsKey(tbl)
+			? 0 : entities.get(tbl).getRowCount();
 	}
 
 //	public ExchangeBlock answers(ExessionPersist p) {
@@ -56,13 +57,25 @@ public class ExchangeBlock extends Anson {
 //		return this;
 //	}
 
-	public void removeChgsub(String synode) throws SQLException {
-		if (anspage == null) 
-			anspage = new ArrayList<ArrayList<Object>>();
+	public void removeChgsub(AnResultset challenpage, String synode) throws SQLException {
+		if (challenpage == null)
+			return;
+		
+		if (anspage == null) {
+			// anspage = new ArrayList<ArrayList<Object>>();
+			HashMap<String, Object[]> cols = challenpage.colnames();
+			if (!cols.containsKey(ChangeLogs.ChangeFlag.toUpperCase()))
+				cols.put(ChangeLogs.ChangeFlag.toUpperCase(),
+						new Object[] {cols.size(), ChangeLogs.ChangeFlag});
+			anspage = new AnResultset(cols);
+		}
 
-		ArrayList<Object> row = chpage.getRowAt(chpage.currentRow()-1);
-		row.add(row.size(), CRUD.U);
-		anspage.add(row);
+		if (challenpage != null) {
+			ArrayList<Object> row = challenpage.getRowAt(challenpage.currentRow() - 1);
+			int flagIx = (int) anspage.colnames().get(ChangeLogs.ChangeFlag.toUpperCase())[0];
+			row.add(flagIx, CRUD.U);
+			anspage.append(row);
+		}
 	}
 	
 	/**
@@ -79,18 +92,42 @@ public class ExchangeBlock extends Anson {
 		return colnames;
 	}
 
+	int chpagesize;
+	public ExchangeBlock chpagesize(int size) {
+		chpagesize = size;
+		return this;
+	}
+
 	int totalChallenges;
 	public ExchangeBlock totalChallenges(int count) {
 		totalChallenges = count; 
 		return this;
 	}
+	
+	public ExchangeBlock totalChallenges(int count, int chsize) {
+		totalChallenges = count; 
+		chpagesize = chsize; 
+		return this;
+	}
+	
+	
+	/////////////////////// Protocol for synode management /////////////////////
+	
+	AnResultset synodes;
+
+	public ExchangeBlock synodes(AnResultset rs) {
+		synodes = rs;
+		return this;
+	}
+
 
 	////////////////////////////////// states //////////////////////////////////
 
 	String session;
+	/**One of {@link ExessionAct}'s constants. */
 	int act;
-	int challengeId;
-	int answerId;
+	int challengeSeq;
+	int answerSeq;
 
 	/**
 	 * Set challengeId &amp; answerId
@@ -104,20 +141,29 @@ public class ExchangeBlock extends Anson {
 //	public ExchangeBlock seq(ExessionPersist xp) {
 //		return seq(xp.challengeSeq, xp.answerSeq);
 //	}
+	 public ExchangeBlock seq(ExessionPersist xp) {
+	 	return seq(xp.challengeSeq < xp.pages() ? xp.challengeSeq : -1, xp.answerSeq);
+	 }
 
 	public ExchangeBlock requirestore() {
 		this.act = ExessionAct.restore;
 		return this;
 	}
 
-	public ExchangeBlock seq(int chid, int ansid) {
-		challengeId = chid;
-		answerId    = ansid;
+	public ExchangeBlock seq(int chidx, int ansidx) {
+		challengeSeq = chidx;
+		answerSeq    = ansidx;
 		return this;
 	}
 
-	public ExchangeBlock allChanges(int total) {
-		this.challenges = total;
+	public ExchangeBlock chpage(AnResultset rs, HashMap<String, AnResultset> entities) {
+		this.chpage = rs;
+		this.entities = entities;
 		return this;
+	}
+
+	public boolean moreChallenge() {
+		return challengeSeq >= 0 && totalChallenges > 0 && chpagesize > 0
+				&& (challengeSeq + 1) * chpagesize < totalChallenges;
 	}
 }
