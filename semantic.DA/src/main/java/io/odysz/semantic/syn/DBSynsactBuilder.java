@@ -73,6 +73,10 @@ public class DBSynsactBuilder extends DATranscxt {
 	protected SynChangeMeta chgm;
 	protected PeersMeta pnvm;
 
+	public static final int peermode = 0;
+	public static final int leafmode = 1;
+	private final int synmode;
+
 	/**
 	 * Get synchronization meta connection id.
 	 * 
@@ -98,14 +102,14 @@ public class DBSynsactBuilder extends DATranscxt {
 
 	private HashMap<String, SyntityMeta> entityRegists;
 
-	public DBSynsactBuilder(String conn, String synodeId)
+	public DBSynsactBuilder(String conn, String synodeId, int nodemode)
 			throws SQLException, SAXException, IOException, TransException {
-		this(conn, synodeId,
+		this(conn, synodeId, nodemode,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
 	}
 	
-	public DBSynsactBuilder(String conn, String synodeId,
+	public DBSynsactBuilder(String conn, String synodeId, int nodemode,
 			SynChangeMeta chgm, SynodeMeta synm)
 			throws SQLException, SAXException, IOException, TransException {
 
@@ -113,6 +117,8 @@ public class DBSynsactBuilder extends DATranscxt {
 			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(c)),
 			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId)
 			    	, runtimepath));
+		
+		synmode = nodemode;
 
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;
@@ -1088,12 +1094,20 @@ public class DBSynsactBuilder extends DATranscxt {
 					changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
 				else if (!nyquvect.containsKey(subscribe)) {
 					// I have no idea
-					if (!warnflags.contains(subscribe)) {
-						warnflags.add(subscribe);
-						Utils.warn("%s has no idea about %s. The change is committed at this node. This can either be automatically fixed or causing data lost later.",
-								synode(), subscribe);
+					if (synmode != leafmode) {
+						if (!warnflags.contains(subscribe)) {
+							warnflags.add(subscribe);
+							Utils.warn("%s has no idea about %s. The change is committed at this node. This can either be automatically fixed or causing data lost later.",
+									synode(), subscribe);
+						}
+						changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
 					}
-					changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
+					else // leaf
+						if (!warnflags.contains(subscribe)) {
+							warnflags.add(subscribe);
+							Utils.warn("%s has no idea about %s. Ignoring as is working in leaf mode. (Will filter data at server side in the near future)",
+									synode(), subscribe);
+						}
 				}
 				else if (compareNyq(subnyq, nyquvect.get(srcn)) <= 0) {
 					// ref: _answer-to-remove

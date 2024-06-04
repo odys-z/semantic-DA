@@ -8,8 +8,13 @@ import static io.odysz.common.LangExt.repeat;
 import static io.odysz.common.LangExt.strcenter;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
-import static io.odysz.semantic.CRUD.*;
-import static io.odysz.semantic.syn.Exchanging.*;
+import static io.odysz.semantic.CRUD.C;
+import static io.odysz.semantic.CRUD.U;
+import static io.odysz.semantic.syn.Exchanging.confirming;
+import static io.odysz.semantic.syn.Exchanging.exchanging;
+import static io.odysz.semantic.syn.Exchanging.init;
+import static io.odysz.semantic.syn.Exchanging.name;
+import static io.odysz.semantic.syn.Exchanging.ready;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
@@ -28,8 +33,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,7 +51,6 @@ import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
-import io.odysz.semantic.syn.DBSyntextTest.Ck;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
@@ -182,7 +184,10 @@ public class DBSyntextTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			ck[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s]).loadNyquvect0(conn), "zsu");
+			ck[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s],
+					s != W ? DBSynsactBuilder.peermode : DBSynsactBuilder.leafmode)
+					.loadNyquvect0(conn), "zsu");
+
 			snm = new SynodeMeta(conn).autopk(false).replace();
 			ck[s].synm = snm;
 			if (s != W)
@@ -404,7 +409,7 @@ public class DBSyntextTest {
 		exchangePhotos(Y, W, section, no);
 		ck[Y].change(1, C, z, z_uids[0], ck[X].phm);
 		ck[Y].psubs(1, z_uids[1], X, -1, -1, -1);
-		ck[W].change(1, C, z, z_uids[0], ck[X].phm);
+		ck[W].change(0, C, z, z_uids[0], ck[X].phm);
 		ck[W].psubs(0, z_uids[1], -1, -1, -1, -1);
 
 		Utils.logrst("X vs Y", section, ++no);
