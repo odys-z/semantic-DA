@@ -59,6 +59,11 @@ public class Nyquence {
 		return this;
 	}
 
+	@Override
+	public String toString() {
+		return String.valueOf(n);
+	}
+	
 	public static long maxn(long a, long b) {
 		return compareNyq(a, b) < 0 ? b : a;
 	}

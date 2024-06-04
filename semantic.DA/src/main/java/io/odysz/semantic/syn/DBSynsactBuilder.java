@@ -1246,13 +1246,6 @@ public class DBSynsactBuilder extends DATranscxt {
 			if (!nyquvect.containsKey(n))
 				continue;
 			Nyquence nyq = null;
-//			if (eq(n, synode()))
-//				continue;
-//			else
-//			if (eq(peer, n))
-//				nyq = maxn(new Nyquence(nv.get(n).n).inc(), n0());
-//			else if (nyquvect.containsKey(n))
-//				nyq = maxn(nv.get(n), nyquvect.get(n));
 			
 			if (eq(synode(), n)) {
 				Nyquence mx = maxn(nv.get(n), n0(), nv.get(peer));
@@ -1260,7 +1253,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				incN0(mx);
 			}
 			else
-				snapshot.put(n, nv.get(n));
+				snapshot.put(n, maxn(nv.get(n), nyquvect.get(n)));
 
 			nyq = maxn(nv.get(n), nyquvect.get(n));
 
