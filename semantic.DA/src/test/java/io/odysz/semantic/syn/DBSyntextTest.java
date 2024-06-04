@@ -215,24 +215,6 @@ public class DBSyntextTest {
 	void test01InsertBasic(int section) throws TransException, SQLException, IOException {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
 
-		// HashMap<String, Nyquence> nvx = ck[X].trb.nyquvect;
-		// long Xx_ = nvx.get(ck[X].trb.synode()).n;
-		// long Xy_ = nvx.get(ck[Y].trb.synode()).n;
-		// HashMap<String, Nyquence> nvx_ = Nyquence.clone(nvx);
-		// String x = ck[X].trb.synode();
-
-		// HashMap<String, Nyquence> nvy = ck[Y].trb.nyquvect;
-		// long Yx_ = nvy.get(ck[X].trb.synode()).n;
-		// long Yy_ = nvy.get(ck[Y].trb.synode()).n;
-		// HashMap<String, Nyquence> nvy_ = Nyquence.clone(nvy);
-		// String y = ck[Y].trb.synode();
-
-		// HashMap<String, Nyquence> nvz = ck[Z].trb.nyquvect;
-		// long Zx_ = nvx.get(ck[Z].trb.synode()).n;
-		// long Zy_ = nvy.get(ck[Z].trb.synode()).n;
-		// HashMap<String, Nyquence> nvz_ = Nyquence.clone(nvz);
-		// String z = ck[Z].trb.synode();
-
 		@SuppressWarnings("unchecked")
 		HashMap<String, Nyquence>[] nvs = (HashMap<String, Nyquence>[]) new HashMap[] {
 				ck[X].trb.nyquvect, ck[Y].trb.nyquvect, ck[Z].trb.nyquvect
@@ -256,9 +238,7 @@ public class DBSyntextTest {
 		String[] B_0_uids = insertPhoto(Y);
 		String B_0 = B_0_uids[0];
 
-		// syn_change.curd = C
 		ck[Y].change(1, C, B_0, ck[Y].phm);
-		// syn_subscribe.to = [A, C, D]
 		ck[Y].psubs(2, B_0_uids[1], X, -1, Z, -1);
 		
 		printChangeLines(ck);
@@ -463,6 +443,11 @@ public class DBSyntextTest {
 		// ck[Y].psubs(2, null, -1, -1, Z, -1);
 	}
 
+	/**
+	 * @deprecated
+	 * @param section
+	 * @throws Exception
+	 */
 	void testBreakAck(int section) throws Exception {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
 
@@ -489,11 +474,6 @@ public class DBSyntextTest {
 		Utils.logrst("X <= Y", section, ++no);
 		ex_break_ack(ck[X].phm, ck[X].trb, ck[Y].phm, ck[Y].trb, section, no);
 
-		// FIXME issue 2024-04-22
-		// FIXME This change log can't synchronized without client's answer, which is lost
-		// Test runing at commit id: 85636f5807bf809a587695c9edb8598b32efd0af
-		// also see tag: issue-answer-lost
-		//  U  X.000004  X,000023   12  Y |
 		ck[X].change(1, C, ck[X].trb.synode(), xu[0], ck[X].phm);
 
 		ck[X].change(1, C, ck[Y].trb.synode(), yi[0], ck[X].phm);
