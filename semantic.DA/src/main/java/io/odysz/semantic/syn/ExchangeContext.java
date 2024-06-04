@@ -1,10 +1,12 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.semantic.syn.Exchanging.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import io.odysz.common.Radix64;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantics.x.SemanticException;
@@ -34,38 +36,68 @@ public class ExchangeContext {
 
 	final SynChangeMeta chgm;
 
+	Exchanging exstate;
+	
 	/**
-	 * Current nyquence stamp for selecting challenges
-	 * @deprecated
+	 * {entity-name: Nyquvect}
 	 */
-	public Nyquence nyqstep;
+	// HashMap<String,HashMap<String,Long>> exessionKnowledge;
 
-	public ExchangeContext(SynChangeMeta chgm, DBSynsactBuilder localtb, String target) {
+	/**
+	 * Create context at client side.
+	 * @param chgm
+	 * @param localtb local transaction builder
+	 * @param target
+	 */
+	public ExchangeContext(SynChangeMeta chgm, String target) {
 		this.target = target;
 		this.chgm = chgm;
+		this.exstate = new Exchanging(mode_client);
+		this.session = Radix64.toString((long) (Math.random() * Long.MAX_VALUE));
+	}
+
+	/**
+	 * Create context at server side.
+	 * @param session session id supplied by client
+	 * @param chgm
+	 * @param localtb
+	 * @param target
+	 */
+	public ExchangeContext(String session, SynChangeMeta chgm, String target) {
+		this.target = target;
+		this.chgm = chgm;
+		this.exstate = new Exchanging(mode_server);
+		this.session = session;
 	}
 
 	public void initChallenge(String target, ChangeLogs diff) throws SemanticException {
 		if (!eq(this.target, target))
 			throw new SemanticException("Contexts are mismatched: %s vs %s", this.target, target);
-		
+
 		this.mychallenge = diff;
 	}
 
+	/** Local (server) nyquences when accepted exchanging request, used for restore onAck step at server.*/
+	// public HashMap<String, Nyquence> exNyquvect;
+
 	/**
 	 * Buffering changes while responding to {@code challenges}.
+	 * @param myNyquvect 
 	 * @param chcols
 	 * @param yourchallenges
 	 * @param entities
 	 * @throws SemanticException
 	 */
-	public void buffChanges(HashMap<String, Object[]> chcols, ArrayList<ArrayList<Object>> yourchallenges,
-			HashMap<String, AnResultset> entities) throws SemanticException {
+	public void buffChanges(HashMap<String,Nyquence> myNyquvect, HashMap<String, Object[]> chcols,
+			ArrayList<ArrayList<Object>> yourchallenges, HashMap<String, AnResultset> entities)
+			throws SemanticException {
 		if (onchanges != null && onchanges.challenge != null && onchanges.challenge.size() > 0)
 			throw new SemanticException("There is challenges already buffered for committing.");
 		onchanges = new ChangeLogs(chgm)
 				.challenge(new AnResultset(chcols).results(yourchallenges))
 				.entities(entities);
+
+		// exNyquvect = Nyquence.clone(myNyquvect);
 	}
 
 	public void addAnswer(AnResultset answer) throws SemanticException {
@@ -81,4 +113,9 @@ public class ExchangeContext {
 					answer == null ? 0 : answer.size());
 	}
 
+	private String session;
+
+	public String session() { return session; }
+
+	// public HashMap<String,Long> maxnv;
 }

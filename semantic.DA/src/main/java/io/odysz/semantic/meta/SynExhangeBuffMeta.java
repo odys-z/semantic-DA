@@ -7,12 +7,14 @@ import io.odysz.semantics.meta.Semantation;
  *<a href="./syn_change.sqlite.ddl">syn_change DDL</a>
  *
  * @author odys-z@github.com
+ *
  */
-public class SynChangeMeta extends SemanticTableMeta {
+public class SynExhangeBuffMeta extends SemanticTableMeta {
 	/** Separator in uids, ",", for separating fields of pk */
 	@Semantation (noDBExists = true)
 	public final String UIDsep;
 
+	public final String peer;
 	public final String domain;
 	public final String entbl;
 	/** Entity fk, redundant for convenient, not for synchronizing */
@@ -26,24 +28,25 @@ public class SynChangeMeta extends SemanticTableMeta {
 	/** updated fields when updating an entity */
 	public final String updcols;
 
-	public final String timestamp;
+	static {
+	}
 
-	public SynChangeMeta(String ... conn) {
-		super("syn_change", conn);
+	public SynExhangeBuffMeta(String ... conn) {
+		super("syn_exchanging", conn);
 		UIDsep = ",";
 
-		ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
+		ddlSqlite = Utils.loadTxt(SynExhangeBuffMeta.class, "syn_change.sqlite.ddl");
 
-		pk       = "cid";
-		domain   = "domain";
-		entbl    = "tabl";
-		entfk    = "entfk";
-		crud     = "crud";
-		synoder  = "synoder";
-		uids     = "uids";
-		nyquence = "nyquence";
-		updcols  = "updcols";
-		timestamp= "timestamp";
+		pk      = "cid";
+		peer    = "peernode";
+		domain  = "domain";
+		entbl   = "tabl";
+		entfk   = "entfk";
+		crud    = "crud";
+		synoder = "synoder";
+		uids    = "uids";
+		nyquence= "nyquence";
+		updcols = "updcols";
 	}
 
 	public String[] cols() {
@@ -54,4 +57,20 @@ public class SynChangeMeta extends SemanticTableMeta {
 	public String uids(String synode, String entityId) {
 		return synode + UIDsep + entityId; // Funcall.concatstr(synode, UIDsep, entityId);
 	}
+
+	/**
+	 * ISSUE: why not merge with {@link SyntityMeta#replace()}?
+	 * @return
+	 * @throws SQLException
+	 * @throws TransException
+	public SynChangeTempMeta replace() throws SQLException, TransException {
+		TableMeta mdb = Connects.getMeta(conn, tbl);
+		if (!(mdb instanceof SyntityMeta))
+			DBSynmantics.replaceMeta(tbl, this, conn);
+		if (isNull(this.ftypes) && mdb.ftypes() != null)
+			this.ftypes = mdb.ftypes();
+		return this;
+	}
+	 */
+
 }

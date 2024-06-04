@@ -1,10 +1,7 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Set;
 
 import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
@@ -13,9 +10,6 @@ import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
-import io.odysz.semantics.IUser;
-import io.odysz.semantics.meta.TableMeta;
-import io.odysz.transact.x.TransException;
 
 /**
  * A synchronizable entity managed by the package, also a server side
@@ -61,31 +55,32 @@ public class SynEntity extends Anson {
 	protected String synoder;
 	protected Nyquence nyquence;
 	
-	public SynEntity(AnResultset rs, SyntityMeta entity, SynChangeMeta change, SynSubsMeta subs) throws SQLException {
+	public SynEntity(AnResultset rs, SyntityMeta entity, SynChangeMeta change) throws SQLException {
 		this.entMeta = entity;
-		this.subMeta = subs;
+		// this.subMeta = subs;
 		this.chgm = change;
+		this.subMeta = new SynSubsMeta(change);
 
 		format(rs);
 	}
 
 	public SynEntity(SyntityMeta entm) {
 		this.entMeta = entm;
-		this.subMeta = new SynSubsMeta();
 		this.chgm = new SynChangeMeta();
+		this.subMeta = new SynSubsMeta(chgm);
 	}
 
 	public SynEntity(AnResultset rs, SyntityMeta meta) throws SQLException {
-		this(rs, meta, new SynChangeMeta(), new SynSubsMeta());
+		this(rs, meta, new SynChangeMeta());
 	}
 
 	/**
 	 * @param meta TODO change to {@link SyntityMeta} after refactor
 	 * @return this
 	 */
-	public SynEntity onPush(TableMeta meta) {
-		return null;
-	}
+//	public SynEntity onPush(TableMeta meta) {
+//		return null;
+//	}
 
 	public SynEntity check(String conn, DBSynsactBuilder tr0, ArrayList<String[]> subs) {
 		this.subs = subs;
@@ -115,13 +110,13 @@ public class SynEntity extends Anson {
 	 * @return this
 	 * @throws SQLException 
 	 * @throws TransException 
-	 */
 	public SynEntity syncInto(String conn, DBSynsactBuilder trsb, AnResultset subs, Set<String> skips, IUser robot)
 			throws TransException, SQLException {
 		AnResultset ch = (AnResultset) trsb
 				.select(entMeta.tbl, "ent")
 				.je("ent", chgm.tbl, "ch", chgm.uids, concatstr(trsb.synode(), chgm.UIDsep, chgm.pk), chgm.uids, chgm.synoder, trsb.synode())
-				.cols(chgm.cols()).cols(subMeta.cols())
+				.cols((Object[])chgm.cols())
+				.cols((Object[])subMeta.cols())
 				.whereEq(chgm.synoder, synode)
 				.whereEq(chgm.uids, uids)
 				.rs(trsb.instancontxt(conn, robot))
@@ -150,10 +145,5 @@ public class SynEntity extends Anson {
 
 		return this;
 	}
-	public AnResultset subs() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
+	 */
 }

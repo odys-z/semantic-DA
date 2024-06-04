@@ -1,6 +1,6 @@
 package io.odysz.semantic.meta;
 
-import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.eq;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -9,8 +9,6 @@ import java.util.HashSet;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.syn.DBSynmantics;
-import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
@@ -21,7 +19,7 @@ import io.odysz.transact.x.TransException;
  * @author odys-z@github.com
  *
  */
-public abstract class SyntityMeta extends TableMeta {
+public abstract class SyntityMeta extends SemanticTableMeta {
 
 	/**
 	 * exposed to subclass to change
@@ -70,7 +68,6 @@ public abstract class SyntityMeta extends TableMeta {
 	 * @return this
 	 * @throws TransException
 	 * @throws SQLException 
-	 */
 	@SuppressWarnings("unchecked")
 	public <T extends SyntityMeta> T replace() throws TransException, SQLException {
 		TableMeta mdb = Connects.getMeta(conn, tbl);
@@ -80,13 +77,19 @@ public abstract class SyntityMeta extends TableMeta {
 			this.ftypes = mdb.ftypes();
 		return (T) this;
 	}
+	 */
 	
 	public HashSet<String> globalIds() { return uids; }
 
 	/**
 	 * Generate columns for inserting challenging entities.
+	 * 
+	 * <h6>Note:</h6>
+	 * This method will ignore auto-key field
+	 * 
 	 * @return columns in order of rows' fields, values should be same order for insertion
 	 * @throws SemanticException this instance is not initialized from db ({@link #ftypes} is empty).
+	 * @since 1.4.40
 	 */
 	public String[] entCols() throws SemanticException {
 		if (entCols == null)
@@ -95,9 +98,11 @@ public abstract class SyntityMeta extends TableMeta {
 		if (ftypes == null || ftypes.size() == 0) 
 			throw new SemanticException("This table meta is not initialized with information from DB. Call clone() or replace() first.");
 
-		String[] cols = new String[ftypes.size()];
+		String[] cols = new String[autopk() ? ftypes.size() - 1 : ftypes.size()];
 		int cx = 0;
 		for (String c : ftypes.keySet()) {
+			if (autopk() && eq(pk, c))
+				continue;
 			this.entCols.put(c, cx);
 			cols[cx] = c;
 			cx++;
@@ -110,11 +115,13 @@ public abstract class SyntityMeta extends TableMeta {
 	 * using columns for filter out fields of entity table.
 	 * Columns are provided by {@link #entCols()}.
 	 * 
+	 * <h6>Note:</h6>
+	 * This method will ignore auto-key field
+	 * 
 	 * @return values as arguments for calling Insert.value(), the row for the change log
 	 * @throws SQLException 
 	 * @throws SemanticException 
 	 * @since 1.4.40
-	 * FIXME extend Insert statement API to handle this data structure
 	 */
 	public ArrayList<Object[]> insertChallengeEnt(String pk, AnResultset challengents)
 			throws SQLException, SemanticException {
@@ -123,7 +130,9 @@ public abstract class SyntityMeta extends TableMeta {
 		ArrayList<Object[]> val = new ArrayList<Object[]> (entCols.size());
 		ArrayList<Object> row = challengents.getRowAt(challengents.rowIndex0(pk));
 
-		for (int cx = 0; cx < row.size(); cx++) {
+		for (int cx = 0; cx < cols.length; cx++) {
+			if (autopk() && eq(this.pk, cols[cx]))
+				continue;
 			val.add(new Object[] {cols[cx], row.get(cx)});
 		}
 		return val;

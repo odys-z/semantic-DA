@@ -63,4 +63,13 @@ public class DAHelper {
 			.whereEq(m.pk, recId)
 			.u(trb.instancontxt(conn, usr));
 	}
+
+	public static int count(DATranscxt b, String conn, String t, String field, String v)
+			throws SQLException, TransException {
+		return ((AnResultset) b.select(t)
+				.col(Funcall.count())
+				.whereEq(field, v)
+				.rs(b.instancontxt(conn, DATranscxt.dummyUser()))
+				.rs(0)).nxt().getInt(field);
+	}
 }

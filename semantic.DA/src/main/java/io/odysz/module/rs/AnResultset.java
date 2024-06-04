@@ -1229,4 +1229,15 @@ for (String coln : colnames.keySet())
 	public boolean validx() {
 		return results != null && rowIdx > 0 && rowIdx <= results.size();
 	}
+
+	/**
+	 * Get current row
+	 * 
+	 * @return current row
+	 * @throws SQLException
+	 * @since 1.4.40
+	 */
+	public ArrayList<Object> getRowAt() throws SQLException {
+		return getRowAt(getRow() - 1);
+	}
 }

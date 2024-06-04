@@ -20,6 +20,8 @@ public class ChangeLogs extends Anson {
 	
 	HashMap<String, Nyquence> nyquvect;
 
+	// HashMap<String, Long> exchangenv;
+
 	/** 
 	 * clone {@code nyquvect} into my nyq-vector.
 	 * @param nyquvect
@@ -90,7 +92,6 @@ public class ChangeLogs extends Anson {
 		challenge = null;
 		answers = null;
 		entities = null;
-		// dirty = false;
 	}
 
 	// public HashMap<String, HashMap<String, ? extends SynEntity>> entities;
@@ -124,6 +125,7 @@ public class ChangeLogs extends Anson {
 	}
 
 	AnResultset synodes;
+
 	public ChangeLogs synodes(AnResultset rs) {
 		synodes = rs;
 		return this;
@@ -132,5 +134,29 @@ public class ChangeLogs extends Anson {
 	public Object enitities() {
 		return this.entities == null ? 0
 			: this.entities.values().stream().mapToInt(r -> r.getRowCount()).sum();
+	}
+
+	private Exchanging step;
+	public Exchanging stepping() {
+		return step;
+	}
+	
+	/**
+	 * Set mode and state.
+	 * @param m
+	 * @param s
+	 * @return this
+	 */
+	public ChangeLogs stepping(int m, int s) {
+		step = new Exchanging(m);
+		step.state = s;
+		return this;
+	}
+
+	private String session;
+	public String session() { return session; }
+	public ChangeLogs session(String ss) { 
+		session = ss;
+		return this;
 	}
 }
