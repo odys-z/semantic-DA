@@ -422,7 +422,38 @@ public class DBSynsactBuilder extends DATranscxt {
 				.cols("cl.*").col(subm.synodee)
 				.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId)
 				.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
-				.where(op.lt, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0)))
+				/*
+				 *                X               |               Y               |               Z               |               W               
+				 * -------------------------------+-------------------------------+-------------------------------+-------------------------------
+				 *  I  X.000002  X,000023    6  W |                               | I  X.000002  X,000023    6  W |                               
+				 *  I  X.000002  X,000023    6  Y |                               |                               |                               
+				 *                                |                               | I  Z.000001  Z,008004    8  W |                               
+				 *                                | I  Z.000001  Z,008004    8  X | I  Z.000001  Z,008004    8  X |                               
+				 *       X    Y    Z    W
+				 * X [   7,   5,   6,   4 ]
+				 * Y [   6,  10,   8,   9 ]
+				 * Z [   6,   8,   9,   4 ]
+				 * W [    ,   9,    ,  10 ]
+				 * 
+				 * 3.4 X vs Y
+				 * 3.4.1 Y initiate
+				 * 3.4.2 Y initiate    changes: 1    entities: 1
+				 * 3.4.3 X on exchange
+				 * Cleaning staleness at X, peer Y ...
+				 * 0 subscribes,1 propagations,0 change-logs
+				 *                X               |               Y               |               Z               |               W               
+				 * -------------------------------+-------------------------------+-------------------------------+-------------------------------
+				 *                                |                               | I  X.000002  X,000023    6  W |                               
+				 *  I  X.000002  X,000023    6  Y |                               |                               |                               
+				 *                                |                               | I  Z.000001  Z,008004    8  W |                               
+				 *                                | I  Z.000001  Z,008004    8  X | I  Z.000001  Z,008004    8  X |                               
+				 *       X    Y    Z    W
+				 * X [   7,   5,   6,   4 ]
+				 * Y [   6,  10,   8,   9 ]
+				 * Z [   6,   8,   9,   4 ]
+				 * W [    ,   9,    ,  10 ]
+				 */
+				.where(op.le, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0)))
 			.delete(subm.tbl, synrobot())
 				.where(op.exists, null, select("cl")
 				.where(op.eq, subm.changeId, chgm.pk)
