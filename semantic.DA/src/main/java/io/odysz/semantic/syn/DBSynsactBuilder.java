@@ -401,6 +401,45 @@ public class DBSynsactBuilder extends DATranscxt {
 				.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
 
 			// clean 3rd part nodes' propagation
+			/*             X               |               Y               |               Z               |               W
+			-------------------------------+-------------------------------+-------------------------------+-------------------------------
+			 I  X.000002  X,000023    6  W | I  X.000002  X,000023    6  W | I  X.000002  X,000023    6  W |
+			 I  X.000002  X,000023    6  Y |                               |                               |
+			                               |                               | I  Z.000001  Z,008004    8  W |
+			                               |                               | I  Z.000001  Z,008004    8  X |
+			                               |                               | I  Z.000001  Z,008004    8  Y |
+				  X    Y    Z    W
+			X [   7,   5,   6,   4 ]
+			Y [   4,   8,   7,   4 ]
+			Z [   6,   6,   8,   4 ]
+			W [    ,   4,    ,   5 ]
+
+			3.2 Y vs Z
+			3.2.1 Z initiate
+			3.2.2 Z initiate    changes: 3    entities: 1
+			3.2.3 Y on exchange
+			Cleaning staleness at Y, peer Z ...
+			delete from syn_peers where peer = 'Z' AND domain = 'zsu'
+			insert into syn_peers (synid, peer, domain, nyq) values ('X', 'Z', 'zsu', 6), ('Y', 'Z', 'zsu', 6), ('Z', 'Z', 'zsu', 8), ('W', 'Z', 'zsu', 4)
+			delete from syn_subscribe where exists ( with cl as (select cl.*, synodee from syn_change cl join syn_subscribe sb on 'Z' = sb.synodee AND cl.cid = sb.changeId join syn_peers nv on cl.synoder = nv.synid AND 'zsu' = nv.domain AND 'Z' = nv.peer where cl.nyquence - nv.nyq < 0) select * from cl  where changeId = cid AND syn_subscribe.synodee = cl.synodee )
+			delete from syn_subscribe where exists ( with cl as (select cl.*, synodee from syn_change cl join syn_subscribe sb on cid = changeId AND 'Z' <> synodee join syn_node sn on cl.synoder = sn.synid AND 'zsu' = sn.domain join syn_peers nv on cl.synoder = nv.synid AND 'zsu' = nv.domain AND 'Z' = nv.peer where cl.nyquence - nv.nyq <= 0) select * from cl  where changeId = cid AND syn_subscribe.synodee = cl.synodee )
+			delete from syn_change where not exists ( with cl as (select changeId, domain, tabl, synodee from syn_change cl join syn_subscribe sb on cl.cid = sb.changeId) select * from cl  join syn_change ch on ch.domain = cl.domain AND ch.tabl = cl.tabl AND changeId = ch.cid )
+			Subscribe record(s) are affected:
+			0 subscribes,1 propagations,1 change-logs
+			
+			               X               |               Y               |               Z               |               W
+			-------------------------------+-------------------------------+-------------------------------+-------------------------------
+			 I  X.000002  X,000023    6  W |                               | I  X.000002  X,000023    6  W |
+			 I  X.000002  X,000023    6  Y |                               |                               |
+			                               |                               | I  Z.000001  Z,008004    8  W |
+			                               |                               | I  Z.000001  Z,008004    8  X |
+			                               |                               | I  Z.000001  Z,008004    8  Y |
+				  X    Y    Z    W
+			X [   7,   5,   6,   4 ]
+			Y [   4,   8,   7,   4 ]
+			Z [   6,   6,   8,   4 ]
+			W [    ,   4,    ,   5 ]
+			 */
 			.post(with(select(chgm.tbl, "cl")
 					.cols("cl.*").col(subm.synodee)
 					.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
