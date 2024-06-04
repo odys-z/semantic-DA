@@ -20,6 +20,8 @@ public class ChangeLogs extends Anson {
 	
 	HashMap<String, Nyquence> nyquvect;
 
+	// HashMap<String, Long> exchangenv;
+
 	/** 
 	 * clone {@code nyquvect} into my nyq-vector.
 	 * @param nyquvect
@@ -139,6 +141,12 @@ public class ChangeLogs extends Anson {
 		return step;
 	}
 	
+	/**
+	 * Set mode and state.
+	 * @param m
+	 * @param s
+	 * @return this
+	 */
 	public ChangeLogs stepping(int m, int s) {
 		step = new Exchanging(m);
 		step.state = s;

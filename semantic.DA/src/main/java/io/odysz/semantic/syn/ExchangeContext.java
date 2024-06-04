@@ -37,6 +37,11 @@ public class ExchangeContext {
 	final SynChangeMeta chgm;
 
 	Exchanging exstate;
+	
+	/**
+	 * {entity-name: Nyquvect}
+	 */
+	// HashMap<String,HashMap<String,Long>> exessionKnowledge;
 
 	/**
 	 * Create context at client side.
@@ -73,7 +78,7 @@ public class ExchangeContext {
 	}
 
 	/** Local (server) nyquences when accepted exchanging request, used for restore onAck step at server.*/
-	public HashMap<String, Nyquence> exNyquvect;
+	// public HashMap<String, Nyquence> exNyquvect;
 
 	/**
 	 * Buffering changes while responding to {@code challenges}.
@@ -92,7 +97,7 @@ public class ExchangeContext {
 				.challenge(new AnResultset(chcols).results(yourchallenges))
 				.entities(entities);
 
-		exNyquvect = Nyquence.clone(myNyquvect);
+		// exNyquvect = Nyquence.clone(myNyquvect);
 	}
 
 	public void addAnswer(AnResultset answer) throws SemanticException {
@@ -111,4 +116,6 @@ public class ExchangeContext {
 	private String session;
 
 	public String session() { return session; }
+
+	// public HashMap<String,Long> maxnv;
 }
