@@ -376,9 +376,9 @@ public class DBSyntextTest {
 							"- must call testJoinChild() first"}, section);
 		int no = 0;
 
-		ck[X].synodes(X,  Y,  Z, -1);
+		ck[X].synodes(X,  Y,  Z, W);
 		ck[Y].synodes(X,  Y,  Z, W);
-		ck[Z].synodes(X,  Y,  Z, -1);
+		ck[Z].synodes(X,  Y,  Z, W);
 		ck[W].synodes(-1, Y, -1, W);
 
 		String x = ck[X].trb.synode();
@@ -404,7 +404,7 @@ public class DBSyntextTest {
 		exchangePhotos(Y, W, section, no);
 		ck[Y].change(1, C, z, z_uids[0], ck[X].phm);
 		ck[Y].psubs(1, z_uids[1], X, -1, -1, -1);
-		ck[W].change(0, C, z, z_uids[0], ck[X].phm);
+		ck[W].change(1, C, z, z_uids[0], ck[X].phm);
 		ck[W].psubs(0, z_uids[1], -1, -1, -1, -1);
 
 		Utils.logrst("X vs Y", section, ++no);
@@ -1076,7 +1076,14 @@ public class DBSyntextTest {
 				.col(synm.synoder)
 				.distinct(true)
 				.whereIn(synm.synoder, nodes)
-				.rs(trb.instancontxt(trb.basictx().connId(), trb.synrobot()))
+				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
+				.rs(0);
+			assertEquals(cnt, rs.getRowCount());
+
+			rs = (AnResultset) trb.select(synm.tbl)
+				.col(synm.synoder)
+				.distinct(true)
+				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				.rs(0);
 			assertEquals(cnt, rs.getRowCount());
 		}

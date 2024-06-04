@@ -407,8 +407,7 @@ public class DBSynsactBuilder extends DATranscxt {
 											.and(Sql.condt(op.ne, constr(peer), subm.synodee)))
 					.je_(synm.tbl, "sn", chgm.synoder, synm.pk, constr(domain()), synm.domain)
 					// ???
-					//.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
-					.je_(pnvm.tbl, "nv", "sb." + subm.synodee, pnvm.synid, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
+					.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
 					.where(op.le, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0))
 				.delete(subm.tbl)
 					.where(op.exists, null, select("cl")
@@ -1049,6 +1048,8 @@ public class DBSynsactBuilder extends DATranscxt {
 	ArrayList<ArrayList<Object>> onchanges(ChangeLogs resp, ChangeLogs req, String srcn)
 			throws SQLException {
 		ArrayList<ArrayList<Object>> changes = new ArrayList<ArrayList<Object>>();
+		HashSet<String> warnflags = new HashSet<String>();
+		
 		while (req != null && req.challenge != null && req.challenge.next()) {
 			String subscribe = req.challenge.getString(subm.synodee);
 
@@ -1061,8 +1062,15 @@ public class DBSynsactBuilder extends DATranscxt {
 				if (!nyquvect.containsKey(subscribe) // I don't have information of the subscriber
 					&& eq(synm.tbl, req.challenge.getString(chgm.entbl))) // adding synode
 					changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
-				else if (!nyquvect.containsKey(subscribe))
-						; // I have no idea
+				else if (!nyquvect.containsKey(subscribe)) {
+					// I have no idea
+					if (!warnflags.contains(subscribe)) {
+						warnflags.add(subscribe);
+						Utils.warn("%s has no idea about %s. The change isn't be committed at this node. This can either be automatically fixed or causing data lost later.",
+								synode(), subscribe);
+					}
+					// changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));
+				}
 				else if (compareNyq(subnyq, nyquvect.get(srcn)) <= 0) {
 					// ref: _answer-to-remove
 					// knowledge about the sub from req is older than this node's knowledge 
