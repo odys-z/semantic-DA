@@ -911,7 +911,7 @@ public class DBSyntextTest {
 			.nv(chm.synoder, synoder)
 			.nv(chm.uids, concatstr(synoder, chm.UIDsep, pid))
 			.nv(chm.nyquence, trb.n0().n)
-			.nv(chm.domain, robot.orgId)
+			.nv(chm.domain, trb.domain())
 			.post(trb.insert(sbm.tbl)
 				// .cols(sbm.entbl, sbm.synodee, sbm.uids, sbm.domain)
 				.cols(sbm.insertCols())
@@ -923,7 +923,7 @@ public class DBSyntextTest {
 					// .col(concatstr(synoder, chm.UIDsep, pid))
 					// .col(constr(robot.orgId))
 					.where(op.ne, snm.synoder, constr(trb.synode()))
-					.whereEq(snm.domain, robot.orgId)))
+					.whereEq(snm.domain, trb.domain())))
 			.ins(trb.instancontxt(conn, robot)))
 			.resulve(chm);
 		
@@ -1178,19 +1178,6 @@ public class DBSyntextTest {
 					.rs(trb.instancontxt(connId, robot))
 					.rs(0);
 		}
-		
-		/**
-		 * Verify if and only if one instance exists on this node.
-		 * 
-		 * @param synoder
-		 * @param clientpath
-		 */
-//		public void verifile(String synoder, String clientpath, T_PhotoMeta phm) {
-//			trb.select(phm.tbl)
-//				.col(count(phm.pk), "c")
-//				.where(new Predicate(op.eq, compound(chm.uids), compoundVal(synoder, clientpath)))
-//				;
-//		}
 	}
 
 	@SuppressWarnings("unchecked")

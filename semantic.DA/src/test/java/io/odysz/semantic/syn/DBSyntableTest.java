@@ -91,6 +91,7 @@ public class DBSyntableTest {
 	static PeersMeta prm;
 
 	static T_PhotoMeta phm;
+	private static String[] synodes;
 
 	static {
 		printCaller(false);
@@ -141,7 +142,7 @@ public class DBSyntableTest {
 		}
 
 		ck = new Ck[4];
-		String[] synodeIds = new String[] { "X", "Y", "Z", "W" };
+		synodes = new String[] { "X", "Y", "Z", "W" };
 		// new for triggering ddl loading - some error here FIXME
 		// nyqm = new NyquenceMeta("");
 		chm = new SynChangeMeta();
@@ -188,7 +189,7 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			ck[s] = new Ck(s, new DBSyntableBuilder(conn, synodeIds[s], synodeIds[s],
+			ck[s] = new Ck(s, new DBSyntableBuilder(conn, synodes[s], synodes[s],
 					s != W ? DBSyntableBuilder.peermode : DBSyntableBuilder.leafmode)
 					.loadNyquvect0(conn));
 			snm = (SynodeMeta) new SynodeMeta(conn).autopk(false); // .replace();
@@ -218,6 +219,7 @@ public class DBSyntableTest {
 
 	void test01InsertBasic(int section)
 			throws TransException, SQLException, IOException {
+		/*
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
 		int subsect = 0;
 
@@ -334,6 +336,84 @@ public class DBSyntableTest {
 		ck[X].buf_change(0, C, A_0, ck[X].phm);
 		ck[X].buf_change(0, C, B_0, ck[X].phm);
 		ck[X].psubs(0, A_0_uids[1], -1, -1, Z, -1);
+		ck[X].psubs(0, B_0_uids[1], -1, -1, Z, -1);
+		*/
+		@SuppressWarnings("unchecked")
+		HashMap<String, Nyquence>[] nvs = (HashMap<String, Nyquence>[]) new HashMap[] {
+				ck[X].trb.nyquvect, ck[Y].trb.nyquvect, ck[Z].trb.nyquvect
+		};
+		HashMap<String, Nyquence>[] nvs_ = Nyquence.clone(nvs);
+
+
+		int no = 0;
+		// 1.1 insert A
+		Utils.logrst("insert A", section, ++no);
+		String[] X_0_uids = insertPhoto(X);
+		String X_0 = X_0_uids[0];
+
+		// syn_change.curd = C
+		ck[X].change_log(1, C, synodes[X], X_0, ck[X].phm);
+		// syn_subscribe.to = [B, C, D]
+		ck[X].psubs(2, X_0_uids[1], -1, Y, Z, -1);
+
+		// 1.2 insert B
+		Utils.logrst("insert B", section, ++no);
+		String[] B_0_uids = insertPhoto(Y);
+		String B_0 = B_0_uids[0];
+
+		ck[Y].change_log(1, C, synodes[Y], B_0, ck[Y].phm);
+		ck[Y].psubs(2, B_0_uids[1], X, -1, Z, -1);
+		
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		// 2. X <= Y
+		Utils.logrst("X <= Y", section, ++no);
+		exchangePhotos(X, Y, section, no);
+		printChangeLines(ck);
+		nvs = printNyquv(ck);
+		ck[Y].change_photolog(1, C, B_0);
+		ck[Y].change_photolog(1, C, X_0);
+		ck[Y].psubs(1, B_0_uids[1], -1, -1, Z, -1);
+		ck[Y].psubs(1, X_0_uids[1], -1, -1, Z, -1);
+
+		assertI(ck, nvs);
+		assertnv(nvs_[X], nvs[X], 1, 1, 0);
+		assertnv(nvs_[Y], nvs[Y], 1, 1, 0);
+		assertnv(nvs_[Z], nvs[Z], 0, 0, 0);
+
+		// 3. Y <= Z
+		nvs_ = nvs.clone();
+		Utils.logrst("Y <= Z", section, ++no);
+		exchangePhotos(Y, Z, section, no);
+		nvs = printNyquv(ck);
+
+		ck[Z].change_log(0, C, synodes[Z], X_0, ck[Z].phm);
+		ck[Z].change_log(0, C, ck[X].trb.synode(), X_0, ck[Z].phm);
+		ck[Z].psubs(0, X_0_uids[1], -1, -1, Z, -1);
+
+		ck[Z].change_photolog(0, C, B_0);
+		ck[Z].change_photolog(0, C, B_0);
+		ck[Z].psubs(0, B_0_uids[1], -1, -1, Z, -1);
+		
+		ck[Y].change_photolog(0, C, X_0);
+		ck[Y].change_photolog(0, C, B_0);
+		ck[Y].psubs(0, X_0_uids[1], -1, -1, Z, -1);
+		ck[Y].psubs(0, B_0_uids[1], -1, -1, Z, -1);
+
+		assertI(ck, nvs);
+		assertnv(nvs_[X], nvs[X], 0, 0, 0);
+		assertnv(nvs_[Y], nvs[Y], 0, 1, 2);
+		assertnv(nvs_[Z], nvs[Z], 1, 2, 2);
+
+		nvs_ = nvs.clone();
+		
+		// 4. X <= Y
+		Utils.logrst("X <= Y", section, ++no);
+		exchangePhotos(X, Y, section, no);
+		ck[X].change_photolog(0, C, X_0);
+		ck[X].change_photolog(0, C, B_0);
+		ck[X].psubs(0, X_0_uids[1], -1, -1, Z, -1);
 		ck[X].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 	}
 
@@ -960,6 +1040,10 @@ public class DBSyntableTest {
 			return buf_change(count, crud, trb.synode(), eid, entm);
 		}
 
+		public long change_photolog(int count, String crud, String eid) throws TransException, SQLException {
+			return change_log(count, crud, trb.synode(), eid, phm);
+		}
+
 		public long change_log(int count, String crud, String synoder, String eid, SyntityMeta entm)
 				throws TransException, SQLException {
 			Query q = trb
@@ -1153,12 +1237,17 @@ public class DBSyntableTest {
 		}
 	}
 
-	public static void printNyquv(Ck[] ck) {
+	@SuppressWarnings("unchecked")
+	public static HashMap<String, Nyquence>[] printNyquv(Ck[] ck) {
 		Utils.logi(Stream.of(ck).map(c -> { return c.trb.synode();})
-			.collect(Collectors.joining("    ", "      ", "")));
+				.collect(Collectors.joining("    ", "      ", "")));
+		
+		final HashMap<?, ?>[] nv2 = new HashMap[ck.length];
 
 		for (int cx = 0; cx < ck.length; cx++) {
 			DBSyntableBuilder t = ck[cx].trb;
+			nv2[cx] = Nyquence.clone(t.nyquvect);
+
 			Utils.logi(
 				t.synode() + " [ " +
 				Stream.of(X, Y, Z, W)
@@ -1171,6 +1260,8 @@ public class DBSyntableTest {
 				.collect(Collectors.joining(", ")) +
 				" ]");
 		}
+
+		return (HashMap<String, Nyquence>[]) nv2;
 	}
 	
 	static String changeLine(AnResultset r) throws SQLException {
@@ -1234,12 +1325,34 @@ public class DBSyntableTest {
 				);
 	}
 
+	
 	public static void assertnv(long... nvs) {
 		if (nvs == null || nvs.length == 0 || nvs.length % 2 != 0)
 			fail("Invalid arguments to assert.");
 		
 		for (int i = 0; i < nvs.length/2; i++) {
 			assertEquals(nvs[i], nvs[i + nvs.length/2], String.format("nv[%d] %d : %d", i, nvs[i], nvs[i + nvs.length/2]));
+		}
+	}
+
+	public static void assertI(Ck[] ck, HashMap<?, ?>[] nvs) {
+		for (int i = 0; i < nvs.length; i++) {
+			if (nvs[i] != null && nvs[i].size() > 0)
+				assertEquals(ck[i].trb.n0().n, ((Nyquence)nvs[i].get(ck[i].trb.synode())).n);
+			else break;
+		}
+	}
+	
+	public static void assertnv(HashMap<String, Nyquence> nv0, HashMap<String, Nyquence> nv1, int ... delta) {
+		if (nv0 == null || nv1 == null || nv0.size() != nv1.size() || nv1.size() != delta.length)
+			fail("Invalid arguments to assert.");
+		
+		for (int i = 0; i < nv0.size(); i++) {
+			assertEquals(nv0.get(ck[i].trb.synode()).n + delta[i], nv1.get(ck[i].trb.synode()).n,
+				String.format("nv[%d] %d : %d + %d",
+						i, nv0.get(ck[i].trb.synode()).n,
+						nv1.get(ck[i].trb.synode()).n,
+						delta[i]));
 		}
 	}
 }

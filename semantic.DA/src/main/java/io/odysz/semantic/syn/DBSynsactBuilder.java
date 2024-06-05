@@ -664,7 +664,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		return delete(chgm.tbl) // delete change log if no subscribers exist
 			.whereEq(chgm.pk, changeId)
 			.whereEq(chgm.entbl, entitymeta.tbl)
-			.whereEq(chgm.domain, org)
+			.whereEq(chgm.domain, domain())
 			.whereEq(chgm.synoder, synoder)
 			// .whereEq(chgm.uids,    uids)
 			.whereEq("0", (Query)select(subm.tbl)
