@@ -51,12 +51,10 @@ public class ExchangeBlock extends Anson {
 			? 0 : entities.get(tbl).getRowCount();
 	}
 
-	/*
 	public ExchangeBlock answers(ExessionPersist p) {
 		this.anspage = p.answerPage;
 		return this;
 	}
-	*/
 
 	public void removeChgsub(AnResultset challenpage, String synode) throws SQLException {
 		if (challenpage == null)
@@ -136,10 +134,10 @@ public class ExchangeBlock extends Anson {
 	 * 
 	 * @param xp Persist
 	 * @return this
+	 */
 	 public ExchangeBlock seq(ExessionPersist xp) {
 	 	return seq(xp.challengeSeq < xp.pages() ? xp.challengeSeq : -1, xp.answerSeq);
 	 }
-	 */
 
 	public ExchangeBlock requirestore() {
 		this.act = ExessionAct.restore;
