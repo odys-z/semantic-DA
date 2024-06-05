@@ -175,8 +175,8 @@ public class DBSyntextTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			ck[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s],
-					"zsu", s != W ? DBSynsactBuilder.peermode : DBSynsactBuilder.leafmode)
+			ck[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s], synodeIds[s],
+					s != W ? DBSynsactBuilder.peermode : DBSynsactBuilder.leafmode)
 					.loadNyquvect0(conn), "zsu");
 
 			snm = new SynodeMeta(conn).autopk(false).replace();
