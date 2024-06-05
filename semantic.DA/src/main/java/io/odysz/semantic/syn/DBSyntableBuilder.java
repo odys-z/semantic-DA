@@ -200,17 +200,26 @@ public class DBSyntableBuilder extends DATranscxt {
 	protected String synode() { return ((DBSyntext)this.basictx).synode; }
 
 	protected Nyquence stamp;
-	void stampersist(Nyquence n) throws TransException, SQLException {
-		DAHelper.updateFieldWhereEqs(this, synconn(), synrobot(), synm, synm.nstamp, n.n,
+	protected Nyquence persistamp(Nyquence n) throws TransException, SQLException {
+		DAHelper.updateFieldWhereEqs(this, synconn(), synrobot(), synm,
+				synm.nstamp, n.n,
 				synm.pk, synode());
 		stamp.n = n.n;
+		return stamp;
+	}
+
+	protected Nyquence persistamp() throws TransException, SQLException {
+		DAHelper.updateFieldWhereEqs(this, synconn(), synrobot(), synm,
+				synm.nstamp, stamp.n,
+				synm.pk, synode());
+		return stamp;
 	}
 
 	DBSyntableBuilder incStamp(ExessionPersist xp) throws TransException, SQLException {
 		stamp.inc();
 		if (Nyquence.abs(stamp, nyquvect.get(synode())) >= 2)
 			throw new ExchangeException(0, xp, "Nyquence stamp increased too much or out of range.");
-		stampersist(stamp);
+		persistamp(stamp);
 		return this;
 	}
 
@@ -811,12 +820,12 @@ public class DBSyntableBuilder extends DATranscxt {
 //		HashMap<String, Nyquence> snapshot = Nyquence.clone(nyquvect);
 //		incN0(maxn(nv));
 		
-		if (Nyquence.compareNyq(stamp, n0()) > 0)
-			throw new SemanticException("Synchronizing Nyquence exception: stamp = %d > n0 = %d",
+		if (Nyquence.compareNyq(stamp, n0()) < 0)
+			throw new SemanticException("Synchronizing Nyquence exception: stamp = %d < n0 = %d",
 					stamp.n, n0().n);
 		
 		HashMap<String, Nyquence> snapshot = synyquvectMax(cx.peer, rep.nv, nyquvect);
-		stampersist(maxn(stamp, n0()));
+		persistamp(maxn(stamp, n0()));
 
 		// return snapshot;
 		return cx.closexchange(rep).nv(snapshot);
@@ -871,7 +880,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws TransException, SQLException {
 		HashMap<String, Nyquence> snapshot = Nyquence.clone(nyquvect);
 		incN0(stamp);
-		stampersist(maxn(stamp, n0()));
+		persistamp(maxn(stamp, n0()));
 		return cx.abortExchange().nv(snapshot);
 	}
 	
@@ -940,7 +949,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				.nv(chgm.synoder, synode()) // U.synoder != uids[synoder]
 				.nv(chgm.uids, concatstr(synoder, chgm.UIDsep, pid))
 				.nv(chgm.nyquence, stamp.n)
-				.nv(chgm.domain, synrobot().orgId())
+				.nv(chgm.domain, domain())
 				.nv(chgm.updcols, updcols)
 				.post(insert(subm.tbl)
 					.cols(subm.insertCols())
@@ -948,7 +957,7 @@ public class DBSyntableBuilder extends DATranscxt {
 						.col(new Resulving(chgm.tbl, chgm.pk))
 						.col(synm.synoder)
 						.where(op.ne, synm.synoder, constr(synode()))
-						.whereEq(synm.domain, synrobot().orgId()))))
+						.whereEq(synm.domain, domain()))))
 			.u(instancontxt(basictx.connId(), synrobot()))
 			.resulve(chgm.tbl, chgm.pk);
 		return chgid;
@@ -983,6 +992,12 @@ public class DBSyntableBuilder extends DATranscxt {
 		
 		nyquvect.put(synode(), getNyquence(this, basictx.connId(), synm, synm.nyquence,
 				synm.pk, synode(), synm.domain, ((DBSyntext)this.basictx).domain));
+		stamp.inc();
+		persistamp(stamp);
+		
+		if (compareNyq(stamp, nyquvect.get(synode())) < 0)
+			throw new SemanticException("Stamp is early than n0. stamp = %s, n0 = %s",
+					stamp.n, nyquvect.get(synode()).n);
 		return this;
 	}
 	
@@ -1100,7 +1115,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			}
 		}
 
-		stampersist(mxn);
+		persistamp(mxn);
 
 		return new ExchangeBlock(synode(), admin, domainstatus.session,
 				new ExessionAct(ExessionAct.mode_client, setupDom)

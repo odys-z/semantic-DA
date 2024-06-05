@@ -96,33 +96,32 @@ public class Exchanging extends Anson {
 	 */
 	public int can(int exp) throws ExchangeException {
 		// deprecated, keep for DBSyansactBuilder
-		// return can(exp, null);
-		return exp;
+		return can(exp, null);
 	}
 
-//	public int can(int exp, ExessionPersist xp) throws ExchangeException {
-//		if (mode == mode_client) {
-//			if (state == ready)
-//				if (exp != init)
-//					throw new ExchangeException(init, xp, "Expecting init, but was %s", name(exp));
-//			if (state == exchanging)
-//				if (exp != confirming)
-//					throw new ExchangeException(confirming, xp, "Expecting confirming, but was %s", name(exp));
-//			if (state == confirming)
-//				if (exp != ready && exp != init)
-//					throw new ExchangeException(ready, xp, "Expecting ready/init, but was %s", name(exp));
-//		}
-//		else { // (mode == mode_server)
-//			if (state == ready)
-//				if (exp != exchanging && exp != init)
-//					throw new ExchangeException(exchanging, xp, "Expecting exchanging/init, but was %s", name(exp));
-//			if (state == exchanging)
-//				if (exp != confirming)
-//					throw new ExchangeException(confirming, xp, "Expecting confirming, but was %s", name(exp));
-//			if (state == confirming)
-//				if (exp != ready)
-//					throw new ExchangeException(ready, xp, "Expecting ready, but was %s", name(exp));
-//		}
-//		return state;
-//	}
+	public int can(int exp, ExessionPersist xp) throws ExchangeException {
+		if (mode == mode_client) {
+			if (state == ready)
+				if (exp != init)
+					throw new ExchangeException(init, xp, "Expecting init, but was %s", name(exp));
+			if (state == exchanging)
+				if (exp != confirming)
+					throw new ExchangeException(confirming, xp, "Expecting confirming, but was %s", name(exp));
+			if (state == confirming)
+				if (exp != ready && exp != init)
+					throw new ExchangeException(ready, xp, "Expecting ready/init, but was %s", name(exp));
+		}
+		else { // (mode == mode_server)
+			if (state == ready)
+				if (exp != exchanging && exp != init)
+					throw new ExchangeException(exchanging, xp, "Expecting exchanging/init, but was %s", name(exp));
+			if (state == exchanging)
+				if (exp != confirming)
+					throw new ExchangeException(confirming, xp, "Expecting confirming, but was %s", name(exp));
+			if (state == confirming)
+				if (exp != ready)
+					throw new ExchangeException(ready, xp, "Expecting ready, but was %s", name(exp));
+		}
+		return state;
+	}
 }

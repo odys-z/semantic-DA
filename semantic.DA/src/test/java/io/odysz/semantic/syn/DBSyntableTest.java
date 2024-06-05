@@ -226,6 +226,8 @@ public class DBSyntableTest {
 		HashMap<String, Nyquence>[] nvs_ = Nyquence.clone(nvs);
 
 		int no = 0;
+		String x = synodes[X];
+
 		// 1.1 insert A
 		Utils.logrst("insert A", section, ++no);
 		String[] X_0_uids = insertPhoto(X);
@@ -253,7 +255,7 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		nvs = printNyquv(ck);
 		ck[Y].change_photolog(1, C, B_0);
-		ck[Y].change_photolog(1, C, X_0);
+		ck[Y].change_photolog(1, C, x, X_0);
 		ck[Y].psubs(1, B_0_uids[1], -1, -1, Z, -1);
 		ck[Y].psubs(1, X_0_uids[1], -1, -1, Z, -1);
 
@@ -269,7 +271,7 @@ public class DBSyntableTest {
 		nvs = printNyquv(ck);
 
 		ck[Z].change_log(0, C, synodes[Z], X_0, ck[Z].phm);
-		ck[Z].change_log(0, C, ck[X].trb.synode(), X_0, ck[Z].phm);
+		ck[Z].change_log(0, C, x, X_0, ck[Z].phm);
 		ck[Z].psubs(0, X_0_uids[1], -1, -1, Z, -1);
 
 		ck[Z].change_photolog(0, C, B_0);
@@ -426,7 +428,8 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[X].buf_change(1, U, xu[0], ck[X].phm);
+		ck[X].change_photolog(1, U, xu[0]);
+		ck[X].buf_change(0, U, xu[0], ck[X].phm);
 		ck[X].psubs(3, xu[1], -1, Y, Z, W);
 
 		Utils.logrst("Y update photos", section, 2);
@@ -434,7 +437,8 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[Y].buf_change(1, U, yu[0], ck[Y].phm);
+		ck[Y].change_photolog(1, U, yu[0]);
+		ck[Y].buf_change(0, U, yu[0], ck[Y].phm);
 		ck[Y].psubs(3, yu[1], X, -1, Z, W);
 		
 		Utils.logrst("X => Y", section, 3);
@@ -442,12 +446,14 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[X].buf_change(1, U, null, ck[X].phm);
+		ck[X].change_photolog(1, U, null);
+		ck[X].buf_change(0, U, null, ck[X].phm);
 		ck[X].psubs(4, null, X, Y, Z, W);
 		ck[X].psubs(4, null, -1, -1, Z, W);
 		// ck[X].psubs(2, null, -1, -1, Z, -1);
 
-		ck[Y].buf_change(1, U, null, ck[Y].phm);
+		ck[Y].change_photolog(1, U, null);
+		ck[Y].buf_change_p(0, U, null);
 		ck[Y].psubs(4, null, X, Y, Z, W);
 		ck[Y].psubs(4, null, -1, -1, Z, W);
 		// ck[Y].psubs(2, null, -1, -1, Z, -1);
@@ -919,9 +925,18 @@ public class DBSyntableTest {
 				throws TransException, SQLException {
 			return buf_change(count, crud, trb.synode(), eid, entm);
 		}
+		public long buf_change_p(int count, String crud, String eid)
+				throws TransException, SQLException {
+			return buf_change(count, crud, trb.synode(), eid, phm);
+		}
+
 
 		public long change_photolog(int count, String crud, String eid) throws TransException, SQLException {
 			return change_log(count, crud, trb.synode(), eid, phm);
+		}
+
+		public long change_photolog(int count, String crud, String synoder, String eid) throws TransException, SQLException {
+			return change_log(count, crud, synoder, eid, phm);
 		}
 
 		public long change_log(int count, String crud, String synoder, String eid, SyntityMeta entm)
