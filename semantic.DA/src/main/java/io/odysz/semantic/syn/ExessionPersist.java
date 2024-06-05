@@ -5,6 +5,7 @@ import static io.odysz.common.LangExt.isNull;
 import static io.odysz.semantic.syn.ExessionAct.*;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
+import static io.odysz.semantic.syn.Nyquence.sqlCompare;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constVal;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
@@ -421,6 +422,14 @@ public class ExessionPersist {
 			.seq(challengeSeq, answerSeq);
 	}
 
+	/**
+	 * insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
+	 * 
+	 * @param ini
+	 * @return new message
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public ExchangeBlock onInit(ExchangeBlock ini) throws TransException, SQLException {
 		if (trb != null) {
 			String conn = trb.basictx().connId();
@@ -431,8 +440,8 @@ public class ExessionPersist {
 					.distinct()
 					.je_(subm.tbl, "sb", chgm.pk, subm.changeId) // filter zero subscriber
 					.cols(exbm.selectCols(peer, -1))
-					// FIXME not op.lt, must implement a function to compare nyquence.
-					.where(op.gt, chgm.nyquence, dn.n) // FIXME
+					// .where(op.gt, chgm.nyquence, dn.n)
+					.where(op.gt, sqlCompare(chgm.nyquence, dn.n), 0)
 					.orderby(chgm.entbl)
 					.orderby(chgm.nyquence)
 					.orderby(chgm.synoder)

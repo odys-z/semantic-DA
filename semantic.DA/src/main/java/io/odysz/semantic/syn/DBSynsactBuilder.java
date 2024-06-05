@@ -941,12 +941,9 @@ public class DBSynsactBuilder extends DATranscxt {
 		x.exstate.can(init);
 
 		cleanStale(nv, target);
-		HashMap<String,Long> xnv = sessionMaxnv(domain());
-		if (Connects.getDebug(synconn()))
-			Utils.logMap(xnv);
-		// x.maxnv = xnv;
-
-		// synyquvectWith(target, nv);
+		// HashMap<String,Long> xnv = sessionMaxnv(domain());
+		// if (Connects.getDebug(synconn()))
+		//	Utils.logMap(xnv);
 
 		ChangeLogs diff = initChallenges(x, target);
 		return diff;
@@ -1024,9 +1021,9 @@ public class DBSynsactBuilder extends DATranscxt {
 		
 		if (x.exstate.state == ready) {
 			if (Connects.getDebug(synconn())) {
-				HashMap<String, Long> maxnv = sessionMaxnv(domain());
+				// HashMap<String, Long> maxnv = sessionMaxnv(domain());
 				Utils.warn("Should only once to be here.\nSession Max Nv:");
-				Utils.logi(maxnv);
+				// Utils.logi(maxnv);
 			}
 
 			cleanStale(req.nyquvect, from);
@@ -1052,7 +1049,6 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @return {synodee: max Nyquence group by domian, synodee}
 	 * @throws TransException
 	 * @throws SQLException
-	 */
 	HashMap<String,Long> sessionMaxnv(String domain) throws TransException, SQLException {
 		HashMap<String, Long> maxnv = new HashMap<String, Long> ();
 		AnResultset rs = (AnResultset) select(chgm.tbl, "cl")
@@ -1071,6 +1067,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		}
 		return maxnv;
 	}
+	 */
 
 	ArrayList<ArrayList<Object>> onchanges(ChangeLogs resp, ChangeLogs req, String srcn)
 			throws SQLException {
@@ -1314,13 +1311,6 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		for (String n : nv.keySet()) {
 			Nyquence nyq = null;
-//			if (eq(n, synode()))
-//				continue;
-//			else
-//			if (eq(peer, n))
-//				nyq = maxn(new Nyquence(nv.get(n).n).inc(), n0());
-//			else if (nyquvect.containsKey(n))
-//				nyq = maxn(nv.get(n), nyquvect.get(n));
 			nyq = maxn(nv.get(n), nyquvect.get(n));
 
 			if (compareNyq(nyq, nyquvect.get(n)) != 0) {

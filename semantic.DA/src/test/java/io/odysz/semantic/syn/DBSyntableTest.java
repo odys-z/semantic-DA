@@ -803,6 +803,7 @@ public class DBSyntableTest {
 			.nv(m.device(), robot.deviceId())
 			.nv(m.folder, robot.uid())
 			.nv(m.shareDate, now())
+			// TODO .post(insert chid)?
 			.ins(trb.instancontxt(conn, robot)))
 			.resulve(entm);
 		
@@ -815,18 +816,14 @@ public class DBSyntableTest {
 			.nv(chm.crud, CRUD.C)
 			.nv(chm.synoder, synoder)
 			.nv(chm.uids, concatstr(synoder, chm.UIDsep, pid))
-			.nv(chm.nyquence, trb.n0().n)
+			.nv(chm.nyquence, trb.stamp.n)
 			.nv(chm.domain, robot.domain())
 			.post(trb.insert(sbm.tbl)
-				// .cols(sbm.entbl, sbm.synodee, sbm.uids, sbm.domain)
 				.cols(sbm.insertCols())
 				.select((Query) trb
 					.select(snm.tbl)
-					// .col(constr(entm.tbl))
 					.col(new Resulving(chm.tbl, chm.pk))
 					.col(snm.synoder)
-					// .col(concatstr(synoder, chm.UIDsep, pid))
-					// .col(constr(robot.orgId))
 					.where(op.ne, snm.synoder, constr(trb.synode()))
 					.whereEq(snm.domain, robot.domain)))
 			.ins(trb.instancontxt(conn, robot)))
@@ -850,6 +847,7 @@ public class DBSyntableTest {
 		pid = ((SemanticObject) ck[s].trb
 			.delete(m.tbl, ck[s].robot())
 			.whereEq(chgm.uids, pid)
+			// TODO .post(null)
 			.d(ck[s].trb.instancontxt(conns[s], ck[s].robot())))
 			.resulve(ck[s].phm.tbl, ck[s].phm.pk);
 		

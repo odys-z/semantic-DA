@@ -150,6 +150,10 @@ public class Nyquence {
 		return new ExprPart(String.format("%s - %s", lcol, rcol)); // FIXME
 	}
 
+	public static ExprPart sqlCompare(String lcol, long rcol) {
+		return new ExprPart(String.format("%s - %s", lcol, rcol)); // FIXME
+	}
+
 	public static ExprPart sqlCompare(String lalias, String lcol, String ralias, String rcol) {
 		return sqlCompare(String.format("%s.%s", lalias, lcol), String.format("%s.%s", ralias, rcol));
 	}

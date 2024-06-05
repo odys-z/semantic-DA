@@ -304,12 +304,8 @@ public class DBSyntableBuilder extends DATranscxt {
 				"Can't initate new exchange session. There are exchanging records to be finished.");
 
 		// select change 
-		try { return cp.init().nv(nyquvect); }
-		finally { incStamp(cp); }
-
-//		return new ExchangeBlock(synode(), cp.session()).nv(nyquvect)
-//				.totalChallenges(DAHelper.count(this, synconn(), exbm.tbl, exbm.peer, cp.peer))
-//				.seq(cp);
+		incStamp(cp);
+		return cp.init().nv(nyquvect);
 	}
 	
 	/**
@@ -324,16 +320,10 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ExchangeBlock onInit(ExessionPersist sp, ExchangeBlock inireq)
 			throws SQLException, TransException {
 		try {
-		
-			// cleanStaleThan(inireq.nv, sp.peer);
 			cleanStale(inireq.nv, sp.peer);
 
 			// insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
 			return sp.onInit(inireq).nv(nyquvect);
-
-//			return new ExchangeBlock(synode(), sp.session()).nv(nyquvect)
-//				.totalChallenges(DAHelper.count(this, synconn(), exbm.tbl, exbm.peer, sp.peer))
-//				.seq(sp);
 		} finally {
 			incStamp(sp);
 		}
@@ -752,7 +742,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		// return snapshot;
 	}
 	
-
 	public ExchangeBlock abortExchange(ExessionPersist cx)
 			throws TransException, SQLException {
 		HashMap<String, Nyquence> snapshot = Nyquence.clone(nyquvect);
@@ -761,17 +750,14 @@ public class DBSyntableBuilder extends DATranscxt {
 		return cx.abortExchange().nv(snapshot);
 	}
 	
-
 	public ExchangeBlock onclosexchange(ExessionPersist sx,
 			ExchangeBlock rep) throws TransException, SQLException {
 		return closexchange(sx, rep);
 	}
 	
-
 	public void onAbort(ExchangeBlock req)
 			throws TransException, SQLException {
 	}
-	
 	
 	public ExchangeBlock requirestore(ExessionPersist xp, String peer) {
 		return new ExchangeBlock(synode(), peer, xp.session(), xp.exstat())
@@ -780,7 +766,6 @@ public class DBSyntableBuilder extends DATranscxt {
 				.seq(xp);
 	}
 	
-
 	public void onRequires(ExessionPersist cp, ExchangeBlock req) throws ExchangeException {
 		if (req.act == restore) {
 			// TODO check step leakings
@@ -808,7 +793,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		else throw new ExchangeException(0, cp, "TODO");
 	}
 
-
 	/**
 	 * Client have found unfinished exchange session then retry it.
 	 */
@@ -830,25 +814,20 @@ public class DBSyntableBuilder extends DATranscxt {
 				.nv(chgm.crud, CRUD.U)
 				.nv(chgm.synoder, synode()) // U.synoder != uids[synoder]
 				.nv(chgm.uids, concatstr(synoder, chgm.UIDsep, pid))
-				.nv(chgm.nyquence, n0().n)
+				.nv(chgm.nyquence, stamp.n)
 				.nv(chgm.domain, synrobot().orgId())
 				.nv(chgm.updcols, updcols)
 				.post(insert(subm.tbl)
-					// .cols(subm.entbl, subm.synodee, subm.uids, subm.domain)
 					.cols(subm.insertCols())
 					.select((Query)select(synm.tbl)
-						// .col(constr(entm.tbl))
 						.col(new Resulving(chgm.tbl, chgm.pk))
 						.col(synm.synoder)
-						// .col(concatstr(synode(), chgm.UIDsep, pid))
-						// .col(constr(synrobot().orgId()))
 						.where(op.ne, synm.synoder, constr(synode()))
 						.whereEq(synm.domain, synrobot().orgId()))))
 			.u(instancontxt(basictx.connId(), synrobot()))
 			.resulve(chgm.tbl, chgm.pk);
 		return chgid;
 	}
-	
 	
 	public DBSyntableBuilder registerEntity(String conn, SyntityMeta m)
 			throws SemanticException, TransException, SQLException {
@@ -858,7 +837,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 	
-
 	public SyntityMeta getEntityMeta(String entbl) throws SemanticException {
 		if (entityRegists == null || !entityRegists.containsKey(entbl))
 			throw new SemanticException("Register %s first.", entbl);
@@ -866,8 +844,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		return entityRegists.get(entbl);
 	}
 	
-	
-
 	/**
 	 * Inc my n0, then reload from DB.
 	 * @return this
@@ -885,7 +861,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 	
-
 	/**
 	 * this.n0++, this.n0 = max(n0, maxn)
 	 * @param maxn
@@ -900,7 +875,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		return n0();
 	}
 	
-
 	DBSyntableBuilder loadNyquvect0(String conn) throws SQLException, TransException {
 		AnResultset rs = ((AnResultset) select(synm.tbl)
 				.cols(synm.pk, synm.nyquence)
@@ -914,7 +888,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		
 		return this;
 	}
-	
 
 	private DBSyntableBuilder synyquvectWith(String peer, HashMap<String, Nyquence> nv) 
 		throws TransException, SQLException {
@@ -952,7 +925,6 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		return this;
 	}
-	
 
 	@Override
 	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
@@ -967,17 +939,9 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 	}
 	
-
-//	public ExchangeBlock addChild(ExessionPersist ap, String synode, SynodeMode child,
-//			IUser robot, String org, String domain) {
-//		return null;
-//	}
-	
-
 	public ExchangeBlock domainSignup(ExessionPersist app, String admin) {
 		return app.signup(admin);
 	}
-	
 
 	public ExchangeBlock initDomain(ExessionPersist cp, String admin, ExchangeBlock domainstatus)
 			throws TransException, SQLException {
@@ -1017,13 +981,11 @@ public class DBSyntableBuilder extends DATranscxt {
 				new ExessionAct(ExessionAct.mode_client, setupDom)
 			).nv(nyquvect);
 	}
-	
 
 	public HashMap<String, Nyquence> closeJoining(ExessionPersist cp,
 			HashMap<String, Nyquence> clone) {
 		return null;
 	}
-	
 	
 	/**
 	 * Check and extend column {@link #ChangeFlag}, which is for changing flag of change-logs.
