@@ -1356,7 +1356,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				.nv(chgm.synoder, synode())
 				.nv(chgm.uids, concatstr(synode(), chgm.UIDsep, apply.recId))
 				.nv(chgm.nyquence, n0().n)
-				.nv(chgm.domain, robot.orgId())
+				.nv(chgm.domain, domain())
 				.post(insert(subm.tbl)
 					// .cols(subm.entbl, subm.synodee, subm.uids, subm.domain)
 					.cols(subm.insertCols())
@@ -1459,7 +1459,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				.nv(chgm.synoder, synode()) // U.synoder != uids[synoder]
 				.nv(chgm.uids, concatstr(synoder, chgm.UIDsep, pid))
 				.nv(chgm.nyquence, n0().n)
-				.nv(chgm.domain, synrobot().orgId())
+				.nv(chgm.domain, domain())
 				.nv(chgm.updcols, updcols)
 				.post(insert(subm.tbl)
 					// .cols(subm.entbl, subm.synodee, subm.uids, subm.domain)
@@ -1471,7 +1471,7 @@ public class DBSynsactBuilder extends DATranscxt {
 						// .col(concatstr(synode(), chgm.UIDsep, pid))
 						// .col(constr(synrobot().orgId()))
 						.where(op.ne, synm.synoder, constr(synode()))
-						.whereEq(synm.domain, synrobot().orgId()))))
+						.whereEq(synm.domain, domain()))))
 			.u(instancontxt(basictx.connId(), synrobot()))
 			.resulve(chgm.tbl, chgm.pk);
 		return chgid;

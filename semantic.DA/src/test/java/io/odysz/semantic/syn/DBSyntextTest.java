@@ -185,7 +185,7 @@ public class DBSyntextTest {
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
 			ck[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s],
-					s != W ? DBSynsactBuilder.peermode : DBSynsactBuilder.leafmode)
+					"", s != W ? DBSynsactBuilder.peermode : DBSynsactBuilder.leafmode)
 					.loadNyquvect0(conn), "zsu");
 
 			snm = new SynodeMeta(conn).autopk(false).replace();
@@ -920,7 +920,7 @@ public class DBSyntextTest {
 			.nv(chm.synoder, synoder)
 			.nv(chm.uids, concatstr(synoder, chm.UIDsep, pid))
 			.nv(chm.nyquence, trb.n0().n)
-			.nv(chm.domain, robot.orgId)
+			.nv(chm.domain, trb.domain())
 			.post(trb.insert(sbm.tbl)
 				// .cols(sbm.entbl, sbm.synodee, sbm.uids, sbm.domain)
 				.cols(sbm.insertCols())
@@ -932,7 +932,7 @@ public class DBSyntextTest {
 					// .col(concatstr(synoder, chm.UIDsep, pid))
 					// .col(constr(robot.orgId))
 					.where(op.ne, snm.synoder, constr(trb.synode()))
-					.whereEq(snm.domain, robot.orgId)))
+					.whereEq(snm.domain, trb.domain())))
 			.ins(trb.instancontxt(conn, robot)))
 			.resulve(chm);
 		
@@ -954,6 +954,7 @@ public class DBSyntextTest {
 		pid = ((SemanticObject) ck[s].trb
 			.delete(m.tbl, ck[s].robot())
 			.whereEq(chgm.uids, pid)
+			// TODO .post()
 			.d(ck[s].trb.instancontxt(conns[s], ck[s].robot())))
 			.resulve(ck[s].phm.tbl, ck[s].phm.pk);
 		
