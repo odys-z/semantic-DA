@@ -1,6 +1,5 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.common.LangExt.compoundVal;
 import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
@@ -10,21 +9,12 @@ import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
 import static io.odysz.semantic.CRUD.U;
-import static io.odysz.semantic.syn.Exchanging.confirming;
-import static io.odysz.semantic.syn.Exchanging.exchanging;
-import static io.odysz.semantic.syn.Exchanging.init;
-import static io.odysz.semantic.syn.Exchanging.name;
-import static io.odysz.semantic.syn.Exchanging.ready;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
-import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
-import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
@@ -53,12 +43,10 @@ import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
-import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
-import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -334,7 +322,7 @@ public class DBSyntextTest {
 		
 		Utils.logrst("X vs Z", section, ++no);
 		exchangeSynodes(X, Z, section, no);
-		Utils.logi("On X-Z: Now Z know X,0023[Y], not X,W. Not synode's sychronization has been initiated.");
+		Utils.logi("On X-Z: Now Z know X,0023[Y], no X,W. No synode's sychronization has been initiated.");
 		
 		Utils.logrst("Z vs W", section, ++no);
 		try { exchangeSynodes(Z, W, section, no); }
@@ -369,7 +357,6 @@ public class DBSyntextTest {
 		String x = ck[X].trb.synode();
 		String z = ck[Z].trb.synode();
 
-		// Utils.logi("\n(.1) -------- Z create photos ---------");
 		Utils.logrst("Z create photos", section, ++no);
 		printNyquv(ck);
 		String[] z_uids = insertPhoto(Z);
@@ -410,8 +397,10 @@ public class DBSyntextTest {
 
 	void test02Update(int section) throws Exception {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
+		
+		int no = 0;
 
-		Utils.logrst("X update photos", section, 1);
+		Utils.logrst("X update photos", section, ++no);
 		String[] xu = updatePname(X);
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -419,7 +408,7 @@ public class DBSyntextTest {
 		ck[X].change(1, U, xu[0], ck[X].phm);
 		ck[X].psubs(3, xu[1], -1, Y, Z, W);
 
-		Utils.logrst("Y update photos", section, 2);
+		Utils.logrst("Y update photos", section, ++no);
 		String[] yu = updatePname(Y);
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -609,13 +598,6 @@ public class DBSyntextTest {
 			printChangeLines(ck);
 			printNyquv(ck);
 			assertEquals(Exchanging.ready, sx.exstate.state);
-
-//			if (req.challenges() != 0)
-//				throw new ExchangeException(Exchanging.ready,
-//					"More challenges shouldn't come here as this test is only for the upgraded protocol layer.");
-
-//		assertNotNull(req);
-//		assertEquals(0, req.challenge == null ? 0 : req.challenge.size());
 
 		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
 		HashMap<String, Nyquence> nv = ctb.closexchange(cx, stb.synode(), acknv);
@@ -994,7 +976,7 @@ public class DBSyntextTest {
 	 * Checker of each Synode.
 	 * @author Ody
 	 */
-	public static class Ck {
+	private static class Ck {
 		public static final String org = "URA";
 
 		public T_PhotoMeta phm;
@@ -1051,12 +1033,12 @@ public class DBSyntextTest {
 			this.domain = org;
 		}
 
-		public HashMap<String, Nyquence> cloneNv() {
-			HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(4);
-			for (String n : trb.nyquvect.keySet())
-				nv.put(n, new Nyquence(trb.nyquvect.get(n).n));
-			return nv;
-		}
+//		public HashMap<String, Nyquence> cloneNv() {
+//			HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(4);
+//			for (String n : trb.nyquvect.keySet())
+//				nv.put(n, new Nyquence(trb.nyquvect.get(n).n));
+//			return nv;
+//		}
 
 		/**
 		 * Verify change flag, crud, where tabl = entm.tbl, entity-id = eid.
@@ -1187,19 +1169,6 @@ public class DBSyntextTest {
 			return (AnResultset) q
 					.rs(trb.instancontxt(connId, robot))
 					.rs(0);
-		}
-		
-		/**
-		 * Verify if and only if one instance exists on this node.
-		 * 
-		 * @param synoder
-		 * @param clientpath
-		 */
-		public void verifile(String synoder, String clientpath, T_PhotoMeta phm) {
-			trb.select(phm.tbl)
-				.col(count(phm.pk), "c")
-				.where(new Predicate(op.eq, compound(chm.uids), compoundVal(synoder, clientpath)))
-				;
 		}
 	}
 
