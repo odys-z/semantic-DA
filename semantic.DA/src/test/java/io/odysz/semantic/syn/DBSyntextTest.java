@@ -63,6 +63,8 @@ public class DBSyntextTest {
 	public static final String rtroot = "src/test/res/";
 	public static final String father = "src/test/res/Sun Yet-sen.jpg";
 
+	public static final String org = "URA";
+
 	public static final int X = 0;
 	public static final int Y = 1;
 	public static final int Z = 2;
@@ -174,7 +176,7 @@ public class DBSyntextTest {
 
 			ck[s] = new Ck(s, new DBSynsactBuilder(conn, synodeIds[s], synodeIds[s],
 					s != W ? DBSynsactBuilder.peermode : DBSynsactBuilder.leafmode)
-					.loadNyquvect0(conn), "zsu");
+					.loadNyquvect0(conn));
 
 			snm = new SynodeMeta(conn).autopk(false).replace();
 			ck[s].synm = snm;
@@ -502,7 +504,7 @@ public class DBSyntextTest {
 		int no = 0;
 		// admin
 		Utils.logrst(String.format("%s accept %s", atb.synode(), ctb.synode()), test, sect, ++no);
-		ChangeLogs resp = atb.addChild(ax, ctb.synode(), SynodeMode.child, ck[admin].robot(), Ck.org, ck[admin].domain);
+		ChangeLogs resp = atb.addChild(ax, ctb.synode(), SynodeMode.child, ck[admin].robot(), org, ck[admin].domain);
 		Utils.logrst(String.format("changeId at %s: %s", atb.synode(), resp.session()), test, sect, ++no);
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -983,8 +985,7 @@ public class DBSyntextTest {
 	 * Checker of each Synode.
 	 * @author Ody
 	 */
-	private static class Ck {
-		public static final String org = "URA";
+	public static class Ck {
 
 		public T_PhotoMeta phm;
 		public SynodeMeta synm;
@@ -996,8 +997,8 @@ public class DBSyntextTest {
 		public IUser robot() { return trb.synrobot(); }
 		String connId() { return trb.basictx().connId(); }
 
-		public Ck(int s, DBSynsactBuilder trb, String org) throws SQLException, TransException, ClassNotFoundException, IOException {
-			this(conns[s], trb, org, String.format("s%s", s), "rob-" + s);
+		public Ck(int s, DBSynsactBuilder trb) throws SQLException, TransException, ClassNotFoundException, IOException {
+			this(conns[s], trb, trb.domain(), String.format("s%s", s), "rob-" + trb.synode());
 			phm = new T_PhotoMeta(conns[s]);
 		}
 
@@ -1034,10 +1035,10 @@ public class DBSyntextTest {
 			assertEquals(cnt, rs.getRowCount());
 		}
 
-		public Ck(String conn, DBSynsactBuilder trb, String org, String synid, String usrid)
+		public Ck(String conn, DBSynsactBuilder trb, String domain, String synid, String usrid)
 				throws SQLException, TransException, ClassNotFoundException, IOException {
 			this.trb = trb;
-			this.domain = org;
+			this.domain = domain;
 		}
 
 //		public HashMap<String, Nyquence> cloneNv() {

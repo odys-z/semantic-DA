@@ -801,16 +801,6 @@ public class DBSynsactBuilder extends DATranscxt {
 						.whereEq(entm.synoder, synodr)
 						.whereEq(entm.org(), chorg)
 						.whereEq(entm.pk, entid)
-						// FIXME there shouldn't be an UPSERT if the change-log is handled in orignal order?
-//						.post(insert(entm.tbl, synrobot()) 
-//							.cols(entm.entCols())
-//							.select(select(null)
-//									.cols(entm.insertSelectItems(chgm, entid, entbuf.get(entm.tbl), chal)))
-//							.where(op.notexists, null,
-//								select(entm.tbl)
-//								.whereEq(entm.synoder, synodr)
-//								.whereEq(entm.org(), entbuf.get(entm.tbl).getStringByIndex(entm.org(), entid))
-//								.whereEq(entm.pk, entid)))
 						.post(subscribeUC.size() <= 0
 							? null : insert(chgm.tbl)
 							.nv(chgm.pk, chgid)
@@ -936,9 +926,6 @@ public class DBSynsactBuilder extends DATranscxt {
 		x.exstate.can(init);
 
 		cleanStale(nv, target);
-		// HashMap<String,Long> xnv = sessionMaxnv(domain());
-		// if (Connects.getDebug(synconn()))
-		//	Utils.logMap(xnv);
 
 		ChangeLogs diff = initChallenges(x, target);
 		return diff;
