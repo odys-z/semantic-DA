@@ -26,6 +26,11 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * @see SyntityMeta#SyntityMeta
 	 */
 	protected String org;
+	
+	/**
+	 * Design Memo / issue: currently org is the default synchronizing domain? 
+	 * @return org id
+	 */
 	public String org() { return org; }
 
 	/** entity creator id used for identify globally (experimental) */
@@ -47,7 +52,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * @param pk
 	 * @param org DB field of orgnization - {@link io.odysz.semantic.syn.DBSynmantics}
 	 * uses this to filter data for synchronization.
-	 * Could be changed in the future. (What is this if using DB synchronization, data filter?)
+	 * Could be changed in the future. 
 	 * @param conn
 	 */
 	@SuppressWarnings("serial")

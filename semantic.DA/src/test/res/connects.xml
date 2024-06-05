@@ -107,7 +107,6 @@
   		<dbg>true</dbg>
   		<smtcs>synmantics.xml</smtcs>
 	</c>
-
   </t>
 
   <!-- NOTE: dbcp configuration shouldn't work because you don't have container providing the connections.

@@ -56,7 +56,7 @@ public class DBSynmantics extends DASemantics {
 			try {
 				return new DBSynmantics.ShSynChange(
 						new DBSynsactBuilder(tsx.basictx().connId(),
-							"dummy-loader", ((DBSynsactBuilder) tsx).domain(), 0),
+							"dummy-loader", ((DBSyntableBuilder) tsx).domain(), 0),
 						tabl, pk, args);
 			} catch (TransException | SQLException | SAXException | IOException e) {
 				e.printStackTrace();

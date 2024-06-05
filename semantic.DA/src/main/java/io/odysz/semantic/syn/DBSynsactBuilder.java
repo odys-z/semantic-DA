@@ -601,8 +601,10 @@ public class DBSynsactBuilder extends DATranscxt {
 			String rpcid  = rply.getString(chgm.pk);
 
 			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(entid1) < 0) {
-				Utils.warn("[DBSynsactBuilder commitTill] Fatal error ignored: can't restore entity record answered from target node.\n"
-						+ "entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by answer): %s", entm.tbl, srcnode, synode(), entid1);
+				Utils.warnT(new Object(),
+						"Fatal error ignored: can't restore entity record answered from target node.\n"
+						+ "entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by answer): %s",
+						entm.tbl, srcnode, synode(), entid1);
 				continue;
 			}
 				
@@ -664,14 +666,11 @@ public class DBSynsactBuilder extends DATranscxt {
 		return delete(chgm.tbl) // delete change log if no subscribers exist
 			.whereEq(chgm.pk, changeId)
 			.whereEq(chgm.entbl, entitymeta.tbl)
-			.whereEq(chgm.domain, org)
+			.whereEq(chgm.domain, domain())
 			.whereEq(chgm.synoder, synoder)
 			// .whereEq(chgm.uids,    uids)
 			.whereEq("0", (Query)select(subm.tbl)
 				.col(count(subm.synodee))
-				// .whereEq(subm.domain, org)
-				// .whereEq(subm.entbl, entitymeta.tbl)
-				// .whereEq(subm.uids,  uids))
 				.whereEq(chgm.pk, changeId)
 				.where(op.eq, chgm.pk, subm.changeId)
 				.where(op.ne, subm.synodee, constr(deliffnode)))
@@ -716,7 +715,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 			HashMap<String, AnResultset> entbuf = x.onchanges.entities;
 			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(entid) < 0) {
-				Utils.warn("[DBSynsactBuilder commitChallenges] Fatal error ignored: can't restore entity record answered from target node.\n"
+				Utils.warnT(new Object() {}, "Fatal error ignored: can't restore entity record answered from target node.\n"
 						+ "entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by challenge): %s",
 						entm.tbl, srcnode, synode(), entid);
 				continue;
@@ -732,9 +731,6 @@ public class DBSynsactBuilder extends DATranscxt {
 				String subsrb = chal.getString(subm.synodee);
 				stats.add(delete(subm.tbl, synrobot())
 					.whereEq(subm.synodee, subsrb)
-					// .whereEq(subm.entbl, chentbl)
-					// .whereEq(subm.domain, chorg)
-					// .whereEq(subm.uids, chuids)
 					.whereEq(subm.changeId, chgid)
 					.post(ofLastEntity(chal, entid, chentbl, chorg)
 						? delete(chgm.tbl)
@@ -1141,14 +1137,10 @@ public class DBSynsactBuilder extends DATranscxt {
 			commitAnswers(x, sn, n0().n);
 		}
 
-		// cleanStaleThan(answer.nyquvect, sn);
-
 		x.buffChanges(nyquvect, answer.challenge.colnames(), onchanges(myack, answer, sn), answer.entities);
 		if (x.onchanges.challenges() > 0) {
 			commitChallenges(x, sn, answer.nyquvect, nyquvect.get(synode()).n);
 		}
-
-		// synyquvectWith(sn, answer.nyquvect);
 
 		myack.nyquvect(Nyquence.clone(nyquvect));
 
