@@ -108,7 +108,10 @@ for (String coln : colnames.keySet())
 	 * @param k
 	 * @return index starting at 0
 	 */
-	public int rowIndex0(String k) { return indices0 == null ? -1 : indices0.get(k); }
+	public int rowIndex0(String k) {
+		return indices0 == null || !indices0.containsKey(k)
+			? -1 : indices0.get(k);
+	}
 
 	/** for deserializing */
 	public AnResultset() { }
