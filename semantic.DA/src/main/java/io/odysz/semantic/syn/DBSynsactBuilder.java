@@ -6,12 +6,13 @@ import static io.odysz.common.LangExt.str;
 import static io.odysz.semantic.syn.Exchanging.*;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.*;
-import static io.odysz.semantic.util.DAHelper.loadRecNyquence;
-import static io.odysz.semantic.util.DAHelper.loadRecString;
+import static io.odysz.semantic.syn.Nyquence.getn;
+import static io.odysz.semantic.syn.Nyquence.maxn;
+import static io.odysz.semantic.util.DAHelper.getNyquence;
+import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
-import static io.odysz.transact.sql.parts.condition.Funcall.max;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -102,20 +103,20 @@ public class DBSynsactBuilder extends DATranscxt {
 
 	private HashMap<String, SyntityMeta> entityRegists;
 
-	public DBSynsactBuilder(String conn, String synodeId, int nodemode)
+	public DBSynsactBuilder(String conn, String synodeId, String syndomain, int nodemode)
 			throws SQLException, SAXException, IOException, TransException {
-		this(conn, synodeId, nodemode,
+		this(conn, synodeId, syndomain, nodemode,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
 	}
 	
-	public DBSynsactBuilder(String conn, String synodeId, int nodemode,
+	public DBSynsactBuilder(String conn, String synodeId, String syndomain, int nodemode,
 			SynChangeMeta chgm, SynodeMeta synm)
 			throws SQLException, SAXException, IOException, TransException {
 
 		super ( new DBSyntext(conn,
 			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(c)),
-			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId)
+			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId, syndomain, syndomain)
 			    	, runtimepath));
 		
 		synmode = nodemode;
@@ -123,8 +124,8 @@ public class DBSynsactBuilder extends DATranscxt {
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;
 		tx.synode = synodeId;
-		tx.domain = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
-		((SyncRobot)tx.usr()).orgId = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
+		tx.domain = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
+		((SyncRobot)tx.usr()).orgId = getValstr((Transcxt) this, conn, synm, synm.org(), synm.pk, synodeId);
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
@@ -162,7 +163,8 @@ public class DBSynsactBuilder extends DATranscxt {
 			.whereEq(synm.pk, synode())
 			.u(instancontxt(basictx.connId(), synrobot()));
 		
-		nyquvect.put(synode(), loadRecNyquence(this, basictx.connId(), synm, synode(), synm.nyquence));
+		// nyquvect.put(synode(), loadRecNyquence(this, basictx.connId(), synm, synode(), synm.nyquence));
+		nyquvect.put(synode(), getNyquence(this, basictx.connId(), synm, synm.nyquence, synm.pk, synode()));
 		return this;
 	}
 
@@ -913,7 +915,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	 */
 	public Nyquence incN0(long maxn) throws TransException, SQLException {
 		n0().inc(maxn);
-		DAHelper.updateField(this, basictx.connId(), synm, synode(),
+		DAHelper.updateFieldByPk(this, basictx.connId(), synm, synode(),
 				synm.nyquence, new ExprPart(n0().n), synrobot());
 		return n0();
 	}
@@ -938,12 +940,9 @@ public class DBSynsactBuilder extends DATranscxt {
 		x.exstate.can(init);
 
 		cleanStale(nv, target);
-		HashMap<String,Long> xnv = sessionMaxnv(domain());
-		if (Connects.getDebug(synconn()))
-			Utils.logMap(xnv);
-		// x.maxnv = xnv;
-
-		// synyquvectWith(target, nv);
+		// HashMap<String,Long> xnv = sessionMaxnv(domain());
+		// if (Connects.getDebug(synconn()))
+		//	Utils.logMap(xnv);
 
 		ChangeLogs diff = initChallenges(x, target);
 		return diff;
@@ -1021,9 +1020,9 @@ public class DBSynsactBuilder extends DATranscxt {
 		
 		if (x.exstate.state == ready) {
 			if (Connects.getDebug(synconn())) {
-				HashMap<String, Long> maxnv = sessionMaxnv(domain());
+				// HashMap<String, Long> maxnv = sessionMaxnv(domain());
 				Utils.warn("Should only once to be here.\nSession Max Nv:");
-				Utils.logi(maxnv);
+				// Utils.logi(maxnv);
 			}
 
 			cleanStale(req.nyquvect, from);
@@ -1049,7 +1048,6 @@ public class DBSynsactBuilder extends DATranscxt {
 	 * @return {synodee: max Nyquence group by domian, synodee}
 	 * @throws TransException
 	 * @throws SQLException
-	 */
 	HashMap<String,Long> sessionMaxnv(String domain) throws TransException, SQLException {
 		HashMap<String, Long> maxnv = new HashMap<String, Long> ();
 		AnResultset rs = (AnResultset) select(chgm.tbl, "cl")
@@ -1068,6 +1066,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		}
 		return maxnv;
 	}
+	 */
 
 	ArrayList<ArrayList<Object>> onchanges(ChangeLogs resp, ChangeLogs req, String srcn)
 			throws SQLException {
@@ -1311,13 +1310,6 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		for (String n : nv.keySet()) {
 			Nyquence nyq = null;
-//			if (eq(n, synode()))
-//				continue;
-//			else
-//			if (eq(peer, n))
-//				nyq = maxn(new Nyquence(nv.get(n).n).inc(), n0());
-//			else if (nyquvect.containsKey(n))
-//				nyq = maxn(nv.get(n), nyquvect.get(n));
 			nyq = maxn(nv.get(n), nyquvect.get(n));
 
 			if (compareNyq(nyq, nyquvect.get(n)) != 0) {
