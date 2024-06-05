@@ -945,6 +945,7 @@ public class DBSyntextTest {
 		pid = ((SemanticObject) ck[s].trb
 			.delete(m.tbl, ck[s].robot())
 			.whereEq(chgm.uids, pid)
+			// TODO .post()
 			.d(ck[s].trb.instancontxt(conns[s], ck[s].robot())))
 			.resulve(ck[s].phm.tbl, ck[s].phm.pk);
 		
