@@ -631,9 +631,6 @@ public class DBSyntableTest {
 
 		printChangeLines(ck);
 		printNyquv(ck);
-
-//		if (req.challenges() > 0)
-//			fail("Shouldn't has any more challenge here.");
 	}
 
 	static void exchange_break(SyntityMeta sphm, DBSyntableBuilder stb, SyntityMeta cphm,

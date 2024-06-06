@@ -949,8 +949,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				// .je("ch", subm.tbl, "sb", chgm.entbl, subm.entbl, chgm.uids, subm.uids)
 				.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
 				.cols("ch.*", subm.synodee)
-				// FIXME not op.lt, must implement a function to compare nyquence.
-				.where(op.gt, chgm.nyquence, dn.n) // FIXME
+				.where(op.gt, sqlCompare(chgm.nyquence, dn.n), 0)
 				.orderby(chgm.entbl)
 				.orderby(chgm.nyquence)
 				.orderby(chgm.synoder)
@@ -1003,9 +1002,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		
 		if (x.exstate.state == ready) {
 			if (Connects.getDebug(synconn())) {
-				// HashMap<String, Long> maxnv = sessionMaxnv(domain());
 				Utils.warn("Should only once to be here.\nSession Max Nv:");
-				// Utils.logi(maxnv);
 			}
 
 			cleanStale(req.nyquvect, from);
@@ -1014,7 +1011,6 @@ public class DBSynsactBuilder extends DATranscxt {
 		if (x.onchanges != null && x.onchanges.challenges() > 0)
 			Utils.warn("There are challenges buffered to be commited: %s@%s", from, synode());;
 
-		// ChangeLogs myanswer = initExchange(x, from, null);
 		ChangeLogs myanswer = initChallenges(x, from);
 
 		x.buffChanges(nyquvect, req.challenge.colnames(), onchanges(myanswer, req, from), req.entities);
@@ -1022,34 +1018,6 @@ public class DBSynsactBuilder extends DATranscxt {
 		x.exstate.onExchange();
 		return myanswer.session(x.session()).nyquvect(nyquvect);
 	}
-
-	/**
-	 * Get max nyquence for each synodee, the knowledge of max nyquvect
-	 * that this node knows for each synodee.
-	 * 
-	 * @param domain
-	 * @return {synodee: max Nyquence group by domian, synodee}
-	 * @throws TransException
-	 * @throws SQLException
-	HashMap<String,Long> sessionMaxnv(String domain) throws TransException, SQLException {
-		HashMap<String, Long> maxnv = new HashMap<String, Long> ();
-		AnResultset rs = (AnResultset) select(chgm.tbl, "cl")
-			.je_(subm.tbl, "sb", chgm.pk, subm.changeId,
-					chgm.domain, constr(domain))
-			.cols(chgm.entbl, subm.synodee)
-			.col(max(chgm.nyquence), "n")
-			// .groupby(chgm.entbl)
-			.groupby(chgm.domain)
-			.groupby(subm.synodee)
-			.rs(instancontxt(synconn(), synrobot()))
-			.rs(0);
-		
-		if (rs.next()) {
-			maxnv.put(rs.getString(subm.synodee), rs.getLong("n"));
-		}
-		return maxnv;
-	}
-	 */
 
 	ArrayList<ArrayList<Object>> onchanges(ChangeLogs resp, ChangeLogs req, String srcn)
 			throws SQLException {
@@ -1144,11 +1112,6 @@ public class DBSynsactBuilder extends DATranscxt {
 			HashMap<String, Nyquence> srcnv, SyntityMeta entm) throws SQLException, TransException {
 		cleanAckBuffer(x, ack, target, srcnv, entm);
 		
-		// synyquvectWith(target, ack.nyquvect);
-		// synyquvect(target, ack.nyquvect);
-
-		// n0(maxn(ack.nyquvect, n0()));
-		
 		return nyquvect;
 	}
 	
@@ -1166,8 +1129,6 @@ public class DBSynsactBuilder extends DATranscxt {
 	void cleanAckBuffer(ExchangeContext x, ChangeLogs ack, String target,
 			HashMap<String, Nyquence> srcnv, SyntityMeta entm) throws SQLException, TransException {
 
-		// cleanStaleThan(ack.nyquvect, target);
-		
 		x.exstate.can(confirming);
 
 		if (ack != null && compareNyq(ack.nyquvect.get(synode()), nyquvect.get(synode())) <= 0) {
@@ -1178,7 +1139,6 @@ public class DBSynsactBuilder extends DATranscxt {
 			x.addAnswer(ack.answers);
 			commitAnswers(x, target, n0().n);
 		}
-		// synyquvectWith(target, x.exNyquvect);
 		x.exstate.onAck();
 	}
 	
@@ -1186,12 +1146,6 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws TransException, SQLException {
 		x.clear();
 
-		/*
-		HashMap<String, Nyquence> snapshot = Nyquence.clone(nyquvect);
-		incN0(maxn(maxn(nv), new Nyquence(nv.get(sn).n).inc()));
-
-		synyquvect(sn, nv);
-		*/
 		HashMap<String, Nyquence> snapshot = synyquvectMax(sn, nv, nyquvect);
 
 		x.exstate.close();
@@ -1435,14 +1389,10 @@ public class DBSynsactBuilder extends DATranscxt {
 				.nv(chgm.domain, domain())
 				.nv(chgm.updcols, updcols)
 				.post(insert(subm.tbl)
-					// .cols(subm.entbl, subm.synodee, subm.uids, subm.domain)
 					.cols(subm.insertCols())
 					.select((Query)select(synm.tbl)
-						// .col(constr(entm.tbl))
 						.col(new Resulving(chgm.tbl, chgm.pk))
 						.col(synm.synoder)
-						// .col(concatstr(synode(), chgm.UIDsep, pid))
-						// .col(constr(synrobot().orgId()))
 						.where(op.ne, synm.synoder, constr(synode()))
 						.whereEq(synm.domain, domain()))))
 			.u(instancontxt(basictx.connId(), synrobot()))
