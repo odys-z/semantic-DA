@@ -545,13 +545,11 @@ public class DBSyntableTest {
 
 		// admin
 		Utils.logrst(String.format("%s ack initiation", admb.synode()), testix, sect, ++no);
-		// atb.incN0(maxn(ack.nyquvect));
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		// applicant
 		Utils.logrst(new String[] {cltb.synode(), "closing application"}, testix, sect, ++no);
-		// ctb.nyquvect = Nyquence.clone(atb.nyquvect);
 		HashMap<String, Nyquence> closenv = cltb.closeJoining(cltp, Nyquence.clone(admb.nyquvect));
 		printChangeLines(ck);
 		printNyquv(ck);
