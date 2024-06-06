@@ -1086,14 +1086,8 @@ public class DBSynsactBuilder extends DATranscxt {
 						}
 				}
 				else if (compareNyq(subnyq, nyquvect.get(srcn)) <= 0) {
-					// ref: _answer-to-remove
-					// knowledge about the sub from req is older than this node's knowledge 
-					// see #commitChallenges ref: merge-older-version
-					// FIXME how to abstract into one method?
-					
 					// 2024.6.2 client shouldn't have older knowledge than me now,
 					// which is cleanded when initiating.
-					// resp.remove_sub(req.challenge, subscribe);	
 				}
 				else
 					changes.add(req.challenge.getRowAt(req.challenge.getRow() - 1));

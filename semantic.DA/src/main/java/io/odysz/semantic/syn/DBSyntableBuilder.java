@@ -640,14 +640,8 @@ public class DBSyntableBuilder extends DATranscxt {
 						}	
 				}
 				else if (compareNyq(subnyq, nyquvect.get(peer)) <= 0) {
-					// ref: _answer-to-remove
-					// knowledge about the sub from req is older than this node's knowledge 
-					// see #commitChallenges ref: merge-older-version
-					// FIXME how to abstract into one method?
-					
 					// 2024.6.5 client shouldn't have older knowledge than me now,
 					// which is cleanded when initiating.
-					// resp.removeChgsub(req.chpage, subscribe);	
 				}
 				else
 					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
