@@ -18,25 +18,10 @@ public class SynchangeBuffMeta extends SemanticTableMeta {
 
 	public final String peer;
 	public final String changeId;
-//	public final String domain;
-//	public final String entbl;
-//	/** Entity fk, redundant for convenient, not for synchronizing */
-//	public final String entfk;
-//	/** Format: device {@link #UIDsep} entity-id */
-//	public final String uids;
-//	public final String crud;
-//	public final String synoder;
-//	public final String nyquence;
-//
-//	/** updated fields when updating an entity */
-//	public final String updcols;
 
 	public final String seq;
 
 	final SynChangeMeta chm; 
-
-	static {
-	}
 
 	public SynchangeBuffMeta(SynChangeMeta chm, String ... conn) {
 		super("syn_exchange_buf", conn);
@@ -47,20 +32,8 @@ public class SynchangeBuffMeta extends SemanticTableMeta {
 		// pk      = "cid";
 		changeId= "changeId";
 		peer    = "peer";
-//		domain  = "domain";
-//		entbl   = "tabl";
-//		entfk   = "entfk";
-//		crud    = "crud";
-//		synoder = "synoder";
-//		uids    = "uids";
-//		nyquence= "nyquence";
-//		updcols = "updcols";
 		seq     = "seq";
 	}
-
-//	public String[] cols() {
-//		return new String[] {pk, entbl, crud, synoder, uids, nyquence, updcols};
-//	}
 
 	/** compose function for uids */
 	public String uids(String synode, String entityId) {
@@ -68,7 +41,6 @@ public class SynchangeBuffMeta extends SemanticTableMeta {
 	}
 
 	public String[] insertCols() {
-		// return new String[] {peer, changeId, domain, entbl, entfk, crud, synoder, uids, nyquence, updcols};
 		return new String[] {peer, changeId, seq};
 	}
 

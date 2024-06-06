@@ -422,8 +422,9 @@ public class DBSyntableTest {
 
 	void test02Update(int section) throws Exception {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
+		int no = 0;
 
-		Utils.logrst("X update photos", section, 1);
+		Utils.logrst("X update photos", section, ++no);
 		String[] xu = updatePname(X);
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -432,7 +433,7 @@ public class DBSyntableTest {
 		ck[X].buf_change(0, U, xu[0], ck[X].phm);
 		ck[X].psubs(3, xu[1], -1, Y, Z, W);
 
-		Utils.logrst("Y update photos", section, 2);
+		Utils.logrst("Y update photos", section, ++no);
 		String[] yu = updatePname(Y);
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -441,8 +442,8 @@ public class DBSyntableTest {
 		ck[Y].buf_change(0, U, yu[0], ck[Y].phm);
 		ck[Y].psubs(3, yu[1], X, -1, Z, W);
 		
-		Utils.logrst("X => Y", section, 3);
-		exchangePhotos(Y, X, section, 3);
+		Utils.logrst("X => Y", section, ++no);
+		exchangePhotos(Y, X, section, no);
 		printChangeLines(ck);
 		printNyquv(ck);
 
@@ -450,13 +451,21 @@ public class DBSyntableTest {
 		ck[X].buf_change(0, U, null, ck[X].phm);
 		ck[X].psubs(4, null, X, Y, Z, W);
 		ck[X].psubs(4, null, -1, -1, Z, W);
-		// ck[X].psubs(2, null, -1, -1, Z, -1);
 
 		ck[Y].change_photolog(1, U, null);
 		ck[Y].buf_change_p(0, U, null);
 		ck[Y].psubs(4, null, X, Y, Z, W);
 		ck[Y].psubs(4, null, -1, -1, Z, W);
-		// ck[Y].psubs(2, null, -1, -1, Z, -1);
+
+		Utils.logrst("Y <= Z", section, ++no);
+		exchangePhotos(Y, Z, section, no);
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		ck[Y].change_photolog(0, U, null);
+		ck[Y].psubs(0, null, X, Y, Z, W);
+		ck[Y].psubs(0, null, -1, -1, Z, W);
+
 	}
 
 	void testBreakAck(int section) throws Exception {
@@ -513,11 +522,11 @@ public class DBSyntableTest {
 		int no = 0;
 
 		// sign up as a new domain
-		ExessionPersist cltp = new ExessionPersist(cltb, chm, sbm, xbm, admin);
+		ExessionPersist cltp = new ExessionPersist(cltb, chm, sbm, xbm, snm, prm, admin);
 		Utils.logrst(String.format("sign up by %s", cltb.synode()), testix, sect, ++no);
 
 		ExchangeBlock req  = cltb.domainSignup(cltp, admin);
-		ExessionPersist admp = new ExessionPersist(cltb, chm, sbm, xbm, cltb.synode(), req);
+		ExessionPersist admp = new ExessionPersist(cltb, chm, sbm, xbm, snm, prm, cltb.synode(), req);
 
 		// admin on sign up request
 		Utils.logrst(String.format("%s on sign up", admin), testix, sect, ++no);
@@ -593,14 +602,14 @@ public class DBSyntableTest {
 
 		int no = 0;
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
-		ExessionPersist cp = new ExessionPersist(ctb, chm, sbm, xbm, stb.synode());
+		ExessionPersist cp = new ExessionPersist(ctb, chm, sbm, xbm, snm, prm, stb.synode());
 		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
 		// assertTrue(ini.totalChallenges > 0);
 		Utils.logrst(String.format("%s initiate: changes: %d    entities: %d",
 				ctb.synode(), ini.totalChallenges, ini.enitities(cphm.tbl)), test, subno, no, 1);
 
 		Utils.logrst(new String[] {stb.synode(), "on initiate"}, test, subno, ++no);
-		ExessionPersist sp = new ExessionPersist(stb, chm, sbm, xbm, ctb.synode(), ini);
+		ExessionPersist sp = new ExessionPersist(stb, chm, sbm, xbm, snm, prm, ctb.synode(), ini);
 		ExchangeBlock rep = stb.onInit(sp, ini);
 		Utils.logrst(String.format("%s on initiate: changes: %d    entities: %d",
 				stb.synode(), rep.totalChallenges, rep.enitities(cphm.tbl)), test, subno, no, 1);
@@ -634,13 +643,13 @@ public class DBSyntableTest {
 			throws TransException, SQLException, IOException {
 
 		int no = 0;
-		ExessionPersist cp = new ExessionPersist(stb, chm, sbm, xbm, stb.synode());
+		ExessionPersist cp = new ExessionPersist(stb, chm, sbm, xbm, snm, prm, stb.synode());
 
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
 		assertTrue(ini.totalChallenges > 0);
 
-		ExessionPersist sp = new ExessionPersist(ctb, chm, sbm, xbm, ctb.synode(), ini);
+		ExessionPersist sp = new ExessionPersist(ctb, chm, sbm, xbm, snm, prm, ctb.synode(), ini);
 
 		ctb.abortExchange(cp, stb.synode(), null);
 		ini = ctb.initExchange(cp, stb.synode());
@@ -713,35 +722,40 @@ public class DBSyntableTest {
 	}
 
 	private static void challengeAnswerLoop(ExessionPersist sp, DBSyntableBuilder stb, 
-				ExessionPersist cp, DBSyntableBuilder ctb, ExchangeBlock rep, int test, int subno, int step)
+				ExessionPersist cp, DBSyntableBuilder ctb, ExchangeBlock rep,
+				int test, int subno, int step)
 				throws SQLException, TransException {
 		int no = 0;
+		
+		if (rep != null) {
+			Utils.logrst(new String[] {"exchange loops", stb.synode(), "<=>", ctb.synode()},
+				test, subno, step);
+			
+			ctb.onInit(cp, rep);
 
-		Utils.logrst(new String[] {"exchanges", stb.synode(), "<=>", ctb.synode()}, test, subno, step);
+			while (cp.hasNextChpages(ctb)
+				|| rep.act == init // force to go on the initiation respond
+				|| rep.hasmore()) {
+				// client
+				Utils.logrst(new String[] {ctb.synode(), "exchange"}, test, subno, step, ++no);
 
-		ExchangeBlock req = null;
-		// ExchangeBlock rep = null;
-		while (cp.hasNextChpages(ctb)
-			|| rep != null && rep.act == init // force to go on the initiation respond
-			|| rep!= null && rep.hasmore()) {
-			// client
-			Utils.logrst(new String[] {ctb.synode(), "exchange"}, test, subno, step, ++no);
-			cp.nextChpage();
-			req = ctb.exchangePage(cp, rep);
-			Utils.logrst(String.format("%s exchange challenge    changes: %d    entities: %d    answers: %d",
-					ctb.synode(), req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, 1);
-			printChangeLines(ck);
-			printNyquv(ck);
+				cp.nextChpage();
+				ExchangeBlock req = ctb.exchangePage(cp, rep);
+				Utils.logrst(String.format("%s exchange challenge    changes: %d    entities: %d    answers: %d",
+						ctb.synode(), req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, 1);
+				printChangeLines(ck);
+				printNyquv(ck);
 
-			// server
-			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, step, ++no);
-			sp.nextChpage();
-			rep = stb.onExchange(sp, ctb.synode(), req);
+				// server
+				Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, step, ++no);
+				sp.nextChpage();
+				rep = stb.onExchange(sp, ctb.synode(), req);
 
-			Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
-					stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, no, 1);
-			printChangeLines(ck);
-			printNyquv(ck);
+				Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
+						stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, no, 1);
+				printChangeLines(ck);
+				printNyquv(ck);
+			}
 		}
 	}
 

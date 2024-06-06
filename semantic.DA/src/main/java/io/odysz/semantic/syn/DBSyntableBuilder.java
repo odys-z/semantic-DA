@@ -15,7 +15,6 @@ import static io.odysz.semantic.util.DAHelper.getNyquence;
 import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
-import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -43,6 +42,7 @@ import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
@@ -270,9 +270,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;
 		tx.synode = synodeId;
-		// tx.domain = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
 		tx.domain = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
-		// ((SyncRobot)tx.usr()).orgId = loadRecString((Transcxt) this, conn, synm, synodeId, synm.domain);
 		((SyncRobot)tx.usr())
 			.orgId(getValstr((Transcxt) this, conn, synm, synm.org(), synm.pk, synodeId))
 			.domain(getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId));
@@ -314,7 +312,8 @@ public class DBSyntableBuilder extends DATranscxt {
 				"Can't initate new exchange session. There are exchanging records to be finished.");
 
 		// select change 
-		incStamp(cp);
+		// incStamp(cp);
+		// return cp.init().nv(nyquvect);
 		return cp.init().nv(nyquvect);
 	}
 	
@@ -357,9 +356,8 @@ public class DBSyntableBuilder extends DATranscxt {
 		cp.expect(lastconf);
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
 		
-		if (lastconf != null && lastconf.act == init)
-			// cleanStaleThan(lastconf.nv, cp.peer);
-			cleanStale(lastconf.nv, cp.peer);
+//		if (lastconf != null && lastconf.act == init)
+//			cleanStale(lastconf.nv, cp.peer);
 		
 		return cp
 			.commitAnswers(lastconf, cp.peer, n0().n)
@@ -535,67 +533,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	 */
 	void cleanStale(HashMap<String, Nyquence> srcnv, String peer)
 			throws TransException, SQLException {
-		
-//		if (Connects.getDebug(basictx.connId()))
-//			Utils.logi("Cleaning staleness at %s, peer %s ...", synode(), peer);
-//
-//		delete(pnvm.tbl, synrobot())
-//			.whereEq(pnvm.peer, peer)
-//			.whereEq(pnvm.domain, domain())
-//			.post(insert(pnvm.tbl)
-//				.cols(pnvm.inscols)
-//				.values(pnvm.insVals(srcnv, peer, domain())))
-//			.d(instancontxt(synconn(), synrobot()));
-//
-//		SemanticObject res = (SemanticObject) ((DBSyntableBuilder)
-//			// clean while accepting subscriptions
-//			with(select(chgm.tbl, "cl")
-//				.cols("cl.*").col(subm.synodee)
-//				.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId)
-//				.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
-//				.where(op.lt, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0)))
-//			.delete(subm.tbl, synrobot())
-//				.where(op.exists, null, select("cl")
-//				.where(op.eq, subm.changeId, chgm.pk)
-//				.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
-//
-//			// clean 3rd part nodes' propagation
-//			.post(with(select(chgm.tbl, "cl")
-//					.cols("cl.*").col(subm.synodee)
-//					.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
-//											.and(Sql.condt(op.ne, constr(peer), subm.synodee)))
-//					.je_(synm.tbl, "sn", chgm.synoder, synm.pk, constr(domain()), synm.domain)
-//					.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
-//					.where(op.lt, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0))
-//					// .where(op.ne, subm.synodee, constr(peer)))
-//				.delete(subm.tbl)
-//					.where(op.exists, null, select("cl")
-//					.where(op.eq, subm.changeId, chgm.pk)
-//					.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee)))
-//
-//			// clean changes without subscribes
-//			.post(with(select(chgm.tbl, "cl")
-//					.cols(chgm.pk, chgm.domain, chgm.entbl)
-//					.col(count(subm.synodee), "subs")
-//					.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId))
-//				.delete(chgm.tbl)
-//					.where(op.notexists, null, select("cl")
-//						.whereEq(chgm.tbl, chgm.domain,  "cl", chgm.domain)
-//						.whereEq(chgm.tbl, chgm.entbl,"cl", chgm.entbl)
-//						.whereEq(chgm.tbl, chgm.pk, "cl", chgm.pk)))
-//						// .whereEq(chgm.tbl, chgm.uids, "cl", chgm.uids)))
-//			.d(instancontxt(basictx.connId(), synrobot()));
-//			
-//		if (Connects.getDebug(basictx.connId())) {
-//			try {
-//				@SuppressWarnings("unchecked")
-//				ArrayList<Integer> chgsubs = ((ArrayList<Integer>)res.get("total"));
-//				if (chgsubs != null && chgsubs.size() > 1 && hasGt(chgsubs, 0)) {
-//					Utils.logi("Subscribe record(s) are affected:");
-//					Utils.logi(str(chgsubs, new String[] {"subscribes", "change-logs", "propagations"}));
-//				}
-//			} catch (Exception e) { e.printStackTrace(); }
-//		}
 		if (srcnv == null) return;
 		
 		if (Connects.getDebug(basictx.connId()))
@@ -661,91 +598,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			} catch (Exception e) { e.printStackTrace(); }
 		}
 	}
-
-	/**
-	 * <p>Clean staleness. (Your knowledge about Z is newer than what I am presenting to)</p>
-	 * <h5>Case 1. X vs. Y</h5>
-	 * <pre>
-	 * X cleaned X,000021[Z] for X,000021[Z].n &lt; Y.z
-	 * X cleaned Y,000401[Z] for Y,000401[Z].n &lt; Y.z
-	 * 
-	 * I  X  X,000021    1  Z    |                           |                           |                          
-	 * I  Y  Y,000401    1  Z    |                           |                           |                          
-     *       X    Y    Z    W
-	 * X [   2,   1,   0,     ]
-	 * Y [   2,   3,   2,     ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,    ,    ,     ]</pre>
-	 * 
-	 * <h5>Case 2. X vs. Y</h5>
-	 * <pre>
-	 * X keeps change[z] for change[Z].n &ge; Y.z
-	 * 
-	 *              X                          Y                          Z                          W             
-	 * U  X  X,000023   10  Y    |                           |                           |                          
-	 * U  X  X,000023   10  Z    |                           |                           |                          
-	 *                           | U  Y  Y,000401   11  W    |                           |                          
-	 * U  X  X,000023   10  W    |                           |                           |                          
-	 *                           | U  Y  Y,000401   11  Z    |                           |                          
-	 *                           | U  Y  Y,000401   11  X    |                           |                          
-	 *       X    Y    Z    W
-	 * X [  10,   9,   7,   8 ]
-	 * Y [   9,  11,  10,   8 ]
-	 * Z [   9,  10,  11,   8 ]
-	 * W [   6,   8,   7,   9 ]</pre>
-	 * @param srcnv
-	 * @param srcn
-	 * @throws TransException
-	 * @throws SQLException
-	void cleanStaleThan(HashMap<String, Nyquence> srcnv, String srcn)
-			throws TransException, SQLException {
-		for (String sn : srcnv.keySet()) {
-			if (eq(sn, synode()) || eq(sn, srcn))
-				continue;
-			if (!nyquvect.containsKey(sn))
-				continue;
-
-			if (Connects.getDebug(basictx.connId()))
-				Utils.logi("%1$s: cleanStaleThan(): Deleting staleness where for peer %2$s, %2$s.%4$s = %3$d > my-change[%4$s].n ...",
-						synode(), srcn, srcnv.get(sn).n, sn);
-
-			SemanticObject res = (SemanticObject) ((DBSyntableBuilder)
-				with(select(chgm.tbl, "cl")
-					.cols("cl.*").col(subm.synodee)
-					.je_(subm.tbl, "sb", constr(sn), subm.synodee, chgm.pk, subm.changeId)
-					.where(op.ne, subm.synodee, constr(srcn))
-					.where(op.lt, chgm.nyquence, srcnv.get(sn).n))) // FIXME nyquence compare
-				.delete(subm.tbl, synrobot())
-					.where(op.exists, null, select("cl")
-						.where(op.eq, subm.changeId, chgm.pk)
-						.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
-					.post(with(select(chgm.tbl, "cl")
-							.cols("cl.*").col(subm.synodee)
-							.je_(subm.tbl, "sb",
-								chgm.pk, subm.changeId)
-							.where(op.ne, subm.synodee, constr(srcn)))
-						.delete(chgm.tbl)
-						.where(op.lt, chgm.nyquence, srcnv.get(sn).n) // FIXME nyquence compare
-						.where(op.notexists, null, select("cl")
-							.col("1")
-							.whereEq(chgm.tbl, chgm.domain,  "cl", chgm.domain)
-							.whereEq(chgm.tbl, chgm.entbl,"cl", chgm.entbl)
-							.whereEq(chgm.tbl, chgm.uids, "cl", chgm.uids)))
-				.d(instancontxt(basictx.connId(), synrobot()));
-			
-			if (Connects.getDebug(basictx.connId())) {
-				try {
-					@SuppressWarnings("unchecked")
-					ArrayList<Integer> chgsubs = ((ArrayList<Integer>)res.get("total"));
-					if (chgsubs != null && chgsubs.size() > 1 && hasGt(chgsubs, 0)) {
-						Utils.logi("Subscribe record(s) are affected:");
-						Utils.logi(str(chgsubs, new String[] {"subscribes", "change-log"}));
-					}
-				} catch (Exception e) { e.printStackTrace(); }
-			}
-		}
-	}
-	 */
 
 	ExessionPersist answer_save(ExessionPersist xp, ExchangeBlock req, String peer)
 			throws SQLException, TransException {
@@ -816,10 +668,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			throw new SemanticException("Synchronizing Nyquence exception: my.n0 = %d < peer.nv[me] = %d",
 					n0().n, nv.get(synode()).n);
 
-//		synyquvectWith(cx.peer, nv);
-//		HashMap<String, Nyquence> snapshot = Nyquence.clone(nyquvect);
-//		incN0(maxn(nv));
-		
 		if (Nyquence.compareNyq(stamp, n0()) < 0)
 			throw new SemanticException("Synchronizing Nyquence exception: stamp = %d < n0 = %d",
 					stamp.n, n0().n);
@@ -827,8 +675,39 @@ public class DBSyntableBuilder extends DATranscxt {
 		HashMap<String, Nyquence> snapshot = synyquvectMax(cx.peer, rep.nv, nyquvect);
 		persistamp(maxn(stamp, n0()));
 
-		// return snapshot;
 		return cx.closexchange(rep).nv(snapshot);
+	}
+
+	/**
+	 * @see #closexchange(ExessionPersist, ExchangeBlock)
+	 * 
+	 * @return insert statement to exchanging page buffer.
+	 * @throws TransException
+	 */
+	Insert insertExbuf(String peer) throws TransException {
+		return insert(exbm.tbl, synrobot())
+			.cols(exbm.insertCols())
+			.select(
+				// target is the subscriber
+				select(chgm.tbl, "cl")
+					.cols(constr(peer), chgm.pk, new ExprPart(-1))
+					.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId)
+					.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
+					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0)
+
+				// propagating 3rd parties' subscriptions
+				.union(select(chgm.tbl, "cl")
+					.cols(constr(peer), chgm.pk, new ExprPart(-1))
+					.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
+											// .and(Sql.condt(op.ne, constr(peer), subm.synodee)))
+											.and(Sql.condt(op.ne, constr(synode()), subm.synodee)))
+					// .je_(synm.tbl, "sn", chgm.synoder, synm.pk, constr(domain()), synm.domain)
+					.je_(pnvm.tbl, "nvee", "sb." + subm.synodee, pnvm.synid, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
+					// .je_(pnvm.tbl, "nvee", "sb." + subm.synodee, pnvm.synid, constr(trb.domain()), pnvm.domain, constr(peer), pnvm.peer)
+					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0)
+					// .where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0)
+				)
+			);
 	}
 	
 	protected HashMap<String, Nyquence> synyquvectMax(String peer,

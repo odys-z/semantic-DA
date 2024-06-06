@@ -22,18 +22,23 @@ import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
+import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.util.DAHelper;
+import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.QueryPage;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
+import io.odysz.transact.sql.parts.Sql;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
@@ -48,6 +53,8 @@ public class ExessionPersist {
 	final SynChangeMeta chgm;
 	final SynSubsMeta subm;
 	final SynchangeBuffMeta exbm;
+	final SynodeMeta synm;
+	final PeersMeta pnvm;
 
 	final String peer;
 
@@ -318,7 +325,7 @@ public class ExessionPersist {
 	 * @param builder 
 	 */
 	public ExessionPersist(DBSyntableBuilder tb, SynChangeMeta chgm,
-			SynSubsMeta subm, SynchangeBuffMeta exbm, String target) {
+			SynSubsMeta subm, SynchangeBuffMeta exbm, SynodeMeta synm, PeersMeta pnvm, String target) {
 		if (tb != null && eq(tb.synode(), target))
 			Utils.warn("Creating persisting context for local builder, i.e. peer(%s) = this.synode?", target);;
 
@@ -327,6 +334,8 @@ public class ExessionPersist {
 		this.peer = target;
 		this.chgm = chgm;
 		this.subm = subm;
+		this.synm = synm;
+		this.pnvm = pnvm;
 		this.exstate = new ExessionAct(mode_client, ready);
 		this.session = Radix64.toString((long) (Math.random() * Long.MAX_VALUE));
 		this.chsize = 480;
@@ -341,13 +350,15 @@ public class ExessionPersist {
 	 * @param target
 	 */
 	public ExessionPersist(DBSyntableBuilder tb, SynChangeMeta chgm,
-			SynSubsMeta subm, SynchangeBuffMeta exbm, String peer, ExchangeBlock ini) {
+			SynSubsMeta subm, SynchangeBuffMeta exbm, SynodeMeta synm, PeersMeta pnvm, String peer, ExchangeBlock ini) {
 		this.trb = tb;
 		this.exbm = exbm;
 		this.session = ini.session;
 		this.peer = peer;
 		this.chgm = chgm;
 		this.subm = subm;
+		this.synm = synm;
+		this.pnvm = pnvm;
 		this.exstate = new ExessionAct(mode_server, ready);
 		this.chsize = 480;
 	}
@@ -393,19 +404,22 @@ public class ExessionPersist {
 						"%s#%s(), don't have knowledge about %s.",
 						trb.synode(), new Object(){}.getClass().getEnclosingMethod().getName(), peer);
 			}
-			trb.insert(exbm.tbl, trb.synrobot())
-				.cols(exbm.insertCols())
-				.select(trb.select(chgm.tbl, "ch")
-					.distinct()
-					.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
-					.cols(exbm.selectCols(peer, -1))
-					// FIXME not op.lt, must implement a function to compare nyquence.
-					.where(op.gt, chgm.nyquence, dn.n) // FIXME
-					.orderby(chgm.nyquence)
-					.orderby(chgm.entbl)
-					.orderby(chgm.synoder)
-					.orderby(subm.synodee))
-				.ins(trb.instancontxt(trb.synconn(), trb.synrobot()));
+//			trb.insert(exbm.tbl, trb.synrobot())
+//				.cols(exbm.insertCols())
+//				.select(trb.select(chgm.tbl, "ch")
+//					.distinct()
+//					.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
+//					.cols(exbm.selectCols(peer, -1))
+//					// FIXME not op.lt, must implement a function to compare nyquence.
+//					.where(op.gt, chgm.nyquence, dn.n) // FIXME
+//					.orderby(chgm.nyquence)
+//					.orderby(chgm.entbl)
+//					.orderby(chgm.synoder)
+//					.orderby(subm.synodee))
+//				.ins(trb.instancontxt(trb.synconn(), trb.synrobot()));
+
+//			trb.insertExbuf(peer)
+//				.ins(trb.instancontxt(trb.synconn(), trb.synrobot()));
 		}
 		else 
 			Utils.warn("[%s#%s()] Null transact builder. - null builder only for test",
@@ -413,7 +427,7 @@ public class ExessionPersist {
 				new Object(){}.getClass().getEnclosingMethod().getName());
 		
 		challengeSeq = -1;
-		expAnswerSeq = challengeSeq;
+		expAnswerSeq = -1; //challengeSeq;
 		answerSeq = -1;
 
 		totalChallenges = trb == null ? 0 : DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer);
@@ -437,20 +451,29 @@ public class ExessionPersist {
 	public ExchangeBlock onInit(ExchangeBlock ini) throws TransException, SQLException {
 		if (trb != null) {
 			String conn = trb.basictx().connId();
-			Nyquence dn = trb.nyquvect.get(peer);
-			trb.insert(exbm.tbl, trb.synrobot())
-				.cols(exbm.insertCols())
-				.select(trb.select(chgm.tbl, "ch")
-					.distinct()
-					.je_(subm.tbl, "sb", chgm.pk, subm.changeId) // filter zero subscriber
-					.cols(exbm.selectCols(peer, -1))
-					// .where(op.gt, chgm.nyquence, dn.n)
-					.where(op.gt, sqlCompare(chgm.nyquence, dn.n), 0)
-					.orderby(chgm.entbl)
-					.orderby(chgm.nyquence)
-					.orderby(chgm.synoder)
-					.orderby(subm.synodee))
-				.ins(trb.instancontxt(conn, trb.synrobot()));
+//			Nyquence dn = trb.nyquvect.get(peer);
+//			trb.insert(exbm.tbl, trb.synrobot())
+//				.cols(exbm.insertCols())
+//				.select(trb.select(chgm.tbl, "ch")
+//					.distinct()
+//					.je_(subm.tbl, "sb", chgm.pk, subm.changeId) // filter zero subscriber
+//					.cols(exbm.selectCols(peer, -1))
+//					// .where(op.gt, chgm.nyquence, dn.n)
+//					.where(op.gt, sqlCompare(chgm.nyquence, dn.n), 0)
+//					.orderby(chgm.entbl)
+//					.orderby(chgm.nyquence)
+//					.orderby(chgm.synoder)
+//					.orderby(subm.synodee))
+
+			int total = ((SemanticObject) trb
+				.insertExbuf(peer)
+				.ins(trb.instancontxt(conn, trb.synrobot()))
+				).total();
+
+			if (total > 0 && Connects.getDebug(trb.synconn())) {
+				Utils.logi("Changes in buffer for %s -> %s: %s",
+					trb.synode(), peer, total);
+			}
 		}
 		else 
 			Utils.warn("[%s#%s()] Null transact builder. - null builder only for test",

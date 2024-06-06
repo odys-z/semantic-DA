@@ -436,7 +436,7 @@ public class DBSyntextTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[Y].change_photolog(0, U, null);
+		ck[Y].change_photolog(0, U, null); // Won't pass, and this test will be deprecated, by implementing new schema.
 		ck[Y].psubs(0, null, X, Y, Z, W);
 		ck[Y].psubs(0, null, -1, -1, Z, W);
 	}
