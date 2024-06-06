@@ -925,7 +925,7 @@ for (String coln : colnames.keySet())
 	
 	/**Print ResutSet in System.out or System.err.
 	 * @param err weather output in "out" or "err" 
-	 * @param max mas rows to print
+	 * @param max max rows to print
 	 * @param includeCols include column of names.
 	 * @return size
 	 */
@@ -965,6 +965,16 @@ for (String coln : colnames.keySet())
 			}
 		} catch (Exception e) {}
 		return results == null ? 0 : results.size();
+	}
+
+	/**
+	 * Print all data with in cols.
+	 * @param cols
+	 * @return this;
+	 */
+	public AnResultset print(String ... cols) {
+		printSomeData(false, getRowCount(), cols);
+		return this;
 	}
 
 	private void printcell(boolean err, String c) throws SQLException {

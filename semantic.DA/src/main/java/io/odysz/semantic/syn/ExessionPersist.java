@@ -2,12 +2,18 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.isNull;
-import static io.odysz.semantic.syn.ExessionAct.*;
+import static io.odysz.semantic.syn.ExessionAct.close;
+import static io.odysz.semantic.syn.ExessionAct.exchange;
+import static io.odysz.semantic.syn.ExessionAct.init;
+import static io.odysz.semantic.syn.ExessionAct.mode_client;
+import static io.odysz.semantic.syn.ExessionAct.mode_server;
+import static io.odysz.semantic.syn.ExessionAct.ready;
+import static io.odysz.semantic.syn.ExessionAct.restore;
+import static io.odysz.semantic.syn.ExessionAct.signup;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
-import static io.odysz.semantic.syn.Nyquence.sqlCompare;
-import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constVal;
+import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.sql.SQLException;
@@ -32,13 +38,11 @@ import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
-import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.QueryPage;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
-import io.odysz.transact.sql.parts.Sql;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
@@ -667,6 +671,10 @@ public class ExessionPersist {
 					.d(trb.instancontxt(trb.synconn(), trb.synrobot()));
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
+			}
+			finally {
+				// clean unaccepted subscriptions
+				trb.cleanSubscribes(peer);
 			}
 		}
 	}
