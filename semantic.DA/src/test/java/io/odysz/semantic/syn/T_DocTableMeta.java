@@ -66,11 +66,6 @@ public abstract class T_DocTableMeta extends SyntityMeta {
 		shareDate = "sharedate";
 		shareby = "shareby";
 		shareflag = "shareflag";
-		
-		uids = new HashSet<String>() {
-			static final long serialVersionUID = 1L;
-			{add("clientpath");}
-		};
 	}
 
 }

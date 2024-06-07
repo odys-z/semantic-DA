@@ -24,18 +24,18 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * exposed to subclass to change
 	 * @see SyntityMeta#SyntityMeta
 	 */
-	protected String org;
+	private String domain;
 	
 	/**
 	 * Design Memo / issue: currently org is the default synchronizing domain? 
 	 * @return org id
 	 */
-	public String org() { return org; }
+	public String org() { return domain; }
 
-	/** entity creator id used for identify globally (experimental) */
+	/** Entity creator's id used for identify originators in domain (globally?) */
 	public String synoder;
 
-	protected HashSet<String> uids;
+	protected final HashSet<String> uids;
 
 	private HashMap<String, Integer> entCols;
 
@@ -49,18 +49,24 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	/**
 	 * @param tbl
 	 * @param pk
-	 * @param org DB field of orgnization - {@link io.odysz.semantic.syn.DBSynmantics}
+	 * @param domain DB field of orgnization - {@link io.odysz.semantic.syn.DBSynmantics}
 	 * uses this to filter data for synchronization.
 	 * Could be changed in the future. 
 	 * @param conn
 	 */
-	public SyntityMeta(String tbl, String pk, String org, String... conn) {
+	public SyntityMeta(String tbl, String pk, String domain, String... conn) {
 		super(tbl, conn);
 
 		this.autopk = true;
 		this.pk = pk;
-		this.org = org;
+		this.domain = domain;
 		synoder = "synode";
+		
+		uids = new HashSet<String>() {
+			static final long serialVersionUID = 1L;
+			{ add(domain);
+			  add(synoder);}
+		};
 	}
 
 	public HashSet<String> globalIds() throws SemanticException {
@@ -131,7 +137,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * <pre>update t set c = v1, ...</pre>
 	 * before
 	 * <pre>insert into t select 'item-a', 'item-b' where not exists select 1 from t where condition-avoiding-duplicate</pre>
-	 * 
+	 * org
 	 * @param entid
 	 * @param entities
 	 * @param challenges

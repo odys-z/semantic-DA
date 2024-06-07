@@ -1055,7 +1055,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	/**
 	 * Delete change log if no subscribers accept.
 	 *  
-	 * @param org
+	 * @param domain
 	 * @param iffnode delete the change-log iff the node, i.e. the subscriber, exists.
 	 * For answers, it's the node himself, for challenge, it's the source node.
 	 * @return the delete statement
