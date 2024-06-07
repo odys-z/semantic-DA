@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
@@ -36,7 +35,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	/** entity creator id used for identify globally (experimental) */
 	public String synoder;
 
-	public final HashSet<String> uids;
+	protected HashSet<String> uids;
 
 	private HashMap<String, Integer> entCols;
 
@@ -55,7 +54,6 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * Could be changed in the future. 
 	 * @param conn
 	 */
-	@SuppressWarnings("serial")
 	public SyntityMeta(String tbl, String pk, String org, String... conn) {
 		super(tbl, conn);
 
@@ -63,28 +61,13 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 		this.pk = pk;
 		this.org = org;
 		synoder = "synode";
-		uids = new HashSet<String>() { {add("clientpath");} };
 	}
 
-	/**
-	 * Explicitly call this after this meta with semantics is created,
-	 * to replace auto found meta from database, which is managed by {@link Connects}.
-	 * 
-	 * @return this
-	 * @throws TransException
-	 * @throws SQLException 
-	@SuppressWarnings("unchecked")
-	public <T extends SyntityMeta> T replace() throws TransException, SQLException {
-		TableMeta mdb = Connects.getMeta(conn, tbl);
-		if (!(mdb instanceof SyntityMeta))
-			DBSynmantics.replaceMeta(tbl, this, conn);
-		if (isNull(this.ftypes) && mdb.ftypes() != null)
-			this.ftypes = mdb.ftypes();
-		return (T) this;
+	public HashSet<String> globalIds() throws SemanticException {
+		if (uids == null)
+			throw new SemanticException("SyntityMeta.uids must initialized by subclasses. Uids is null.");
+		return uids;
 	}
-	 */
-	
-	public HashSet<String> globalIds() { return uids; }
 
 	/**
 	 * Generate columns for inserting challenging entities.

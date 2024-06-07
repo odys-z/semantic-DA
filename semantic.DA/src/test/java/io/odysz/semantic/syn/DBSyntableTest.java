@@ -769,7 +769,7 @@ public class DBSyntableTest {
 		String pid = ((SemanticObject) trb
 			.insert(m.tbl, robot)
 			.nv(m.uri, "")
-			.nv(m.resname, "photo-x")
+			.nv(m.resname, "p-" + robot.deviceId)
 			.nv(m.fullpath, father)
 			.nv(m.org(), robot.domain())
 			.nv(m.device(), robot.deviceId())
@@ -1225,7 +1225,6 @@ public class DBSyntableTest {
 				r.getString(sbm.synodee)
 				);
 	}
-
 	
 	public static void assertnv(long... nvs) {
 		if (nvs == null || nvs.length == 0 || nvs.length % 2 != 0)
@@ -1244,7 +1243,8 @@ public class DBSyntableTest {
 		}
 	}
 	
-	public static void assertnv(HashMap<String, Nyquence> nv0, HashMap<String, Nyquence> nv1, int ... delta) {
+	public static void assertnv(HashMap<String, Nyquence> nv0,
+			HashMap<String, Nyquence> nv1, int ... delta) {
 		if (nv0 == null || nv1 == null || nv0.size() != nv1.size() || nv1.size() != delta.length)
 			fail("Invalid arguments to assert.");
 		

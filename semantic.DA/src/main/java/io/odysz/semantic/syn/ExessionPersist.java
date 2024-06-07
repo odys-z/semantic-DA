@@ -62,7 +62,6 @@ public class ExessionPersist {
 
 	final String peer;
 
-	// public ArrayList<ArrayList<Object>> answerPage;
 	public AnResultset answerPage;
 
 	DBSyntableBuilder trb;
