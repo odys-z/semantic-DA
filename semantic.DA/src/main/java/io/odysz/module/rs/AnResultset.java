@@ -108,7 +108,10 @@ for (String coln : colnames.keySet())
 	 * @param k
 	 * @return index starting at 0
 	 */
-	public int rowIndex0(String k) { return indices0 == null ? -1 : indices0.get(k); }
+	public int rowIndex0(String k) {
+		return indices0 == null || !indices0.containsKey(k)
+			? -1 : indices0.get(k);
+	}
 
 	/** for deserializing */
 	public AnResultset() { }
@@ -233,6 +236,9 @@ for (String coln : colnames.keySet())
 	}
 	
 	public AnResultset append(ArrayList<Object> includingRow) {
+		if (results == null)
+			results = new ArrayList<ArrayList<Object>>();
+
 		results.add(includingRow);
 		rowCnt++;
 		rowIdx = results.size();
@@ -501,7 +507,7 @@ for (String coln : colnames.keySet())
 	 * Get row's field value
 	 * @param colName field name
 	 * @param row row index, start at 1. (If get from {@link #rowIndex0(String)}, add 1.)
-	 * @return
+	 * @return string value
 	 * @throws NumberFormatException
 	 * @throws SQLException
 	 */

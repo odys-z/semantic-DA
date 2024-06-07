@@ -19,7 +19,10 @@ import io.odysz.transact.x.TransException;
 public class SynodeMeta extends SyntityMeta {
 
 	public final String domain;
+	/** Nyquence for synchronizing */
 	public final String nyquence;
+	/** Nyquence for stamping change logs */
+	public final String nstamp;
 	public final String mac;
 
 	/**
@@ -32,11 +35,11 @@ public class SynodeMeta extends SyntityMeta {
 	public SynodeMeta(String conn) throws TransException {
 		super("syn_node", "synid", "org", conn, "syn_node.sqlite.ddl");
 
-		// pk = "synid";
-		synoder = "synid";
-		mac = "mac";
-		nyquence = "nyq";
-		domain = "domain";
+		synoder = pk;
+		mac     = "mac";
+		nyquence= "nyq";
+		nstamp  = "nstamp";
+		domain  = "domain";
 
 		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
 

@@ -48,7 +48,7 @@ public class Nyquence {
 	}
 
 	/**
-	 * If less than {@code maxn}, set to {@code maxn}. then increase n,
+	 * Increase n, if less than {@code maxn}, set to {@code maxn}.
 	 * 
 	 * @param maxn
 	 * @return this
@@ -147,6 +147,10 @@ public class Nyquence {
 	}
 
 	public static ExprPart sqlCompare(String lcol, String rcol) {
+		return new ExprPart(String.format("%s - %s", lcol, rcol)); // FIXME
+	}
+
+	public static ExprPart sqlCompare(String lcol, long rcol) {
 		return new ExprPart(String.format("%s - %s", lcol, rcol)); // FIXME
 	}
 

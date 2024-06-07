@@ -1,8 +1,7 @@
 package io.odysz.semantic;
 
-import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.isNull;
-import static io.odysz.common.LangExt.len;
+import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.split;
 import static io.odysz.common.LangExt.str;
 
@@ -488,11 +487,13 @@ public class DASemantics {
 		String conn = isNull(connId) ? Connects.defltConn() : connId[0];
 		try {
 			TableMeta mdb = Connects.getMeta(conn, m.tbl);
+			if (mdb == null)
+				throw new TransException("Can't find table %s from DB connection %s.", m.tbl, conn);
 			Connects.setMeta(conn, m.clone(mdb));
 			return mdb;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return null;
+			throw new TransException(e.getMessage());
 		}
 	}
 
@@ -1003,7 +1004,7 @@ public class DASemantics {
 			}
 		}
 
-		private String unquote(AbsPart prefixVal) throws TransException {
+		public static String unquote(AbsPart prefixVal) throws TransException {
 			return prefixVal == null ? ""
 					: prefixVal.sql(null)
 					.replaceAll("^\\s*'", "")
