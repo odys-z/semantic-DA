@@ -1007,14 +1007,15 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 	
 	/**
-	 * Clean any subscriptions that should been accepted by the peer in this session.
+	 * Clean any subscriptions that should been accepted by the peer in
+	 * the last session, but was not accutally accepted.
 	 * 
 	 * @param peer
 	 */
-	public void cleanSubscribes(String peer) {
+	protected void cleanStaleSubs(String peer) {
 		if (force_clean_subs) {
 			if (Connects.getDebug(basictx.connId())) {
-				Utils.logT(new Object(),
+				Utils.logT(new Object() {},
 						"Cleaning changes that's not accepted in session %s -> %s.",
 						synode(), peer);
 				try {
@@ -1031,17 +1032,18 @@ public class DBSyntableBuilder extends DATranscxt {
 			}
 
 			try {
-				SemanticObject res = (SemanticObject) delete(subm.tbl)
+				SemanticObject res = (SemanticObject) delete(subm.tbl, synrobot())
 					.whereEq(subm.synodee, peer)
 					.post(del0subchange(peer))
 					.d(instancontxt(synconn(), synrobot()));
 
-				Object cnt = res.get("total");
-				if (cnt != null && Connects.getDebug(basictx.connId())) {
-					Utils.logT(new Object(),
-						"Cleaned changes in %s -> %s",
-						synode(), peer);
-					res.print(System.err);
+				@SuppressWarnings("unchecked")
+				int cnt = ((ArrayList<Integer>)res.get("total")).get(0);
+				if (cnt > 0 && Connects.getDebug(basictx.connId())) {
+					Utils.warnT(new Object() {} ,
+						"Cleaned changes in %s -> %s: %s changes",
+						synode(), peer, cnt);
+					// res.print(System.err);
 				}
 			}
 			catch (Exception e) {
@@ -1051,15 +1053,15 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 	
 	/**
-	 * Delete change log if no subscribers exist
+	 * Delete change log if no subscribers accept.
 	 *  
 	 * @param org
-	 * @param deliffnode delete the change-log iff the node, i.e. the subscriber, exists.
+	 * @param iffnode delete the change-log iff the node, i.e. the subscriber, exists.
 	 * For answers, it's the node himself, for challenge, it's the source node.
 	 * @return the delete statement
 	 * @throws TransException
 	 */
-	Statement<?> del0subchange(String deliffnode)
+	protected Statement<?> del0subchange(String iffnode)
 				throws TransException {
 		return delete(chgm.tbl)
 			// .whereEq(chgm.pk, changeId)
@@ -1069,9 +1071,9 @@ public class DBSyntableBuilder extends DATranscxt {
 			.whereEq("0", (Query)select(subm.tbl)
 				.col(count(subm.synodee))
 				// .whereEq(chgm.pk, changeId)
-				.whereEq(chgm.domain, domain())
-				.where(op.eq, chgm.pk, subm.changeId)
-				.where(op.eq, subm.synodee, constr(deliffnode)))
+				// .whereEq(chgm.domain, domain())
+				// .where(op.eq, subm.synodee, constr(iffnode))
+				.where(op.eq, chgm.pk, subm.changeId))
 			;
 	}
 
@@ -1136,6 +1138,4 @@ public class DBSyntableBuilder extends DATranscxt {
 				: null);
 		return rep;
 	}
-	
-
 }
