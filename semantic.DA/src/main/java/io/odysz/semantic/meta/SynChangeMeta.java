@@ -26,7 +26,7 @@ public class SynChangeMeta extends SemanticTableMeta {
 	/** updated fields when updating an entity */
 	public final String updcols;
 
-	public final String timestamp;
+	// public final String timestamp;
 
 	public SynChangeMeta(String ... conn) {
 		super("syn_change", conn);
@@ -43,7 +43,7 @@ public class SynChangeMeta extends SemanticTableMeta {
 		uids     = "uids";
 		nyquence = "nyquence";
 		updcols  = "updcols";
-		timestamp= "timestamp";
+		// timestamp= "timestamp";
 	}
 
 	public String[] insertCols() {

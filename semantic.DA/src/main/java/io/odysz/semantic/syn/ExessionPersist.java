@@ -194,8 +194,6 @@ public class ExessionPersist {
 				Utils.warnT(new Object() {},
 						"Fatal error ignored: can't restore entity record answered from target node.\n" +
 						"entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by challenge): %s",
-						this.getClass().getName(), 
-						new Object(){}.getClass().getEnclosingMethod().getName(),
 						entm.tbl, peer, trb.synode(), entid);
 				continue;
 			}

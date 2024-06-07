@@ -715,8 +715,9 @@ public class DBSynsactBuilder extends DATranscxt {
 
 			HashMap<String, AnResultset> entbuf = x.onchanges.entities;
 			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(entid) < 0) {
-				Utils.warnT(new Object() {}, "Fatal error ignored: can't restore entity record answered from target node.\n"
-						+ "entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by challenge): %s",
+				Utils.warnT(new Object() {},
+						"Fatal error ignored: can't restore entity record answered from target node.\n" +
+						"entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by challenge): %s",
 						entm.tbl, srcnode, synode(), entid);
 				continue;
 			}
