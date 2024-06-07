@@ -110,10 +110,9 @@ public class ExessionPersist {
 			String rpcid  = rply.getString(chgm.pk);
 	
 			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(entid1) < 0) {
-				Utils.warn("[%s#%s()] Fatal error ignored: can't restore entity record answered from target node.\n"
-						+ "entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by answer): %s",
-						this.getClass().getName(), 
-						new Object(){}.getClass().getEnclosingMethod().getName(),
+				Utils.warnT(new Object() {},
+						"Fatal error ignored: can't restore entity record answered from target node.\n" +
+						"entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by answer): %s",
 						entm.tbl, srcnode, trb.synode(), entid1);
 				continue;
 			}
@@ -192,10 +191,9 @@ public class ExessionPersist {
 
 			HashMap<String, AnResultset> entbuf = entites; // x.onchanges.entities;
 			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(entid) < 0) {
-				Utils.warn("[%s#%s()] Fatal error ignored: can't restore entity record answered from target node.\n"
-						+ "entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by challenge): %s",
-						this.getClass().getName(), 
-						new Object(){}.getClass().getEnclosingMethod().getName(),
+				Utils.warnT(new Object() {},
+						"Fatal error ignored: can't restore entity record answered from target node.\n" +
+						"entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by challenge): %s",
 						entm.tbl, peer, trb.synode(), entid);
 				continue;
 			}
@@ -671,6 +669,10 @@ public class ExessionPersist {
 					.d(trb.instancontxt(trb.synconn(), trb.synrobot()));
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
+			}
+			finally {
+				// clean unaccepted subscriptions
+				trb.cleanStaleSubs(peer);
 			}
 		}
 	}
