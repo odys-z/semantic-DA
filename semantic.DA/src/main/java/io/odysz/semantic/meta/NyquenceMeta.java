@@ -19,8 +19,8 @@ public class NyquenceMeta extends SyntityMeta {
 	public final String nyquence;
 	public final String inc;
 
-	public NyquenceMeta(String domain, String... conn) {
-		super("syn_nyquence", "synode", domain, conn);
+	public NyquenceMeta(String domain, String conn) {
+		super("syn_nyquence", "synode", domain, "test", conn);
 		
 		nyquence = "nyquence";
 		inc = "inc";

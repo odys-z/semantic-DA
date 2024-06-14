@@ -1238,7 +1238,7 @@ for (String coln : colnames.keySet())
 	}
 
 	/**
-	 * Is current row index is valid?
+	 * Is current row index valid?
 	 * @return true if accessing currrent row is valid.
 	 * @since 1.4.40
 	 */

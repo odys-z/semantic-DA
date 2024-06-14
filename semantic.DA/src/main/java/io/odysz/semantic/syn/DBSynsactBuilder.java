@@ -11,7 +11,6 @@ import static io.odysz.semantic.syn.Nyquence.maxn;
 import static io.odysz.semantic.util.DAHelper.getNyquence;
 import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
-import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
@@ -125,7 +124,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		DBSyntext tx = (DBSyntext) this.basictx;
 		tx.synode = synodeId;
 		tx.domain = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
-		((SyncRobot)tx.usr()).orgId = getValstr((Transcxt) this, conn, synm, synm.org(), synm.pk, synodeId);
+		((SyncRobot)tx.usr()).orgId = getValstr((Transcxt) this, conn, synm, synm.org, synm.pk, synodeId);
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
@@ -740,9 +739,9 @@ public class DBSynsactBuilder extends DATranscxt {
 							.whereEq(chgm.synoder, synodr)
 							.whereEq(chgm.uids, chuids)
 							.post(delete(entm.tbl)
-								.whereEq(entm.org(), chorg)
+								// .whereEq(entm.org(), chorg)
 								.whereEq(entm.synoder, synodr)
-								.whereEq(entm.pk, chentbl))
+								.whereEq(entm.synuid, chuids))
 						: null));
 			}
 			else { // CRUD.C || CRUD.U
@@ -800,8 +799,8 @@ public class DBSynsactBuilder extends DATranscxt {
 					? update(entm.tbl, synrobot())
 						.nvs(entm.updateEntNvs(chgm, entid, entbuf.get(entm.tbl), chal))
 						.whereEq(entm.synoder, synodr)
-						.whereEq(entm.org(), chorg)
-						.whereEq(entm.pk, entid)
+						// .whereEq(entm.org(), chorg)
+						.whereEq(entm.synuid, chuids)
 						.post(subscribeUC.size() <= 0
 							? null : insert(chgm.tbl)
 							.nv(chgm.pk, chgid)
@@ -1276,13 +1275,14 @@ public class DBSynsactBuilder extends DATranscxt {
 	public ChangeLogs addChild(ExchangeContext x, String childId, SynodeMode reqmode, IUser robot, String org, String domain)
 			throws TransException, SQLException {
 		Synode apply = new Synode(basictx.connId(), childId, org, domain);
-		String chgid = ((SemanticObject) apply.insert(synm, n0(), insert(synm.tbl, robot))
+		String chgid = ((SemanticObject) apply.insert(synm, synode(), n0(), insert(synm.tbl, robot))
 			.post(insert(chgm.tbl, robot)
-				.nv(chgm.entfk, apply.recId)
+				.nv(chgm.entfk, apply.synodeId)
 				.nv(chgm.entbl, synm.tbl)
 				.nv(chgm.crud, CRUD.C)
 				.nv(chgm.synoder, synode())
-				.nv(chgm.uids, concatstr(synode(), chgm.UIDsep, apply.recId))
+				// .nv(chgm.uids, concatstr(synode(), chgm.UIDsep, apply.recId))
+				.nv(chgm.uids, SynChangeMeta.uids(synode(), apply.synodeId))
 				.nv(chgm.nyquence, n0().n)
 				.nv(chgm.domain, domain())
 				.post(insert(subm.tbl)
@@ -1300,7 +1300,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			.ins(instancontxt(basictx.connId(), robot)))
 			.resulve(chgm.tbl, chgm.pk);
 		
-		nyquvect.put(apply.recId, new Nyquence(apply.nyquence));
+		nyquvect.put(apply.synodeId, new Nyquence(apply.nyquence));
 
 		ChangeLogs log = new ChangeLogs(chgm)
 			.nyquvect(nyquvect)
@@ -1308,7 +1308,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				? ((AnResultset) select(synm.tbl, "syn")
 					.whereIn(synm.synoder, childId, synode())
 					.whereEq(synm.domain, domain)
-					.whereEq(synm.org(), org)
+					.whereEq(synm.org, org)
 					.rs(instancontxt(basictx.connId(), synrobot()))
 					.rs(0))
 				: null); // Following exchange is needed
@@ -1321,7 +1321,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			.nv(synm.pk, joining)
 			.nv(synm.nyquence, new ExprPart(n0().n))
 			.nv(synm.mac,  "#"+joining)
-			.nv(synm.org(), org)
+			.nv(synm.org, org)
 			.nv(synm.domain, domain)
 			.ins(instancontxt(basictx.connId(), synrobot()));
 
@@ -1334,7 +1334,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				? ((AnResultset) select(synm.tbl, "syn")
 					.whereEq(synm.synoder, synode())
 					.whereEq(synm.domain, domain)
-					.whereEq(synm.org(), org)
+					.whereEq(synm.org, org)
 					.rs(instancontxt(basictx.connId(), synrobot()))
 					.rs(0))
 				: null); // Following exchange is needed
@@ -1348,10 +1348,10 @@ public class DBSynsactBuilder extends DATranscxt {
 		while (ns.next()) {
 			Synode n = new Synode(ns, synm);
 			Nyquence mxn = maxn(domainstatus.nyquvect);
-			n.insert(synm, mxn, insert(synm.tbl, synrobot()))
+			n.insert(synm, synode(), mxn, insert(synm.tbl, synrobot()))
 				.ins(instancontxt(basictx.connId(), synrobot()));
 
-			nyquvect.put(n.recId, new Nyquence(mxn.n));
+			nyquvect.put(n.synodeId, new Nyquence(mxn.n));
 		}
 
 		return new ChangeLogs(chgm).nyquvect(nyquvect);
@@ -1385,7 +1385,8 @@ public class DBSynsactBuilder extends DATranscxt {
 				.nv(chgm.entbl, entm.tbl)
 				.nv(chgm.crud, CRUD.U)
 				.nv(chgm.synoder, synode()) // U.synoder != uids[synoder]
-				.nv(chgm.uids, concatstr(synoder, chgm.UIDsep, pid))
+				// .nv(chgm.uids, concatstr(synoder, chgm.UIDsep, pid))
+				.nv(chgm.uids, SynChangeMeta.uids(synoder, pid))
 				.nv(chgm.nyquence, n0().n)
 				.nv(chgm.domain, domain())
 				.nv(chgm.updcols, updcols)

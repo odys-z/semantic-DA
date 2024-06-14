@@ -1,6 +1,7 @@
 package io.odysz.semantic.meta;
 
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.isNull;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -20,18 +21,16 @@ import io.odysz.transact.x.TransException;
  */
 public abstract class SyntityMeta extends SemanticTableMeta {
 
+	public static final String err_requires_synuid = "Table to be synchronized must come with a fixed column named '%s'.";
+
 	/**
 	 * exposed to subclass to change
 	 * @see SyntityMeta#SyntityMeta
 	 */
-	private String domain;
-	
-	/**
-	 * Design Memo / issue: currently org is the default synchronizing domain? 
-	 * @return org id
-	 */
-	public String org() { return domain; }
+	public final String domain;
 
+	public final String synuid;
+	
 	/** Entity creator's id used for identify originators in domain (globally?) */
 	public String synoder;
 
@@ -50,23 +49,35 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * @param tbl
 	 * @param pk
 	 * @param domain DB field of orgnization - {@link io.odysz.semantic.syn.DBSynmantics}
+	 * @param node synode-id field
 	 * uses this to filter data for synchronization.
 	 * Could be changed in the future. 
 	 * @param conn
 	 */
-	public SyntityMeta(String tbl, String pk, String domain, String... conn) {
+	public SyntityMeta(String tbl, String pk, String domain, String nodeid, String conn) {
 		super(tbl, conn);
 
 		this.autopk = true;
 		this.pk = pk;
 		this.domain = domain;
-		synoder = "synode";
+		synoder = nodeid; // "synode";
+		synuid = "io_oz_synuid";
 		
 		uids = new HashSet<String>() {
 			static final long serialVersionUID = 1L;
 			{ add(domain);
-			  add(synoder);}
+			  add(synoder);
+			  add(pk);}
 		};
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends SemanticTableMeta> T replace() throws TransException, SQLException {
+		super.replace();
+		if (isNull(ftypes) || !ftypes.containsKey(synuid))
+			throw new TransException(err_requires_synuid, synuid);
+		return (T) this;
 	}
 
 	public HashSet<String> globalIds() throws SemanticException {
@@ -89,9 +100,12 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 		if (entCols == null)
 			this.entCols = new HashMap<String, Integer>(ftypes.size());
 
-		if (ftypes == null || ftypes.size() == 0) 
+		if (ftypes == null || ftypes.size() == 0)
 			throw new SemanticException("This table meta is not initialized with information from DB. Call clone() or replace() first.");
 
+		if (!ftypes.containsKey(synuid)) 
+			throw new SemanticException(err_requires_synuid, synuid);
+					
 		String[] cols = new String[autopk() ? ftypes.size() - 1 : ftypes.size()];
 		int cx = 0;
 		for (String c : ftypes.keySet()) {
@@ -117,12 +131,12 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * @throws SemanticException 
 	 * @since 1.4.40
 	 */
-	public ArrayList<Object[]> insertChallengeEnt(String pk, AnResultset challengents)
+	public ArrayList<Object[]> insertChallengeEnt(String uids, AnResultset challengents)
 			throws SQLException, SemanticException {
 		// TODO optimize Insert to handle this values faster
 		String[] cols = entCols();
 		ArrayList<Object[]> val = new ArrayList<Object[]> (entCols.size());
-		ArrayList<Object> row = challengents.getRowAt(challengents.rowIndex0(pk));
+		ArrayList<Object> row = challengents.getRowAt(challengents.rowIndex0(uids));
 
 		for (int cx = 0; cx < cols.length; cx++) {
 			if (autopk() && eq(this.pk, cols[cx]))
