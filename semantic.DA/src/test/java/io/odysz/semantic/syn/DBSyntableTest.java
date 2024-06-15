@@ -602,7 +602,6 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ExessionPersist cp = new ExessionPersist(ctb, chm, sbm, xbm, snm, prm, stb.synode());
 		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
-		// assertTrue(ini.totalChallenges > 0);
 		Utils.logrst(String.format("%s initiate: changes: %d    entities: %d",
 				ctb.synode(), ini.totalChallenges, ini.enitities(cphm.tbl)), test, subno, no, 1);
 
@@ -664,7 +663,6 @@ public class DBSyntableTest {
 				stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, ++no);
 		printChangeLines(ck);
 		printNyquv(ck);
-		// assertEquals(ExessionAct.exchanging, sp.exstate());
 	
 		// server had sent reply but client haven't got it
 		// challenges & answers are saved at server
@@ -707,7 +705,6 @@ public class DBSyntableTest {
 			stb.onclosexchange(sp, req);
 			printChangeLines(ck);
 			printNyquv(ck);
-			// assertEquals(ExessionAct.ready, sp.exstate());
 
 			if (req.totalChallenges > 0)
 				fail("Shouldn't has any more challenge here.");

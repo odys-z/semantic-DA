@@ -15,6 +15,7 @@ import static io.odysz.semantic.util.DAHelper.getNyquence;
 import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
+import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -44,6 +45,7 @@ import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
+import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.Logic.op;
@@ -245,6 +247,8 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	private HashMap<String, SyntityMeta> entityRegists;
 
+	private final boolean force_clean_subs;
+
 	public SyntityMeta getSyntityMeta(String tbl) {
 		return entityRegists == null ? null : entityRegists.get(tbl);
 	} 
@@ -289,6 +293,8 @@ public class DBSyntableBuilder extends DATranscxt {
 		
 		stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
 				synm.synoder, synodeId, synm.domain, tx.domain);
+
+		force_clean_subs = true;
 
 		if (isblank(tx.domain))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
@@ -1000,6 +1006,77 @@ public class DBSyntableBuilder extends DATranscxt {
 		return null;
 	}
 	
+	/**
+	 * Clean any subscriptions that should been accepted by the peer in
+	 * the last session, but was not accutally accepted.
+	 * 
+	 * @param peer
+	 */
+	protected void cleanStaleSubs(String peer) {
+		if (force_clean_subs) {
+			if (Connects.getDebug(basictx.connId())) {
+				Utils.logT(new Object() {},
+						"Cleaning changes that's not accepted in session %s -> %s.",
+						synode(), peer);
+				try {
+					((AnResultset) select(chgm.tbl, "ch")
+						.cols(chgm.pk, chgm.uids, chgm.nyquence, subm.synodee)
+						.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
+						.whereEq(subm.synodee, peer)
+						.rs(instancontxt(synconn(), synrobot()))
+						.rs(0))
+						.print();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+
+			try {
+				SemanticObject res = (SemanticObject) delete(subm.tbl, synrobot())
+					.whereEq(subm.synodee, peer)
+					.post(del0subchange(peer))
+					.d(instancontxt(synconn(), synrobot()));
+
+				@SuppressWarnings("unchecked")
+				int cnt = ((ArrayList<Integer>)res.get("total")).get(0);
+				if (cnt > 0 && Connects.getDebug(basictx.connId())) {
+					Utils.warnT(new Object() {} ,
+						"Cleaned changes in %s -> %s: %s changes",
+						synode(), peer, cnt);
+					// res.print(System.err);
+				}
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	/**
+	 * Delete change log if no subscribers accept.
+	 *  
+	 * @param org
+	 * @param iffnode delete the change-log iff the node, i.e. the subscriber, exists.
+	 * For answers, it's the node himself, for challenge, it's the source node.
+	 * @return the delete statement
+	 * @throws TransException
+	 */
+	protected Statement<?> del0subchange(String iffnode)
+				throws TransException {
+		return delete(chgm.tbl)
+			// .whereEq(chgm.pk, changeId)
+			// .whereEq(chgm.entbl, entitymeta.tbl)
+			.whereEq(chgm.domain, domain())
+			// .whereEq(chgm.synoder, synoder)
+			.whereEq("0", (Query)select(subm.tbl)
+				.col(count(subm.synodee))
+				// .whereEq(chgm.pk, changeId)
+				// .whereEq(chgm.domain, domain())
+				// .where(op.eq, subm.synodee, constr(iffnode))
+				.where(op.eq, chgm.pk, subm.changeId))
+			;
+	}
+
 	/**
 	 * Check and extend column {@link #ChangeFlag}, which is for changing flag of change-logs.
 	 * 
