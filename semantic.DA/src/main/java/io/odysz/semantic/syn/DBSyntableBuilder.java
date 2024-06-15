@@ -641,6 +641,7 @@ public class DBSyntableBuilder extends DATranscxt {
 									synode(), subscribe);
 						}	
 				}
+				// see alse ExessionPersist#saveChanges()
 				else if (compareNyq(subnyq, nyquvect.get(reqChgs.getString(chgm.synoder))) > 0) {
 					// should suppress the following case
 					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
