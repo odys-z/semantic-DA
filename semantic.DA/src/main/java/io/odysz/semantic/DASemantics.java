@@ -392,9 +392,9 @@ public class DASemantics {
 		 * 
 		 * <p>
 		 * args<br> 
-		 * 0: full qualified name of table meta, e.g. <br>
+		 * 0: full qualified name of table meta<br>
 		 * 1: global identity fields, separated with space, e.g. "synoder clientpath"<br>
-		 * 2: fields to be cleared (optional with empty value), separated with space<br>
+		 * 2: [deprecated] fields to be cleared (optional with empty value), separated with space<br>
 		 * </p>
 		 * Example: &lt;args&gt;io.odysz.semantic.meta.SynodeMeta,crud,org synid,remarks&lt;/args&gt;
 		 */

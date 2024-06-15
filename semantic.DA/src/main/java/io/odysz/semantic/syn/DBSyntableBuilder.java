@@ -14,7 +14,6 @@ import static io.odysz.semantic.syn.ExessionAct.*;
 import static io.odysz.semantic.util.DAHelper.getNyquence;
 import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
-import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
@@ -276,7 +275,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		tx.synode = synodeId;
 		tx.domain = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
 		((SyncRobot)tx.usr())
-			.orgId(getValstr((Transcxt) this, conn, synm, synm.org(), synm.pk, synodeId))
+			.orgId(getValstr((Transcxt) this, conn, synm, synm.org, synm.pk, synodeId))
 			.domain(getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId));
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
@@ -812,7 +811,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	public void restorexchange() { }
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
-	public String updateEntity(String synoder, String pid, SyntityMeta entm, Object ... nvs)
+	public String updateEntity(String synoder, String synuid, SyntityMeta entm, Object ... nvs)
 			throws TransException, SQLException, IOException {
 		String [] updcols = new String[nvs.length/2];
 		for (int i = 0; i < nvs.length; i += 2)
@@ -820,13 +819,16 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		String chgid = update(entm.tbl, synrobot())
 			.nvs((Object[])nvs)
-			.whereEq(entm.pk, pid)
+			.whereEq(entm.synuid, synuid)
 			.post(insert(chgm.tbl, synrobot())
-				.nv(chgm.entfk, pid)
+				// .nv(chgm.entfk, pid)
 				.nv(chgm.entbl, entm.tbl)
 				.nv(chgm.crud, CRUD.U)
 				.nv(chgm.synoder, synode()) // U.synoder != uids[synoder]
-				.nv(chgm.uids, concatstr(synoder, chgm.UIDsep, pid))
+
+				// .nv(chgm.uids, concatstr(synoder, chgm.UIDsep, pid))
+				.nv(chgm.uids, synuid)
+
 				.nv(chgm.nyquence, stamp.n)
 				.nv(chgm.domain, domain())
 				.nv(chgm.updcols, updcols)
@@ -976,7 +978,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					update(synm.tbl, synrobot())
 					.nv(synm.domain, ns.getString(synm.domain))
 					.whereEq(synm.pk, synode())
-					.whereEq(synm.org(), synrobot().orgId())
+					.whereEq(synm.org, synrobot().orgId())
 					.whereEq(synm.domain, domain())
 					.u(instancontxt(basictx.connId(), synrobot()));
 
@@ -986,10 +988,10 @@ public class DBSyntableBuilder extends DATranscxt {
 				else {
 					Synode n = new Synode(ns, synm);
 					mxn = maxn(domainstatus.nv);
-					n.insert(synm, mxn, insert(synm.tbl, synrobot()))
+					n.insert(synm, synode(), mxn, insert(synm.tbl, synrobot()))
 						.ins(instancontxt(basictx.connId(), synrobot()));
 
-					nyquvect.put(n.recId, new Nyquence(mxn.n));
+					nyquvect.put(n.synodeId, new Nyquence(mxn.n));
 				}
 			}
 		}
@@ -1055,7 +1057,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	/**
 	 * Delete change log if no subscribers accept.
 	 *  
-	 * @param org
+	 * @param domain
 	 * @param iffnode delete the change-log iff the node, i.e. the subscriber, exists.
 	 * For answers, it's the node himself, for challenge, it's the source node.
 	 * @return the delete statement
@@ -1100,13 +1102,14 @@ public class DBSyntableBuilder extends DATranscxt {
 		Synode apply = new Synode(basictx.connId(), childId, org, domain());
 
 		@SuppressWarnings("unused")
-		String chgid = ((SemanticObject) apply.insert(synm, n0(), insert(synm.tbl, robot))
+		String chgid = ((SemanticObject) apply.insert(synm, synode(), n0(), insert(synm.tbl, robot))
 			.post(insert(chgm.tbl, robot)
-				.nv(chgm.entfk, apply.recId)
+				// .nv(chgm.entfk, apply.recId)
 				.nv(chgm.entbl, synm.tbl)
 				.nv(chgm.crud, CRUD.C)
 				.nv(chgm.synoder, synode())
-				.nv(chgm.uids, concatstr(synode(), chgm.UIDsep, apply.recId))
+				// .nv(chgm.uids, concatstr(synode(), chgm.UIDsep, apply.recId))
+				.nv(chgm.uids, SynChangeMeta.uids(synode(), apply.synodeId))
 				.nv(chgm.nyquence, n0().n)
 				.nv(chgm.domain, domain())
 				.post(insert(subm.tbl)
@@ -1124,18 +1127,18 @@ public class DBSyntableBuilder extends DATranscxt {
 			.ins(instancontxt(basictx.connId(), robot)))
 			.resulve(chgm.tbl, chgm.pk);
 		
-		nyquvect.put(apply.recId, new Nyquence(apply.nyquence));
+		nyquvect.put(apply.synodeId, new Nyquence(apply.nyquence));
 
 		ExchangeBlock rep = new ExchangeBlock(synode(), childId, ap.session(), ap.exstat())
 			.nv(nyquvect)
 			.synodes(req.act == ExessionAct.signup
-				? ((AnResultset) select(synm.tbl, "syn")
-					.whereIn(synm.synoder, childId, synode())
-					.whereEq(synm.domain, domain())
-					.whereEq(synm.org(), org)
-					.rs(instancontxt(basictx.connId(), synrobot()))
-					.rs(0))
-				: null);
+			? ((AnResultset) select(synm.tbl, "syn")
+				.whereIn(synm.synoder, childId, synode())
+				.whereEq(synm.domain, domain())
+				.whereEq(synm.org, org)
+				.rs(instancontxt(basictx.connId(), synrobot()))
+				.rs(0))
+			: null);
 		return rep;
 	}
 }

@@ -14,15 +14,17 @@ import io.odysz.transact.x.TransException;
  * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
  * 
  * @author odys-z@github.com
- *
  */
 public class SynodeMeta extends SyntityMeta {
 
-	public final String domain;
+	public final String org;
+
 	/** Nyquence for synchronizing */
 	public final String nyquence;
+
 	/** Nyquence for stamping change logs */
 	public final String nstamp;
+
 	public final String mac;
 
 	/**
@@ -33,13 +35,13 @@ public class SynodeMeta extends SyntityMeta {
 	 * @throws SemanticException 
 	 */
 	public SynodeMeta(String conn) throws TransException {
-		super("syn_node", "synid", "org", conn, "syn_node.sqlite.ddl");
+		super("syn_node", "synid", "domain", "synuid", conn);
 
 		synoder = pk;
 		mac     = "mac";
 		nyquence= "nyq";
 		nstamp  = "nstamp";
-		domain  = "domain";
+		org     = "org";
 
 		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
 
@@ -55,4 +57,11 @@ public class SynodeMeta extends SyntityMeta {
 	public String[] insertSelectItems(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset changes) {
 		return null;
 	}
+
+//	/**
+//	 * Design Memo / issue: currently org is the default synchronizing domain? 
+//	 * @return org id
+//	 */
+//	public String org() { return domain; }
+
 }

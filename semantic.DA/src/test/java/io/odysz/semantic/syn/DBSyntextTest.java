@@ -704,7 +704,7 @@ public class DBSyntextTest {
 		
 		String chid = ((SemanticObject) trb
 			.insert(chm.tbl, robot)
-			.nv(chm.entfk, pid)
+			// .nv(chm.entfk, pid)
 			.nv(chm.entbl, m.tbl)
 			.nv(chm.crud, CRUD.C)
 			.nv(chm.synoder, synoder)
