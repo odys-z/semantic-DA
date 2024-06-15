@@ -241,7 +241,8 @@ public class ExessionPersist {
 							// conflict & override
 							iamSynodee = true;
 					}
-					else if (compareNyq(chgnyq, trb.nyquvect.get(peer)) > 0 // FIXME TODO nyquence.synoder?
+					// FIXME TODO compare chg.n > nyquence[synoder]?
+					else if (compareNyq(chgnyq, trb.nyquvect.get(peer)) > 0
 						// ref: _merge-older-version
 						// knowledge about the sub from req is older than this node's knowledge 
 						// see #onchanges ref: answer-to-remove
