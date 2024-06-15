@@ -316,9 +316,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			throw new ExchangeException(Exchanging.ready, cp,
 				"Can't initate new exchange session. There are exchanging records to be finished.");
 
-		// select change 
-		// incStamp(cp);
-		// return cp.init().nv(nyquvect);
 		return cp.init().nv(nyquvect);
 	}
 	
