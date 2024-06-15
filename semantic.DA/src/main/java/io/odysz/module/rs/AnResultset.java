@@ -2,6 +2,7 @@ package io.odysz.module.rs;
 
 import static io.odysz.common.LangExt.split;
 
+import java.io.PrintStream;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -930,40 +931,44 @@ for (String coln : colnames.keySet())
 	 * @return size
 	 */
 	public int printSomeData(boolean err, int max, String... includeCols) {
+		return printSomeData(err ? System.err : System.out, max, includeCols);
+	}
+
+	public int printSomeData(PrintStream out, int max, String... includeCols) {
+		int stack = rowIdx; 
 		try {
-			printHeaders();
+			printHeaders(out);
 			if (includeCols != null && includeCols.length > 0) {
 				if (!"*".equals(includeCols[0])) {
 					for (int ix = 0; ix < includeCols.length; ix++)
-						if (err) System.err.print("\t" + includeCols[ix]);
-						else System.out.print("\t" + includeCols[ix]);
+						out.print("\t" + includeCols[ix]);
 
 					// line feed
-					if (err) System.err.println("");
-					else System.out.println("");
+					out.println("");
 
 					beforeFirst();
 					while (next() && getRow() <= max) {
 						for (String incCol : includeCols) 
-							printcell(err, incCol);
+							printcell(out, incCol);
 						// end line
-						if (err) System.err.println("");
-						else System.out.println("");
+						out.println("");
 					}
 				}
 				else {
 					beforeFirst();
 					while (next() && getRow() <= max) {
 						for (int c = 1; c <= getColCount(); c++) 
-							printcell(err, c);
+							printcell(out, c);
 				
 						// end line
-						if (err) System.err.println("");
-						else System.out.println("");
+						out.println("");
 					}
 				}
 			}
 		} catch (Exception e) {}
+		finally {
+			rowIdx = stack;
+		}
 		return results == null ? 0 : results.size();
 	}
 
@@ -977,25 +982,34 @@ for (String coln : colnames.keySet())
 		return this;
 	}
 
-	private void printcell(boolean err, String c) throws SQLException {
-		if (err)
-			System.err.print("\t" + getString(c));
-		else
-			System.out.print("\t" + getString(c));
+	public AnResultset print(PrintStream out) {
+		printSomeData(out, getRowCount(), "*");
+		return this;
 	}
 
-	private void printcell(boolean err, int c) throws SQLException {
-		if (err)
-			System.err.print(String.format("%s : %s  ", c, getString(c)));
-		else
-			System.out.print(String.format("%s : %s  ", c, getString(c)));
+//	private void printcell(boolean err, String c) throws SQLException {
+//		printcell(err ? System.err : System.out, c);
+//	}
+	
+	private void printcell(PrintStream out, String c) throws SQLException {
+		out.print("\t" + getString(c));
 	}
 
-	private void printHeaders() {
+//	private void printcell(boolean err, int c) throws SQLException {
+//		@SuppressWarnings("resource")
+//		PrintStream out = err ? System.err : System.out;
+//		out.print(String.format("%s : %s  ", c, getString(c)));
+//	}
+
+	private void printcell(PrintStream out, int c) throws SQLException {
+		out.print(String.format("%s : %s  ", c, getString(c)));
+	}
+
+	private void printHeaders(PrintStream out) {
 		for (int c = 0; c < colnames.size(); c++)
-			System.out.print(String.format("%s : %s\t", c + 1, getColumnName(c + 1)));
+			out.print(String.format("%s : %s\t", c + 1, getColumnName(c + 1)));
 
-		System.out.println(String.format("\nrow count: %d", results == null ? 0 : results.size()));
+		out.println(String.format("\nrow count: %d", results == null ? 0 : results.size()));
 	}
 
 	/**Collect fields value that can be used in "IN" condition, e.g. 'v1', 'v2', ...

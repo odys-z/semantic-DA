@@ -641,9 +641,14 @@ public class DBSyntableBuilder extends DATranscxt {
 									synode(), subscribe);
 						}	
 				}
+				else if (compareNyq(subnyq, nyquvect.get(reqChgs.getString(chgm.synoder))) > 0) {
+					// should suppress the following case
+					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
+				}
 				else if (compareNyq(subnyq, nyquvect.get(peer)) <= 0) {
 					// 2024.6.5 client shouldn't have older knowledge than me now,
 					// which is cleanded when initiating.
+					Utils.warn("Ignore this?");
 				}
 				else
 					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
@@ -674,7 +679,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		return cx.closexchange(rep).nv(snapshot);
 	}
 
-	/**
+	/**insert into exbm-buffer select peer's-subscriptions union 3rd parties subscriptions
 	 * @see #closexchange(ExessionPersist, ExchangeBlock)
 	 * 
 	 * @return insert statement to exchanging page buffer.
@@ -687,7 +692,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				// target is the subscriber
 				select(chgm.tbl, "cl")
 					.cols(constr(peer), chgm.pk, new ExprPart(-1))
-					.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId)
+					.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId, chgm.synoder, constr(synode()))
 					.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
 					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0)
 

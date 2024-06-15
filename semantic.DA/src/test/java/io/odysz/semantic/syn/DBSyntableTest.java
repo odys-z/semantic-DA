@@ -608,8 +608,10 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {stb.synode(), "on initiate"}, test, subno, ++no);
 		ExessionPersist sp = new ExessionPersist(stb, chm, sbm, xbm, snm, prm, ctb.synode(), ini);
 		ExchangeBlock rep = stb.onInit(sp, ini);
-		Utils.logrst(String.format("%s on initiate: changes: %d    entities: %d",
-				stb.synode(), rep.totalChallenges, rep.enitities(cphm.tbl)), test, subno, no, 1);
+		Utils.logrst(String.format(
+				"%s on initiate: changes: %d",
+				stb.synode(), rep.totalChallenges),
+				test, subno, no, 1);
 
 		//
 		challengeAnswerLoop(sp, stb, cp, ctb, rep, test, subno, ++no);
@@ -735,6 +737,7 @@ public class DBSyntableTest {
 				ExchangeBlock req = ctb.exchangePage(cp, rep);
 				Utils.logrst(String.format("%s exchange challenge    changes: %d    entities: %d    answers: %d",
 						ctb.synode(), req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, 1);
+				req.print(System.out);
 				printChangeLines(ck);
 				printNyquv(ck);
 
@@ -745,6 +748,7 @@ public class DBSyntableTest {
 
 				Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
 						stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, no, 1);
+				rep.print(System.out);
 				printChangeLines(ck);
 				printNyquv(ck);
 			}

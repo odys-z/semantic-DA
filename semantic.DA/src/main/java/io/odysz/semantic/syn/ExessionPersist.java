@@ -90,7 +90,7 @@ public class ExessionPersist {
 		String recId = null;
 		while (rply.next()) {
 			if (compareNyq(rply.getLong(chgm.nyquence), tillN0) > 0)
-				break;
+				break; // FIXME continue? Or throw?
 	
 			SyntityMeta entm = trb.getEntityMeta(rply.getString(chgm.entbl));
 			String change = rply.getString(ChangeLogs.ChangeFlag);
@@ -241,7 +241,7 @@ public class ExessionPersist {
 							// conflict & override
 							iamSynodee = true;
 					}
-					else if (compareNyq(chgnyq, trb.nyquvect.get(peer)) > 0
+					else if (compareNyq(chgnyq, trb.nyquvect.get(peer)) > 0 // FIXME TODO nyquence.synoder?
 						// ref: _merge-older-version
 						// knowledge about the sub from req is older than this node's knowledge 
 						// see #onchanges ref: answer-to-remove
@@ -302,6 +302,7 @@ public class ExessionPersist {
 							.nv(chgm.nyquence, chgnyq.n)
 							// .nv(chgm.entfk, constr(entid))
 							.nv(chgm.uids, constr(chuids))
+							.nv(chgm.updcols, changes.getString(chgm.updcols))
 							.post(subscribeUC)
 							.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode())))
 					: null);
@@ -312,14 +313,15 @@ public class ExessionPersist {
 			}
 		}
 
-		Utils.logi("[DBSynsactBuilder.commitChallenges()] update entities...");
+		if (Connects.getDebug(trb.synconn()))
+			Utils.logT(new Object() {}, "update entities...");
+
 		ArrayList<String> sqls = new ArrayList<String>();
 		for (Statement<?> s : stats)
 			if (s != null)
 				s.commit(sqls, trb.synrobot());
 		Connects.commit(trb.synconn(), trb.synrobot(), sqls);
 		
-//		x.onchanges = null;
 		return this;
 	}
 
@@ -511,7 +513,7 @@ public class ExessionPersist {
 	private ExessionAct exstate;
 	public int exstate() { return exstate.state; }
 	public ExessionAct exstat() { return exstate; }
-	
+	/** Counted when in {@link #init()}, not correct after {@link DBSyntableBuilder#cleanStale(HashMap, String)} has been called. */
 	public int totalChallenges;
 
 	public int expAnswerSeq;
@@ -769,7 +771,7 @@ public class ExessionPersist {
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId, constr(peer), exbm.peer, constVal(challengeSeq), exbm.seq)
 				.cols_byAlias("e", entm.entCols()).col("e." + entm.pk)
-				.where(op.gt, chgm.nyquence, dn.n)
+				// .where(op.gt, chgm.nyquence, dn.n)
 				.orderby(chgm.nyquence)
 				.orderby(chgm.synoder)
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
