@@ -72,14 +72,15 @@ public class ExchangeBlock extends Anson {
 			HashMap<String, Object[]> cols = challenpage.colnames();
 			if (!cols.containsKey(ChangeLogs.ChangeFlag.toUpperCase()))
 				cols.put(ChangeLogs.ChangeFlag.toUpperCase(),
-						new Object[] {cols.size(), ChangeLogs.ChangeFlag});
+						new Object[] {cols.size() + 1, // column index state at 1
+								ChangeLogs.ChangeFlag});
 			anspage = new AnResultset(cols);
 		}
 
 		if (challenpage != null) {
 			ArrayList<Object> row = challenpage.getRowAt(challenpage.currentRow() - 1);
 			int flagIx = (int) anspage.colnames().get(ChangeLogs.ChangeFlag.toUpperCase())[0];
-			row.add(flagIx, CRUD.U);
+			row.add(flagIx - 1, CRUD.U);
 			anspage.append(row);
 		}
 	}

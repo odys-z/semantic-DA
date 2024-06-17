@@ -339,9 +339,11 @@ public class DBSyntableTest {
 		ck[X].psubs (3, x_uids[1], -1, Y, Z, W);
 
 		
-		Utils.logrst("X vs Z", section, ++no);
+		Utils.logrst("X <= Z", section, ++no);
 		exchangeSynodes(X, Z, section, no);
-		Utils.logrst("On X-Z: Now Z know X:3[Y], not X,W", section, no, 1);
+		ck[Z].synodes(X, Y, Z, W);
+		ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
+		Utils.logrst("On X-Z: Now Z know W", section, no, 1);
 		
 		Utils.logrst("Z vs W", section, ++no);
 		try { exchangeSynodes(Z, W, section, no); }
@@ -382,12 +384,12 @@ public class DBSyntableTest {
 
 		String[] z_uids = insertPhoto(Z);
 
+		printChangeLines(ck);
+		printNyquv(ck);
+
 		ck[Z].buf_change(0, C, z_uids[0], ck[Y].phm);
 		ck[Z].change_log(1, C, "Z", z_uids[0], ck[Y].phm);
 		ck[Z].psubs(3, z_uids[1], X, Y, -1, W);
-
-		printChangeLines(ck);
-		printNyquv(ck);
 		
 		Utils.logrst("Y vs Z", section, ++no);
 		exchangePhotos(Y, Z, section, 2);
@@ -462,9 +464,11 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[Y].change_photolog(0, U, null);
-		ck[Y].psubs(0, null, X, Y, Z, W);
-		ck[Y].psubs(0, null, -1, -1, Z, W);
+		ck[Y].change_photolog(1, U, null);
+		ck[Y].psubs(2, null, X, Y, Z, W);
+		ck[Y].psubs(2, null, -1, -1, -1, W);
+		ck[Y].psubs(1, yu[1], -1, -1, -1, W);
+		ck[Y].psubs(1, xu[1], -1, -1, -1, W);
 	}
 
 	void testBreakAck(int section) throws Exception {

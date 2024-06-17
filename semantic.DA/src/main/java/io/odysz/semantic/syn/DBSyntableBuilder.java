@@ -613,7 +613,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		HashSet<String> warnflags = new HashSet<String>();
 
 		while (req.totalChallenges > 0 && reqChgs.next()) {
-			String subscribe = req.chpage.getString(subm.synodee);
+			String subscribe = reqChgs.getString(subm.synodee);
 
 			if (eq(subscribe, synode())) {
 				resp.removeChgsub(req.chpage, synode());	
@@ -657,7 +657,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 
 		return xp.saveAnswer(resp.anspage)
-				.saveChanges(changes, req.nv, req.entities);
+				.saveChanges(changes.beforeFirst(), req.nv, req.entities);
 	}
 
 	public ExchangeBlock closexchange(ExessionPersist cx,
@@ -1145,4 +1145,13 @@ public class DBSyntableBuilder extends DATranscxt {
 			: null);
 		return rep;
 	}
+
+//	public HashMap<String,Nyquence> addNyquence(String nid, Nyquence nyquence) {
+//		nyquvect.put(nid, new Nyquence(nyquvect.get(nid).n));
+//		Synode n = new Synode(nid, synm);
+//		n.insert(synm, synode(), mxn, insert(synm.tbl, synrobot()))
+//			.ins(instancontxt(basictx.connId(), synrobot()));
+//
+//		return this.nyquvect;
+//	}
 }

@@ -903,7 +903,7 @@ for (String coln : colnames.keySet())
 		return set((Integer)colnames.get(colName.toUpperCase())[0], v);
 	}
 
-	/**find the first row that contain a matched value in field <i>col</i>. Matching are done by <i>regex</i>.
+	/**Find the first row that contain a matched value in field <i>col</i>. The matching is done with {@code regex}.
 	 * @param col
 	 * @param regex
 	 * @return row index or 0

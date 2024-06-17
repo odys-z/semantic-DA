@@ -146,7 +146,7 @@ public class ExessionPersist {
 			recId = rpuids;
 		}
 	
-		Utils.logi("[DBSynsactBuilder.commitAnswers()] updating change logs without modifying entities...");
+		Utils.logT(new Object() {}, "Locally committing answers to %s ...", peer);
 		ArrayList<String> sqls = new ArrayList<String>();
 		for (Statement<?> s : stats)
 			s.commit(sqls, trb.synrobot());
@@ -226,6 +226,7 @@ public class ExessionPersist {
 
 				while (changes.validx()) {
 					String subsrb = changes.getString(subm.synodee);
+					/*
 					if (eq(subsrb, trb.synode())) {
 					/** conflict: Y try send Z a record that Z already got from X.
 					 *        X           Y               Z
@@ -235,7 +236,7 @@ public class ExessionPersist {
 					 *	X [   7,   5,   3,   4 ]
 					 *	Y [   4,   6,   1,   4 ]
 					 *	Z [   6,   5,   7,   4 ]   change[Z].n < Z.y, that is Z knows later than the log
-					 */
+					 * /
 						Nyquence my_srcn = trb.nyquvect.get(peer);
 						if (my_srcn != null && compareNyq(chgnyq, my_srcn) >= 0)
 							// conflict & override
@@ -248,6 +249,23 @@ public class ExessionPersist {
 						// see #onchanges ref: answer-to-remove
 						// FIXME how to abstract into one method?
 						&& !eq(subsrb, trb.synode()))
+						subscribeUC.add(trb.insert(subm.tbl)
+							.cols(subm.insertCols())
+							.value(subm.insertSubVal(changes))); 
+					*/
+					
+					// 2024-06-17
+					// Schema change on branch issue-answer-lost:
+					// tolerate unknown pushing via peer node
+					if (!trb.nyquvect.containsKey(synodr))
+						trb.nyquvect.put(synodr, new Nyquence(trb.nyquvect.get(peer).n));
+
+					if (compareNyq(chgnyq, trb.nyquvect.get(synodr)) > 0
+						&& eq(subsrb, trb.synode()))
+						iamSynodee = true;
+					else if (compareNyq(chgnyq, trb.nyquvect.get(synodr)) > 0
+						&& !eq(subsrb, trb.synode())
+						)
 						subscribeUC.add(trb.insert(subm.tbl)
 							.cols(subm.insertCols())
 							.value(subm.insertSubVal(changes))); 
@@ -283,18 +301,6 @@ public class ExessionPersist {
 						// try-mandatory uids
 						//.whereEq(entm.pk, entid)
 						.whereEq(entm.synuid, chuids)
-
-						// FIXME there shouldn't be an UPSERT if the change-log is handled in orignal order?
-//						.post(insert(entm.tbl, synrobot()) 
-//							.cols(entm.entCols())
-//							.select(select(null)
-//									.cols(entm.insertSelectItems(chgm, entid, entbuf.get(entm.tbl), chal)))
-//							.where(op.notexists, null,
-//								select(entm.tbl)
-//								.whereEq(entm.synoder, synodr)
-//								.whereEq(entm.org(), entbuf.get(entm.tbl).getStringByIndex(entm.org(), entid))
-//								.whereEq(entm.pk, entid)))
-
 						.post(subscribeUC.size() <= 0
 							? null : trb.insert(chgm.tbl)
 							.nv(chgm.pk, chgid)
@@ -315,7 +321,7 @@ public class ExessionPersist {
 		}
 
 		if (Connects.getDebug(trb.synconn()))
-			Utils.logT(new Object() {}, "update entities...");
+			Utils.logT(new Object() {}, "saving changes to local entities...");
 
 		ArrayList<String> sqls = new ArrayList<String>();
 		for (Statement<?> s : stats)
