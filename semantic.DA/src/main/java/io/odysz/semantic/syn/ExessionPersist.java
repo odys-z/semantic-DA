@@ -415,20 +415,6 @@ public class ExessionPersist {
 						"%s#%s(), don't have knowledge about %s.",
 						trb.synode(), new Object(){}.getClass().getEnclosingMethod().getName(), peer);
 			}
-//			trb.insert(exbm.tbl, trb.synrobot())
-//				.cols(exbm.insertCols())
-//				.select(trb.select(chgm.tbl, "ch")
-//					.distinct()
-//					.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
-//					.cols(exbm.selectCols(peer, -1))
-//					// FIXME not op.lt, must implement a function to compare nyquence.
-//					.where(op.gt, chgm.nyquence, dn.n) // FIXME
-//					.orderby(chgm.nyquence)
-//					.orderby(chgm.entbl)
-//					.orderby(chgm.synoder)
-//					.orderby(subm.synodee))
-//				.ins(trb.instancontxt(trb.synconn(), trb.synrobot()));
-
 //			trb.insertExbuf(peer)
 //				.ins(trb.instancontxt(trb.synconn(), trb.synrobot()));
 		}
@@ -462,20 +448,6 @@ public class ExessionPersist {
 	public ExchangeBlock onInit(ExchangeBlock ini) throws TransException, SQLException {
 		if (trb != null) {
 			String conn = trb.basictx().connId();
-//			Nyquence dn = trb.nyquvect.get(peer);
-//			trb.insert(exbm.tbl, trb.synrobot())
-//				.cols(exbm.insertCols())
-//				.select(trb.select(chgm.tbl, "ch")
-//					.distinct()
-//					.je_(subm.tbl, "sb", chgm.pk, subm.changeId) // filter zero subscriber
-//					.cols(exbm.selectCols(peer, -1))
-//					// .where(op.gt, chgm.nyquence, dn.n)
-//					.where(op.gt, sqlCompare(chgm.nyquence, dn.n), 0)
-//					.orderby(chgm.entbl)
-//					.orderby(chgm.nyquence)
-//					.orderby(chgm.synoder)
-//					.orderby(subm.synodee))
-
 			int total = ((SemanticObject) trb
 				.insertExbuf(peer)
 				.ins(trb.instancontxt(conn, trb.synrobot()))
@@ -534,8 +506,6 @@ public class ExessionPersist {
 	 */
 	public boolean hasNextChpages(DBSyntableBuilder b)
 			throws SQLException, TransException {
-		// return DAHelper.count(b, b.synconn(), exbm.tbl, exbm.peer, peer, exbm.seq, -1) > 0;
-		
 		int pages = pages();
 		if (pages > 0 && challengeSeq + 1 < pages)
 			return true;

@@ -1013,7 +1013,8 @@ public class DBSyntableBuilder extends DATranscxt {
 	
 	/**
 	 * Clean any subscriptions that should been accepted by the peer in
-	 * the last session, but was not accutally accepted.
+	 * the last session, but was not accutally accepted. Such case can be
+	 * the peer node rejected when no knowledge about the synoder.
 	 * 
 	 * @param peer
 	 */
