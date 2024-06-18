@@ -40,7 +40,7 @@ public class Nyquence {
 
 	public Nyquence inc(Nyquence... maxn) {
 		if (isNull(maxn)) {
-			++this.n;
+			++this.n;    // FIXME
 			return this;
 		}
 		else
@@ -54,11 +54,16 @@ public class Nyquence {
 	 * @return this
 	 */
 	Nyquence inc(long maxn) {
-		this.n++;
 		this.n = Math.max(maxn, this.n );
+		this.n++;
 		return this;
 	}
 
+	@Override
+	public String toString() {
+		return String.valueOf(n);
+	}
+	
 	public static long maxn(long a, long b) {
 		return compareNyq(a, b) < 0 ? b : a;
 	}
@@ -69,6 +74,14 @@ public class Nyquence {
 
 	public static Nyquence maxn(Nyquence a, Nyquence b) {
 		return a == null ? b : b == null ? a : compareNyq(a.n, b.n) < 0 ? b : a;
+	}
+
+	public static Nyquence maxn(Nyquence a, Nyquence b, Nyquence... more) {
+		Nyquence x = maxn(a, b);
+		if (!isNull(more))
+			for (Nyquence c : more)
+				x = maxn(x, c);
+		return x;
 	}
 
 	public static int compareNyq(Nyquence a, Nyquence b) {
@@ -92,6 +105,14 @@ public class Nyquence {
 		HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(from.size());
 		for (String k : from.keySet())
 			nv.put(k, new Nyquence(from.get(k).n));
+		return nv;
+	}
+
+	public static HashMap<String, Nyquence>[] clone(HashMap<String, Nyquence>[] nvs) {
+		@SuppressWarnings("unchecked")
+		HashMap<String, Nyquence>[] nv = (HashMap<String, Nyquence>[]) new HashMap<?, ?>[nvs.length];
+		for (int ix = 0; ix < nvs.length; ix++)
+			nv[ix] = clone(nvs[ix]);
 		return nv;
 	}
 
@@ -126,6 +147,10 @@ public class Nyquence {
 	}
 
 	public static ExprPart sqlCompare(String lcol, String rcol) {
+		return new ExprPart(String.format("%s - %s", lcol, rcol)); // FIXME
+	}
+
+	public static ExprPart sqlCompare(String lcol, long rcol) {
 		return new ExprPart(String.format("%s - %s", lcol, rcol)); // FIXME
 	}
 

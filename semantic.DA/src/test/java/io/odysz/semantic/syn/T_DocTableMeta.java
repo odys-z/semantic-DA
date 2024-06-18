@@ -45,13 +45,11 @@ public abstract class T_DocTableMeta extends SyntityMeta {
 	public final String mime;
 	public final String size;
 
-//	public final String syncflag;
+	// public final String syncflag;
 	public final String shareflag;
 
-	// final HashSet<String> globalIds;
-
-	public T_DocTableMeta(String tbl, String pk, String org, String conn) throws TransException {
-		super(tbl, pk, org, conn);
+	public T_DocTableMeta(String tbl, String pk, String domain, String device, String conn) throws TransException {
+		super(tbl, pk, domain, device, conn);
 
 		resname = "pname";
 		uri = "uri";
@@ -66,8 +64,13 @@ public abstract class T_DocTableMeta extends SyntityMeta {
 		shareDate = "sharedate";
 		shareby = "shareby";
 		shareflag = "shareflag";
-		
-		// uids = new HashSet<String>() { {add(synoder);}; {addAll(uids);} };
 	}
+
+	/**
+	 * Design Memo / issue: currently org is the default synchronizing domain? 
+	 * @return org id
+	 */
+	public String org() { return domain; }
+
 
 }

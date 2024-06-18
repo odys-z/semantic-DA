@@ -22,7 +22,7 @@ public class ExchangeException extends SemanticException {
 		this.persist = xp; 
 	}
 
-	public Integer requires() {
+	public int requires() {
 		return exstep.state;
 	}
 }

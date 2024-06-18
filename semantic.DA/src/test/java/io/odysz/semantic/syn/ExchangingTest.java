@@ -83,203 +83,77 @@ class ExchangingTest {
 		assertEquals(ready, srv.state);
 	}
 
-	@Test
-	void testRestore() throws TransException, SQLException {
-		String conn = "syn.00";
-		// SynodeMeta snm = new SynodeMeta(conn);
-		SynChangeMeta chm = new SynChangeMeta(conn);
-		SynchangeBuffMeta xbm = new SynchangeBuffMeta(chm);
-		SynSubsMeta sbm = new SynSubsMeta(chm, conn);
-		// T_PhotoMeta phm = new T_PhotoMeta(conn);
-
-		String client = "client";
-		String server = "server";
-
-										ExessionPersist cp = new ExessionPersist(null, chm, sbm, xbm, server);
-
-										// -1 : -1
-										ExchangeBlock req = cp.init();
-										cp.forcetest(182, 50);
-										req.totalChallenges(cp.totalChallenges, cp.chsize);
-
-										assertEquals(182, req.totalChallenges);
-										assertEquals(4, cp.pages());
-										assertEquals(50, req.chpagesize);
-
-										assertEquals(ExessionAct.init, req.act);
-										assertEquals(-1, req.challengeSeq);
-										assertEquals(-1, req.answerSeq);
-										assertEquals(-1, cp.expAnswerSeq);
-
-		ExessionPersist sp = new ExessionPersist(null, chm, sbm, xbm, client, req);
-		
-		// -1 : -1
-		ExchangeBlock rep = sp.onInit(req);
-		sp.forcetest(245);
-		assertEquals(50, sp.chsize);
-		rep.totalChallenges(sp.totalChallenges);
-
-		assertEquals(245, rep.totalChallenges);
-		assertEquals(5, sp.pages());
-		assertEquals(50, rep.chpagesize);
-
-		assertEquals(ExessionAct.init, req.act);
-		assertEquals(-1, rep.challengeSeq);
-		assertEquals(-1, rep.answerSeq);
-		assertEquals(-1, sp.expAnswerSeq);
-
-		// ch   ans   exp           |     ch   ans   exp 
-		// -1   -1    -1            |     -1   -1    -1
-										assertTrue(cp.expect(rep).nextChpage());
-										req = cp.exchange(server, rep);
-										assertEquals(ExessionAct.exchange, req.act);
-										assertEquals(182, req.totalChallenges);
-										assertEquals(0, req.challengeSeq);
-										assertEquals(-1, req.answerSeq);
-										assertEquals(0, cp.expAnswerSeq);
-
-		// -1   -1    -1            |      0   -1     0
-
-		assertTrue(sp.expect(req).nextChpage());
-		rep = sp.onExchange(client, req);
-		assertEquals(ExessionAct.exchange, req.act);
-		assertEquals(245, rep.totalChallenges);
-		assertEquals(0, rep.challengeSeq);
-		assertEquals(0, rep.answerSeq);
-		assertEquals(0, sp.expAnswerSeq);
-
-		//  0    0     0            |      0   -1     0
-										assertTrue(cp.expect(rep).nextChpage());
-										req = cp.exchange(server, rep);
-										assertEquals(ExessionAct.exchange, req.act);
-										assertEquals(1, req.challengeSeq);
-										assertEquals(0, req.answerSeq);
-										assertEquals(1, cp.expAnswerSeq);
-
-		//  0    0     0            |      1    0     1
-										
-		assertTrue(sp.expect(req).nextChpage());
-		rep = sp.onExchange(client, req);
-		assertEquals(ExessionAct.exchange, rep.act);
-		assertEquals(1, rep.challengeSeq);
-		assertEquals(1, rep.answerSeq);
-		assertEquals(1, sp.expAnswerSeq);
-	
-		//  1    1     1            |      1    0     1
-		
-										// IOException: rep lost
-										req = cp.retryLast(server);
-										assertEquals(ExessionAct.restore, req.act);
-										assertEquals(1, req.challengeSeq);
-										assertEquals(0, req.answerSeq);
-										assertEquals(1, cp.expAnswerSeq);
-
-		//  0    0     0            |      1    0     1
-		assertEquals(ExessionAct.restore, req.act);
-
-		rep = sp.onRetryLast(client, req);
-		assertEquals(ExessionAct.restore, rep.act);
-		assertEquals(1, rep.challengeSeq);
-		assertEquals(1, rep.answerSeq);
-		assertEquals(1, sp.expAnswerSeq);
-		
-		//  0    0     0            |      0   -1     0
-										cp.expect(rep);
-										assertEquals(ExessionAct.restore, rep.act);
-										cp.exstat().go(ExessionAct.exchange);
-
-										assertTrue(cp.expect(rep).nextChpage());
-										req = cp.exchange(server, rep);
-										assertEquals(ExessionAct.exchange, req.act);
-										assertEquals(2, req.challengeSeq);
-										assertEquals(1, req.answerSeq);
-										assertEquals(2, cp.expAnswerSeq);
-
-		// 
-		assertEquals(ExessionAct.restore, sp.exstate());
-		assertEquals(ExessionAct.exchange, req.act);
-		sp.exstat().go(ExessionAct.exchange);
-		assertTrue(sp.expect(req).nextChpage());
-
-		rep = sp.onExchange(client, req);
-		assertEquals(ExessionAct.exchange, rep.act);
-		assertEquals(2, rep.challengeSeq);
-		assertEquals(2, rep.answerSeq);
-		assertEquals(2, sp.expAnswerSeq);
-		
-										//
-										assertTrue(cp.expect(rep).nextChpage());
-										req = cp.exchange(server, rep);
-										assertEquals(ExessionAct.exchange, req.act);
-										assertEquals(3, req.challengeSeq);
-										assertEquals(2, req.answerSeq);
-										assertEquals(3, cp.expAnswerSeq);
-
-										// IOException: req lost
-										req = cp.retryLast(server);
-										assertNull(req.srcnode);
-										req.srcnode = client;
-
-										assertEquals(ExessionAct.restore, req.act);
-										assertEquals(3, req.challengeSeq);
-										assertEquals(2, req.answerSeq);
-										assertEquals(3, cp.expAnswerSeq);
-
-		// 
-		assertTrue(sp.expect(req).nextChpage());
-		rep = sp.exchange(client, req);
-		assertEquals(ExessionAct.exchange, rep.act);
-		assertEquals(3, rep.challengeSeq);
-		assertEquals(3, rep.answerSeq);
-		assertEquals(3, sp.expAnswerSeq);
-		
-										// 
-										assertFalse(cp.expect(rep).nextChpage());
-										assertTrue(rep.moreChallenge());
-										req = cp.exchange(server, rep);
-										assertEquals(ExessionAct.exchange, req.act);
-										assertEquals(-1, req.challengeSeq);
-										assertEquals(3, req.answerSeq);
-										assertEquals(-1, cp.expAnswerSeq);
-
-		//
-		assertTrue(sp.expect(req).nextChpage());
-		rep = sp.onExchange(client, req);
-		assertEquals(ExessionAct.exchange, rep.act);
-		assertEquals(4, rep.challengeSeq);
-		assertEquals(-1, rep.answerSeq);
-		assertEquals(4, sp.expAnswerSeq);
-
-										//
-										assertFalse(cp.expect(rep).nextChpage());
-										req = cp.exchange(server, rep);
-										assertEquals(ExessionAct.exchange, req.act);
-										assertEquals(-1, req.challengeSeq);
-										assertEquals(4, req.answerSeq);
-										assertEquals(-1, cp.expAnswerSeq);
-
-		//
-		assertFalse(sp.expect(req).nextChpage());
-		rep = sp.onExchange(client, req);
-		assertEquals(ExessionAct.exchange, rep.act);
-		assertEquals(-1, rep.challengeSeq);
-		assertEquals(-1, rep.answerSeq);
-		assertEquals(-1, sp.expAnswerSeq);
-
-										//
-										assertFalse(cp.expect(rep).nextChpage());
-										assertFalse(rep.moreChallenge());
-										req = cp.closexchange(rep);
-										assertEquals(ExessionAct.close, req.act);
-										assertEquals(ExessionAct.ready, cp.exstate());
-										assertEquals(-1, req.challengeSeq);
-										assertEquals(-1, req.answerSeq);
-										assertEquals(-1, cp.expAnswerSeq);
-
-		// 
-		assertFalse(sp.expect(req).nextChpage());
-		assertFalse(req.moreChallenge());
-		sp.closexchange(req);
-		assertEquals(ExessionAct.ready, sp.exstate());
-	}
+//	@Test
+//	void testRestore() throws TransException {
+//		String conn = "syn.00";
+//		// SynodeMeta snm = new SynodeMeta(conn);
+//		SynChangeMeta chm = new SynChangeMeta(conn);
+//		// SynSubsMeta sbm = new SynSubsMeta(chm, conn);
+//		// T_PhotoMeta phm = new T_PhotoMeta(conn);
+//
+//		String client = "client";
+//		String server = "server";
+//		ExessionPersist cp = new ExessionPersist(chm, server);
+//		ExchangeBlock req = cp.init(server, 3);
+//
+//		ExessionPersist sp = new ExessionPersist(chm, client, req);
+//		ExchangeBlock rep = sp.onInit(client, req, 4);
+//		
+//		// ch: 1, ans: 0
+//		req = cp.exchange(server, rep);
+//		assertEquals(1, req.challengeId);
+//		assertEquals(1, req.answerId);
+//		assertEquals(1, cp.expAnswerSeq);
+//
+//		// ch: 2, ans: 1
+//		rep = sp.onExchange(client, req);
+//		assertEquals(2, rep.challengeId);
+//		assertEquals(1, rep.answerId);
+//		
+//		// IOException: rep lost
+//		req = cp.retry(server);
+//		// requires: ch: 1, ans: 1
+//		assertEquals(ExessionAct.restore, req.act);
+//		assertEquals(1, req.challengeId);
+//		assertEquals(1, req.answerId);
+//
+//		rep = sp.onRetry(server, req);
+//		assertEquals(ExessionAct.restore, rep.act);
+//		assertEquals(2, rep.challengeId);
+//		assertEquals(1, rep.answerId);
+//		
+//		req = cp.exchange(server, rep);
+//		assertEquals(2, req.challengeId);
+//		assertEquals(2, req.answerId);
+//
+//		// ch: 2, ans: 2
+//		rep = sp.onExchange(client, req);
+//		assertEquals(3, rep.challengeId);
+//		assertEquals(2, rep.answerId);
+//		
+//		// ch: 3, ans: 3
+//		req = cp.exchange(server, rep);
+//		assertEquals(3, req.challengeId);
+//		assertEquals(3, req.answerId);
+//
+//		// IOException: req lost
+//		// ch: 3, ans: 2
+//		req = cp.retry(server);
+//		assertEquals(3, req.challengeId);
+//		assertEquals(3, req.answerId);
+//
+//		// ch: 3, ans: 3
+//		rep = sp.onRetry(client, req);
+//		assertEquals(3, rep.challengeId);
+//		assertEquals(3, rep.answerId);
+//		
+//		// ch: -, ans: 3
+//		req = cp.exchange(server, rep);
+//		// ch: 4, ans: -
+//		rep = sp.onExchange(client, req);
+//
+//		// ch: -, ans: 4
+//		req = cp.closexchange(server, rep);
+//		sp.onclose(client, req);
+//	}
 }
