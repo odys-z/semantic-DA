@@ -491,6 +491,16 @@ public class DBSyntableTest {
 		// ck[Y].psubs(2, null, -1, -1, Z, -1);
 	}
 
+	void test03delete(int test) throws Exception {
+		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), test);
+		int no = 0;
+
+		Utils.logrst("X update photos", test, no);
+		String xd = deletePhoto(chm, X);
+		printChangeLines(ck);
+		printNyquv(ck);
+	}
+	
 	void testBreakAck(int section) throws Exception {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
 
