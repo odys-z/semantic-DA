@@ -825,6 +825,40 @@ public class DBSyntableBuilder extends DATranscxt {
 	public void restorexchange() { }
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
+	public int deleteEntityBySynuid(SyntityMeta entm, String synuid) throws TransException, SQLException {
+		if (existsnyuid(entm, synuid)) {
+			SemanticObject res = (SemanticObject) delete(entm.tbl, synrobot())
+			.whereEq(entm.synuid, synuid)
+			.post(insert(chgm.tbl, synrobot())
+				.nv(chgm.entbl, entm.tbl)
+				.nv(chgm.crud, CRUD.D)
+				.nv(chgm.synoder, synode())
+				.nv(chgm.uids, synuid)
+				.nv(chgm.nyquence, stamp.n)
+				.nv(chgm.domain, domain())
+				.post(insert(subm.tbl)
+					.cols(subm.insertCols())
+					.select((Query)select(synm.tbl)
+						.col(new Resulving(chgm.tbl, chgm.pk))
+						.col(synm.synoder)
+						.where(op.ne, synm.synoder, constr(synode()))
+						.whereEq(synm.domain, domain()))))
+			.d(instancontxt(basictx.connId(), synrobot()));
+			return res.total();
+		}
+		else return 0;
+	}
+
+	private boolean existsnyuid(SyntityMeta entm, String suid)
+			throws SQLException, TransException {
+		return ((AnResultset) select(entm.tbl, "t")
+			.col(Funcall.count(), "c")
+			.rs(instancontxt(synconn(), synrobot()))
+			.rs(0))
+			.nxt()
+			.getInt("c") > 0;
+	}
+
 	public String updateEntity(String synoder, String synuid, SyntityMeta entm, Object ... nvs)
 			throws TransException, SQLException, IOException {
 		String [] updcols = new String[nvs.length/2];
@@ -923,43 +957,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		
 		return this;
 	}
-
-//	private DBSyntableBuilder synyquvectWith(String peer, HashMap<String, Nyquence> nv) 
-//		throws TransException, SQLException {
-//		if (nv == null) return this;
-//
-//		Update u = null;
-//
-//		if (compareNyq(nv.get(peer), nyquvect.get(peer)) < 0)
-//			throw new SemanticException(
-//				"[%s.%s()] Updating my (%s) nyquence with %s's value early than already knowns.",
-//				getClass().getName(), new Object(){}.getClass().getEnclosingMethod().getName(),
-//				synode(), peer);
-//
-//		for (String n : nv.keySet()) {
-//			// if (!eq(n, sn) && nyquvect.containsKey(n)
-//			if (nyquvect.containsKey(n)
-//				&& compareNyq(nv.get(n), nyquvect.get(n)) > 0)
-//				if (u == null)
-//					u = update(synm.tbl, synrobot())
-//						.nv(synm.nyquence, n0().n)
-//						.whereEq(synm.pk, n);
-//				else
-//					u.post(update(synm.tbl)
-//						.nv(synm.nyquence, nv.get(n).n)
-//						.whereEq(synm.pk, n));
-//
-//			if (nyquvect.containsKey(n))
-//				nyquvect.get(n).n = maxn(nv.get(n).n, nyquvect.get(n).n);
-//			else nyquvect.put(n, new Nyquence(nv.get(n).n));
-//		}
-//
-//		nyquvect.put(synode(), maxn(n0(), nv.get(peer)));
-//		if (u != null)
-//			u.u(instancontxt(basictx.connId(), synrobot()));
-//
-//		return this;
-//	}
 
 	@Override
 	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
@@ -1155,13 +1152,4 @@ public class DBSyntableBuilder extends DATranscxt {
 			: null);
 		return rep;
 	}
-
-//	public HashMap<String,Nyquence> addNyquence(String nid, Nyquence nyquence) {
-//		nyquvect.put(nid, new Nyquence(nyquvect.get(nid).n));
-//		Synode n = new Synode(nid, synm);
-//		n.insert(synm, synode(), mxn, insert(synm.tbl, synrobot()))
-//			.ins(instancontxt(basictx.connId(), synrobot()));
-//
-//		return this.nyquvect;
-//	}
 }
