@@ -259,7 +259,7 @@ public class DBSynmantics extends DASemantics {
 					Delete delSub = syb.delete(sbm.tbl);
 					for (String id : ((SyntityMeta) stx.getTableMeta(target)).globalIds()) {
 						delChg.whereEq(id, row.getString(id));
-						delSub.whereEq(id, row.getString(id));
+						delSub.whereEq(id, row.getString(id)); // TODO sub tabel changed
 					}
 
 					stmt.post(delChg);

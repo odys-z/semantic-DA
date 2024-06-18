@@ -16,7 +16,7 @@ public class T_PhotoMeta extends T_DocTableMeta {
 	public final String exif;
 
 	public T_PhotoMeta(String conn) throws TransException {
-		super("h_photos", "pid", "family", conn);
+		super("h_photos", "pid", "family", "device", conn);
 		ddlSqlite = loadTxt(T_PhotoMeta.class, "h_photos.sqlite.ddl");
 
 		exif = "exif";
@@ -26,18 +26,19 @@ public class T_PhotoMeta extends T_DocTableMeta {
 	public String device() { return synoder; }
 
 	@Override
-	public ArrayList<Object[]> updateEntNvs(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset challenges)
+	public ArrayList<Object[]> updateEntNvs(SynChangeMeta chgm, String entid,
+			AnResultset entities, AnResultset challenges)
 			throws SemanticException, SQLException {
 		ArrayList<Object[]> row = new ArrayList<Object[]>();
 		String[] updatingcols = challenges.getStrArray(chgm.updcols);
 		for (String c : updatingcols)
-			// row.add(new Object[] {c, entities.getStringAtRow(c, entities.rowIndex0(entid) + 1)});
 			row.add(new Object[] {c, entities.getStringByIndex(c, entid)});
 		return row;
 	}
 
 	@Override
-	public Object[] insertSelectItems(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset changes)
+	public Object[] insertSelectItems(SynChangeMeta chgm, String entid,
+			AnResultset entities, AnResultset changes)
 			throws SemanticException, SQLException {
 		String[] cols = entCols();
 		Object[] selects = new Object[cols.length];

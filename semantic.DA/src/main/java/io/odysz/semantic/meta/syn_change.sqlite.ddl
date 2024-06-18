@@ -1,7 +1,7 @@
 -- drop table if exists syn_change;
 create table if not exists syn_change (
     cid         varchar2(12) not null, -- change ID, auto key
-    entfk       varchar2(12) not null, -- entity fk, redundant for convenient, not for synchronizing
+    -- entfk       varchar2(12) not null, -- entity fk, redundant for convenient, not for synchronizing
     domain      varchar2(12) not null,
     tabl        varchar2(64) not null, -- e.g. 'h_photos'
     crud        char(1)      not null,

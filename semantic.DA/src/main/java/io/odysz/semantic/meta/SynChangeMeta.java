@@ -11,13 +11,20 @@ import io.odysz.semantics.meta.Semantation;
 public class SynChangeMeta extends SemanticTableMeta {
 	/** Separator in uids, ",", for separating fields of pk */
 	@Semantation (noDBExists = true)
-	public final String UIDsep;
+	public final static String UIDsep = ",";
 
 	public final String domain;
 	public final String entbl;
-	/** Entity fk, redundant for convenient, not for synchronizing */
+
+	/**
+	 * Entity fk, redundant for convenient, not for synchronizing
+	 * 
+	 * @deprected no such field since branch "try-mandatory-uid"
+	 */
+	@Semantation (noDBExists = true)
 	public final String entfk;
-	/** Format: device {@link #UIDsep} entity-id */
+
+	/** Format: device + {@link #UIDsep} + entity-id */
 	public final String uids;
 	public final String crud;
 	public final String synoder;
@@ -30,20 +37,21 @@ public class SynChangeMeta extends SemanticTableMeta {
 
 	public SynChangeMeta(String ... conn) {
 		super("syn_change", conn);
-		UIDsep = ",";
+		// UIDsep = ",";
 
 		ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
 
 		pk       = "cid";
 		domain   = "domain";
 		entbl    = "tabl";
-		entfk    = "entfk";
 		crud     = "crud";
 		synoder  = "synoder";
 		uids     = "uids";
 		nyquence = "nyquence";
 		updcols  = "updcols";
 		// timestamp= "timestamp";
+
+		entfk    = "entfk";
 	}
 
 	public String[] insertCols() {
@@ -51,7 +59,7 @@ public class SynChangeMeta extends SemanticTableMeta {
 	}
 
 	/** compose function for uids */
-	public String uids(String synode, String entityId) {
+	public static String uids(String synode, String entityId) {
 		return synode + UIDsep + entityId; // Funcall.concatstr(synode, UIDsep, entityId);
 	}
 }

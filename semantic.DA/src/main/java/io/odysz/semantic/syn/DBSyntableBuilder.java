@@ -14,7 +14,6 @@ import static io.odysz.semantic.syn.ExessionAct.*;
 import static io.odysz.semantic.util.DAHelper.getNyquence;
 import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
-import static io.odysz.transact.sql.parts.condition.Funcall.concatstr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
@@ -276,7 +275,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		tx.synode = synodeId;
 		tx.domain = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
 		((SyncRobot)tx.usr())
-			.orgId(getValstr((Transcxt) this, conn, synm, synm.org(), synm.pk, synodeId))
+			.orgId(getValstr((Transcxt) this, conn, synm, synm.org, synm.pk, synodeId))
 			.domain(getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId));
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
@@ -317,9 +316,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			throw new ExchangeException(Exchanging.ready, cp,
 				"Can't initate new exchange session. There are exchanging records to be finished.");
 
-		// select change 
-		// incStamp(cp);
-		// return cp.init().nv(nyquvect);
 		return cp.init().nv(nyquvect);
 	}
 	
@@ -614,40 +610,57 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		AnResultset reqChgs = req.chpage;
 
-		HashSet<String> warnflags = new HashSet<String>();
+		HashSet<String> warnsynodee = new HashSet<String>();
+		HashSet<String> warnsynoder = new HashSet<String>();
 
 		while (req.totalChallenges > 0 && reqChgs.next()) {
-			String subscribe = req.chpage.getString(subm.synodee);
+			String synodee = reqChgs.getString(subm.synodee);
+			String synoder = reqChgs.getString(chgm.synoder);
 
-			if (eq(subscribe, synode())) {
+			if (!nyquvect.containsKey(synoder)) {
+				// trb.nyquvect.put(synodr, new Nyquence(trb.nyquvect.get(peer).n));
+				if (!warnsynoder.contains(synoder)) {
+					warnsynoder.add(synoder);
+					Utils.warn("%s has no idea about %s. The changes %s -> %s are ignored.",
+							synode(), synoder, reqChgs.getString(chgm.uids), synodee);
+				}
+				continue;
+			}
+			else if (eq(synodee, synode())) {
 				resp.removeChgsub(req.chpage, synode());	
 				changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
 			}
 			else {
 				Nyquence subnyq = getn(reqChgs, chgm.nyquence);
-				if (!nyquvect.containsKey(subscribe) // I don't have information of the subscriber
+				if (!nyquvect.containsKey(synodee) // I don't have information of the subscriber
 					&& eq(synm.tbl, reqChgs.getString(chgm.entbl))) // adding synode
 					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
-				else if (!nyquvect.containsKey(subscribe)) {
+				else if (!nyquvect.containsKey(synodee)) {
 					; // I have no idea
 					if (synmode != leafmode) {
-						if (!warnflags.contains(subscribe)) {
-							warnflags.add(subscribe);
+						if (!warnsynodee.contains(synodee)) {
+							warnsynodee.add(synodee);
 							Utils.warn("%s has no idea about %s. The change is committed at this node. This can either be automatically fixed or causing data lost later.",
-									synode(), subscribe);
+									synode(), synodee);
 						}
 						changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
 					}
 					else // leaf
-						if (!warnflags.contains(subscribe)) {
-							warnflags.add(subscribe);
+						if (!warnsynodee.contains(synodee)) {
+							warnsynodee.add(synodee);
 							Utils.warn("%s has no idea about %s. Ignoring as is working in leaf mode. (Will filter data at server side in the near future)",
-									synode(), subscribe);
+									synode(), synodee);
 						}	
+				}
+				// see alse ExessionPersist#saveChanges()
+				else if (compareNyq(subnyq, nyquvect.get(reqChgs.getString(chgm.synoder))) > 0) {
+					// should suppress the following case
+					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
 				}
 				else if (compareNyq(subnyq, nyquvect.get(peer)) <= 0) {
 					// 2024.6.5 client shouldn't have older knowledge than me now,
 					// which is cleanded when initiating.
+					Utils.warn("Ignore this?");
 				}
 				else
 					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
@@ -655,7 +668,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 
 		return xp.saveAnswer(resp.anspage)
-				.saveChanges(changes, req.nv, req.entities);
+				.saveChanges(changes.beforeFirst(), req.nv, req.entities);
 	}
 
 	public ExchangeBlock closexchange(ExessionPersist cx,
@@ -678,7 +691,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		return cx.closexchange(rep).nv(snapshot);
 	}
 
-	/**
+	/**insert into exbm-buffer select peer's-subscriptions union 3rd parties subscriptions
 	 * @see #closexchange(ExessionPersist, ExchangeBlock)
 	 * 
 	 * @return insert statement to exchanging page buffer.
@@ -691,7 +704,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				// target is the subscriber
 				select(chgm.tbl, "cl")
 					.cols(constr(peer), chgm.pk, new ExprPart(-1))
-					.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId)
+					.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId, chgm.synoder, constr(synode()))
 					.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
 					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0)
 
@@ -812,7 +825,41 @@ public class DBSyntableBuilder extends DATranscxt {
 	public void restorexchange() { }
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
-	public String updateEntity(String synoder, String pid, SyntityMeta entm, Object ... nvs)
+	public int deleteEntityBySynuid(SyntityMeta entm, String synuid) throws TransException, SQLException {
+		if (existsnyuid(entm, synuid)) {
+			SemanticObject res = (SemanticObject) delete(entm.tbl, synrobot())
+			.whereEq(entm.synuid, synuid)
+			.post(insert(chgm.tbl, synrobot())
+				.nv(chgm.entbl, entm.tbl)
+				.nv(chgm.crud, CRUD.D)
+				.nv(chgm.synoder, synode())
+				.nv(chgm.uids, synuid)
+				.nv(chgm.nyquence, stamp.n)
+				.nv(chgm.domain, domain())
+				.post(insert(subm.tbl)
+					.cols(subm.insertCols())
+					.select((Query)select(synm.tbl)
+						.col(new Resulving(chgm.tbl, chgm.pk))
+						.col(synm.synoder)
+						.where(op.ne, synm.synoder, constr(synode()))
+						.whereEq(synm.domain, domain()))))
+			.d(instancontxt(basictx.connId(), synrobot()));
+			return res.total();
+		}
+		else return 0;
+	}
+
+	private boolean existsnyuid(SyntityMeta entm, String suid)
+			throws SQLException, TransException {
+		return ((AnResultset) select(entm.tbl, "t")
+			.col(Funcall.count(), "c")
+			.rs(instancontxt(synconn(), synrobot()))
+			.rs(0))
+			.nxt()
+			.getInt("c") > 0;
+	}
+
+	public String updateEntity(String synoder, String synuid, SyntityMeta entm, Object ... nvs)
 			throws TransException, SQLException, IOException {
 		String [] updcols = new String[nvs.length/2];
 		for (int i = 0; i < nvs.length; i += 2)
@@ -820,13 +867,16 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		String chgid = update(entm.tbl, synrobot())
 			.nvs((Object[])nvs)
-			.whereEq(entm.pk, pid)
+			.whereEq(entm.synuid, synuid)
 			.post(insert(chgm.tbl, synrobot())
-				.nv(chgm.entfk, pid)
+				// .nv(chgm.entfk, pid)
 				.nv(chgm.entbl, entm.tbl)
 				.nv(chgm.crud, CRUD.U)
 				.nv(chgm.synoder, synode()) // U.synoder != uids[synoder]
-				.nv(chgm.uids, concatstr(synoder, chgm.UIDsep, pid))
+
+				// .nv(chgm.uids, concatstr(synoder, chgm.UIDsep, pid))
+				.nv(chgm.uids, synuid)
+
 				.nv(chgm.nyquence, stamp.n)
 				.nv(chgm.domain, domain())
 				.nv(chgm.updcols, updcols)
@@ -908,43 +958,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 
-//	private DBSyntableBuilder synyquvectWith(String peer, HashMap<String, Nyquence> nv) 
-//		throws TransException, SQLException {
-//		if (nv == null) return this;
-//
-//		Update u = null;
-//
-//		if (compareNyq(nv.get(peer), nyquvect.get(peer)) < 0)
-//			throw new SemanticException(
-//				"[%s.%s()] Updating my (%s) nyquence with %s's value early than already knowns.",
-//				getClass().getName(), new Object(){}.getClass().getEnclosingMethod().getName(),
-//				synode(), peer);
-//
-//		for (String n : nv.keySet()) {
-//			// if (!eq(n, sn) && nyquvect.containsKey(n)
-//			if (nyquvect.containsKey(n)
-//				&& compareNyq(nv.get(n), nyquvect.get(n)) > 0)
-//				if (u == null)
-//					u = update(synm.tbl, synrobot())
-//						.nv(synm.nyquence, n0().n)
-//						.whereEq(synm.pk, n);
-//				else
-//					u.post(update(synm.tbl)
-//						.nv(synm.nyquence, nv.get(n).n)
-//						.whereEq(synm.pk, n));
-//
-//			if (nyquvect.containsKey(n))
-//				nyquvect.get(n).n = maxn(nv.get(n).n, nyquvect.get(n).n);
-//			else nyquvect.put(n, new Nyquence(nv.get(n).n));
-//		}
-//
-//		nyquvect.put(synode(), maxn(n0(), nv.get(peer)));
-//		if (u != null)
-//			u.u(instancontxt(basictx.connId(), synrobot()));
-//
-//		return this;
-//	}
-
 	@Override
 	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
 		try {
@@ -976,7 +989,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					update(synm.tbl, synrobot())
 					.nv(synm.domain, ns.getString(synm.domain))
 					.whereEq(synm.pk, synode())
-					.whereEq(synm.org(), synrobot().orgId())
+					.whereEq(synm.org, synrobot().orgId())
 					.whereEq(synm.domain, domain())
 					.u(instancontxt(basictx.connId(), synrobot()));
 
@@ -986,10 +999,10 @@ public class DBSyntableBuilder extends DATranscxt {
 				else {
 					Synode n = new Synode(ns, synm);
 					mxn = maxn(domainstatus.nv);
-					n.insert(synm, mxn, insert(synm.tbl, synrobot()))
+					n.insert(synm, synode(), mxn, insert(synm.tbl, synrobot()))
 						.ins(instancontxt(basictx.connId(), synrobot()));
 
-					nyquvect.put(n.recId, new Nyquence(mxn.n));
+					nyquvect.put(n.synodeId, new Nyquence(mxn.n));
 				}
 			}
 		}
@@ -1008,7 +1021,8 @@ public class DBSyntableBuilder extends DATranscxt {
 	
 	/**
 	 * Clean any subscriptions that should been accepted by the peer in
-	 * the last session, but was not accutally accepted.
+	 * the last session, but was not accutally accepted. Such case can be
+	 * the peer node rejected data when no knowledge about the synoder.
 	 * 
 	 * @param peer
 	 */
@@ -1043,7 +1057,6 @@ public class DBSyntableBuilder extends DATranscxt {
 					Utils.warnT(new Object() {} ,
 						"Cleaned changes in %s -> %s: %s changes",
 						synode(), peer, cnt);
-					// res.print(System.err);
 				}
 			}
 			catch (Exception e) {
@@ -1055,7 +1068,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	/**
 	 * Delete change log if no subscribers accept.
 	 *  
-	 * @param org
+	 * @param domain
 	 * @param iffnode delete the change-log iff the node, i.e. the subscriber, exists.
 	 * For answers, it's the node himself, for challenge, it's the source node.
 	 * @return the delete statement
@@ -1100,13 +1113,14 @@ public class DBSyntableBuilder extends DATranscxt {
 		Synode apply = new Synode(basictx.connId(), childId, org, domain());
 
 		@SuppressWarnings("unused")
-		String chgid = ((SemanticObject) apply.insert(synm, n0(), insert(synm.tbl, robot))
+		String chgid = ((SemanticObject) apply.insert(synm, synode(), n0(), insert(synm.tbl, robot))
 			.post(insert(chgm.tbl, robot)
-				.nv(chgm.entfk, apply.recId)
+				// .nv(chgm.entfk, apply.recId)
 				.nv(chgm.entbl, synm.tbl)
 				.nv(chgm.crud, CRUD.C)
 				.nv(chgm.synoder, synode())
-				.nv(chgm.uids, concatstr(synode(), chgm.UIDsep, apply.recId))
+				// .nv(chgm.uids, concatstr(synode(), chgm.UIDsep, apply.recId))
+				.nv(chgm.uids, SynChangeMeta.uids(synode(), apply.synodeId))
 				.nv(chgm.nyquence, n0().n)
 				.nv(chgm.domain, domain())
 				.post(insert(subm.tbl)
@@ -1124,18 +1138,18 @@ public class DBSyntableBuilder extends DATranscxt {
 			.ins(instancontxt(basictx.connId(), robot)))
 			.resulve(chgm.tbl, chgm.pk);
 		
-		nyquvect.put(apply.recId, new Nyquence(apply.nyquence));
+		nyquvect.put(apply.synodeId, new Nyquence(apply.nyquence));
 
 		ExchangeBlock rep = new ExchangeBlock(synode(), childId, ap.session(), ap.exstat())
 			.nv(nyquvect)
 			.synodes(req.act == ExessionAct.signup
-				? ((AnResultset) select(synm.tbl, "syn")
-					.whereIn(synm.synoder, childId, synode())
-					.whereEq(synm.domain, domain())
-					.whereEq(synm.org(), org)
-					.rs(instancontxt(basictx.connId(), synrobot()))
-					.rs(0))
-				: null);
+			? ((AnResultset) select(synm.tbl, "syn")
+				.whereIn(synm.synoder, childId, synode())
+				.whereEq(synm.domain, domain())
+				.whereEq(synm.org, org)
+				.rs(instancontxt(basictx.connId(), synrobot()))
+				.rs(0))
+			: null);
 		return rep;
 	}
 }

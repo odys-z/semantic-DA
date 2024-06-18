@@ -1,5 +1,6 @@
 package io.odysz.semantic.syn;
 
+import java.io.PrintStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,7 +41,13 @@ public class ExchangeBlock extends Anson {
 		return this;
 	}
 
-	public int enitities() { return 0; }
+	public int enitities() {
+		return entities == null ? 0
+			: entities.values()
+				.stream()
+				.filter(rs -> rs != null)
+				.mapToInt(rs -> rs.getRowCount()).sum();
+	}
 
 	public int answers() {
 		return anspage != null ? anspage.size() : 0;
@@ -51,6 +58,12 @@ public class ExchangeBlock extends Anson {
 			? 0 : entities.get(tbl).getRowCount();
 	}
 
+	/**
+	 * Copy answer from {@code p}
+	 * 
+	 * @param p
+	 * @return this
+	 */
 	public ExchangeBlock answers(ExessionPersist p) {
 		this.anspage = p.answerPage;
 		return this;
@@ -65,14 +78,15 @@ public class ExchangeBlock extends Anson {
 			HashMap<String, Object[]> cols = challenpage.colnames();
 			if (!cols.containsKey(ChangeLogs.ChangeFlag.toUpperCase()))
 				cols.put(ChangeLogs.ChangeFlag.toUpperCase(),
-						new Object[] {cols.size(), ChangeLogs.ChangeFlag});
+						new Object[] {cols.size() + 1, // column index state at 1
+								ChangeLogs.ChangeFlag});
 			anspage = new AnResultset(cols);
 		}
 
 		if (challenpage != null) {
 			ArrayList<Object> row = challenpage.getRowAt(challenpage.currentRow() - 1);
 			int flagIx = (int) anspage.colnames().get(ChangeLogs.ChangeFlag.toUpperCase())[0];
-			row.add(flagIx, CRUD.U);
+			row.add(flagIx - 1, CRUD.U);
 			anspage.append(row);
 		}
 	}
@@ -159,5 +173,29 @@ public class ExchangeBlock extends Anson {
 	public boolean moreChallenge() {
 		return challengeSeq >= 0 && totalChallenges > 0 && chpagesize > 0
 				&& (challengeSeq + 1) * chpagesize < totalChallenges;
+	}
+
+	public void print(PrintStream out) {
+		out.println(String.format("Exchange Package: %s -> %s : %s", srcnode, peer, session));
+		out.println(String.format("challenge seq: %s\tanswer-seq %s", challengeSeq, answerSeq));
+
+		if (chpage != null ) {
+			out.println("challenge page:");
+			chpage.print(out);
+		}
+		
+		if (entities != null) {
+			out.println("entities:");
+			for (String tbl : entities.keySet()) {
+				out.print("\tname: ");
+				out.println(tbl);
+				entities.get(tbl).print(out);
+			}
+		}
+		
+		if (anspage != null) {
+			out.println("answer page:");
+			anspage.print(out);
+		}
 	}
 }

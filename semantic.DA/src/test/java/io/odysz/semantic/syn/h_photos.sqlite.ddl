@@ -17,6 +17,7 @@ CREATE TABLE if not exists h_photos (
   filesize   integer,
   shareflag  varchar2(12) default 'prv' NOT NULL,
   crud       char(1),
+  io_oz_synuid varchar2(25),
   oper       varchar(12)  NOT NULL,
   opertime   datetime     NOT NULL,
 

@@ -42,7 +42,6 @@ import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.QueryPage;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.parts.Logic.op;
-import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
@@ -62,7 +61,6 @@ public class ExessionPersist {
 
 	final String peer;
 
-	// public ArrayList<ArrayList<Object>> answerPage;
 	public AnResultset answerPage;
 
 	DBSyntableBuilder trb;
@@ -89,10 +87,10 @@ public class ExessionPersist {
 	
 		AnResultset rply = conf.anspage.beforeFirst();
 		rply.beforeFirst();
-		String entid = null;
+		String recId = null;
 		while (rply.next()) {
 			if (compareNyq(rply.getLong(chgm.nyquence), tillN0) > 0)
-				break;
+				break; // FIXME continue? Or throw?
 	
 			SyntityMeta entm = trb.getEntityMeta(rply.getString(chgm.entbl));
 			String change = rply.getString(ChangeLogs.ChangeFlag);
@@ -100,7 +98,7 @@ public class ExessionPersist {
 			HashMap<String, AnResultset> entbuf = entities;
 			
 			// current entity
-			String entid1 = rply.getString(chgm.entfk);
+			// String entid1 = rply.getString(chgm.entfk);
 	
 			String rporg  = rply.getString(chgm.domain);
 			String rpent  = rply.getString(chgm.entbl);
@@ -109,20 +107,20 @@ public class ExessionPersist {
 			String rpscrb = rply.getString(subm.synodee);
 			String rpcid  = rply.getString(chgm.pk);
 	
-			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(entid1) < 0) {
+			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(rpuids) < 0) {
 				Utils.warnT(new Object() {},
 						"Fatal error ignored: can't restore entity record answered from target node.\n" +
-						"entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by answer): %s",
-						entm.tbl, srcnode, trb.synode(), entid1);
+						"entity name: %s\nsynode(peer): %s\nsynode(local): %s\nentity id(by peer): %s",
+						entm.tbl, srcnode, trb.synode(), rpuids);
 				continue;
 			}
 				
 			stats.add(eq(change, CRUD.C)
 				// create an entity, and trigger change log
-				? !eq(entid, entid1)
+				? !eq(recId, rpuids)
 					? trb.insert(entm.tbl, trb.synrobot())
 						.cols(entm.entCols())
-						.value(entm.insertChallengeEnt(entid1, entbuf.get(entm.tbl)))
+						.value(entm.insertChallengeEnt(rpuids, entbuf.get(entm.tbl)))
 						.post(trb.insert(chgm.tbl)
 							.nv(chgm.pk, rpcid)
 							.nv(chgm.crud, CRUD.C)
@@ -130,7 +128,7 @@ public class ExessionPersist {
 							.nv(chgm.entbl, rpent)
 							.nv(chgm.synoder, rpnodr)
 							.nv(chgm.uids, rpuids)
-							.nv(chgm.entfk, entid1)
+							// .nv(chgm.entfk, new Resulving(entm.tbl, entm.pk))
 							.post(trb.insert(subm.tbl)
 								.cols(subm.insertCols())
 								.value(subm.insertSubVal(rply))))
@@ -144,10 +142,11 @@ public class ExessionPersist {
 					.whereEq(subm.synodee, rpscrb)
 					.post(del0subchange(entm, rporg, rpnodr, rpuids, rpcid, rpscrb)
 					));
-			entid = entid1;
+			// entid = entid1;
+			recId = rpuids;
 		}
 	
-		Utils.logi("[DBSynsactBuilder.commitAnswers()] updating change logs without modifying entities...");
+		Utils.logT(new Object() {}, "Locally committing answers to %s ...", peer);
 		ArrayList<String> sqls = new ArrayList<String>();
 		for (Statement<?> s : stats)
 			s.commit(sqls, trb.synrobot());
@@ -183,22 +182,21 @@ public class ExessionPersist {
 			Nyquence chgnyq = getn(changes, chgm.nyquence);
 
 			SyntityMeta entm = trb.getEntityMeta(changes.getString(chgm.entbl));
-			// create / update / delete an entity
-			String entid  = changes.getString(chgm.entfk);
+
 			String synodr = changes.getString(chgm.synoder);
 			String chuids = changes.getString(chgm.uids);
 			String chgid  = changes.getString(chgm.pk);
 
 			HashMap<String, AnResultset> entbuf = entites; // x.onchanges.entities;
-			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(entid) < 0) {
+			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(chuids) < 0) {
 				Utils.warnT(new Object() {},
 						"Fatal error ignored: can't restore entity record answered from target node.\n" +
-						"entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity id(by challenge): %s",
-						entm.tbl, peer, trb.synode(), entid);
+						"entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity uid(by challenge): %s",
+						entm.tbl, peer, trb.synode(), chuids);
 				continue;
 			}
 			
-			String chorg = changes.getString(chgm.domain);
+			String domain = changes.getString(chgm.domain);
 			String chentbl = changes.getString(chgm.entbl);
 			
 			// current entity's subscribes
@@ -209,16 +207,16 @@ public class ExessionPersist {
 				stats.add(trb.delete(subm.tbl, trb.synrobot())
 					.whereEq(subm.synodee, subsrb)
 					.whereEq(subm.changeId, chgid)
-					.post(ofLastEntity(changes, entid, chentbl, chorg)
+					.post(ofLastEntity(changes, chuids, chentbl, domain)
 						? trb.delete(chgm.tbl)
 							.whereEq(chgm.entbl, chentbl)
-							.whereEq(chgm.domain, chorg)
+							.whereEq(chgm.domain, domain)
 							.whereEq(chgm.synoder, synodr)
 							.whereEq(chgm.uids, chuids)
 							.post(trb.delete(entm.tbl)
-								.whereEq(entm.org(), chorg)
+								.whereEq(entm.domain, domain)
 								.whereEq(entm.synoder, synodr)
-								.whereEq(entm.pk, chentbl))
+								.whereEq(entm.synuid, chuids))
 						: null));
 			}
 			else { // CRUD.C || CRUD.U
@@ -226,32 +224,21 @@ public class ExessionPersist {
 
 				while (changes.validx()) {
 					String subsrb = changes.getString(subm.synodee);
-					if (eq(subsrb, trb.synode())) {
-					/** conflict: Y try send Z a record that Z already got from X.
-					 *        X           Y               Z
-                     *             | I Y Y,W 4 Z -> 4 < Z.y, ignore |
-					 *
-      				 *		  X    Y    Z    W
-					 *	X [   7,   5,   3,   4 ]
-					 *	Y [   4,   6,   1,   4 ]
-					 *	Z [   6,   5,   7,   4 ]   change[Z].n < Z.y, that is Z knows later than the log
-					 */
-						Nyquence my_srcn = trb.nyquvect.get(peer);
-						if (my_srcn != null && compareNyq(chgnyq, my_srcn) >= 0)
-							// conflict & override
-							iamSynodee = true;
-					}
-					else if (compareNyq(chgnyq, trb.nyquvect.get(peer)) > 0
-						// ref: _merge-older-version
-						// knowledge about the sub from req is older than this node's knowledge 
-						// see #onchanges ref: answer-to-remove
-						// FIXME how to abstract into one method?
-						&& !eq(subsrb, trb.synode()))
+					if (!trb.nyquvect.containsKey(synodr))
+						Utils.warn("This node (%s) don't care changes from %s, and sholdn't be here.",
+								trb.synode(), synodr);
+
+					if (compareNyq(chgnyq, trb.nyquvect.get(synodr)) > 0
+						&& eq(subsrb, trb.synode()))
+						iamSynodee = true;
+					else if (compareNyq(chgnyq, trb.nyquvect.get(synodr)) > 0
+						&& !eq(subsrb, trb.synode())
+						)
 						subscribeUC.add(trb.insert(subm.tbl)
 							.cols(subm.insertCols())
 							.value(subm.insertSubVal(changes))); 
 					
-					if (ofLastEntity(changes, entid, chentbl, chorg))
+					if (ofLastEntity(changes, chuids, chentbl, domain))
 						break;
 					changes.next();
 				}
@@ -259,44 +246,37 @@ public class ExessionPersist {
 				appendMissings(stats, missings, changes);
 
 				if (iamSynodee || subscribeUC.size() > 0) {
-					stats.add(eq(change, CRUD.C)
+					stats.add(
+					eq(change, CRUD.C)
 					? trb.insert(entm.tbl, trb.synrobot())
 						.cols(entm.entCols())
-						.value(entm.insertChallengeEnt(entid, entbuf.get(entm.tbl)))
+						.value(entm.insertChallengeEnt(chuids, entbuf.get(entm.tbl)))
 						.post(subscribeUC.size() <= 0 ? null :
 							trb.insert(chgm.tbl)
 							.nv(chgm.pk, chgid)
-							.nv(chgm.crud, CRUD.C).nv(chgm.domain, chorg)
-							.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr).nv(chgm.uids, chuids)
+							.nv(chgm.crud, CRUD.C).nv(chgm.domain, domain)
+							.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr)
 							.nv(chgm.nyquence, changes.getLong(chgm.nyquence))
-							.nv(chgm.entfk, entm.autopk() ? new Resulving(entm.tbl, entm.pk) : constr(entid))
+							// .nv(chgm.entfk, entm.autopk() ? new Resulving(entm.tbl, entm.pk) : constr(chuids))
+							.nv(chgm.uids, chuids)
 							.post(subscribeUC)
-							.post(del0subchange(entm, chorg, synodr, chuids, chgid, trb.synode())))
+							.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode())))
 					: eq(change, CRUD.U)
 					? trb.update(entm.tbl, trb.synrobot())
-						.nvs(entm.updateEntNvs(chgm, entid, entbuf.get(entm.tbl), changes))
+						.nvs(entm.updateEntNvs(chgm, chuids, entbuf.get(entm.tbl), changes))
 						.whereEq(entm.synoder, synodr)
-						.whereEq(entm.org(), chorg)
-						.whereEq(entm.pk, entid)
-						// FIXME there shouldn't be an UPSERT if the change-log is handled in orignal order?
-//						.post(insert(entm.tbl, synrobot()) 
-//							.cols(entm.entCols())
-//							.select(select(null)
-//									.cols(entm.insertSelectItems(chgm, entid, entbuf.get(entm.tbl), chal)))
-//							.where(op.notexists, null,
-//								select(entm.tbl)
-//								.whereEq(entm.synoder, synodr)
-//								.whereEq(entm.org(), entbuf.get(entm.tbl).getStringByIndex(entm.org(), entid))
-//								.whereEq(entm.pk, entid)))
+						.whereEq(entm.domain, domain)
+						.whereEq(entm.synuid, chuids)
 						.post(subscribeUC.size() <= 0
 							? null : trb.insert(chgm.tbl)
 							.nv(chgm.pk, chgid)
-							.nv(chgm.crud, CRUD.U).nv(chgm.domain, chorg)
-							.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr).nv(chgm.uids, chuids)
+							.nv(chgm.crud, CRUD.U).nv(chgm.domain, domain)
+							.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr)
 							.nv(chgm.nyquence, chgnyq.n)
-							.nv(chgm.entfk, constr(entid))
+							.nv(chgm.uids, constr(chuids))
+							.nv(chgm.updcols, changes.getString(chgm.updcols))
 							.post(subscribeUC)
-							.post(del0subchange(entm, chorg, synodr, chuids, chgid, trb.synode())))
+							.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode())))
 					: null);
 				}
 
@@ -305,14 +285,15 @@ public class ExessionPersist {
 			}
 		}
 
-		Utils.logi("[DBSynsactBuilder.commitChallenges()] update entities...");
+		if (Connects.getDebug(trb.synconn()))
+			Utils.logT(new Object() {}, "saving changes to local entities...");
+
 		ArrayList<String> sqls = new ArrayList<String>();
 		for (Statement<?> s : stats)
 			if (s != null)
 				s.commit(sqls, trb.synrobot());
 		Connects.commit(trb.synconn(), trb.synrobot(), sqls);
 		
-//		x.onchanges = null;
 		return this;
 	}
 
@@ -376,7 +357,6 @@ public class ExessionPersist {
 			.seq(this);
 	}
 
-
 	/**
 	 * Setup exchange buffer table.
 	 * <pre>
@@ -406,22 +386,6 @@ public class ExessionPersist {
 						"%s#%s(), don't have knowledge about %s.",
 						trb.synode(), new Object(){}.getClass().getEnclosingMethod().getName(), peer);
 			}
-//			trb.insert(exbm.tbl, trb.synrobot())
-//				.cols(exbm.insertCols())
-//				.select(trb.select(chgm.tbl, "ch")
-//					.distinct()
-//					.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
-//					.cols(exbm.selectCols(peer, -1))
-//					// FIXME not op.lt, must implement a function to compare nyquence.
-//					.where(op.gt, chgm.nyquence, dn.n) // FIXME
-//					.orderby(chgm.nyquence)
-//					.orderby(chgm.entbl)
-//					.orderby(chgm.synoder)
-//					.orderby(subm.synodee))
-//				.ins(trb.instancontxt(trb.synconn(), trb.synrobot()));
-
-//			trb.insertExbuf(peer)
-//				.ins(trb.instancontxt(trb.synconn(), trb.synrobot()));
 		}
 		else 
 			Utils.warn("[%s#%s()] Null transact builder. - null builder only for test",
@@ -453,20 +417,6 @@ public class ExessionPersist {
 	public ExchangeBlock onInit(ExchangeBlock ini) throws TransException, SQLException {
 		if (trb != null) {
 			String conn = trb.basictx().connId();
-//			Nyquence dn = trb.nyquvect.get(peer);
-//			trb.insert(exbm.tbl, trb.synrobot())
-//				.cols(exbm.insertCols())
-//				.select(trb.select(chgm.tbl, "ch")
-//					.distinct()
-//					.je_(subm.tbl, "sb", chgm.pk, subm.changeId) // filter zero subscriber
-//					.cols(exbm.selectCols(peer, -1))
-//					// .where(op.gt, chgm.nyquence, dn.n)
-//					.where(op.gt, sqlCompare(chgm.nyquence, dn.n), 0)
-//					.orderby(chgm.entbl)
-//					.orderby(chgm.nyquence)
-//					.orderby(chgm.synoder)
-//					.orderby(subm.synodee))
-
 			int total = ((SemanticObject) trb
 				.insertExbuf(peer)
 				.ins(trb.instancontxt(conn, trb.synrobot()))
@@ -505,7 +455,7 @@ public class ExessionPersist {
 	private ExessionAct exstate;
 	public int exstate() { return exstate.state; }
 	public ExessionAct exstat() { return exstate; }
-	
+	/** Counted when in {@link #init()}, not correct after {@link DBSyntableBuilder#cleanStale(HashMap, String)} has been called. */
 	public int totalChallenges;
 
 	public int expAnswerSeq;
@@ -525,8 +475,6 @@ public class ExessionPersist {
 	 */
 	public boolean hasNextChpages(DBSyntableBuilder b)
 			throws SQLException, TransException {
-		// return DAHelper.count(b, b.synconn(), exbm.tbl, exbm.peer, peer, exbm.seq, -1) > 0;
-		
 		int pages = pages();
 		if (pages > 0 && challengeSeq + 1 < pages)
 			return true;
@@ -759,15 +707,16 @@ public class ExessionPersist {
 
 			AnResultset entities = ((AnResultset) trb.select(tbl, "e")
 				// .je("e", chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
-				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
+				// .je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
+				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId, constr(peer), exbm.peer, constVal(challengeSeq), exbm.seq)
 				.cols_byAlias("e", entm.entCols()).col("e." + entm.pk)
-				.where(op.gt, chgm.nyquence, dn.n)
+				// .where(op.gt, chgm.nyquence, dn.n)
 				.orderby(chgm.nyquence)
 				.orderby(chgm.synoder)
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				.rs(0))
-				.index0(entm.pk);
+				.index0(entm.synuid);
 			
 			entities(tbl, entities);
 		}
@@ -846,13 +795,17 @@ public class ExessionPersist {
 	 */
 	boolean ofLastEntity(AnResultset chlogs, String curEid, String curEntbl, String curDomain)
 			throws SQLException {
-		return !chlogs.hasnext() || !eq(curEid, chlogs.nextString(chgm.entfk))
+		return !chlogs.hasnext()
+			// || !eq(curEid, chlogs.nextString(chgm.entfk))
+			|| !eq(curEid, chlogs.nextString(chgm.uids))
 			|| !eq(curEntbl, chlogs.nextString(chgm.entbl)) || !eq(curDomain, chlogs.nextString(chgm.domain));
 	}
 	
-	boolean isAnotherEntity (AnResultset chlogs, String curEid, String curEntbl, String curDomain)
+	boolean isAnotherEntity (AnResultset chlogs, String curUid, String curEntbl, String curDomain)
 			throws SQLException {
-		return !chlogs.hasprev() || !eq(curEid, chlogs.prevString(chgm.entfk))
+		return !chlogs.hasprev()
+			// || !eq(curEid, chlogs.prevString(chgm.entfk))
+			|| !eq(curUid, chlogs.prevString(chgm.uids))
 			|| !eq(curEntbl, chlogs.prevString(chgm.entbl)) || !eq(curDomain, chlogs.prevString(chgm.domain));
 	}
 
