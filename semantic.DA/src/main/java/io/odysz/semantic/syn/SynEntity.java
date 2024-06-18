@@ -10,6 +10,7 @@ import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
+import io.odysz.transact.sql.Insert;
 
 /**
  * A synchronizable entity managed by the package, also a server side
@@ -18,7 +19,7 @@ import io.odysz.semantics.ISemantext;
  * 
  * @author Ody
  */
-public class SynEntity extends Anson {
+public abstract class SynEntity extends Anson {
 	protected static String[] synpageCols;
 
 	public String recId;
@@ -27,6 +28,8 @@ public class SynEntity extends Anson {
 		recId = did;
 		return this;
 	}
+
+	public final String domain;
 
 	public String uids;
 
@@ -61,12 +64,15 @@ public class SynEntity extends Anson {
 		this.subMeta = new SynSubsMeta(change);
 
 		format(rs);
+		this.domain = rs.getString(entMeta.domain);
 	}
 
-	public SynEntity(SyntityMeta entm) {
+	public SynEntity(SyntityMeta entm, String domain) {
 		this.entMeta = entm;
 		this.chgm = new SynChangeMeta();
 		this.subMeta = new SynSubsMeta(chgm);
+
+		this.domain = domain;
 	}
 
 	public SynEntity(AnResultset rs, SyntityMeta meta) throws SQLException {
@@ -88,4 +94,12 @@ public class SynEntity extends Anson {
 		this.synode =  rs.getString(chgm.synoder);
 		return this;
 	}
+	
+	/**
+	 * Staff {@code ins}'s nvs.
+	 * 
+	 * @param ins
+	 * @return {@code ins}
+	 */
+	public abstract Insert insertEntity(SyntityMeta m, Insert ins);
 }

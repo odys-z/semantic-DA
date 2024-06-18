@@ -9,7 +9,7 @@ create table if not exists syn_change (
     uids        text         not null, -- for h_photos.device:fullpath, or composed PK for resouce's id, not null?
     nyquence    long         not null,
     updcols     varchar2(256),
-    seq         long         not null default 0, -- order of changes, cleared after nyquence is stepped
+    seq         long         not null, -- order of changes, cleared after nyquence is stepped
     -- A typical sqlite database can hold no more than approximately 2e+13, which far less than 2^63
     -- See 13. Maximum Number Of Rows In A Table, https://sqlite.org/limits.html
 

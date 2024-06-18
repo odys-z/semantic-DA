@@ -47,6 +47,7 @@ import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
+import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.Sql;
@@ -221,6 +222,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		if (Nyquence.abs(stamp, nyquvect.get(synode())) >= 2)
 			throw new ExchangeException(0, xp, "Nyquence stamp increased too much or out of range.");
 		persistamp(stamp);
+		seq = 0;
 		return this;
 	}
 
@@ -247,6 +249,9 @@ public class DBSyntableBuilder extends DATranscxt {
 	private HashMap<String, SyntityMeta> entityRegists;
 
 	private final boolean force_clean_subs;
+
+	private long seq;
+	public long incSeq() { return ++seq; }
 
 	public SyntityMeta getSyntityMeta(String tbl) {
 		return entityRegists == null ? null : entityRegists.get(tbl);
@@ -292,6 +297,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		
 		stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
 				synm.synoder, synodeId, synm.domain, tx.domain);
+		seq   = 0;
 
 		force_clean_subs = true;
 
@@ -835,6 +841,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				.nv(chgm.synoder, synode())
 				.nv(chgm.uids, synuid)
 				.nv(chgm.nyquence, stamp.n)
+				.nv(chgm.seq, incSeq())
 				.nv(chgm.domain, domain())
 				.post(insert(subm.tbl)
 					.cols(subm.insertCols())
@@ -859,6 +866,52 @@ public class DBSyntableBuilder extends DATranscxt {
 			.getInt("c") > 0;
 	}
 
+	public String[] insertEntity(SyntityMeta m, SynEntity e) throws TransException, SQLException {
+		String conn   = synconn();
+		SyncRobot rob = (SyncRobot) synrobot();
+		/*
+		String pid = ((SemanticObject) insert(m.tbl, robot)
+			.nv(m.uri, "")
+			.nv(m.resname, "p-" + robot.deviceId)
+			.nv(m.fullpath, father)
+			.nv(m.domain, robot.domain())
+			.nv(m.device(), robot.deviceId())
+			.nv(m.folder, robot.uid())
+			.nv(m.shareDate, now())
+			// TODO .post(insert chid)?
+			.ins(trb.instancontxt(conn, robot)))
+			.resulve(m);
+		*/
+
+		Resulving pid = new Resulving(m.tbl, m.pk);
+
+		SemanticObject u = ((SemanticObject) e
+			.insertEntity(m, insert(m.tbl, rob))
+			.post(update(m.tbl, rob)
+				.nv(m.synuid, SynChangeMeta.uids(synode(), pid))
+				.whereEq(m.pk, pid))
+			.post(insert(chgm.tbl)
+				.nv(chgm.entbl, m.tbl)
+				.nv(chgm.crud, CRUD.C)
+				.nv(chgm.synoder, synode())
+				.nv(chgm.uids, SynChangeMeta.uids(synode(), pid))
+				.nv(chgm.nyquence, stamp.n)
+				.nv(chgm.seq, incSeq())
+				.nv(chgm.domain, rob.domain())
+				.post(insert(subm.tbl)
+					.cols(subm.insertCols())
+					.select((Query) select(synm.tbl)
+						.col(new Resulving(chgm.tbl, chgm.pk))
+						.col(synm.synoder)
+						.where(op.ne, synm.synoder, constr(synode()))
+						.whereEq(synm.domain, rob.domain))))
+			.ins(instancontxt(conn, rob)));
+
+		String phid = u.resulve(m);
+		String chid = u.resulve(chgm);
+		return new String[] {phid, chid};
+	}
+
 	public String updateEntity(String synoder, String synuid, SyntityMeta entm, Object ... nvs)
 			throws TransException, SQLException, IOException {
 		String [] updcols = new String[nvs.length/2];
@@ -869,15 +922,12 @@ public class DBSyntableBuilder extends DATranscxt {
 			.nvs((Object[])nvs)
 			.whereEq(entm.synuid, synuid)
 			.post(insert(chgm.tbl, synrobot())
-				// .nv(chgm.entfk, pid)
 				.nv(chgm.entbl, entm.tbl)
 				.nv(chgm.crud, CRUD.U)
-				.nv(chgm.synoder, synode()) // U.synoder != uids[synoder]
-
-				// .nv(chgm.uids, concatstr(synoder, chgm.UIDsep, pid))
+				.nv(chgm.synoder, synode())
 				.nv(chgm.uids, synuid)
-
 				.nv(chgm.nyquence, stamp.n)
+				.nv(chgm.seq, incSeq())
 				.nv(chgm.domain, domain())
 				.nv(chgm.updcols, updcols)
 				.post(insert(subm.tbl)
@@ -1119,19 +1169,15 @@ public class DBSyntableBuilder extends DATranscxt {
 				.nv(chgm.entbl, synm.tbl)
 				.nv(chgm.crud, CRUD.C)
 				.nv(chgm.synoder, synode())
-				// .nv(chgm.uids, concatstr(synode(), chgm.UIDsep, apply.recId))
 				.nv(chgm.uids, SynChangeMeta.uids(synode(), apply.synodeId))
 				.nv(chgm.nyquence, n0().n)
+				.nv(chgm.seq, incSeq())
 				.nv(chgm.domain, domain())
 				.post(insert(subm.tbl)
-					// .cols(subm.entbl, subm.synodee, subm.uids, subm.domain)
 					.cols(subm.insertCols())
 					.select((Query)select(synm.tbl)
-						// .col(constr(synm.tbl))
 						.col(new Resulving(chgm.tbl, chgm.pk))
 						.col(synm.synoder)
-						// .col(concatstr(synode(), chgm.UIDsep, apply.recId))
-						// .col(constr(robot.orgId()))
 						.where(op.ne, synm.synoder, constr(synode()))
 						.where(op.ne, synm.synoder, constr(childId))
 						.whereEq(synm.domain, domain()))))
