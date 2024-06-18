@@ -182,8 +182,6 @@ public class ExessionPersist {
 			Nyquence chgnyq = getn(changes, chgm.nyquence);
 
 			SyntityMeta entm = trb.getEntityMeta(changes.getString(chgm.entbl));
-			// create / update / delete an entity
-			// String entid  = changes.getString(chgm.entfk);
 
 			String synodr = changes.getString(chgm.synoder);
 			String chuids = changes.getString(chgm.uids);
@@ -226,39 +224,7 @@ public class ExessionPersist {
 
 				while (changes.validx()) {
 					String subsrb = changes.getString(subm.synodee);
-					/*
-					if (eq(subsrb, trb.synode())) {
-					/** conflict: Y try send Z a record that Z already got from X.
-					 *        X           Y               Z
-                     *             | I Y Y,W 4 Z -> 4 < Z.y, ignore |
-					 *
-      				 *		  X    Y    Z    W
-					 *	X [   7,   5,   3,   4 ]
-					 *	Y [   4,   6,   1,   4 ]
-					 *	Z [   6,   5,   7,   4 ]   change[Z].n < Z.y, that is Z knows later than the log
-					 * /
-						Nyquence my_srcn = trb.nyquvect.get(peer);
-						if (my_srcn != null && compareNyq(chgnyq, my_srcn) >= 0)
-							// conflict & override
-							iamSynodee = true;
-					}
-					// FIXME TODO compare chg.n > nyquence[synoder]?
-					else if (compareNyq(chgnyq, trb.nyquvect.get(peer)) > 0
-						// ref: _merge-older-version
-						// knowledge about the sub from req is older than this node's knowledge 
-						// see #onchanges ref: answer-to-remove
-						// FIXME how to abstract into one method?
-						&& !eq(subsrb, trb.synode()))
-						subscribeUC.add(trb.insert(subm.tbl)
-							.cols(subm.insertCols())
-							.value(subm.insertSubVal(changes))); 
-					*/
-					
-					// 2024-06-17
-					// Schema change on branch issue-answer-lost:
-					// tolerate unknown pushing via peer node
 					if (!trb.nyquvect.containsKey(synodr))
-						// trb.nyquvect.put(synodr, new Nyquence(trb.nyquvect.get(peer).n));
 						Utils.warn("This node (%s) don't care changes from %s, and sholdn't be here.",
 								trb.synode(), synodr);
 
@@ -300,16 +266,13 @@ public class ExessionPersist {
 						.nvs(entm.updateEntNvs(chgm, chuids, entbuf.get(entm.tbl), changes))
 						.whereEq(entm.synoder, synodr)
 						.whereEq(entm.domain, domain)
-						// try-mandatory uids
-						//.whereEq(entm.pk, entid)
 						.whereEq(entm.synuid, chuids)
 						.post(subscribeUC.size() <= 0
 							? null : trb.insert(chgm.tbl)
 							.nv(chgm.pk, chgid)
 							.nv(chgm.crud, CRUD.U).nv(chgm.domain, domain)
-							.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr).nv(chgm.uids, chuids)
+							.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr)
 							.nv(chgm.nyquence, chgnyq.n)
-							// .nv(chgm.entfk, constr(entid))
 							.nv(chgm.uids, constr(chuids))
 							.nv(chgm.updcols, changes.getString(chgm.updcols))
 							.post(subscribeUC)
@@ -423,8 +386,6 @@ public class ExessionPersist {
 						"%s#%s(), don't have knowledge about %s.",
 						trb.synode(), new Object(){}.getClass().getEnclosingMethod().getName(), peer);
 			}
-//			trb.insertExbuf(peer)
-//				.ins(trb.instancontxt(trb.synconn(), trb.synrobot()));
 		}
 		else 
 			Utils.warn("[%s#%s()] Null transact builder. - null builder only for test",

@@ -778,7 +778,7 @@ public class DBSyntableTest {
 			.nv(m.uri, "")
 			.nv(m.resname, "p-" + robot.deviceId)
 			.nv(m.fullpath, father)
-			.nv(m.org(), robot.domain())
+			// .nv(m.org(), robot.domain())
 			.nv(m.domain, robot.domain())
 			.nv(m.device(), robot.deviceId())
 			.nv(m.folder, robot.uid())
