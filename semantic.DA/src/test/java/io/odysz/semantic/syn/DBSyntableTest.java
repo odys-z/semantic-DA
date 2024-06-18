@@ -215,6 +215,7 @@ public class DBSyntableTest {
 		testJoinChild(++no);
 		testBranchPropagation(++no);
 		test02Update(++no);
+		test03delete(++no);
 	}
 
 	void test01InsertBasic(int section)
@@ -474,10 +475,12 @@ public class DBSyntableTest {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), test);
 		int no = 0;
 
-		Utils.logrst("X update photos", test, no);
-		String xd = deletePhoto(chm, X);
+		Utils.logrst("X delete photo 0", test, no);
+		Object[] xd = deletePhoto(chm, X);
 		printChangeLines(ck);
 		printNyquv(ck);
+		assertFalse(isNull(xd));
+		assertEquals(1, xd[1]);
 	}
 	
 	void testBreakAck(int section) throws Exception {
@@ -827,26 +830,26 @@ public class DBSyntableTest {
 		return new String[] {pid, chid, SynChangeMeta.uids(synoder, pid)};
 	}
 	
-	String deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
-		T_PhotoMeta m = ck[s].phm;
+	/**
+	 * @param chgm
+	 * @param s checker index
+	 * @return [pid, 1/0]
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	Object[] deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
+		DBSyntableBuilder t = ck[s].trb;
+		T_PhotoMeta entm = ck[s].phm;
 		AnResultset slt = ((AnResultset) ck[s].trb
-				.select(chgm.tbl, conns)
-				.orderby(m.pk, "desc")
+				.select(entm.tbl)
 				.limit(1)
-				.rs(ck[s].trb.instancontxt(ck[s].connId(), ck[s].robot()))
+				.rs(t.instancontxt(t.synconn(), t.synrobot()))
 				.rs(0))
 				.nxt();
-		String pid = slt.getString(m.pk);
 
-		pid = ((SemanticObject) ck[s].trb
-			.delete(m.tbl, ck[s].robot())
-			.whereEq(chgm.uids, pid)
-			// TODO .post(null)
-			.d(ck[s].trb.instancontxt(conns[s], ck[s].robot())))
-			.resulve(ck[s].phm.tbl, ck[s].phm.pk);
-		
-		assertFalse(isblank(pid));
-		return pid;
+		String suid = slt.getString(entm.synuid);
+
+		return new Object[] {suid, t.deleteEntityBySynuid(entm, suid)};
 	}
 	
 	String[] updatePname(int s)
