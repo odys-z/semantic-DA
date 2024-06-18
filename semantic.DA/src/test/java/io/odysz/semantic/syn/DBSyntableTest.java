@@ -378,7 +378,6 @@ public class DBSyntableTest {
 
 		String z = ck[Z].trb.synode();
 
-		// Utils.logi("\n(.1) -------- Z create photos ---------");
 		Utils.logrst("Z create photos", section, ++no);
 		printNyquv(ck);
 

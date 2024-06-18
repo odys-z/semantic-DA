@@ -258,7 +258,9 @@ public class ExessionPersist {
 					// Schema change on branch issue-answer-lost:
 					// tolerate unknown pushing via peer node
 					if (!trb.nyquvect.containsKey(synodr))
-						trb.nyquvect.put(synodr, new Nyquence(trb.nyquvect.get(peer).n));
+						// trb.nyquvect.put(synodr, new Nyquence(trb.nyquvect.get(peer).n));
+						Utils.warn("This node (%s) don't care changes from %s, and sholdn't be here.",
+								trb.synode(), synodr);
 
 					if (compareNyq(chgnyq, trb.nyquvect.get(synodr)) > 0
 						&& eq(subsrb, trb.synode()))

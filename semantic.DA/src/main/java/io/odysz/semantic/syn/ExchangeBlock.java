@@ -58,6 +58,12 @@ public class ExchangeBlock extends Anson {
 			? 0 : entities.get(tbl).getRowCount();
 	}
 
+	/**
+	 * Copy answer from {@code p}
+	 * 
+	 * @param p
+	 * @return this
+	 */
 	public ExchangeBlock answers(ExessionPersist p) {
 		this.anspage = p.answerPage;
 		return this;

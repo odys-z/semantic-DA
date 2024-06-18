@@ -610,35 +610,46 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		AnResultset reqChgs = req.chpage;
 
-		HashSet<String> warnflags = new HashSet<String>();
+		HashSet<String> warnsynodee = new HashSet<String>();
+		HashSet<String> warnsynoder = new HashSet<String>();
 
 		while (req.totalChallenges > 0 && reqChgs.next()) {
-			String subscribe = reqChgs.getString(subm.synodee);
+			String synodee = reqChgs.getString(subm.synodee);
+			String synoder = reqChgs.getString(chgm.synoder);
 
-			if (eq(subscribe, synode())) {
+			if (!nyquvect.containsKey(synoder)) {
+				// trb.nyquvect.put(synodr, new Nyquence(trb.nyquvect.get(peer).n));
+				if (!warnsynoder.contains(synoder)) {
+					warnsynoder.add(synoder);
+					Utils.warn("%s has no idea about %s. The changes %s -> %s are ignored.",
+							synode(), synoder, reqChgs.getString(chgm.uids), synodee);
+				}
+				continue;
+			}
+			else if (eq(synodee, synode())) {
 				resp.removeChgsub(req.chpage, synode());	
 				changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
 			}
 			else {
 				Nyquence subnyq = getn(reqChgs, chgm.nyquence);
-				if (!nyquvect.containsKey(subscribe) // I don't have information of the subscriber
+				if (!nyquvect.containsKey(synodee) // I don't have information of the subscriber
 					&& eq(synm.tbl, reqChgs.getString(chgm.entbl))) // adding synode
 					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
-				else if (!nyquvect.containsKey(subscribe)) {
+				else if (!nyquvect.containsKey(synodee)) {
 					; // I have no idea
 					if (synmode != leafmode) {
-						if (!warnflags.contains(subscribe)) {
-							warnflags.add(subscribe);
+						if (!warnsynodee.contains(synodee)) {
+							warnsynodee.add(synodee);
 							Utils.warn("%s has no idea about %s. The change is committed at this node. This can either be automatically fixed or causing data lost later.",
-									synode(), subscribe);
+									synode(), synodee);
 						}
 						changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
 					}
 					else // leaf
-						if (!warnflags.contains(subscribe)) {
-							warnflags.add(subscribe);
+						if (!warnsynodee.contains(synodee)) {
+							warnsynodee.add(synodee);
 							Utils.warn("%s has no idea about %s. Ignoring as is working in leaf mode. (Will filter data at server side in the near future)",
-									synode(), subscribe);
+									synode(), synodee);
 						}	
 				}
 				// see alse ExessionPersist#saveChanges()
@@ -1014,7 +1025,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	/**
 	 * Clean any subscriptions that should been accepted by the peer in
 	 * the last session, but was not accutally accepted. Such case can be
-	 * the peer node rejected when no knowledge about the synoder.
+	 * the peer node rejected data when no knowledge about the synoder.
 	 * 
 	 * @param peer
 	 */
@@ -1049,7 +1060,6 @@ public class DBSyntableBuilder extends DATranscxt {
 					Utils.warnT(new Object() {} ,
 						"Cleaned changes in %s -> %s: %s changes",
 						synode(), peer, cnt);
-					// res.print(System.err);
 				}
 			}
 			catch (Exception e) {
