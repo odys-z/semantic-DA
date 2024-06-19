@@ -1,16 +1,16 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
-import static io.odysz.common.LangExt.isblank;
-import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.hasGt;
-import static io.odysz.common.LangExt.str; 
+import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.str;
+import static io.odysz.semantic.syn.ExessionAct.restore;
+import static io.odysz.semantic.syn.ExessionAct.setupDom;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
-import static io.odysz.semantic.syn.Nyquence.sqlCompare;
 import static io.odysz.semantic.syn.Nyquence.getn;
 import static io.odysz.semantic.syn.Nyquence.maxn;
-import static io.odysz.semantic.syn.ExessionAct.*;
-
+import static io.odysz.semantic.syn.Nyquence.sqlCompare;
 import static io.odysz.semantic.util.DAHelper.getNyquence;
 import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
@@ -47,7 +47,6 @@ import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
-import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.Sql;

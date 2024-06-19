@@ -3,7 +3,6 @@ package io.odysz.semantic.syn;
 import static io.odysz.common.Utils.loadTxt;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.meta.SynChangeMeta;
@@ -25,16 +24,16 @@ public class T_PhotoMeta extends T_DocTableMeta {
 
 	public String device() { return synoder; }
 
-	@Override
-	public ArrayList<Object[]> updateEntNvs(SynChangeMeta chgm, String entid,
-			AnResultset entities, AnResultset challenges)
-			throws SemanticException, SQLException {
-		ArrayList<Object[]> row = new ArrayList<Object[]>();
-		String[] updatingcols = challenges.getStrArray(chgm.updcols);
-		for (String c : updatingcols)
-			row.add(new Object[] {c, entities.getStringByIndex(c, entid)});
-		return row;
-	}
+//	@Override
+//	public static ArrayList<Object[]> updateEntNvs(SynChangeMeta chgm, String entid,
+//			AnResultset entities, AnResultset challenges)
+//			throws SemanticException, SQLException {
+//		ArrayList<Object[]> row = new ArrayList<Object[]>();
+//		String[] updatingcols = challenges.getStrArray(chgm.updcols);
+//		for (String c : updatingcols)
+//			row.add(new Object[] {c, entities.getStringByIndex(c, entid)});
+//		return row;
+//	}
 
 	@Override
 	public Object[] insertSelectItems(SynChangeMeta chgm, String entid,

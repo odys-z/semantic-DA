@@ -47,6 +47,7 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
@@ -226,7 +227,7 @@ public class DBSyntableTest {
 		int no = 0;
 		String x = synodes[X];
 
-		// 1.1 insert A
+		// 1 insert A
 		Utils.logrst("insert A", section, ++no);
 		String[] X_0_uids = insertPhoto(X);
 		String X_0 = X_0_uids[0];
@@ -236,7 +237,7 @@ public class DBSyntableTest {
 		// syn_subscribe.to = [B, C, D]
 		ck[X].psubs(2, X_0_uids[1], -1, Y, Z, -1);
 
-		// 1.2 insert B
+		// 2 insert B
 		Utils.logrst("insert B", section, ++no);
 		String[] B_0_uids = insertPhoto(Y);
 		String B_0 = B_0_uids[0];
@@ -247,7 +248,7 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		// 2. X <= Y
+		// 3. X <= Y
 		Utils.logrst("X <= Y", section, ++no);
 		exchangePhotos(X, Y, section, no);
 		printChangeLines(ck);
@@ -262,7 +263,7 @@ public class DBSyntableTest {
 		assertnv(nvs_[Y], nvs[Y], 1, 1, 0);
 		assertnv(nvs_[Z], nvs[Z], 0, 0, 0);
 
-		// 3. Y <= Z
+		// 4. Y <= Z
 		nvs_ = nvs.clone();
 		Utils.logrst("Y <= Z", section, ++no);
 		exchangePhotos(Y, Z, section, no);
@@ -472,12 +473,27 @@ public class DBSyntableTest {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), test);
 		int no = 0;
 
-		Utils.logrst("X delete photo 0", test, no);
+		int x = ck[X].photos();
+		int y = ck[Y].photos();
+
+		Utils.logrst("X delete a photo", test, ++no);
 		Object[] xd = deletePhoto(chm, X);
 		printChangeLines(ck);
 		printNyquv(ck);
 		assertFalse(isNull(xd));
 		assertEquals(1, xd[1]);
+		ck[X].photo(0, (String)xd[0]);
+		ck[X].photo(x-1);
+
+		Utils.logrst("Y delete a photo", test, ++no);
+		Object[] yd = deletePhoto(chm, Y);
+		printChangeLines(ck);
+		printNyquv(ck);
+		assertFalse(isNull(yd));
+		assertEquals(1, yd[1]);
+		ck[Y].photo(0, (String)yd[0]);
+		ck[Y].photo(y-1);
+
 	}
 	
 	void testBreakAck(int section) throws Exception {
@@ -835,7 +851,7 @@ public class DBSyntableTest {
 	/**
 	 * @param chgm
 	 * @param s checker index
-	 * @return [pid, 1/0]
+	 * @return [synuid, 1/0]
 	 * @throws TransException
 	 * @throws SQLException
 	 */
@@ -899,6 +915,11 @@ public class DBSyntableTest {
 		final String domain;
 
 		public IUser robot() { return trb.synrobot(); }
+
+		public int photos() throws SQLException, TransException {
+			return DAHelper.count(trb, trb.synconn(), phm.tbl);
+		}
+
 		String connId() { return trb.basictx().connId(); }
 
 		public Ck(int s, DBSyntableBuilder dbSyntableBuilder) throws SQLException, TransException, ClassNotFoundException, IOException {
@@ -945,6 +966,18 @@ public class DBSyntableTest {
 			return nv;
 		}
 
+		public void photo(int count, String... synids) throws TransException, SQLException {
+			Query q = trb.select(phm.tbl).col(count(), "c");
+			if (!isNull(synids))
+				q.whereIn(phm.synuid, synids);
+
+			assertEquals(count, ((AnResultset) q
+					.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
+					.rs(0))
+					.nxt()
+					.getInt("c"));
+		}
+
 		/**
 		 * Verify change flag, crud, where tabl = entm.tbl, entity-id = eid.
 		 * 
@@ -960,11 +993,11 @@ public class DBSyntableTest {
 				throws TransException, SQLException {
 			return buf_change(count, crud, trb.synode(), eid, entm);
 		}
+
 		public long buf_change_p(int count, String crud, String eid)
 				throws TransException, SQLException {
 			return buf_change(count, crud, trb.synode(), eid, phm);
 		}
-
 
 		public long change_photolog(int count, String crud, String eid) throws TransException, SQLException {
 			return change_log(count, crud, trb.synode(), eid, phm);

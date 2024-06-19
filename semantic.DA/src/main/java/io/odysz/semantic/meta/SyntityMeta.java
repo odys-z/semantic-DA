@@ -89,8 +89,8 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	/**
 	 * Generate columns for inserting challenging entities.
 	 * 
-	 * <h6>Note:</h6>
-	 * This method will ignore auto-key field
+	 * <h5>Note:</h5>
+	 * <p>This method will ignore auto-key field</p>
 	 * 
 	 * @return columns in order of rows' fields, values should be same order for insertion
 	 * @throws SemanticException this instance is not initialized from db ({@link #ftypes} is empty).
@@ -131,12 +131,12 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * @throws SemanticException 
 	 * @since 1.4.40
 	 */
-	public ArrayList<Object[]> insertChallengeEnt(String uids, AnResultset challengents)
+	public ArrayList<Object[]> insertChallengeEnt(String uids, AnResultset challents)
 			throws SQLException, SemanticException {
 		// TODO optimize Insert to handle this values faster
 		String[] cols = entCols();
 		ArrayList<Object[]> val = new ArrayList<Object[]> (entCols.size());
-		ArrayList<Object> row = challengents.getRowAt(challengents.rowIndex0(uids));
+		ArrayList<Object> row = challents.getRowAt(challents.rowIndex0(uids));
 
 		for (int cx = 0; cx < cols.length; cx++) {
 			if (autopk() && eq(this.pk, cols[cx]))
@@ -159,9 +159,15 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * @throws SQLException 
 	 * @throws SemanticException 
 	 */
-	public abstract ArrayList<Object[]> updateEntNvs(SynChangeMeta chgm, String entid,
-			AnResultset entities, AnResultset challenges) throws TransException, SQLException;
-
+	public ArrayList<Object[]> updateEntNvs(SynChangeMeta chgm, String entid,
+			AnResultset entities, AnResultset challenges)
+			throws SemanticException, SQLException {
+		ArrayList<Object[]> row = new ArrayList<Object[]>();
+		String[] updatingcols = challenges.getStrArray(chgm.updcols);
+		for (String c : updatingcols)
+			row.add(new Object[] {c, entities.getStringByIndex(c, entid)});
+		return row;
+	}
 	/**
 	 * Generate select-items for select clause which is used for Insert, e.g.
 	 * <pre>insert into t select 'item-a', 'item-b' where not exists select 1 from t where condition-avoiding-duplicate</pre>
