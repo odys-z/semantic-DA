@@ -24,17 +24,6 @@ public class T_PhotoMeta extends T_DocTableMeta {
 
 	public String device() { return synoder; }
 
-//	@Override
-//	public static ArrayList<Object[]> updateEntNvs(SynChangeMeta chgm, String entid,
-//			AnResultset entities, AnResultset challenges)
-//			throws SemanticException, SQLException {
-//		ArrayList<Object[]> row = new ArrayList<Object[]>();
-//		String[] updatingcols = challenges.getStrArray(chgm.updcols);
-//		for (String c : updatingcols)
-//			row.add(new Object[] {c, entities.getStringByIndex(c, entid)});
-//		return row;
-//	}
-
 	@Override
 	public Object[] insertSelectItems(SynChangeMeta chgm, String entid,
 			AnResultset entities, AnResultset changes)
