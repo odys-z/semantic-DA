@@ -870,6 +870,15 @@ public class DBSyntableTest {
 		return new Object[] {suid, t.deleteEntityBySynuid(entm, suid)};
 	}
 	
+	/**
+	 * Update {@link T_DocTableMeta#resname} and {@link T_DocTableMeta#createDate} (also know as pdate)
+	 * @param s
+	 * @return [entity-id, change-id, syn-uid]
+	 * @throws SQLException
+	 * @throws TransException
+	 * @throws AnsonException
+	 * @throws IOException
+	 */
 	String[] updatePname(int s)
 			throws SQLException, TransException, AnsonException, IOException {
 		T_PhotoMeta entm = ck[s].phm;
@@ -896,8 +905,7 @@ public class DBSyntableTest {
 			entm.resname, String.format("%s,%04d", (pname == null ? "" : pname), t.n0().n),
 			entm.createDate, now());
 
-		return new String[] {pid, chgid, //synodr + chm.UIDsep + pid};
-				synuid };
+		return new String[] {pid, chgid, synuid };
 	}
 	
 	/**
