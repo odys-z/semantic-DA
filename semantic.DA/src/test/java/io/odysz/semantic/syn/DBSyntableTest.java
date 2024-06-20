@@ -494,6 +494,13 @@ public class DBSyntableTest {
 		ck[Y].photo(0, (String)yd[0]);
 		ck[Y].photo(y-1);
 
+		Utils.logrst("X <= Y", test, ++no);
+		exchangePhotos(X, Y, test, no);
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		ck[Y].photo(0, (String)yd[0]);
+		ck[Y].photo(y-1);
 	}
 	
 	void testBreakAck(int section) throws Exception {
@@ -793,59 +800,18 @@ public class DBSyntableTest {
 	 * @throws IOException 
 	 */
 	String[] insertPhoto(int s) throws TransException, SQLException, IOException {
-		String synoder = ck[s].trb.synode();
 		DBSyntableBuilder trb = ck[s].trb;
 		T_PhotoMeta m = ck[s].phm;
-
-		/*
-		SyntityMeta entm = ck[s].phm;
-		String conn = conns[s];
-		SyncRobot robot = (SyncRobot) ck[s].robot();
-		String pid = ((SemanticObject) trb
-			.insert(m.tbl, robot)
-			.nv(m.uri, "")
-			.nv(m.resname, "p-" + robot.deviceId)
-			.nv(m.fullpath, father)
-			.nv(m.domain, robot.domain())
-			.nv(m.device(), robot.deviceId())
-			.nv(m.folder, robot.uid())
-			.nv(m.shareDate, now())
-			// TODO .post(insert chid)?
-			.ins(trb.instancontxt(conn, robot)))
-			.resulve(entm);
-		
-		assertFalse(isblank(pid));
-		
-		String chid = ((SemanticObject) trb
-			.update(m.tbl, robot)
-			.nv(m.synuid, SynChangeMeta.uids(synoder, pid))
-			.whereEq(m.pk, pid)
-			.post(trb.insert(chm.tbl)
-				.nv(chm.entbl, m.tbl)
-				.nv(chm.crud, CRUD.C)
-				.nv(chm.synoder, synoder)
-				.nv(chm.uids, SynChangeMeta.uids(synoder, pid))
-				.nv(chm.nyquence, trb.stamp.n)
-				.nv(chm.domain, robot.domain())
-				.post(trb.insert(sbm.tbl)
-					.cols(sbm.insertCols())
-					.select((Query) trb
-						.select(snm.tbl)
-						.col(new Resulving(chm.tbl, chm.pk))
-						.col(snm.synoder)
-						.where(op.ne, snm.synoder, constr(trb.synode()))
-						.whereEq(snm.domain, robot.domain))))
-			.u(trb.instancontxt(conn, robot)))
-			.resulve(chm);
-		return new String[] {pid, chid, SynChangeMeta.uids(synoder, pid)};
-		*/
+		String synoder = trb.synode();
 		IUser rob = trb.synrobot();
+
 		String[] pid_chid = trb.insertEntity(m, new T_Photo()
 				.create(ukraine)
 				.device(rob.deviceId())
 				.folder(rob.uid()));
 		
-		return new String[] {pid_chid[0], pid_chid[1], SynChangeMeta.uids(synoder, pid_chid[0])};
+		return new String[] {pid_chid[0], pid_chid[1],
+			SynChangeMeta.uids(synoder, pid_chid[0])};
 	}
 	
 	/**

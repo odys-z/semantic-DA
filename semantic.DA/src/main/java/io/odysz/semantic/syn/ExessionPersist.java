@@ -94,12 +94,8 @@ public class ExessionPersist {
 	
 			SyntityMeta entm = trb.getEntityMeta(rply.getString(chgm.entbl));
 			String change = rply.getString(ChangeLogs.ChangeFlag);
-
 			HashMap<String, AnResultset> entbuf = entities;
 			
-			// current entity
-			// String entid1 = rply.getString(chgm.entfk);
-	
 			String rporg  = rply.getString(chgm.domain);
 			String rpent  = rply.getString(chgm.entbl);
 			String rpuids = rply.getString(chgm.uids);
@@ -249,8 +245,6 @@ public class ExessionPersist {
 					stats.add(
 					eq(change, CRUD.C)
 					? trb.insert(entm.tbl, trb.synrobot())
-						// .cols(entm.entCols())
-						// .value(entm.insertChallengeEnt(chuids, entbuf.get(entm.tbl)))
 						.cols(entbuf.get(entm.tbl).getFlatColumns0())
 						.row(entbuf.get(entm.tbl).getColnames(),
 								entbuf.get(entm.tbl).getRowById(chuids))

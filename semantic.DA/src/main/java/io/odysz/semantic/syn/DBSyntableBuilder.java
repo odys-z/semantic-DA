@@ -57,124 +57,7 @@ import io.odysz.transact.x.TransException;
 /**
  * Sql statement builder for {@link DBSyntext} for handling database synchronization. 
  * 
- * Improved by temporary tables for broken network (and shutdown), concurrency and memory usage.
- * 
- * <pre>
- * 1 X <= Y
- * 1.1 X.inc(nyqstamp), Y.inc(nyqstamp), and later Y insert new entity
- * NOTE: in concurrency, inc(nyqstamp) is not reversible, so an exchange is starting from here
- * 
- * X.challenge = 0, X.answer = 0
- * Y.challenge = 0, Y.answer = 0
- * 
- *                X               |               Y               |               Z               |               W               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *  I  X.000001  X,000021    1  Z |                               |                               |                               
- *  I  X.000001  X,000021    1  Y |                               |                               |                               
- *                                | I  Y.000001  Y,000401    1  X |                               |                               
- *                                | I  Y.000001  Y,000401    1  Z |                               |                               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *                                | I  Y.000002  Y,000402    2  X |                               |                               
- *                                | I  Y.000002  Y,000402    2  Z |                               |                               
- *      X    Y    Z    W
- * X [   1,   0,   0,     ]
- * Y [   0,   1,   0,     ]
- * Z [   0,   0,   1,     ]
- * W [    ,    ,    ,     ]
- * 
- * 1.2 Y init exchange
- * 
- * Y.exchange[X] = select changes where n > Y.x
- * X.exchange[Y] = select changes where n > X.y
- * 
- * x.expectChallenge = y.challengeId = 0
- * y.expectAnswer = x.answerId = 0
- * 
- * y.challenge = y.exchange[X][i]
- * yreq = { y.challengeId, y.challenge
- * 			y.answerId, answer: null}
- * y.challengeId++
- *     
- * for i++:
- *     if x.expectChallenge != yreq.challengeId:
- *         xrep = {requires: x.expectChallenge, answered: x.answerId}
- *     else:
- *         xrep = { x.challengeId, challenge: X.exchange[Y][j],
- *     			answerId: y.challengeId, answer: X.answer(yreq.challenge)}
- *     x.challengeId++
- * 
- * 1.2.1 onRequires()
- * Y:
- *     if rep.answerId == my.challengeId:
- *         # what's here?
- *     else:
- *         i = rep.requires
- *         go for i loop
- * 
- * 1.3 Y closing
- * 
- * Y update challenges with X's answer, block by block
- * Y clear saved answers, block-wisely
- * 
- * Y.ack = {challenge, ..., answer: rep.challenge}
- * 
- *                X               |               Y               |               Z               |               W               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *  I  X.000001  X,000021    1  Z | I  X.000001  X,000021    1  Z |                               |                               
- *  I  X.000001  X,000021    1  Y |                               |                               |                               
- *                                | I  Y.000001  Y,000401    1  Z |                               |                               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *                                | I  Y.000002  Y,000402    2  X |                               |                               
- *                                | I  Y.000002  Y,000402    2  Z |                               |                               
- *       X    Y    Z    W
- * X [   1,   0,   0,     ]
- * Y [   1,   1,   0,     ]
- * Z [   0,   0,   1,     ]
- * W [    ,    ,    ,     ]
- * 
- * 1.4 X on finishing
- *                X               |               Y               |               Z               |               W               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *  I  X.000001  X,000021    1  Z | I  X.000001  X,000021    1  Z |                               |                               
- *  I  Y.000001  Y,000401    1  Z | I  Y.000001  Y,000401    1  Z |                               |                               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *                                | I  Y.000002  Y,000402    2  X |                               |                               
- *                                | I  Y.000002  Y,000402    2  Z |                               |                               
- *  
- *       X    Y    Z    W
- * X [   1,   1,   0,     ]
- * Y [   1,   1,   0,     ]
- * Z [   0,   0,   1,     ]
- * W [    ,    ,    ,     ]
- * 
- * 1.5 Y closing exchange (no change.n < nyqstamp)
- *                X               |               Y               |               Z               |               W               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *  I  X.000001  X,000021    1  Z | I  X.000001  X,000021    1  Z |                               |                               
- *  I  Y.000001  Y,000401    1  Z | I  Y.000001  Y,000401    1  Z |                               |                               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *                                | I  Y.000002  Y,000402    2  X |                               |                               
- *                                | I  Y.000002  Y,000402    2  Z |                               |                               
- *       X    Y    Z    W
- * X [   1,   1,   0,     ]
- * Y [   1,   2,   0,     ]
- * Z [   0,   0,   1,     ]
- * W [    ,    ,    ,     ]
- *
- * 1.3.9 X on closing exchange
- *                X               |               Y               |               Z               |               W               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *  I  X.000001  X,000021    1  Z | I  X.000001  X,000021    1  Z |                               |                               
- *  I  Y.000001  Y,000401    1  Z | I  Y.000001  Y,000401    1  Z |                               |                               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *                                | I  Y.000002  Y,000402    2  X |                               |                               
- *                                | I  Y.000002  Y,000402    2  Z |                               |                               
- *       X    Y    Z    W
- * X [   2,   1,   0,     ]
- * Y [   1,   2,   0,     ]
- * Z [   0,   0,   1,     ]
- * W [    ,    ,    ,     ]
- * </pre>
+ * Improved with temporary tables for broken network (and shutdown), concurrency and memory usage.
  * 
  * @author Ody
  */
@@ -362,10 +245,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws SQLException, TransException {
 		cp.expect(lastconf);
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
-		
-//		if (lastconf != null && lastconf.act == init)
-//			cleanStale(lastconf.nv, cp.peer);
-		
 		return cp
 			.commitAnswers(lastconf, cp.peer, n0().n)
 			.exchange(cp.peer, lastconf)
@@ -377,8 +256,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ExchangeBlock onExchange(ExessionPersist sp, String peer, ExchangeBlock req)
 			throws SQLException, TransException {
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
-		// for ch in challenges:
-		//     answer.add(answer(ch))
 		sp.expect(req);
 
 		return sp
@@ -1126,15 +1003,9 @@ public class DBSyntableBuilder extends DATranscxt {
 	protected Statement<?> del0subchange(String iffnode)
 				throws TransException {
 		return delete(chgm.tbl)
-			// .whereEq(chgm.pk, changeId)
-			// .whereEq(chgm.entbl, entitymeta.tbl)
 			.whereEq(chgm.domain, domain())
-			// .whereEq(chgm.synoder, synoder)
 			.whereEq("0", (Query)select(subm.tbl)
 				.col(count(subm.synodee))
-				// .whereEq(chgm.pk, changeId)
-				// .whereEq(chgm.domain, domain())
-				// .where(op.eq, subm.synodee, constr(iffnode))
 				.where(op.eq, chgm.pk, subm.changeId))
 			;
 	}
