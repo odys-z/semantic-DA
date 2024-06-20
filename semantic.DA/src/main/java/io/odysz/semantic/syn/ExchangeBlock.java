@@ -112,7 +112,12 @@ public class ExchangeBlock extends Anson {
 	}
 
 	int totalChallenges;
-	public ExchangeBlock totalChallenges(int count) {
+	/**
+	 * Don't call this directly unless in test
+	 * @param count
+	 * @return this
+	 */
+	ExchangeBlock totalChallenges(int count) {
 		totalChallenges = count; 
 		return this;
 	}
@@ -150,7 +155,7 @@ public class ExchangeBlock extends Anson {
 	 * @return this
 	 */
 	 public ExchangeBlock seq(ExessionPersist xp) {
-	 	return seq(xp.challengeSeq < xp.pages() ? xp.challengeSeq : -1, xp.answerSeq);
+	 	return seq(xp.challengeSeq < xp.pages() ? xp.challengeSeq : -1, xp.answerSeq, xp.totalChallenges);
 	 }
 
 	public ExchangeBlock requirestore() {
@@ -158,9 +163,10 @@ public class ExchangeBlock extends Anson {
 		return this;
 	}
 
-	public ExchangeBlock seq(int chidx, int ansidx) {
-		challengeSeq = chidx;
-		answerSeq    = ansidx;
+	public ExchangeBlock seq(int chidx, int ansidx, int totalChgs) {
+		challengeSeq    = chidx;
+		answerSeq       = ansidx;
+		totalChallenges = totalChgs;
 		return this;
 	}
 

@@ -98,14 +98,17 @@ class ExchangingTest {
 		String server = "server";
 
 		Utils.logrst("client initate", ++no);
-		ExessionPersist cp = new ExessionPersist(null, chm, sbm, xbm, snm, prm, server);
+		ExessionPersist cp = new ExessionPersist(null, chm, sbm, xbm, snm, prm, server)
+				.forcetest(16, 5);
 		ExchangeBlock req = cp.init();
 		int ch_c = -1;
 		req.print(System.out);
 
 		Utils.logrst("server initate", ++no);
-		ExessionPersist sp = new ExessionPersist(null, chm, sbm, xbm, snm, prm, client, req);
-		ExchangeBlock rep = sp.onInit(req);
+		ExessionPersist sp = new ExessionPersist(null, chm, sbm, xbm, snm, prm, client, req)
+				.forcetest(12, 4);
+		ExchangeBlock rep = sp.onInit(req)
+				.totalChallenges(3);
 		int ch_s = -1;
 		rep.print(System.out);
 		

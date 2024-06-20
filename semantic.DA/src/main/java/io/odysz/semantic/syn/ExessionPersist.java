@@ -394,14 +394,15 @@ public class ExessionPersist {
 		expAnswerSeq = -1; //challengeSeq;
 		answerSeq = -1;
 
-		totalChallenges = trb == null ? 0 : DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer);
+		if (trb != null)
+			totalChallenges = DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer);
 		
 		exstate = new ExessionAct(mode_client, init);
 
 		return new ExchangeBlock(trb == null ? null : trb.synode(), peer, session, exstate)
 			.totalChallenges(totalChallenges)
 			.chpagesize(this.chsize)
-			.seq(challengeSeq, answerSeq);
+			.seq(challengeSeq, answerSeq, totalChallenges);
 	}
 
 	/**
@@ -434,7 +435,8 @@ public class ExessionPersist {
 		expAnswerSeq = ini.answerSeq;
 		answerSeq = ini.challengeSeq;
 	
-		totalChallenges = trb == null ? 0 : DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer);
+		if (trb != null) 
+			totalChallenges = DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer);
 		chsize = ini.chpagesize > 0 ? ini.chpagesize : -1;
 
 		exstate = new ExessionAct(mode_server, init);
@@ -442,7 +444,7 @@ public class ExessionPersist {
 		return new ExchangeBlock(trb == null ? ini.peer : trb.synode(), peer, session, exstate)
 				.totalChallenges(totalChallenges)
 				.chpagesize(ini.chpagesize)
-				.seq(challengeSeq, answerSeq);
+				.seq(challengeSeq, answerSeq, totalChallenges);
 	}
 
 	public void clear() { }
@@ -483,14 +485,22 @@ public class ExessionPersist {
 	public ExessionPersist expect(ExchangeBlock req) throws ExchangeException {
 		if (req == null)
 			return this;
+
 		if (!eq(req.srcnode, this.peer) || !eq(session, req.session))
 			throw new ExchangeException(ExessionAct.unexpected, this,
 					"Session Id or peer mismatched [%s : %s vs %s : %s]",
 					this.peer, session, req.srcnode, req.session);
+		
+		if (req.challengeSeq > 0 && answerSeq + 1 != req.challengeSeq)
+			throw new ExchangeException(ExessionAct.unexpected, this,
+					"Challenge page lost, expecting %s",
+					answerSeq + 1);
 
 		if (expAnswerSeq == 0 && req.answerSeq == -1 // first exchange
-			|| expAnswerSeq == req.answerSeq)
+			|| expAnswerSeq == req.answerSeq) {
+			answerSeq = req.challengeSeq;
 			return this;
+		}
 
 		throw new ExchangeException(ExessionAct.unexpected, this,
 			// "exp-challenge %s : challenge %s, exp-answer %s : answer %s",
@@ -501,7 +511,9 @@ public class ExessionPersist {
 	public ExchangeBlock nextExchange(ExchangeBlock rep)
 			throws SQLException, TransException {
 		nextChpage();
-		return trb.exchangePage(this, rep);
+		return trb == null // null for test
+			? new ExchangeBlock(rep.peer, peer, session, expect(rep).exstate).seq(this)
+			: trb.exchangePage(this, rep);
 	}
 
 	public ExchangeBlock onextExchange(String peer, ExchangeBlock req)
@@ -510,13 +522,16 @@ public class ExessionPersist {
 			throw new ExchangeException(exchange, this, "Target synode id dosn't match this initiated arguments (%s != %s)",
 					peer, this.peer);
 		nextChpage();
-		return trb.onExchange(this, peer, req);
+		return trb == null // null for test
+			? new ExchangeBlock(req.peer, peer, session, expect(req).exstate).seq(this)
+			: trb.onExchange(this, peer, req);
 	}
 
 	private boolean nextChpage() throws TransException, SQLException {
 		int pages = pages();
 		if (challengeSeq < pages)
 			challengeSeq++;
+		expAnswerSeq = challengeSeq;
 
 		if (trb != null) {
 			// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
