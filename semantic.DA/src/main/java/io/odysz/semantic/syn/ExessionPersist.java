@@ -94,12 +94,8 @@ public class ExessionPersist {
 	
 			SyntityMeta entm = trb.getEntityMeta(rply.getString(chgm.entbl));
 			String change = rply.getString(ChangeLogs.ChangeFlag);
-
 			HashMap<String, AnResultset> entbuf = entities;
 			
-			// current entity
-			// String entid1 = rply.getString(chgm.entfk);
-	
 			String rporg  = rply.getString(chgm.domain);
 			String rpent  = rply.getString(chgm.entbl);
 			String rpuids = rply.getString(chgm.uids);
@@ -249,15 +245,16 @@ public class ExessionPersist {
 					stats.add(
 					eq(change, CRUD.C)
 					? trb.insert(entm.tbl, trb.synrobot())
-						.cols(entm.entCols())
-						.value(entm.insertChallengeEnt(chuids, entbuf.get(entm.tbl)))
+						.cols(entbuf.get(entm.tbl).getFlatColumns0())
+						.row(entbuf.get(entm.tbl).getColnames(),
+								entbuf.get(entm.tbl).getRowById(chuids))
 						.post(subscribeUC.size() <= 0 ? null :
 							trb.insert(chgm.tbl)
 							.nv(chgm.pk, chgid)
 							.nv(chgm.crud, CRUD.C).nv(chgm.domain, domain)
 							.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr)
 							.nv(chgm.nyquence, changes.getLong(chgm.nyquence))
-							// .nv(chgm.entfk, entm.autopk() ? new Resulving(entm.tbl, entm.pk) : constr(chuids))
+							.nv(chgm.seq, trb.incSeq())
 							.nv(chgm.uids, chuids)
 							.post(subscribeUC)
 							.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode())))
@@ -273,6 +270,7 @@ public class ExessionPersist {
 							.nv(chgm.crud, CRUD.U).nv(chgm.domain, domain)
 							.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr)
 							.nv(chgm.nyquence, chgnyq.n)
+							.nv(chgm.seq, trb.incSeq())
 							.nv(chgm.uids, constr(chuids))
 							.nv(chgm.updcols, changes.getString(chgm.updcols))
 							.post(subscribeUC)
@@ -525,7 +523,7 @@ public class ExessionPersist {
 			QueryPage page = (QueryPage) trb
 				.selectPage(trb
 					.select(exbm.tbl, "bf")
-					.col(exbm.seq, "page")
+					.col(exbm.pagex, "page")
 					.col_ases("bf", exbm.changeId)
 					.col("sub." + subm.synodee)
 					.je_(chgm.tbl, "chg", exbm.changeId, chgm.pk, exbm.peer, Funcall.constr(peer))
@@ -535,7 +533,7 @@ public class ExessionPersist {
 				.col(exbm.changeId);
 
 			trb.update(exbm.tbl, trb.synrobot())
-				.nv(exbm.seq, challengeSeq)
+				.nv(exbm.pagex, challengeSeq)
 				.whereIn(exbm.changeId, page)
 				.u(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				;
@@ -711,7 +709,7 @@ public class ExessionPersist {
 		Nyquence dn = trb.nyquvect.get(peer);
 
 		AnResultset entbls = (AnResultset) trb.select(chgm.tbl, "ch")
-				.je_(exbm.tbl, "bf", chgm.pk, exbm.changeId, "bf." + exbm.peer, constr(peer), constVal(challengeSeq), exbm.seq)
+				.je_(exbm.tbl, "bf", chgm.pk, exbm.changeId, "bf." + exbm.peer, constr(peer), constVal(challengeSeq), exbm.pagex)
 				.col(chgm.entbl)
 				.where(op.gt, chgm.nyquence, dn.n) // FIXME
 				.groupby(chgm.entbl)
@@ -723,14 +721,13 @@ public class ExessionPersist {
 			SyntityMeta entm = trb.getSyntityMeta(tbl);
 
 			AnResultset entities = ((AnResultset) trb.select(tbl, "e")
-				// .je("e", chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
-				// .je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.pk, chgm.entfk)
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.synuid, chgm.uids)
-				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId, constr(peer), exbm.peer, constVal(challengeSeq), exbm.seq)
-				.cols_byAlias("e", entm.entCols()).col("e." + entm.pk)
-				// .where(op.gt, chgm.nyquence, dn.n)
-				.orderby(chgm.nyquence)
-				.orderby(chgm.synoder)
+				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId, constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
+				// .cols_byAlias("e", entm.entCols()).col("e." + entm.pk)
+				.col("e.*")
+
+				// .orderby(chgm.nyquence)
+				// .orderby(chgm.synoder)
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				.rs(0))
 				.index0(entm.synuid);
@@ -740,9 +737,12 @@ public class ExessionPersist {
 			
 		return trb == null ? null : (AnResultset)trb
 			.select(chgm.tbl, "ch")
-			.cols(exbm.seq, "ch.*", "sb." + subm.synodee)
-			.je_(exbm.tbl, "bf", chgm.pk, exbm.changeId, constr(peer), exbm.peer, constVal(challengeSeq), exbm.seq)
+			.cols(exbm.pagex, "ch.*", "sb." + subm.synodee)
+			.je_(exbm.tbl, "bf", chgm.pk, exbm.changeId, constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
 			.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
+			.orderby(chgm.synoder)
+			.orderby(chgm.entbl)
+			.orderby(chgm.seq)
 			.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 			.rs(0);
 	}

@@ -25,6 +25,7 @@ import io.odysz.anson.x.AnsonException;
 import io.odysz.common.DateFormat;
 import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
+import io.odysz.common.Utils;
 import io.odysz.transact.sql.parts.AnDbField;
 
 /**
@@ -1269,5 +1270,32 @@ for (String coln : colnames.keySet())
 	 */
 	public ArrayList<Object> getRowAt() throws SQLException {
 		return getRowAt(getRow() - 1);
+	}
+
+	String[] flatcols;
+	/**
+	 * Get the cached flat column names in the same sequence with rows.
+	 * @return column names, index start at 0
+	 */
+	public String[] getFlatColumns0() {
+		if (flatcols == null && colnames != null) {
+			flatcols = new String[colnames.size()];
+			int cols = colnames.values().stream()
+					.filter(ix -> ix != null)
+					.mapToInt(ix -> {
+						flatcols[(int)ix[0]-1] = (String)ix[1];
+						return 1;
+					})
+					.sum();
+			if (results != null && results.size() > 0 && results.get(0).size() != cols)
+				Utils.warnT(new Object() {}, "Column size (%s) != row.size", cols);
+		}
+		return flatcols;
+	}
+	
+	public ArrayList<Object> getRowById(String id) throws SQLException {
+		if (indices0 == null || !indices0.containsKey(id))
+			throw new SQLException("Call rowIndex0(col) first, and {id} must in it");
+		return results.get(rowIndex0(id));
 	}
 }

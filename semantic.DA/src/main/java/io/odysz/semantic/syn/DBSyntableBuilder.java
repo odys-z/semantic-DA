@@ -1,16 +1,16 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
-import static io.odysz.common.LangExt.isblank;
-import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.hasGt;
-import static io.odysz.common.LangExt.str; 
+import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.str;
+import static io.odysz.semantic.syn.ExessionAct.restore;
+import static io.odysz.semantic.syn.ExessionAct.setupDom;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
-import static io.odysz.semantic.syn.Nyquence.sqlCompare;
 import static io.odysz.semantic.syn.Nyquence.getn;
 import static io.odysz.semantic.syn.Nyquence.maxn;
-import static io.odysz.semantic.syn.ExessionAct.*;
-
+import static io.odysz.semantic.syn.Nyquence.sqlCompare;
 import static io.odysz.semantic.util.DAHelper.getNyquence;
 import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
@@ -57,124 +57,7 @@ import io.odysz.transact.x.TransException;
 /**
  * Sql statement builder for {@link DBSyntext} for handling database synchronization. 
  * 
- * Improved by temporary tables for broken network (and shutdown), concurrency and memory usage.
- * 
- * <pre>
- * 1 X <= Y
- * 1.1 X.inc(nyqstamp), Y.inc(nyqstamp), and later Y insert new entity
- * NOTE: in concurrency, inc(nyqstamp) is not reversible, so an exchange is starting from here
- * 
- * X.challenge = 0, X.answer = 0
- * Y.challenge = 0, Y.answer = 0
- * 
- *                X               |               Y               |               Z               |               W               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *  I  X.000001  X,000021    1  Z |                               |                               |                               
- *  I  X.000001  X,000021    1  Y |                               |                               |                               
- *                                | I  Y.000001  Y,000401    1  X |                               |                               
- *                                | I  Y.000001  Y,000401    1  Z |                               |                               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *                                | I  Y.000002  Y,000402    2  X |                               |                               
- *                                | I  Y.000002  Y,000402    2  Z |                               |                               
- *      X    Y    Z    W
- * X [   1,   0,   0,     ]
- * Y [   0,   1,   0,     ]
- * Z [   0,   0,   1,     ]
- * W [    ,    ,    ,     ]
- * 
- * 1.2 Y init exchange
- * 
- * Y.exchange[X] = select changes where n > Y.x
- * X.exchange[Y] = select changes where n > X.y
- * 
- * x.expectChallenge = y.challengeId = 0
- * y.expectAnswer = x.answerId = 0
- * 
- * y.challenge = y.exchange[X][i]
- * yreq = { y.challengeId, y.challenge
- * 			y.answerId, answer: null}
- * y.challengeId++
- *     
- * for i++:
- *     if x.expectChallenge != yreq.challengeId:
- *         xrep = {requires: x.expectChallenge, answered: x.answerId}
- *     else:
- *         xrep = { x.challengeId, challenge: X.exchange[Y][j],
- *     			answerId: y.challengeId, answer: X.answer(yreq.challenge)}
- *     x.challengeId++
- * 
- * 1.2.1 onRequires()
- * Y:
- *     if rep.answerId == my.challengeId:
- *         # what's here?
- *     else:
- *         i = rep.requires
- *         go for i loop
- * 
- * 1.3 Y closing
- * 
- * Y update challenges with X's answer, block by block
- * Y clear saved answers, block-wisely
- * 
- * Y.ack = {challenge, ..., answer: rep.challenge}
- * 
- *                X               |               Y               |               Z               |               W               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *  I  X.000001  X,000021    1  Z | I  X.000001  X,000021    1  Z |                               |                               
- *  I  X.000001  X,000021    1  Y |                               |                               |                               
- *                                | I  Y.000001  Y,000401    1  Z |                               |                               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *                                | I  Y.000002  Y,000402    2  X |                               |                               
- *                                | I  Y.000002  Y,000402    2  Z |                               |                               
- *       X    Y    Z    W
- * X [   1,   0,   0,     ]
- * Y [   1,   1,   0,     ]
- * Z [   0,   0,   1,     ]
- * W [    ,    ,    ,     ]
- * 
- * 1.4 X on finishing
- *                X               |               Y               |               Z               |               W               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *  I  X.000001  X,000021    1  Z | I  X.000001  X,000021    1  Z |                               |                               
- *  I  Y.000001  Y,000401    1  Z | I  Y.000001  Y,000401    1  Z |                               |                               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *                                | I  Y.000002  Y,000402    2  X |                               |                               
- *                                | I  Y.000002  Y,000402    2  Z |                               |                               
- *  
- *       X    Y    Z    W
- * X [   1,   1,   0,     ]
- * Y [   1,   1,   0,     ]
- * Z [   0,   0,   1,     ]
- * W [    ,    ,    ,     ]
- * 
- * 1.5 Y closing exchange (no change.n < nyqstamp)
- *                X               |               Y               |               Z               |               W               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *  I  X.000001  X,000021    1  Z | I  X.000001  X,000021    1  Z |                               |                               
- *  I  Y.000001  Y,000401    1  Z | I  Y.000001  Y,000401    1  Z |                               |                               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *                                | I  Y.000002  Y,000402    2  X |                               |                               
- *                                | I  Y.000002  Y,000402    2  Z |                               |                               
- *       X    Y    Z    W
- * X [   1,   1,   0,     ]
- * Y [   1,   2,   0,     ]
- * Z [   0,   0,   1,     ]
- * W [    ,    ,    ,     ]
- *
- * 1.3.9 X on closing exchange
- *                X               |               Y               |               Z               |               W               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *  I  X.000001  X,000021    1  Z | I  X.000001  X,000021    1  Z |                               |                               
- *  I  Y.000001  Y,000401    1  Z | I  Y.000001  Y,000401    1  Z |                               |                               
- * -------------------------------+-------------------------------+-------------------------------+-------------------------------
- *                                | I  Y.000002  Y,000402    2  X |                               |                               
- *                                | I  Y.000002  Y,000402    2  Z |                               |                               
- *       X    Y    Z    W
- * X [   2,   1,   0,     ]
- * Y [   1,   2,   0,     ]
- * Z [   0,   0,   1,     ]
- * W [    ,    ,    ,     ]
- * </pre>
+ * Improved with temporary tables for broken network (and shutdown), concurrency and memory usage.
  * 
  * @author Ody
  */
@@ -221,6 +104,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		if (Nyquence.abs(stamp, nyquvect.get(synode())) >= 2)
 			throw new ExchangeException(0, xp, "Nyquence stamp increased too much or out of range.");
 		persistamp(stamp);
+		seq = 0;
 		return this;
 	}
 
@@ -247,6 +131,9 @@ public class DBSyntableBuilder extends DATranscxt {
 	private HashMap<String, SyntityMeta> entityRegists;
 
 	private final boolean force_clean_subs;
+
+	private long seq;
+	public long incSeq() { return ++seq; }
 
 	public SyntityMeta getSyntityMeta(String tbl) {
 		return entityRegists == null ? null : entityRegists.get(tbl);
@@ -292,6 +179,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		
 		stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
 				synm.synoder, synodeId, synm.domain, tx.domain);
+		seq   = 0;
 
 		force_clean_subs = true;
 
@@ -819,6 +707,87 @@ public class DBSyntableBuilder extends DATranscxt {
 	public void restorexchange() { }
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
+	public int deleteEntityBySynuid(SyntityMeta entm, String synuid) throws TransException, SQLException {
+		if (existsnyuid(entm, synuid)) {
+			SemanticObject res = (SemanticObject) delete(entm.tbl, synrobot())
+			.whereEq(entm.synuid, synuid)
+			.post(insert(chgm.tbl, synrobot())
+				.nv(chgm.entbl, entm.tbl)
+				.nv(chgm.crud, CRUD.D)
+				.nv(chgm.synoder, synode())
+				.nv(chgm.uids, synuid)
+				.nv(chgm.nyquence, stamp.n)
+				.nv(chgm.seq, incSeq())
+				.nv(chgm.domain, domain())
+				.post(insert(subm.tbl)
+					.cols(subm.insertCols())
+					.select((Query)select(synm.tbl)
+						.col(new Resulving(chgm.tbl, chgm.pk))
+						.col(synm.synoder)
+						.where(op.ne, synm.synoder, constr(synode()))
+						.whereEq(synm.domain, domain()))))
+			.d(instancontxt(basictx.connId(), synrobot()));
+			return res.total();
+		}
+		else return 0;
+	}
+
+	private boolean existsnyuid(SyntityMeta entm, String suid)
+			throws SQLException, TransException {
+		return ((AnResultset) select(entm.tbl, "t")
+			.col(Funcall.count(), "c")
+			.rs(instancontxt(synconn(), synrobot()))
+			.rs(0))
+			.nxt()
+			.getInt("c") > 0;
+	}
+
+	public String[] insertEntity(SyntityMeta m, SynEntity e) throws TransException, SQLException {
+		String conn   = synconn();
+		SyncRobot rob = (SyncRobot) synrobot();
+		/*
+		String pid = ((SemanticObject) insert(m.tbl, robot)
+			.nv(m.uri, "")
+			.nv(m.resname, "p-" + robot.deviceId)
+			.nv(m.fullpath, father)
+			.nv(m.domain, robot.domain())
+			.nv(m.device(), robot.deviceId())
+			.nv(m.folder, robot.uid())
+			.nv(m.shareDate, now())
+			// TODO .post(insert chid)?
+			.ins(trb.instancontxt(conn, robot)))
+			.resulve(m);
+		*/
+
+		Resulving pid = new Resulving(m.tbl, m.pk);
+
+		SemanticObject u = ((SemanticObject) e
+			.insertEntity(m, insert(m.tbl, rob))
+			.post(update(m.tbl, rob)
+				.nv(m.synuid, SynChangeMeta.uids(synode(), pid))
+				.whereEq(m.pk, pid))
+			.post(insert(chgm.tbl)
+				.nv(chgm.entbl, m.tbl)
+				.nv(chgm.crud, CRUD.C)
+				.nv(chgm.synoder, synode())
+				.nv(chgm.uids, SynChangeMeta.uids(synode(), pid))
+				.nv(chgm.nyquence, stamp.n)
+				.nv(chgm.seq, incSeq())
+				.nv(chgm.domain, rob.domain())
+				.post(insert(subm.tbl)
+					.cols(subm.insertCols())
+					.select((Query) select(synm.tbl)
+						.col(new Resulving(chgm.tbl, chgm.pk))
+						.col(synm.synoder)
+						.where(op.ne, synm.synoder, constr(synode()))
+						.whereEq(synm.domain, rob.domain))))
+			.ins(instancontxt(conn, rob)));
+
+		String phid = u.resulve(m);
+		String chid = u.resulve(chgm);
+		return new String[] {phid, chid};
+	}
+
 	public String updateEntity(String synoder, String synuid, SyntityMeta entm, Object ... nvs)
 			throws TransException, SQLException, IOException {
 		String [] updcols = new String[nvs.length/2];
@@ -829,15 +798,12 @@ public class DBSyntableBuilder extends DATranscxt {
 			.nvs((Object[])nvs)
 			.whereEq(entm.synuid, synuid)
 			.post(insert(chgm.tbl, synrobot())
-				// .nv(chgm.entfk, pid)
 				.nv(chgm.entbl, entm.tbl)
 				.nv(chgm.crud, CRUD.U)
-				.nv(chgm.synoder, synode()) // U.synoder != uids[synoder]
-
-				// .nv(chgm.uids, concatstr(synoder, chgm.UIDsep, pid))
+				.nv(chgm.synoder, synode())
 				.nv(chgm.uids, synuid)
-
 				.nv(chgm.nyquence, stamp.n)
+				.nv(chgm.seq, incSeq())
 				.nv(chgm.domain, domain())
 				.nv(chgm.updcols, updcols)
 				.post(insert(subm.tbl)
@@ -917,43 +883,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		
 		return this;
 	}
-
-//	private DBSyntableBuilder synyquvectWith(String peer, HashMap<String, Nyquence> nv) 
-//		throws TransException, SQLException {
-//		if (nv == null) return this;
-//
-//		Update u = null;
-//
-//		if (compareNyq(nv.get(peer), nyquvect.get(peer)) < 0)
-//			throw new SemanticException(
-//				"[%s.%s()] Updating my (%s) nyquence with %s's value early than already knowns.",
-//				getClass().getName(), new Object(){}.getClass().getEnclosingMethod().getName(),
-//				synode(), peer);
-//
-//		for (String n : nv.keySet()) {
-//			// if (!eq(n, sn) && nyquvect.containsKey(n)
-//			if (nyquvect.containsKey(n)
-//				&& compareNyq(nv.get(n), nyquvect.get(n)) > 0)
-//				if (u == null)
-//					u = update(synm.tbl, synrobot())
-//						.nv(synm.nyquence, n0().n)
-//						.whereEq(synm.pk, n);
-//				else
-//					u.post(update(synm.tbl)
-//						.nv(synm.nyquence, nv.get(n).n)
-//						.whereEq(synm.pk, n));
-//
-//			if (nyquvect.containsKey(n))
-//				nyquvect.get(n).n = maxn(nv.get(n).n, nyquvect.get(n).n);
-//			else nyquvect.put(n, new Nyquence(nv.get(n).n));
-//		}
-//
-//		nyquvect.put(synode(), maxn(n0(), nv.get(peer)));
-//		if (u != null)
-//			u.u(instancontxt(basictx.connId(), synrobot()));
-//
-//		return this;
-//	}
 
 	@Override
 	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
@@ -1074,15 +1003,9 @@ public class DBSyntableBuilder extends DATranscxt {
 	protected Statement<?> del0subchange(String iffnode)
 				throws TransException {
 		return delete(chgm.tbl)
-			// .whereEq(chgm.pk, changeId)
-			// .whereEq(chgm.entbl, entitymeta.tbl)
 			.whereEq(chgm.domain, domain())
-			// .whereEq(chgm.synoder, synoder)
 			.whereEq("0", (Query)select(subm.tbl)
 				.col(count(subm.synodee))
-				// .whereEq(chgm.pk, changeId)
-				// .whereEq(chgm.domain, domain())
-				// .where(op.eq, subm.synodee, constr(iffnode))
 				.where(op.eq, chgm.pk, subm.changeId))
 			;
 	}
@@ -1116,19 +1039,15 @@ public class DBSyntableBuilder extends DATranscxt {
 				.nv(chgm.entbl, synm.tbl)
 				.nv(chgm.crud, CRUD.C)
 				.nv(chgm.synoder, synode())
-				// .nv(chgm.uids, concatstr(synode(), chgm.UIDsep, apply.recId))
 				.nv(chgm.uids, SynChangeMeta.uids(synode(), apply.synodeId))
 				.nv(chgm.nyquence, n0().n)
+				.nv(chgm.seq, incSeq())
 				.nv(chgm.domain, domain())
 				.post(insert(subm.tbl)
-					// .cols(subm.entbl, subm.synodee, subm.uids, subm.domain)
 					.cols(subm.insertCols())
 					.select((Query)select(synm.tbl)
-						// .col(constr(synm.tbl))
 						.col(new Resulving(chgm.tbl, chgm.pk))
 						.col(synm.synoder)
-						// .col(concatstr(synode(), chgm.UIDsep, apply.recId))
-						// .col(constr(robot.orgId()))
 						.where(op.ne, synm.synoder, constr(synode()))
 						.where(op.ne, synm.synoder, constr(childId))
 						.whereEq(synm.domain, domain()))))
@@ -1149,13 +1068,4 @@ public class DBSyntableBuilder extends DATranscxt {
 			: null);
 		return rep;
 	}
-
-//	public HashMap<String,Nyquence> addNyquence(String nid, Nyquence nyquence) {
-//		nyquvect.put(nid, new Nyquence(nyquvect.get(nid).n));
-//		Synode n = new Synode(nid, synm);
-//		n.insert(synm, synode(), mxn, insert(synm.tbl, synrobot()))
-//			.ins(instancontxt(basictx.connId(), synrobot()));
-//
-//		return this.nyquvect;
-//	}
 }

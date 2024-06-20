@@ -12,7 +12,6 @@ import static io.odysz.semantic.CRUD.C;
 import static io.odysz.semantic.CRUD.U;
 import static io.odysz.semantic.syn.ExessionAct.init;
 import static io.odysz.semantic.syn.ExessionAct.ready;
-import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concat;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
@@ -40,7 +39,6 @@ import io.odysz.common.Configs;
 import io.odysz.common.LangExt;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.PeersMeta;
@@ -49,13 +47,12 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.IUser;
-import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Logic.op;
-import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
@@ -70,8 +67,9 @@ public class DBSyntableTest {
 	public static final String[] conns;
 	public static final String[] testers;
 	public static final String logconn = "log";
-	public static final String rtroot = "src/test/res/";
-	public static final String father = "src/test/res/Sun Yet-sen.jpg";
+	public static final String rtroot  = "src/test/res/";
+	public static final String father  = "src/test/res/Sun Yet-sen.jpg";
+	public static final String ukraine = "src/test/res/Ukraine.png";
 
 	public static final int X = 0;
 	public static final int Y = 1;
@@ -215,6 +213,7 @@ public class DBSyntableTest {
 		testJoinChild(++no);
 		testBranchPropagation(++no);
 		test02Update(++no);
+		test03delete(++no);
 	}
 
 	void test01InsertBasic(int section)
@@ -228,7 +227,7 @@ public class DBSyntableTest {
 		int no = 0;
 		String x = synodes[X];
 
-		// 1.1 insert A
+		// 1 insert A
 		Utils.logrst("insert A", section, ++no);
 		String[] X_0_uids = insertPhoto(X);
 		String X_0 = X_0_uids[0];
@@ -238,7 +237,7 @@ public class DBSyntableTest {
 		// syn_subscribe.to = [B, C, D]
 		ck[X].psubs(2, X_0_uids[1], -1, Y, Z, -1);
 
-		// 1.2 insert B
+		// 2 insert B
 		Utils.logrst("insert B", section, ++no);
 		String[] B_0_uids = insertPhoto(Y);
 		String B_0 = B_0_uids[0];
@@ -249,7 +248,7 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		// 2. X <= Y
+		// 3. X <= Y
 		Utils.logrst("X <= Y", section, ++no);
 		exchangePhotos(X, Y, section, no);
 		printChangeLines(ck);
@@ -264,7 +263,7 @@ public class DBSyntableTest {
 		assertnv(nvs_[Y], nvs[Y], 1, 1, 0);
 		assertnv(nvs_[Z], nvs[Z], 0, 0, 0);
 
-		// 3. Y <= Z
+		// 4. Y <= Z
 		nvs_ = nvs.clone();
 		Utils.logrst("Y <= Z", section, ++no);
 		exchangePhotos(Y, Z, section, no);
@@ -470,6 +469,40 @@ public class DBSyntableTest {
 		ck[Y].psubs(1, xu[1], -1, -1, -1, W);
 	}
 
+	void test03delete(int test) throws Exception {
+		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), test);
+		int no = 0;
+
+		int x = ck[X].photos();
+		int y = ck[Y].photos();
+
+		Utils.logrst("X delete a photo", test, ++no);
+		Object[] xd = deletePhoto(chm, X);
+		printChangeLines(ck);
+		printNyquv(ck);
+		assertFalse(isNull(xd));
+		assertEquals(1, xd[1]);
+		ck[X].photo(0, (String)xd[0]);
+		ck[X].photo(x-1);
+
+		Utils.logrst("Y delete a photo", test, ++no);
+		Object[] yd = deletePhoto(chm, Y);
+		printChangeLines(ck);
+		printNyquv(ck);
+		assertFalse(isNull(yd));
+		assertEquals(1, yd[1]);
+		ck[Y].photo(0, (String)yd[0]);
+		ck[Y].photo(y-1);
+
+		Utils.logrst("X <= Y", test, ++no);
+		exchangePhotos(X, Y, test, no);
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		ck[Y].photo(0, (String)yd[0]);
+		ck[Y].photo(y-1);
+	}
+	
 	void testBreakAck(int section) throws Exception {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
 
@@ -765,81 +798,54 @@ public class DBSyntableTest {
 	 * @return [photo-id, change-id, uids]
 	 * @throws TransException
 	 * @throws SQLException
+	 * @throws IOException 
 	 */
-	String[] insertPhoto(int s) throws TransException, SQLException {
-		SyntityMeta entm = ck[s].phm;
-		String conn = conns[s];
-		String synoder = ck[s].trb.synode();
+	String[] insertPhoto(int s) throws TransException, SQLException, IOException {
 		DBSyntableBuilder trb = ck[s].trb;
-		SyncRobot robot = (SyncRobot) ck[s].robot();
-		
 		T_PhotoMeta m = ck[s].phm;
-		String pid = ((SemanticObject) trb
-			.insert(m.tbl, robot)
-			.nv(m.uri, "")
-			.nv(m.resname, "p-" + robot.deviceId)
-			.nv(m.fullpath, father)
-			// .nv(m.org(), robot.domain())
-			.nv(m.domain, robot.domain())
-			.nv(m.device(), robot.deviceId())
-			.nv(m.folder, robot.uid())
-			.nv(m.shareDate, now())
-			// TODO .post(insert chid)?
-			.ins(trb.instancontxt(conn, robot)))
-			.resulve(entm);
+		String synoder = trb.synode();
+		IUser rob = trb.synrobot();
+
+		String[] pid_chid = trb.insertEntity(m, new T_Photo()
+				.create(ukraine)
+				.device(rob.deviceId())
+				.folder(rob.uid()));
 		
-		assertFalse(isblank(pid));
-		
-		String chid = ((SemanticObject) trb
-			.update(m.tbl, robot)
-			// .nv(m.synuid, concatstr(synoder, chm.UIDsep, pid))
-			.nv(m.synuid, SynChangeMeta.uids(synoder, pid))
-			.whereEq(m.pk, pid)
-			.post(trb.insert(chm.tbl)
-				// .nv(chm.entfk, pid)
-				.nv(chm.entbl, m.tbl)
-				.nv(chm.crud, CRUD.C)
-				.nv(chm.synoder, synoder)
-				// .nv(chm.uids, concatstr(synoder, chm.UIDsep, pid))
-				.nv(chm.uids, SynChangeMeta.uids(synoder, pid))
-				.nv(chm.nyquence, trb.stamp.n)
-				.nv(chm.domain, robot.domain())
-				.post(trb.insert(sbm.tbl)
-					.cols(sbm.insertCols())
-					.select((Query) trb
-						.select(snm.tbl)
-						.col(new Resulving(chm.tbl, chm.pk))
-						.col(snm.synoder)
-						.where(op.ne, snm.synoder, constr(trb.synode()))
-						.whereEq(snm.domain, robot.domain))))
-			.u(trb.instancontxt(conn, robot)))
-			.resulve(chm);
-		
-		return new String[] {pid, chid, SynChangeMeta.uids(synoder, pid)};
+		return new String[] {pid_chid[0], pid_chid[1],
+			SynChangeMeta.uids(synoder, pid_chid[0])};
 	}
 	
-	String deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
-		T_PhotoMeta m = ck[s].phm;
+	/**
+	 * @param chgm
+	 * @param s checker index
+	 * @return [synuid, 1/0]
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	Object[] deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
+		DBSyntableBuilder t = ck[s].trb;
+		T_PhotoMeta entm = ck[s].phm;
 		AnResultset slt = ((AnResultset) ck[s].trb
-				.select(chgm.tbl, conns)
-				.orderby(m.pk, "desc")
+				.select(entm.tbl)
 				.limit(1)
-				.rs(ck[s].trb.instancontxt(ck[s].connId(), ck[s].robot()))
+				.rs(t.instancontxt(t.synconn(), t.synrobot()))
 				.rs(0))
 				.nxt();
-		String pid = slt.getString(m.pk);
 
-		pid = ((SemanticObject) ck[s].trb
-			.delete(m.tbl, ck[s].robot())
-			.whereEq(chgm.uids, pid)
-			// TODO .post(null)
-			.d(ck[s].trb.instancontxt(conns[s], ck[s].robot())))
-			.resulve(ck[s].phm.tbl, ck[s].phm.pk);
-		
-		assertFalse(isblank(pid));
-		return pid;
+		String suid = slt.getString(entm.synuid);
+
+		return new Object[] {suid, t.deleteEntityBySynuid(entm, suid)};
 	}
 	
+	/**
+	 * Update {@link T_DocTableMeta#resname} and {@link T_DocTableMeta#createDate} (also know as pdate)
+	 * @param s
+	 * @return [entity-id, change-id, syn-uid]
+	 * @throws SQLException
+	 * @throws TransException
+	 * @throws AnsonException
+	 * @throws IOException
+	 */
 	String[] updatePname(int s)
 			throws SQLException, TransException, AnsonException, IOException {
 		T_PhotoMeta entm = ck[s].phm;
@@ -866,8 +872,7 @@ public class DBSyntableTest {
 			entm.resname, String.format("%s,%04d", (pname == null ? "" : pname), t.n0().n),
 			entm.createDate, now());
 
-		return new String[] {pid, chgid, //synodr + chm.UIDsep + pid};
-				synuid };
+		return new String[] {pid, chgid, synuid };
 	}
 	
 	/**
@@ -885,6 +890,11 @@ public class DBSyntableTest {
 		final String domain;
 
 		public IUser robot() { return trb.synrobot(); }
+
+		public int photos() throws SQLException, TransException {
+			return DAHelper.count(trb, trb.synconn(), phm.tbl);
+		}
+
 		String connId() { return trb.basictx().connId(); }
 
 		public Ck(int s, DBSyntableBuilder dbSyntableBuilder) throws SQLException, TransException, ClassNotFoundException, IOException {
@@ -931,6 +941,18 @@ public class DBSyntableTest {
 			return nv;
 		}
 
+		public void photo(int count, String... synids) throws TransException, SQLException {
+			Query q = trb.select(phm.tbl).col(count(), "c");
+			if (!isNull(synids))
+				q.whereIn(phm.synuid, synids);
+
+			assertEquals(count, ((AnResultset) q
+					.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
+					.rs(0))
+					.nxt()
+					.getInt("c"));
+		}
+
 		/**
 		 * Verify change flag, crud, where tabl = entm.tbl, entity-id = eid.
 		 * 
@@ -946,11 +968,11 @@ public class DBSyntableTest {
 				throws TransException, SQLException {
 			return buf_change(count, crud, trb.synode(), eid, entm);
 		}
+
 		public long buf_change_p(int count, String crud, String eid)
 				throws TransException, SQLException {
 			return buf_change(count, crud, trb.synode(), eid, phm);
 		}
-
 
 		public long change_photolog(int count, String crud, String eid) throws TransException, SQLException {
 			return change_log(count, crud, trb.synode(), eid, phm);
@@ -1181,7 +1203,7 @@ public class DBSyntableTest {
 	}
 	
 	static String changeLine(AnResultset r) throws SQLException {
-		String seq = r.getString(xbm.seq, " ");
+		String seq = r.getString(xbm.pagex, " ");
 
 		return String.format("%1$1s %2$9s %3$9s %4$2s %5$2s [%6$4s]",
 				r.getString(chm.crud),
@@ -1202,11 +1224,11 @@ public class DBSyntableTest {
 			DBSyntableBuilder b = ck[cx].trb;
 			HashMap<String,String> idmap = ((AnResultset) b
 					.select(chm.tbl, "ch")
-					.cols("ch.*", sbm.synodee).col(concat(ifnull(xbm.peer, " "), "':'", xbm.seq), xbm.seq)
+					.cols("ch.*", sbm.synodee).col(concat(ifnull(xbm.peer, " "), "':'", xbm.pagex), xbm.pagex)
 					// .je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
 					.je_(sbm.tbl, "sub", chm.pk, sbm.changeId)
 					.l_(xbm.tbl, "xb", chm.pk, xbm.changeId)
-					.orderby(xbm.seq, chm.entbl, chm.uids)
+					.orderby(xbm.pagex, chm.entbl, chm.uids)
 					.rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
 					.rs(0))
 					.<String>map(new String[] {chm.pk, sbm.synodee}, (r) -> changeLine(r));
