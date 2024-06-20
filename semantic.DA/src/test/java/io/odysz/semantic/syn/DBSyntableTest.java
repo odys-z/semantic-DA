@@ -661,7 +661,7 @@ public class DBSyntableTest {
 
 		ExchangeBlock req = null;
 
-		req = ctb.exchangePage(cp, rep);
+		req = cp.nextExchange(rep);
 		Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
 		rep = stb.onExchange(sp, ctb.synode(), req);
 		Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
@@ -675,8 +675,7 @@ public class DBSyntableTest {
 
 		if (cp.hasNextChpages(ctb)) {
 			// client
-			cp.nextChpage();
-			req = ctb.exchangePage(cp, null);
+			req = cp.nextExchange(req);
 			// server
 			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
 			try {
@@ -718,7 +717,7 @@ public class DBSyntableTest {
 		else fail("Not here");
 	}
 
-	private static void challengeAnswerLoop(ExessionPersist sp, DBSyntableBuilder stb, 
+	static void challengeAnswerLoop(ExessionPersist sp, DBSyntableBuilder stb, 
 				ExessionPersist cp, DBSyntableBuilder ctb, ExchangeBlock rep,
 				int test, int subno, int step)
 				throws SQLException, TransException {
@@ -736,8 +735,9 @@ public class DBSyntableTest {
 				// client
 				Utils.logrst(new String[] {ctb.synode(), "exchange"}, test, subno, step, ++no);
 
-				cp.nextChpage();
-				ExchangeBlock req = ctb.exchangePage(cp, rep);
+				// cp.nextChpage();
+				// ExchangeBlock req = ctb.exchangePage(cp, rep);
+				ExchangeBlock req = cp.nextExchange(rep);
 				Utils.logrst(String.format("%s exchange challenge    changes: %d    entities: %d    answers: %d",
 						ctb.synode(), req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, 1);
 				req.print(System.out);
@@ -746,8 +746,9 @@ public class DBSyntableTest {
 
 				// server
 				Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, step, ++no);
-				sp.nextChpage();
-				rep = stb.onExchange(sp, ctb.synode(), req);
+				// sp.nextChpage();
+				// rep = stb.onExchange(sp, ctb.synode(), req);
+				rep = sp.onextExchange(ctb.synode(), req);
 
 				Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
 						stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, no, 1);

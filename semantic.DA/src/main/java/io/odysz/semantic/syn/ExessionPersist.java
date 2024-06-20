@@ -500,11 +500,27 @@ public class ExessionPersist {
 			req.challengeSeq, expAnswerSeq, req.answerSeq);
 	}
 	
-	public boolean nextChpage() throws TransException, SQLException {
+	public ExchangeBlock nextExchange(ExchangeBlock rep)
+			throws SQLException, TransException {
+		nextChpage();
+		return trb.exchangePage(this, rep);
+	}
+
+	public ExchangeBlock onextExchange(String peer, ExchangeBlock req)
+			throws SQLException, TransException {
+		if (!eq(peer, this.peer))
+			throw new ExchangeException(exchange, this, "Target synode id dosn't match this initiated arguments (%s != %s)",
+					peer, this.peer);
+		nextChpage();
+		return trb.onExchange(this, peer, req);
+	}
+
+	private boolean nextChpage() throws TransException, SQLException {
 		int pages = pages();
-		if (challengeSeq < pages) {
+		if (challengeSeq < pages)
 			challengeSeq++;
 
+		if (trb != null) {
 			// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
 			QueryPage page = (QueryPage) trb
 				.selectPage(trb
@@ -558,9 +574,10 @@ public class ExessionPersist {
 
 		exstate.state = exchange;
 
-		return new ExchangeBlock(trb == null
-			? rep.peer
-			: trb.synode(), peer, session, exstate)
+//		return new ExchangeBlock(trb == null
+//			? rep.peer :
+		return new ExchangeBlock(
+			trb.synode(), peer, session, exstate)
 				.chpage(rs, entities)
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
@@ -687,7 +704,7 @@ public class ExessionPersist {
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public AnResultset chpage() throws TransException, SQLException {
+	AnResultset chpage() throws TransException, SQLException {
 		// 
 		if (trb == null) return null; // test
 
