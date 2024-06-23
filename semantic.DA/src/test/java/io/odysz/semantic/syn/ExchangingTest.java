@@ -1,11 +1,6 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.semantic.syn.Exchanging.confirming;
-import static io.odysz.semantic.syn.Exchanging.exchanging;
-import static io.odysz.semantic.syn.Exchanging.init;
-import static io.odysz.semantic.syn.Exchanging.mode_client;
-import static io.odysz.semantic.syn.Exchanging.mode_server;
-import static io.odysz.semantic.syn.Exchanging.ready;
+import static io.odysz.semantic.syn.ExessionAct.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.sql.SQLException;
@@ -67,14 +62,14 @@ class ExchangingTest {
 		assertEquals(ready, srv.state);
 
 		srv.onExchange();
-		assertEquals(exchanging, srv.state);
+		assertEquals(exchange, srv.state);
 
 		//
 		clt.ack();
-		assertEquals(confirming, clt.state);
+		assertEquals(0, clt.state);
 
 		srv.onAck();
-		assertEquals(confirming, srv.state);
+		assertEquals(0, srv.state);
 
 		clt.close();
 		assertEquals(ready, clt.state);
@@ -94,102 +89,136 @@ class ExchangingTest {
 		PeersMeta         prm = new PeersMeta();
 		// T_PhotoMeta       phm = new T_PhotoMeta(conn);
 
-		String client = "client";
+						String client = "client";
 		String server = "server";
 
-		Utils.logrst("client initate", ++no);
-		ExessionPersist cp = new ExessionPersist(null, chm, sbm, xbm, snm, prm, server)
-				.forcetest(16, 5);
-		ExchangeBlock req = cp.init();
-		int ch_c = -1;
-		req.print(System.out);
+						Utils.logrst("client initate", ++no);
+						ExessionPersist cp = new ExessionPersist(null, chm, sbm, xbm, snm, prm, server)
+								.forcetest(16, 5);
+						ExchangeBlock req = cp.init();
+						int ch_c = -1;
+						req.print(System.out);
 
 		Utils.logrst("server initate", ++no);
 		ExessionPersist sp = new ExessionPersist(null, chm, sbm, xbm, snm, prm, client, req)
 				.forcetest(12, 4);
-		ExchangeBlock rep = sp.onInit(req)
-				.totalChallenges(3);
+		ExchangeBlock rep = sp.onInit(req);
 		int ch_s = -1;
 		rep.print(System.out);
 		
-		// ch: 1, ans: 0
-		Utils.logrst("client exchange", ++no);
-		req = cp.nextExchange(rep);
-		req.print(System.out); ch_c = 0;
-		assertEquals(ch_c, req.challengeSeq);
-		assertEquals(ch_s, req.answerSeq);
-		assertEquals(ch_c, cp.expAnswerSeq);
+						// client ch: 0
+						Utils.logrst("client exchange", ++no);
+						req = cp.nextExchange(rep); ch_c = 0;
+						req.print(System.out);
+						assertEquals(server, req.peer);
+						assertEquals(client, req.srcnode);
+						assertEquals(exchange, req.act);
+						assertEquals(exchange, cp.exstate());
+						assertEquals(ch_c, req.challengeSeq);
+						assertEquals(ch_s, req.answerSeq);
+						assertEquals(ch_c, cp.expAnswerSeq);
 
-		// ch: 2, ans: 1
+		// server ch: 0
 		Utils.logrst("server on-exchange", ++no);
 		rep = sp.onextExchange(client, req);
 		rep.print(System.out); ch_s = 0;
+		assertEquals(client, rep.peer);
+		assertEquals(server, rep.srcnode);
+		assertEquals(ExessionAct.exchange, rep.act);
 		assertEquals(ch_s, rep.challengeSeq);
 		assertEquals(ch_c, rep.answerSeq);
 		assertEquals(ch_s, sp.expAnswerSeq);
 
 		// IOException: rep lost
-		Utils.logrst("req lost", no, 1);
-
-		Utils.logrst("client retry exchange", ++no);
-		req = cp.retryLast(server);
-		req.print(System.out);
-		// requires: ch: 1, ans: 1
-		assertEquals(ExessionAct.restore, req.act);
-		assertEquals(1, req.challengeSeq);
-		assertEquals(1, req.answerSeq);
-
-		Utils.logrst("server on-retry last", ++no);
-		rep = sp.onRetryLast(server, req);
-		rep.print(System.out);
-		assertEquals(ExessionAct.restore, rep.act);
-		assertEquals(2, rep.challengeSeq);
-		assertEquals(1, rep.answerSeq);
+		Utils.logrst("reply lost", no, 1);
 		
-		Utils.logrst("server exchange", ++no);
-		req = cp.exchange(server, rep);
-		req.print(System.out);
-		assertEquals(2, req.challengeSeq);
-		assertEquals(2, req.answerSeq);
+						// TODO client reboot
 
-		Utils.logrst("server on-exchange", ++no);
-		rep = sp.onExchange(client, req);
-		rep.print(System.out);
-		assertEquals(3, rep.challengeSeq);
-		assertEquals(2, rep.answerSeq);
-		
-		Utils.logrst("client exchange", ++no);
-		req = cp.exchange(server, rep);
-		req.print(System.out);
-		assertEquals(3, req.challengeSeq);
-		assertEquals(3, req.answerSeq);
-
-		// IOException: req lost
-		Utils.logrst("req lost", no, 1);
-
-		Utils.logrst("client retry last", ++no);
-		req = cp.retryLast(server);
-		req.print(System.out);
-		assertEquals(3, req.challengeSeq);
-		assertEquals(3, req.answerSeq);
+						// client ch: 0
+						Utils.logrst("client retry exchange", ++no);
+						req = cp.retryLast(server);
+						req.srcnode = client; // test only
+						req.print(System.out);
+						assertEquals(server, req.peer);
+						assertEquals(client, req.srcnode);
+						assertEquals(ExessionAct.restore, req.act);
+						assertEquals(ch_c, req.challengeSeq);
+						assertEquals(  -1, req.answerSeq);  // ch.answer - 1
+						assertEquals(ch_c, cp.expAnswerSeq);
 
 		Utils.logrst("server on-retry last", ++no);
 		rep = sp.onRetryLast(client, req);
 		rep.print(System.out);
-		assertEquals(3, rep.challengeSeq);
-		assertEquals(3, rep.answerSeq);
+		assertEquals(client, rep.peer);
+		assertEquals(server, rep.srcnode);
+		assertEquals(ExessionAct.restore, rep.act);
+		assertEquals(ch_s, rep.challengeSeq);
+		assertEquals(ch_c, rep.answerSeq);
+		assertEquals(ch_s, sp.expAnswerSeq);
 		
-		Utils.logrst("client exchange", ++no);
-		req = cp.exchange(server, rep);
-		req.print(System.out);
+						Utils.logrst("client exchange", ++no);
+						req = cp.nextExchange(rep); ch_c++;
+						req.print(System.out);
+						assertEquals(server, req.peer);
+						assertEquals(client, req.srcnode);
+						assertEquals(ch_c, req.challengeSeq);
+						assertEquals(ch_s, req.answerSeq);
+						assertEquals(ch_c, cp.expAnswerSeq);
+
+		Utils.logrst("server on-exchange", ++no);
+		rep = sp.nextExchange(req); ch_s++;
+		rep.print(System.out);
+		assertEquals(exchange, sp.exstate());
+		assertEquals(client, rep.peer);
+		assertEquals(server, rep.srcnode);
+		assertEquals(ch_s, rep.challengeSeq);
+		assertEquals(ch_c, rep.answerSeq);
+		assertEquals(ch_s, sp.expAnswerSeq);
+	
+						Utils.logrst("client exchange", ++no);
+						req = cp.nextExchange(rep); ch_c++;
+						req.print(System.out);
+						assertEquals(server, req.peer);
+						assertEquals(client, req.srcnode);
+						assertEquals(exchange, cp.exstate());
+						assertEquals(ch_c, req.challengeSeq);
+						assertEquals(ch_s, req.answerSeq);
+						assertEquals(ch_c, cp.expAnswerSeq);
+
+		// IOException: req lost
+		Utils.logrst("req lost", no, 1);
+
+						Utils.logrst("client retry last", ++no);
+						req = cp.retryLast(server);
+						req.srcnode = client; // test only
+						req.print(System.out);
+						assertEquals(restore, cp.exstate());
+						assertEquals(server, req.peer);
+						assertEquals(client, req.srcnode);
+						assertEquals(ch_c, req.challengeSeq);
+						assertEquals(ch_s, req.answerSeq);
+						assertEquals(ch_c, cp.expAnswerSeq);
+
+		Utils.logrst("server on-retry last", ++no);
+		rep = sp.onRetryLast(client, req);
+		rep.print(System.out);
+		assertEquals(client, rep.peer);
+		assertEquals(server, rep.srcnode);
+		assertEquals(ch_s, rep.challengeSeq);
+		assertEquals(ch_c, rep.answerSeq);
+		assertEquals(ch_s, sp.expAnswerSeq);
+		
+						Utils.logrst("client exchange", ++no);
+						req = cp.nextExchange(rep);
+						req.print(System.out);
 
 		Utils.logrst("server on-exchange", ++no);
 		rep = sp.onExchange(client, req);
 		rep.print(System.out);
 
-		Utils.logrst("client close", ++no);
-		req = cp.closexchange(rep);
-		req.print(System.out);
+						Utils.logrst("client close", ++no);
+						req = cp.closexchange(rep);
+						req.print(System.out);
 
 		Utils.logrst("server close", ++no);
 		rep = sp.closexchange(req);

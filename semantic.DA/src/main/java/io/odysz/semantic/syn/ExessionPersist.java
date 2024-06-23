@@ -454,6 +454,10 @@ public class ExessionPersist {
 
 	private ExessionAct exstate;
 	public int exstate() { return exstate.state; }
+	public ExessionPersist exstate(int state) {
+		exstate.state = state;
+		return this;
+	}
 	public ExessionAct exstat() { return exstate; }
 	/** Counted when in {@link #init()}, not correct after {@link DBSyntableBuilder#cleanStale(HashMap, String)} has been called. */
 	public int totalChallenges;
@@ -491,12 +495,18 @@ public class ExessionPersist {
 					"Session Id or peer mismatched [%s : %s vs %s : %s]",
 					this.peer, session, req.srcnode, req.session);
 		
-		if (req.challengeSeq > 0 && answerSeq + 1 != req.challengeSeq)
+		if (req.challengeSeq >= 0 && (req.act != restore && answerSeq + 1 != req.challengeSeq))
 			throw new ExchangeException(ExessionAct.unexpected, this,
 					"Challenge page lost, expecting %s",
 					answerSeq + 1);
+		
+//		if (req.act == restore) {
+//			// expAnswerSeq = Math.max(-1, expAnswerSeq - 1);
+//			answerSeq = req.challengeSeq;
+//		}
 
-		if (expAnswerSeq == 0 && req.answerSeq == -1 // first exchange
+		if (req.act == restore
+			|| expAnswerSeq == 0 && req.answerSeq == -1 // first exchange
 			|| expAnswerSeq == req.answerSeq) {
 			answerSeq = req.challengeSeq;
 			return this;
@@ -510,9 +520,18 @@ public class ExessionPersist {
 	
 	public ExchangeBlock nextExchange(ExchangeBlock rep)
 			throws SQLException, TransException {
-		nextChpage();
+
+		if (restore == rep.act && restore == this.exstate()) {
+			// got reply of retry, the restoring reply
+			if (challengeSeq < pages())
+				challengeSeq++;
+			expAnswerSeq = challengeSeq;
+		}
+		else 
+			nextChpage();
+
 		return trb == null // null for test
-			? new ExchangeBlock(rep.peer, peer, session, expect(rep).exstate).seq(this)
+			? new ExchangeBlock(rep.peer, peer, session, expect(rep).exstate(exchange).exstate).seq(this)
 			: trb.exchangePage(this, rep);
 	}
 
@@ -521,9 +540,14 @@ public class ExessionPersist {
 		if (!eq(peer, this.peer))
 			throw new ExchangeException(exchange, this, "Target synode id dosn't match this initiated arguments (%s != %s)",
 					peer, this.peer);
-		nextChpage();
+		
+		if (req.act != restore)
+			nextChpage();
+
+		exstate.state = exchange;
+		
 		return trb == null // null for test
-			? new ExchangeBlock(req.peer, peer, session, expect(req).exstate).seq(this)
+			? new ExchangeBlock(req.peer, peer, session, expect(req).exstate(exchange).exstate).seq(this)
 			: trb.onExchange(this, peer, req);
 	}
 
@@ -531,7 +555,9 @@ public class ExessionPersist {
 		int pages = pages();
 		if (challengeSeq < pages)
 			challengeSeq++;
-		expAnswerSeq = challengeSeq;
+		
+		// if (restore == exstate())
+		//	expAnswerSeq = challengeSeq;
 
 		if (trb != null) {
 			// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
@@ -554,6 +580,7 @@ public class ExessionPersist {
 				;
 		}
 
+		expAnswerSeq = challengeSeq;
 		return challengeSeq < pages;
 	}
 
@@ -570,9 +597,10 @@ public class ExessionPersist {
 		return challengeSeq < pages();
 	}
 
-	public ExchangeBlock exchange(String peer, ExchangeBlock rep)
+	ExchangeBlock exchange(String peer, ExchangeBlock rep)
 			throws TransException, SQLException {
-		if (exstate.state == restore && rep.act == exchange)
+		// if (exstate.state == restore && (rep.act == exchange || rep.act == restore))
+		if (exstate.state == restore && rep.act == restore)
 			; // exstate.state = exchange; // got answer
 		else if (exstate.state != init && exstate.state != exchange)
 			throw new ExchangeException(exchange, this,
@@ -587,9 +615,7 @@ public class ExessionPersist {
 
 		exstate.state = exchange;
 
-//		return new ExchangeBlock(trb == null
-//			? rep.peer :
-		return new ExchangeBlock(
+		return new ExchangeBlock(trb == null ? rep.peer :
 			trb.synode(), peer, session, exstate)
 				.chpage(rs, entities)
 				.totalChallenges(totalChallenges)
@@ -600,9 +626,9 @@ public class ExessionPersist {
 	public ExchangeBlock onExchange(String peer, ExchangeBlock req)
 			throws TransException, SQLException {
 
-		if (exstate.state != init && exstate.state != exchange)
-			throw new ExchangeException(exchange, this,
-					"Can't handle exchanging state on state %s", exstate.state); 
+//		if (exstate.state != init && exstate.state != exchange && exstate.state != restore)
+//			throw new ExchangeException(exchange, this,
+//					"Can't handle exchanging state on state %s", exstate.state); 
 
 		if (req != null)
 			answerSeq = req.challengeSeq;
@@ -681,28 +707,33 @@ public class ExessionPersist {
 
 	/**
 	 * Retry last page
-	 * @param server
+	 * @param peer
 	 * @return request message
 	 */
-	public ExchangeBlock retryLast(String server) {
+	public ExchangeBlock retryLast(String peer) {
 
 		exstate.state = restore;
+		expAnswerSeq = challengeSeq; // see nextChpage()
 
-		return new ExchangeBlock(trb == null ? null : trb.synode(), server, session, exstate)
+		return new ExchangeBlock(trb == null ? null : trb.synode(), peer, session, exstate)
 				.requirestore()
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
 				.seq(this);
 	}
 
-	public ExchangeBlock onRetryLast(String client, ExchangeBlock req) throws ExchangeException {
+	public ExchangeBlock onRetryLast(String peer, ExchangeBlock req) throws TransException, SQLException {
 		if (!eq(session, req.session))
 			throw new ExchangeException(ExessionAct.unexpected, this,
-				"[local-session, peer, req-session]:%s,%s,%s", session, client, req.session);
+				"[local-session, peer, req-session]:%s,%s,%s", session, peer, req.session);
 
 		exstate.state = restore;
-
-		return new ExchangeBlock(trb == null ? req.peer : trb.synode(), client, session, exstate)
+		
+		if (req.challengeSeq > answerSeq)
+			// previous request has been lost
+			onExchange(peer, req);
+		
+		return new ExchangeBlock(trb == null ? req.peer : trb.synode(), peer, session, exstate)
 			.requirestore()
 			.totalChallenges(totalChallenges)
 			.chpagesize(this.chsize)

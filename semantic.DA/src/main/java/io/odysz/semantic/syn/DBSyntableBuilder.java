@@ -243,7 +243,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 */
 	ExchangeBlock exchangePage(ExessionPersist cp, ExchangeBlock lastconf)
 			throws SQLException, TransException {
-		cp.expect(lastconf);
+		cp.expect(lastconf).exstate(ExessionAct.exchange);
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
 		return cp
 			.commitAnswers(lastconf, cp.peer, n0().n)
@@ -256,7 +256,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	ExchangeBlock onExchange(ExessionPersist sp, String peer, ExchangeBlock req)
 			throws SQLException, TransException {
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
-		sp.expect(req);
+		sp.expect(req).exstate(ExessionAct.exchange);
 
 		return sp
 			.commitAnswers(req, peer, n0().n)
