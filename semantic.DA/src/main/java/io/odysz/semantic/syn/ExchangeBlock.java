@@ -163,7 +163,7 @@ public class ExchangeBlock extends Anson {
 		return this;
 	}
 
-	public ExchangeBlock seq(int chidx, int ansidx, int totalChgs) {
+	private ExchangeBlock seq(int chidx, int ansidx, int totalChgs) {
 		challengeSeq    = chidx;
 		answerSeq       = ansidx;
 		totalChallenges = totalChgs;

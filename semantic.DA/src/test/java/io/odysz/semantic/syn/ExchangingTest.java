@@ -86,6 +86,7 @@ class ExchangingTest {
 		SynChangeMeta     chm = new SynChangeMeta(conn);
 		SynSubsMeta       sbm = new SynSubsMeta(chm, conn);
 		SynchangeBuffMeta xbm = new SynchangeBuffMeta(chm, conn);
+		SynSessionMeta    ssm = new SynSessionMeta(conn);
 		PeersMeta         prm = new PeersMeta();
 		// T_PhotoMeta       phm = new T_PhotoMeta(conn);
 
@@ -93,14 +94,14 @@ class ExchangingTest {
 		String server = "server";
 
 						Utils.logrst("client initate", ++no);
-						ExessionPersist cp = new ExessionPersist(null, chm, sbm, xbm, snm, prm, server)
+						ExessionPersist cp = new ExessionPersist(null, chm, sbm, xbm, snm, ssm, prm, server)
 								.forcetest(16, 5);
 						ExchangeBlock req = cp.init();
 						int ch_c = -1;
 						req.print(System.out);
 
 		Utils.logrst("server initate", ++no);
-		ExessionPersist sp = new ExessionPersist(null, chm, sbm, xbm, snm, prm, client, req)
+		ExessionPersist sp = new ExessionPersist(null, chm, sbm, xbm, snm, ssm, prm, client, req)
 				.forcetest(12, 4);
 		ExchangeBlock rep = sp.onInit(req);
 		int ch_s = -1;
@@ -147,11 +148,12 @@ class ExchangingTest {
 						assertEquals(ch_c, cp.expAnswerSeq);
 
 		Utils.logrst("server on-retry last", ++no);
-		rep = sp.onRetryLast(client, req);
+		// rep = sp.onRetryLast(client, req);
+		rep = sp.pageback().onextExchange(client, req);
 		rep.print(System.out);
 		assertEquals(client, rep.peer);
 		assertEquals(server, rep.srcnode);
-		assertEquals(ExessionAct.restore, rep.act);
+		assertEquals(ExessionAct.exchange, rep.act);
 		assertEquals(ch_s, rep.challengeSeq);
 		assertEquals(ch_c, rep.answerSeq);
 		assertEquals(ch_s, sp.expAnswerSeq);
@@ -200,7 +202,7 @@ class ExchangingTest {
 						assertEquals(ch_c, cp.expAnswerSeq);
 
 		Utils.logrst("server on-retry last", ++no);
-		rep = sp.onRetryLast(client, req);
+		rep = sp.onextExchange(client, req); ch_s++;
 		rep.print(System.out);
 		assertEquals(client, rep.peer);
 		assertEquals(server, rep.srcnode);
