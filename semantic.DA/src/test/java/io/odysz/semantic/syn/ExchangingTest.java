@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import io.odysz.common.Utils;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -88,11 +89,10 @@ class ExchangingTest {
 		SynchangeBuffMeta xbm = new SynchangeBuffMeta(chm, conn);
 		SynSessionMeta    ssm = new SynSessionMeta(conn);
 		PeersMeta         prm = new PeersMeta();
-		// T_PhotoMeta       phm = new T_PhotoMeta(conn);
 
-						String client = "client";
 		String server = "server";
 
+						String client = "client";
 						Utils.logrst("client initate", ++no);
 						ExessionPersist cp = new ExessionPersist(null, chm, sbm, xbm, snm, ssm, prm, server)
 								.forcetest(16, 5);
@@ -121,7 +121,8 @@ class ExchangingTest {
 
 		// server ch: 0
 		Utils.logrst("server on-exchange", ++no);
-		rep = sp.onextExchange(client, req);
+		// rep = sp.onextExchange(client, req);
+		rep = sp.nextExchange(req);
 		rep.print(System.out); ch_s = 0;
 		assertEquals(client, rep.peer);
 		assertEquals(server, rep.srcnode);
@@ -148,8 +149,8 @@ class ExchangingTest {
 						assertEquals(ch_c, cp.expAnswerSeq);
 
 		Utils.logrst("server on-retry last", ++no);
-		// rep = sp.onRetryLast(client, req);
-		rep = sp.pageback().onextExchange(client, req);
+		// rep = sp.pageback().onextExchange(client, req);
+		rep = sp.pageback().nextExchange(req);
 		rep.print(System.out);
 		assertEquals(client, rep.peer);
 		assertEquals(server, rep.srcnode);
@@ -202,7 +203,8 @@ class ExchangingTest {
 						assertEquals(ch_c, cp.expAnswerSeq);
 
 		Utils.logrst("server on-retry last", ++no);
-		rep = sp.onextExchange(client, req); ch_s++;
+		// rep = sp.onextExchange(client, req); ch_s++;
+		rep = sp.nextExchange(req); ch_s++;
 		rep.print(System.out);
 		assertEquals(client, rep.peer);
 		assertEquals(server, rep.srcnode);
@@ -211,12 +213,24 @@ class ExchangingTest {
 		assertEquals(ch_s, sp.expAnswerSeq);
 		
 						Utils.logrst("client exchange", ++no);
-						req = cp.nextExchange(rep);
+						req = cp.nextExchange(rep); ch_c++;
 						req.print(System.out);
+						assertEquals(exchange, cp.exstate());
+						assertEquals(server, req.peer);
+						assertEquals(client, req.srcnode);
+						assertEquals(ch_c, req.challengeSeq);
+						assertEquals(ch_s, req.answerSeq);
+						assertEquals(ch_c, cp.expAnswerSeq);
 
-		Utils.logrst("server on-exchange", ++no);
-		rep = sp.onExchange(client, req);
+		Utils.logrst("server on-exchange - no more challenge pages", ++no);
+		rep = sp.nextExchange(req); ch_s = -1;// no more challenges
 		rep.print(System.out);
+		assertEquals(exchange, sp.exstate());
+		assertEquals(client, rep.peer);
+		assertEquals(server, rep.srcnode);
+		assertEquals(ch_s, rep.challengeSeq);
+		assertEquals(ch_c, rep.answerSeq);
+		assertEquals(ch_s, sp.expAnswerSeq);
 
 						Utils.logrst("client close", ++no);
 						req = cp.closexchange(rep);

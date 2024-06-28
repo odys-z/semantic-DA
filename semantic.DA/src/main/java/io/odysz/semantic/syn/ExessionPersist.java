@@ -23,13 +23,13 @@ import java.util.HashSet;
 import java.util.List;
 
 import io.odysz.common.CheapMath;
-import io.odysz.common.Radix64;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -61,6 +61,8 @@ public class ExessionPersist {
 	final PeersMeta pnvm;
 
 	final String peer;
+
+	final boolean debug;
 
 	public AnResultset answerPage;
 
@@ -104,10 +106,11 @@ public class ExessionPersist {
 			String rpscrb = rply.getString(subm.synodee);
 			String rpcid  = rply.getString(chgm.pk);
 	
-			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(rpuids) < 0) {
+			if (debug && !eq(change, CRUD.D)
+				&& (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(rpuids) < 0)) {
 				Utils.warnT(new Object() {},
-						"Fatal error ignored: can't restore entity record answered from target node.\n" +
-						"entity name: %s\nsynode(peer): %s\nsynode(local): %s\nentity id(by peer): %s",
+						"Missing entity. This happens when the entity is deleted locally.\n" +
+						"entity name: %s\tsynode(peer): %s\tsynode(local): %s\tentity id(by peer): %s",
 						entm.tbl, srcnode, trb.synode(), rpuids);
 				continue;
 			}
@@ -185,10 +188,11 @@ public class ExessionPersist {
 			String chgid  = changes.getString(chgm.pk);
 
 			HashMap<String, AnResultset> entbuf = entites; // x.onchanges.entities;
-			if (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(chuids) < 0) {
+			if (!eq(change, CRUD.D)
+				&& (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(chuids) < 0)) {
 				Utils.warnT(new Object() {},
-						"Fatal error ignored: can't restore entity record answered from target node.\n" +
-						"entity name: %s\nsynode(answering): %s\nsynode(local): %s\nentity uid(by challenge): %s",
+						"Missing entity. This happens when the peer has updated then deletd the entity.\n" +
+						"entity name: %s\tsynode(answering): %s\tsynode(local): %s\tentity uid(by challenge): %s",
 						entm.tbl, peer, trb.synode(), chuids);
 				continue;
 			}
@@ -309,20 +313,22 @@ public class ExessionPersist {
 	public ExessionPersist(DBSyntableBuilder tb, SynChangeMeta chgm,
 			SynSubsMeta subm, SynchangeBuffMeta exbm, SynodeMeta synm,
 			SynSessionMeta sysm, PeersMeta pnvm, String target) {
-		if (tb != null && eq(tb.synode(), target))
-			Utils.warn("Creating persisting context for local builder, i.e. peer(%s) = this.synode?", target);;
+		
+		this(tb, chgm, subm, exbm, synm, sysm, pnvm, target, null);
 
-		this.trb  = tb; 
-		this.exbm = exbm;
-		this.peer = target;
-		this.chgm = chgm;
-		this.subm = subm;
-		this.synm = synm;
-		this.sysm = sysm;
-		this.pnvm = pnvm;
-		this.exstate = new ExessionAct(mode_client, ready);
-		this.session = Radix64.toString((long) (Math.random() * Long.MAX_VALUE));
-		this.chsize = 480;
+//		this.trb  = tb; 
+//		this.exbm = exbm;
+//		this.peer = target;
+//		this.chgm = chgm;
+//		this.subm = subm;
+//		this.synm = synm;
+//		this.sysm = sysm;
+//		this.pnvm = pnvm;
+//		this.exstate = new ExessionAct(mode_client, ready);
+//		this.session = Radix64.toString((long) (Math.random() * Long.MAX_VALUE));
+//		this.chsize = 480;
+// 
+//		debug = Connects.getDebug(trb.synconn());
 	}
 
 	/**
@@ -336,9 +342,13 @@ public class ExessionPersist {
 	public ExessionPersist(DBSyntableBuilder tb, SynChangeMeta chgm,
 			SynSubsMeta subm, SynchangeBuffMeta exbm, SynodeMeta synm,
 			SynSessionMeta sysm, PeersMeta pnvm, String peer, ExchangeBlock ini) {
+
+		if (tb != null && eq(tb.synode(), peer))
+			Utils.warn("Creating persisting context for local builder, i.e. peer(%s) = this.synode?", peer);;
+
 		this.trb = tb;
 		this.exbm = exbm;
-		this.session = ini.session;
+		this.session = ini == null ? null : ini.session;
 		this.peer = peer;
 		this.chgm = chgm;
 		this.subm = subm;
@@ -347,6 +357,8 @@ public class ExessionPersist {
 		this.pnvm = pnvm;
 		this.exstate = new ExessionAct(mode_server, ready);
 		this.chsize = 480;
+
+		debug = Connects.getDebug(trb.synconn());
 	}
 
 	public ExchangeBlock signup(String admin) {
@@ -408,7 +420,7 @@ public class ExessionPersist {
 			.totalChallenges(totalChallenges)
 			.chpagesize(this.chsize)
 			// .seq(challengeSeq, answerSeq, totalChallenges);
-			.seq(persistart(peer));
+			.seq(persistarting(peer));
 	}
 
 	/**
@@ -451,7 +463,7 @@ public class ExessionPersist {
 				.totalChallenges(totalChallenges)
 				.chpagesize(ini.chpagesize)
 				// .seq(challengeSeq, answerSeq, totalChallenges);
-				.seq(persistart(peer));
+				.seq(persistarting(peer));
 	}
 
 	public void clear() { }
@@ -530,48 +542,49 @@ public class ExessionPersist {
 			: trb.exchangePage(this, rep);
 	}
 
-	public ExchangeBlock onextExchange(String peer, ExchangeBlock req)
-			throws SQLException, TransException {
-		if (!eq(peer, this.peer))
-			throw new ExchangeException(exchange, this, "Target synode id dosn't match this initiated arguments (%s != %s)",
-					peer, this.peer);
-		
-		nextChpage();
-
-		exstate.state = exchange;
-		
-		return trb == null // null for test
-			? new ExchangeBlock(req.peer, peer, session, expect(req).exstate(exchange).exstate).seq(this)
-			: trb.onExchange(this, peer, req);
-	}
+//	public ExchangeBlock onextExchange(String peer, ExchangeBlock req)
+//			throws SQLException, TransException {
+//		if (!eq(peer, this.peer))
+//			throw new ExchangeException(exchange, this, "Target synode id dosn't match this initiated arguments (%s != %s)",
+//					peer, this.peer);
+//		
+//		nextChpage();
+//
+//		exstate.state = exchange;
+//		
+//		return trb == null // null for test
+//			? new ExchangeBlock(req.peer, peer, session, expect(req).exstate(exchange).exstate).seq(this)
+//			: trb.onExchange(this, peer, req);
+//	}
 
 	private boolean nextChpage() throws TransException, SQLException {
 		int pages = pages();
-		if (challengeSeq < pages)
+		if (challengeSeq < pages) {
 			challengeSeq++;
 		
-		if (trb != null) {
-			// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
-			QueryPage page = (QueryPage) trb
-				.selectPage(trb
-					.select(exbm.tbl, "bf")
-					.col(exbm.pagex, "page")
-					.col_ases("bf", exbm.changeId)
-					.col("sub." + subm.synodee)
-					.je_(chgm.tbl, "chg", exbm.changeId, chgm.pk, exbm.peer, Funcall.constr(peer))
-					.je_(subm.tbl, "sub", "chg." + chgm.pk, subm.changeId)
-					.whereEq(exbm.peer, peer))
-				.page(challengeSeq, chsize)
-				.col(exbm.changeId);
+			if (trb != null) {
+				// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
+				QueryPage page = (QueryPage) trb
+					.selectPage(trb
+						.select(exbm.tbl, "bf")
+						.col(exbm.pagex, "page")
+						.col_ases("bf", exbm.changeId)
+						.col("sub." + subm.synodee)
+						.je_(chgm.tbl, "chg", exbm.changeId, chgm.pk, exbm.peer, Funcall.constr(peer))
+						.je_(subm.tbl, "sub", "chg." + chgm.pk, subm.changeId)
+						.whereEq(exbm.peer, peer))
+					.page(challengeSeq, chsize)
+					.col(exbm.changeId);
 
-			trb.update(exbm.tbl, trb.synrobot())
-				.nv(exbm.pagex, challengeSeq)
-				.whereIn(exbm.changeId, page)
-				.u(trb.instancontxt(trb.synconn(), trb.synrobot()))
-				;
+				trb.update(exbm.tbl, trb.synrobot())
+					.nv(exbm.pagex, challengeSeq)
+					.whereIn(exbm.changeId, page)
+					.u(trb.instancontxt(trb.synconn(), trb.synrobot()))
+					;
+			}
 		}
 
-		expAnswerSeq = challengeSeq;
+		expAnswerSeq = challengeSeq < pages ? challengeSeq : -1;
 		return challengeSeq < pages;
 	}
 
@@ -759,11 +772,7 @@ public class ExessionPersist {
 			AnResultset entities = ((AnResultset) trb.select(tbl, "e")
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId, constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
-				// .cols_byAlias("e", entm.entCols()).col("e." + entm.pk)
 				.col("e.*")
-
-				// .orderby(chgm.nyquence)
-				// .orderby(chgm.synoder)
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				.rs(0))
 				.index0(entm.synuid);
@@ -803,16 +812,29 @@ public class ExessionPersist {
 	public ExessionPersist persisession() throws TransException, SQLException {
 		if (trb != null) {
 			sysm.update(trb.update(sysm.tbl, trb.synrobot()))
+				.nv(sysm.chpage, challengeSeq)
+				.nv(sysm.answerx, answerSeq)
+				.nv(sysm.expansx, expAnswerSeq)
+				.nv(sysm.mode,  exstate.mode)
+				.nv(sysm.state, exstate.state)
+				.whereEq(sysm.peer, peer)
 				.u(trb.instancontxt(trb.synconn(), trb.synrobot()));
 		}
 		return this;
 	}
 
-	public ExessionPersist persistart(String peer) throws TransException, SQLException {
+	/**
+	 * Save starting session.
+	 * @param peer
+	 * @return this
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public ExessionPersist persistarting(String peer) throws TransException, SQLException {
 		if (trb != null) {
 			trb.delete(sysm.tbl, trb.synrobot())
 				.whereEq(sysm.peer, peer)
-				.post(sysm.insert(trb.insert(sysm.tbl)))
+				.post(sysm.insertSession(trb.insert(sysm.tbl), peer))
 				.d(trb.instancontxt(trb.synconn(), trb.synrobot()));
 		}
 		return this;
@@ -865,16 +887,17 @@ public class ExessionPersist {
 	boolean ofLastEntity(AnResultset chlogs, String curEid, String curEntbl, String curDomain)
 			throws SQLException {
 		return !chlogs.hasnext()
-			// || !eq(curEid, chlogs.nextString(chgm.entfk))
 			|| !eq(curEid, chlogs.nextString(chgm.uids))
-			|| !eq(curEntbl, chlogs.nextString(chgm.entbl)) || !eq(curDomain, chlogs.nextString(chgm.domain));
+			|| !eq(curEntbl, chlogs.nextString(chgm.entbl))
+			|| !eq(curDomain, chlogs.nextString(chgm.domain));
 	}
 	
 	boolean isAnotherEntity (AnResultset chlogs, String curUid, String curEntbl, String curDomain)
 			throws SQLException {
 		return !chlogs.hasprev()
 			|| !eq(curUid, chlogs.prevString(chgm.uids))
-			|| !eq(curEntbl, chlogs.prevString(chgm.entbl)) || !eq(curDomain, chlogs.prevString(chgm.domain));
+			|| !eq(curEntbl, chlogs.prevString(chgm.entbl))
+			|| !eq(curDomain, chlogs.prevString(chgm.domain));
 	}
 
 	/**

@@ -43,6 +43,7 @@ import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -168,6 +169,9 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", prm.tbl));
 			Connects.commit(conn, DATranscxt.dummyUser(), prm.ddlSqlite);
+
+			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", ssm.tbl));
+			Connects.commit(conn, DATranscxt.dummyUser(), ssm.ddlSqlite);
 
 			T_PhotoMeta phm = new T_PhotoMeta(conn); //.replace();
 
@@ -770,8 +774,6 @@ public class DBSyntableTest {
 				// client
 				Utils.logrst(new String[] {ctb.synode(), "exchange"}, test, subno, step, ++no);
 
-				// cp.nextChpage();
-				// ExchangeBlock req = ctb.exchangePage(cp, rep);
 				ExchangeBlock req = cp.nextExchange(rep);
 				Utils.logrst(String.format("%s exchange challenge    changes: %d    entities: %d    answers: %d",
 						ctb.synode(), req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, 1);
@@ -781,9 +783,8 @@ public class DBSyntableTest {
 
 				// server
 				Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, step, ++no);
-				// sp.nextChpage();
-				// rep = stb.onExchange(sp, ctb.synode(), req);
-				rep = sp.onextExchange(ctb.synode(), req);
+				// rep = sp.onextExchange(ctb.synode(), req);
+				rep = sp.nextExchange(req);
 
 				Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
 						stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, no, 1);
