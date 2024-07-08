@@ -401,7 +401,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * 2.2.2 Y on initiate
 	 * 
 	 * NOW THE TIME TO REMOVE REDUNDENT RECORD ON Y. That is
-	 * on Y, y.z = 0 < z.z
+	 * at Y, y.z = 0 < Z.z
 	 * </pre>
 	 * 
 	 * <ol>
