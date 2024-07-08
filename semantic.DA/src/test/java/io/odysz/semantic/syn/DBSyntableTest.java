@@ -43,6 +43,7 @@ import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -86,6 +87,7 @@ public class DBSyntableTest {
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
 	static SynchangeBuffMeta xbm;
+	static SynSessionMeta ssm;
 	static PeersMeta prm;
 
 	static T_PhotoMeta phm;
@@ -146,6 +148,7 @@ public class DBSyntableTest {
 		chm = new SynChangeMeta();
 		sbm = new SynSubsMeta(chm);
 		xbm = new SynchangeBuffMeta(chm);
+		ssm = new SynSessionMeta();
 		prm = new PeersMeta();
 
 		for (int s = 0; s < 4; s++) {
@@ -166,6 +169,9 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", prm.tbl));
 			Connects.commit(conn, DATranscxt.dummyUser(), prm.ddlSqlite);
+
+			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", ssm.tbl));
+			Connects.commit(conn, DATranscxt.dummyUser(), ssm.ddlSqlite);
 
 			T_PhotoMeta phm = new T_PhotoMeta(conn); //.replace();
 
@@ -527,7 +533,7 @@ public class DBSyntableTest {
 		printNyquv(ck);
 
 		Utils.logrst("X <= Y", section, ++no);
-		exchange_break(ck[X].phm, ck[X].trb, ck[Y].phm, ck[Y].trb, section, no);
+		exchange_break(ssm, ck[X].phm, ck[X].trb, ck[Y].phm, ck[Y].trb, section, no);
 
 		ck[X].buf_change(1, C, ck[X].trb.synode(), xu[0], ck[X].phm);
 		ck[X].buf_change(1, C, ck[Y].trb.synode(), yi[0], ck[X].phm);
@@ -557,11 +563,11 @@ public class DBSyntableTest {
 		int no = 0;
 
 		// sign up as a new domain
-		ExessionPersist cltp = new ExessionPersist(cltb, chm, sbm, xbm, snm, prm, admin);
+		ExessionPersist cltp = new ExessionPersist(cltb, chm, sbm, xbm, snm, ssm, prm, admin);
 		Utils.logrst(String.format("sign up by %s", cltb.synode()), testix, sect, ++no);
 
 		ExchangeBlock req  = cltb.domainSignup(cltp, admin);
-		ExessionPersist admp = new ExessionPersist(cltb, chm, sbm, xbm, snm, prm, cltb.synode(), req);
+		ExessionPersist admp = new ExessionPersist(cltb, chm, sbm, xbm, snm, ssm, prm, cltb.synode(), req);
 
 		// admin on sign up request
 		Utils.logrst(String.format("%s on sign up", admin), testix, sect, ++no);
@@ -616,7 +622,7 @@ public class DBSyntableTest {
 		SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId());
 		SyntityMeta cphm = new T_PhotoMeta(ctb.basictx().connId());
 		
-		exchange(sphm, stb, cphm, ctb, test, subno);
+		exchange(ssm, sphm, stb, cphm, ctb, test, subno);
 	}
 
 	void exchangeSynodes(int srv, int cli, int test, int subno)
@@ -627,22 +633,22 @@ public class DBSyntableTest {
 		SyntityMeta ssnm = new SynodeMeta(stb.basictx().connId()).replace();
 		SyntityMeta csnm = new SynodeMeta(ctb.basictx().connId()).replace();
 		
-		exchange(ssnm, stb, csnm, ctb, test, subno);
+		exchange(ssm, ssnm, stb, csnm, ctb, test, subno);
 	}
 
-	static void exchange(SyntityMeta sphm, DBSyntableBuilder stb, SyntityMeta cphm,
+	static void exchange(SynSessionMeta ssm, SyntityMeta sphm, DBSyntableBuilder stb, SyntityMeta cphm, 
 			DBSyntableBuilder ctb, int test, int subno)
 			throws TransException, SQLException, IOException {
 
 		int no = 0;
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
-		ExessionPersist cp = new ExessionPersist(ctb, chm, sbm, xbm, snm, prm, stb.synode());
+		ExessionPersist cp = new ExessionPersist(ctb, chm, sbm, xbm, snm, ssm, prm, stb.synode());
 		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
 		Utils.logrst(String.format("%s initiate: changes: %d    entities: %d",
 				ctb.synode(), ini.totalChallenges, ini.enitities(cphm.tbl)), test, subno, no, 1);
 
 		Utils.logrst(new String[] {stb.synode(), "on initiate"}, test, subno, ++no);
-		ExessionPersist sp = new ExessionPersist(stb, chm, sbm, xbm, snm, prm, ctb.synode(), ini);
+		ExessionPersist sp = new ExessionPersist(stb, chm, sbm, xbm, snm, ssm, prm, ctb.synode(), ini);
 		ExchangeBlock rep = stb.onInit(sp, ini);
 		Utils.logrst(String.format(
 				"%s on initiate: changes: %d",
@@ -670,18 +676,18 @@ public class DBSyntableTest {
 		printNyquv(ck);
 	}
 
-	static void exchange_break(SyntityMeta sphm, DBSyntableBuilder stb, SyntityMeta cphm,
-			DBSyntableBuilder ctb, int test, int subno)
+	static void exchange_break(SynSessionMeta ssm, SyntityMeta sphm, DBSyntableBuilder stb,
+			SyntityMeta cphm, DBSyntableBuilder ctb, int test, int subno)
 			throws TransException, SQLException, IOException {
 
 		int no = 0;
-		ExessionPersist cp = new ExessionPersist(stb, chm, sbm, xbm, snm, prm, stb.synode());
+		ExessionPersist cp = new ExessionPersist(stb, chm, sbm, xbm, snm, ssm, prm, stb.synode());
 
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
 		assertTrue(ini.totalChallenges > 0);
 
-		ExessionPersist sp = new ExessionPersist(ctb, chm, sbm, xbm, snm, prm, ctb.synode(), ini);
+		ExessionPersist sp = new ExessionPersist(ctb, chm, sbm, xbm, snm, ssm, prm, ctb.synode(), ini);
 
 		ctb.abortExchange(cp, stb.synode(), null);
 		ini = ctb.initExchange(cp, stb.synode());
@@ -694,7 +700,7 @@ public class DBSyntableTest {
 
 		ExchangeBlock req = null;
 
-		req = ctb.exchangePage(cp, rep);
+		req = cp.nextExchange(rep);
 		Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
 		rep = stb.onExchange(sp, ctb.synode(), req);
 		Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
@@ -708,8 +714,7 @@ public class DBSyntableTest {
 
 		if (cp.hasNextChpages(ctb)) {
 			// client
-			cp.nextChpage();
-			req = ctb.exchangePage(cp, null);
+			req = cp.nextExchange(req);
 			// server
 			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
 			try {
@@ -751,7 +756,7 @@ public class DBSyntableTest {
 		else fail("Not here");
 	}
 
-	private static void challengeAnswerLoop(ExessionPersist sp, DBSyntableBuilder stb, 
+	static void challengeAnswerLoop(ExessionPersist sp, DBSyntableBuilder stb, 
 				ExessionPersist cp, DBSyntableBuilder ctb, ExchangeBlock rep,
 				int test, int subno, int step)
 				throws SQLException, TransException {
@@ -769,8 +774,7 @@ public class DBSyntableTest {
 				// client
 				Utils.logrst(new String[] {ctb.synode(), "exchange"}, test, subno, step, ++no);
 
-				cp.nextChpage();
-				ExchangeBlock req = ctb.exchangePage(cp, rep);
+				ExchangeBlock req = cp.nextExchange(rep);
 				Utils.logrst(String.format("%s exchange challenge    changes: %d    entities: %d    answers: %d",
 						ctb.synode(), req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, 1);
 				req.print(System.out);
@@ -779,8 +783,8 @@ public class DBSyntableTest {
 
 				// server
 				Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, step, ++no);
-				sp.nextChpage();
-				rep = stb.onExchange(sp, ctb.synode(), req);
+				// rep = sp.onextExchange(ctb.synode(), req);
+				rep = sp.nextExchange(req);
 
 				Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
 						stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, no, 1);

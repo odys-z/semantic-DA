@@ -241,9 +241,8 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public ExchangeBlock exchangePage(ExessionPersist cp, ExchangeBlock lastconf)
+	ExchangeBlock exchangePage(ExessionPersist cp, ExchangeBlock lastconf)
 			throws SQLException, TransException {
-		cp.expect(lastconf);
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
 		return cp
 			.commitAnswers(lastconf, cp.peer, n0().n)
@@ -253,10 +252,10 @@ public class DBSyntableBuilder extends DATranscxt {
 			.seq(cp.persisession());
 	}
 	
-	public ExchangeBlock onExchange(ExessionPersist sp, String peer, ExchangeBlock req)
+	ExchangeBlock onExchange(ExessionPersist sp, String peer, ExchangeBlock req)
 			throws SQLException, TransException {
 		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
-		sp.expect(req);
+		sp.expect(req).exstate(ExessionAct.exchange);
 
 		return sp
 			.commitAnswers(req, peer, n0().n)
@@ -402,7 +401,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * 2.2.2 Y on initiate
 	 * 
 	 * NOW THE TIME TO REMOVE REDUNDENT RECORD ON Y. That is
-	 * on Y, y.z = 0 < z.z
+	 * at Y, y.z = 0 < Z.z
 	 * </pre>
 	 * 
 	 * <ol>
@@ -594,13 +593,9 @@ public class DBSyntableBuilder extends DATranscxt {
 				.union(select(chgm.tbl, "cl")
 					.cols(constr(peer), chgm.pk, new ExprPart(-1))
 					.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
-											// .and(Sql.condt(op.ne, constr(peer), subm.synodee)))
 											.and(Sql.condt(op.ne, constr(synode()), subm.synodee)))
-					// .je_(synm.tbl, "sn", chgm.synoder, synm.pk, constr(domain()), synm.domain)
 					.je_(pnvm.tbl, "nvee", "sb." + subm.synodee, pnvm.synid, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
-					// .je_(pnvm.tbl, "nvee", "sb." + subm.synodee, pnvm.synid, constr(trb.domain()), pnvm.domain, constr(peer), pnvm.peer)
 					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0)
-					// .where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0)
 				)
 			);
 	}
@@ -745,19 +740,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	public String[] insertEntity(SyntityMeta m, SynEntity e) throws TransException, SQLException {
 		String conn   = synconn();
 		SyncRobot rob = (SyncRobot) synrobot();
-		/*
-		String pid = ((SemanticObject) insert(m.tbl, robot)
-			.nv(m.uri, "")
-			.nv(m.resname, "p-" + robot.deviceId)
-			.nv(m.fullpath, father)
-			.nv(m.domain, robot.domain())
-			.nv(m.device(), robot.deviceId())
-			.nv(m.folder, robot.uid())
-			.nv(m.shareDate, now())
-			// TODO .post(insert chid)?
-			.ins(trb.instancontxt(conn, robot)))
-			.resulve(m);
-		*/
 
 		Resulving pid = new Resulving(m.tbl, m.pk);
 
