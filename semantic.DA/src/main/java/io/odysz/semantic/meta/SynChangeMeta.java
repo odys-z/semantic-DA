@@ -2,6 +2,9 @@ package io.odysz.semantic.meta;
 
 import io.odysz.common.Utils;
 import io.odysz.semantics.meta.Semantation;
+import io.odysz.transact.sql.parts.AbsPart;
+import io.odysz.transact.sql.parts.Resulving;
+import io.odysz.transact.sql.parts.condition.Funcall;
 
 /**
  *<a href="./syn_change.sqlite.ddl">syn_change DDL</a>
@@ -29,15 +32,13 @@ public class SynChangeMeta extends SemanticTableMeta {
 	public final String crud;
 	public final String synoder;
 	public final String nyquence;
+	public final String seq;
 
 	/** updated fields when updating an entity */
 	public final String updcols;
 
-	// public final String timestamp;
-
 	public SynChangeMeta(String ... conn) {
 		super("syn_change", conn);
-		// UIDsep = ",";
 
 		ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
 
@@ -48,8 +49,8 @@ public class SynChangeMeta extends SemanticTableMeta {
 		synoder  = "synoder";
 		uids     = "uids";
 		nyquence = "nyquence";
+		seq      = "seq";
 		updcols  = "updcols";
-		// timestamp= "timestamp";
 
 		entfk    = "entfk";
 	}
@@ -58,8 +59,17 @@ public class SynChangeMeta extends SemanticTableMeta {
 		return new String[] {pk, entbl, crud, synoder, uids, nyquence, updcols};
 	}
 
-	/** compose function for uids */
-	public static String uids(String synode, String entityId) {
-		return synode + UIDsep + entityId; // Funcall.concatstr(synode, UIDsep, entityId);
+	/**
+	 * Compose function for uids
+	 * @param synoder
+	 * @param entityId
+	 * @return "synoder + UIDsep + entityId"
+	 */
+	public static String uids(String synoder, String entityId) {
+		return synoder + UIDsep + entityId; // Funcall.concatstr(synode, UIDsep, entityId);
+	}
+
+	public static AbsPart uids(String synode, Resulving eid) {
+		return Funcall.concatstr(synode, UIDsep, eid);
 	}
 }

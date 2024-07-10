@@ -11,7 +11,9 @@ import java.util.Date;
 import io.odysz.anson.AnsonField;
 import io.odysz.common.DateFormat;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
+import io.odysz.transact.sql.Insert;
 
 import static io.odysz.common.LangExt.*;
 
@@ -118,7 +120,7 @@ public class T_SyncDoc extends SynEntity {
 
 	protected String mime;
 	
-	public T_SyncDoc() {super(null);}
+	public T_SyncDoc() {super(null, "");}
 	
 	/**
 	 * A helper used to make sure query fields are correct.
@@ -161,7 +163,7 @@ public class T_SyncDoc extends SynEntity {
 	}
 
 	public T_SyncDoc(AnResultset rs, T_DocTableMeta meta) throws SQLException {
-		super(meta);
+		super(meta, rs.getString(meta.domain));
 		this.docMeta = meta;
 		this.recId = rs.getString(meta.pk);
 		this.pname = rs.getString(meta.resname);
@@ -297,5 +299,23 @@ public class T_SyncDoc extends SynEntity {
 			sharedate(flags[3]);
 		}
 		return this;
+	}
+	
+	@Override
+	public Insert insertEntity(SyntityMeta m, Insert ins) {
+		T_DocTableMeta md = (T_DocTableMeta) m;
+		ins .nv(md.domain, domain)
+			.nv(md.folder, folder)
+			.nv(md.mime, mime)
+			.nv(md.uri, uri)
+			.nv(md.size, size)
+			.nv(md.createDate, createDate)
+			.nv(md.resname, pname)
+			.nv(md.synoder, device)
+			.nv(md.shareby, shareby)
+			.nv(md.shareDate, sharedate)
+			.nv(md.shareflag, shareflag)
+			.nv(md.fullpath, clientpath);
+		return ins;
 	}
 }
