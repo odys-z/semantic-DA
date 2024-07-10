@@ -81,7 +81,7 @@ public class DBSyntableTest {
 
 	public static Ck[] ck = new Ck[4];
 
-	static HashMap<String, DBSynmantics> synms;
+	// static HashMap<String, DBSynmantics> synms;
 
 	static SynodeMeta snm;
 	static SynChangeMeta chm;
