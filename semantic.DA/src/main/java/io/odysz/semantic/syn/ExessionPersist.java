@@ -358,7 +358,7 @@ public class ExessionPersist {
 		this.exstate = new ExessionAct(mode_server, ready);
 		this.chsize = 480;
 
-		debug = Connects.getDebug(trb.synconn());
+		debug = trb == null ? true : Connects.getDebug(trb.synconn());
 	}
 
 	public ExchangeBlock signup(String admin) {

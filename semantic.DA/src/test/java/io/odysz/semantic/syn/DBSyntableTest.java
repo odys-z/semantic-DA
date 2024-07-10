@@ -1266,12 +1266,17 @@ public class DBSyntableTest {
 				);
 	}
 	
+	/**
+	 * Assert ai = bi, where ai, bi in nvs [a0, a1, ..., b0, b1, ...].
+	 * @param nvs
+	 */
 	public static void assertnv(long... nvs) {
 		if (nvs == null || nvs.length == 0 || nvs.length % 2 != 0)
 			fail("Invalid arguments to assert.");
 		
 		for (int i = 0; i < nvs.length/2; i++) {
-			assertEquals(nvs[i], nvs[i + nvs.length/2], String.format("nv[%d] %d : %d", i, nvs[i], nvs[i + nvs.length/2]));
+			assertEquals(nvs[i], nvs[i + nvs.length/2],
+				String.format("nv[%d] %d : %d", i, nvs[i], nvs[i + nvs.length/2]));
 		}
 	}
 
