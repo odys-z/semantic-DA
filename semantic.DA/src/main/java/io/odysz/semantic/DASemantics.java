@@ -1015,6 +1015,8 @@ public class DASemantics {
 	/**
 	 * Resolve fk reference when inserting children.<br>
 	 * 
+	 * TODO to be tested: multi-level offspring's insertion should be triggered. This is essential to log changes.
+	 * 
 	 * @see smtype#fkIns
 	 */
 	static class ShFkOnIns extends SemanticHandler {
@@ -1767,6 +1769,12 @@ public class DASemantics {
 		}
 	}
 
+	/**
+	 * TODO to be tested: multi-level offspring's checking is not be triggered. This is not essential to log changes?
+	 * 
+	 * @author odys-z@github.com
+	 *
+	 */
 	static class ShChkPCInsert extends SemanticHandler {
 		public ShChkPCInsert(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.checkSqlCountOnInsert, tabl, recId, args);
