@@ -1261,7 +1261,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	}
 		
 	/**
-	 * A {@link SynodeMode#hub hub} node uses this to setup change logs for joining nodes.
+	 * A {@link SynodeMode#peer hub} node uses this to setup change logs for joining nodes.
 	 * @param x 
 	 * 
 	 * @param childId
@@ -1325,7 +1325,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			.nv(synm.domain, domain)
 			.ins(instancontxt(basictx.connId(), synrobot()));
 
-		if (reqmode == SynodeMode.hub)
+		if (reqmode == SynodeMode.peer)
 			incNyquence();
 
 		ChangeLogs log = new ChangeLogs(chgm)

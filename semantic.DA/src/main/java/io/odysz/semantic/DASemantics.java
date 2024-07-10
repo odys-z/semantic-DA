@@ -1067,6 +1067,8 @@ public class DASemantics {
 	 * child-table2\s [2] child pk2 // child 1, without comma ending, space
 	 * separated smtype: {@link smtype#parentChildrenOnDel}
 	 * 
+	 * TODO to be tested: multi-level offspring's deletion should be triggered. This is essential to log changes.
+	 * 
 	 * @author odys-z@github.com
 	 */
 	static class ShPCDelAll extends SemanticHandler {
@@ -1095,8 +1097,7 @@ public class DASemantics {
 		 * 
 		 * @param args
 		 * @param stmt
-		 * @param condt
-		 *            deleting's condition
+		 * @param condt deleting's condition
 		 * @param usr
 		 * @return {@link Delete}
 		 * @throws SemanticException

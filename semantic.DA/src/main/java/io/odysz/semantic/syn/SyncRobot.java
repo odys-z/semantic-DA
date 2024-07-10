@@ -52,7 +52,7 @@ public class SyncRobot extends SemanticObject implements IUser {
 		return this;
 	}
 
-	protected final String deviceId;
+	protected String deviceId;
 	public String deviceId() { return deviceId; }
 
 	protected String ssid;
@@ -71,6 +71,8 @@ public class SyncRobot extends SemanticObject implements IUser {
 	}
 
 	/**
+	 * @deprecated device -) domain?
+	 * 
 	 * Costructor for jserv construction
 	 * 
 	 * @param userid
@@ -81,7 +83,7 @@ public class SyncRobot extends SemanticObject implements IUser {
 		this.userId = userid;
 		this.userName = userName;
 		this.deviceId = device;
-		domain = device;
+		domain = device; // FIXME not correct
 	}
 	
 	public static class RobotMeta extends TableMeta {

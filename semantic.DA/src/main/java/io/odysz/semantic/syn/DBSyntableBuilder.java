@@ -852,7 +852,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		return n0();
 	}
 	
-	DBSyntableBuilder loadNyquvect0(String conn) throws SQLException, TransException {
+	public DBSyntableBuilder loadNyquvect0(String conn) throws SQLException, TransException {
 		AnResultset rs = ((AnResultset) select(synm.tbl)
 				.cols(synm.pk, synm.nyquence)
 				.rs(instancontxt(conn, synrobot()))
