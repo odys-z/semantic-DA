@@ -8,6 +8,7 @@
   		pk:
   		args: arguments for sementics handlers. For args for different handlers, see above javadoc link.
    -->
+   <!-- 
   	<s>
   		<id>00</id>
  		<smtc>autopk</smtc>
@@ -15,6 +16,7 @@
   		<pk>cid</pk>
   		<args>cid,synoder</args>
   	</s>
+   -->
 
   	<s>
   		<id>01</id>
