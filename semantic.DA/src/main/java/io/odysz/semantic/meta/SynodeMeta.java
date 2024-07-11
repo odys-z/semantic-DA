@@ -15,11 +15,6 @@ import io.odysz.transact.x.TransException;
  *
  */
 public class SynodeMeta extends SyntityMeta {
-	static {
-		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
-	}
-	
-	// public final String org;
 	/** organization's nodes */
 	public final String synode;
 	public final String inc;
@@ -40,6 +35,8 @@ public class SynodeMeta extends SyntityMeta {
 		
 		inc = "inc";
 		globalPks = new HashSet<String>() { {add(org);}; {add(synode);} };
+
+		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
 	}
 
 	@Override

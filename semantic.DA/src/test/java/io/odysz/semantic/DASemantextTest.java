@@ -185,7 +185,7 @@ public class DASemantextTest {
 		Insert f2 = st.insert("a_role_func")
 				.nv("funcId", "000002");
 		Insert newuser = st.insert("a_roles")
-				.nv("roleId", "AUTO") // overridden by semantics.xml
+				// .nv("roleId", "AUTO") // overridden by semantics.xml
 				.nv("roleName", "Co-funder")
 				.post(f1)
 				.post(f2);
@@ -612,23 +612,23 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		String dt = DateFormat.format(new Date());
 		ISemantext s0 = st.instancontxt(connId, usr);
 		st.insert("b_alarms", usr)
-				.nv("remarks", Funcall.now())
-				.nv("typeId", "02-alarm")
+		  .nv("remarks", Funcall.now())
+		  .nv("typeId", "02-alarm")
 
-				.post(st.insert("b_alarm_logic")	// child of b_alarms, auto key: logicId
-						.nv("remarks", "R1 " + dt)
-						.post(st.insert("b_logic_device")
-								.nv("remarks", "R1''s device 1.1"))
-						.post(st.insert("b_logic_device")
-								.nv("remarks", "R1''s ddevice 1.2"))
+		  .post(st.insert("b_alarm_logic")	// child of b_alarms, auto key: logicId
+				  .nv("remarks", "R1 " + dt)
+				  .post(st.insert("b_logic_device")
+						  .nv("remarks", "R1's device 1.1"))
+				  .post(st.insert("b_logic_device")
+						  .nv("remarks", "R1's ddevice 1.2"))
 
-						.post(st.insert("b_alarm_logic")
-								.nv("remarks", "L2 " + dt)
-								.post(st.insert("b_logic_device")
-										.nv("remarks", "L2''s device 2.1"))
-								.post(st.insert("b_logic_device")
-										.nv("remarks", "L2''s device 2.2"))
-				)).ins(s0);
+				  .post(st.insert("b_alarm_logic")
+						  .nv("remarks", "L2 " + dt)
+						  .post(st.insert("b_logic_device")
+								  .nv("remarks", "L2's device 2.1"))
+						  .post(st.insert("b_logic_device")
+								  .nv("remarks", "L2's device 2.2"))
+			)).ins(s0);
 
 		// let's findout the last inserted into b_logic_device
 		SemanticObject res = st.select("b_logic_device", "d")
@@ -639,7 +639,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		rs.beforeFirst().next();
 		// the max deviceLogId should be in s0.
 		assertEquals(s0.resulvedVal("b_logic_device", "deviceLogId"), rs.getString("dlid"));
-		// Utils.warn("What's about update parent?");
 	}
 	
 	@Test

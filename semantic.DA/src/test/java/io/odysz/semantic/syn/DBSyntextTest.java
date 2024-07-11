@@ -110,31 +110,31 @@ public class DBSyntextTest {
 		nyqm = new NyquenceMeta("");
 		for (int s = 0; s < 4; s++) {
 			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", nyqm.tbl));
-			Connects.commit(conns[s], DATranscxt.dummyUser(), NyquenceMeta.ddlSqlite);
+			Connects.commit(conns[s], DATranscxt.dummyUser(), nyqm.ddlSqlite);
 		}
 
 		snm = new SynodeMeta("");
 		for (int s = 0; s < 4; s++) {
 			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", snm.tbl));
-			Connects.commit(conns[s], DATranscxt.dummyUser(), SynodeMeta.ddlSqlite);
+			Connects.commit(conns[s], DATranscxt.dummyUser(), snm.ddlSqlite);
 		}
 
 		chm = new SynChangeMeta();
 		for (int s = 0; s < 4; s++) {
 			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", chm.tbl));
-			Connects.commit(conns[s], DATranscxt.dummyUser(), SynChangeMeta.ddlSqlite);
+			Connects.commit(conns[s], DATranscxt.dummyUser(), chm.ddlSqlite);
 		}
 
 		sbm = new SynSubsMeta();
 		for (int s = 0; s < 4; s++) {
 			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", sbm.tbl));
-			Connects.commit(conns[s], DATranscxt.dummyUser(), SynSubsMeta.ddlSqlite);
+			Connects.commit(conns[s], DATranscxt.dummyUser(), sbm.ddlSqlite);
 		}
 
 		T_PhotoMeta phm = new T_PhotoMeta("");
 		for (int s = 0; s < 4; s++) {
 			Connects.commit(conns[s], DATranscxt.dummyUser(), String.format("drop table if exists %s;", phm.tbl));
-			Connects.commit(conns[s], DATranscxt.dummyUser(), T_PhotoMeta.ddlSqlite);
+			Connects.commit(conns[s], DATranscxt.dummyUser(), phm.ddlSqlite);
 		}
 
 		// initial data
@@ -412,6 +412,7 @@ public class DBSyntextTest {
 		join(X, W);
 		c[X].synodes(X, Y, Z, W);
 
+		@SuppressWarnings("unused")
 		Nyquence n = c[X].nyquence(X);
 		
 		c[X].change(C, c[X].synode, c[X].phm);
@@ -577,7 +578,7 @@ public class DBSyntextTest {
 		public void change(String crud, String eid, SyntityMeta entm) throws TransException, SQLException {
 			AnResultset chg = (AnResultset) trb
 				.select(chm.tbl, "ch")
-				.cols(chm.cols())
+				.cols((Object[])chm.cols())
 				.whereEq(chm.entbl, entm.tbl)
 				.whereEq(chm.entfk, eid)
 				.rs(trb.instancontxt(connId, robot))

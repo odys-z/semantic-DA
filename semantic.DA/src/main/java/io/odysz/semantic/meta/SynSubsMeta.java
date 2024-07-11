@@ -23,11 +23,6 @@ public class SynSubsMeta extends TableMeta {
 	public final String uids;
 	public final String synoder;
 
-	static {
-		// sqlite = "syn_subscribe.sqlite.ddl";
-		ddlSqlite = loadTxt(SynSubsMeta.class, "syn_subscribe.sqlite.ddl");
-	}
-
 	public SynSubsMeta(String ... conn) {
 		super("syn_subscribe", conn);
 		org = "org";
@@ -35,6 +30,8 @@ public class SynSubsMeta extends TableMeta {
 		entbl = "tabl";
 		uids = "uids";
 		synoder = "";
+
+		ddlSqlite = loadTxt(SynSubsMeta.class, "syn_subscribe.sqlite.ddl");
 	}
 
 	public String[] cols() {

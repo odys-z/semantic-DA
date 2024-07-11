@@ -81,6 +81,7 @@ public class ConnectsTest {
 	public void testInsert() throws TransException, SQLException {
 		String flag = DateFormat.format(new Date());
 
+		Utils.warn("Warning for null parent can be ignored here:");
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_functions")
 			.nv("flags", flag)
