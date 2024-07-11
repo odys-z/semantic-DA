@@ -483,7 +483,7 @@ public class DBSyntableTest {
 		int y = ck[Y].photos();
 
 		Utils.logrst("X delete a photo", test, ++no);
-		Object[] xd = deletePhoto(chm, X);
+		Object[] xd = deletePhoto(X);
 		printChangeLines(ck);
 		printNyquv(ck);
 		assertFalse(isNull(xd));
@@ -492,7 +492,7 @@ public class DBSyntableTest {
 		ck[X].photo(x-1);
 
 		Utils.logrst("Y delete a photo", test, ++no);
-		Object[] yd = deletePhoto(chm, Y);
+		Object[] yd = deletePhoto(Y);
 		printChangeLines(ck);
 		printNyquv(ck);
 		assertFalse(isNull(yd));
@@ -825,7 +825,7 @@ public class DBSyntableTest {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	Object[] deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
+	Object[] deletePhoto(int s) throws TransException, SQLException {
 		DBSyntableBuilder t = ck[s].trb;
 		T_PhotoMeta entm = ck[s].phm;
 		AnResultset slt = ((AnResultset) ck[s].trb
