@@ -57,6 +57,7 @@ import static io.odysz.common.LangExt.isNull;
  */
 public class DASemantext implements ISemantext {
 
+	/** FIXME Flat auto resolving pool is not enought! */
 	private SemanticObject autoVals;
 	private static Transcxt rawst;
 
