@@ -8,7 +8,6 @@ import static io.odysz.common.LangExt.trim;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.sql.SQLException;
 import java.util.AbstractSet;
@@ -16,8 +15,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.xml.sax.SAXException;
 
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
@@ -55,10 +52,11 @@ public class DBSynmantics extends DASemantics {
 		if (smtype.synChange == smtp)
 			try {
 				return new DBSynmantics.ShSynChange(
-						new DBSynsactBuilder(tsx.basictx().connId(),
-							"dummy-loader", ((DBSynsactBuilder) tsx).domain(), 0),
+//						new DBSynsactBuilder(tsx.basictx().connId(),
+//							"dummy-loader", ((DBSynsactBuilder) tsx).domain(), 0),
+						tsx,
 						tabl, pk, args);
-			} catch (TransException | SQLException | SAXException | IOException e) {
+			} catch (TransException e) {
 				e.printStackTrace();
 				return null;
 			}
@@ -77,7 +75,7 @@ public class DBSynmantics extends DASemantics {
 		protected final SynodeMeta snm;
 		protected final SynSubsMeta sbm;
 
-		protected final DBSynsactBuilder syb;
+		// protected final DBSynsactBuilder syb;
 
 		/** Ultra high frequency mode, the data frequency need to be reduced with some cost */
 		// private final boolean UHF;
@@ -103,10 +101,10 @@ public class DBSynmantics extends DASemantics {
 
 			// UHF = true;
 			
-			if (trxt instanceof DBSynsactBuilder)
-				syb = (DBSynsactBuilder) trxt;
-			else
-				throw new SemanticException("ShSynChange (xml/smtype=s-c) requires instance of DBSynsactBuilder as the default builder.");
+//			if (trxt instanceof DBSynsactBuilder)
+//				syb = (DBSynsactBuilder) trxt;
+//			else
+//				throw new SemanticException("ShSynChange (xml/smtype=s-c) requires instance of DBSynsactBuilder as the default builder.");
 
 			try {
 				snm = new SynodeMeta(trxt.basictx().connId());
@@ -160,10 +158,10 @@ public class DBSynmantics extends DASemantics {
 				throws SemanticException {
 
 			try {
-				return ((AnResultset) syb.select(target)
+				return ((AnResultset) trxt.select(target)
 					.col(count(pkField), "c")
 					.where(updt.where())
-					.rs(syb.instancontxt(stx.connId(), usr))
+					.rs(trxt.instancontxt(stx.connId(), usr))
 					.rs(0))
 					.nxt()
 					.getInt("c") > 0;
@@ -193,19 +191,19 @@ public class DBSynmantics extends DASemantics {
 
 			verifyRequiredCols(entm.globalIds(), cols.keySet());
 
-			Delete delChg = syb.delete(chm.tbl);
+			Delete delChg = trxt.delete(chm.tbl);
 			for (String c : cols.keySet())
 				// all cols now exists in row (extended by verifyRequiredCols
 				// if (entm.globalIds().contains(c))
 				delChg.whereEq(c, row.get(cols.get(c))[1]);
 
 			
-			Insert insChg = syb.insert(chm.tbl);
+			Insert insChg = trxt.insert(chm.tbl);
 
 			String pid = (String) stx.resulvedVal(args[1], args[2]);
 			String synoder = (String) row.get(cols.get(chm.synoder))[1];
 			try {
-				insChg.select(syb
+				insChg.select(trxt
 						.select(snm.tbl, "s")
 						// .je("s", nyqm.tbl, "ny", snm.org(), nyqm.org(), snm.synode, nyqm.synode)
 						.col(constr(pid))
@@ -216,8 +214,8 @@ public class DBSynmantics extends DASemantics {
 						.whereEq(snm.synoder, synoder));
 
 				// and insert subscriptions, or merge syn_change & syn_subscribe?
-				Insert insubs = syb.insert(sbm.tbl)
-						.select(syb
+				Insert insubs = trxt.insert(sbm.tbl)
+						.select(trxt
 							.select(snm.tbl)
 							.col(snm.synoder, sbm.synodee)
 							//.col(entGID, sbm.uids)
@@ -225,7 +223,7 @@ public class DBSynmantics extends DASemantics {
 							.where(op.ne, snm.synoder, usr.uid())
 							.whereEq(snm.domain, usr.orgId()));
 
-				insChg.post(syb
+				insChg.post(trxt
 						.delete(sbm.tbl)
 						// .whereEq(sbm.domain, usr.orgId())
 						// .whereEq(sbm.uids, usr)
@@ -247,16 +245,16 @@ public class DBSynmantics extends DASemantics {
 			
 			AnResultset row;
 			try {
-				row = (AnResultset) syb
+				row = (AnResultset) trxt
 						.select(target)
 						.where(condt)
 						.groupby(pkField)
-						.rs(syb.instancontxt(stx.connId(), usr))
+						.rs(trxt.instancontxt(stx.connId(), usr))
 						.rs(0);
 
 				while (row.next()) {
-					Delete delChg = syb.delete(chm.tbl);
-					Delete delSub = syb.delete(sbm.tbl);
+					Delete delChg = trxt.delete(chm.tbl);
+					Delete delSub = trxt.delete(sbm.tbl);
 					for (String id : ((SyntityMeta) stx.getTableMeta(target)).globalIds()) {
 						delChg.whereEq(id, row.getString(id));
 						delSub.whereEq(id, row.getString(id)); // TODO sub tabel changed

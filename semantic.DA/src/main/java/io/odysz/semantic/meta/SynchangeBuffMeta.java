@@ -19,7 +19,7 @@ public class SynchangeBuffMeta extends SemanticTableMeta {
 	public final String peer;
 	public final String changeId;
 
-	public final String seq;
+	public final String pagex;
 
 	final SynChangeMeta chm; 
 
@@ -29,10 +29,9 @@ public class SynchangeBuffMeta extends SemanticTableMeta {
 		ddlSqlite = Utils.loadTxt(SynchangeBuffMeta.class, "syn_exchange_buf.sqlite.ddl");
 		this.chm = chm;
 
-		// pk      = "cid";
-		changeId= "changeId";
-		peer    = "peer";
-		seq     = "seq";
+		changeId = "changeId";
+		peer     = "peer";
+		pagex    = "pagex";
 	}
 
 	/** compose function for uids */
@@ -41,7 +40,7 @@ public class SynchangeBuffMeta extends SemanticTableMeta {
 	}
 
 	public String[] insertCols() {
-		return new String[] {peer, changeId, seq};
+		return new String[] {peer, changeId, pagex};
 	}
 
 	public Object[] selectCols(String peer, int seq) {

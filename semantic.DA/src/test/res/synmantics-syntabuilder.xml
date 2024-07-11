@@ -47,8 +47,9 @@
 	<!-- syn_change
 		args: pk, crud-flag, n pk2 ...,         [col-value-on-del, ...]
 		e.g.: pid,crud,      synoder clientpath,exif,uri "",clientpath
+	-->
   	<s>
-  		<id>02</id>
+  		<id>S02</id>
   		<smtc>syn-change</smtc>
   		<tabl>h_photos</tabl>
   		<pk>pid</pk>
@@ -56,13 +57,12 @@
   	</s>
 
   	<s>
-  		<id>11</id>
+  		<id>S03</id>
   		<smtc>s-c</smtc>
   		<tabl>syn_node</tabl>
   		<pk>synid</pk>
   		<args>io.odysz.semantic.meta.SynodeMeta,crud,org synid,remarks</args>
   	</s>
-	-->
 
   </t>
 </semantics>

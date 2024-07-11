@@ -1015,6 +1015,8 @@ public class DASemantics {
 	/**
 	 * Resolve fk reference when inserting children.<br>
 	 * 
+	 * TODO to be tested: multi-level offspring's insertion should be triggered. This is essential to log changes.
+	 * 
 	 * @see smtype#fkIns
 	 */
 	static class ShFkOnIns extends SemanticHandler {
@@ -1067,6 +1069,8 @@ public class DASemantics {
 	 * child-table2\s [2] child pk2 // child 1, without comma ending, space
 	 * separated smtype: {@link smtype#parentChildrenOnDel}
 	 * 
+	 * TODO to be tested: multi-level offspring's deletion should be triggered. This is essential to log changes.
+	 * 
 	 * @author odys-z@github.com
 	 */
 	static class ShPCDelAll extends SemanticHandler {
@@ -1095,8 +1099,7 @@ public class DASemantics {
 		 * 
 		 * @param args
 		 * @param stmt
-		 * @param condt
-		 *            deleting's condition
+		 * @param condt deleting's condition
 		 * @param usr
 		 * @return {@link Delete}
 		 * @throws SemanticException
@@ -1766,6 +1769,12 @@ public class DASemantics {
 		}
 	}
 
+	/**
+	 * TODO to be tested: multi-level offspring's checking is not be triggered. This is not essential to log changes?
+	 * 
+	 * @author odys-z@github.com
+	 *
+	 */
 	static class ShChkPCInsert extends SemanticHandler {
 		public ShChkPCInsert(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.checkSqlCountOnInsert, tabl, recId, args);

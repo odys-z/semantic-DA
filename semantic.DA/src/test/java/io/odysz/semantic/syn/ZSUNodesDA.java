@@ -25,7 +25,7 @@ public class ZSUNodesDA {
 	public final String conn;
 	public final SyncRobot robot;
 	public final String nodeId;
-	public final SynodeMode mode = SynodeMode.hub;
+	public final SynodeMode mode = SynodeMode.peer;
 
 	public final String worker;
 	public String userId;

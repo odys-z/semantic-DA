@@ -43,12 +43,6 @@ public class T_Photo extends T_SyncDoc {
 	public int[] wh;
 	
 	/**
-	 * Composed css json, saved as string.
-	 * @see #css()
-	public String css;
-	 * */
-
-	/**
 	 * Compose a string representing json object for saving in DB.
 	 * The type "io.oz.album.tier.PhotoCSS" doesn't exist at server side (v0.4.18)
 	 * 
@@ -94,7 +88,9 @@ public class T_Photo extends T_SyncDoc {
 		this.collectId = collectId;
 	}
 
-	/**Set client path and syncFlag
+	/**
+	 * Set client path and syncFlag
+	 * 
 	 * @param rs
 	 * @return this
 	 * @throws SQLException
@@ -171,7 +167,7 @@ public class T_Photo extends T_SyncDoc {
 		String b64 = AESHelper.encode64(ifs, 216); // 12 | 216, length = 219
 		uri = b64;
 		while (b64 != null) {
-			b64 = AESHelper.encode64(ifs, 216); // FIXME this will padding useless bytes, what is happening when the file is saved at server side?
+			b64 = AESHelper.encode64(ifs, 216);
 			if (b64 != null)
 				uri += b64;
 		}

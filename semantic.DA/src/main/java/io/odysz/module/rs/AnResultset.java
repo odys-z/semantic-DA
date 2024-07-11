@@ -2,6 +2,7 @@ package io.odysz.module.rs;
 
 import static io.odysz.common.LangExt.split;
 
+import java.io.PrintStream;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -24,6 +25,7 @@ import io.odysz.anson.x.AnsonException;
 import io.odysz.common.DateFormat;
 import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
+import io.odysz.common.Utils;
 import io.odysz.transact.sql.parts.AnDbField;
 
 /**
@@ -902,7 +904,7 @@ for (String coln : colnames.keySet())
 		return set((Integer)colnames.get(colName.toUpperCase())[0], v);
 	}
 
-	/**find the first row that contain a matched value in field <i>col</i>. Matching are done by <i>regex</i>.
+	/**Find the first row that contain a matched value in field <i>col</i>. The matching is done with {@code regex}.
 	 * @param col
 	 * @param regex
 	 * @return row index or 0
@@ -930,40 +932,44 @@ for (String coln : colnames.keySet())
 	 * @return size
 	 */
 	public int printSomeData(boolean err, int max, String... includeCols) {
+		return printSomeData(err ? System.err : System.out, max, includeCols);
+	}
+
+	public int printSomeData(PrintStream out, int max, String... includeCols) {
+		int stack = rowIdx; 
 		try {
-			printHeaders();
+			printHeaders(out);
 			if (includeCols != null && includeCols.length > 0) {
 				if (!"*".equals(includeCols[0])) {
 					for (int ix = 0; ix < includeCols.length; ix++)
-						if (err) System.err.print("\t" + includeCols[ix]);
-						else System.out.print("\t" + includeCols[ix]);
+						out.print("\t" + includeCols[ix]);
 
 					// line feed
-					if (err) System.err.println("");
-					else System.out.println("");
+					out.println("");
 
 					beforeFirst();
 					while (next() && getRow() <= max) {
 						for (String incCol : includeCols) 
-							printcell(err, incCol);
+							printcell(out, incCol);
 						// end line
-						if (err) System.err.println("");
-						else System.out.println("");
+						out.println("");
 					}
 				}
 				else {
 					beforeFirst();
 					while (next() && getRow() <= max) {
 						for (int c = 1; c <= getColCount(); c++) 
-							printcell(err, c);
+							printcell(out, c);
 				
 						// end line
-						if (err) System.err.println("");
-						else System.out.println("");
+						out.println("");
 					}
 				}
 			}
 		} catch (Exception e) {}
+		finally {
+			rowIdx = stack;
+		}
 		return results == null ? 0 : results.size();
 	}
 
@@ -977,25 +983,34 @@ for (String coln : colnames.keySet())
 		return this;
 	}
 
-	private void printcell(boolean err, String c) throws SQLException {
-		if (err)
-			System.err.print("\t" + getString(c));
-		else
-			System.out.print("\t" + getString(c));
+	public AnResultset print(PrintStream out) {
+		printSomeData(out, getRowCount(), "*");
+		return this;
 	}
 
-	private void printcell(boolean err, int c) throws SQLException {
-		if (err)
-			System.err.print(String.format("%s : %s  ", c, getString(c)));
-		else
-			System.out.print(String.format("%s : %s  ", c, getString(c)));
+//	private void printcell(boolean err, String c) throws SQLException {
+//		printcell(err ? System.err : System.out, c);
+//	}
+	
+	private void printcell(PrintStream out, String c) throws SQLException {
+		out.print("\t" + getString(c));
 	}
 
-	private void printHeaders() {
+//	private void printcell(boolean err, int c) throws SQLException {
+//		@SuppressWarnings("resource")
+//		PrintStream out = err ? System.err : System.out;
+//		out.print(String.format("%s : %s  ", c, getString(c)));
+//	}
+
+	private void printcell(PrintStream out, int c) throws SQLException {
+		out.print(String.format("%s : %s  ", c, getString(c)));
+	}
+
+	private void printHeaders(PrintStream out) {
 		for (int c = 0; c < colnames.size(); c++)
-			System.out.print(String.format("%s : %s\t", c + 1, getColumnName(c + 1)));
+			out.print(String.format("%s : %s\t", c + 1, getColumnName(c + 1)));
 
-		System.out.println(String.format("\nrow count: %d", results == null ? 0 : results.size()));
+		out.println(String.format("\nrow count: %d", results == null ? 0 : results.size()));
 	}
 
 	/**Collect fields value that can be used in "IN" condition, e.g. 'v1', 'v2', ...
@@ -1255,5 +1270,32 @@ for (String coln : colnames.keySet())
 	 */
 	public ArrayList<Object> getRowAt() throws SQLException {
 		return getRowAt(getRow() - 1);
+	}
+
+	String[] flatcols;
+	/**
+	 * Get the cached flat column names in the same sequence with rows.
+	 * @return column names, index start at 0
+	 */
+	public String[] getFlatColumns0() {
+		if (flatcols == null && colnames != null) {
+			flatcols = new String[colnames.size()];
+			int cols = colnames.values().stream()
+					.filter(ix -> ix != null)
+					.mapToInt(ix -> {
+						flatcols[(int)ix[0]-1] = (String)ix[1];
+						return 1;
+					})
+					.sum();
+			if (results != null && results.size() > 0 && results.get(0).size() != cols)
+				Utils.warnT(new Object() {}, "Column size (%s) != row.size", cols);
+		}
+		return flatcols;
+	}
+	
+	public ArrayList<Object> getRowById(String id) throws SQLException {
+		if (indices0 == null || !indices0.containsKey(id))
+			throw new SQLException("Call rowIndex0(col) first, and {id} must in it");
+		return results.get(rowIndex0(id));
 	}
 }
