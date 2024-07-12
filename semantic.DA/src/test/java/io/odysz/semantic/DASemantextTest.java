@@ -34,6 +34,7 @@ import io.odysz.common.Regex;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
+import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
@@ -66,10 +67,6 @@ public class DASemantextTest {
 			Utils.printCaller(false);
 
 			File db = new File("src/test/res/semantic-DA.db");
-//			if (db.exists())
-//				if (!db.delete())
-//					fail("can't delete semantic-Da.db");
-//			db.createNewFile();
 			if (!db.exists())
 				fail("Create res/semantic-DA.db, clean project and retry...");
 
@@ -152,28 +149,28 @@ public class DASemantextTest {
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_functions")
 			.nv("flags", flag)
-			.nv("funcId", "AUTO") // Legacy
+			// .nv("funcId", "AUTO") // Legacy
 			.nv("funcName", "testInsert A - " + flag)
 			.nv("parentId", "------")
 			.commit(s0, sqls);
 		
 		// Utils.logi("New ID for a_functions: %s", s0.resulvedVal("a_functions", "funcId"));
-		assertEquals(6, ((String) s0.resulvedVal("a_functions", "funcId")).length());
+		assertEquals(6, ((String) s0.resulvedVal("a_functions", "funcId", -1)).length());
 		
 		// level 2
 		DASemantext s1 = new DASemantext(connId, smtcfg, usr, rtroot);
 		st.insert("a_functions")
 			.nv("flags", flag)
-			.nv("funcId", "AUTO")
+			// .nv("funcId", "AUTO")
 			.nv("funcName", "testInsert B - " + flag)
-			.nv("parentId", (String)s0.resulvedVal("a_functions", "funcId"))
+			.nv("parentId", (String)s0.resulvedVal("a_functions", "funcId", -1))
 			.commit(s1, sqls);
 	
 		// Utils.logi(sqls);
 		Connects.commit(usr , sqls);
 
 		// Utils.logi("New ID for a_functions: %s", s1.resulvedVal("a_functions", "funcId"));
-		assertEquals(6, ((String) s1.resulvedVal("a_functions", "funcId")).length());
+		assertEquals(6, ((String) s1.resulvedVal("a_functions", "funcId", -1)).length());
 	}
 
 	@Test
@@ -193,7 +190,7 @@ public class DASemantextTest {
 		Connects.commit(usr , sqls);
 		
 		DASemantext s1 = new DASemantext(connId, smtcfg, usr, rtroot);
-		String newId = (String) s0.resulvedVal("a_roles", "roleId");
+		String newId = (String) s0.resulvedVal("a_roles", "roleId", -1);
 		SemanticObject s = st
 				.select("a_role_func", "rf")
 				.col("count(funcId)", "cnt")
@@ -212,7 +209,7 @@ public class DASemantextTest {
 		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_functions")
-			.nv("funcId", "AUTO")
+			// .nv("funcId", "AUTO")
 			.nv("funcName", "testInsert A - ")
 			.nv("parentId", "------")
 			// for root inserted by a_functions.sql, fullpath = '-.000'
@@ -220,23 +217,23 @@ public class DASemantextTest {
 
 		Connects.commit(usr , sqls); // must insert - parent exists when compose children's fullpaths
 		
-		String parentId = (String) s0.resulvedVal("a_functions", "funcId");
+		String parentId = (String) s0.resulvedVal("a_functions", "funcId", -1);
 
 		st.insert("a_functions")
-			.nv("funcId", "AUTO")
+			// .nv("funcId", "AUTO")
 			.nv("funcName", "testInsert A - ")
 			.nv("parentId", parentId)
 			.nv("sibling", "1")
 			.commit(s0, sqls);
 
 		st.insert("a_functions")
-			.nv("funcId", "AUTO")
+			// .nv("funcId", "AUTO")
 			.nv("funcName", "testInsert A - ")
 			.nv("parentId", parentId)
 			.nv("sibling", "2")
 			.commit(s0, sqls);
 
-		Regex reg = new Regex("insert into a_functions  \\(funcId, funcName, parentId, fullpath\\) values \\('.{6}', 'testInsert A - ', '------', '-.000'\\)");
+		Regex reg = new Regex("insert into a_functions \\(funcName, parentId, funcId, fullpath\\) values \\('testInsert A - ', '------', '\\d{6}', '-.000'\\)");
 		assertTrue(reg.match(sqls.get(0)), sqls.get(0));
 
 		reg = new Regex(".*000.001'\\)");
@@ -266,6 +263,10 @@ public class DASemantextTest {
 			.nv("org",     "zsu.ua")
 			.ins(st.instancontxt(connId, usr));
 	
+		assertEquals("synode0",
+			DATranscxt.getHandler(connId, "doc_devices", smtype.autoInc).args[1],
+			"Check configuration: synode0");
+
 		st.insert(tbl, usr)
 			// synode0 == null, will hard code 'synode0'
 			.nv("devname", devname)
@@ -281,9 +282,9 @@ public class DASemantextTest {
 			.rs(0)).nxt();
 		
 		// oz_autoseq.sql: ('doc_devices.device', 64 * 64 * 4, 'device');
-		assertEquals("1.4.34.000401", rs.getString("device"));
+		assertEquals("1.4.34.000G01", rs.getString("device"));
 		rs.next();
-		assertEquals("synode0.000402", rs.getString("device"));
+		assertEquals("synode0.000G02", rs.getString("device"));
 	}
 
 	/**Test cross referencing auto k.<br>
@@ -312,19 +313,19 @@ public class DASemantextTest {
 				.post(f1)
 				.commit(s0, sqls);
 		
-		String aid = (String) s0.resulvedVal("crs_a", "aid");
-		String bid = (String) s0.resulvedVal("crs_b", "bid");
+		String aid = (String) s0.resulvedVal("crs_a", "aid", -1);
+		String bid = (String) s0.resulvedVal("crs_b", "bid", -1);
 
 		assertEquals(String.format(
-			"update  crs_b  set bfk='%s' where bid = '%s' ",
+			"update crs_b set bfk='%s' where bid = '%s'",
 			aid, bid),
 			sqls.get(2));
 		assertEquals(String.format(
-			"insert into crs_a  (remarka, fundDate, testInt, aid, afk) values (datetime('now'), '1776-07-04', 100, '%s', '%s')",
+			"insert into crs_a (remarka, fundDate, testInt, aid, afk) values (datetime('now'), '1776-07-04', 100, '%s', '%s')",
 			aid, bid),
 			sqls.get(1));
 		assertEquals(String.format(
-			"insert into crs_b  (remarkb, bid) values (datetime('now'), '%s')",
+			"insert into crs_b (remarkb, bid) values (datetime('now'), '%s')",
 			bid),// s0.resulvedVal("crs_a", "aid")),
 			sqls.get(0));
 
@@ -337,7 +338,7 @@ public class DASemantextTest {
 			.nv("fundDate", "1911-10-10")
 			.where("=", "testInt", "100")
 			.commit(s0, sqls);
-		assertEquals("update  crs_a  set fundDate='1911-10-10' where testInt = 100 ",
+		assertEquals("update crs_a set fundDate='1911-10-10' where testInt = 100",
 					sqls.get(0));
 		
 		sqls.clear();
@@ -351,7 +352,7 @@ public class DASemantextTest {
 
 		// insert into crs_b  (remarkb, bid) values ('1911-10-10', '00000p')
 		// update crs_a  set remarka='update child' where bid = '00000o'
-		bid = (String) s1.resulvedVal("crs_b", "bid");
+		bid = (String) s1.resulvedVal("crs_b", "bid", -1);
 		assertEquals(2, sqls.size());
 		assertEquals(String.format(
 				"insert into crs_b  (remarkb, bid) values ('1911-10-10', '%s')",
@@ -388,7 +389,7 @@ public class DASemantextTest {
 		Connects.commit(usr , sqls);
 		sqls.clear();
 		
-		String usrId = (String)s0.resulvedVal("a_users", "userId");
+		String usrId = (String)s0.resulvedVal("a_users", "userId", -1);
 		
 		st.select("a_users", "u")
 			.where("=", "userId", "'" + usrId + "'")
@@ -498,7 +499,7 @@ public class DASemantextTest {
 			.post(rf1).post(rf2)
 			.ins(s1);
 		
-		String newRoleId = (String)s1.resulvedVal("a_roles", "roleId");
+		String newRoleId = (String)s1.resulvedVal("a_roles", "roleId", -1);
 		SemanticObject cnt = st.select("a_roles", "r")
 			.col("count(r.roleId)", "cnt")
 			.j("a_role_func", "rf", "rf.roleId = r.roleId")
@@ -633,12 +634,12 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// let's findout the last inserted into b_logic_device
 		SemanticObject res = st.select("b_logic_device", "d")
 			.col("max(deviceLogId)", "dlid")
-			.where_("=", "alarmId", s0.resulvedVal("b_alarms", "alarmId"))
+			.where_("=", "alarmId", s0.resulvedVal("b_alarms", "alarmId", -1))
 			.rs(st.instancontxt(connId, usr));
 		AnResultset rs = (AnResultset) res.rs(0);
 		rs.beforeFirst().next();
 		// the max deviceLogId should be in s0.
-		assertEquals(s0.resulvedVal("b_logic_device", "deviceLogId"), rs.getString("dlid"));
+		assertEquals(s0.resulvedVal("b_logic_device", "deviceLogId", -1), rs.getString("dlid"));
 	}
 	
 	@Test
@@ -655,14 +656,14 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 								.nv("remarks", "L2 " + dt)
 				)).commit(s0, sqls);
 
-		assertEquals(String.format("insert into b_alarms  (remarks, typeId, alarmId) values (datetime('now'), '02-alarm', '%s')",
-				s0.resulvedVal("b_alarms", "alarmId")),
+		assertEquals(String.format("insert into b_alarms (remarks, typeId, alarmId) values (datetime('now'), '02-alarm', '%s')",
+				s0.resulvedVal("b_alarms", "alarmId", -1)),
 				sqls.get(0));
 		// the first insert b_alarm_logic must correct if following is ok.
 		// Utils.logi(sqls.get(1));
-		String alarmId = (String) s0.resulvedVal("b_alarms", "alarmId");
-		assertEquals(String.format("insert into b_alarm_logic  (remarks, logicId, alarmId) values ('L2 %s', '%s', '%s')",
-				dt, s0.resulvedVal("b_alarm_logic", "logicId"), alarmId),
+		String alarmId = (String) s0.resulvedVal("b_alarms", "alarmId", -1);
+		assertEquals(String.format("insert into b_alarm_logic (remarks, logicId, alarmId) values ('L2 %s', '%s', '%s')",
+				dt, s0.resulvedVal("b_alarm_logic", "logicId", -1), alarmId),
 				sqls.get(2));
 		
 		// Note Jun 21, 2021, FIXME can we support this?
@@ -685,8 +686,8 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// update b_alarms  set remarks='updated' where alarmId = '000010'
 		// delete from b_alarm_logic where alarmId = '000010'
 		// insert into b_alarm_logic  (remarks, alarmId, logicId) values ('L3 2019-05-20', '000010', '00003N')
-		assertEquals(String.format("insert into b_alarm_logic  (remarks, alarmId, logicId) values ('L3 %s', '%s', '%s')",
-				dt, alarmId, s1.resulvedVal("b_alarm_logic", "logicId")),
+		assertEquals(String.format("insert into b_alarm_logic (remarks, alarmId, logicId) values ('L3 %s', '%s', '%s')",
+				dt, alarmId, s1.resulvedVal("b_alarm_logic", "logicId", -1)),
 				sqls.get(2));
 	}
 	
@@ -707,8 +708,8 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 								.nv("remarks", "L2 " + dt)
 				)).commit(s0, sqls);
 
-		assertEquals(String.format("insert into b_alarms  (remarks, typeId, alarmId) values (datetime('now'), '02-alarm', '%s')",
-				s0.resulvedVal("b_alarms", "alarmId")),
+		assertEquals(String.format("insert into b_alarms (remarks, typeId, alarmId) values (datetime('now'), '02-alarm', '%s')",
+				s0.resulvedVal("b_alarms", "alarmId", -1)),
 				sqls.get(0));
 	}
 
@@ -742,7 +743,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 
 		assertTrue(sqls.get(0).endsWith(String.format(
 				"datetime('now'), 'tester'), ('att2', null, 'test 2', 'deleting', '%s', datetime('now'), 'tester')",
-				s0.resulvedVal("a_attaches", "attId"))));
+				s0.resulvedVal("a_attaches", "attId", -1))));
 	}
 
 	/**
@@ -916,17 +917,17 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// insert into a_attaches  (attName, busiTbl, uri, attId, busiId, optime, oper)
 		// values ('Sun Yet-sen Portrait.jpg', 'a_user', 'uploads/a_user/00001C Sun Yet-sen Portrait.jpg', '00001C', '00001R', datetime('now'), 'tester')
 		assertEquals(String.format(
-				"insert into a_attaches  (attName, busiTbl, busiId, uri, attId, optime, oper) " +
+				"insert into a_attaches (attName, busiTbl, busiId, uri, attId, optime, oper) " +
 				"values ('Sun Yet-sen Portrait.jpg', 'a_users', '%1$s', 'uploads/a_users/%2$s/%3$s Sun Yet-sen Portrait.jpg', '%3$s', datetime('now'), 'tester')",
-				s0.resulvedVal("a_users", "userId"),
+				s0.resulvedVal("a_users", "userId", -1),
 				"res",
-				s0.resulvedVal("a_attaches", "attId")),
+				s0.resulvedVal("a_attaches", "attId", -1)),
 				sqls.get(1));
 		Connects.commit(usr , sqls);
 
 		sqls.clear();
 		
-		String attId = (String)s0.resulvedVal("a_attaches", "attId");
+		String attId = (String)s0.resulvedVal("a_attaches", "attId", -1);
 		
 		// v0.9.8 also test select union with extFile
 		Query q = st.select("a_attaches", "f2")
@@ -995,7 +996,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.commit(sqls);
 		
 		assertEquals(2, sqls.size());
-		assertEquals("delete from a_attaches where busiId  in ( select userId from a_users  where userId = 'fake-userId' ) AND busiTbl = 'a_users'",
+		assertEquals("delete from a_attaches where busiId in  ( select userId from a_users  where userId = 'fake-userId' ) AND busiTbl = 'a_users'",
 				sqls.get(0));
 		assertEquals("delete from a_users where userId = 'fake-userId'",
 				sqls.get(1));
@@ -1022,17 +1023,17 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.commit(s0, sqls);
 
 		assertEquals(String.format(
-				"insert into h_photos  (family, shareby, folder, pname, uri, pid) " +
+				"insert into h_photos (family, shareby, folder, pname, uri, pid) " +
 				"values ('zsu.ua', 'ody', '2022-10', 'Sun Yet-sen.jpg', " +
 				"'uploads/zsu.ua/ody/2022-10/%1$s Sun Yet-sen.jpg', " +
 				"'%1$s')",
-				s0.resulvedVal("h_photos", "pid")),
+				s0.resulvedVal("h_photos", "pid", -1)),
 				sqls.get(0));
 		Connects.commit(usr , sqls);
 
 		sqls.clear();
 		
-		String pid = (String)s0.resulvedVal("h_photos", "pid");
+		String pid = (String)s0.resulvedVal("h_photos", "pid", -1);
 		
 		AnResultset rs = (AnResultset) st
 			.select("h_photos", "f2")
