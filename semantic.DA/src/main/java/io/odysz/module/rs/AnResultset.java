@@ -53,12 +53,11 @@ public class AnResultset extends Anson {
 	/**
 	 * current row index
 	 * @since 1.4.25
-	 * @return
+	 * @return current row index
 	 */
 	public int currentRow() { return rowIdx; }
 	private int rowCnt = 0;
 
-	// TODO docs
 	@AnsonField(valType="java.util.ArrayList")
 	private ArrayList<ArrayList<Object>> results;
 
@@ -942,7 +941,7 @@ for (String coln : colnames.keySet())
 	 * @since 1.4.12
 	 * @param keyField value of the field name used for map's key
 	 * @param objCreator object creator (mapper)
-	 * @return
+	 * @return objects' map
 	 * @return the hash map
 	 * @throws SQLException
 	 */
@@ -997,15 +996,4 @@ for (String coln : colnames.keySet())
 		else
 			return null;
 	}
-
-//	/**
-//	 * Force escape all value from db.
-//	 */
-//	@Override
-//	public Anson toBlock(OutputStream stream, JsonOpt... opts) throws AnsonException, IOException {
-//		if (isNull(opts))
-//			opts = new JsonOpt[] {new JsonOpt()};
-//		opts[0].escape4DB(true);
-//		return super.toBlock(stream, opts);
-//	}
 }

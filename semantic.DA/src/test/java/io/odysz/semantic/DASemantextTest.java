@@ -237,9 +237,9 @@ public class DASemantextTest {
 		assertTrue(reg.match(sqls.get(0)), sqls.get(0));
 
 		reg = new Regex(".*000.001'\\)");
-		assertTrue(reg.match(sqls.get(1)));
+		assertTrue(reg.match(sqls.get(1)), ".*000.001'\\)");
 		reg = new Regex(".*000.002'\\)");
-		assertTrue(reg.match(sqls.get(2)));
+		assertTrue(reg.match(sqls.get(2)), ".*000.002'\\)");
 	}
 	
 	/**
