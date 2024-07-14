@@ -224,6 +224,7 @@ public class DATranscxt extends Transcxt {
 			// Since v1.4.12, table stamps is handled here
 			sctx.onCommitted(sctx, tabl);
 
+			// return new SemanticObject().addInts("total", r).put("resulved", sctx.resulves());
 			return new SemanticObject().addInts("total", r).put("resulved", sctx.resulves());
 		});
 		return i;

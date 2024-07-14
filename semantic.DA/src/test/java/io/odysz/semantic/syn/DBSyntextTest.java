@@ -698,7 +698,7 @@ public class DBSyntextTest {
 			.nv(m.folder, robot.uid())
 			.nv(m.shareDate, now())
 			.ins(trb.instancontxt(conn, robot)))
-			.resulve(entm);
+			.resulve(entm, -1);
 		
 		assertFalse(isblank(pid));
 		
@@ -708,7 +708,7 @@ public class DBSyntextTest {
 			.nv(chm.entbl, m.tbl)
 			.nv(chm.crud, CRUD.C)
 			.nv(chm.synoder, synoder)
-			.nv(chm.uids, concatstr(synoder, chm.UIDsep, pid))
+			.nv(chm.uids, concatstr(synoder, SynChangeMeta.UIDsep, pid))
 			.nv(chm.nyquence, trb.n0().n)
 			.nv(chm.domain, trb.domain())
 			.post(trb.insert(sbm.tbl)
@@ -724,10 +724,10 @@ public class DBSyntextTest {
 					.where(op.ne, snm.synoder, constr(trb.synode()))
 					.whereEq(snm.domain, trb.domain())))
 			.ins(trb.instancontxt(conn, robot)))
-			.resulve(chm);
+			.resulve(chm, -1);
 		
 		// return pid;
-		return new String[] {pid, chid, chm.uids(synoder, pid)};
+		return new String[] {pid, chid, SynChangeMeta.uids(synoder, pid)};
 	}
 	
 	String deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
@@ -746,7 +746,7 @@ public class DBSyntextTest {
 			.whereEq(chgm.uids, pid)
 			// TODO .post()
 			.d(ck[s].trb.instancontxt(conns[s], ck[s].robot())))
-			.resulve(ck[s].phm.tbl, ck[s].phm.pk);
+			.resulve(ck[s].phm.tbl, ck[s].phm.pk, -1);
 		
 		assertFalse(isblank(pid));
 		return pid;
@@ -777,7 +777,7 @@ public class DBSyntextTest {
 			entm.resname, String.format("%s,%04d", (pname == null ? "" : pname), t.n0().n),
 			entm.createDate, now());
 
-		return new String[] {pid, chgid, synodr + chm.UIDsep + pid};
+		return new String[] {pid, chgid, synodr + SynChangeMeta.UIDsep + pid};
 	}
 	
 	/**
@@ -877,7 +877,7 @@ public class DBSyntextTest {
 			if (synoder != null)
 				q.whereEq(chm.synoder, synoder);
 			if (eid != null)
-				q.whereEq(chm.uids, synoder + chm.UIDsep + eid);
+				q.whereEq(chm.uids, synoder + SynChangeMeta.UIDsep + eid);
 
 			AnResultset chg = (AnResultset) q
 					.rs(trb.instancontxt(connId(), robot()))

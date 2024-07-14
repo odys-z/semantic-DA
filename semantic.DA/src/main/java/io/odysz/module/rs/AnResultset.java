@@ -64,12 +64,11 @@ public class AnResultset extends Anson {
 	/**
 	 * current row index, start from 1. If used for {@link #getRowAt(int)}, must - 1.
 	 * @since 1.4.25
-	 * @return
+	 * @return current row index
 	 */
 	public int currentRow() { return rowIdx; }
 	private int rowCnt = 0;
 
-	// TODO docs
 	@AnsonField(valType="java.util.ArrayList")
 	ArrayList<ArrayList<Object>> results;
 
@@ -1121,7 +1120,7 @@ for (String coln : colnames.keySet())
 	 * @since 1.4.12
 	 * @param keyField value of the field name used for map's key
 	 * @param objCreator object creator (mapper)
-	 * @return
+	 * @return objects' map
 	 * @return the hash map
 	 * @throws SQLException
 	 */

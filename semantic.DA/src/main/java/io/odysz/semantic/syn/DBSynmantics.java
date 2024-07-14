@@ -200,7 +200,7 @@ public class DBSynmantics extends DASemantics {
 			
 			Insert insChg = trxt.insert(chm.tbl);
 
-			String pid = (String) stx.resulvedVal(args[1], args[2]);
+			String pid = (String) stx.resulvedVal(args[1], args[2], -1);
 			String synoder = (String) row.get(cols.get(chm.synoder))[1];
 			try {
 				insChg.select(trxt

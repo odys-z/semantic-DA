@@ -765,8 +765,8 @@ public class DBSyntableBuilder extends DATranscxt {
 						.whereEq(synm.domain, rob.domain))))
 			.ins(instancontxt(conn, rob)));
 
-		String phid = u.resulve(m);
-		String chid = u.resulve(chgm);
+		String phid = u.resulve(m, -1);
+		String chid = u.resulve(chgm, -1);
 		return new String[] {phid, chid};
 	}
 
@@ -796,7 +796,7 @@ public class DBSyntableBuilder extends DATranscxt {
 						.where(op.ne, synm.synoder, constr(synode()))
 						.whereEq(synm.domain, domain()))))
 			.u(instancontxt(basictx.connId(), synrobot()))
-			.resulve(chgm.tbl, chgm.pk);
+			.resulve(chgm.tbl, chgm.pk, -1);
 		return chgid;
 	}
 	
@@ -1034,7 +1034,7 @@ public class DBSyntableBuilder extends DATranscxt {
 						.where(op.ne, synm.synoder, constr(childId))
 						.whereEq(synm.domain, domain()))))
 			.ins(instancontxt(basictx.connId(), robot)))
-			.resulve(chgm.tbl, chgm.pk);
+			.resulve(chgm.tbl, chgm.pk, -1);
 		
 		nyquvect.put(apply.synodeId, new Nyquence(apply.nyquence));
 

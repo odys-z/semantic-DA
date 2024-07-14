@@ -1,6 +1,6 @@
 -- drop table if exists a_role_func;
 
 CREATE TABLE a_role_func(
-  roleId TEXT(20) not null,
+  roleId TEXT(20),
   funcId TEXT(20) not null
 );

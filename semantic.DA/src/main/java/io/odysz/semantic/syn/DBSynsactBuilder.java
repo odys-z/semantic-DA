@@ -1298,7 +1298,7 @@ public class DBSynsactBuilder extends DATranscxt {
 						.where(op.ne, synm.synoder, constr(childId))
 						.whereEq(synm.domain, domain))))
 			.ins(instancontxt(basictx.connId(), robot)))
-			.resulve(chgm.tbl, chgm.pk);
+			.resulve(chgm.tbl, chgm.pk, -1);
 		
 		nyquvect.put(apply.synodeId, new Nyquence(apply.nyquence));
 
@@ -1398,7 +1398,7 @@ public class DBSynsactBuilder extends DATranscxt {
 						.where(op.ne, synm.synoder, constr(synode()))
 						.whereEq(synm.domain, domain()))))
 			.u(instancontxt(basictx.connId(), synrobot()))
-			.resulve(chgm.tbl, chgm.pk);
+			.resulve(chgm.tbl, chgm.pk, -1);
 		return chgid;
 	}
 }

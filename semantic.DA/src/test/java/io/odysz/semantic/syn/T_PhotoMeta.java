@@ -20,6 +20,8 @@ public class T_PhotoMeta extends T_DocTableMeta {
 
 		exif = "exif";
 		synoder = "device";
+
+		ddlSqlite = loadTxt(T_PhotoMeta.class, "h_photos.sqlite.ddl");
 	}
 
 	public String device() { return synoder; }
