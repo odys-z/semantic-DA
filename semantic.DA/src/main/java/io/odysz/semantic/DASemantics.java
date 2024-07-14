@@ -977,11 +977,10 @@ public class DASemantics {
 			// prefix
 			String prefix = "";
 			if (prefixCols != null)
-				for (String precol : prefixCols)
+				for (String precol : prefixCols) {
+					if (prefix.length() > 0)
+						prefix += ".";
 					if (cols.containsKey(precol)) {
-						if (prefix.length() > 0)
-							prefix += ".";
-
 						Object[] v = row.get(cols.get(precol));
 						if (v[1] instanceof AbsPart)
 							try {
@@ -992,7 +991,9 @@ public class DASemantics {
 							}
 						else prefix += v[1] == null ? "" : v[1].toString();
 					}
-
+					else
+						prefix += precol;
+				}
 			try {
 				/*
 				Object alreadyResulved = stx.resulvedVal(target, args[0]);

@@ -355,10 +355,10 @@ public class DASemantextTest {
 		bid = (String) s1.resulvedVal("crs_b", "bid", -1);
 		assertEquals(2, sqls.size());
 		assertEquals(String.format(
-				"insert into crs_b  (remarkb, bid) values ('1911-10-10', '%s')",
+				"insert into crs_b (remarkb, bid) values ('1911-10-10', '%s')",
 				bid), sqls.get(0));
 		assertEquals(String.format(
-				"update  crs_a  set remarka='update child' where bid = '%s' ",
+				"update crs_a set remarka='update child' where bid = '%s'",
 				bid), sqls.get(1));
 	}
 
@@ -421,7 +421,8 @@ public class DASemantextTest {
 		String rootK = DATranscxt.key("user-pswd");
 		if (rootK == null) {
 			// mvn clean test -Drootkey=*******
-			fail("Please set a 16 bytes rootkey!\nFor maven testing: mvn test -Drootkey=*******");
+			Utils.warn("Please set a 16 bytes rootkey!\nFor maven testing: mvn test -Drootkey=*******");
+			rootK = "odys-z.github.io";
 		}
 
 		byte[] iv = AESHelper.getRandom();
@@ -434,7 +435,7 @@ public class DASemantextTest {
 			.nv("userName", "dencrypt " + flag)
 			.nv("iv", iv64)
 			.nv("pswd", pswdCipher)
-			.ins(s2)).resulve("a_users", "userId");
+			.ins(s2)).resulve("a_users", "userId", -1);
 		
 		// String usr3 = (String) s2.resulvedVal("a_users", "userId");
 		rs = (AnResultset) st.select("a_users", "u")

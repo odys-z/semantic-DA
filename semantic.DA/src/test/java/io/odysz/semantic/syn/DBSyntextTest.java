@@ -503,7 +503,7 @@ public class DBSyntextTest {
 			.nv(m.folder, c[s].robot.uid())
 			.nv(m.shareDate, now())
 			.ins(trbs[s].instancontxt(conns[s], c[s].robot)))
-			.resulve(c[s].phm.tbl, c[s].phm.pk);
+			.resulve(c[s].phm.tbl, c[s].phm.pk, -1);
 		
 		assertFalse(isblank(pid));
 		
