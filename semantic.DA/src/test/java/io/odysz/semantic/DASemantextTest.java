@@ -632,7 +632,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 								  .nv("remarks", "L2's device 2.2"))
 			)).ins(s0);
 
-		// let's findout the last inserted into b_logic_device
+		// let's find out the last inserted into b_logic_device
 		SemanticObject res = st.select("b_logic_device", "d")
 			.col("max(deviceLogId)", "dlid")
 			.where_("=", "alarmId", s0.resulvedVal("b_alarms", "alarmId", -1))
