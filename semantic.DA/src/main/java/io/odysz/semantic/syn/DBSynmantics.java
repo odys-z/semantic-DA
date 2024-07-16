@@ -8,6 +8,7 @@ import static io.odysz.common.LangExt.trim;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.sql.SQLException;
 import java.util.AbstractSet;
@@ -16,10 +17,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.xml.sax.SAXException;
+
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DASemantics;
+import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -31,6 +35,7 @@ import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
+import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
@@ -51,11 +56,9 @@ public class DBSynmantics extends DASemantics {
 			String pk, String[] args) throws SemanticException {
 		if (smtype.synChange == smtp)
 			try {
-				return new DBSynmantics.ShSynChange(
+				return new DBSynmantics.ShSynChange(tsx, synodeCfg(), tabl, pk, args);
 //						new DBSynsactBuilder(tsx.basictx().connId(),
 //							"dummy-loader", ((DBSynsactBuilder) tsx).domain(), 0),
-						tsx,
-						tabl, pk, args);
 			} catch (TransException e) {
 				e.printStackTrace();
 				return null;
@@ -64,12 +67,207 @@ public class DBSynmantics extends DASemantics {
 			return super.parseHandler(tsx, tabl, smtp, pk, args);
 	}
 	
+	/**
+	 * Get synode id from configuration or environment.
+	 * @return synode id
+	 * @throws SemanticException failed
+	 */
+	String synodeCfg() throws SemanticException {
+		throw new SemanticException ("TODO");
+	}
+
 	@Override
 	public SynmanticsMap createSMap(String conn) {
 		return new SynmanticsMap(conn);
 	}
+	
+	public static Insert logChange(DBSyntableBuilder b, Insert inst,
+			SynodeMeta synm, SynChangeMeta chgm, SynSubsMeta subm, SyntityMeta entm,
+			String synode, Object pid) throws TransException {
+		Update u = b.update(entm.tbl);
+		if (pid instanceof Resulving)
+			u.nv(entm.synuid, SynChangeMeta.uids(synode, (Resulving)pid));
+		else
+			u.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
+
+		Insert insc = b.insert(chgm.tbl)
+				.nv(chgm.entbl, entm.tbl)
+				.nv(chgm.crud, CRUD.C)
+				.nv(chgm.synoder, b.synode())
+				// .nv(chgm.uids, SynChangeMeta.uids(b.synode(), pid))
+				.nv(chgm.nyquence, b.stamp.n)
+				.nv(chgm.seq, b.incSeq())
+				.nv(chgm.domain, b.domain())
+				.post(b.insert(subm.tbl)
+					.cols(subm.insertCols())
+					.select((Query) b.select(synm.tbl)
+						.col(new Resulving(chgm.tbl, chgm.pk))
+						.col(synm.synoder)
+						.where(op.ne, synm.synoder, constr(b.synode()))
+						.whereEq(synm.domain, b.domain())));
+		if (pid instanceof Resulving)
+			insc.nv(chgm.uids, SynChangeMeta.uids(b.synode(), (Resulving)pid));
+		else
+			insc.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
+
+		return inst
+			.post(u.whereEq(entm.pk, pid))
+			.post(insc);
+	}
+
+	public static Update logChange(DBSyntableBuilder b, Update update,
+			SynodeMeta synm, SynChangeMeta chgm, SynSubsMeta subm, SyntityMeta entm,
+			String synoder, String synuid) {
+		return update;
+	}
 
 	public static class ShSynChange extends SemanticHandler {
+		static String apidoc = "TODO ...";
+		protected final SynChangeMeta chm;
+		protected final SynodeMeta snm;
+		protected final SynSubsMeta sbm;
+
+		/**
+		 * Target synchronzed table meta, e.g. PhotoMeta.
+		 */
+		protected final SyntityMeta entm;
+		protected final Resulving entId;
+		protected final String synode;
+		
+		protected final DATranscxt st;
+
+		ShSynChange(Transcxt trxt, String synode, String tabl, String pk, String[] args)
+				throws SemanticException, SQLException, SAXException, IOException {
+			super(trxt, smtype.synChange, tabl, pk, args);
+			insert = true;
+			update = true;
+			delete = true;
+
+			this.synode = synode;
+			st = new DATranscxt(null);
+			
+			try {
+				snm = new SynodeMeta(trxt.basictx().connId());
+			} catch (TransException e) {
+				e.printStackTrace();
+				throw new SemanticException(e.getMessage());
+			}
+			chm = new SynChangeMeta();
+			sbm = new SynSubsMeta(chm);
+			
+			TableMeta m = trxt.tableMeta(tabl);
+			if (!eq(args[0], m.getClass().getName())) {
+				try {
+					Class<?> cls = Class.forName(args[0]);
+					Constructor<?> constructor = cls.getConstructor(String.class);
+					entm = (SyntityMeta) constructor.newInstance(trxt.basictx().connId());
+					entm.replace();
+				} catch (ReflectiveOperationException | TransException | SQLException e) {
+					Utils.warn("Error to create instance of table meta: %s", args[0]);
+					e.printStackTrace();
+					throw new SemanticException(e.getMessage());
+				}
+			}
+			else entm = (SyntityMeta) m;
+			// entflag = trim(args[1]);
+			entId = new Resulving(entm.tbl, entm.pk);
+		}
+
+		protected void onInsert(ISyncontext stx, Insert insrt,
+				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws TransException {
+			if (verbose) Utils.logi("synChange: onInsert ...");
+
+			verifyRequiredNvs(entm.globalIds(), cols, row);
+
+			// logInsert(stx, insrt, row, cols, usr);
+			logChange(stx.synbuilder(), insrt, snm, chm, sbm, entm, synode, usr);
+//			insrt
+//			  .post(st.update(entm.tbl)
+//				.nv(entm.synuid, SynChangeMeta.uids(synode, entId))
+//				.whereEq(entm.pk, entId))
+//			  .post(st.insert(chm.tbl)
+//				.nv(chm.entbl, entm.tbl)
+//				.nv(chm.crud, CRUD.C)
+//				.nv(chm.synoder, synode)
+//				.nv(chm.uids, SynChangeMeta.uids(synode, entId))
+//				.nv(chm.nyquence, stx.stamp().n)
+//				.nv(chm.seq, stx.incSeq())
+//				.nv(chm.domain, stx.domain())
+//				.post(st.insert(sbm.tbl)
+//					.cols(sbm.insertCols())
+//					.select((Query) st.select(snm.tbl)
+//						.col(new Resulving(chm.tbl, chm.pk))
+//						.col(snm.synoder)
+//						.where(op.ne, snm.synoder, constr(synode))
+//						.whereEq(snm.domain, stx.domain()))))
+			;
+		}
+		
+		static void postChangeLog() {
+			
+		}
+
+		protected void onUpdate(ISyncontext stx, Update updt,
+				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+				throws SemanticException {
+			if (isHit(stx, updt, row, cols, usr))
+				updt = 
+				logChange(stx.synbuilder(), updt, snm, chm, sbm, entm, synode, "???");
+		}
+
+		private boolean isHit(ISyncontext stx, Update updt,
+				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+				throws SemanticException {
+
+			try {
+				return ((AnResultset) trxt.select(target)
+					.col(count(pkField), "c")
+					.where(updt.where())
+					.rs(trxt.instancontxt(stx.connId(), usr))
+					.rs(0))
+					.nxt()
+					.getInt("c") > 0;
+			} catch (TransException | SQLException e) {
+				e.printStackTrace();
+				throw new SemanticException(e.getMessage());
+			}
+		}
+
+		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+				throws SemanticException {
+			
+			AnResultset row;
+			try {
+				row = (AnResultset) trxt
+						.select(target)
+						.where(condt)
+						.groupby(pkField)
+						.rs(trxt.instancontxt(stx.connId(), usr))
+						.rs(0);
+
+				while (row.next()) {
+					Delete delChg = trxt.delete(chm.tbl);
+					Delete delSub = trxt.delete(sbm.tbl);
+					for (String id : ((SyntityMeta) stx.getTableMeta(target)).globalIds()) {
+						delChg.whereEq(id, row.getString(id));
+						delSub.whereEq(id, row.getString(id)); // TODO sub tabel changed
+					}
+
+					stmt.post(delChg);
+				}
+			} catch (TransException | SQLException e) {
+				e.printStackTrace();
+				throw new SemanticException(e.getMessage());
+			}
+		}
+		
+		static void verifyRequiredNvs(Set<String> required, Map<String, Integer> cols, ArrayList<Object[]> row)
+				throws SemanticException {
+		}
+		
+	}
+
+	public static class ShSynChange_del extends SemanticHandler {
 		static String apidoc = "TODO ...";
 		protected final SynChangeMeta chm;
 		protected final SynodeMeta snm;
@@ -93,18 +291,11 @@ public class DBSynmantics extends DASemantics {
 		 */
 		private final SyntityMeta entm;
 
-		ShSynChange(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
+		ShSynChange_del (Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
 			super(trxt, smtype.synChange, tabl, pk, args);
 			insert = true;
 			update = true;
 			delete = true;
-
-			// UHF = true;
-			
-//			if (trxt instanceof DBSynsactBuilder)
-//				syb = (DBSynsactBuilder) trxt;
-//			else
-//				throw new SemanticException("ShSynChange (xml/smtype=s-c) requires instance of DBSynsactBuilder as the default builder.");
 
 			try {
 				snm = new SynodeMeta(trxt.basictx().connId());
@@ -291,4 +482,5 @@ public class DBSynmantics extends DASemantics {
 					str((AbstractSet<String>)cols), this.pkField, str((HashSet<String>)pkcols), apidoc);
 		}
 	}
+
 }

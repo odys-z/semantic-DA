@@ -34,8 +34,13 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	/** Entity creator's id used for identify originators in domain (globally?) */
 	public String synoder;
 
+	/** Entity's columns for generation global uid */
 	protected final HashSet<String> uids;
 
+	/**
+	 * Entity columns figured out from entity type, 
+	 * which are used to access database records.
+	 */
 	private HashMap<String, Integer> entCols;
 
 	boolean autopk;

@@ -48,7 +48,6 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
-import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
@@ -895,12 +894,13 @@ public class DBSyntableTest {
 		public IUser robot() { return trb.synrobot(); }
 
 		public int photos() throws SQLException, TransException {
-			return DAHelper.count(trb, trb.synconn(), phm.tbl);
+			return trb.entities(phm);
 		}
 
 		String connId() { return trb.basictx().connId(); }
 
-		public Ck(int s, DBSyntableBuilder dbSyntableBuilder) throws SQLException, TransException, ClassNotFoundException, IOException {
+		public Ck(int s, DBSyntableBuilder dbSyntableBuilder)
+				throws SQLException, TransException, ClassNotFoundException, IOException {
 			this(conns[s], dbSyntableBuilder, String.format("s%s", s), "rob-" + s);
 			phm = new T_PhotoMeta(conns[s]);
 		}

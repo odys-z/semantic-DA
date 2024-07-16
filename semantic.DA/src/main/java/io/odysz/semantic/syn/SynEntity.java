@@ -96,7 +96,7 @@ public abstract class SynEntity extends Anson {
 	}
 	
 	/**
-	 * Staff {@code ins}'s nvs.
+	 * Setup {@code ins}'s nvs, e.g. nv(domain, v0) ....
 	 * 
 	 * @param ins
 	 * @return {@code ins}

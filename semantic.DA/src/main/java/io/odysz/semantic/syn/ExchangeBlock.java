@@ -20,13 +20,15 @@ public class ExchangeBlock extends Anson {
 	public AnResultset chpage;
 	public HashMap<String, AnResultset> entities;
 
-	// public ArrayList<ArrayList<Object>> anspage;
 	public AnResultset anspage;
 
-	/**Server has more challenge blocks, which is need to be handled before closing exchange */
+	/**
+	 * Is the synode has more challenge blocks, which is
+	 * need to behandled before closing exchange?
+	 */
 	public boolean hasmore() {
-		return // totalChallenges > 0 && challengeSeq < 0 || // not begin yet 
-			chpage != null && chpage.size() > 0 || anspage != null && anspage.size() > 0;
+		return chpage != null && chpage.size() > 0
+			|| anspage != null && anspage.size() > 0;
 	}
 
 	public ExchangeBlock(String src, String peer, String sessionId, ExessionAct exstate) {
@@ -142,6 +144,7 @@ public class ExchangeBlock extends Anson {
 	String session;
 	/**One of {@link ExessionAct}'s constants. */
 	int act;
+	public int synact () { return act; }
 	int challengeSeq;
 	int answerSeq;
 

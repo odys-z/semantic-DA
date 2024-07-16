@@ -109,8 +109,8 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	/** Nyquence vector [{synode, Nyquence}]*/
-	protected HashMap<String, Nyquence> nyquvect;
-	protected Nyquence n0() { return nyquvect.get(synode()); }
+	public HashMap<String, Nyquence> nyquvect;
+	public Nyquence n0() { return nyquvect.get(synode()); }
 	protected DBSyntableBuilder n0(Nyquence nyq) {
 		nyquvect.put(synode(), new Nyquence(nyq.n));
 		return this;
@@ -737,12 +737,14 @@ public class DBSyntableBuilder extends DATranscxt {
 			.getInt("c") > 0;
 	}
 
-	public String[] insertEntity(SyntityMeta m, SynEntity e) throws TransException, SQLException {
+	public String[] insertEntity(SyntityMeta m, SynEntity e)
+			throws TransException, SQLException {
 		String conn   = synconn();
 		SyncRobot rob = (SyncRobot) synrobot();
 
 		Resulving pid = new Resulving(m.tbl, m.pk);
 
+		/*
 		SemanticObject u = ((SemanticObject) e
 			.insertEntity(m, insert(m.tbl, rob))
 			.post(update(m.tbl, rob)
@@ -764,11 +766,50 @@ public class DBSyntableBuilder extends DATranscxt {
 						.where(op.ne, synm.synoder, constr(synode()))
 						.whereEq(synm.domain, rob.domain))))
 			.ins(instancontxt(conn, rob)));
+		*/
+		Insert inse = e.insertEntity(m, insert(m.tbl, rob));
+		SemanticObject u = (SemanticObject) DBSynmantics
+				.logChange(this, inse, synm, chgm, subm, m, synode(), pid)
+				.ins(instancontxt(conn, rob));
 
 		String phid = u.resulve(m, -1);
 		String chid = u.resulve(chgm, -1);
 		return new String[] {phid, chid};
 	}
+	
+//	static Insert logChange(DBSyntableBuilder b, SyncRobot rob, Insert inst,
+//			SynodeMeta synm, SynChangeMeta chgm, SynSubsMeta subm, SyntityMeta entm,
+//			String synode, Object pid) throws TransException {
+//		Update u = b.update(entm.tbl);
+//		if (pid instanceof Resulving)
+//			u.nv(entm.synuid, SynChangeMeta.uids(synode, (Resulving)pid));
+//		else
+//			u.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
+//
+//		Insert insc = b.insert(chgm.tbl)
+//				.nv(chgm.entbl, entm.tbl)
+//				.nv(chgm.crud, CRUD.C)
+//				.nv(chgm.synoder, b.synode())
+//				// .nv(chgm.uids, SynChangeMeta.uids(b.synode(), pid))
+//				.nv(chgm.nyquence, b.stamp.n)
+//				.nv(chgm.seq, b.incSeq())
+//				.nv(chgm.domain, rob.domain())
+//				.post(b.insert(subm.tbl)
+//					.cols(subm.insertCols())
+//					.select((Query) b.select(synm.tbl)
+//						.col(new Resulving(chgm.tbl, chgm.pk))
+//						.col(synm.synoder)
+//						.where(op.ne, synm.synoder, constr(b.synode()))
+//						.whereEq(synm.domain, rob.domain)));
+//		if (pid instanceof Resulving)
+//			insc.nv(chgm.uids, SynChangeMeta.uids(b.synode(), (Resulving)pid));
+//		else
+//			insc.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
+//
+//		return inst
+//			.post(u.whereEq(entm.pk, pid))
+//			.post(insc);
+//	}
 
 	public String updateEntity(String synoder, String synuid, SyntityMeta entm, Object ... nvs)
 			throws TransException, SQLException, IOException {
@@ -776,6 +817,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		for (int i = 0; i < nvs.length; i += 2)
 			updcols[i/2] = (String) nvs[i];
 
+		/*
 		String chgid = update(entm.tbl, synrobot())
 			.nvs((Object[])nvs)
 			.whereEq(entm.synuid, synuid)
@@ -797,7 +839,13 @@ public class DBSyntableBuilder extends DATranscxt {
 						.whereEq(synm.domain, domain()))))
 			.u(instancontxt(basictx.connId(), synrobot()))
 			.resulve(chgm.tbl, chgm.pk, -1);
-		return chgid;
+			*/
+		
+		return DBSynmantics
+			.logChange(this, update(entm.tbl, synrobot()),
+					synm, chgm, subm, entm, synoder, synuid)
+			.u(instancontxt(basictx.connId(), synrobot()))
+			.resulve(chgm.tbl, chgm.pk, -1);
 	}
 	
 	public DBSyntableBuilder registerEntity(String conn, SyntityMeta m)
@@ -1049,5 +1097,9 @@ public class DBSyntableBuilder extends DATranscxt {
 				.rs(0))
 			: null);
 		return rep;
+	}
+
+	public int entities(SyntityMeta m) throws SQLException, TransException {
+		return DAHelper.count(this, synconn(), m.tbl);
 	}
 }
