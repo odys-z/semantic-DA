@@ -70,10 +70,10 @@ public class DBSyntableBuilder extends DATranscxt {
 	protected SynChangeMeta chgm;
 	protected SynchangeBuffMeta exbm;
 
-	public static final int peermode = 0; 
-	public static final int leafmode = 1; 
+//	public static final int peermode = 0; 
+//	public static final int leafmode = 1; 
 
-	final int synmode;
+	final SynodeMode synmode;
 
 	/**
 	 * Get synchronization meta connection id.
@@ -117,13 +117,16 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 
+	String dom;
 	public String domain() {
-		return basictx() == null ? null : ((DBSyntext) basictx()).domain;
+		// return basictx() == null ? null : ((DBSyntext) basictx()).domain;
+		return dom;
 	}
 
 	private DBSyntableBuilder domain(String domain) {
-		if (basictx() != null)
-			((DBSyntext) basictx()).domain = domain;
+//		if (basictx() != null)
+//			((DBSyntext) basictx()).domain = domain;
+		this.dom = domain;
 		return this;
 	}
 
@@ -140,20 +143,20 @@ public class DBSyntableBuilder extends DATranscxt {
 		return entityRegists == null ? null : entityRegists.get(tbl);
 	} 
 
-	public DBSyntableBuilder(String conn, String synodeId, String syndomain, int mode)
+	public DBSyntableBuilder(String conn, String synodeId, SynodeMode mode)
 			throws SQLException, SAXException, IOException, TransException {
-		this(conn, synodeId, syndomain, mode,
+		this(conn, synodeId, mode,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
 	}
 	
-	public DBSyntableBuilder(String conn, String synodeId, String syndomain,
-			int mode, SynChangeMeta chgm, SynodeMeta synm)
+	public DBSyntableBuilder(String conn, String synodeId,
+			SynodeMode mode, SynChangeMeta chgm, SynodeMeta synm)
 			throws SQLException, SAXException, IOException, TransException {
 
 		super ( new DBSyntext(conn,
 			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(c)),
-			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId, syndomain)
+			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId + "@" + synodeId, synodeId, synodeId)
 			    	, runtimepath));
 		
 		synmode = mode;
@@ -161,7 +164,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;
 		tx.synode = synodeId;
-		tx.domain = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
+		dom = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
 		((SyncRobot)tx.usr())
 			.orgId(getValstr((Transcxt) this, conn, synm, synm.org, synm.pk, synodeId))
 			.domain(getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId));
@@ -179,12 +182,12 @@ public class DBSyntableBuilder extends DATranscxt {
 		this.pnvm.replace();
 		
 		stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
-				synm.synoder, synodeId, synm.domain, tx.domain);
+				synm.synoder, synodeId, synm.domain, dom);
 		seq   = 0;
 
 		force_clean_subs = true;
 
-		if (isblank(tx.domain))
+		if (isblank(dom))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
 				this.getClass().getName(), tx.synode);
 	}
@@ -519,7 +522,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
 				else if (!nyquvect.containsKey(synodee)) {
 					; // I have no idea
-					if (synmode != leafmode) {
+					if (synmode != SynodeMode.leaf) {
 						if (!warnsynodee.contains(synodee)) {
 							warnsynodee.add(synodee);
 							Utils.warn("%s has no idea about %s. The change is committed at this node. This can either be automatically fixed or causing data lost later.",
@@ -883,7 +886,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			.u(instancontxt(basictx.connId(), synrobot()));
 		
 		nyquvect.put(synode(), getNyquence(this, basictx.connId(), synm, synm.nyquence,
-				synm.pk, synode(), synm.domain, ((DBSyntext)this.basictx).domain));
+				synm.pk, synode(), synm.domain, dom));
 		stamp.inc();
 		persistamp(stamp);
 		

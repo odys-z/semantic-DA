@@ -66,7 +66,10 @@ public class ExessionPersist {
 
 	public AnResultset answerPage;
 
-	DBSyntableBuilder trb;
+	public DBSyntableBuilder trb;
+
+	// public HashMap<String, Nyquence> nyquvect() { return trb.nyquvect; }
+	// public Nyquence n0() { return trb.n0(); }
 
 	/**
 	 * Set nswers to the challenges, page {@link #challengeSeq}, with entities.
@@ -310,25 +313,8 @@ public class ExessionPersist {
 	 * @param subm 
 	 * @param builder 
 	 */
-	public ExessionPersist(DBSyntableBuilder tb, SynChangeMeta chgm,
-			SynSubsMeta subm, SynchangeBuffMeta exbm, SynodeMeta synm,
-			SynSessionMeta sysm, PeersMeta pnvm, String target) {
-		
-		this(tb, chgm, subm, exbm, synm, sysm, pnvm, target, null);
-
-//		this.trb  = tb; 
-//		this.exbm = exbm;
-//		this.peer = target;
-//		this.chgm = chgm;
-//		this.subm = subm;
-//		this.synm = synm;
-//		this.sysm = sysm;
-//		this.pnvm = pnvm;
-//		this.exstate = new ExessionAct(mode_client, ready);
-//		this.session = Radix64.toString((long) (Math.random() * Long.MAX_VALUE));
-//		this.chsize = 480;
-// 
-//		debug = Connects.getDebug(trb.synconn());
+	public ExessionPersist(DBSyntableBuilder tb, String target) {
+		this(tb, target, null);
 	}
 
 	/**
@@ -339,22 +325,20 @@ public class ExessionPersist {
 	 * @param localtb
 	 * @param target
 	 */
-	public ExessionPersist(DBSyntableBuilder tb, SynChangeMeta chgm,
-			SynSubsMeta subm, SynchangeBuffMeta exbm, SynodeMeta synm,
-			SynSessionMeta sysm, PeersMeta pnvm, String peer, ExchangeBlock ini) {
+	public  ExessionPersist(DBSyntableBuilder tb, String peer, ExchangeBlock ini) {
 
 		if (tb != null && eq(tb.synode(), peer))
 			Utils.warn("Creating persisting context for local builder, i.e. peer(%s) = this.synode?", peer);;
 
 		this.trb = tb;
-		this.exbm = exbm;
+		this.exbm = tb.exbm;
 		this.session = ini == null ? null : ini.session;
 		this.peer = peer;
-		this.chgm = chgm;
-		this.subm = subm;
-		this.synm = synm;
-		this.sysm = sysm;
-		this.pnvm = pnvm;
+		this.chgm = tb.chgm;
+		this.subm = tb.subm;
+		this.synm = tb.synm;
+		this.sysm = new SynSessionMeta(tb.synconn());
+		this.pnvm = tb.pnvm;
 		this.exstate = new ExessionAct(mode_server, ready);
 		this.chsize = 480;
 
@@ -744,6 +728,11 @@ public class ExessionPersist {
 //	}
 
 	HashMap<String, AnResultset> entities;
+
+	/**
+	 * Information used by upper level, such as semantic.jser.
+	 */
+	public String[] ssinf;
 
 	/**
 	 * Get challenge page

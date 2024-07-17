@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.xml.sax.SAXException;
 
 import io.odysz.anson.x.AnsonException;
 import io.odysz.common.Configs;
@@ -192,9 +193,11 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			ck[s] = new Ck(s, new DBSyntableBuilder(conn, synodes[s], synodes[s],
-					s != W ? DBSyntableBuilder.peermode : DBSyntableBuilder.leafmode)
-					.loadNyquvect0(conn));
+//			ck[s] = new Ck(s, new DBSyntableBuilder(conn, synodes[s],
+//					s != W ? DBSyntableBuilder.peermode : DBSyntableBuilder.leafmode)
+//					.loadNyquvect0(conn));
+			ck[s] = new Ck(s);
+			
 			snm = (SynodeMeta) new SynodeMeta(conn).autopk(false); // .replace();
 			ck[s].synm = snm;
 			if (s != W)
@@ -562,11 +565,11 @@ public class DBSyntableTest {
 		int no = 0;
 
 		// sign up as a new domain
-		ExessionPersist cltp = new ExessionPersist(cltb, chm, sbm, xbm, snm, ssm, prm, admin);
+		ExessionPersist cltp = new ExessionPersist(cltb, admin);
 		Utils.logrst(String.format("sign up by %s", cltb.synode()), testix, sect, ++no);
 
 		ExchangeBlock req  = cltb.domainSignup(cltp, admin);
-		ExessionPersist admp = new ExessionPersist(cltb, chm, sbm, xbm, snm, ssm, prm, cltb.synode(), req);
+		ExessionPersist admp = new ExessionPersist(cltb, cltb.synode(), req);
 
 		// admin on sign up request
 		Utils.logrst(String.format("%s on sign up", admin), testix, sect, ++no);
@@ -641,13 +644,13 @@ public class DBSyntableTest {
 
 		int no = 0;
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
-		ExessionPersist cp = new ExessionPersist(ctb, chm, sbm, xbm, snm, ssm, prm, stb.synode());
+		ExessionPersist cp = new ExessionPersist(ctb, stb.synode());
 		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
 		Utils.logrst(String.format("%s initiate: changes: %d    entities: %d",
 				ctb.synode(), ini.totalChallenges, ini.enitities(cphm.tbl)), test, subno, no, 1);
 
 		Utils.logrst(new String[] {stb.synode(), "on initiate"}, test, subno, ++no);
-		ExessionPersist sp = new ExessionPersist(stb, chm, sbm, xbm, snm, ssm, prm, ctb.synode(), ini);
+		ExessionPersist sp = new ExessionPersist(stb, ctb.synode(), ini);
 		ExchangeBlock rep = stb.onInit(sp, ini);
 		Utils.logrst(String.format(
 				"%s on initiate: changes: %d",
@@ -680,20 +683,21 @@ public class DBSyntableTest {
 			throws TransException, SQLException, IOException {
 
 		int no = 0;
-		ExessionPersist cp = new ExessionPersist(stb, chm, sbm, xbm, snm, ssm, prm, stb.synode());
-
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
+
+		ExessionPersist cp = new ExessionPersist(stb, stb.synode());
 		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
 		assertTrue(ini.totalChallenges > 0);
 
-		ExessionPersist sp = new ExessionPersist(ctb, chm, sbm, xbm, snm, ssm, prm, ctb.synode(), ini);
 
 		ctb.abortExchange(cp, stb.synode(), null);
 		ini = ctb.initExchange(cp, stb.synode());
 		Utils.logrst(String.format("%s initiate changes: %d",
 				ctb.synode(), ini.totalChallenges), test, subno, ++no);
 		
+		ExessionPersist sp = new ExessionPersist(ctb, ctb.synode(), ini);
 		ExchangeBlock rep = stb.onInit(sp, ini);
+
 		Utils.logrst(String.format("%s on initiate: changes: %d    entities: %d",
 				ctb.synode(), rep.totalChallenges, rep.enitities(cphm.tbl)), test, subno, ++no);
 
@@ -879,6 +883,10 @@ public class DBSyntableTest {
 	
 	/**
 	 * Checker of each Synode.
+	 * 
+	 * TODO fail if found {@link io.odysz.semantic.DASemantics.smtype#synChange syn-change}
+	 * is configured.
+	 * 
 	 * @author Ody
 	 */
 	public static class Ck {
@@ -899,10 +907,10 @@ public class DBSyntableTest {
 
 		String connId() { return trb.basictx().connId(); }
 
-		public Ck(int s, DBSyntableBuilder dbSyntableBuilder)
-				throws SQLException, TransException, ClassNotFoundException, IOException {
-			this(conns[s], dbSyntableBuilder, String.format("s%s", s), "rob-" + s);
-			phm = new T_PhotoMeta(conns[s]);
+		public Ck(int s)
+				throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
+			this(conns[s], s != W ? SynodeMode.peer : SynodeMode.leaf,
+					synodes[s], "rob-" + s);
 		}
 
 		/**
@@ -931,9 +939,12 @@ public class DBSyntableTest {
 			assertEquals(cnt, rs.getRowCount());
 		}
 
-		public Ck(String conn, DBSyntableBuilder dbSyntableBuilder, String synid, String usrid)
-				throws SQLException, TransException, ClassNotFoundException, IOException {
-			trb = dbSyntableBuilder;
+		public Ck(String conn, SynodeMode mode, String synid, String usrid)
+				throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
+			trb = new DBSyntableBuilder(conn, synid, mode)
+					.loadNyquvect0(conn);
+
+			phm = new T_PhotoMeta(conn);
 			this.domain = trb.domain();
 		}
 

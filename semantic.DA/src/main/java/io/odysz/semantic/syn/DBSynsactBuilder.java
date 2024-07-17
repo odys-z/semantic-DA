@@ -94,8 +94,10 @@ public class DBSynsactBuilder extends DATranscxt {
 		return this;
 	}
 
+	String dom;
 	public String domain() {
-		return basictx() == null ? null : ((DBSyntext) basictx()).domain;
+		// return basictx() == null ? null : ((DBSyntext) basictx()).domain;
+		return dom;
 	}
 
 	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
@@ -115,7 +117,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		super ( new DBSyntext(conn,
 			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(c)),
-			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId, syndomain, syndomain)
+			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId, "Robot@" + synodeId, synodeId)
 			    	, runtimepath));
 		
 		synmode = nodemode;
@@ -123,7 +125,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;
 		tx.synode = synodeId;
-		tx.domain = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
+		dom = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
 		((SyncRobot)tx.usr()).orgId = getValstr((Transcxt) this, conn, synm, synm.org, synm.pk, synodeId);
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
@@ -1304,7 +1306,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		ChangeLogs log = new ChangeLogs(chgm)
 			.nyquvect(nyquvect)
-			.synodes(reqmode == SynodeMode.child
+			.synodes(reqmode == SynodeMode.leaf
 				? ((AnResultset) select(synm.tbl, "syn")
 					.whereIn(synm.synoder, childId, synode())
 					.whereEq(synm.domain, domain)
@@ -1330,7 +1332,7 @@ public class DBSynsactBuilder extends DATranscxt {
 
 		ChangeLogs log = new ChangeLogs(chgm)
 			.nyquvect(Nyquence.clone(nyquvect))
-			.synodes(reqmode == SynodeMode.child
+			.synodes(reqmode == SynodeMode.leaf
 				? ((AnResultset) select(synm.tbl, "syn")
 					.whereEq(synm.synoder, synode())
 					.whereEq(synm.domain, domain)

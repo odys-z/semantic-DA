@@ -462,7 +462,7 @@ public class DBSyntextTest {
 		int no = 0;
 		// admin
 		Utils.logrst(String.format("%s accept %s", atb.synode(), ctb.synode()), test, sect, ++no);
-		ChangeLogs resp = atb.addChild(ax, ctb.synode(), SynodeMode.child, ck[admin].robot(), org, ck[admin].domain);
+		ChangeLogs resp = atb.addChild(ax, ctb.synode(), SynodeMode.leaf, ck[admin].robot(), org, ck[admin].domain);
 		Utils.logrst(String.format("changeId at %s: %s", atb.synode(), resp.session()), test, sect, ++no);
 		printChangeLines(ck);
 		printNyquv(ck);

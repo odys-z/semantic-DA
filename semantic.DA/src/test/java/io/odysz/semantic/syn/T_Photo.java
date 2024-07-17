@@ -32,8 +32,9 @@ public class T_Photo extends T_SyncDoc {
 	/** usually ignored when sending request */
 	public ArrayList<String> exif;
 	public String exif() {
-		return exif == null ? null
-				: exif.stream()
+		return exif == null
+			? null
+			: exif.stream()
 				 .collect(Collectors.joining(","));
 	}
 

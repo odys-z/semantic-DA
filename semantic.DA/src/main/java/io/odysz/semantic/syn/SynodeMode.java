@@ -22,5 +22,5 @@ public enum SynodeMode {
 	 * Work as a tree branch mode, tree's middle and leaf node,
 	 * via filing application to {@link #hub}
 	 */
-	child
+	leaf
 }
