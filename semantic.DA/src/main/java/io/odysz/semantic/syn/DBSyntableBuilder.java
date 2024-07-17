@@ -21,6 +21,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 import org.xml.sax.SAXException;
 
@@ -811,14 +812,16 @@ public class DBSyntableBuilder extends DATranscxt {
 //			.post(insc);
 //	}
 
+	@SuppressWarnings("serial")
 	public String updateEntity(String synoder, String synuid, SyntityMeta entm, Object ... nvs)
 			throws TransException, SQLException, IOException {
-		String [] updcols = new String[nvs.length/2];
+		List<String> updcols = new ArrayList<String>(nvs.length/2);
 		for (int i = 0; i < nvs.length; i += 2)
-			updcols[i/2] = (String) nvs[i];
+			// updcols[i/2] = (String) nvs[i];
+			updcols.add((String) nvs[i]);
 
 		/*
-		String chgid = update(entm.tbl, synrobot())
+		List<String> chgid = update(entm.tbl, synrobot())
 			.nvs((Object[])nvs)
 			.whereEq(entm.synuid, synuid)
 			.post(insert(chgm.tbl, synrobot())
@@ -838,12 +841,16 @@ public class DBSyntableBuilder extends DATranscxt {
 						.where(op.ne, synm.synoder, constr(synode()))
 						.whereEq(synm.domain, domain()))))
 			.u(instancontxt(basictx.connId(), synrobot()))
-			.resulve(chgm.tbl, chgm.pk, -1);
-			*/
+			.resulve(chgm.tbl, chgm.pk);
+		*/
 		
 		return DBSynmantics
-			.logChange(this, update(entm.tbl, synrobot()),
-					synm, chgm, subm, entm, synoder, synuid)
+			.logChange(this, update(entm.tbl, synrobot())
+						.nvs((Object[])nvs)
+						.whereEq(entm.synuid, synuid),
+					synm, chgm, subm, entm, synoder,
+					new ArrayList<String>() {{add(synuid);}},
+					updcols)
 			.u(instancontxt(basictx.connId(), synrobot()))
 			.resulve(chgm.tbl, chgm.pk, -1);
 	}

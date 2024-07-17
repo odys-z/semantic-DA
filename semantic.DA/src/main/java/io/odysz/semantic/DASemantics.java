@@ -816,13 +816,13 @@ public class DASemantics {
 
 				if (isblank(pid, "null")) {
 					Utils.warnT(new Object() {},
-							  "Fullpath Handling Error. To generate fullpath, the parentId must be configured, and parent value must be providen.\n"
-							+ "table     : %s,\n"
-							+ "parent col: %s,\n"
-							+ "args      : %s,\n"
-							+ "cols      : %s\n"
-							+ "row       : %s",
-							target, pid, LangExt.toString(args), str(cols), LangExt.str(row));
+						"Fullpath Handling Error. To generate fullpath, the parentId must be configured, and parent value must be providen.\n" +
+						"table     : %s,\n" +
+						"parent col: %s,\n" +
+						"args      : %s,\n" +
+						"cols      : %s\n" +
+						"row       : %s",
+						target, pid, LangExt.toString(args), str(cols), LangExt.str(row));
 					// v1.3.0 v = id;
 				} else {
 					SemanticObject s = trxt.select(target, "_t0").col(args[2]).where("=", pkField, "'" + pid + "'")

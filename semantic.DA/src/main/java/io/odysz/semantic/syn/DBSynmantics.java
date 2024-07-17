@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,7 +60,7 @@ public class DBSynmantics extends DASemantics {
 				return new DBSynmantics.ShSynChange(tsx, synodeCfg(), tabl, pk, args);
 //						new DBSynsactBuilder(tsx.basictx().connId(),
 //							"dummy-loader", ((DBSynsactBuilder) tsx).domain(), 0),
-			} catch (TransException e) {
+			} catch (TransException | SQLException | SAXException | IOException e) {
 				e.printStackTrace();
 				return null;
 			}
@@ -115,10 +116,33 @@ public class DBSynmantics extends DASemantics {
 			.post(insc);
 	}
 
-	public static Update logChange(DBSyntableBuilder b, Update update,
+	public static Update logChange(DBSyntableBuilder b, Update updt,
 			SynodeMeta synm, SynChangeMeta chgm, SynSubsMeta subm, SyntityMeta entm,
-			String synoder, String synuid) {
-		return update;
+			String synoder, List<String> synuids, Iterable<String> updcols)
+				throws TransException, SQLException {
+
+		for (String synuid : synuids)
+			updt.post(b
+					.insert(chgm.tbl)
+					.nv(chgm.entbl, entm.tbl)
+					.nv(chgm.crud, CRUD.U)
+					.nv(chgm.synoder, synoder)
+					.nv(chgm.uids, synuid)
+					.nv(chgm.nyquence, b.stamp.n)
+					.nv(chgm.seq, b.incSeq())
+					.nv(chgm.domain, b.domain())
+					.nv(chgm.updcols, updcols)
+					.post(b.insert(subm.tbl)
+						.cols(subm.insertCols())
+						.select((Query)b.select(synm.tbl)
+							.col(new Resulving(chgm.tbl, chgm.pk))
+							.col(synm.synoder)
+							.where(op.ne, synm.synoder, constr(synoder))
+							.whereEq(synm.domain, b.domain()))))
+			; //.u(b.instancontxt(b.synconn(), b.synrobot()))
+			  //.resulve(chgm.tbl, chgm.pk);
+	
+		return updt;
 	}
 
 	public static class ShSynChange extends SemanticHandler {
@@ -203,38 +227,27 @@ public class DBSynmantics extends DASemantics {
 			;
 		}
 		
-		static void postChangeLog() {
-			
-		}
-
 		protected void onUpdate(ISyncontext stx, Update updt,
 				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
-				throws SemanticException {
-			if (isHit(stx, updt, row, cols, usr))
+				throws TransException, SQLException {
+			AnResultset hittings = isHit(stx, updt, row, cols, usr);
+			if (hittings.getRowCount() > 0)
 				updt = 
-				logChange(stx.synbuilder(), updt, snm, chm, sbm, entm, synode, "???");
+				logChange(stx.synbuilder(), updt, snm, chm, sbm, entm, synode, null, cols.keySet());
 		}
 
-		private boolean isHit(ISyncontext stx, Update updt,
+		private AnResultset isHit(ISyncontext stx, Update updt,
 				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
-				throws SemanticException {
-
-			try {
-				return ((AnResultset) trxt.select(target)
-					.col(count(pkField), "c")
-					.where(updt.where())
-					.rs(trxt.instancontxt(stx.connId(), usr))
-					.rs(0))
-					.nxt()
-					.getInt("c") > 0;
-			} catch (TransException | SQLException e) {
-				e.printStackTrace();
-				throw new SemanticException(e.getMessage());
-			}
+				throws TransException, SQLException {
+			return ((AnResultset) trxt.select(target)
+				.col(entm.synuid)
+				.where(updt.where())
+				.rs(trxt.instancontxt(stx.connId(), usr))
+				.rs(0));
 		}
 
-		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
-				throws SemanticException {
+		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt,
+				Condit condt, IUser usr) throws SemanticException {
 			
 			AnResultset row;
 			try {
