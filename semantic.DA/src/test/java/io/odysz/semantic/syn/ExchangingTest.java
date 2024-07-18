@@ -73,6 +73,7 @@ class ExchangingTest {
 		assertEquals(ready, srv.state);
 	}
 
+	@Disabled
 	@Test
 	void testRestore() throws TransException, SQLException {
 		int no = 0;

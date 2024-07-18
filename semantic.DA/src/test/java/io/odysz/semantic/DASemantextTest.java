@@ -525,7 +525,8 @@ public class DASemantextTest {
 		assertEquals(0, rs.getInt("cnt"));
 	}
 
-	/**Test: parent-child on del check should working.
+	/**
+	 * Test: parent-child on del check should working.
 	 * @throws TransException
 	 * @throws SQLException
 	 */

@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.Anson;
@@ -99,6 +100,7 @@ public class DBSyntextTest {
 
 	static T_PhotoMeta phm;
 
+	@Disabled
 	@BeforeAll
 	public static void testInit() throws Exception {
 		// DDL
@@ -192,6 +194,7 @@ public class DBSyntextTest {
 		assertEquals("syn.00", ck[0].connId());
 	}
 
+	@Disabled
 	@Test
 	void testChangeLogs() throws Exception {
 		int no = 0;

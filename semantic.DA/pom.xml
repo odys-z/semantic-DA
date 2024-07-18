@@ -111,9 +111,20 @@
 
   <build>
     <testResources>
-   	<testResource><directory>${project.basedir}/src/test/java</directory>
+   	<testResource>
+   		<directory>${project.basedir}/src/test/java</directory>
    	</testResource>
     </testResources>
+
+    <resources>
+      <resource>
+        <directory>${project.basedir}/src/main/java</directory>
+        <includes>
+          <include>**/*.sqlite.ddl</include>
+          <include>**/*.txt</include>
+        </includes>
+      </resource>
+    </resources>
 
     <plugins>
       <plugin>
@@ -125,17 +136,7 @@
         </configuration>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.1.1</version>
-        <configuration>
-          <includes>
-            <include>**/*.ddl</include>
-          </includes>
-        </configuration>
-      </plugin>
-      
+
 	  <plugin>
 	  	<artifactId>maven-deploy-plugin</artifactId>
 	  	<version>2.8.2</version>
