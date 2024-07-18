@@ -1,4 +1,3 @@
---
 insert into oz_autoseq (sid, seq, remarks) values
 ('h_photos.pid', 0, 'photo'),
 ('a_attaches.attId', 0, 'attachements'),
