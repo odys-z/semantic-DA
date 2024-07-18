@@ -124,6 +124,16 @@
    	</testResource>
     </testResources>
 
+    <resources>
+      <resource>
+        <directory>${project.basedir}/src/main/java</directory>
+        <includes>
+          <include>**/*.sqlite.ddl</include>
+          <include>**/*.txt</include>
+        </includes>
+      </resource>
+    </resources>
+
     <plugins>
       <plugin>
       	<artifactId>maven-compiler-plugin</artifactId>
