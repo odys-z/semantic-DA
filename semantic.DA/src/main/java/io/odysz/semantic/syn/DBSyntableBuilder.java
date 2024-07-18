@@ -70,9 +70,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	protected SynChangeMeta chgm;
 	protected SynchangeBuffMeta exbm;
 
-//	public static final int peermode = 0; 
-//	public static final int leafmode = 1; 
-
 	final SynodeMode synmode;
 
 	/**
