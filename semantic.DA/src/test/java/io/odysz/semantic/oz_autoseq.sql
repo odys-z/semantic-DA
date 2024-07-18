@@ -1,4 +1,5 @@
 insert into oz_autoseq (sid, seq, remarks) values
+('syn_change.cid', 0, 'change-log id'),
 ('h_photos.pid', 0, 'photo'),
 ('a_attaches.attId', 0, 'attachements'),
 ('a_functions.funcId', 0, 'test'),
@@ -11,5 +12,4 @@ insert into oz_autoseq (sid, seq, remarks) values
 ('b_logic_device.deviceLogId', 64 * 64, 'cascade-child'),
 ('crs_a.aid', 0, 'test'),
 ('crs_b.bid', 128 * 64, 'test'),
-('doc_devices.device', 64 * 64 * 4, 'device'),
-('syn_change.cid', 0, 'change-log id');
+('doc_devices.device', 64 * 64 * 4, 'device');
