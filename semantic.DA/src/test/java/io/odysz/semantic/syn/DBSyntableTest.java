@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,6 +42,7 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.PeersMeta;
+import io.odysz.semantic.meta.SemanticTableMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
@@ -153,34 +153,38 @@ public class DBSyntableTest {
 
 		for (int s = 0; s < 4; s++) {
 			String conn = conns[s];
-			
 			snm = new SynodeMeta(conn);
-			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", snm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), snm.ddlSqlite);
 
-			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", chm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), chm.ddlSqlite);
-
-			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", sbm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), sbm.ddlSqlite);
-
-			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", xbm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), xbm.ddlSqlite);
-
-			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", prm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), prm.ddlSqlite);
-
-			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", ssm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), ssm.ddlSqlite);
+//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", snm.tbl));
+//			Connects.commit(conn, DATranscxt.dummyUser(), snm.ddlSqlite);
+//
+//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", chm.tbl));
+//			Connects.commit(conn, DATranscxt.dummyUser(), chm.ddlSqlite);
+//
+//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", sbm.tbl));
+//			Connects.commit(conn, DATranscxt.dummyUser(), sbm.ddlSqlite);
+//
+//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", xbm.tbl));
+//			Connects.commit(conn, DATranscxt.dummyUser(), xbm.ddlSqlite);
+//
+//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", prm.tbl));
+//			Connects.commit(conn, DATranscxt.dummyUser(), prm.ddlSqlite);
+//
+//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", ssm.tbl));
+//			Connects.commit(conn, DATranscxt.dummyUser(), ssm.ddlSqlite);
 
 			T_PhotoMeta phm = new T_PhotoMeta(conn); //.replace();
 
-			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", phm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), phm.ddlSqlite);
+//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", phm.tbl));
+//			Connects.commit(conn, DATranscxt.dummyUser(), phm.ddlSqlite);
+
+			SemanticTableMeta.setupSqliTables(conn, snm, chm, sbm, xbm, prm, ssm, phm);
+
 			phm.replace();
 
 			ArrayList<String> sqls = new ArrayList<String>();
-			sqls.addAll(Arrays.asList(Utils.loadTxt("../oz_autoseq.sql").split(";-- --\n")));
+			sqls.add("delete from oz_autoseq;");
+			sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
 			sqls.add(String.format("update oz_autoseq set seq = %d where sid = 'h_photos.pid'", (long) Math.pow(64, s+1)));
 
 			sqls.add(String.format("delete from %s", snm.tbl));
@@ -193,12 +197,9 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-//			ck[s] = new Ck(s, new DBSyntableBuilder(conn, synodes[s],
-//					s != W ? DBSyntableBuilder.peermode : DBSyntableBuilder.leafmode)
-//					.loadNyquvect0(conn));
 			ck[s] = new Ck(s);
 			
-			snm = (SynodeMeta) new SynodeMeta(conn).autopk(false); // .replace();
+			// snm = (SynodeMeta) new SynodeMeta(conn).autopk(false); // .replace();
 			ck[s].synm = snm;
 			if (s != W)
 				ck[s].trb.incNyquence();

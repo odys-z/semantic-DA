@@ -6,7 +6,7 @@ import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
 
 /**
- * <a href="./syn_change.sqlite.ddl">syn_change DDL</a>
+ * <a href="./syn_exchange_buf.sqlite.ddl">syn_exchange_buf DDL</a>
  *
  * @author odys-z@github.com
  *
@@ -36,7 +36,7 @@ public class SynchangeBuffMeta extends SemanticTableMeta {
 
 	/** compose function for uids */
 	public String uids(String synode, String entityId) {
-		return synode + UIDsep + entityId; // Funcall.concatstr(synode, UIDsep, entityId);
+		return synode + UIDsep + entityId;
 	}
 
 	public String[] insertCols() {
@@ -45,23 +45,6 @@ public class SynchangeBuffMeta extends SemanticTableMeta {
 
 	public Object[] selectCols(String peer, int seq) {
 		return new Object[] {Funcall.constr(peer), chm.pk, new ExprPart(seq)};
-//			chm.domain, chm.entbl, chm.entfk, chm.crud,
-//			chm.synoder, chm.uids, chm.nyquence, chm.updcols};
 	}
-
-	/**
-	 * ISSUE: why not merge with {@link SyntityMeta#replace()}?
-	 * @return
-	 * @throws SQLException
-	 * @throws TransException
-	public SynChangeTempMeta replace() throws SQLException, TransException {
-		TableMeta mdb = Connects.getMeta(conn, tbl);
-		if (!(mdb instanceof SyntityMeta))
-			DBSynmantics.replaceMeta(tbl, this, conn);
-		if (isNull(this.ftypes) && mdb.ftypes() != null)
-			this.ftypes = mdb.ftypes();
-		return this;
-	}
-	 */
 
 }
