@@ -224,6 +224,7 @@ public class DATranscxt extends Transcxt {
 			// Since v1.4.12, table stamps is handled here
 			sctx.onCommitted(sctx, tabl);
 
+			// return new SemanticObject().addInts("total", r).put("resulved", sctx.resulves());
 			return new SemanticObject().addInts("total", r).put("resulved", sctx.resulves());
 		});
 		return i;
@@ -294,9 +295,12 @@ public class DATranscxt extends Transcxt {
 	 */
 	public DATranscxt(String conn) throws SQLException, SAXException, IOException, SemanticException {
 		this(new DASemantext(conn,
-				initConfigs(conn, loadSemantics(conn),
+				isblank(conn) ? null : initConfigs(conn, loadSemantics(conn),
 						(c) -> new SemanticsMap(c)),
 				dummyUser(), runtimepath));
+		if (isblank(conn))
+			Utils.warnT(new Object() {},
+				"Since v2.0.0, an empty connection ID won't trigger the semantics loading.");
 	}
 	
 	protected DATranscxt(DASemantext stxt) {

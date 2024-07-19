@@ -57,7 +57,12 @@ import static io.odysz.common.LangExt.isNull;
  */
 public class DASemantext implements ISemantext {
 
+	/** FIXME Flat auto resolving pool is not enought! */
 	private SemanticObject autoVals;
+	
+	// private List<SemanticObject> autostack;
+	// private int autoStacktop;
+	
 	private static Transcxt rawst;
 
 	/**Semantic Configurations */
@@ -99,7 +104,7 @@ public class DASemantext implements ISemantext {
 		if (rawst == null) {
 			rawst = new Transcxt(null);
 		}
-
+		
 		this.usr = usr;
 	}
 
@@ -208,15 +213,11 @@ public class DASemantext implements ISemantext {
 		}
 	}
 
-	/**Find resolved value in results.
-	 * @param tabl
-	 * @param col
-	 * @return RESULt resoLVED VALue in tabl.col, or null if not exists.
-	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	public Object resulvedVal(String tabl, String col, int idx) {
+	public List<Object> resulvedVals(String tabl, String col) {
 		return autoVals != null && autoVals.has(tabl) ?
-				((SemanticObject) autoVals.get(tabl)).get(col)
+				(List<Object>)((SemanticObject) autoVals.get(tabl)).get(col)
 				: null;
 	}
 
@@ -228,18 +229,23 @@ public class DASemantext implements ISemantext {
 	public SemanticObject resulves() {
 		return autoVals;
 	}
+
 	
+	/*
 	public ISemantext reset() {
 		if (autoVals != null)
 			autoVals.clear();
 		return this;
 	}
+	 */
 
 	///////////////////////////////////////////////////////////////////////////
 	// auto ID
 	///////////////////////////////////////////////////////////////////////////
+	@SuppressWarnings("unchecked")
 	@Override
-	public String genId(String conn, String tabl, String col, String ... preval ) throws SQLException, TransException {
+	public String genId(String conn, String tabl, String col, String ... preval )
+			throws SQLException, TransException {
 		String newv = genIdPrefix(conn, tabl, col, null);
 		
 		if (!isNull(preval))
@@ -252,10 +258,29 @@ public class DASemantext implements ISemantext {
 			tabl_ids = new SemanticObject();
 			autoVals.put(tabl, tabl_ids);
 		}
-		tabl_ids.put(col, newv);
+		
+		if (!tabl_ids.has(col))
+			tabl_ids.put(col, new ArrayList<String>());
+		
+		((ArrayList<String>) tabl_ids.get(col)).add(newv);
+
 		return newv;
 	}
-
+	
+//	@Override
+//	public ISemantext beginPostCommit(String parentName) {
+//		autoStacktop++;
+//		if (autostack != null && autostack.size() < autoStacktop)
+//			autostack.add(new SemanticObject());
+//		return this;
+//	}
+//
+//	@Override
+//	public ISemantext endPostCommit() {
+//		autoStacktop--;
+//		return this;
+//	}
+	
 	/**Generate new Id with the help of db function f_incSeq(varchar idName)<br>
 	 * Sql script for stored function:<br>
 	 * Mysql:<pre>
@@ -332,7 +357,9 @@ end;
 		// v1.3.0: user sys default conn to generate log-id
 		rs = Connects.select(Connects.defltConn(), sql);
 		if (rs.getRowCount() <= 0)
-			throw new TransException("Can't find auot seq of %1$s.\nFor performantc reason, DASemantext assumes a record in oz_autoseq.seq (id='%1$s.%2$s') exists.\nMay be you would check where oz_autoseq.seq and table %2$s are existing?",
+			throw new TransException("Can't find auot seq of %1$s.\n" +
+					"For performantc reason, DASemantext assumes a record in oz_autoseq.seq (id='%1$s.%2$s') exists.\n" +
+					"Maybe you would check wheather oz_autoseq.seq and table %2$s are existing?",
 					idField, target);
 
 		rs.beforeFirst().next();

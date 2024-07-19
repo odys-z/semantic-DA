@@ -1,5 +1,6 @@
 package io.odysz.semantic;
 
+import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.split;
@@ -175,7 +176,7 @@ public class DASemantics {
 		 * </p>
 		 * 
 		 * Handler: {@link DASemantics.ShAutoK}
-		 * @since 1.4.35, add pk-prefix, args[1], can be field name or string consts.
+		 * @since 1.4.35, add pk-prefix, args[1], can be a field name or string consts.
 		 */
 		autoInc,
 		/**
@@ -814,9 +815,14 @@ public class DASemantics {
 				Object pid = cols.containsKey(args[0]) ? row.get(cols.get(args[0]))[1] : null;
 
 				if (isblank(pid, "null")) {
-					Utils.warn(
-							"Fullpath Handling Error\\nTo generate fullpath, parentId must configured.\\nFound parent col: %s,\\nconfigured args = %s,\\nhandling cols = %s\\nrows = %s",
-							pid, LangExt.toString(args), str(cols), LangExt.str(row));
+					Utils.warnT(new Object() {},
+						"Fullpath Handling Error. To generate fullpath, the parentId must be configured, and parent value must be providen.\n" +
+						"table     : %s,\n" +
+						"parent col: %s,\n" +
+						"args      : %s,\n" +
+						"cols      : %s\n" +
+						"row       : %s",
+						target, pid, LangExt.toString(args), str(cols), LangExt.str(row));
 					// v1.3.0 v = id;
 				} else {
 					SemanticObject s = trxt.select(target, "_t0").col(args[2]).where("=", pkField, "'" + pid + "'")
@@ -925,6 +931,11 @@ public class DASemantics {
 		}
 	}
 
+	/**
+	 * Auto Pk Handler.<br>
+	 * Generate a radix 64, 6 bit of string representation of integer.
+	 * @see smtype#autoInc
+	 */
 	static class ShAutoKPrefix extends SemanticHandler {
 		String[] prefixCols;
 
@@ -945,6 +956,16 @@ public class DASemantics {
 			if (cols.containsKey(args[0]) // with nv from client
 					&& cols.get(args[0]) < row.size()) { // with nv must been generated from semantics
 				autonv = row.get(cols.get(args[0]));
+				
+				try {
+					if (autonv[1] instanceof String && eq("AUTO", (String)autonv[1]))
+						Utils.warnT(new Object() {},
+							"Using AUTO for auto pk is no longer supported since 1.4.40. Please use Resulving object instead, or leave the field empty.\n" +
+							"table: %s, field: %s",
+							target, args[0]);
+				} catch(Exception e) {
+					Utils.warnT(new Object() {}, e.getMessage());
+				}
 			}
 			else {
 				autonv = new Object[2];
@@ -954,21 +975,12 @@ public class DASemantics {
 			autonv[0] = args[0];
 
 			// prefix
-			/*
-			Object[] prefixnv = null;
-			if (cols.containsKey(prefixCol))
-				prefixnv = row.get(cols.get(prefixCol));
-			else
-				prefixnv = new Object[] {prefixCol, null};
-			Object prefixVal = (len(prefixnv) > 1) ? prefixnv[1] : null;// ix(prefixnv, 1);
-			*/
 			String prefix = "";
 			if (prefixCols != null)
-				for (String precol : prefixCols)
+				for (String precol : prefixCols) {
+					if (prefix.length() > 0)
+						prefix += ".";
 					if (cols.containsKey(precol)) {
-						if (prefix.length() > 0)
-							prefix += ".";
-
 						Object[] v = row.get(cols.get(precol));
 						if (v[1] instanceof AbsPart)
 							try {
@@ -979,9 +991,12 @@ public class DASemantics {
 							}
 						else prefix += v[1] == null ? "" : v[1].toString();
 					}
-
+					else
+						prefix += precol;
+				}
 			try {
-				Object alreadyResulved = stx.resulvedVal(target, args[0], -1);
+				/*
+				Object alreadyResulved = stx.resulvedVal(target, args[0]);
 				if (verbose && alreadyResulved != null && isNull(prefixCols))
 					// 1. When cross fk referencing happened, this branch will reached by handling post inserts.
 					// 2. When multiple children inserting, this happens
@@ -990,7 +1005,6 @@ public class DASemantics {
 						alreadyResulved, target);
 				
 				if (alreadyResulved == null && isblank(autonv[1])) {
-					// side effect: generated auto key already been put into autoVals, which can be referenced later.
 					String ak = isblank(prefix)
 						? stx.genId(stx.connId(), target, args[0])
 						: stx.genId(stx.connId(), target, args[0], prefix);
@@ -998,7 +1012,13 @@ public class DASemantics {
 				}
 				else if (alreadyResulved != null && isblank(autonv[1]))
 					autonv[1] = alreadyResulved;
-				// else use user providen autonv[1]
+				*/
+				if (isblank(autonv[1])) {
+					String ak = isblank(prefix)
+						? stx.genId(stx.connId(), target, args[0])
+						: stx.genId(stx.connId(), target, args[0], prefix);
+					autonv[1] = trxt.quotation(ak, stx.connId(), target, args[0]);
+				}
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();
 			}
@@ -1014,6 +1034,8 @@ public class DASemantics {
 
 	/**
 	 * Resolve fk reference when inserting children.<br>
+	 * 
+	 * TODO to be tested: multi-level offspring's insertion should be triggered. This is essential to log changes.
 	 * 
 	 * @see smtype#fkIns
 	 */
@@ -1042,20 +1064,22 @@ public class DASemantics {
 				Object v = stx.resulvedVal(args[1], args[2], -1);
 				if (v != null && (nv[1] == null || isblank(nv[1])
 						|| nv[1] instanceof ExprPart && ((ExprPart)nv[1]).isNull()))
-					// nv[1] = stx.composeVal(v, target, (String)nv[0]);
 					nv[1] = trxt.quotation(v, stx.connId(), target, (String)nv[0]);
 			} catch (Exception e) {
 				if (nv[1] != null) {
 					if (verbose)
 						Utils.warn(
-								"Trying resolve FK failed, but fk value exists. child-fk(%s.%s) = %s, parent = %s.%s",
-								target, args[0], nv[1], args[1], args[2]);
+						"Trying to resolve FK failed, but fk value exists. child-fk(%s.%s) = %s, parent = %s.%s",
+						target, args[0], nv[1], args[1], args[2]);
 				} else
-					Utils.warn("Trying resolve FK failed. child-fk = %s.%s, parent = %s.%s,\\n"
-							+ "FK config args:\t%s,\\ndata cols:\t%s,\\ndata row:\t%s.\\n%s: %s\\n"
-							+ "Also note that in current version, only auto key can be referenced and auto resolved.",
-							target, args[0], args[1], args[2], LangExt.toString(args), str(cols),
-							str(row), e.getClass().getName(), e.getMessage());
+					Utils.warn("Trying to resolve FK failed. child-fk = %s.%s, parent = %s.%s,\n" +
+						"FK config args:\t%s,\n" +
+						"data cols:\t%s,\n" +
+						"data row:\t%s.\n" +
+						"%s: %s\n" +
+						"Also note that in current version, only auto key can be referenced and auto resolved.",
+						target, args[0], args[1], args[2], LangExt.toString(args), str(cols),
+						str(row), e.getClass().getName(), e.getMessage());
 			}
 		}
 	}
@@ -1066,6 +1090,8 @@ public class DASemantics {
 	 * child 1, with comma ending, space separated {0] parent's referee column\s [1]
 	 * child-table2\s [2] child pk2 // child 1, without comma ending, space
 	 * separated smtype: {@link smtype#parentChildrenOnDel}
+	 * 
+	 * TODO to be tested: multi-level offspring's deletion should be triggered. This is essential to log changes.
 	 * 
 	 * @author odys-z@github.com
 	 */
@@ -1095,8 +1121,7 @@ public class DASemantics {
 		 * 
 		 * @param args
 		 * @param stmt
-		 * @param condt
-		 *            deleting's condition
+		 * @param condt deleting's condition
 		 * @param usr
 		 * @return {@link Delete}
 		 * @throws SemanticException
@@ -1766,6 +1791,12 @@ public class DASemantics {
 		}
 	}
 
+	/**
+	 * TODO to be tested: multi-level offspring's checking is not be triggered. This is not essential to log changes?
+	 * 
+	 * @author odys-z@github.com
+	 *
+	 */
 	static class ShChkPCInsert extends SemanticHandler {
 		public ShChkPCInsert(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
 			super(trxt, smtype.checkSqlCountOnInsert, tabl, recId, args);

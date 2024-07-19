@@ -40,19 +40,19 @@ public class SyncRobot extends SemanticObject implements IUser {
 
 	public SyncRobot orgId(String org) {
 		orgId = org;
-		domain = org;
+//		domain = org;
 		return this;
 	}
 
-	protected String domain;
-	public String domain() { return domain; }
+//	protected String domain;
+//	public String domain() { return domain; }
 
 	public SyncRobot domain(String dom) {
-		domain = dom;
+//		domain = dom;
 		return this;
 	}
 
-	protected final String deviceId;
+	protected String deviceId;
 	public String deviceId() { return deviceId; }
 
 	protected String ssid;
@@ -64,10 +64,10 @@ public class SyncRobot extends SemanticObject implements IUser {
 		return this;
 	}
 
-	public SyncRobot(String userid, String device, String syndomain) {
+	public SyncRobot(String userid, String device) {
 		this.userId = userid;
 		deviceId = device;
-		domain = syndomain;
+//		domain = syndomain;
 	}
 
 	/**
@@ -81,7 +81,7 @@ public class SyncRobot extends SemanticObject implements IUser {
 		this.userId = userid;
 		this.userName = userName;
 		this.deviceId = device;
-		domain = device;
+//		domain = device; // FIXME not correct
 	}
 	
 	public static class RobotMeta extends TableMeta {

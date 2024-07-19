@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import io.odysz.common.AESHelper;
 import io.odysz.common.DateFormat;
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.syn.T_DocTableMeta.Share;
+import io.odysz.semantic.meta.ExpDocTableMeta.Share;
 import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
@@ -32,8 +32,9 @@ public class T_Photo extends T_SyncDoc {
 	/** usually ignored when sending request */
 	public ArrayList<String> exif;
 	public String exif() {
-		return exif == null ? null
-				: exif.stream()
+		return exif == null
+			? null
+			: exif.stream()
 				 .collect(Collectors.joining(","));
 	}
 

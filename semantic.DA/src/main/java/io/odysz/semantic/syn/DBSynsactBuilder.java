@@ -58,13 +58,16 @@ import io.odysz.transact.x.TransException;
  */
 public class DBSynsactBuilder extends DATranscxt {
 	public static class SynmanticsMap extends SemanticsMap {
-		public SynmanticsMap(String conn) {
+		String synode;
+
+		public SynmanticsMap(String synode, String conn) {
 			super(conn);
+			this.synode = synode;
 		}
 
 		@Override
 		public DASemantics createSemantics(Transcxt trb, String tabl, String pk, boolean debug) {
-			return new DBSynmantics(trb, tabl, pk, debug);
+			return new DBSynmantics(trb, synode, tabl, pk, debug);
 		}
 	}
 
@@ -94,8 +97,10 @@ public class DBSynsactBuilder extends DATranscxt {
 		return this;
 	}
 
+	String dom;
 	public String domain() {
-		return basictx() == null ? null : ((DBSyntext) basictx()).domain;
+		// return basictx() == null ? null : ((DBSyntext) basictx()).domain;
+		return dom;
 	}
 
 	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
@@ -114,8 +119,8 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws SQLException, SAXException, IOException, TransException {
 
 		super ( new DBSyntext(conn,
-			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(c)),
-			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId, syndomain, syndomain)
+			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(synodeId, c)),
+			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId, "Robot@" + synodeId, synodeId)
 			    	, runtimepath));
 		
 		synmode = nodemode;
@@ -123,7 +128,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;
 		tx.synode = synodeId;
-		tx.domain = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
+		dom = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
 		((SyncRobot)tx.usr()).orgId = getValstr((Transcxt) this, conn, synm, synm.org, synm.pk, synodeId);
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
@@ -172,7 +177,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		try {
 			return new DBSyntext(conn,
 				initConfigs(conn, loadSemantics(conn),
-						(c) -> new SynmanticsMap(c)),
+						(c) -> new SynmanticsMap(synode(), c)),
 				usr, runtimepath);
 		} catch (SAXException | IOException | SQLException e) {
 			e.printStackTrace();
@@ -1261,7 +1266,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	}
 		
 	/**
-	 * A {@link SynodeMode#hub hub} node uses this to setup change logs for joining nodes.
+	 * A {@link SynodeMode#peer hub} node uses this to setup change logs for joining nodes.
 	 * @param x 
 	 * 
 	 * @param childId
@@ -1298,13 +1303,13 @@ public class DBSynsactBuilder extends DATranscxt {
 						.where(op.ne, synm.synoder, constr(childId))
 						.whereEq(synm.domain, domain))))
 			.ins(instancontxt(basictx.connId(), robot)))
-			.resulve(chgm.tbl, chgm.pk);
+			.resulve(chgm.tbl, chgm.pk, -1);
 		
 		nyquvect.put(apply.synodeId, new Nyquence(apply.nyquence));
 
 		ChangeLogs log = new ChangeLogs(chgm)
 			.nyquvect(nyquvect)
-			.synodes(reqmode == SynodeMode.child
+			.synodes(reqmode == SynodeMode.leaf
 				? ((AnResultset) select(synm.tbl, "syn")
 					.whereIn(synm.synoder, childId, synode())
 					.whereEq(synm.domain, domain)
@@ -1325,12 +1330,12 @@ public class DBSynsactBuilder extends DATranscxt {
 			.nv(synm.domain, domain)
 			.ins(instancontxt(basictx.connId(), synrobot()));
 
-		if (reqmode == SynodeMode.hub)
+		if (reqmode == SynodeMode.peer)
 			incNyquence();
 
 		ChangeLogs log = new ChangeLogs(chgm)
 			.nyquvect(Nyquence.clone(nyquvect))
-			.synodes(reqmode == SynodeMode.child
+			.synodes(reqmode == SynodeMode.leaf
 				? ((AnResultset) select(synm.tbl, "syn")
 					.whereEq(synm.synoder, synode())
 					.whereEq(synm.domain, domain)
@@ -1398,7 +1403,7 @@ public class DBSynsactBuilder extends DATranscxt {
 						.where(op.ne, synm.synoder, constr(synode()))
 						.whereEq(synm.domain, domain()))))
 			.u(instancontxt(basictx.connId(), synrobot()))
-			.resulve(chgm.tbl, chgm.pk);
+			.resulve(chgm.tbl, chgm.pk, -1);
 		return chgid;
 	}
 }

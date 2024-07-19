@@ -26,13 +26,13 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.xml.sax.SAXException;
 
 import io.odysz.anson.x.AnsonException;
 import io.odysz.common.Configs;
@@ -42,13 +42,15 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.PeersMeta;
+import io.odysz.semantic.meta.SemanticTableMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
-import io.odysz.semantic.util.DAHelper;
+import io.odysz.semantic.meta.ExpDocTableMeta;
+import io.odysz.semantic.meta.AutoSeqMeta;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
@@ -81,7 +83,7 @@ public class DBSyntableTest {
 
 	public static Ck[] ck = new Ck[4];
 
-	static HashMap<String, DBSynmantics> synms;
+	// static HashMap<String, DBSynmantics> synms;
 
 	static SynodeMeta snm;
 	static SynChangeMeta chm;
@@ -133,12 +135,8 @@ public class DBSyntableTest {
 				+ "  CONSTRAINT oz_logs_pk PRIMARY KEY (logId)\n"
 				+ ");" );
 			
-			 Connects.commit(conns[s], DATranscxt.dummyUser(),
-				"CREATE TABLE if not exists oz_autoseq (\r\n"
-				 + "  sid text(50),\r\n"
-				 + "  seq INTEGER,\r\n"
-				 + "  remarks text(200),\r\n"
-				 + "  CONSTRAINT oz_autoseq_pk PRIMARY KEY (sid));");
+			AutoSeqMeta autom = new AutoSeqMeta(conns[s]);
+			Connects.commit(conns[s], DATranscxt.dummyUser(), autom.ddlSqlite);
 		}
 
 		ck = new Ck[4];
@@ -153,34 +151,16 @@ public class DBSyntableTest {
 
 		for (int s = 0; s < 4; s++) {
 			String conn = conns[s];
-			
 			snm = new SynodeMeta(conn);
-			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", snm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), snm.ddlSqlite);
-
-			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", chm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), chm.ddlSqlite);
-
-			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", sbm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), sbm.ddlSqlite);
-
-			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", xbm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), xbm.ddlSqlite);
-
-			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", prm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), prm.ddlSqlite);
-
-			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", ssm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), ssm.ddlSqlite);
-
 			T_PhotoMeta phm = new T_PhotoMeta(conn); //.replace();
 
-			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", phm.tbl));
-			Connects.commit(conn, DATranscxt.dummyUser(), phm.ddlSqlite);
+			SemanticTableMeta.setupSqliTables(conn, snm, chm, sbm, xbm, prm, ssm, phm);
+
 			phm.replace();
 
 			ArrayList<String> sqls = new ArrayList<String>();
-			sqls.addAll(Arrays.asList(Utils.loadTxt("../oz_autoseq.sql").split(";-- --\n")));
+			sqls.add("delete from oz_autoseq;");
+			sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
 			sqls.add(String.format("update oz_autoseq set seq = %d where sid = 'h_photos.pid'", (long) Math.pow(64, s+1)));
 
 			sqls.add(String.format("delete from %s", snm.tbl));
@@ -193,10 +173,8 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			ck[s] = new Ck(s, new DBSyntableBuilder(conn, synodes[s], synodes[s],
-					s != W ? DBSyntableBuilder.peermode : DBSyntableBuilder.leafmode)
-					.loadNyquvect0(conn));
-			snm = (SynodeMeta) new SynodeMeta(conn).autopk(false); // .replace();
+			ck[s] = new Ck(s);
+			
 			ck[s].synm = snm;
 			if (s != W)
 				ck[s].trb.incNyquence();
@@ -483,7 +461,7 @@ public class DBSyntableTest {
 		int y = ck[Y].photos();
 
 		Utils.logrst("X delete a photo", test, ++no);
-		Object[] xd = deletePhoto(chm, X);
+		Object[] xd = deletePhoto(X);
 		printChangeLines(ck);
 		printNyquv(ck);
 		assertFalse(isNull(xd));
@@ -492,7 +470,7 @@ public class DBSyntableTest {
 		ck[X].photo(x-1);
 
 		Utils.logrst("Y delete a photo", test, ++no);
-		Object[] yd = deletePhoto(chm, Y);
+		Object[] yd = deletePhoto(Y);
 		printChangeLines(ck);
 		printNyquv(ck);
 		assertFalse(isNull(yd));
@@ -563,11 +541,11 @@ public class DBSyntableTest {
 		int no = 0;
 
 		// sign up as a new domain
-		ExessionPersist cltp = new ExessionPersist(cltb, chm, sbm, xbm, snm, ssm, prm, admin);
+		ExessionPersist cltp = new ExessionPersist(cltb, admin);
 		Utils.logrst(String.format("sign up by %s", cltb.synode()), testix, sect, ++no);
 
 		ExchangeBlock req  = cltb.domainSignup(cltp, admin);
-		ExessionPersist admp = new ExessionPersist(admb, chm, sbm, xbm, snm, ssm, prm, cltb.synode(), req);
+		ExessionPersist admp = new ExessionPersist(admb, cltb.synode(), req);
 
 		// admin on sign up request
 		Utils.logrst(String.format("%s on sign up", admin), testix, sect, ++no);
@@ -642,13 +620,13 @@ public class DBSyntableTest {
 
 		int no = 0;
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
-		ExessionPersist cp = new ExessionPersist(ctb, chm, sbm, xbm, snm, ssm, prm, stb.synode());
+		ExessionPersist cp = new ExessionPersist(ctb, stb.synode());
 		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
 		Utils.logrst(String.format("%s initiate: changes: %d    entities: %d",
 				ctb.synode(), ini.totalChallenges, ini.enitities(cphm.tbl)), test, subno, no, 1);
 
 		Utils.logrst(new String[] {stb.synode(), "on initiate"}, test, subno, ++no);
-		ExessionPersist sp = new ExessionPersist(stb, chm, sbm, xbm, snm, ssm, prm, ctb.synode(), ini);
+		ExessionPersist sp = new ExessionPersist(stb, ctb.synode(), ini);
 		ExchangeBlock rep = stb.onInit(sp, ini);
 		Utils.logrst(String.format(
 				"%s on initiate: changes: %d",
@@ -681,20 +659,21 @@ public class DBSyntableTest {
 			throws TransException, SQLException, IOException {
 
 		int no = 0;
-		ExessionPersist cp = new ExessionPersist(stb, chm, sbm, xbm, snm, ssm, prm, stb.synode());
-
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
+
+		ExessionPersist cp = new ExessionPersist(stb, stb.synode());
 		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
 		assertTrue(ini.totalChallenges > 0);
 
-		ExessionPersist sp = new ExessionPersist(ctb, chm, sbm, xbm, snm, ssm, prm, ctb.synode(), ini);
 
 		ctb.abortExchange(cp, stb.synode(), null);
 		ini = ctb.initExchange(cp, stb.synode());
 		Utils.logrst(String.format("%s initiate changes: %d",
 				ctb.synode(), ini.totalChallenges), test, subno, ++no);
 		
+		ExessionPersist sp = new ExessionPersist(ctb, ctb.synode(), ini);
 		ExchangeBlock rep = stb.onInit(sp, ini);
+
 		Utils.logrst(String.format("%s on initiate: changes: %d    entities: %d",
 				ctb.synode(), rep.totalChallenges, rep.enitities(cphm.tbl)), test, subno, ++no);
 
@@ -825,7 +804,7 @@ public class DBSyntableTest {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	Object[] deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
+	Object[] deletePhoto(int s) throws TransException, SQLException {
 		DBSyntableBuilder t = ck[s].trb;
 		T_PhotoMeta entm = ck[s].phm;
 		AnResultset slt = ((AnResultset) ck[s].trb
@@ -841,7 +820,7 @@ public class DBSyntableTest {
 	}
 	
 	/**
-	 * Update {@link T_DocTableMeta#resname} and {@link T_DocTableMeta#createDate} (also know as pdate)
+	 * Update {@link ExpDocTableMeta#resname} and {@link ExpDocTableMeta#createDate} (also know as pdate)
 	 * @param s
 	 * @return [entity-id, change-id, syn-uid]
 	 * @throws SQLException
@@ -880,6 +859,10 @@ public class DBSyntableTest {
 	
 	/**
 	 * Checker of each Synode.
+	 * 
+	 * TODO fail if found {@link io.odysz.semantic.DASemantics.smtype#synChange syn-change}
+	 * is configured.
+	 * 
 	 * @author Ody
 	 */
 	public static class Ck {
@@ -895,14 +878,15 @@ public class DBSyntableTest {
 		public IUser robot() { return trb.synrobot(); }
 
 		public int photos() throws SQLException, TransException {
-			return DAHelper.count(trb, trb.synconn(), phm.tbl);
+			return trb.entities(phm);
 		}
 
 		String connId() { return trb.basictx().connId(); }
 
-		public Ck(int s, DBSyntableBuilder dbSyntableBuilder) throws SQLException, TransException, ClassNotFoundException, IOException {
-			this(conns[s], dbSyntableBuilder, String.format("s%s", s), "rob-" + s);
-			phm = new T_PhotoMeta(conns[s]);
+		public Ck(int s)
+				throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
+			this(conns[s], s != W ? SynodeMode.peer : SynodeMode.leaf,
+					synodes[s], "rob-" + s);
 		}
 
 		/**
@@ -931,9 +915,12 @@ public class DBSyntableTest {
 			assertEquals(cnt, rs.getRowCount());
 		}
 
-		public Ck(String conn, DBSyntableBuilder dbSyntableBuilder, String synid, String usrid)
-				throws SQLException, TransException, ClassNotFoundException, IOException {
-			trb = dbSyntableBuilder;
+		public Ck(String conn, SynodeMode mode, String synid, String usrid)
+				throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
+			trb = new DBSyntableBuilder(conn, synid, mode)
+					.loadNyquvect0(conn);
+
+			phm = new T_PhotoMeta(conn);
 			this.domain = trb.domain();
 		}
 
