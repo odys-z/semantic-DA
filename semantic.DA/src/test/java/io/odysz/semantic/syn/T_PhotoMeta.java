@@ -6,11 +6,12 @@ import java.sql.SQLException;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
-public class T_PhotoMeta extends T_DocTableMeta {
+public class T_PhotoMeta extends ExpDocTableMeta {
 
 	public final String exif;
 

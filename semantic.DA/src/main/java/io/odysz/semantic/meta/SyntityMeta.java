@@ -21,7 +21,7 @@ import io.odysz.transact.x.TransException;
  */
 public abstract class SyntityMeta extends SemanticTableMeta {
 
-	public static final String err_requires_synuid = "Table to be synchronized must come with a fixed column named '%s'.";
+	public static final String err_requires_synuid = "Tables to be synchronized must come with a fixed column named '%s'.";
 
 	/**
 	 * exposed to subclass to change

@@ -58,13 +58,16 @@ import io.odysz.transact.x.TransException;
  */
 public class DBSynsactBuilder extends DATranscxt {
 	public static class SynmanticsMap extends SemanticsMap {
-		public SynmanticsMap(String conn) {
+		String synode;
+
+		public SynmanticsMap(String synode, String conn) {
 			super(conn);
+			this.synode = synode;
 		}
 
 		@Override
 		public DASemantics createSemantics(Transcxt trb, String tabl, String pk, boolean debug) {
-			return new DBSynmantics(trb, tabl, pk, debug);
+			return new DBSynmantics(trb, synode, tabl, pk, debug);
 		}
 	}
 
@@ -116,7 +119,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws SQLException, SAXException, IOException, TransException {
 
 		super ( new DBSyntext(conn,
-			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(c)),
+			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(synodeId, c)),
 			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId, "Robot@" + synodeId, synodeId)
 			    	, runtimepath));
 		
@@ -174,7 +177,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		try {
 			return new DBSyntext(conn,
 				initConfigs(conn, loadSemantics(conn),
-						(c) -> new SynmanticsMap(c)),
+						(c) -> new SynmanticsMap(synode(), c)),
 				usr, runtimepath);
 		} catch (SAXException | IOException | SQLException e) {
 			e.printStackTrace();

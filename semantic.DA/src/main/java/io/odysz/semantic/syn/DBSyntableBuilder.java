@@ -79,7 +79,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 */
 	public String synconn() { return basictx.connId(); }
 
-	protected String synode() { return ((DBSyntext)this.basictx).synode; }
+	public String synode() { return ((DBSyntext)this.basictx).synode; }
 
 	protected Nyquence stamp;
 	protected Nyquence persistamp(Nyquence n) throws TransException, SQLException {
@@ -152,7 +152,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws SQLException, SAXException, IOException, TransException {
 
 		super ( new DBSyntext(conn,
-			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(c)),
+			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(synodeId, c)),
 			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId + "@" + synodeId, synodeId, synodeId)
 			    	, runtimepath));
 		
@@ -745,29 +745,6 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		Resulving pid = new Resulving(m.tbl, m.pk);
 
-		/*
-		SemanticObject u = ((SemanticObject) e
-			.insertEntity(m, insert(m.tbl, rob))
-			.post(update(m.tbl, rob)
-				.nv(m.synuid, SynChangeMeta.uids(synode(), pid))
-				.whereEq(m.pk, pid))
-			.post(insert(chgm.tbl)
-				.nv(chgm.entbl, m.tbl)
-				.nv(chgm.crud, CRUD.C)
-				.nv(chgm.synoder, synode())
-				.nv(chgm.uids, SynChangeMeta.uids(synode(), pid))
-				.nv(chgm.nyquence, stamp.n)
-				.nv(chgm.seq, incSeq())
-				.nv(chgm.domain, rob.domain())
-				.post(insert(subm.tbl)
-					.cols(subm.insertCols())
-					.select((Query) select(synm.tbl)
-						.col(new Resulving(chgm.tbl, chgm.pk))
-						.col(synm.synoder)
-						.where(op.ne, synm.synoder, constr(synode()))
-						.whereEq(synm.domain, rob.domain))))
-			.ins(instancontxt(conn, rob)));
-		*/
 		Insert inse = e.insertEntity(m, insert(m.tbl, rob));
 		SemanticObject u = (SemanticObject) DBSynmantics
 				.logChange(this, inse, synm, chgm, subm, m, synode(), pid)
@@ -778,40 +755,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		return new String[] {phid, chid};
 	}
 	
-//	static Insert logChange(DBSyntableBuilder b, SyncRobot rob, Insert inst,
-//			SynodeMeta synm, SynChangeMeta chgm, SynSubsMeta subm, SyntityMeta entm,
-//			String synode, Object pid) throws TransException {
-//		Update u = b.update(entm.tbl);
-//		if (pid instanceof Resulving)
-//			u.nv(entm.synuid, SynChangeMeta.uids(synode, (Resulving)pid));
-//		else
-//			u.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
-//
-//		Insert insc = b.insert(chgm.tbl)
-//				.nv(chgm.entbl, entm.tbl)
-//				.nv(chgm.crud, CRUD.C)
-//				.nv(chgm.synoder, b.synode())
-//				// .nv(chgm.uids, SynChangeMeta.uids(b.synode(), pid))
-//				.nv(chgm.nyquence, b.stamp.n)
-//				.nv(chgm.seq, b.incSeq())
-//				.nv(chgm.domain, rob.domain())
-//				.post(b.insert(subm.tbl)
-//					.cols(subm.insertCols())
-//					.select((Query) b.select(synm.tbl)
-//						.col(new Resulving(chgm.tbl, chgm.pk))
-//						.col(synm.synoder)
-//						.where(op.ne, synm.synoder, constr(b.synode()))
-//						.whereEq(synm.domain, rob.domain)));
-//		if (pid instanceof Resulving)
-//			insc.nv(chgm.uids, SynChangeMeta.uids(b.synode(), (Resulving)pid));
-//		else
-//			insc.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
-//
-//		return inst
-//			.post(u.whereEq(entm.pk, pid))
-//			.post(insc);
-//	}
-
 	@SuppressWarnings("serial")
 	public String updateEntity(String synoder, String synuid, SyntityMeta entm, Object ... nvs)
 			throws TransException, SQLException, IOException {
@@ -820,30 +763,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			// updcols[i/2] = (String) nvs[i];
 			updcols.add((String) nvs[i]);
 
-		/*
-		List<String> chgid = update(entm.tbl, synrobot())
-			.nvs((Object[])nvs)
-			.whereEq(entm.synuid, synuid)
-			.post(insert(chgm.tbl, synrobot())
-				.nv(chgm.entbl, entm.tbl)
-				.nv(chgm.crud, CRUD.U)
-				.nv(chgm.synoder, synode())
-				.nv(chgm.uids, synuid)
-				.nv(chgm.nyquence, stamp.n)
-				.nv(chgm.seq, incSeq())
-				.nv(chgm.domain, domain())
-				.nv(chgm.updcols, updcols)
-				.post(insert(subm.tbl)
-					.cols(subm.insertCols())
-					.select((Query)select(synm.tbl)
-						.col(new Resulving(chgm.tbl, chgm.pk))
-						.col(synm.synoder)
-						.where(op.ne, synm.synoder, constr(synode()))
-						.whereEq(synm.domain, domain()))))
-			.u(instancontxt(basictx.connId(), synrobot()))
-			.resulve(chgm.tbl, chgm.pk);
-		*/
-		
 		return DBSynmantics
 			.logChange(this, update(entm.tbl, synrobot())
 						.nvs((Object[])nvs)
@@ -926,7 +845,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		try {
 			return new DBSyntext(conn,
 				initConfigs(conn, loadSemantics(conn),
-						(c) -> new SynmanticsMap(c)),
+						(c) -> new SynmanticsMap(synode(), c)),
 				usr, runtimepath);
 		} catch (SAXException | IOException | SQLException e) {
 			e.printStackTrace();

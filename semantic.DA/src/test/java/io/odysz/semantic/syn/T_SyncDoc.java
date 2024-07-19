@@ -12,6 +12,7 @@ import io.odysz.anson.AnsonField;
 import io.odysz.common.DateFormat;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.transact.sql.Insert;
 
@@ -113,7 +114,7 @@ public class T_SyncDoc extends SynEntity {
 	}
 
 	@AnsonField(ignoreTo=true)
-	T_DocTableMeta docMeta;
+	ExpDocTableMeta docMeta;
 
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	ISemantext semantxt;
@@ -127,7 +128,7 @@ public class T_SyncDoc extends SynEntity {
 	 * @param meta
 	 * @return cols for Select.cols()
 	 */
-	public static String[] nvCols(T_DocTableMeta meta) {
+	public static String[] nvCols(ExpDocTableMeta meta) {
 		return new String[] {
 				meta.pk,
 				meta.resname,
@@ -148,7 +149,7 @@ public class T_SyncDoc extends SynEntity {
 	 * @param meta
 	 * @return String [meta.pk, meta.shareDate, meta.shareflag, meta.syncflag]
 	 */
-	public static String[] synPageCols(T_DocTableMeta meta) {
+	public static String[] synPageCols(ExpDocTableMeta meta) {
 		if (synpageCols == null)
 			synpageCols = new String[] {
 					meta.pk,
@@ -162,7 +163,7 @@ public class T_SyncDoc extends SynEntity {
 		return synpageCols;
 	}
 
-	public T_SyncDoc(AnResultset rs, T_DocTableMeta meta) throws SQLException {
+	public T_SyncDoc(AnResultset rs, ExpDocTableMeta meta) throws SQLException {
 		super(meta, rs.getString(meta.domain));
 		this.docMeta = meta;
 		this.recId = rs.getString(meta.pk);
@@ -303,7 +304,7 @@ public class T_SyncDoc extends SynEntity {
 	
 	@Override
 	public Insert insertEntity(SyntityMeta m, Insert ins) {
-		T_DocTableMeta md = (T_DocTableMeta) m;
+		ExpDocTableMeta md = (ExpDocTableMeta) m;
 		ins .nv(md.domain, domain)
 			.nv(md.folder, folder)
 			.nv(md.mime, mime)

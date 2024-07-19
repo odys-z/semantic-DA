@@ -13,8 +13,8 @@ public class ExchangeBlock extends Anson {
 
 	public static final String ExchangeFlagCol = "change";
 
-	String srcnode;
-	String peer;
+	public String srcnode;
+	public String peer;
 	HashMap<String, Nyquence> nv;
 
 	public AnResultset chpage;

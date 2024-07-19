@@ -49,6 +49,8 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.meta.ExpDocTableMeta;
+import io.odysz.semantic.meta.AutoSeqMeta;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
@@ -133,12 +135,8 @@ public class DBSyntableTest {
 				+ "  CONSTRAINT oz_logs_pk PRIMARY KEY (logId)\n"
 				+ ");" );
 			
-			 Connects.commit(conns[s], DATranscxt.dummyUser(),
-				"CREATE TABLE if not exists oz_autoseq (\r\n"
-				 + "  sid text(50),\r\n"
-				 + "  seq INTEGER,\r\n"
-				 + "  remarks text(200),\r\n"
-				 + "  CONSTRAINT oz_autoseq_pk PRIMARY KEY (sid));");
+			AutoSeqMeta autom = new AutoSeqMeta(conns[s]);
+			Connects.commit(conns[s], DATranscxt.dummyUser(), autom.ddlSqlite);
 		}
 
 		ck = new Ck[4];
@@ -154,29 +152,7 @@ public class DBSyntableTest {
 		for (int s = 0; s < 4; s++) {
 			String conn = conns[s];
 			snm = new SynodeMeta(conn);
-
-//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", snm.tbl));
-//			Connects.commit(conn, DATranscxt.dummyUser(), snm.ddlSqlite);
-//
-//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", chm.tbl));
-//			Connects.commit(conn, DATranscxt.dummyUser(), chm.ddlSqlite);
-//
-//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", sbm.tbl));
-//			Connects.commit(conn, DATranscxt.dummyUser(), sbm.ddlSqlite);
-//
-//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", xbm.tbl));
-//			Connects.commit(conn, DATranscxt.dummyUser(), xbm.ddlSqlite);
-//
-//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", prm.tbl));
-//			Connects.commit(conn, DATranscxt.dummyUser(), prm.ddlSqlite);
-//
-//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", ssm.tbl));
-//			Connects.commit(conn, DATranscxt.dummyUser(), ssm.ddlSqlite);
-
 			T_PhotoMeta phm = new T_PhotoMeta(conn); //.replace();
-
-//			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", phm.tbl));
-//			Connects.commit(conn, DATranscxt.dummyUser(), phm.ddlSqlite);
 
 			SemanticTableMeta.setupSqliTables(conn, snm, chm, sbm, xbm, prm, ssm, phm);
 
@@ -199,7 +175,6 @@ public class DBSyntableTest {
 
 			ck[s] = new Ck(s);
 			
-			// snm = (SynodeMeta) new SynodeMeta(conn).autopk(false); // .replace();
 			ck[s].synm = snm;
 			if (s != W)
 				ck[s].trb.incNyquence();
@@ -570,7 +545,7 @@ public class DBSyntableTest {
 		Utils.logrst(String.format("sign up by %s", cltb.synode()), testix, sect, ++no);
 
 		ExchangeBlock req  = cltb.domainSignup(cltp, admin);
-		ExessionPersist admp = new ExessionPersist(cltb, cltb.synode(), req);
+		ExessionPersist admp = new ExessionPersist(admb, cltb.synode(), req);
 
 		// admin on sign up request
 		Utils.logrst(String.format("%s on sign up", admin), testix, sect, ++no);
@@ -845,7 +820,7 @@ public class DBSyntableTest {
 	}
 	
 	/**
-	 * Update {@link T_DocTableMeta#resname} and {@link T_DocTableMeta#createDate} (also know as pdate)
+	 * Update {@link ExpDocTableMeta#resname} and {@link ExpDocTableMeta#createDate} (also know as pdate)
 	 * @param s
 	 * @return [entity-id, change-id, syn-uid]
 	 * @throws SQLException

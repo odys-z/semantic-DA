@@ -10,6 +10,7 @@ import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -48,8 +49,11 @@ import io.odysz.transact.x.TransException;
 
 public class DBSynmantics extends DASemantics {
 
-	public DBSynmantics(Transcxt basicTx, String tabl, String pk, boolean... verbose) {
+	final String synode;
+
+	public DBSynmantics(Transcxt basicTx, String synode, String tabl, String pk, boolean... verbose) {
 		super(basicTx, tabl, pk, verbose);
+		this.synode = synode;
 	}
 
 	@Override
@@ -57,10 +61,11 @@ public class DBSynmantics extends DASemantics {
 			String pk, String[] args) throws SemanticException {
 		if (smtype.synChange == smtp)
 			try {
-				return new DBSynmantics.ShSynChange(tsx, synodeCfg(), tabl, pk, args);
-//						new DBSynsactBuilder(tsx.basictx().connId(),
-//							"dummy-loader", ((DBSynsactBuilder) tsx).domain(), 0),
+				return new DBSynmantics.ShSynChange(tsx, synode, tabl, pk, args);
 			} catch (TransException | SQLException | SAXException | IOException e) {
+				e.printStackTrace();
+				return null;
+			} catch (Exception e) {
 				e.printStackTrace();
 				return null;
 			}
@@ -72,14 +77,14 @@ public class DBSynmantics extends DASemantics {
 	 * Get synode id from configuration or environment.
 	 * @return synode id
 	 * @throws SemanticException failed
-	 */
 	String synodeCfg() throws SemanticException {
 		throw new SemanticException ("TODO");
 	}
+	 */
 
 	@Override
 	public SynmanticsMap createSMap(String conn) {
-		return new SynmanticsMap(conn);
+		return new SynmanticsMap(synode, conn);
 	}
 	
 	public static Insert logChange(DBSyntableBuilder b, Insert inst,
@@ -161,7 +166,7 @@ public class DBSynmantics extends DASemantics {
 		protected final DATranscxt st;
 
 		ShSynChange(Transcxt trxt, String synode, String tabl, String pk, String[] args)
-				throws SemanticException, SQLException, SAXException, IOException {
+				throws SQLException, SAXException, IOException, TransException, Exception {
 			super(trxt, smtype.synChange, tabl, pk, args);
 			insert = true;
 			update = true;
@@ -181,19 +186,18 @@ public class DBSynmantics extends DASemantics {
 			
 			TableMeta m = trxt.tableMeta(tabl);
 			if (!eq(args[0], m.getClass().getName())) {
-				try {
+//				try {
 					Class<?> cls = Class.forName(args[0]);
 					Constructor<?> constructor = cls.getConstructor(String.class);
 					entm = (SyntityMeta) constructor.newInstance(trxt.basictx().connId());
 					entm.replace();
-				} catch (ReflectiveOperationException | TransException | SQLException e) {
-					Utils.warn("Error to create instance of table meta: %s", args[0]);
-					e.printStackTrace();
-					throw new SemanticException(e.getMessage());
-				}
+//				} catch (ReflectiveOperationException | TransException | SQLException e) {
+//					Utils.warn("Error to create instance of table meta: %s", args[0]);
+//					e.printStackTrace();
+//					throw new SemanticException(e.getMessage());
+//				}
 			}
 			else entm = (SyntityMeta) m;
-			// entflag = trim(args[1]);
 			entId = new Resulving(entm.tbl, entm.pk);
 		}
 
