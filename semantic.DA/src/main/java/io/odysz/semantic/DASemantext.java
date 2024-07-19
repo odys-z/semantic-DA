@@ -214,7 +214,7 @@ public class DASemantext implements ISemantext {
 	 * @return RESULt resoLVED VALue in tabl.col, or null if not exists.
 	 */
 	@Override
-	public Object resulvedVal(String tabl, String col) {
+	public Object resulvedVal(String tabl, String col, int idx) {
 		return autoVals != null && autoVals.has(tabl) ?
 				((SemanticObject) autoVals.get(tabl)).get(col)
 				: null;

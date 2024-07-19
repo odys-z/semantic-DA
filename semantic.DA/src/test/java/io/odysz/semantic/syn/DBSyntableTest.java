@@ -567,7 +567,7 @@ public class DBSyntableTest {
 		Utils.logrst(String.format("sign up by %s", cltb.synode()), testix, sect, ++no);
 
 		ExchangeBlock req  = cltb.domainSignup(cltp, admin);
-		ExessionPersist admp = new ExessionPersist(cltb, chm, sbm, xbm, snm, ssm, prm, cltb.synode(), req);
+		ExessionPersist admp = new ExessionPersist(admb, chm, sbm, xbm, snm, ssm, prm, cltb.synode(), req);
 
 		// admin on sign up request
 		Utils.logrst(String.format("%s on sign up", admin), testix, sect, ++no);

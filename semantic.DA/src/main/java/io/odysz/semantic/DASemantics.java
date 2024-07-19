@@ -908,7 +908,7 @@ public class DASemantics {
 
 			try {
 
-				Object alreadyResulved = stx.resulvedVal(target, args[0]);
+				Object alreadyResulved = stx.resulvedVal(target, args[0], -1);
 				if (verbose && alreadyResulved != null)
 					// 1. When cross fk referencing happened, this branch will reached by handling post inserts.
 					// 2. When multiple children inserting, this happens
@@ -981,7 +981,7 @@ public class DASemantics {
 					}
 
 			try {
-				Object alreadyResulved = stx.resulvedVal(target, args[0]);
+				Object alreadyResulved = stx.resulvedVal(target, args[0], -1);
 				if (verbose && alreadyResulved != null && isNull(prefixCols))
 					// 1. When cross fk referencing happened, this branch will reached by handling post inserts.
 					// 2. When multiple children inserting, this happens
@@ -1039,7 +1039,7 @@ public class DASemantics {
 				row.add(nv);
 			}
 			try {
-				Object v = stx.resulvedVal(args[1], args[2]);
+				Object v = stx.resulvedVal(args[1], args[2], -1);
 				if (v != null && (nv[1] == null || isblank(nv[1])
 						|| nv[1] instanceof ExprPart && ((ExprPart)nv[1]).isNull()))
 					// nv[1] = stx.composeVal(v, target, (String)nv[0]);
@@ -1172,7 +1172,7 @@ public class DASemantics {
 				}
 	
 				Object bid; 
-				bid = stx.resulvedVal(argus[ixparentbl], argus[ixparentpk]);
+				bid = stx.resulvedVal(argus[ixparentbl], argus[ixparentpk], -1);
 				if (isblank(bid, "''")) {
 					// can't resulve, try if client provided
 					if (cols.containsKey(argus[ixbusiId]))
@@ -2028,7 +2028,7 @@ public class DASemantics {
 			Object[] nv;
 			Object resulved = null;
 			try {
-				resulved = stx.resulvedVal(args[1], args[2]);
+				resulved = stx.resulvedVal(args[1], args[2], -1);
 			} catch (Exception e) {
 				// throw new SemanticException("Post FK can not resulved: %s, table: %s",
 				// smtype.postFk.name(), target);
