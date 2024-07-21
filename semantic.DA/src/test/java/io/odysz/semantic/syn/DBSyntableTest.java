@@ -74,6 +74,8 @@ public class DBSyntableTest {
 	public static final String father  = "src/test/res/Sun Yet-sen.jpg";
 	public static final String ukraine = "src/test/res/Ukraine.png";
 
+	static final String zsu = "zsu";
+
 	public static final int X = 0;
 	public static final int Y = 1;
 	public static final int Z = 2;
@@ -173,7 +175,7 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			ck[s] = new Ck(s);
+			ck[s] = new Ck(s, s != W ? zsu : null);
 			
 			ck[s].synm = snm;
 			if (s != W)
@@ -883,9 +885,9 @@ public class DBSyntableTest {
 
 		String connId() { return trb.basictx().connId(); }
 
-		public Ck(int s)
+		public Ck(int s, String domain)
 				throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
-			this(conns[s], s != W ? SynodeMode.peer : SynodeMode.leaf,
+			this(domain, conns[s], s != W ? SynodeMode.peer : SynodeMode.leaf,
 					synodes[s], "rob-" + s);
 		}
 
@@ -915,9 +917,9 @@ public class DBSyntableTest {
 			assertEquals(cnt, rs.getRowCount());
 		}
 
-		public Ck(String conn, SynodeMode mode, String synid, String usrid)
+		public Ck(String domain, String conn, SynodeMode mode, String synid, String usrid)
 				throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
-			trb = new DBSyntableBuilder(conn, synid, mode)
+			trb = new DBSyntableBuilder(domain, conn, synid, mode)
 					.loadNyquvect0(conn);
 
 			phm = new T_PhotoMeta(conn);
