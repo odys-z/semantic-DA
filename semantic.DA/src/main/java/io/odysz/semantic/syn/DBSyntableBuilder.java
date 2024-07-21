@@ -829,13 +829,16 @@ public class DBSyntableBuilder extends DATranscxt {
 	
 	public DBSyntableBuilder loadNyquvect0(String conn) throws SQLException, TransException {
 		AnResultset rs = ((AnResultset) select(synm.tbl)
-				.cols(synm.pk, synm.nyquence)
+				.cols(synm.pk, synm.nyquence, synm.nstamp)
 				.rs(instancontxt(conn, synrobot()))
 				.rs(0));
 		
 		nyquvect = new HashMap<String, Nyquence>(rs.getRowCount());
 		while (rs.next()) {
 			nyquvect.put(rs.getString(synm.synoder), new Nyquence(rs.getLong(synm.nyquence)));
+			
+			if (eq(synode(), rs.getString(synm.pk)))
+				stamp.n = rs.getLong(synm.nstamp);
 		}
 		
 		return this;
