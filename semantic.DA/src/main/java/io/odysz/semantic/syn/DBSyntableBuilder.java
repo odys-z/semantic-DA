@@ -81,21 +81,23 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	public String synode() { return ((DBSyntext)this.basictx).synode; }
 
-	protected Nyquence stamp;
+	private Nyquence stamp;
+	public long stamp() { return stamp.n; }
+	
 	protected Nyquence persistamp(Nyquence n) throws TransException, SQLException {
+		stamp.n = n.n;
 		DAHelper.updateFieldWhereEqs(this, synconn(), synrobot(), synm,
 				synm.nstamp, n.n,
 				synm.pk, synode());
-		stamp.n = n.n;
 		return stamp;
 	}
 
-	protected Nyquence persistamp() throws TransException, SQLException {
-		DAHelper.updateFieldWhereEqs(this, synconn(), synrobot(), synm,
-				synm.nstamp, stamp.n,
-				synm.pk, synode());
-		return stamp;
-	}
+//	protected Nyquence persistamp() throws TransException, SQLException {
+//		DAHelper.updateFieldWhereEqs(this, synconn(), synrobot(), synm,
+//				synm.nstamp, stamp.n,
+//				synm.pk, synode());
+//		return stamp;
+//	}
 
 	DBSyntableBuilder incStamp(ExessionPersist xp) throws TransException, SQLException {
 		stamp.inc();
@@ -134,14 +136,14 @@ public class DBSyntableBuilder extends DATranscxt {
 		return entityRegists == null ? null : entityRegists.get(tbl);
 	} 
 
-	public DBSyntableBuilder(String conn, String synodeId, SynodeMode mode)
+	public DBSyntableBuilder(String domain, String conn, String synodeId, SynodeMode mode)
 			throws SQLException, SAXException, IOException, TransException {
-		this(conn, synodeId, mode,
+		this(domain, conn, synodeId, mode,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
 	}
 	
-	public DBSyntableBuilder(String conn, String synodeId,
+	public DBSyntableBuilder(String domain, String conn, String synodeId,
 			SynodeMode mode, SynChangeMeta chgm, SynodeMeta synm)
 			throws SQLException, SAXException, IOException, TransException {
 
@@ -150,12 +152,13 @@ public class DBSyntableBuilder extends DATranscxt {
 			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId + "@" + synodeId, synodeId, synodeId)
 			    	, runtimepath));
 		
+		dom = domain;
 		synmode = mode;
 
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;
 		tx.synode = synodeId;
-		dom = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
+		// dom = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
 		((SyncRobot)tx.usr())
 			.orgId(getValstr((Transcxt) this, conn, synm, synm.org, synm.pk, synodeId))
 			.domain(getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId));

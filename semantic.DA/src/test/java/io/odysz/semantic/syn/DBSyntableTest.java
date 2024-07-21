@@ -73,6 +73,8 @@ public class DBSyntableTest {
 	public static final String rtroot  = "src/test/res/";
 	public static final String father  = "src/test/res/Sun Yet-sen.jpg";
 	public static final String ukraine = "src/test/res/Ukraine.png";
+	
+	static final String zsu = "zsu";
 
 	public static final int X = 0;
 	public static final int Y = 1;
@@ -82,8 +84,6 @@ public class DBSyntableTest {
 	static String runtimepath;
 
 	public static Ck[] ck = new Ck[4];
-
-	// static HashMap<String, DBSynmantics> synms;
 
 	static SynodeMeta snm;
 	static SynChangeMeta chm;
@@ -173,7 +173,7 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			ck[s] = new Ck(s);
+			ck[s] = new Ck(s, s != W ? zsu : null);
 			
 			ck[s].synm = snm;
 			if (s != W)
@@ -340,8 +340,8 @@ public class DBSyntableTest {
 
 			stb.onAbort(req);
 
-			assertEquals(ck[W].trb.n0().n, ctb.stamp.n);
-			assertEquals(ck[Z].trb.n0().n, stb.stamp.n);
+			assertEquals(ck[W].trb.n0().n, ctb.stamp());
+			assertEquals(ck[Z].trb.n0().n, stb.stamp());
 			return;
 		}
 		fail("W is unable to roaming with Z.");
@@ -375,7 +375,7 @@ public class DBSyntableTest {
 		
 		Utils.logrst("Y vs Z", section, ++no);
 		exchangePhotos(Y, Z, section, 2);
-		assertEquals(ck[Z].trb.n0().n, ck[Z].trb.stamp.n);
+		assertEquals(ck[Z].trb.n0().n, ck[Z].trb.stamp());
 		ck[Y].buf_change(0, C, z, z_uids[0], ck[Y].phm);
 		ck[Y].change_log(1, C, z, z_uids[0], ck[Y].phm);
 		ck[Y].psubs(2, z_uids[1], X, -1, -1, W);
@@ -638,7 +638,7 @@ public class DBSyntableTest {
 
 		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
 		ExchangeBlock req = ctb.closexchange(cp, rep);
-		assertEquals(req.nv.get(ctb.synode()).n + 1, ctb.stamp.n);
+		assertEquals(req.nv.get(ctb.synode()).n + 1, ctb.stamp());
 		assertEquals(ready, cp.exstate());
 
 		printChangeLines(ck);
@@ -647,7 +647,7 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 		// FIXME what if the server doesn't agree?
 		rep = stb.onclosexchange(sp, req);
-		assertEquals(rep.nv.get(ctb.synode()).n + 1, stb.stamp.n);
+		assertEquals(rep.nv.get(ctb.synode()).n + 1, stb.stamp());
 		assertEquals(ready, sp.exstate());
 
 		printChangeLines(ck);
@@ -883,9 +883,9 @@ public class DBSyntableTest {
 
 		String connId() { return trb.basictx().connId(); }
 
-		public Ck(int s)
+		public Ck(int s, String domain)
 				throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
-			this(conns[s], s != W ? SynodeMode.peer : SynodeMode.leaf,
+			this(domain, conns[s], s != W ? SynodeMode.peer : SynodeMode.leaf,
 					synodes[s], "rob-" + s);
 		}
 
@@ -915,9 +915,9 @@ public class DBSyntableTest {
 			assertEquals(cnt, rs.getRowCount());
 		}
 
-		public Ck(String conn, SynodeMode mode, String synid, String usrid)
+		public Ck(String domain, String conn, SynodeMode mode, String synid, String usrid)
 				throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
-			trb = new DBSyntableBuilder(conn, synid, mode)
+			trb = new DBSyntableBuilder(domain, conn, synid, mode)
 					.loadNyquvect0(conn);
 
 			phm = new T_PhotoMeta(conn);
