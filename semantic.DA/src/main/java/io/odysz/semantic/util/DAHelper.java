@@ -1,6 +1,7 @@
 package io.odysz.semantic.util;
 
 import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.isPrimitive;
 
 import java.sql.SQLException;
 
@@ -132,7 +133,11 @@ public class DAHelper {
 	public static SemanticObject updateFieldByPk(DATranscxt trb, String conn, TableMeta m, String recId,
 			String field, Object v, IUser usr) throws TransException, SQLException {
 		return trb.update(m.tbl, usr)
-			.nv(field, v instanceof ExprPart ? (ExprPart)v : Funcall.constr(v.toString()))
+			.nv(field, v instanceof ExprPart
+						? (ExprPart)v
+						: isPrimitive(v)
+						? new ExprPart(String.valueOf(v))
+						: Funcall.constr(v.toString()))
 			.whereEq(m.pk, recId)
 			.u(trb.instancontxt(conn, usr));
 	}
@@ -161,6 +166,8 @@ public class DAHelper {
 		for (int nvx = 0; nvx < nvs.length; nvx+=2)
 			u.nv((String)nvs[nvx], nvs[nvx+1] instanceof ExprPart
 							? (ExprPart)nvs[nvx+1]
+							: isPrimitive(nvs[nvx+1])
+							? new ExprPart(String.valueOf(nvs[nvx+1]))
 							: Funcall.constr(nvs[nvx+1].toString()));
 		
 		return u.u(trb.instancontxt(conn, usr));
@@ -185,7 +192,11 @@ public class DAHelper {
 	public static SemanticObject updateFieldWhereEqs(DATranscxt trb, String conn, IUser usr,
 			TableMeta m, String field, Object v, Object... whereqs) throws TransException, SQLException {
 		Update u = trb.update(m.tbl, usr)
-			.nv(field, v instanceof ExprPart ? (ExprPart)v : Funcall.constr(v.toString()));
+			.nv(field, v instanceof ExprPart
+					? (ExprPart)v
+					: isPrimitive(v)
+					? new ExprPart(String.valueOf(v))
+					: Funcall.constr(v.toString()));
 		
 		for (int x = 0; x < whereqs.length; x+=2) {
 			u.whereEq((String)whereqs[x], whereqs[x+1]);
@@ -234,6 +245,8 @@ public class DAHelper {
 		for (int x = 0; x < nvs.length; x+=2)
 			ins.nv((String)nvs[x], nvs[x+1] instanceof ExprPart
 							? (ExprPart)nvs[x+1]
+							: isPrimitive(nvs[x+1])
+							? new ExprPart(String.valueOf(nvs[x+1]))
 							: Funcall.constr(nvs[x+1].toString()));
 			
 		return (SemanticObject) ins
