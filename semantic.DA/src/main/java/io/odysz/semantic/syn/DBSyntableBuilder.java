@@ -115,14 +115,8 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	String dom;
-	public String domain() {
-		// return basictx() == null ? null : ((DBSyntext) basictx()).domain;
-		return dom;
-	}
-
+	public String domain() { return dom; }
 	private DBSyntableBuilder domain(String domain) {
-//		if (basictx() != null)
-//			((DBSyntext) basictx()).domain = domain;
 		this.dom = domain;
 		return this;
 	}
