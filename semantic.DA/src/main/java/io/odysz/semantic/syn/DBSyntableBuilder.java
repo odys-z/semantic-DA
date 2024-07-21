@@ -81,12 +81,14 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	public String synode() { return ((DBSyntext)this.basictx).synode; }
 
-	protected Nyquence stamp;
+	private Nyquence stamp;
+	public long stamp() { return stamp.n; }
+	
 	protected Nyquence persistamp(Nyquence n) throws TransException, SQLException {
+		stamp.n = n.n;
 		DAHelper.updateFieldWhereEqs(this, synconn(), synrobot(), synm,
 				synm.nstamp, n.n,
 				synm.pk, synode());
-		stamp.n = n.n;
 		return stamp;
 	}
 
@@ -115,14 +117,8 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	String dom;
-	public String domain() {
-		// return basictx() == null ? null : ((DBSyntext) basictx()).domain;
-		return dom;
-	}
-
+	public String domain() { return dom; }
 	private DBSyntableBuilder domain(String domain) {
-//		if (basictx() != null)
-//			((DBSyntext) basictx()).domain = domain;
 		this.dom = domain;
 		return this;
 	}

@@ -119,7 +119,7 @@ public class MetaBuilder {
 	}
 
 	public static HashMap<String, TableMeta> buildSqlite(String conn) throws SQLException {
-		AnResultset rs = Connects.select(conn, "select distinct tbl_name from sqlite_master  where type = 'table'");
+		AnResultset rs = Connects.select(conn, "select distinct tbl_name from sqlite_master where type = 'table'");
 		HashMap<String, TableMeta> tablMeta = new HashMap<String, TableMeta>(rs.getRowCount());
 		rs.beforeFirst();
 		

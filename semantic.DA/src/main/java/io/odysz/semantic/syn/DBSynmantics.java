@@ -10,7 +10,6 @@ import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -101,7 +100,7 @@ public class DBSynmantics extends DASemantics {
 				.nv(chgm.crud, CRUD.C)
 				.nv(chgm.synoder, b.synode())
 				// .nv(chgm.uids, SynChangeMeta.uids(b.synode(), pid))
-				.nv(chgm.nyquence, b.stamp.n)
+				.nv(chgm.nyquence, b.stamp())
 				.nv(chgm.seq, b.incSeq())
 				.nv(chgm.domain, b.domain())
 				.post(b.insert(subm.tbl)
@@ -133,7 +132,7 @@ public class DBSynmantics extends DASemantics {
 					.nv(chgm.crud, CRUD.U)
 					.nv(chgm.synoder, synoder)
 					.nv(chgm.uids, synuid)
-					.nv(chgm.nyquence, b.stamp.n)
+					.nv(chgm.nyquence, b.stamp())
 					.nv(chgm.seq, b.incSeq())
 					.nv(chgm.domain, b.domain())
 					.nv(chgm.updcols, updcols)

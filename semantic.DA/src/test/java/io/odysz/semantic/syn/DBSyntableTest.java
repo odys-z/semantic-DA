@@ -73,6 +73,8 @@ public class DBSyntableTest {
 	public static final String rtroot  = "src/test/res/";
 	public static final String father  = "src/test/res/Sun Yet-sen.jpg";
 	public static final String ukraine = "src/test/res/Ukraine.png";
+	
+	static final String zsu = "zsu";
 
 	static final String zsu = "zsu";
 
@@ -84,8 +86,6 @@ public class DBSyntableTest {
 	static String runtimepath;
 
 	public static Ck[] ck = new Ck[4];
-
-	// static HashMap<String, DBSynmantics> synms;
 
 	static SynodeMeta snm;
 	static SynChangeMeta chm;
@@ -342,8 +342,8 @@ public class DBSyntableTest {
 
 			stb.onAbort(req);
 
-			assertEquals(ck[W].trb.n0().n, ctb.stamp.n);
-			assertEquals(ck[Z].trb.n0().n, stb.stamp.n);
+			assertEquals(ck[W].trb.n0().n, ctb.stamp());
+			assertEquals(ck[Z].trb.n0().n, stb.stamp());
 			return;
 		}
 		fail("W is unable to roaming with Z.");
@@ -377,7 +377,7 @@ public class DBSyntableTest {
 		
 		Utils.logrst("Y vs Z", section, ++no);
 		exchangePhotos(Y, Z, section, 2);
-		assertEquals(ck[Z].trb.n0().n, ck[Z].trb.stamp.n);
+		assertEquals(ck[Z].trb.n0().n, ck[Z].trb.stamp());
 		ck[Y].buf_change(0, C, z, z_uids[0], ck[Y].phm);
 		ck[Y].change_log(1, C, z, z_uids[0], ck[Y].phm);
 		ck[Y].psubs(2, z_uids[1], X, -1, -1, W);
@@ -640,7 +640,7 @@ public class DBSyntableTest {
 
 		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
 		ExchangeBlock req = ctb.closexchange(cp, rep);
-		assertEquals(req.nv.get(ctb.synode()).n + 1, ctb.stamp.n);
+		assertEquals(req.nv.get(ctb.synode()).n + 1, ctb.stamp());
 		assertEquals(ready, cp.exstate());
 
 		printChangeLines(ck);
@@ -649,7 +649,7 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 		// FIXME what if the server doesn't agree?
 		rep = stb.onclosexchange(sp, req);
-		assertEquals(rep.nv.get(ctb.synode()).n + 1, stb.stamp.n);
+		assertEquals(rep.nv.get(ctb.synode()).n + 1, stb.stamp());
 		assertEquals(ready, sp.exstate());
 
 		printChangeLines(ck);

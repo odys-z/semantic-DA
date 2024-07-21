@@ -1,6 +1,7 @@
 package io.odysz.semantic.util;
 
 import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.isPrimitive;
 
 import java.sql.SQLException;
 
@@ -10,6 +11,7 @@ import io.odysz.semantic.syn.Nyquence;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
+import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
@@ -131,11 +133,46 @@ public class DAHelper {
 	public static SemanticObject updateFieldByPk(DATranscxt trb, String conn, TableMeta m, String recId,
 			String field, Object v, IUser usr) throws TransException, SQLException {
 		return trb.update(m.tbl, usr)
-			.nv(field, v instanceof ExprPart ? (ExprPart)v : Funcall.constr(v.toString()))
+			.nv(field, v instanceof ExprPart
+						? (ExprPart)v
+						: isPrimitive(v)
+						? new ExprPart(String.valueOf(v))
+						: Funcall.constr(v.toString()))
 			.whereEq(m.pk, recId)
 			.u(trb.instancontxt(conn, usr));
 	}
 
+	/**
+	 * 
+	 * Commit to DB({@code conn}) as user {@code usr}, with SQL:<br>
+	 * 
+	 * update m.tbl set field = v where m.pk = recId
+	 * 
+	 * @param usr
+	 * @param trb
+	 * @param conn
+	 * @param m
+	 * @param recId
+	 * @param nvs n-v pairs
+	 * @return updating result
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public static SemanticObject updateFieldsByPk(IUser usr, DATranscxt trb, String conn,
+			TableMeta m, String recId, Object... nvs) throws TransException, SQLException {
+		Update u = trb.update(m.tbl, usr)
+			.whereEq(m.pk, recId);
+		
+		for (int nvx = 0; nvx < nvs.length; nvx+=2)
+			u.nv((String)nvs[nvx], nvs[nvx+1] instanceof ExprPart
+							? (ExprPart)nvs[nvx+1]
+							: isPrimitive(nvs[nvx+1])
+							? new ExprPart(String.valueOf(nvs[nvx+1]))
+							: Funcall.constr(nvs[nvx+1].toString()));
+		
+		return u.u(trb.instancontxt(conn, usr));
+	}
+	
 	/**
 	 * Commit to DB({@code conn}) as user {@code usr}, with SQL:<br>
 	 * 
@@ -155,7 +192,11 @@ public class DAHelper {
 	public static SemanticObject updateFieldWhereEqs(DATranscxt trb, String conn, IUser usr,
 			TableMeta m, String field, Object v, Object... whereqs) throws TransException, SQLException {
 		Update u = trb.update(m.tbl, usr)
-			.nv(field, v instanceof ExprPart ? (ExprPart)v : Funcall.constr(v.toString()));
+			.nv(field, v instanceof ExprPart
+					? (ExprPart)v
+					: isPrimitive(v)
+					? new ExprPart(String.valueOf(v))
+					: Funcall.constr(v.toString()));
 		
 		for (int x = 0; x < whereqs.length; x+=2) {
 			u.whereEq((String)whereqs[x], whereqs[x+1]);
@@ -175,18 +216,18 @@ public class DAHelper {
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public static int count_(DATranscxt b, String conn, String t, String field, String v)
+	public static int count_(DATranscxt b, String conn, String tbl, String field, String v)
 			throws SQLException, TransException {
-		return ((AnResultset) b.select(t)
+		return ((AnResultset) b.select(tbl)
 				.col(Funcall.count(), "cnt")
 				.whereEq(field, v)
 				.rs(b.instancontxt(conn, DATranscxt.dummyUser()))
 				.rs(0)).nxt().getInt("cnt");
 	}
 
-	public static int count(DATranscxt b, String conn, String t, Object ... kvs)
+	public static int count(DATranscxt b, String conn, String tbl, Object ... kvs)
 			throws SQLException, TransException {
-		Query q = b.select(t)
+		Query q = b.select(tbl)
 				.col(Funcall.count("*"), "cnt");
 		if (!isNull(kvs))
 			for (int i = 0; i < kvs.length; i+=2)
@@ -194,5 +235,21 @@ public class DAHelper {
 
 		return ((AnResultset) q.rs(b.instancontxt(conn, DATranscxt.dummyUser()))
 				.rs(0)).nxt().getInt("cnt");
+	}
+
+	public static SemanticObject insert(IUser usr, DATranscxt t0, String conn, TableMeta snm,
+			Object... nvs) throws TransException, SQLException {
+		
+		Insert ins = t0.insert(snm.tbl, usr);
+
+		for (int x = 0; x < nvs.length; x+=2)
+			ins.nv((String)nvs[x], nvs[x+1] instanceof ExprPart
+							? (ExprPart)nvs[x+1]
+							: isPrimitive(nvs[x+1])
+							? new ExprPart(String.valueOf(nvs[x+1]))
+							: Funcall.constr(nvs[x+1].toString()));
+			
+		return (SemanticObject) ins
+				.ins(t0.instancontxt(conn, usr));
 	}
 }
