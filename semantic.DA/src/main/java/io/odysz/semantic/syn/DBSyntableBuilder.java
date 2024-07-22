@@ -735,6 +735,15 @@ public class DBSyntableBuilder extends DATranscxt {
 			.getInt("c") > 0;
 	}
 
+	/**
+	 * NOTE: don't configure syn-change semantics for the table.
+	 * 
+	 * @param m
+	 * @param e
+	 * @return [entity-id, change-id]
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public String[] insertEntity(SyntityMeta m, SynEntity e)
 			throws TransException, SQLException {
 		String conn   = synconn();

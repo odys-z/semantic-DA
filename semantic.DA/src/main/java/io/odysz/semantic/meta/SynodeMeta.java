@@ -19,6 +19,8 @@ public class SynodeMeta extends SyntityMeta {
 
 	public final String org;
 
+	public final String domain;
+
 	/** Nyquence for synchronizing */
 	public final String nyquence;
 
@@ -42,6 +44,7 @@ public class SynodeMeta extends SyntityMeta {
 		nyquence= "nyq";
 		nstamp  = "nstamp";
 		org     = "org";
+		domain  = "domain";
 
 		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
 
