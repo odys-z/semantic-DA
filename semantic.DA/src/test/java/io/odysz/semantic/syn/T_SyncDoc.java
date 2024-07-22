@@ -121,7 +121,7 @@ public class T_SyncDoc extends SynEntity {
 
 	protected String mime;
 	
-	public T_SyncDoc() {super(null, "");}
+	public T_SyncDoc() {super(null);}
 	
 	/**
 	 * A helper used to make sure query fields are correct.
@@ -164,7 +164,8 @@ public class T_SyncDoc extends SynEntity {
 	}
 
 	public T_SyncDoc(AnResultset rs, ExpDocTableMeta meta) throws SQLException {
-		super(meta, rs.getString(meta.domain));
+		// super(meta, rs.getString(meta.domain));
+		super(meta);
 		this.docMeta = meta;
 		this.recId = rs.getString(meta.pk);
 		this.pname = rs.getString(meta.resname);
@@ -305,7 +306,7 @@ public class T_SyncDoc extends SynEntity {
 	@Override
 	public Insert insertEntity(SyntityMeta m, Insert ins) {
 		ExpDocTableMeta md = (ExpDocTableMeta) m;
-		ins .nv(md.domain, domain)
+		ins // .nv(md.domain, domain)
 			.nv(md.folder, folder)
 			.nv(md.mime, mime)
 			.nv(md.uri, uri)

@@ -218,7 +218,7 @@ public class ExessionPersist {
 							.whereEq(chgm.synoder, synodr)
 							.whereEq(chgm.uids, chuids)
 							.post(trb.delete(entm.tbl)
-								.whereEq(entm.domain, domain)
+								// .whereEq(entm.domain, domain)
 								.whereEq(entm.synoder, synodr)
 								.whereEq(entm.synuid, chuids))
 						: null));
@@ -270,7 +270,7 @@ public class ExessionPersist {
 					? trb.update(entm.tbl, trb.synrobot())
 						.nvs(entm.updateEntNvs(chgm, chuids, entbuf.get(entm.tbl), changes))
 						.whereEq(entm.synoder, synodr)
-						.whereEq(entm.domain, domain)
+						// .whereEq(entm.domain, domain)
 						.whereEq(entm.synuid, chuids)
 						.post(subscribeUC.size() <= 0
 							? null : trb.insert(chgm.tbl)
