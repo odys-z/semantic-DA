@@ -60,20 +60,17 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * Could be changed in the future. 
 	 * @param conn
 	 */
-	public SyntityMeta(String tbl, String pk, String domain, String synodr, String conn) {
+	public SyntityMeta(String tbl, String pk, String synodr, String conn) {
 		super(tbl, conn);
 
 		this.autopk = true;
 		this.pk = pk;
-		// this.domain = domain;
 		synoder = synodr;
 		synuid = "io_oz_synuid";
 		
 		uids = new HashSet<String>() {
 			static final long serialVersionUID = 1L;
-			{ add(domain);
-			  add(synoder);
-			  add(pk);}
+			{ add(synoder); add(pk);}
 		};
 	}
 	
