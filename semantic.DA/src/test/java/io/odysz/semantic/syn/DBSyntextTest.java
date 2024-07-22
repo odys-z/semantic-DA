@@ -696,7 +696,7 @@ public class DBSyntextTest {
 			.nv(m.uri, "")
 			.nv(m.resname, "photo-" + robot.deviceId)
 			.nv(m.fullpath, father)
-			.nv(m.org(), ZSUNodesDA.family)
+			.nv(m.org, ZSUNodesDA.family)
 			.nv(m.device(), robot.deviceId())
 			.nv(m.folder, robot.uid())
 			.nv(m.shareDate, now())

@@ -36,6 +36,7 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	 * and updating with {@link io.odysz.semantic.DASemantics.ShExtFilev2 ShExtFile}.
 	 */
 	public final String uri;
+	public final String org;
 	public final String createDate;
 	public final String shareDate;
 	public final String shareby;
@@ -63,13 +64,15 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 		shareDate = "sharedate";
 		shareby = "shareby";
 		shareflag = "shareflag";
+
+		org = "family";
 	}
 
 	/**
 	 * Design Memo / issue: currently org is the default synchronizing domain? 
 	 * @return org id
-	 */
 	public String org() { return domain; }
+	 */
 
 
 }
