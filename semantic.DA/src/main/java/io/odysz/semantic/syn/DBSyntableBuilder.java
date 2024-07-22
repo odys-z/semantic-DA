@@ -63,6 +63,7 @@ import io.odysz.transact.x.TransException;
  * @author Ody
  */
 public class DBSyntableBuilder extends DATranscxt {
+	private final boolean debug;
 
 	protected SynodeMeta synm;
 	protected PeersMeta pnvm;
@@ -91,13 +92,6 @@ public class DBSyntableBuilder extends DATranscxt {
 				synm.pk, synode());
 		return stamp;
 	}
-
-//	protected Nyquence persistamp() throws TransException, SQLException {
-//		DAHelper.updateFieldWhereEqs(this, synconn(), synrobot(), synm,
-//				synm.nstamp, stamp.n,
-//				synm.pk, synode());
-//		return stamp;
-//	}
 
 	DBSyntableBuilder incStamp(ExessionPersist xp) throws TransException, SQLException {
 		stamp.inc();
@@ -152,6 +146,8 @@ public class DBSyntableBuilder extends DATranscxt {
 			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId + "@" + synodeId, synodeId, synodeId)
 			    	, runtimepath));
 		
+		debug = Connects.getDebug(basictx.connId());
+
 		dom = domain;
 		synmode = mode;
 
@@ -416,7 +412,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws TransException, SQLException {
 		if (srcnv == null) return;
 		
-		if (Connects.getDebug(basictx.connId()))
+		if (debug)
 			Utils.logi("Cleaning staleness at %s, peer %s ...", synode(), peer);
 
 		delete(pnvm.tbl, synrobot())
@@ -468,7 +464,7 @@ public class DBSyntableBuilder extends DATranscxt {
 							subm.changeId, chgm.pk)))
 			.d(instancontxt(basictx.connId(), synrobot()));
 			
-		if (Connects.getDebug(synconn())) {
+		if (debug) {
 			try {
 				@SuppressWarnings("unchecked")
 				ArrayList<Integer> chgsubs = ((ArrayList<Integer>)res.get("total"));
@@ -497,7 +493,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			String synoder = reqChgs.getString(chgm.synoder);
 
 			if (!nyquvect.containsKey(synoder)) {
-				// trb.nyquvect.put(synodr, new Nyquence(trb.nyquvect.get(peer).n));
 				if (!warnsynoder.contains(synoder)) {
 					warnsynoder.add(synoder);
 					Utils.warn("%s has no idea about %s. The changes %s -> %s are ignored.",
@@ -539,7 +534,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				else if (compareNyq(subnyq, nyquvect.get(peer)) <= 0) {
 					// 2024.6.5 client shouldn't have older knowledge than me now,
 					// which is cleanded when initiating.
-					Utils.warn("Ignore this?");
+					if (debug) Utils.warn("Ignore this?");
 				}
 				else
 					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
@@ -669,7 +664,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	
 	public void onRequires(ExessionPersist cp, ExchangeBlock req) throws ExchangeException {
 		if (req.act == restore) {
-			// TODO check step leakings
 			if (cp.challengeSeq <= req.challengeSeq) {
 				// server is actually handled my challenge. Just step ahead 
 				cp.challengeSeq = req.challengeSeq;
@@ -688,7 +682,6 @@ public class DBSyntableBuilder extends DATranscxt {
 				cp.answerSeq = req.answerSeq;
 			}
 			
-			// cp.expChallengeId = rep.challengeId;
 			cp.expAnswerSeq = cp.challengeSeq;
 		}
 		else throw new ExchangeException(0, cp, "TODO");
@@ -766,7 +759,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws TransException, SQLException, IOException {
 		List<String> updcols = new ArrayList<String>(nvs.length/2);
 		for (int i = 0; i < nvs.length; i += 2)
-			// updcols[i/2] = (String) nvs[i];
 			updcols.add((String) nvs[i]);
 
 		return DBSynmantics
@@ -919,7 +911,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 */
 	protected void cleanStaleSubs(String peer) {
 		if (force_clean_subs) {
-			if (Connects.getDebug(basictx.connId())) {
+			if (debug) {
 				Utils.logT(new Object() {},
 						"Cleaning changes that's not accepted in session %s -> %s.",
 						synode(), peer);
@@ -944,7 +936,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 				@SuppressWarnings("unchecked")
 				int cnt = ((ArrayList<Integer>)res.get("total")).get(0);
-				if (cnt > 0 && Connects.getDebug(basictx.connId())) {
+				if (cnt > 0 && debug) {
 					Utils.warnT(new Object() {} ,
 						"Cleaned changes in %s -> %s: %s changes",
 						synode(), peer, cnt);
