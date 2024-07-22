@@ -468,6 +468,9 @@ public class DBSyntableTest {
 		assertEquals(1, xd[1]);
 		ck[X].photo(0, (String)xd[0]);
 		ck[X].photo(x-1);
+		Utils.logrst(new String[] {"X deleted", (String) xd[0]},
+				test, ++no, 1);
+
 
 		Utils.logrst("Y delete a photo", test, ++no);
 		Object[] yd = deletePhoto(Y);
@@ -477,14 +480,19 @@ public class DBSyntableTest {
 		assertEquals(1, yd[1]);
 		ck[Y].photo(0, (String)yd[0]);
 		ck[Y].photo(y-1);
+		Utils.logrst(new String[] {"Y deleted", (String) yd[0]},
+				test, ++no, 1);
 
 		Utils.logrst("X <= Y", test, ++no);
 		exchangePhotos(X, Y, test, no);
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[Y].photo(0, (String)yd[0]);
-		ck[Y].photo(y-1);
+		ck[Y].photo(0, (String)xd[0]);
+		ck[Y].photo(y-2);
+
+		ck[X].photo(0, (String)yd[0]);
+		ck[X].photo(x-2);
 	}
 	
 	void testBreakAck(int section) throws Exception {
@@ -788,7 +796,7 @@ public class DBSyntableTest {
 		String synoder = trb.synode();
 		IUser rob = trb.synrobot();
 
-		String[] pid_chid = trb.insertEntity(m, new T_Photo()
+		String[] pid_chid = trb.insertEntity(m, new T_Photo(trb.synconn(), zsu)
 				.create(ukraine)
 				.device(rob.deviceId())
 				.folder(rob.uid()));

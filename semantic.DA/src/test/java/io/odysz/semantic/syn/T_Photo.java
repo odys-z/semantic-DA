@@ -17,6 +17,7 @@ import io.odysz.semantic.meta.ExpDocTableMeta.Share;
 import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
+import io.odysz.transact.x.TransException;
 
 import static io.odysz.common.LangExt.isblank;
 /**
@@ -61,9 +62,12 @@ public class T_Photo extends T_SyncDoc {
 
 	public String albumId;
 	
-	public T_Photo() {}
+	public T_Photo(String conn, String org) throws SQLException, TransException {
+		super(new T_PhotoMeta(conn), org);
+	}
 	
 	public T_Photo(AnResultset rs, T_PhotoMeta m) throws SQLException {
+		super(rs, m);
 		this.recId = rs.getString(m.pk);
 		this.pname = rs.getString(m.resname);
 		this.uri = rs.getString(m.uri);
