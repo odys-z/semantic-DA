@@ -27,8 +27,8 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	/**
 	 * exposed to subclass to change
 	 * @see SyntityMeta#SyntityMeta
-	 */
 	public final String domain;
+	 */
 
 	public final String synuid;
 	
@@ -65,7 +65,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 
 		this.autopk = true;
 		this.pk = pk;
-		this.domain = domain;
+		// this.domain = domain;
 		synoder = synodr;
 		synuid = "io_oz_synuid";
 		
