@@ -36,6 +36,7 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	 * and updating with {@link io.odysz.semantic.DASemantics.ShExtFilev2 ShExtFile}.
 	 */
 	public final String uri;
+	public final String device;
 	public final String org;
 	public final String createDate;
 	public final String shareDate;
@@ -45,17 +46,18 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	public final String mime;
 	public final String size;
 
-	// public final String syncflag;
 	public final String shareflag;
 
-	public ExpDocTableMeta(String tbl, String pk, String domain, String device, String conn) throws TransException {
-		super(tbl, pk, domain, device, conn);
+	public ExpDocTableMeta(String tbl, String pk, String device, String conn) throws TransException {
+		super(tbl, pk, device, conn);
 
 		resname = "pname";
+		this.device = device;
 		uri = "uri";
 		folder = "folder";
 		createDate = "pdate";
-		// org = "family";
+		org = "family";
+
 		mime = "mime";
 		size = "filesize";
 		synoder = "device";
@@ -64,8 +66,6 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 		shareDate = "sharedate";
 		shareby = "shareby";
 		shareflag = "shareflag";
-
-		org = "family";
 	}
 
 	/**

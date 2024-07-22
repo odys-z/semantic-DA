@@ -376,11 +376,14 @@ public class ExessionPersist {
 			Nyquence dn = trb.nyquvect.get(peer);
 
 			if (dn == null) {
-				Utils.printag = true;
-				Utils.warn(
+//				Utils.printag = true;
+//				Utils.warn(
+//						"ERROR: Me, %s, don't have knowledge about %s.",
+//						trb.synode(), peer);
+//				Utils.printag = false;
+				Utils.warnT(new Object() {},
 						"ERROR: Me, %s, don't have knowledge about %s.",
 						trb.synode(), peer);
-				Utils.printag = false;
 				throw new ExchangeException(ready, this,
 						"%s#%s(), don't have knowledge about %s.",
 						trb.synode(), new Object(){}.getClass().getEnclosingMethod().getName(), peer);
