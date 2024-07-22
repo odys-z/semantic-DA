@@ -146,7 +146,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId + "@" + synodeId, synodeId, synodeId)
 			    	, runtimepath));
 		
-		debug = Connects.getDebug(basictx.connId());
+		debug = Connects.getDebug(conn);
 
 		dom = domain;
 		synmode = mode;
