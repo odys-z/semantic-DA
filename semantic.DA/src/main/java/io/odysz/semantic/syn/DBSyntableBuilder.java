@@ -173,7 +173,18 @@ public class DBSyntableBuilder extends DATranscxt {
 		
 		stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
 				synm.synoder, synodeId, synm.domain, dom);
-		seq   = 0;
+//		try {
+//			stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
+//				synm.synoder, synodeId, synm.domain, dom);
+//		} catch (SQLException e) {
+//			stamp = new Nyquence(0);
+//			if (debug) Utils.warnT(
+//				new Object() {}, "%s\n" +
+//				"Trying to bring up Syn-builder before setup basic node information?",
+//				e.getMessage());
+//		}
+		
+		seq = 0;
 
 		force_clean_subs = true;
 

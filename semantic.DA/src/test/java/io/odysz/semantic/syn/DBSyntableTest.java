@@ -74,7 +74,7 @@ public class DBSyntableTest {
 
 	static String runtimepath;
 
-	public static Docheck[] ck = new Docheck[4];
+	public static Docheck[] ck; // = new Docheck[4];
 
 	static SynodeMeta snm;
 	static SynChangeMeta chm;
@@ -101,6 +101,8 @@ public class DBSyntableTest {
 		DATranscxt.configRoot(rtroot, runtimepath);
 		String rootkey = System.getProperty("rootkey");
 		DATranscxt.key("user-pswd", rootkey);
+		
+		ck = Docheck.ck;
 	}
 
 	@BeforeAll
@@ -164,15 +166,18 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			ck[s] = new Docheck(s, s != W ? zsu : null);
+			Docheck.ck[s] = new Docheck(s != W ? zsu : null, conn, synodes[s],
+					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm);
 			
-			ck[s].synm = snm;
+			// ck[s].synm = snm;
 			if (s != W)
-				ck[s].trb.incNyquence();
+				Docheck.ck[s].trb.incNyquence();
 
-			ck[s].trb.registerEntity(conn, ck[s].phm);
-			ck[s].trb.registerEntity(conn, snm);
+			Docheck.ck[s].trb.registerEntity(conn, Docheck.ck[s].docm);
+			Docheck.ck[s].trb.registerEntity(conn, snm);
 		}
+		
+		ck = Docheck.ck;
 
 		phm = new T_PhotoMeta(conns[0]).replace(); // all entity table is the same in this test
 
@@ -208,7 +213,7 @@ public class DBSyntableTest {
 		String X_0 = X_0_uids[0];
 
 		// syn_change.curd = C
-		ck[X].change_log(1, C, synodes[X], X_0, ck[X].phm);
+		ck[X].change_log(1, C, synodes[X], X_0, ck[X].docm);
 		// syn_subscribe.to = [B, C, D]
 		ck[X].psubs(2, X_0_uids[1], -1, Y, Z, -1);
 
@@ -217,7 +222,7 @@ public class DBSyntableTest {
 		String[] B_0_uids = insertPhoto(Y);
 		String B_0 = B_0_uids[0];
 
-		ck[Y].change_log(1, C, synodes[Y], B_0, ck[Y].phm);
+		ck[Y].change_log(1, C, synodes[Y], B_0, ck[Y].docm);
 		ck[Y].psubs(2, B_0_uids[1], X, -1, Z, -1);
 		
 		printChangeLines(ck);
@@ -225,11 +230,11 @@ public class DBSyntableTest {
 
 		// 3. X <= Y
 		Utils.logrst("X <= Y", section, ++no);
-		exchangePhotos(X, Y, section, no);
+		exchangeDocs(X, Y, section, no);
 		printChangeLines(ck);
 		nvs = printNyquv(ck);
-		ck[Y].change_photolog(1, C, B_0);
-		ck[Y].change_photolog(1, C, x, X_0);
+		ck[Y].change_doclog(1, C, B_0);
+		ck[Y].change_doclog(1, C, x, X_0);
 		ck[Y].psubs(1, B_0_uids[1], -1, -1, Z, -1);
 		ck[Y].psubs(1, X_0_uids[1], -1, -1, Z, -1);
 
@@ -241,19 +246,19 @@ public class DBSyntableTest {
 		// 4. Y <= Z
 		nvs_ = nvs.clone();
 		Utils.logrst("Y <= Z", section, ++no);
-		exchangePhotos(Y, Z, section, no);
+		exchangeDocs(Y, Z, section, no);
 		nvs = printNyquv(ck);
 
-		ck[Z].change_log(0, C, synodes[Z], X_0, ck[Z].phm);
-		ck[Z].change_log(0, C, x, X_0, ck[Z].phm);
+		ck[Z].change_log(0, C, synodes[Z], X_0, ck[Z].docm);
+		ck[Z].change_log(0, C, x, X_0, ck[Z].docm);
 		ck[Z].psubs(0, X_0_uids[1], -1, -1, Z, -1);
 
-		ck[Z].change_photolog(0, C, B_0);
-		ck[Z].change_photolog(0, C, B_0);
+		ck[Z].change_doclog(0, C, B_0);
+		ck[Z].change_doclog(0, C, B_0);
 		ck[Z].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 		
-		ck[Y].change_photolog(0, C, X_0);
-		ck[Y].change_photolog(0, C, B_0);
+		ck[Y].change_doclog(0, C, X_0);
+		ck[Y].change_doclog(0, C, B_0);
 		ck[Y].psubs(0, X_0_uids[1], -1, -1, Z, -1);
 		ck[Y].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 
@@ -266,9 +271,9 @@ public class DBSyntableTest {
 		
 		// 4. X <= Y
 		Utils.logrst("X <= Y", section, ++no);
-		exchangePhotos(X, Y, section, no);
-		ck[X].change_photolog(0, C, X_0);
-		ck[X].change_photolog(0, C, B_0);
+		exchangeDocs(X, Y, section, no);
+		ck[X].change_doclog(0, C, X_0);
+		ck[X].change_doclog(0, C, B_0);
 		ck[X].psubs(0, X_0_uids[1], -1, -1, Z, -1);
 		ck[X].psubs(0, B_0_uids[1], -1, -1, Z, -1);
 	}
@@ -289,15 +294,15 @@ public class DBSyntableTest {
 		ck[Z].synodes(X,  Y,  Z, -1);
 		ck[W].synodes(-1, Y, -1, W);
 
-		ck[Y].change_log(1, C, "Y", "W", ck[Y].synm);
-		ck[Y].buf_change(0, C, "W", ck[Y].synm);
+		ck[Y].change_log(1, C, "Y", "W", ck[Y].trb.synm);
+		ck[Y].buf_change(0, C, "W", ck[Y].trb.synm);
 		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
 		
 		Utils.logrst("X vs Y", section, ++no);
 		exchangeSynodes(X, Y, section, 2);
 		ck[X].synodes(X, Y, Z, W);
-		ck[X].change_log(1, C, "Y", "W", ck[X].synm);
-		ck[X].buf_change(0, C, "Y", "W", ck[X].synm);
+		ck[X].change_log(1, C, "Y", "W", ck[X].trb.synm);
+		ck[X].buf_change(0, C, "Y", "W", ck[X].trb.synm);
 		ck[X].synsubs(1, "Y,W", -1, -1, Z, -1);
 
 		ck[Z].synodes(X, Y, Z, -1);
@@ -308,8 +313,8 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[X].change_log(1, C, "X", x_uids[0], ck[X].phm);
-		ck[X].buf_change(0, C, x_uids[0], ck[X].phm);
+		ck[X].change_log(1, C, "X", x_uids[0], ck[X].docm);
+		ck[X].buf_change(0, C, x_uids[0], ck[X].docm);
 		ck[X].psubs (3, x_uids[1], -1, Y, Z, W);
 
 		
@@ -360,38 +365,38 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[Z].buf_change(0, C, z_uids[0], ck[Y].phm);
-		ck[Z].change_log(1, C, "Z", z_uids[0], ck[Y].phm);
+		ck[Z].buf_change(0, C, z_uids[0], ck[Y].docm);
+		ck[Z].change_log(1, C, "Z", z_uids[0], ck[Y].docm);
 		ck[Z].psubs(3, z_uids[1], X, Y, -1, W);
 		
 		Utils.logrst("Y vs Z", section, ++no);
-		exchangePhotos(Y, Z, section, 2);
+		exchangeDocs(Y, Z, section, 2);
 		assertEquals(ck[Z].trb.n0().n, ck[Z].trb.stamp());
-		ck[Y].buf_change(0, C, z, z_uids[0], ck[Y].phm);
-		ck[Y].change_log(1, C, z, z_uids[0], ck[Y].phm);
+		ck[Y].buf_change(0, C, z, z_uids[0], ck[Y].docm);
+		ck[Y].change_log(1, C, z, z_uids[0], ck[Y].docm);
 		ck[Y].psubs(2, z_uids[1], X, -1, -1, W);
 		ck[Z].psubs(2, z_uids[1], X, -1, -1, W);
 
 		Utils.logrst("Y vs W", section, ++no);
-		exchangePhotos(Y, W, section, 3);
-		ck[Y].buf_change(0, C, z, z_uids[0], ck[X].phm);
-		ck[Y].change_log(1, C, z, z_uids[0], ck[X].phm);
+		exchangeDocs(Y, W, section, 3);
+		ck[Y].buf_change(0, C, z, z_uids[0], ck[X].docm);
+		ck[Y].change_log(1, C, z, z_uids[0], ck[X].docm);
 		ck[Y].psubs(1, z_uids[1], X, -1, -1, -1);
-		ck[W].buf_change(0, C, z, z_uids[0], ck[X].phm);
+		ck[W].buf_change(0, C, z, z_uids[0], ck[X].docm);
 		ck[W].psubs(0, z_uids[1], -1, -1, -1, -1);
 
 		Utils.logrst("X vs Y", section, ++no);
-		exchangePhotos(X, Y, section, 4);
-		ck[X].buf_change(0, C, null, null, ck[X].phm);
+		exchangeDocs(X, Y, section, 4);
+		ck[X].buf_change(0, C, null, null, ck[X].docm);
 		ck[X].psubs(0, null, X, -1, -1, -1);
-		ck[Y].buf_change(0, C, null, null, ck[X].phm);
+		ck[Y].buf_change(0, C, null, null, ck[X].docm);
 		ck[Y].psubs(0, null, -1, -1, -1, -1);
 
 		Utils.logrst("Y vs Z", section, ++no);
-		exchangePhotos(Y, Z, section, 4);
-		ck[Y].buf_change(0, C, null, null, ck[X].phm);
+		exchangeDocs(Y, Z, section, 4);
+		ck[Y].buf_change(0, C, null, null, ck[X].docm);
 		ck[Y].psubs(0, null, X, -1, -1, -1);
-		ck[Z].buf_change(0, C, null, null, ck[X].phm);
+		ck[Z].buf_change(0, C, null, null, ck[X].docm);
 		ck[Z].psubs(0, null, -1, -1, -1, -1);
 	}
 
@@ -404,8 +409,8 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[X].change_photolog(1, U, xu[0]);
-		ck[X].buf_change(0, U, xu[0], ck[X].phm);
+		ck[X].change_doclog(1, U, xu[0]);
+		ck[X].buf_change(0, U, xu[0], ck[X].docm);
 		ck[X].psubs(3, xu[1], -1, Y, Z, W);
 
 		Utils.logrst("Y update photos", section, ++no);
@@ -413,31 +418,31 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[Y].change_photolog(1, U, yu[0]);
-		ck[Y].buf_change(0, U, yu[0], ck[Y].phm);
+		ck[Y].change_doclog(1, U, yu[0]);
+		ck[Y].buf_change(0, U, yu[0], ck[Y].docm);
 		ck[Y].psubs(3, yu[1], X, -1, Z, W);
 		
 		Utils.logrst("X => Y", section, ++no);
-		exchangePhotos(Y, X, section, no);
+		exchangeDocs(Y, X, section, no);
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[X].change_photolog(1, U, null);
-		ck[X].buf_change(0, U, null, ck[X].phm);
+		ck[X].change_doclog(1, U, null);
+		ck[X].buf_change(0, U, null, ck[X].docm);
 		ck[X].psubs(4, null, X, Y, Z, W);
 		ck[X].psubs(4, null, -1, -1, Z, W);
 
-		ck[Y].change_photolog(1, U, null);
+		ck[Y].change_doclog(1, U, null);
 		ck[Y].buf_change_p(0, U, null);
 		ck[Y].psubs(4, null, X, Y, Z, W);
 		ck[Y].psubs(4, null, -1, -1, Z, W);
 
 		Utils.logrst("Y <= Z", section, ++no);
-		exchangePhotos(Y, Z, section, no);
+		exchangeDocs(Y, Z, section, no);
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[Y].change_photolog(1, U, null);
+		ck[Y].change_doclog(1, U, null);
 		ck[Y].psubs(2, null, X, Y, Z, W);
 		ck[Y].psubs(2, null, -1, -1, -1, W);
 		ck[Y].psubs(1, yu[1], -1, -1, -1, W);
@@ -475,7 +480,7 @@ public class DBSyntableTest {
 				test, ++no, 1);
 
 		Utils.logrst("X <= Y", test, ++no);
-		exchangePhotos(X, Y, test, no);
+		exchangeDocs(X, Y, test, no);
 		printChangeLines(ck);
 		printNyquv(ck);
 
@@ -497,27 +502,27 @@ public class DBSyntableTest {
 		printNyquv(ck);
 
 		ck[X].buf_change(1 + 1, // already have 1
-				U, xu[0], ck[X].phm);
+				U, xu[0], ck[X].docm);
 		ck[X].psubs(4 + 3,  // already have 4 
 				null, -1, Y, Z, W);
 		ck[X].psubs(3, xu[1], -1, Y, Z, W);
 
 		String[] yi = insertPhoto(Y);
-		ck[Y].buf_change(1, C, yi[0], ck[Y].phm);
+		ck[Y].buf_change(1, C, yi[0], ck[Y].docm);
 		ck[Y].psubs(3, yi[1], X, -1, Z, W);
 
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		Utils.logrst("X <= Y", section, ++no);
-		exchange_break(ssm, ck[X].phm, ck[X].trb, ck[Y].phm, ck[Y].trb, section, no);
+		exchange_break(ssm, ck[X].docm, ck[X].trb, ck[Y].docm, ck[Y].trb, section, no);
 
-		ck[X].buf_change(1, C, ck[X].trb.synode(), xu[0], ck[X].phm);
-		ck[X].buf_change(1, C, ck[Y].trb.synode(), yi[0], ck[X].phm);
+		ck[X].buf_change(1, C, ck[X].trb.synode(), xu[0], ck[X].docm);
+		ck[X].buf_change(1, C, ck[Y].trb.synode(), yi[0], ck[X].docm);
 		ck[X].psubs(2, xu[1], -1, -1, Z, W);
 		ck[X].psubs(2, yi[1], -1, -1, Z, W);
-		ck[Y].buf_change(1, C, ck[X].trb.synode(), xu[0], ck[Y].phm);
-		ck[Y].buf_change(1, C, ck[Y].trb.synode(), yi[0], ck[Y].phm);
+		ck[Y].buf_change(1, C, ck[X].trb.synode(), xu[0], ck[Y].docm);
+		ck[Y].buf_change(1, C, ck[Y].trb.synode(), yi[0], ck[Y].docm);
 		ck[Y].psubs(2, xu[1], -1, -1, Z, W);
 		ck[Y].psubs(2, yi[1], -1, -1, Z, W);
 	}
@@ -591,7 +596,7 @@ public class DBSyntableTest {
 	 * @throws TransException 
 	 * @throws IOException 
 	 */
-	void exchangePhotos(int srv, int cli, int test, int subno)
+	void exchangeDocs(int srv, int cli, int test, int subno)
 			throws TransException, SQLException, IOException {
 		DBSyntableBuilder ctb = ck[cli].trb;
 		DBSyntableBuilder stb = ck[srv].trb;
@@ -783,7 +788,7 @@ public class DBSyntableTest {
 	 */
 	String[] insertPhoto(int s) throws TransException, SQLException, IOException {
 		DBSyntableBuilder trb = ck[s].trb;
-		ExpDocTableMeta m = ck[s].phm;
+		ExpDocTableMeta m = ck[s].docm;
 		String synoder = trb.synode();
 		IUser rob = trb.synrobot();
 
@@ -805,7 +810,7 @@ public class DBSyntableTest {
 	 */
 	Object[] deletePhoto(int s) throws TransException, SQLException {
 		DBSyntableBuilder t = ck[s].trb;
-		ExpDocTableMeta entm = ck[s].phm;
+		ExpDocTableMeta entm = ck[s].docm;
 		AnResultset slt = ((AnResultset) ck[s].trb
 				.select(entm.tbl)
 				.limit(1)
@@ -829,7 +834,7 @@ public class DBSyntableTest {
 	 */
 	String[] updatePname(int s)
 			throws SQLException, TransException, AnsonException, IOException {
-		ExpDocTableMeta entm = ck[s].phm;
+		ExpDocTableMeta entm = ck[s].docm;
 		DBSyntableBuilder t = ck[s].trb;
 		AnResultset slt = ((AnResultset) t
 				.select(entm.tbl, "ch")
