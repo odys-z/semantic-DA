@@ -24,19 +24,19 @@ import static io.odysz.common.LangExt.*;
  * 
  * @author ody
  */
-public class T_SyncDoc extends SynEntity {
+public class ExpSyncDoc extends SynEntity {
 	protected static String[] synpageCols;
 
 	public String recId;
 	public String recId() { return recId; }
-	public T_SyncDoc recId(String did) {
+	public ExpSyncDoc recId(String did) {
 		recId = did;
 		return this;
 	}
 
 	public String pname;
 	public String clientname() { return pname; }
-	public T_SyncDoc clientname(String clientname) {
+	public ExpSyncDoc clientname(String clientname) {
 		pname = clientname;
 		return this;
 	}
@@ -47,7 +47,7 @@ public class T_SyncDoc extends SynEntity {
 	/** Non-public: doc' device id is managed by session. */
 	protected String device;
 	public String device() { return device; }
-	public T_SyncDoc device(String device) {
+	public ExpSyncDoc device(String device) {
 		this.device = device;
 		return this;
 	}
@@ -60,16 +60,16 @@ public class T_SyncDoc extends SynEntity {
 	/** usally reported by client file system, overriden by exif date, if exits */
 	public String createDate;
 	public String cdate() { return createDate; }
-	public T_SyncDoc cdate(String cdate) {
+	public ExpSyncDoc cdate(String cdate) {
 		createDate = cdate;
 		return this;
 	}
-	public T_SyncDoc cdate(FileTime fd) {
+	public ExpSyncDoc cdate(FileTime fd) {
 		createDate = DateFormat.formatime(fd);
 		return this;
 	}
 
-	public T_SyncDoc cdate(Date date) {
+	public ExpSyncDoc cdate(Date date) {
 		createDate = DateFormat.format(date);
 		return this;
 	}
@@ -87,28 +87,28 @@ public class T_SyncDoc extends SynEntity {
 	/** usually ignored when sending request */
 	public long size;
 
-	public T_SyncDoc shareby(String share) {
+	public ExpSyncDoc shareby(String share) {
 		this.shareby = share;
 		return this;
 	}
 
-	public T_SyncDoc sharedate(String format) {
+	public ExpSyncDoc sharedate(String format) {
 		sharedate = format;
 		return this;
 	}
 
-	public T_SyncDoc sharedate(Date date) {
+	public ExpSyncDoc sharedate(Date date) {
 		return sharedate(DateFormat.format(date));
 	}
 	
-	public T_SyncDoc share(String shareby, String flag, String sharedate) {
+	public ExpSyncDoc share(String shareby, String flag, String sharedate) {
 		this.shareflag = flag;
 		this.shareby = shareby;
 		sharedate(sharedate);
 		return this;
 	}
 
-	public T_SyncDoc share(String shareby, String s, Date sharedate) {
+	public ExpSyncDoc share(String shareby, String s, Date sharedate) {
 		this.shareflag = s;
 		this.shareby = shareby;
 		sharedate(sharedate);
@@ -121,9 +121,9 @@ public class T_SyncDoc extends SynEntity {
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	ISemantext semantxt;
 
-	protected String mime;
+	public String mime;
 	
-	public T_SyncDoc(SyntityMeta m, String orgId) {
+	public ExpSyncDoc(SyntityMeta m, String orgId) {
 		super(m);
 		org = orgId;
 	}
@@ -168,7 +168,7 @@ public class T_SyncDoc extends SynEntity {
 		return synpageCols;
 	}
 
-	public T_SyncDoc(AnResultset rs, ExpDocTableMeta meta) throws SQLException {
+	public ExpSyncDoc(AnResultset rs, ExpDocTableMeta meta) throws SQLException {
 		super(meta);
 		this.docMeta = meta;
 		this.recId = rs.getString(meta.pk);
@@ -229,7 +229,7 @@ public class T_SyncDoc extends SynEntity {
 //		this.fullpath(fullpath);
 //	}
 
-	public T_SyncDoc fullpath(String clientpath) throws IOException {
+	public ExpSyncDoc fullpath(String clientpath) throws IOException {
 		this.clientpath = clientpath;
 
 		if (isblank(createDate)) {
@@ -262,7 +262,7 @@ public class T_SyncDoc extends SynEntity {
 
 	protected String folder;
 	public String folder() { return folder; }
-	public T_SyncDoc folder(String v) {
+	public ExpSyncDoc folder(String v) {
 		this.folder = v;
 		return this;
 	}
@@ -298,7 +298,7 @@ public class T_SyncDoc extends SynEntity {
 	 * @param flags
 	 * @return this
 	 */
-	public T_SyncDoc parseFlags(String[] flags) {
+	public ExpSyncDoc parseFlags(String[] flags) {
 		if (!isNull(flags)) {
 			syncFlag = flags[0];
 			shareflag = flags[1];

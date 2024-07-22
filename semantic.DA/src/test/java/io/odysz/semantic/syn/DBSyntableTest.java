@@ -1165,9 +1165,9 @@ public class DBSyntableTest {
 		 * @param synoder
 		 * @param clientpath
 		 */
-		public void verifile(String synoder, String clientpath, T_PhotoMeta phm) {
-			trb.select(phm.tbl	)
-				.col(count(phm.pk), "c")
+		public void verifile(String synoder, String clientpath, ExpDocTableMeta docm) {
+			trb.select(docm.tbl)
+				.col(count(docm.pk), "c")
 				.where(new Predicate(op.eq, compound(chm.uids), compoundVal(synoder, clientpath)))
 				;
 		}

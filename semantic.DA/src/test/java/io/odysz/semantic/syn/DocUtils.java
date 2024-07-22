@@ -41,7 +41,7 @@ public class DocUtils {
 	 * @throws SQLException
 	 * @throws IOException
 	 */
-	public static String createFileB64(String conn, T_SyncDoc photo, IUser usr, ExpDocTableMeta meta, DATranscxt st, Update onDocreate)
+	public static String createFileB64(String conn, ExpSyncDoc photo, IUser usr, ExpDocTableMeta meta, DATranscxt st, Update onDocreate)
 			throws TransException, SQLException, IOException {
 		if (LangExt.isblank(photo.clientpath))
 			throw new SemanticException("Client path can't be null/empty.");

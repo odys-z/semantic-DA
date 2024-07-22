@@ -21,12 +21,9 @@ import io.odysz.transact.x.TransException;
 
 import static io.odysz.common.LangExt.isblank;
 /**
- * Server side and jprotocol oriented data record - not BaseFile used by file picker (at Android client). 
- * 
  * @author ody
- *
  */
-public class T_Photo extends T_SyncDoc {
+public class T_Photo extends ExpSyncDoc {
 	public String geox;
 	public String geoy;
 	
@@ -149,7 +146,7 @@ public class T_Photo extends T_SyncDoc {
 		}
 	}
 
-	public T_SyncDoc fullpath(String clientpath) throws IOException {
+	public ExpSyncDoc fullpath(String clientpath) throws IOException {
 		super.fullpath(clientpath);
 
 		if (isblank(folder)) {
@@ -158,7 +155,7 @@ public class T_Photo extends T_SyncDoc {
 		return this;
 	}
 
-	public T_SyncDoc shareflag(String share) {
+	public ExpSyncDoc shareflag(String share) {
 		shareflag = share;
 		return this;
 	}
