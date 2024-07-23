@@ -574,12 +574,14 @@ public class DBSyntableTest {
 
 		// applicant
 		Utils.logrst(new String[] {cltb.synode(), "closing application"}, testix, sect, ++no);
-		HashMap<String, Nyquence> closenv = cltb.closeJoining(cltp, Nyquence.clone(admb.nyquvect));
+		// HashMap<String, Nyquence> closenv = cltb.closeJoining(cltp, Nyquence.clone(admb.nyquvect));
+		req = cltb.closeJoining(cltp, resp);
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		Utils.logrst(new String[] {admb.synode(), "on closing"}, testix, sect, ++no);
-		admb.closeJoining(admp, closenv);
+		// admb.closeJoining(admp, closenv);
+		admb.closeJoining(admp, req);
 
 		printChangeLines(ck);
 		printNyquv(ck);

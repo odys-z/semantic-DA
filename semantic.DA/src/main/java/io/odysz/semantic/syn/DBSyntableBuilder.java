@@ -94,9 +94,9 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	DBSyntableBuilder incStamp(ExessionPersist xp) throws TransException, SQLException {
+		if (Nyquence.abs(stamp, nyquvect.get(synode())) >= 1)
+			throw new ExchangeException(0, xp, "Nyquence stamp increaseing too much or out of range.");
 		stamp.inc();
-		if (Nyquence.abs(stamp, nyquvect.get(synode())) >= 2)
-			throw new ExchangeException(0, xp, "Nyquence stamp increased too much or out of range.");
 		persistamp(stamp);
 		seq = 0;
 		return this;
@@ -865,8 +865,9 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 	}
 	
-	public ExchangeBlock domainSignup(ExessionPersist app, String admin) {
-		return app.signup(admin);
+	public ExchangeBlock domainSignup(ExessionPersist app, String admin) throws TransException, SQLException {
+		try { return app.signup(admin); }
+		finally { incStamp(app); }
 	}
 
 	public ExchangeBlock initDomain(ExessionPersist cp, String admin, ExchangeBlock domainstatus)
@@ -908,9 +909,9 @@ public class DBSyntableBuilder extends DATranscxt {
 			).nv(nyquvect);
 	}
 
-	public HashMap<String, Nyquence> closeJoining(ExessionPersist cp,
-			HashMap<String, Nyquence> clone) {
-		return null;
+	public ExchangeBlock closeJoining(ExessionPersist cp, ExchangeBlock rep)
+			throws TransException, SQLException {
+		return closexchange(cp, rep);
 	}
 	
 	/**
