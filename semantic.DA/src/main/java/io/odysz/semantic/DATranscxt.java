@@ -5,6 +5,7 @@ import static io.odysz.common.LangExt.split;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -94,6 +95,14 @@ public class DATranscxt extends Transcxt {
 
 		public DASemantics get(String tabl) {
 			return ss == null ? null : ss.get(tabl);
+		}
+		
+		public List<SemanticHandler> get(smtype t) {
+			List<SemanticHandler> handlers = new ArrayList<SemanticHandler>();
+			if (ss != null)
+			for (DASemantics s : ss.values())
+				handlers.add(s.handler(t));
+			return handlers;
 		}
 
 		SemanticHandler parseHandler(Transcxt basicTrs, XMLTable x) {

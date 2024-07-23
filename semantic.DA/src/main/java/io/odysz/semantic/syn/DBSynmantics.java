@@ -158,7 +158,7 @@ public class DBSynmantics extends DASemantics {
 		/**
 		 * Target synchronzed table meta, e.g. PhotoMeta.
 		 */
-		protected final SyntityMeta entm;
+		public final SyntityMeta entm;
 		protected final Resulving entId;
 		protected final String synode;
 		

@@ -1,10 +1,14 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.compoundVal;
+import static io.odysz.common.LangExt.ifnull;
 import static io.odysz.common.LangExt.indexOf;
-import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.repeat;
+import static io.odysz.common.LangExt.strcenter;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
+import static io.odysz.transact.sql.parts.condition.Funcall.concat;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,12 +18,19 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.xml.sax.SAXException;
 
+import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.meta.ExpDocTableMeta;
+import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynSessionMeta;
+import io.odysz.semantic.meta.SynSubsMeta;
+import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.IUser;
 import io.odysz.transact.sql.Query;
@@ -45,6 +56,12 @@ public class Docheck {
 	public final DBSyntableBuilder trb;
 
 	final String domain;
+	
+	static SynChangeMeta chm = new SynChangeMeta();
+	static SynSubsMeta sbm = new SynSubsMeta(chm);
+	static SynchangeBuffMeta xbm = new SynchangeBuffMeta(chm);
+	static SynSessionMeta ssm = new SynSessionMeta();
+	static PeersMeta prm = new PeersMeta();
 
 	public IUser robot() { return trb.synrobot(); }
 
@@ -333,5 +350,137 @@ public class Docheck {
 			.col(count(docm.pk), "c")
 			.where(new Predicate(op.eq, compound(trb.chgm.uids), compoundVal(synoder, clientpath)))
 			;
+	}
+	@SuppressWarnings("unchecked")
+	public static HashMap<String, Nyquence>[] printNyquv(Docheck[] ck) {
+		Utils.logi(Stream.of(ck)
+				.filter(c -> c != null)
+				.map(c -> { return c.trb.synode();})
+				.collect(Collectors.joining("    ", "      ", "")));
+		
+		final HashMap<?, ?>[] nv2 = new HashMap[ck.length];
+
+		for (int cx = 0; cx < ck.length && ck[cx] instanceof Docheck; cx++) {
+			DBSyntableBuilder t = ck[cx].trb;
+			nv2[cx] = Nyquence.clone(t.nyquvect);
+
+			Utils.logi(
+				t.synode() + " [ " +
+				Stream.of(ck)
+				.filter(c -> c != null)
+				.map((c) -> {
+					String n = c.trb.synode();
+					return String.format("%3s",
+						t.nyquvect.containsKey(n) ?
+						t.nyquvect.get(n).n : "");
+					})
+				.collect(Collectors.joining(", ")) +
+				" ]");
+		}
+
+		return (HashMap<String, Nyquence>[]) nv2;
+	}
+	
+	static String changeLine(AnResultset r) throws SQLException {
+		String seq = r.getString(xbm.pagex, " ");
+
+		return String.format("%1$1s %2$9s %3$9s %4$2s %5$2s [%6$4s]",
+				r.getString(chm.crud),
+				r.getString(chm.pk),
+				r.getString(chm.uids),
+				r.getString(chm.nyquence),
+				r.getString(sbm.synodee),
+				seq == null ? " " : seq
+				);
+	}
+	
+	public static void printChangeLines(Docheck[] ck)
+			throws TransException, SQLException {
+
+		HashMap<String, String[]> uidss = new HashMap<String, String[]>();
+
+		for (int cx = 0; cx < ck.length && ck[cx] instanceof Docheck; cx++) {
+			DBSyntableBuilder b = ck[cx].trb;
+			HashMap<String,String> idmap = ((AnResultset) b
+					.select(chm.tbl, "ch")
+					.cols("ch.*", sbm.synodee).col(concat(ifnull(xbm.peer, " "), "':'", xbm.pagex), xbm.pagex)
+					// .je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
+					.je_(sbm.tbl, "sub", chm.pk, sbm.changeId)
+					.l_(xbm.tbl, "xb", chm.pk, xbm.changeId)
+					.orderby(xbm.pagex, chm.entbl, chm.uids)
+					.rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
+					.rs(0))
+					.<String>map(new String[] {chm.pk, sbm.synodee}, (r) -> changeLine(r));
+
+			for(String cid : idmap.keySet()) {
+				if (!uidss.containsKey(cid))
+					uidss.put(cid, new String[ck.length]);
+
+				uidss.get(cid)[cx] = idmap.get(cid);
+			}
+		}
+		
+		Utils.logi(Stream.of(ck)
+				.filter(c -> c != null)
+				.map(c -> strcenter(c.trb.synode(), 36))
+				.collect(Collectors.joining("|")));
+		Utils.logi(Stream.of(ck)
+				.filter(c -> c != null)
+				.map(c -> repeat("-", 36))
+				.collect(Collectors.joining("+")));
+
+		Utils.logi(uidss.keySet().stream().map(
+			(String linekey) -> {
+				return Stream.of(uidss.get(linekey))
+					.map(c -> c == null ? String.format("%34s",  " ") : c)
+					.collect(Collectors.joining(" | ", " ", " "));
+			})
+			.collect(Collectors.joining("\n")));
+	}
+	
+	static String buffChangeLine(AnResultset r) throws SQLException {
+		return String.format("%1$1s %2$9s %3$9s %4$4s %5$2s",
+				r.getString(chm.crud),
+				r.getString(chm.pk),
+				r.getString(chm.uids),
+				r.getString(chm.nyquence),
+				r.getString(sbm.synodee)
+				);
+	}
+	
+	/**
+	 * Assert ai = bi, where ai, bi in nvs [a0, a1, ..., b0, b1, ...].
+	 * @param nvs
+	 */
+	public static void assertnv(long... nvs) {
+		if (nvs == null || nvs.length == 0 || nvs.length % 2 != 0)
+			fail("Invalid arguments to assert.");
+		
+		for (int i = 0; i < nvs.length/2; i++) {
+			assertEquals(nvs[i], nvs[i + nvs.length/2],
+				String.format("nv[%d] %d : %d", i, nvs[i], nvs[i + nvs.length/2]));
+		}
+	}
+
+	public static void assertI(Docheck[] ck, HashMap<?, ?>[] nvs) {
+		for (int i = 0; i < nvs.length; i++) {
+			if (nvs[i] != null && nvs[i].size() > 0)
+				assertEquals(ck[i].trb.n0().n, ((Nyquence)nvs[i].get(ck[i].trb.synode())).n);
+			else break;
+		}
+	}
+	
+	public static void assertnv(HashMap<String, Nyquence> nv0,
+			HashMap<String, Nyquence> nv1, int ... delta) {
+		if (nv0 == null || nv1 == null || nv0.size() != nv1.size() || nv1.size() != delta.length)
+			fail("Invalid arguments to assert.");
+		
+		for (int i = 0; i < nv0.size(); i++) {
+			assertEquals(nv0.get(ck[i].trb.synode()).n + delta[i], nv1.get(ck[i].trb.synode()).n,
+				String.format("nv[%d] %d : %d + %d",
+						i, nv0.get(ck[i].trb.synode()).n,
+						nv1.get(ck[i].trb.synode()).n,
+						delta[i]));
+		}
 	}
 }

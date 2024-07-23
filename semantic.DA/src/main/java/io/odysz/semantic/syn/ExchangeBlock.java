@@ -15,7 +15,7 @@ public class ExchangeBlock extends Anson {
 
 	public String srcnode;
 	public String peer;
-	HashMap<String, Nyquence> nv;
+	public HashMap<String, Nyquence> nv;
 
 	public AnResultset chpage;
 	public HashMap<String, AnResultset> entities;

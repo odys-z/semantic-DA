@@ -84,6 +84,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	private Nyquence stamp;
 	public long stamp() { return stamp.n; }
+	public Nyquence stampN() { return stamp; }
 	
 	protected Nyquence persistamp(Nyquence n) throws TransException, SQLException {
 		stamp.n = n.n;
@@ -119,7 +120,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
 
-	private HashMap<String, SyntityMeta> entityRegists;
+	static HashMap<String, HashMap<String, SyntityMeta>> entityRegists;
 
 	private final boolean force_clean_subs;
 
@@ -127,7 +128,10 @@ public class DBSyntableBuilder extends DATranscxt {
 	public long incSeq() { return ++seq; }
 
 	public SyntityMeta getSyntityMeta(String tbl) {
-		return entityRegists == null ? null : entityRegists.get(tbl);
+		return entityRegists != null
+			&& entityRegists.containsKey(synconn())
+				? entityRegists.get(synconn()).get(tbl)
+				: null;
 	} 
 
 	public DBSyntableBuilder(String domain, String conn, String synodeId, SynodeMode mode)
@@ -562,9 +566,10 @@ public class DBSyntableBuilder extends DATranscxt {
 		cx.clear();
 		HashMap<String, Nyquence> nv = rep.nv; 
 
-		if (Nyquence.compareNyq(n0(), nv.get(synode())) < 0)
+		Nyquence peerme = nv.get(synode());
+		if (peerme != null && Nyquence.compareNyq(n0(), peerme) < 0)
 			throw new SemanticException("Synchronizing Nyquence exception: my.n0 = %d < peer.nv[me] = %d",
-					n0().n, nv.get(synode()).n);
+					n0().n, peerme.n);
 
 		if (Nyquence.compareNyq(stamp, n0()) < 0)
 			throw new SemanticException("Synchronizing Nyquence exception: stamp = %d < n0 = %d",
@@ -604,7 +609,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			);
 	}
 	
-	protected HashMap<String, Nyquence> synyquvectMax(String peer,
+	public HashMap<String, Nyquence> synyquvectMax(String peer,
 			HashMap<String, Nyquence> nv, HashMap<String, Nyquence> mynv)
 					throws TransException, SQLException {
 
@@ -786,16 +791,20 @@ public class DBSyntableBuilder extends DATranscxt {
 	public DBSyntableBuilder registerEntity(String conn, SyntityMeta m)
 			throws SemanticException, TransException, SQLException {
 		if (entityRegists == null)
-			entityRegists = new HashMap<String, SyntityMeta>();
-		entityRegists.put(m.tbl, (SyntityMeta) m.clone(Connects.getMeta(conn, m.tbl)));
+			entityRegists = new HashMap<String, HashMap<String, SyntityMeta>>();
+		if (!entityRegists.containsKey(conn))
+			entityRegists.put(conn, new HashMap<String, SyntityMeta>());
+
+		entityRegists.get(conn).put(m.tbl, (SyntityMeta) m.clone(Connects.getMeta(conn, m.tbl)));
 		return this;
 	}
 	
 	public SyntityMeta getEntityMeta(String entbl) throws SemanticException {
-		if (entityRegists == null || !entityRegists.containsKey(entbl))
+		if (entityRegists == null || !entityRegists.containsKey(synconn())
+			|| !entityRegists.get(synconn()).containsKey(entbl))
 			throw new SemanticException("Register %s first.", entbl);
 			
-		return entityRegists.get(entbl);
+		return entityRegists.get(synconn()).get(entbl);
 	}
 	
 	/**

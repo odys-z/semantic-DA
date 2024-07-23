@@ -619,9 +619,11 @@ public class ExessionPersist {
 	}
 
 	public ExchangeBlock closexchange(ExchangeBlock rep) throws ExchangeException {
-//		if (exstate.state != init && exstate.state != exchange)
-//			throw new ExchangeException(exchange, this,
-//					"Can't handle closing state on state %s", exstate.state); 
+		/* enable?
+		if (exstate.state != init && exstate.state != exchange)
+			throw new ExchangeException(exchange, this,
+					"Can't handle closing state on state %s", exstate.state); 
+		*/
 
 		try {
 			expAnswerSeq = -1; 
@@ -632,10 +634,12 @@ public class ExessionPersist {
 
 			exstate.state = ready;
 
-			return new ExchangeBlock(trb == null ? rep.peer : trb.synode(), peer, session, new ExessionAct(exstate.mode, close))
-				.totalChallenges(totalChallenges)
-				.chpagesize(this.chsize)
-				.seq(this);
+			return new ExchangeBlock(trb == null
+				? rep.peer
+				: trb.synode(), peer, session, new ExessionAct(exstate.mode, close))
+					.totalChallenges(totalChallenges)
+					.chpagesize(this.chsize)
+					.seq(this);
 		} finally {
 			if (trb != null)
 			try {
@@ -661,10 +665,12 @@ public class ExessionPersist {
 
 			exstate.state = ready;
 
-			return new ExchangeBlock(trb == null ? null : trb.synode(), peer, session, new ExessionAct(exstate.mode, close))
-				.totalChallenges(totalChallenges)
-				.chpagesize(this.chsize)
-				.seq(this);
+			return new ExchangeBlock(trb == null
+				? null
+				: trb.synode(), peer, session, new ExessionAct(exstate.mode, close))
+					.totalChallenges(totalChallenges)
+					.chpagesize(this.chsize)
+					.seq(this);
 		} finally {
 			try {
 				trb.delete(exbm.tbl, trb.synrobot())
