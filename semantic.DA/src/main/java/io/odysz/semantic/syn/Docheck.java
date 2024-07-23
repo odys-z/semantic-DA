@@ -6,6 +6,7 @@ import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -19,7 +20,6 @@ import org.xml.sax.SAXException;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
-import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.IUser;
 import io.odysz.transact.sql.Query;
@@ -38,25 +38,25 @@ import io.odysz.transact.x.TransException;
 public class Docheck {
 	public static final String org = "URA";
 
-	public ExpDocTableMeta phm;
-	public SynodeMeta synm;
+	public static Docheck[] ck = new Docheck[4];
 
-	final DBSyntableBuilder trb;
+	public ExpDocTableMeta docm;
+
+	public final DBSyntableBuilder trb;
 
 	final String domain;
 
 	public IUser robot() { return trb.synrobot(); }
 
 	public int docs() throws SQLException, TransException {
-		return trb.entities(phm);
+		return trb.entities(docm);
 	}
 
 	String connId() { return trb.basictx().connId(); }
 
-	public Docheck(int s, String domain)
+	public Docheck(String domain, String conn, String synid, SynodeMode mod, ExpDocTableMeta m)
 			throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
-		this(domain, DBSyntableTest.conns[s], s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf,
-				DBSyntableTest.synodes[s], "rob-" + s);
+		this(m, domain, conn, mod, synid, "rob-" + synid);
 	}
 
 	/**
@@ -71,26 +71,27 @@ public class Docheck {
 		int cnt = 0;
 		for (int x = 0; x < nx.length; x++) {
 			if (nx[x] >= 0) {
-				nodes.add(DBSyntableTest.ck[x].trb.synode());
+				nodes.add(ck[x].trb.synode());
 				cnt++;
 			}
 		}
 
-		AnResultset rs = (AnResultset) trb.select(synm.tbl)
-			.col(synm.synoder)
+		AnResultset rs = (AnResultset) trb.select(trb.synm.tbl)
+			.col(trb.synm.synoder)
 			.distinct(true)
-			.whereIn(synm.synoder, nodes)
+			.whereIn(trb.synm.synoder, nodes)
 			.rs(trb.instancontxt(trb.basictx().connId(), trb.synrobot()))
 			.rs(0);
 		assertEquals(cnt, rs.getRowCount());
 	}
 
-	public Docheck(String domain, String conn, SynodeMode mode, String synid, String usrid)
+	public Docheck(ExpDocTableMeta docm, String domain, String conn, SynodeMode mode,
+			String synid, String usrid)
 			throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
 		trb = new DBSyntableBuilder(domain, conn, synid, mode)
 				.loadNyquvect0(conn);
 
-		phm = new T_PhotoMeta(conn);
+		this.docm = docm;
 		this.domain = trb.domain();
 	}
 
@@ -102,9 +103,9 @@ public class Docheck {
 	}
 
 	public void doc(int count, String... synids) throws TransException, SQLException {
-		Query q = trb.select(phm.tbl).col(count(), "c");
+		Query q = trb.select(docm.tbl).col(count(), "c");
 		if (!isNull(synids))
-			q.whereIn(phm.synuid, synids);
+			q.whereIn(docm.synuid, synids);
 
 		assertEquals(count, ((AnResultset) q
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
@@ -131,28 +132,28 @@ public class Docheck {
 
 	public long buf_change_p(int count, String crud, String eid)
 			throws TransException, SQLException {
-		return buf_change(count, crud, trb.synode(), eid, phm);
+		return buf_change(count, crud, trb.synode(), eid, docm);
 	}
 
-	public long change_photolog(int count, String crud, String eid) throws TransException, SQLException {
-		return change_log(count, crud, trb.synode(), eid, phm);
+	public long change_doclog(int count, String crud, String eid) throws TransException, SQLException {
+		return change_log(count, crud, trb.synode(), eid, docm);
 	}
 
-	public long change_photolog(int count, String crud, String synoder, String eid) throws TransException, SQLException {
-		return change_log(count, crud, synoder, eid, phm);
+	public long change_doclog(int count, String crud, String synoder, String eid) throws TransException, SQLException {
+		return change_log(count, crud, synoder, eid, docm);
 	}
 
 	public long change_log(int count, String crud, String synoder, String eid, SyntityMeta entm)
 			throws TransException, SQLException {
 		Query q = trb
-				.select(DBSyntableTest.chm.tbl, "ch")
-				.cols((Object[])DBSyntableTest.chm.insertCols())
-				.whereEq(DBSyntableTest.chm.domain, domain)
-				.whereEq(DBSyntableTest.chm.entbl, entm.tbl);
+				.select(trb.chgm.tbl, "ch")
+				.cols((Object[])trb.chgm.insertCols())
+				.whereEq(trb.chgm.domain, domain)
+				.whereEq(trb.chgm.entbl, entm.tbl);
 			if (synoder != null)
-				q.whereEq(DBSyntableTest.chm.synoder, synoder);
+				q.whereEq(trb.chgm.synoder, synoder);
 			if (eid != null)
-				q.whereEq(DBSyntableTest.chm.uids, SynChangeMeta.uids(synoder, eid));
+				q.whereEq(trb.chgm.uids, SynChangeMeta.uids(synoder, eid));
 
 			AnResultset chg = (AnResultset) q
 					.rs(trb.instancontxt(connId(), robot()))
@@ -163,10 +164,10 @@ public class Docheck {
 
 			assertEquals(count, chg.getRowCount());
 			if (count > 0) {
-				assertEquals(crud, chg.getString(DBSyntableTest.chm.crud));
-				assertEquals(entm.tbl, chg.getString(DBSyntableTest.chm.entbl));
-				assertEquals(synoder, chg.getString(DBSyntableTest.chm.synoder));
-				return chg.getLong(DBSyntableTest.chm.nyquence);
+				assertEquals(crud, chg.getString(trb.chgm.crud));
+				assertEquals(entm.tbl, chg.getString(trb.chgm.entbl));
+				assertEquals(synoder, chg.getString(trb.chgm.synoder));
+				return chg.getLong(trb.chgm.nyquence);
 			}
 			return 0;
 	}
@@ -174,15 +175,15 @@ public class Docheck {
 	public long buf_change(int count, String crud, String synoder, String eid, SyntityMeta entm)
 			throws TransException, SQLException {
 		Query q = trb
-			.select(DBSyntableTest.chm.tbl, "ch")
-			.je_(DBSyntableTest.xbm.tbl, "xb", DBSyntableTest.chm.pk, DBSyntableTest.xbm.changeId, DBSyntableTest.chm.synoder, DBSyntableTest.xbm.peer)
-			.cols((Object[])DBSyntableTest.chm.insertCols())
-			.whereEq(DBSyntableTest.chm.domain, domain)
-			.whereEq(DBSyntableTest.chm.entbl, entm.tbl);
+			.select(trb.chgm.tbl, "ch")
+			.je_(trb.exbm.tbl, "xb", trb.chgm.pk, trb.exbm.changeId, trb.chgm.synoder, trb.exbm.peer)
+			.cols((Object[])trb.chgm.insertCols())
+			.whereEq(trb.chgm.domain, domain)
+			.whereEq(trb.chgm.entbl, entm.tbl);
 		if (synoder != null)
-			q.whereEq(DBSyntableTest.chm.synoder, synoder);
+			q.whereEq(trb.chgm.synoder, synoder);
 		if (eid != null)
-			q.whereEq(DBSyntableTest.chm.uids, SynChangeMeta.uids(synoder, eid));
+			q.whereEq(trb.chgm.uids, SynChangeMeta.uids(synoder, eid));
 
 		AnResultset chg = (AnResultset) q
 				.rs(trb.instancontxt(connId(), robot()))
@@ -193,10 +194,10 @@ public class Docheck {
 
 		assertEquals(count, chg.getRowCount());
 		if (count > 0) {
-			assertEquals(crud, chg.getString(DBSyntableTest.chm.crud));
-			assertEquals(entm.tbl, chg.getString(DBSyntableTest.chm.entbl));
-			assertEquals(synoder, chg.getString(DBSyntableTest.chm.synoder));
-			return chg.getLong(DBSyntableTest.chm.nyquence);
+			assertEquals(crud, chg.getString(trb.chgm.crud));
+			assertEquals(entm.tbl, chg.getString(trb.chgm.entbl));
+			assertEquals(synoder, chg.getString(trb.chgm.synoder));
+			return chg.getLong(trb.chgm.nyquence);
 		}
 		return 0;
 	}
@@ -209,14 +210,14 @@ public class Docheck {
 	public long changelog(int count, String crud, String synoder, String eid, SyntityMeta entm)
 			throws TransException, SQLException {
 		Query q = trb
-			.select(DBSyntableTest.chm.tbl, "ch")
-			.cols((Object[])DBSyntableTest.chm.insertCols())
-			.whereEq(DBSyntableTest.chm.domain, domain)
-			.whereEq(DBSyntableTest.chm.entbl, entm.tbl);
+			.select(trb.chgm.tbl, "ch")
+			.cols((Object[])trb.chgm.insertCols())
+			.whereEq(trb.chgm.domain, domain)
+			.whereEq(trb.chgm.entbl, entm.tbl);
 		if (synoder != null)
-			q.whereEq(DBSyntableTest.chm.synoder, synoder);
+			q.whereEq(trb.chgm.synoder, synoder);
 		if (eid != null)
-			q.whereEq(DBSyntableTest.chm.uids, SynChangeMeta.uids(synoder, eid));
+			q.whereEq(trb.chgm.uids, SynChangeMeta.uids(synoder, eid));
 
 		AnResultset chg = (AnResultset) q
 				.rs(trb.instancontxt(connId(), robot()))
@@ -227,10 +228,10 @@ public class Docheck {
 
 		assertEquals(count, chg.getRowCount());
 		if (count > 0) {
-			assertEquals(crud, chg.getString(DBSyntableTest.chm.crud));
-			assertEquals(entm.tbl, chg.getString(DBSyntableTest.chm.entbl));
-			assertEquals(synoder, chg.getString(DBSyntableTest.chm.synoder));
-			return chg.getLong(DBSyntableTest.chm.nyquence);
+			assertEquals(crud, chg.getString(trb.chgm.crud));
+			assertEquals(entm.tbl, chg.getString(trb.chgm.entbl));
+			assertEquals(synoder, chg.getString(trb.chgm.synoder));
+			return chg.getLong(trb.chgm.nyquence);
 		}
 		return 0;
 	}
@@ -246,31 +247,31 @@ public class Docheck {
 		ArrayList<String> toIds = new ArrayList<String>();
 		for (int n : sub)
 			if (n >= 0)
-				toIds.add(DBSyntableTest.ck[n].trb.synode());
-		subsCount(phm, subcount, chgid, toIds.toArray(new String[0]));
+				toIds.add(ck[n].trb.synode());
+		subsCount(docm, subcount, chgid, toIds.toArray(new String[0]));
 	}
 
 	public void synsubs(int subcount, String uids, int ... sub) throws SQLException, TransException {
 		ArrayList<String> toIds = new ArrayList<String>();
 		for (int n : sub)
 			if (n >= 0)
-				toIds.add(DBSyntableTest.ck[n].trb.synode());
+				toIds.add(ck[n].trb.synode());
 
 		// subsCount(synm, subcount, chgId, toIds.toArray(new String[0]));
 			int cnt = 0;
 			// AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
 			AnResultset subs = (AnResultset) trb
-					.select(DBSyntableTest.chm.tbl, "ch")
-					.je_(DBSyntableTest.sbm.tbl, "sb", DBSyntableTest.chm.pk, DBSyntableTest.sbm.changeId)
-					.cols_byAlias("sb", DBSyntableTest.sbm.cols())
-					.whereEq(DBSyntableTest.chm.uids, uids)
+					.select(trb.chgm.tbl, "ch")
+					.je_(trb.subm.tbl, "sb", trb.chgm.pk, trb.subm.changeId)
+					.cols_byAlias("sb", trb.subm.cols())
+					.whereEq(trb.chgm.uids, uids)
 					.rs(trb.instancontxt(connId(), robot()))
 					.rs(0);
 					;
 
 			subs.beforeFirst();
 			while (subs.next()) {
-				if (indexOf(toIds.toArray(new String[0]), subs.getString(DBSyntableTest.sbm.synodee)) >= 0)
+				if (indexOf(toIds.toArray(new String[0]), subs.getString(trb.subm.synodee)) >= 0)
 					cnt++;
 			}
 
@@ -291,7 +292,7 @@ public class Docheck {
 			AnResultset subs = subscribes(connId(), chgId, entm, robot());
 			subs.beforeFirst();
 			while (subs.next()) {
-				if (indexOf(toIds, subs.getString(DBSyntableTest.sbm.synodee)) >= 0)
+				if (indexOf(toIds, subs.getString(trb.subm.synodee)) >= 0)
 					cnt++;
 			}
 
@@ -310,11 +311,11 @@ public class Docheck {
 	 */
 	private AnResultset subscribes(String connId, String chgId, SyntityMeta entm, IUser robot) 
 		throws TransException, SQLException {
-		Query q = trb.select(DBSyntableTest.sbm.tbl, "ch")
-				.cols((Object[])DBSyntableTest.sbm.cols())
+		Query q = trb.select(trb.subm.tbl, "ch")
+				.cols((Object[])trb.subm.cols())
 				;
 		if (!isblank(chgId))
-			q.whereEq(DBSyntableTest.sbm.changeId, chgId) ;
+			q.whereEq(trb.subm.changeId, chgId) ;
 
 		return (AnResultset) q
 				.rs(trb.instancontxt(connId, robot))
@@ -330,7 +331,7 @@ public class Docheck {
 	public void verifile(String synoder, String clientpath, ExpDocTableMeta docm) {
 		trb.select(docm.tbl)
 			.col(count(docm.pk), "c")
-			.where(new Predicate(op.eq, compound(DBSyntableTest.chm.uids), compoundVal(synoder, clientpath)))
+			.where(new Predicate(op.eq, compound(trb.chgm.uids), compoundVal(synoder, clientpath)))
 			;
 	}
 }

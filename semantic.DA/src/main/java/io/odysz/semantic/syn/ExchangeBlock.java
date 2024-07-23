@@ -206,5 +206,10 @@ public class ExchangeBlock extends Anson {
 			out.println("answer page:");
 			anspage.print(out);
 		}
+		
+		if (synodes != null) {
+			out.println("synodes:");
+			synodes.print(out);
+		}
 	}
 }

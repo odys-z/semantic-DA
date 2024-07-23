@@ -48,6 +48,10 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 
 	public final String shareflag;
 
+	public ExpDocTableMeta() throws TransException {
+		this("", "", "device", "conn");
+	}
+
 	public ExpDocTableMeta(String tbl, String pk, String device, String conn) throws TransException {
 		super(tbl, pk, device, conn);
 
@@ -67,12 +71,4 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 		shareby = "shareby";
 		shareflag = "shareflag";
 	}
-
-	/**
-	 * Design Memo / issue: currently org is the default synchronizing domain? 
-	 * @return org id
-	public String org() { return domain; }
-	 */
-
-
 }

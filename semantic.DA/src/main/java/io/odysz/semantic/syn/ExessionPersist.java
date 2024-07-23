@@ -521,28 +521,13 @@ public class ExessionPersist {
 	public ExchangeBlock nextExchange(ExchangeBlock rep)
 			throws SQLException, TransException {
 
-		ExessionPersist me = expect(rep).exstate(exchange);
-		nextChpage();
+		ExessionPersist me = expect(rep); //.exstate(exchange);
+		me.exstate(nextChpage() ? exchange : close);
 
 		return trb == null // null for test
 			? new ExchangeBlock(rep.peer, peer, session, me.exstate).seq(this)
 			: trb.exchangePage(this, rep);
 	}
-
-//	public ExchangeBlock onextExchange(String peer, ExchangeBlock req)
-//			throws SQLException, TransException {
-//		if (!eq(peer, this.peer))
-//			throw new ExchangeException(exchange, this, "Target synode id dosn't match this initiated arguments (%s != %s)",
-//					peer, this.peer);
-//		
-//		nextChpage();
-//
-//		exstate.state = exchange;
-//		
-//		return trb == null // null for test
-//			? new ExchangeBlock(req.peer, peer, session, expect(req).exstate(exchange).exstate).seq(this)
-//			: trb.onExchange(this, peer, req);
-//	}
 
 	private boolean nextChpage() throws TransException, SQLException {
 		int pages = pages();
@@ -605,7 +590,7 @@ public class ExessionPersist {
 
 		AnResultset rs = chpage();
 
-		exstate.state = exchange;
+		// exstate.state = exchange;
 
 		return new ExchangeBlock(trb == null ? rep.peer :
 			trb.synode(), peer, session, exstate)
@@ -634,9 +619,9 @@ public class ExessionPersist {
 	}
 
 	public ExchangeBlock closexchange(ExchangeBlock rep) throws ExchangeException {
-		if (exstate.state != init && exstate.state != exchange)
-			throw new ExchangeException(exchange, this,
-					"Can't handle closing state on state %s", exstate.state); 
+//		if (exstate.state != init && exstate.state != exchange)
+//			throw new ExchangeException(exchange, this,
+//					"Can't handle closing state on state %s", exstate.state); 
 
 		try {
 			expAnswerSeq = -1; 
