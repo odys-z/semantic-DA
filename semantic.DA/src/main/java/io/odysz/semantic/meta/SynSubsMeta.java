@@ -29,15 +29,12 @@ public class SynSubsMeta extends SemanticTableMeta {
 
 	public SynSubsMeta(SynChangeMeta chgm, String ... conn) {
 		super("syn_subscribe", conn);
-		ddlSqlite = loadTxt(SynSubsMeta.class, "syn_subscribe.sqlite.ddl");
 
 		changeId= "changeId";
-		// domain  = "domain";
-		// entbl   = "tabl";
 		synodee = "synodee";
-		// uids    = "uids";
-		
 		this.chgm = chgm;
+
+		ddlSqlite = loadTxt(SynSubsMeta.class, "syn_subscribe.sqlite.ddl");
 	}
 
 	public String[] cols() {

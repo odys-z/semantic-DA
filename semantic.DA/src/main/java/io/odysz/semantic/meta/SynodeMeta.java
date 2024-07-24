@@ -19,6 +19,8 @@ public class SynodeMeta extends SyntityMeta {
 
 	public final String org;
 
+	public final String domain;
+
 	/** Nyquence for synchronizing */
 	public final String nyquence;
 
@@ -35,13 +37,14 @@ public class SynodeMeta extends SyntityMeta {
 	 * @throws SemanticException 
 	 */
 	public SynodeMeta(String conn) throws TransException {
-		super("syn_node", "synid", "domain", "synuid", conn);
+		super("syn_node", "synid", "synid", conn);
 
-		synoder = pk;
+		// synoder = pk;
 		mac     = "mac";
 		nyquence= "nyq";
 		nstamp  = "nstamp";
 		org     = "org";
+		domain  = "domain";
 
 		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
 
@@ -57,11 +60,4 @@ public class SynodeMeta extends SyntityMeta {
 	public String[] insertSelectItems(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset changes) {
 		return null;
 	}
-
-//	/**
-//	 * Design Memo / issue: currently org is the default synchronizing domain? 
-//	 * @return org id
-//	 */
-//	public String org() { return domain; }
-
 }

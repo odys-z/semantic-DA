@@ -13,27 +13,26 @@ import java.util.stream.Collectors;
 import io.odysz.common.AESHelper;
 import io.odysz.common.DateFormat;
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.syn.T_DocTableMeta.Share;
+import io.odysz.semantic.meta.ExpDocTableMeta.Share;
 import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
+import io.odysz.transact.x.TransException;
 
 import static io.odysz.common.LangExt.isblank;
 /**
- * Server side and jprotocol oriented data record - not BaseFile used by file picker (at Android client). 
- * 
  * @author ody
- *
  */
-public class T_Photo extends T_SyncDoc {
+public class T_Photo extends ExpSyncDoc {
 	public String geox;
 	public String geoy;
 	
 	/** usually ignored when sending request */
 	public ArrayList<String> exif;
 	public String exif() {
-		return exif == null ? null
-				: exif.stream()
+		return exif == null
+			? null
+			: exif.stream()
 				 .collect(Collectors.joining(","));
 	}
 
@@ -60,9 +59,12 @@ public class T_Photo extends T_SyncDoc {
 
 	public String albumId;
 	
-	public T_Photo() {}
+	public T_Photo(String conn, String org) throws SQLException, TransException {
+		super(new T_PhotoMeta(conn), org);
+	}
 	
 	public T_Photo(AnResultset rs, T_PhotoMeta m) throws SQLException {
+		super(rs, m);
 		this.recId = rs.getString(m.pk);
 		this.pname = rs.getString(m.resname);
 		this.uri = rs.getString(m.uri);
@@ -144,7 +146,7 @@ public class T_Photo extends T_SyncDoc {
 		}
 	}
 
-	public T_SyncDoc fullpath(String clientpath) throws IOException {
+	public ExpSyncDoc fullpath(String clientpath) throws IOException {
 		super.fullpath(clientpath);
 
 		if (isblank(folder)) {
@@ -153,7 +155,7 @@ public class T_Photo extends T_SyncDoc {
 		return this;
 	}
 
-	public T_SyncDoc shareflag(String share) {
+	public ExpSyncDoc shareflag(String share) {
 		shareflag = share;
 		return this;
 	}

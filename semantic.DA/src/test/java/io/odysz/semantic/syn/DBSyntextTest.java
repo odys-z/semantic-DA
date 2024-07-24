@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.Anson;
@@ -99,6 +100,7 @@ public class DBSyntextTest {
 
 	static T_PhotoMeta phm;
 
+	@Disabled
 	@BeforeAll
 	public static void testInit() throws Exception {
 		// DDL
@@ -192,6 +194,7 @@ public class DBSyntextTest {
 		assertEquals("syn.00", ck[0].connId());
 	}
 
+	@Disabled
 	@Test
 	void testChangeLogs() throws Exception {
 		int no = 0;
@@ -462,7 +465,7 @@ public class DBSyntextTest {
 		int no = 0;
 		// admin
 		Utils.logrst(String.format("%s accept %s", atb.synode(), ctb.synode()), test, sect, ++no);
-		ChangeLogs resp = atb.addChild(ax, ctb.synode(), SynodeMode.child, ck[admin].robot(), org, ck[admin].domain);
+		ChangeLogs resp = atb.addChild(ax, ctb.synode(), SynodeMode.leaf, ck[admin].robot(), org, ck[admin].domain);
 		Utils.logrst(String.format("changeId at %s: %s", atb.synode(), resp.session()), test, sect, ++no);
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -693,12 +696,12 @@ public class DBSyntextTest {
 			.nv(m.uri, "")
 			.nv(m.resname, "photo-" + robot.deviceId)
 			.nv(m.fullpath, father)
-			.nv(m.org(), ZSUNodesDA.family)
+			.nv(m.org, ZSUNodesDA.family)
 			.nv(m.device(), robot.deviceId())
 			.nv(m.folder, robot.uid())
 			.nv(m.shareDate, now())
 			.ins(trb.instancontxt(conn, robot)))
-			.resulve(entm);
+			.resulve(entm, -1);
 		
 		assertFalse(isblank(pid));
 		
@@ -708,7 +711,7 @@ public class DBSyntextTest {
 			.nv(chm.entbl, m.tbl)
 			.nv(chm.crud, CRUD.C)
 			.nv(chm.synoder, synoder)
-			.nv(chm.uids, concatstr(synoder, chm.UIDsep, pid))
+			.nv(chm.uids, concatstr(synoder, SynChangeMeta.UIDsep, pid))
 			.nv(chm.nyquence, trb.n0().n)
 			.nv(chm.domain, trb.domain())
 			.post(trb.insert(sbm.tbl)
@@ -724,10 +727,10 @@ public class DBSyntextTest {
 					.where(op.ne, snm.synoder, constr(trb.synode()))
 					.whereEq(snm.domain, trb.domain())))
 			.ins(trb.instancontxt(conn, robot)))
-			.resulve(chm);
+			.resulve(chm, -1);
 		
 		// return pid;
-		return new String[] {pid, chid, chm.uids(synoder, pid)};
+		return new String[] {pid, chid, SynChangeMeta.uids(synoder, pid)};
 	}
 	
 	String deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
@@ -746,7 +749,7 @@ public class DBSyntextTest {
 			.whereEq(chgm.uids, pid)
 			// TODO .post()
 			.d(ck[s].trb.instancontxt(conns[s], ck[s].robot())))
-			.resulve(ck[s].phm.tbl, ck[s].phm.pk);
+			.resulve(ck[s].phm.tbl, ck[s].phm.pk, -1);
 		
 		assertFalse(isblank(pid));
 		return pid;
@@ -777,7 +780,7 @@ public class DBSyntextTest {
 			entm.resname, String.format("%s,%04d", (pname == null ? "" : pname), t.n0().n),
 			entm.createDate, now());
 
-		return new String[] {pid, chgid, synodr + chm.UIDsep + pid};
+		return new String[] {pid, chgid, synodr + SynChangeMeta.UIDsep + pid};
 	}
 	
 	/**
@@ -877,7 +880,7 @@ public class DBSyntextTest {
 			if (synoder != null)
 				q.whereEq(chm.synoder, synoder);
 			if (eid != null)
-				q.whereEq(chm.uids, synoder + chm.UIDsep + eid);
+				q.whereEq(chm.uids, synoder + SynChangeMeta.UIDsep + eid);
 
 			AnResultset chg = (AnResultset) q
 					.rs(trb.instancontxt(connId(), robot()))

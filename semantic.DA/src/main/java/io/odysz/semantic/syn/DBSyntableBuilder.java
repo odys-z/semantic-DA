@@ -21,12 +21,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 import org.xml.sax.SAXException;
 
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
+import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.PeersMeta;
@@ -35,7 +37,6 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
-import io.odysz.semantic.syn.DBSynsactBuilder.SynmanticsMap;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -59,9 +60,36 @@ import io.odysz.transact.x.TransException;
  * 
  * Improved with temporary tables for broken network (and shutdown), concurrency and memory usage.
  * 
+ * <h5>Issue ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c</h5>
+ * <pre>
+ * version: Semantic-DA 2.0.0-SNAPSHOT, jserv.docsyc 0.2.0-SNAPSHOT
+ * commit:  ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c & ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c
+ * About:
+ * DBSyntableBuilder.stamp is managed not for each domain.
+ * To use stamp in this way, nyquence numbers shold synchronized
+ * in cross-domain style;
+ * To use stamps for each domain, multiple change-logs for each
+ * domain of an entity changing operation must be generated. 
+ * </pre>
+ * 
  * @author Ody
  */
 public class DBSyntableBuilder extends DATranscxt {
+	public static class SynmanticsMap extends SemanticsMap {
+		String synode;
+	
+		public SynmanticsMap(String synode, String conn) {
+			super(conn);
+			this.synode = synode;
+		}
+	
+		@Override
+		public DASemantics createSemantics(Transcxt trb, String tabl, String pk, boolean debug) {
+			return new DBSynmantics(trb, synode, tabl, pk, debug);
+		}
+	}
+
+	private final boolean debug;
 
 	protected SynodeMeta synm;
 	protected PeersMeta pnvm;
@@ -69,10 +97,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	protected SynChangeMeta chgm;
 	protected SynchangeBuffMeta exbm;
 
-	public static final int peermode = 0; 
-	public static final int leafmode = 1; 
-
-	final int synmode;
+	final SynodeMode synmode;
 
 	/**
 	 * Get synchronization meta connection id.
@@ -81,54 +106,47 @@ public class DBSyntableBuilder extends DATranscxt {
 	 */
 	public String synconn() { return basictx.connId(); }
 
-	protected String synode() { return ((DBSyntext)this.basictx).synode; }
+	public String synode() { return ((DBSyntext)this.basictx).synode; }
 
-	protected Nyquence stamp;
+	private Nyquence stamp;
+	public long stamp() { return stamp.n; }
+	public Nyquence stampN() { return stamp; }
+	
 	protected Nyquence persistamp(Nyquence n) throws TransException, SQLException {
+		stamp.n = n.n;
 		DAHelper.updateFieldWhereEqs(this, synconn(), synrobot(), synm,
 				synm.nstamp, n.n,
-				synm.pk, synode());
-		stamp.n = n.n;
-		return stamp;
-	}
-
-	protected Nyquence persistamp() throws TransException, SQLException {
-		DAHelper.updateFieldWhereEqs(this, synconn(), synrobot(), synm,
-				synm.nstamp, stamp.n,
 				synm.pk, synode());
 		return stamp;
 	}
 
 	DBSyntableBuilder incStamp(ExessionPersist xp) throws TransException, SQLException {
+		if (Nyquence.abs(stamp, nyquvect.get(synode())) >= 1)
+			throw new ExchangeException(0, xp, "Nyquence stamp increaseing too much or out of range.");
 		stamp.inc();
-		if (Nyquence.abs(stamp, nyquvect.get(synode())) >= 2)
-			throw new ExchangeException(0, xp, "Nyquence stamp increased too much or out of range.");
 		persistamp(stamp);
 		seq = 0;
 		return this;
 	}
 
 	/** Nyquence vector [{synode, Nyquence}]*/
-	protected HashMap<String, Nyquence> nyquvect;
-	protected Nyquence n0() { return nyquvect.get(synode()); }
+	public HashMap<String, Nyquence> nyquvect;
+	public Nyquence n0() { return nyquvect.get(synode()); }
 	protected DBSyntableBuilder n0(Nyquence nyq) {
 		nyquvect.put(synode(), new Nyquence(nyq.n));
 		return this;
 	}
 
-	public String domain() {
-		return basictx() == null ? null : ((DBSyntext) basictx()).domain;
-	}
-
+	String dom;
+	public String domain() { return dom; }
 	private DBSyntableBuilder domain(String domain) {
-		if (basictx() != null)
-			((DBSyntext) basictx()).domain = domain;
+		this.dom = domain;
 		return this;
 	}
 
 	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
 
-	private HashMap<String, SyntityMeta> entityRegists;
+	static HashMap<String, HashMap<String, SyntityMeta>> entityRegists;
 
 	private final boolean force_clean_subs;
 
@@ -136,34 +154,40 @@ public class DBSyntableBuilder extends DATranscxt {
 	public long incSeq() { return ++seq; }
 
 	public SyntityMeta getSyntityMeta(String tbl) {
-		return entityRegists == null ? null : entityRegists.get(tbl);
+		return entityRegists != null
+			&& entityRegists.containsKey(synconn())
+				? entityRegists.get(synconn()).get(tbl)
+				: null;
 	} 
 
-	public DBSyntableBuilder(String conn, String synodeId, String syndomain, int mode)
+	public DBSyntableBuilder(String domain, String conn, String synodeId, SynodeMode mode)
 			throws SQLException, SAXException, IOException, TransException {
-		this(conn, synodeId, syndomain, mode,
+		this(domain, conn, synodeId, mode,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
 	}
 	
-	public DBSyntableBuilder(String conn, String synodeId, String syndomain,
-			int mode, SynChangeMeta chgm, SynodeMeta synm)
+	public DBSyntableBuilder(String domain, String conn, String nid,
+			SynodeMode mode, SynChangeMeta chgm, SynodeMeta synm)
 			throws SQLException, SAXException, IOException, TransException {
 
 		super ( new DBSyntext(conn,
-			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(c)),
-			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId, syndomain)
-			    	, runtimepath));
+			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSyntableBuilder.SynmanticsMap(nid, c)),
+			    	(IUser) new SyncRobot(nid, nid, "rob@" + nid, nid),
+			    	runtimepath));
 		
+		debug = Connects.getDebug(conn);
+
+		dom = domain;
 		synmode = mode;
 
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;
-		tx.synode = synodeId;
-		tx.domain = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
+		tx.synode = nid;
+		// dom = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
 		((SyncRobot)tx.usr())
-			.orgId(getValstr((Transcxt) this, conn, synm, synm.org, synm.pk, synodeId))
-			.domain(getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId));
+			.orgId(getValstr((Transcxt) this, conn, synm, synm.org, synm.pk, nid))
+			.domain(getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, nid));
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
@@ -177,13 +201,24 @@ public class DBSyntableBuilder extends DATranscxt {
 		this.pnvm = pnvm != null ? pnvm : new PeersMeta(conn);
 		this.pnvm.replace();
 		
-		stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
-				synm.synoder, synodeId, synm.domain, tx.domain);
-		seq   = 0;
-
+		seq = 0;
 		force_clean_subs = true;
 
-		if (isblank(tx.domain))
+		if (mode != SynodeMode.nonsyn) {
+			if (DAHelper.count(this, conn, synm.tbl,
+						synm.synoder, nid, synm.domain, dom) <= 0) {
+				if (debug) Utils
+					.warnT(new Object() {},
+						  "\nThis syntable builder is being buit for node %s which doesn't exists in domain %s." +
+						  "\nThis instence can only be useful if is used to initialize the domain for the node",
+						  nid, dom);
+			}
+			else
+				stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
+						synm.synoder, nid, synm.domain, dom);
+			registerEntity(conn, synm);
+		}
+		else if (isblank(dom))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
 				this.getClass().getName(), tx.synode);
 	}
@@ -418,7 +453,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws TransException, SQLException {
 		if (srcnv == null) return;
 		
-		if (Connects.getDebug(basictx.connId()))
+		if (debug)
 			Utils.logi("Cleaning staleness at %s, peer %s ...", synode(), peer);
 
 		delete(pnvm.tbl, synrobot())
@@ -470,7 +505,7 @@ public class DBSyntableBuilder extends DATranscxt {
 							subm.changeId, chgm.pk)))
 			.d(instancontxt(basictx.connId(), synrobot()));
 			
-		if (Connects.getDebug(synconn())) {
+		if (debug) {
 			try {
 				@SuppressWarnings("unchecked")
 				ArrayList<Integer> chgsubs = ((ArrayList<Integer>)res.get("total"));
@@ -499,7 +534,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			String synoder = reqChgs.getString(chgm.synoder);
 
 			if (!nyquvect.containsKey(synoder)) {
-				// trb.nyquvect.put(synodr, new Nyquence(trb.nyquvect.get(peer).n));
 				if (!warnsynoder.contains(synoder)) {
 					warnsynoder.add(synoder);
 					Utils.warn("%s has no idea about %s. The changes %s -> %s are ignored.",
@@ -518,7 +552,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
 				else if (!nyquvect.containsKey(synodee)) {
 					; // I have no idea
-					if (synmode != leafmode) {
+					if (synmode != SynodeMode.leaf) {
 						if (!warnsynodee.contains(synodee)) {
 							warnsynodee.add(synodee);
 							Utils.warn("%s has no idea about %s. The change is committed at this node. This can either be automatically fixed or causing data lost later.",
@@ -541,7 +575,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				else if (compareNyq(subnyq, nyquvect.get(peer)) <= 0) {
 					// 2024.6.5 client shouldn't have older knowledge than me now,
 					// which is cleanded when initiating.
-					Utils.warn("Ignore this?");
+					if (debug) Utils.warn("Ignore this?");
 				}
 				else
 					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
@@ -558,9 +592,10 @@ public class DBSyntableBuilder extends DATranscxt {
 		cx.clear();
 		HashMap<String, Nyquence> nv = rep.nv; 
 
-		if (Nyquence.compareNyq(n0(), nv.get(synode())) < 0)
+		Nyquence peerme = nv.get(synode());
+		if (peerme != null && Nyquence.compareNyq(n0(), peerme) < 0)
 			throw new SemanticException("Synchronizing Nyquence exception: my.n0 = %d < peer.nv[me] = %d",
-					n0().n, nv.get(synode()).n);
+					n0().n, peerme.n);
 
 		if (Nyquence.compareNyq(stamp, n0()) < 0)
 			throw new SemanticException("Synchronizing Nyquence exception: stamp = %d < n0 = %d",
@@ -600,7 +635,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			);
 	}
 	
-	protected HashMap<String, Nyquence> synyquvectMax(String peer,
+	public HashMap<String, Nyquence> synyquvectMax(String peer,
 			HashMap<String, Nyquence> nv, HashMap<String, Nyquence> mynv)
 					throws TransException, SQLException {
 
@@ -639,7 +674,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		if (u != null) {
 			u.u(instancontxt(synconn(), synrobot()));
 
-			loadNyquvect0(synconn());
+			loadNyquvect(synconn());
 		}
 
 		return snapshot;
@@ -671,7 +706,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	
 	public void onRequires(ExessionPersist cp, ExchangeBlock req) throws ExchangeException {
 		if (req.act == restore) {
-			// TODO check step leakings
 			if (cp.challengeSeq <= req.challengeSeq) {
 				// server is actually handled my challenge. Just step ahead 
 				cp.challengeSeq = req.challengeSeq;
@@ -690,7 +724,6 @@ public class DBSyntableBuilder extends DATranscxt {
 				cp.answerSeq = req.answerSeq;
 			}
 			
-			// cp.expChallengeId = rep.challengeId;
 			cp.expAnswerSeq = cp.challengeSeq;
 		}
 		else throw new ExchangeException(0, cp, "TODO");
@@ -737,82 +770,67 @@ public class DBSyntableBuilder extends DATranscxt {
 			.getInt("c") > 0;
 	}
 
-	public String[] insertEntity(SyntityMeta m, SynEntity e) throws TransException, SQLException {
+	/**
+	 * NOTE: don't configure syn-change semantics for the table.
+	 * 
+	 * @param m
+	 * @param e
+	 * @return [entity-id, change-id]
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public String[] insertEntity(SyntityMeta m, SynEntity e)
+			throws TransException, SQLException {
 		String conn   = synconn();
 		SyncRobot rob = (SyncRobot) synrobot();
 
 		Resulving pid = new Resulving(m.tbl, m.pk);
 
-		SemanticObject u = ((SemanticObject) e
-			.insertEntity(m, insert(m.tbl, rob))
-			.post(update(m.tbl, rob)
-				.nv(m.synuid, SynChangeMeta.uids(synode(), pid))
-				.whereEq(m.pk, pid))
-			.post(insert(chgm.tbl)
-				.nv(chgm.entbl, m.tbl)
-				.nv(chgm.crud, CRUD.C)
-				.nv(chgm.synoder, synode())
-				.nv(chgm.uids, SynChangeMeta.uids(synode(), pid))
-				.nv(chgm.nyquence, stamp.n)
-				.nv(chgm.seq, incSeq())
-				.nv(chgm.domain, rob.domain())
-				.post(insert(subm.tbl)
-					.cols(subm.insertCols())
-					.select((Query) select(synm.tbl)
-						.col(new Resulving(chgm.tbl, chgm.pk))
-						.col(synm.synoder)
-						.where(op.ne, synm.synoder, constr(synode()))
-						.whereEq(synm.domain, rob.domain))))
-			.ins(instancontxt(conn, rob)));
+		Insert inse = e.insertEntity(m, insert(m.tbl, rob));
+		SemanticObject u = (SemanticObject) DBSynmantics
+				.logChange(this, inse, synm, chgm, subm, m, synode(), pid)
+				.ins(instancontxt(conn, rob));
 
-		String phid = u.resulve(m);
-		String chid = u.resulve(chgm);
+		String phid = u.resulve(m, -1);
+		String chid = u.resulve(chgm, -1);
 		return new String[] {phid, chid};
 	}
-
+	
+	@SuppressWarnings("serial")
 	public String updateEntity(String synoder, String synuid, SyntityMeta entm, Object ... nvs)
 			throws TransException, SQLException, IOException {
-		String [] updcols = new String[nvs.length/2];
+		List<String> updcols = new ArrayList<String>(nvs.length/2);
 		for (int i = 0; i < nvs.length; i += 2)
-			updcols[i/2] = (String) nvs[i];
+			updcols.add((String) nvs[i]);
 
-		String chgid = update(entm.tbl, synrobot())
-			.nvs((Object[])nvs)
-			.whereEq(entm.synuid, synuid)
-			.post(insert(chgm.tbl, synrobot())
-				.nv(chgm.entbl, entm.tbl)
-				.nv(chgm.crud, CRUD.U)
-				.nv(chgm.synoder, synode())
-				.nv(chgm.uids, synuid)
-				.nv(chgm.nyquence, stamp.n)
-				.nv(chgm.seq, incSeq())
-				.nv(chgm.domain, domain())
-				.nv(chgm.updcols, updcols)
-				.post(insert(subm.tbl)
-					.cols(subm.insertCols())
-					.select((Query)select(synm.tbl)
-						.col(new Resulving(chgm.tbl, chgm.pk))
-						.col(synm.synoder)
-						.where(op.ne, synm.synoder, constr(synode()))
-						.whereEq(synm.domain, domain()))))
+		return DBSynmantics
+			.logChange(this, update(entm.tbl, synrobot())
+						.nvs((Object[])nvs)
+						.whereEq(entm.synuid, synuid),
+					synm, chgm, subm, entm, synoder,
+					new ArrayList<String>() {{add(synuid);}},
+					updcols)
 			.u(instancontxt(basictx.connId(), synrobot()))
-			.resulve(chgm.tbl, chgm.pk);
-		return chgid;
+			.resulve(chgm.tbl, chgm.pk, -1);
 	}
 	
 	public DBSyntableBuilder registerEntity(String conn, SyntityMeta m)
 			throws SemanticException, TransException, SQLException {
 		if (entityRegists == null)
-			entityRegists = new HashMap<String, SyntityMeta>();
-		entityRegists.put(m.tbl, (SyntityMeta) m.clone(Connects.getMeta(conn, m.tbl)));
+			entityRegists = new HashMap<String, HashMap<String, SyntityMeta>>();
+		if (!entityRegists.containsKey(conn))
+			entityRegists.put(conn, new HashMap<String, SyntityMeta>());
+
+		entityRegists.get(conn).put(m.tbl, (SyntityMeta) m.clone(Connects.getMeta(conn, m.tbl)));
 		return this;
 	}
 	
 	public SyntityMeta getEntityMeta(String entbl) throws SemanticException {
-		if (entityRegists == null || !entityRegists.containsKey(entbl))
+		if (entityRegists == null || !entityRegists.containsKey(synconn())
+			|| !entityRegists.get(synconn()).containsKey(entbl))
 			throw new SemanticException("Register %s first.", entbl);
 			
-		return entityRegists.get(entbl);
+		return entityRegists.get(synconn()).get(entbl);
 	}
 	
 	/**
@@ -828,7 +846,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			.u(instancontxt(basictx.connId(), synrobot()));
 		
 		nyquvect.put(synode(), getNyquence(this, basictx.connId(), synm, synm.nyquence,
-				synm.pk, synode(), synm.domain, ((DBSyntext)this.basictx).domain));
+				synm.pk, synode(), synm.domain, dom));
 		stamp.inc();
 		persistamp(stamp);
 		
@@ -852,15 +870,18 @@ public class DBSyntableBuilder extends DATranscxt {
 		return n0();
 	}
 	
-	public DBSyntableBuilder loadNyquvect0(String conn) throws SQLException, TransException {
+	public DBSyntableBuilder loadNyquvect(String conn) throws SQLException, TransException {
 		AnResultset rs = ((AnResultset) select(synm.tbl)
-				.cols(synm.pk, synm.nyquence)
+				.cols(synm.pk, synm.nyquence, synm.nstamp)
 				.rs(instancontxt(conn, synrobot()))
 				.rs(0));
 		
 		nyquvect = new HashMap<String, Nyquence>(rs.getRowCount());
 		while (rs.next()) {
 			nyquvect.put(rs.getString(synm.synoder), new Nyquence(rs.getLong(synm.nyquence)));
+			
+			if (eq(synode(), rs.getString(synm.pk)))
+				stamp.n = rs.getLong(synm.nstamp);
 		}
 		
 		return this;
@@ -871,7 +892,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		try {
 			return new DBSyntext(conn,
 				initConfigs(conn, loadSemantics(conn),
-						(c) -> new SynmanticsMap(c)),
+						(c) -> new DBSyntableBuilder.SynmanticsMap(synode(), c)),
 				usr, runtimepath);
 		} catch (SAXException | IOException | SQLException e) {
 			e.printStackTrace();
@@ -879,11 +900,56 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 	}
 	
-	public ExchangeBlock domainSignup(ExessionPersist app, String admin) {
-		return app.signup(admin);
+	public ExchangeBlock domainSignup(ExessionPersist app, String admin) throws TransException, SQLException {
+		try { return app.signup(admin); }
+		finally { incStamp(app); }
 	}
 
-	public ExchangeBlock initDomain(ExessionPersist cp, String admin, ExchangeBlock domainstatus)
+	public ExchangeBlock domainOnAdd(ExessionPersist ap, ExchangeBlock req, String org)
+			throws TransException, SQLException {
+	
+		String childId = req.srcnode;
+		IUser robot = synrobot();
+	
+		Synode apply = new Synode(basictx.connId(), childId, org, domain());
+	
+		@SuppressWarnings("unused")
+		String chgid = ((SemanticObject) apply.insert(synm, synode(), n0(), insert(synm.tbl, robot))
+			.post(insert(chgm.tbl, robot)
+				.nv(chgm.entbl, synm.tbl)
+				.nv(chgm.crud, CRUD.C)
+				.nv(chgm.synoder, synode())
+				.nv(chgm.uids, SynChangeMeta.uids(synode(), apply.synodeId))
+				.nv(chgm.nyquence, n0().n)
+				.nv(chgm.seq, incSeq())
+				.nv(chgm.domain, domain())
+				.post(insert(subm.tbl)
+					.cols(subm.insertCols())
+					.select((Query)select(synm.tbl)
+						.col(new Resulving(chgm.tbl, chgm.pk))
+						.col(synm.synoder)
+						.where(op.ne, synm.synoder, constr(synode()))
+						.where(op.ne, synm.synoder, constr(childId))
+						.whereEq(synm.domain, domain()))))
+			.ins(instancontxt(basictx.connId(), robot)))
+			.resulve(chgm.tbl, chgm.pk, -1);
+		
+		nyquvect.put(apply.synodeId, new Nyquence(apply.nyquence));
+	
+		ExchangeBlock rep = new ExchangeBlock(synode(), childId, ap.session(), ap.exstat())
+			.nv(nyquvect)
+			.synodes(req.act == ExessionAct.signup
+			? ((AnResultset) select(synm.tbl, "syn")
+				.whereIn(synm.synoder, childId, synode())
+				.whereEq(synm.domain, domain())
+				.whereEq(synm.org, org)
+				.rs(instancontxt(basictx.connId(), synrobot()))
+				.rs(0))
+			: null);
+		return rep;
+	}
+
+	public ExchangeBlock domainitMe(ExessionPersist cp, String admin, ExchangeBlock domainstatus)
 			throws TransException, SQLException {
 
 		Nyquence mxn = domainstatus.nv.get(admin); 
@@ -915,6 +981,9 @@ public class DBSyntableBuilder extends DATranscxt {
 			}
 		}
 
+		if (stamp == null)
+			throw new SemanticException("TEMP");
+
 		persistamp(mxn);
 
 		return new ExchangeBlock(synode(), admin, domainstatus.session,
@@ -922,9 +991,9 @@ public class DBSyntableBuilder extends DATranscxt {
 			).nv(nyquvect);
 	}
 
-	public HashMap<String, Nyquence> closeJoining(ExessionPersist cp,
-			HashMap<String, Nyquence> clone) {
-		return null;
+	public ExchangeBlock domainCloseJoin(ExessionPersist cp, ExchangeBlock rep)
+			throws TransException, SQLException {
+		return closexchange(cp, rep);
 	}
 	
 	/**
@@ -936,7 +1005,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 */
 	protected void cleanStaleSubs(String peer) {
 		if (force_clean_subs) {
-			if (Connects.getDebug(basictx.connId())) {
+			if (debug) {
 				Utils.logT(new Object() {},
 						"Cleaning changes that's not accepted in session %s -> %s.",
 						synode(), peer);
@@ -961,7 +1030,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 				@SuppressWarnings("unchecked")
 				int cnt = ((ArrayList<Integer>)res.get("total")).get(0);
-				if (cnt > 0 && Connects.getDebug(basictx.connId())) {
+				if (cnt > 0 && debug) {
 					Utils.warnT(new Object() {} ,
 						"Cleaned changes in %s -> %s: %s changes",
 						synode(), peer, cnt);
@@ -1006,48 +1075,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		return colnames;
 	}
 	
-	public ExchangeBlock addMyChild(ExessionPersist ap, ExchangeBlock req, String org)
-			throws TransException, SQLException {
-
-		String childId = req.srcnode;
-		IUser robot = synrobot();
-
-		Synode apply = new Synode(basictx.connId(), childId, org, domain());
-
-		@SuppressWarnings("unused")
-		String chgid = ((SemanticObject) apply.insert(synm, synode(), n0(), insert(synm.tbl, robot))
-			.post(insert(chgm.tbl, robot)
-				// .nv(chgm.entfk, apply.recId)
-				.nv(chgm.entbl, synm.tbl)
-				.nv(chgm.crud, CRUD.C)
-				.nv(chgm.synoder, synode())
-				.nv(chgm.uids, SynChangeMeta.uids(synode(), apply.synodeId))
-				.nv(chgm.nyquence, n0().n)
-				.nv(chgm.seq, incSeq())
-				.nv(chgm.domain, domain())
-				.post(insert(subm.tbl)
-					.cols(subm.insertCols())
-					.select((Query)select(synm.tbl)
-						.col(new Resulving(chgm.tbl, chgm.pk))
-						.col(synm.synoder)
-						.where(op.ne, synm.synoder, constr(synode()))
-						.where(op.ne, synm.synoder, constr(childId))
-						.whereEq(synm.domain, domain()))))
-			.ins(instancontxt(basictx.connId(), robot)))
-			.resulve(chgm.tbl, chgm.pk);
-		
-		nyquvect.put(apply.synodeId, new Nyquence(apply.nyquence));
-
-		ExchangeBlock rep = new ExchangeBlock(synode(), childId, ap.session(), ap.exstat())
-			.nv(nyquvect)
-			.synodes(req.act == ExessionAct.signup
-			? ((AnResultset) select(synm.tbl, "syn")
-				.whereIn(synm.synoder, childId, synode())
-				.whereEq(synm.domain, domain())
-				.whereEq(synm.org, org)
-				.rs(instancontxt(basictx.connId(), synrobot()))
-				.rs(0))
-			: null);
-		return rep;
+	public int entities(SyntityMeta m) throws SQLException, TransException {
+		return DAHelper.count(this, synconn(), m.tbl);
 	}
 }

@@ -13,8 +13,8 @@ public enum SynodeMode {
 	/** jserv client device */
 	// device
 	
-	/** device or so without DB */
-	nondb,
+	/** device or transction builder, etc. are not for synodes */
+	nonsyn,
 	
 	/** Jserv node mode: cloud hub, accepting application from {@link #child} */
 	peer,
@@ -22,5 +22,5 @@ public enum SynodeMode {
 	 * Work as a tree branch mode, tree's middle and leaf node,
 	 * via filing application to {@link #hub}
 	 */
-	child
+	leaf
 }

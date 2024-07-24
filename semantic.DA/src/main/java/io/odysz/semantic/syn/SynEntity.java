@@ -29,8 +29,6 @@ public abstract class SynEntity extends Anson {
 		return this;
 	}
 
-	public final String domain;
-
 	public String uids;
 
 	/** Non-public: doc' device id is managed by session. */
@@ -64,15 +62,12 @@ public abstract class SynEntity extends Anson {
 		this.subMeta = new SynSubsMeta(change);
 
 		format(rs);
-		this.domain = rs.getString(entMeta.domain);
 	}
 
-	public SynEntity(SyntityMeta entm, String domain) {
+	public SynEntity(SyntityMeta entm) {
 		this.entMeta = entm;
 		this.chgm = new SynChangeMeta();
 		this.subMeta = new SynSubsMeta(chgm);
-
-		this.domain = domain;
 	}
 
 	public SynEntity(AnResultset rs, SyntityMeta meta) throws SQLException {
@@ -96,7 +91,7 @@ public abstract class SynEntity extends Anson {
 	}
 	
 	/**
-	 * Staff {@code ins}'s nvs.
+	 * Setup {@code ins}'s nvs, e.g. nv(domain, v0) ....
 	 * 
 	 * @param ins
 	 * @return {@code ins}

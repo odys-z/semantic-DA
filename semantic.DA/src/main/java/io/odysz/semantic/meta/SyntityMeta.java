@@ -21,21 +21,27 @@ import io.odysz.transact.x.TransException;
  */
 public abstract class SyntityMeta extends SemanticTableMeta {
 
-	public static final String err_requires_synuid = "Table to be synchronized must come with a fixed column named '%s'.";
+	public static final String err_requires_synuid =
+			"Tables to be synchronized must come with a fixed column named '%s.%s'.";
 
 	/**
 	 * exposed to subclass to change
 	 * @see SyntityMeta#SyntityMeta
-	 */
 	public final String domain;
+	 */
 
 	public final String synuid;
 	
 	/** Entity creator's id used for identify originators in domain (globally?) */
 	public String synoder;
 
+	/** Entity's columns for generation global uid */
 	protected final HashSet<String> uids;
 
+	/**
+	 * Entity columns figured out from entity type, 
+	 * which are used to access database records.
+	 */
 	private HashMap<String, Integer> entCols;
 
 	boolean autopk;
@@ -54,20 +60,17 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * Could be changed in the future. 
 	 * @param conn
 	 */
-	public SyntityMeta(String tbl, String pk, String domain, String nodeid, String conn) {
+	public SyntityMeta(String tbl, String pk, String synodr, String conn) {
 		super(tbl, conn);
 
 		this.autopk = true;
 		this.pk = pk;
-		this.domain = domain;
-		synoder = nodeid; // "synode";
+		synoder = synodr;
 		synuid = "io_oz_synuid";
 		
 		uids = new HashSet<String>() {
 			static final long serialVersionUID = 1L;
-			{ add(domain);
-			  add(synoder);
-			  add(pk);}
+			{ add(synoder); add(pk);}
 		};
 	}
 	
@@ -76,7 +79,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	public <T extends SemanticTableMeta> T replace() throws TransException, SQLException {
 		super.replace();
 		if (isNull(ftypes) || !ftypes.containsKey(synuid))
-			throw new TransException(err_requires_synuid, synuid);
+			throw new TransException(err_requires_synuid, tbl, synuid);
 		return (T) this;
 	}
 

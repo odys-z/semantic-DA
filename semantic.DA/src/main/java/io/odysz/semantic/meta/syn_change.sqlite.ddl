@@ -10,7 +10,7 @@ create table if not exists syn_change (
     nyquence    long         not null,
     updcols     varchar2(256),
     seq         long         not null, -- order of changes, cleared after nyquence is stepped
-    -- A typical sqlite database can hold no more than approximately 2e+13, which far less than 2^63
+    -- A typical sqlite database can hold no more than approximately 2e+13, which is far less than 2^63
     -- See 13. Maximum Number Of Rows In A Table, https://sqlite.org/limits.html
 
     constraint  syn_change_pk PRIMARY KEY (cid)

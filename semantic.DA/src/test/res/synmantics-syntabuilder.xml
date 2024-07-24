@@ -47,7 +47,6 @@
 	<!-- syn_change
 		args: pk, crud-flag, n pk2 ...,         [col-value-on-del, ...]
 		e.g.: pid,crud,      synoder clientpath,exif,uri "",clientpath
-	-->
   	<s>
   		<id>S02</id>
   		<smtc>syn-change</smtc>
@@ -55,7 +54,9 @@
   		<pk>pid</pk>
   		<args>io.odysz.semantic.syn.T_PhotoMeta,crud,device clientpath,exif,uri "",clientpath,filesize 0,mime</args>
   	</s>
+	-->
 
+	<!--
   	<s>
   		<id>S03</id>
   		<smtc>s-c</smtc>
@@ -63,6 +64,7 @@
   		<pk>synid</pk>
   		<args>io.odysz.semantic.meta.SynodeMeta,crud,org synid,remarks</args>
   	</s>
+	 -->
 
   </t>
 </semantics>

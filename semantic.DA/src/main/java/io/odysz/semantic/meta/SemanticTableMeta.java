@@ -5,6 +5,7 @@ import static io.odysz.common.LangExt.isNull;
 import java.sql.SQLException;
 
 import io.odysz.common.Utils;
+import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.syn.DBSynmantics;
 import io.odysz.semantics.meta.TableMeta;
@@ -36,4 +37,23 @@ public abstract class SemanticTableMeta extends TableMeta {
 			this.ftypes = mdb.ftypes();
 		return (T) this;
 	}
+	
+	/**
+	 * Commit table ddl defined by m[i].ddlSqlite.
+	 * 
+	 * @param conn
+	 * @param ms
+	 * @throws SQLException
+	 * @throws TransException
+	 */
+	public static void setupSqliTables(String conn, SemanticTableMeta ... ms) throws SQLException, TransException {
+		if (ms != null)
+		for (TableMeta m : ms) {
+			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", m.tbl));
+			if (m.ddlSqlite != null)
+				Connects.commit(conn, DATranscxt.dummyUser(), m.ddlSqlite);
+		}
+	}
+
+
 }
