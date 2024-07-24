@@ -231,7 +231,10 @@ public class DAHelper {
 				.col(Funcall.count("*"), "cnt");
 		if (!isNull(kvs))
 			for (int i = 0; i < kvs.length; i+=2)
-				q.whereEq((String)kvs[i], kvs[i+1]);
+				if (kvs[i+1] == null)
+					q.whereEq((String)kvs[i], new ExprPart());
+				else
+					q.whereEq((String)kvs[i], kvs[i+1]);
 
 		return ((AnResultset) q.rs(b.instancontxt(conn, DATranscxt.dummyUser()))
 				.rs(0)).nxt().getInt("cnt");

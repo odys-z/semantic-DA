@@ -69,9 +69,9 @@ import io.odysz.transact.x.TransException;
  * To use stamp in this way, nyquence numbers shold synchronized
  * in cross-domain style;
  * To use stamps for each domain, multiple change-logs for each
- * domain of an entity changing operation must be generated. 
+ * domain of an entity changing operation must be generated.
  * </pre>
- * 
+ *
  * @author Ody
  */
 public class DBSyntableBuilder extends DATranscxt {
@@ -881,7 +881,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			nyquvect.put(rs.getString(synm.synoder), new Nyquence(rs.getLong(synm.nyquence)));
 			
 			if (eq(synode(), rs.getString(synm.pk)))
-				stamp.n = rs.getLong(synm.nstamp);
+				stamp = new Nyquence(rs.getLong(synm.nstamp));
 		}
 		
 		return this;
