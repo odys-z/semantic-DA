@@ -881,7 +881,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			nyquvect.put(rs.getString(synm.synoder), new Nyquence(rs.getLong(synm.nyquence)));
 			
 			if (eq(synode(), rs.getString(synm.pk)))
-				stamp.n = rs.getLong(synm.nstamp);
+				stamp = new Nyquence(rs.getLong(synm.nstamp));
 		}
 		
 		return this;
