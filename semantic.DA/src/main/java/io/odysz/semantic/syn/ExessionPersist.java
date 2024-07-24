@@ -376,11 +376,6 @@ public class ExessionPersist {
 			Nyquence dn = trb.nyquvect.get(peer);
 
 			if (dn == null) {
-//				Utils.printag = true;
-//				Utils.warn(
-//						"ERROR: Me, %s, don't have knowledge about %s.",
-//						trb.synode(), peer);
-//				Utils.printag = false;
 				Utils.warnT(new Object() {},
 						"ERROR: Me, %s, don't have knowledge about %s.",
 						trb.synode(), peer);
@@ -406,7 +401,6 @@ public class ExessionPersist {
 		return new ExchangeBlock(trb == null ? null : trb.synode(), peer, session, exstate)
 			.totalChallenges(totalChallenges)
 			.chpagesize(this.chsize)
-			// .seq(challengeSeq, answerSeq, totalChallenges);
 			.seq(persistarting(peer));
 	}
 

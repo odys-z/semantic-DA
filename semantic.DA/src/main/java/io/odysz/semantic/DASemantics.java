@@ -645,7 +645,7 @@ public class DASemantics {
 	}
 
 	public void onInsert(ISemantext semantx, Insert statemt, ArrayList<Object[]> row,
-			Map<String, Integer> cols, IUser usr) throws SemanticException {
+			Map<String, Integer> cols, IUser usr) throws TransException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
 				if (handler.insert)
@@ -653,7 +653,7 @@ public class DASemantics {
 	}
 
 	public void onUpdate(ISemantext semantx, Update satemt, ArrayList<Object[]> row,
-			Map<String, Integer> cols, IUser usr) throws SemanticException {
+			Map<String, Integer> cols, IUser usr) throws TransException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
 				if (handler.update)
@@ -710,11 +710,11 @@ public class DASemantics {
 		}
 
 		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
-				throws SemanticException {
+				throws TransException {
 		}
 
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
-				throws SemanticException {
+				throws TransException  {
 		}
 
 		/**

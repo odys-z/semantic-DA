@@ -25,6 +25,7 @@ import org.xml.sax.SAXException;
 
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
@@ -106,7 +107,7 @@ public class Docheck {
 			String synid, String usrid)
 			throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
 		trb = new DBSyntableBuilder(domain, conn, synid, mode)
-				.loadNyquvect0(conn);
+				.loadNyquvect(conn);
 
 		this.docm = docm;
 		this.domain = trb.domain();
@@ -352,7 +353,7 @@ public class Docheck {
 			;
 	}
 	@SuppressWarnings("unchecked")
-	public static HashMap<String, Nyquence>[] printNyquv(Docheck[] ck) {
+	public static HashMap<String, Nyquence>[] printNyquv(Docheck[] ck) throws SQLException, TransException {
 		Utils.logi(Stream.of(ck)
 				.filter(c -> c != null)
 				.map(c -> { return c.trb.synode();})
@@ -362,6 +363,12 @@ public class Docheck {
 
 		for (int cx = 0; cx < ck.length && ck[cx] instanceof Docheck; cx++) {
 			DBSyntableBuilder t = ck[cx].trb;
+
+			boolean dbg = Connects.getDebug(t.synconn());
+			Connects.setDebug(t.synconn(), false);
+			t.loadNyquvect(t.synconn());
+			Connects.setDebug(t.synconn(), dbg);
+
 			nv2[cx] = Nyquence.clone(t.nyquvect);
 
 			Utils.logi(

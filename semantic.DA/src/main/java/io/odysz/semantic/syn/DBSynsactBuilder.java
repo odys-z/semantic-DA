@@ -26,7 +26,6 @@ import io.odysz.anson.x.AnsonException;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
-import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.PeersMeta;
@@ -53,24 +52,11 @@ import io.odysz.transact.x.TransException;
 /**
  * Sql statement builder for {@link DBSyntext} for handling database synchronization. 
  * 
+ * @deprecated incorrect
  * @author Ody
  *
  */
 public class DBSynsactBuilder extends DATranscxt {
-	public static class SynmanticsMap extends SemanticsMap {
-		String synode;
-
-		public SynmanticsMap(String synode, String conn) {
-			super(conn);
-			this.synode = synode;
-		}
-
-		@Override
-		public DASemantics createSemantics(Transcxt trb, String tabl, String pk, boolean debug) {
-			return new DBSynmantics(trb, synode, tabl, pk, debug);
-		}
-	}
-
 	protected SynodeMeta synm;
 	protected SynSubsMeta subm;
 	protected SynChangeMeta chgm;
@@ -119,7 +105,7 @@ public class DBSynsactBuilder extends DATranscxt {
 			throws SQLException, SAXException, IOException, TransException {
 
 		super ( new DBSyntext(conn,
-			    	initConfigs(conn, loadSemantics(conn), (c) -> new SynmanticsMap(synodeId, c)),
+			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSyntableBuilder.SynmanticsMap(synodeId, c)),
 			    	(IUser) new SyncRobot("rob-" + synodeId, synodeId, "Robot@" + synodeId, synodeId)
 			    	, runtimepath));
 		
@@ -141,6 +127,10 @@ public class DBSynsactBuilder extends DATranscxt {
 		this.pnvm.replace();
 	}
 	
+	private DBSynsactBuilder me() {
+		return this;
+	}
+
 	DBSynsactBuilder loadNyquvect0(String conn) throws SQLException, TransException {
 		AnResultset rs = ((AnResultset) select(synm.tbl)
 				.cols(synm.pk, synm.nyquence)
@@ -177,7 +167,7 @@ public class DBSynsactBuilder extends DATranscxt {
 		try {
 			return new DBSyntext(conn,
 				initConfigs(conn, loadSemantics(conn),
-						(c) -> new SynmanticsMap(synode(), c)),
+						(c) -> new DBSyntableBuilder.SynmanticsMap(synode(), c)),
 				usr, runtimepath);
 		} catch (SAXException | IOException | SQLException e) {
 			e.printStackTrace();

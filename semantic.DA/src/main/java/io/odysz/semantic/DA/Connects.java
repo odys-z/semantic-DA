@@ -429,6 +429,12 @@ public class Connects {
 		return srcs.get(conn).enableSystemout;
 	}
 
+	public static void setDebug(String conn, boolean debug) {
+		if (conn == null)
+			conn = defltConn;
+		srcs.get(conn).enableSystemout = debug;
+	}
+
 	/**
 	 * Mapping client function id to data connection according to configuration.
 	 * 

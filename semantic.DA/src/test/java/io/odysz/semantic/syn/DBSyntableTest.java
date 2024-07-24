@@ -171,7 +171,7 @@ public class DBSyntableTest {
 				Docheck.ck[s].trb.incNyquence();
 
 			Docheck.ck[s].trb.registerEntity(conn, Docheck.ck[s].docm);
-			Docheck.ck[s].trb.registerEntity(conn, snm);
+			// Docheck.ck[s].trb.registerEntity(conn, snm);
 		}
 		
 		// phm = new T_PhotoMeta(conns[0]).replace(); // all entity table is the same in this test
@@ -317,7 +317,7 @@ public class DBSyntableTest {
 		exchangeSynodes(X, Z, section, no);
 		ck[Z].synodes(X, Y, Z, W);
 		ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
-		Utils.logrst("On X-Z: Now Z know W", section, no, 1);
+		Utils.logrst("On X-Z: Now Z knows W", section, ++no);
 		
 		Utils.logrst("Z vs W", section, ++no);
 		try { exchangeSynodes(Z, W, section, no); }
@@ -548,7 +548,7 @@ public class DBSyntableTest {
 
 		// admin on sign up request
 		Utils.logrst(String.format("%s on sign up", admin), testix, sect, ++no);
-		ExchangeBlock resp = admb.addMyChild(admp, req, Docheck.org);
+		ExchangeBlock resp = admb.domainOnAdd(admp, req, Docheck.org);
 		Utils.logrst(String.format("sign up by %s : %s", admb.synode(), resp.session), testix, sect, ++no);
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -556,7 +556,7 @@ public class DBSyntableTest {
 		// applicant
 		Utils.logrst(String.format("%s initiate domain", cltb.synode()), testix, sect, ++no);
 
-		ExchangeBlock ack  = cltb.initDomain(cltp, admin, resp);
+		ExchangeBlock ack  = cltb.domainitMe(cltp, admin, resp);
 		Utils.logi(ack.nv);
 
 		printChangeLines(ck);
@@ -569,12 +569,12 @@ public class DBSyntableTest {
 
 		// applicant
 		Utils.logrst(new String[] {cltb.synode(), "closing application"}, testix, sect, ++no);
-		req = cltb.closeJoining(cltp, resp);
+		req = cltb.domainCloseJoin(cltp, resp);
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		Utils.logrst(new String[] {admb.synode(), "on closing"}, testix, sect, ++no);
-		admb.closeJoining(admp, req);
+		admb.domainCloseJoin(admp, req);
 
 		printChangeLines(ck);
 		printNyquv(ck);

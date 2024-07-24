@@ -1,16 +1,16 @@
 package io.odysz.semantic.syn;
 
+import io.odysz.semantic.DATranscxt;
 import io.odysz.semantics.ISemantext;
-import io.odysz.transact.sql.parts.AbsPart;
 
 public interface ISyncontext extends ISemantext {
-	DBSyntableBuilder synbuilder();
+	public <T extends DATranscxt> T synbuilder();
 
-	Long nyquence();
+//	Long nyquence();
 
-	String domain();
+//	String domain();
 
-	Nyquence stamp();
+//	Nyquence stamp();
 
-	long incSeq();
+//	long incSeq();
 }
