@@ -70,8 +70,10 @@ public class DBSynmantics extends DASemantics {
 	
 	public static Insert logChange(DBSyntableBuilder b, Insert inst,
 			SynodeMeta synm, SynChangeMeta chgm, SynSubsMeta subm, SyntityMeta entm,
-			String synode, Object pid) throws TransException {
+			// String synode, Object pid) throws TransException {
+			String synode) throws TransException {
 		Update u = b.update(entm.tbl);
+		Resulving pid = new Resulving(entm.tbl, entm.pk);
 		if (pid instanceof Resulving)
 			u.nv(entm.synuid, SynChangeMeta.uids(synode, (Resulving)pid));
 		else
@@ -185,8 +187,7 @@ public class DBSynmantics extends DASemantics {
 			verifyRequiredNvs(entm.globalIds(), cols, row);
 
 			DBSyntableBuilder synb = ((ISyncontext)stx).synbuilder();
-			logChange(synb, insrt, snm, chm, sbm, entm, synode, usr);
-
+			logChange(synb, insrt, snm, chm, sbm, entm, synode);
 //			insrt
 //			  .post(st.update(entm.tbl)
 //				.nv(entm.synuid, SynChangeMeta.uids(synode, entId))

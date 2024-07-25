@@ -771,7 +771,8 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	/**
-	 * NOTE: don't configure syn-change semantics for the table.
+	 * NOTE: This method sholdn't be used other than tests,
+	 * or don't configure syn-change semantics for the table.
 	 * 
 	 * @param m
 	 * @param e
@@ -788,7 +789,8 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		Insert inse = e.insertEntity(m, insert(m.tbl, rob));
 		SemanticObject u = (SemanticObject) DBSynmantics
-				.logChange(this, inse, synm, chgm, subm, m, synode(), pid)
+				// .logChange(this, inse, synm, chgm, subm, m, synode(), pid)
+				.logChange(this, inse, synm, chgm, subm, m, synode())
 				.ins(instancontxt(conn, rob));
 
 		String phid = u.resulve(m, -1);
