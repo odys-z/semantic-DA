@@ -1,6 +1,7 @@
 package io.odysz.semantic.meta;
 
 import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.eq;
 
 import java.sql.SQLException;
 
@@ -28,7 +29,8 @@ public abstract class SemanticTableMeta extends TableMeta {
 	@SuppressWarnings("unchecked")
 	public <T extends SemanticTableMeta> T replace() throws TransException, SQLException {
 		TableMeta mdb = Connects.getMeta(conn, tbl);
-		if (mdb instanceof SemanticTableMeta)
+		if (mdb instanceof SemanticTableMeta
+			&& (Connects.getDebug(conn) || !eq(mdb.getClass().getName(), getClass().getName())))
 			Utils.warn( "Replacing existing Semantic table meta with new meta. Old: %s, new %s",
 						mdb.getClass().getName(), getClass().getName());
 

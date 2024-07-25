@@ -337,42 +337,23 @@ public class DASemantics {
 		 * <b>Handler:</b> {@link DASemantics.ShPostFk}
 		 */
 		postFk,
+
 		/**
-		 * Attach Attachments to Attaching Table (saving file in file system)<br>
 		 * xml/smtc = "ef" | "xf" | "ext-file" | "e-f" | "x-f" <br>
-		 * Take the update statement's file field as a separated file clob (base 64
-		 * encoded). When updating, save it to file system, then replace the nv's v with
-		 * filename<br>
-		 * on-events: insert, update<br>
-		 * <p>
-		 * args<br> 
-		 * 0: uploads (relative or start with $env_var),<br>
-		 * 1: uri,<br>
-		 * 2: busiTbl, the folder name, e.g. "a_users", or "month"<br>
-		 * 3: busiId, the recored value used for sub folder<br>
-		 * 4: client-name (optional)<br>
-		 * See handler for args' details: {@link DASemantics.ShExtFile} <br>
-		 * 
-		 * <h5>About Updating Handling</h5>
-		 * <p>On updating external files handler.</p>
-		 * <p>This method throw an exception if the uri provided, applying the semantics predefined as:<br>
-		 * AS all files are treaded as binary file, no file can be modified, only delete then create it makes sense.</p>
-		 * <p>Client should avoid updating an external file while handling business logics.
-		 * However, since v1.3.9, the updating file path is suppored via {@link ExtFileUpdate}.</p>
-		 * 
-		 * <p><b>NOTE: </b>This semantics only guard the data for updating.</p>
-		 * <p>To replace uri back into file when selecting, use "extfile(uri)" (js) or {@link io.odysz.transact.sql.parts.condition.Funcall#sqlExtFile(ISemantext, String[]) sqlExtFile(uri)} in java. </p>
-		 * 
-		 * @since 1.4.25
 		 * @deprecated this is the same with {@link #extFilev2} 
 		 */
 		extFile,
+		
 		/**
-		 * <p>Save and load a special field as file of file system.</p>
+		 * xml/smtc = "ef2.0" | "xf2.0" | "ext-file2.0" | "e-f2.0" | "x-f2.0"
+		 * <p>Save and load a special field as file of file system.
+		 * Can handle more subfolder (configered in xml as field name of data table).</p>
 		 * <p>The file content should be a Base 64 encoded block.</p>
 		 * <p>This semantics only used for handling small files.
 		 * If the file is large, there are an example in Semantic.jserv which
 		 * uses a block sequence for uploading files.</p>
+		 * <p>Tips</p>
+		 * <ul><li>Multiple nodes writing into the same file path can causing the file locking exception.</li></ul>
 		 * <p>args:</br>
 		 * 0: rec-id<br>
 		 * 1: uri, the Base64 content<br>
@@ -380,9 +361,15 @@ public class DASemantics {
 		 * 3: ...<br>
 		 *-1: file name<br>
 		 * </p> 
-		 * xml/smtc = "ef2.0" | "xf2.0" | "ext-file2.0" | "e-f2.0" | "x-f2.0" <br>
-		 * Similar to {@link #extFile}, but can handle more subfolder (configered in xml as field name of data table).
-		 * 
+		 * <p>args<br>
+		 * 0: uploads,<br>
+		 * 1: uri - uri field,<br>
+		 * 2: sub-folder level 0,<br>
+		 * 3: sub-folder level 1,<br>
+		 * ... ,<br>
+		 *-1: client-name for saving readable file name<br></p>
+		 * At least one level of subfolder is recommended.
+		 * @see DASemantics.ShExtFilev2
 		 * @since 1.4.25
 		 */
 		extFilev2,
@@ -1514,21 +1501,13 @@ public class DASemantics {
 	}
 
 	/**
-	 * Save configured nv as file.<br>
-	 * <p>args<br>
-	 * 0: uploads,<br>
-	 * 1: uri - uri field,<br>
-	 * 2: sub-folder level 0,<br>
-	 * 3: sub-folder level 1,<br>
-	 * ... ,<br>
-	 *-1: client-name for saving readable file name<br></p>
-	 * At least one level of subfolder is recommended.
+
 	 * 
 	 * <h5>Note</h5>
 	 * <p>For large file, use stream asynchronous mode, otherwise it's performance problem here.</p>
 	 * <p>Whether uses or not a stream mode file up down loading is a business tier decision by semantic-jserv.
 	 * See Anclient.jave/album test for example.</p>
-	 * 
+	 * @see smtype#extFilev2
 	 * @author odys-z@github.com
 	 */
 	static public class ShExtFilev2 extends SemanticHandler {

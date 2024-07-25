@@ -37,6 +37,12 @@ import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Condit;
 import io.odysz.transact.x.TransException;
 
+/**
+ * See the topic of <a href='https://odys-z.github.io/dev/topics/semantics/semantypes.html#extending-default-handler-plugin'>
+ * Extending default handler plugin</a>.
+ * 
+ * @author odys-z@github.com
+ */
 public class DBSynmantics extends DASemantics {
 
 	final String synode;
