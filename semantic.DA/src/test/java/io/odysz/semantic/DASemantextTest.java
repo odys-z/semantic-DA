@@ -38,6 +38,7 @@ import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.syn.T_PhotoMeta;
+import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
@@ -1060,6 +1061,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// uploads/zsu.ua/ody/2022-10/000001 Sun Yet-sen.jpg
 		assertEquals(String.format("uploads/zsu.ua/ody/2022-10/%s Sun Yet-sen.jpg", pid),
 				DAHelper.getValstr(st, connId, phm, phm.uri, phm.pk, pid));
+
 		assertEquals(content64,
 				DAHelper.getExprstr(st, connId, phm,
 					Funcall.extfile(phm.uri), phm.uri,
