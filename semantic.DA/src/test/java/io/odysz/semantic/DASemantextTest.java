@@ -1009,7 +1009,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 
 	@Test
 	public void testExtfilev2() throws TransException, SQLException, IOException {
-
 		// h_photo will triggering table stamps 
 		SyncTestRobot usr = new SyncTestRobot("robot").device("test");
 
@@ -1020,15 +1019,15 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// <args>uploads,uri,family,shareby,month,pname</args>
 		String content64 = readB64("src/test/res/Sun Yet-sen.jpg");
 
-		st.insert("h_photos")
-			.nv("family", "zsu.ua")
-			.nv("shareby", "ody")
-			.nv("folder", "2022-10")
-			.nv("pname", "Sun Yet-sen.jpg")
-			.nv("uri", content64)
+		st.insert(phm.tbl)
+			.nv(phm.org, "zsu.ua")
+			.nv(phm.shareby, "ody")
+			.nv(phm.folder, "2022-10")
+			.nv(phm.resname, "Sun Yet-sen.jpg")
+			.nv(phm.uri, content64)
 			.commit(s0, sqls);
 
-		String pid = (String) s0.resulvedVal("h_photos", "pid", -1);
+		String pid = (String) s0.resulvedVal(phm.tbl, phm.pk, -1);
 		assertEquals(String.format(
 				"insert into h_photos (family, shareby, folder, pname, uri, pid) " +
 				"values ('zsu.ua', 'ody', '2022-10', 'Sun Yet-sen.jpg', " +
@@ -1040,9 +1039,9 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		sqls.clear();
 		
 		AnResultset rs = (AnResultset) st
-			.select("h_photos", "f2")
-			.col("uri").col("extFile(f2.uri)", "b64")
-			.whereEq("pid", pid)
+			.select(phm.tbl, "f2")
+			.col(phm.uri).col("extFile(f2.uri)", "b64")
+			.whereEq(phm.pk, pid)
 			.rs(new DASemantext(connId, smtcfg, usr, rtroot))
 			.rs(0);
 
@@ -1053,7 +1052,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				rs.getString("b64").substring(0, 8));
 		assertEquals(2652, uri1.length());
 		
-		String fp1 = EnvPath.decodeUri(rtroot, rs.getString("uri"));
+		String fp1 = EnvPath.decodeUri(rtroot, rs.getString(phm.uri));
 		File f1 = new File(fp1);
 		assertTrue(f1.exists(), fp1);
 		
@@ -1063,35 +1062,34 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				DAHelper.getValstr(st, connId, phm, phm.uri, phm.pk, pid));
 		assertEquals(content64,
 				DAHelper.getExprstr(st, connId, phm,
-					// Funcall.isnull("", ""),
 					Funcall.extfile(phm.uri), phm.uri,
 					phm.pk, pid));
 
 		// 3 move
-		st.update("h_photos", usr)
-		  .nv("pname", "Volodymyr Zelensky.jpg")
-		  .nv("family", "zsu.ua")
-		  .nv("folder", "2022-10")
-		  .nv("shareby", "Zelensky")
-		  .whereEq("pid", pid)
+		st.update(phm.tbl, usr)
+		  .nv(phm.resname, "Volodymyr Zelensky.jpg")
+		  .nv(phm.org, "zsu.ua")
+		  .nv(phm.folder, "2022-10")
+		  .nv(phm.shareby, "Zelensky")
+		  .whereEq(phm.pk, pid)
 		  .u(s0.clone(usr));
 		
-		rs = (AnResultset) st.select("h_photos", "f")
-				.col("uri").col("extFile(f.uri)", "b64")
-				.whereEq("pid", pid)
+		rs = (AnResultset) st.select(phm.tbl, "f")
+				.col(phm.uri).col("extFile(f.uri)", "b64")
+				.whereEq(phm.pk, pid)
 				.rs(new DASemantext(connId, smtcfg, usr, rtroot))
 				.rs(0);
 			
 		rs.next();
-		String fp2 = EnvPath.decodeUri(rtroot, rs.getString("uri"));
+		String fp2 = EnvPath.decodeUri(rtroot, rs.getString(phm.uri));
 
 		assertFalse(f1.exists(), fp1);
 		File f2 = new File(fp2);
 		assertTrue(f2.exists(), fp2);
 
 		// 4 delete
-		st.delete("h_photos", usr)
-			.whereEq("pid", pid)
+		st.delete(phm.tbl, usr)
+			.whereEq(phm.pk, pid)
 			.commit(sqls, usr)
 			.d(s0.clone(usr));
 
