@@ -60,9 +60,6 @@ public class DASemantext implements ISemantext {
 	/** FIXME Flat auto resolving pool is not enought! */
 	private SemanticObject autoVals;
 	
-	// private List<SemanticObject> autostack;
-	// private int autoStacktop;
-	
 	private static Transcxt rawst;
 
 	/**Semantic Configurations */

@@ -122,7 +122,7 @@ public class ExessionPersist {
 				// create an entity, and trigger change log
 				? !eq(recId, rpuids)
 					? trb.insert(entm.tbl, trb.synrobot())
-						.cols(entm.entCols())
+						.cols((String[])entm.entCols())
 						.value(entm.insertChallengeEnt(rpuids, entbuf.get(entm.tbl)))
 						.post(trb.insert(chgm.tbl)
 							.nv(chgm.pk, rpcid)
@@ -746,10 +746,11 @@ public class ExessionPersist {
 			String tbl = entbls.getString(chgm.entbl);
 			SyntityMeta entm = trb.getSyntityMeta(tbl);
 
-			AnResultset entities = ((AnResultset) entm.onselect(trb.select(tbl, "e"))
+			AnResultset entities = ((AnResultset) entm
+				.onselect(trb.select(tbl, "e"))
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId, constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
-				.col("e.*")
+				// .col("e.*")
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				.rs(0))
 				.index0(entm.synuid);

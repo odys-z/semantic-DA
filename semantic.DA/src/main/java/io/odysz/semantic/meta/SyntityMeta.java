@@ -94,13 +94,16 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * Generate columns for inserting challenging entities.
 	 * 
 	 * <h5>Note:</h5>
-	 * <p>This method will ignore auto-key field</p>
+	 * <ul>
+	 * <li>This method will ignore auto-key field</li>
+	 * <li>The returned value is an arry of String[], but is created as an Object[] array.</li>
+	 * </ul>
 	 * 
-	 * @return columns in order of rows' fields, values should be same order for insertion
+	 * @return column names in order of rows' fields, values should be same order for insertion
 	 * @throws SemanticException this instance is not initialized from db ({@link #ftypes} is empty).
 	 * @since 1.4.40
 	 */
-	public String[] entCols() throws SemanticException {
+	public Object[] entCols() throws SemanticException {
 		if (entCols == null)
 			this.entCols = new HashMap<String, Integer>(ftypes.size());
 
@@ -110,7 +113,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 		if (!ftypes.containsKey(synuid)) 
 			throw new SemanticException(err_requires_synuid, synuid);
 					
-		String[] cols = new String[autopk() ? ftypes.size() - 1 : ftypes.size()];
+		Object[] cols = new Object[autopk() ? ftypes.size() - 1 : ftypes.size()];
 		int cx = 0;
 		for (String c : ftypes.keySet()) {
 			if (autopk() && eq(pk, c))
@@ -138,12 +141,12 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	public ArrayList<Object[]> insertChallengeEnt(String uids, AnResultset challents)
 			throws SQLException, SemanticException {
 		// TODO optimize Insert to handle this values faster
-		String[] cols = entCols();
+		Object[] cols = entCols();
 		ArrayList<Object[]> val = new ArrayList<Object[]> (entCols.size());
 		ArrayList<Object> row = challents.getRowAt(challents.rowIndex0(uids));
 
 		for (int cx = 0; cx < cols.length; cx++) {
-			if (autopk() && eq(this.pk, cols[cx]))
+			if (autopk() && cols[cx] instanceof String && eq(this.pk, (String)cols[cx]))
 				continue;
 			val.add(new Object[] {cols[cx], row.get(cx)});
 		}
@@ -186,11 +189,15 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 			AnResultset entities, AnResultset changes) throws TransException, SQLException;
 
 	/**
-	 * Entity meta's handling for querying entities. The typical task finishedhere 
-	 * here is add a extFile() function object to {@code select}.
+	 * <p>call select.cols(...)</p>
+	 * 
+	 * Entity meta's handling for querying entities when synchronizing. The typical
+	 * task finished here is to add a extFile() function object to the parameter
+	 * {@code select}.
 	 * 
 	 * @param select
 	 * @return select
+	 * @throws TransException, SQLException 
 	 */
-	public Query onselect(Query select) { return select; }
+	public Query onselect(Query select) throws TransException, SQLException { return select; }
 }

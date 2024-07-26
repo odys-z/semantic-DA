@@ -31,12 +31,14 @@ public class T_PhotoMeta extends ExpDocTableMeta {
 	public Object[] insertSelectItems(SynChangeMeta chgm, String entid,
 			AnResultset entities, AnResultset changes)
 			throws SemanticException, SQLException {
-		String[] cols = entCols();
+		Object[] cols = entCols();
 		Object[] selects = new Object[cols.length];
 		for (int cx = 0; cx < cols.length; cx++) {
-			String val = entities.getStringByIndex(cols[cx], entid);
-			if (val != null)
-				selects[cx] = Funcall.constr(val);
+			if (cols[cx] instanceof String) {
+				String val = entities.getStringByIndex((String)cols[cx], entid);
+				if (val != null)
+					selects[cx] = Funcall.constr(val);
+			}
 		}
 		return selects;
 	}

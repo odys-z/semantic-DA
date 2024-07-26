@@ -100,8 +100,8 @@ public class DBSyntextTest {
 
 	static T_PhotoMeta phm;
 
+	// @BeforeAll
 	@Disabled
-	@BeforeAll
 	public static void testInit() throws Exception {
 		// DDL
 		// Debug Notes:

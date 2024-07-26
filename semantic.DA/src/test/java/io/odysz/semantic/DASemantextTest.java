@@ -285,9 +285,9 @@ public class DASemantextTest {
 			.rs(0)).nxt();
 		
 		// oz_autoseq.sql: ('doc_devices.device', 64 * 64 * 4, 'device');
-		assertEquals("1.4.34.000G01", rs.getString("device"));
+		assertEquals("1.4.34.000401", rs.getString("device"));
 		rs.next();
-		assertEquals("synode0.000G02", rs.getString("device"));
+		assertEquals("synode0.000402", rs.getString("device"));
 	}
 
 	/**Test cross referencing auto k.<br>
@@ -1098,17 +1098,4 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		assertEquals(String.format("delete from h_photos where pid = '%s'", pid),
 				sqls.get(0));
 	}
-
-//	/**
-//	 * @deprecated replaced by {@link io.odysz.common.CheapIO#readB64}
-//	 * @param filename
-//	 * @return
-//	 * @throws IOException
-//	 */
-//	private String readB64(String filename) throws IOException {
-////		Path p = Paths.get(filename);
-////		byte[] f = Files.readAllBytes(p);
-////		return AESHelper.encode64(f);
-//		return CheapIO.readB64(filename);
-//	}
 }
