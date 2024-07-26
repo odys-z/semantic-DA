@@ -746,7 +746,7 @@ public class ExessionPersist {
 			String tbl = entbls.getString(chgm.entbl);
 			SyntityMeta entm = trb.getSyntityMeta(tbl);
 
-			AnResultset entities = ((AnResultset) trb.select(tbl, "e")
+			AnResultset entities = ((AnResultset) entm.onselect(trb.select(tbl, "e"))
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId, constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
 				.col("e.*")

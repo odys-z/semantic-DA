@@ -785,7 +785,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		String conn   = synconn();
 		SyncRobot rob = (SyncRobot) synrobot();
 
-		Resulving pid = new Resulving(m.tbl, m.pk);
+		// Resulving pid = new Resulving(m.tbl, m.pk);
 
 		Insert inse = e.insertEntity(m, insert(m.tbl, rob));
 		SemanticObject u = (SemanticObject) DBSynmantics

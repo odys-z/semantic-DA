@@ -136,6 +136,8 @@ import io.odysz.transact.x.TransException;
  * disable semantic supporting. In that way, it's working as a structured sql
  * composing API.
  * 
+ * <h5><a href='https://odys-z.github.io/dev/topics/index.html'>Documents</a></h5>
+ * 
  * @author odys-z@github.com
  */
 public class DASemantics {
@@ -369,7 +371,6 @@ public class DASemantics {
 		 * ... ,<br>
 		 *-1: client-name for saving readable file name<br></p>
 		 * At least one level of subfolder is recommended.
-		 * @see DASemantics.ShExtFilev2
 		 * @since 1.4.25
 		 */
 		extFilev2,
@@ -1166,7 +1167,7 @@ public class DASemantics {
 		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 			for (String[] argus : argss) {
-				// busiTbl for fk-ins-cate must known
+				// busiTbl for fk-ins-cate must be known
 				if (cols == null ||
 						!cols.containsKey(argus[ixbusiTbl]) || cols.get(argus[ixbusiTbl]) == null) {
 					Utils.warn("Can't handle fk-busi without column %s", argus[ixbusiTbl]);
@@ -1501,12 +1502,11 @@ public class DASemantics {
 	}
 
 	/**
-
-	 * 
 	 * <h5>Note</h5>
 	 * <p>For large file, use stream asynchronous mode, otherwise it's performance problem here.</p>
 	 * <p>Whether uses or not a stream mode file up down loading is a business tier decision by semantic-jserv.
 	 * See Anclient.jave/album test for example.</p>
+	 * 
 	 * @see smtype#extFilev2
 	 * @author odys-z@github.com
 	 */
@@ -1536,7 +1536,6 @@ public class DASemantics {
 
 		@Override
 		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
-			// if (args.length > 1 && args[1] != null) {
 			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
 				Object[] nv;
 				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)

@@ -10,6 +10,7 @@ import java.util.HashSet;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.Query;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -183,4 +184,13 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 */
 	public abstract Object[] insertSelectItems(SynChangeMeta chgm, String entid,
 			AnResultset entities, AnResultset changes) throws TransException, SQLException;
+
+	/**
+	 * Entity meta's handling for querying entities. The typical task finishedhere 
+	 * here is add a extFile() function object to {@code select}.
+	 * 
+	 * @param select
+	 * @return select
+	 */
+	public Query onselect(Query select) { return select; }
 }
