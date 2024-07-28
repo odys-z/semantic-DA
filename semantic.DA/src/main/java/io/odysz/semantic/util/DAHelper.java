@@ -37,8 +37,17 @@ public class DAHelper {
 			throws SQLException, TransException {
 		Query q = trb.select(m.tbl);
 
-		for (int i = 0; i < kvs.length; i+=2)
-			q.whereEq((String)kvs[i], kvs[i+1]);
+		for (int i = 0; i < kvs.length; i+=2) {
+//			if (kvs[i].getClass().isArray()) {
+//				Object n = ((Object[])kvs[i])[0];
+//				Object v = ((Object[])kvs[i+1]);
+//				q.where(v instanceof ExprPart
+//						? new Condit(op.eq, (ExprPart)n, (ExprPart)kvs[i+1])
+//						: new Condit(op.eq, (ExprPart)n, new ExprPart((String)kvs[i+1])));
+//			}
+//			else
+				q.whereEq((String)kvs[i], kvs[i+1]);
+		}
 
 		AnResultset rs = (AnResultset) q
 				.col(valfield)
@@ -47,6 +56,24 @@ public class DAHelper {
 		
 		if (rs.next())
 			return rs.getString(valfield);
+		else return null;
+	}
+	
+	public static Object getExprstr(DATranscxt trb, String connid, TableMeta m,
+			Funcall valexpr, String as, Object...kvs) throws TransException, SQLException {
+		Query q = trb.select(m.tbl);
+
+		for (int i = 0; i < kvs.length; i+=2) {
+				q.whereEq((String)kvs[i], kvs[i+1]);
+		}
+
+		AnResultset rs = (AnResultset) q
+				.col(valexpr, as)
+				.rs(trb.instancontxt(connid, DATranscxt.dummyUser()))
+				.rs(0);
+
+		if (rs.next())
+			return rs.getString(as);
 		else return null;
 	}
 

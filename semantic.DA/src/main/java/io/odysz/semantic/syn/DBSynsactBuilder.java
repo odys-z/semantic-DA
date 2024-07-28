@@ -606,7 +606,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				// create an entity, and trigger change log
 				? !eq(entid, entid1)
 					? insert(entm.tbl, synrobot())
-						.cols(entm.entCols())
+						.cols((String[])entm.entCols())
 						.value(entm.insertChallengeEnt(entid1, entbuf.get(entm.tbl)))
 						.post(insert(chgm.tbl)
 							.nv(chgm.pk, rpcid)
@@ -779,7 +779,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				if (iamSynodee || subscribeUC.size() > 0) {
 					stats.add(eq(change, CRUD.C)
 					? insert(entm.tbl, synrobot())
-						.cols(entm.entCols())
+						.cols((String[])entm.entCols())
 						.value(entm.insertChallengeEnt(entid, entbuf.get(entm.tbl)))
 						.post(subscribeUC.size() <= 0 ? null :
 							insert(chgm.tbl)

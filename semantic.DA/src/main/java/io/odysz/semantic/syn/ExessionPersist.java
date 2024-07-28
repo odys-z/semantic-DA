@@ -122,7 +122,7 @@ public class ExessionPersist {
 				// create an entity, and trigger change log
 				? !eq(recId, rpuids)
 					? trb.insert(entm.tbl, trb.synrobot())
-						.cols(entm.entCols())
+						.cols((String[])entm.entCols())
 						.value(entm.insertChallengeEnt(rpuids, entbuf.get(entm.tbl)))
 						.post(trb.insert(chgm.tbl)
 							.nv(chgm.pk, rpcid)
@@ -723,8 +723,12 @@ public class ExessionPersist {
 	public String[] ssinf;
 
 	/**
-	 * Get challenge page
-	 * @return ch-page
+	 * <p>Get a challenging page.</p>
+	 * 
+	 * Entities affected are also be loaded, and the entity metas get a chance to handling
+	 * the loaded records by calling {@link SyntityMeta#onselectSyntities(Query)}.
+	 * 
+	 * @return a change log page
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
@@ -746,10 +750,10 @@ public class ExessionPersist {
 			String tbl = entbls.getString(chgm.entbl);
 			SyntityMeta entm = trb.getSyntityMeta(tbl);
 
-			AnResultset entities = ((AnResultset) trb.select(tbl, "e")
+			AnResultset entities = ((AnResultset) entm
+				.onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId, constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
-				.col("e.*")
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				.rs(0))
 				.index0(entm.synuid);

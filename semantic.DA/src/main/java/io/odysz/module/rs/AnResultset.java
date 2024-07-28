@@ -142,6 +142,7 @@ for (String coln : colnames.keySet())
 			if (colnames.containsKey(colName)) {
 				if (debug)
 					System.err.println("WARN: As duplicated col name been found, only the last one's index is reserved: " + colName);
+				colnames.put(colName + i, colnames.get(colName));
 			}
 			colnames.put(colName, new Object[] {i, rsMeta.getColumnLabel(i)});
 		}
@@ -1275,6 +1276,11 @@ for (String coln : colnames.keySet())
 	/**
 	 * Get the cached flat column names in the same sequence with rows.
 	 * @return column names, index start at 0
+	 * @since 2.0.0
+	 * ISSUE
+	 * This will throw the out-of-bound exception if the select statament who constructed
+	 * this resultset has ignored same name fields. It's planned to  not ignore columns in
+	 * the future.
 	 */
 	public String[] getFlatColumns0() {
 		if (flatcols == null && colnames != null) {
@@ -1282,6 +1288,7 @@ for (String coln : colnames.keySet())
 			int cols = colnames.values().stream()
 					.filter(ix -> ix != null)
 					.mapToInt(ix -> {
+						// Debug Notes: will throw out-of-bound exception if the select statament has ignored same name fields.
 						flatcols[(int)ix[0]-1] = (String)ix[1];
 						return 1;
 					})

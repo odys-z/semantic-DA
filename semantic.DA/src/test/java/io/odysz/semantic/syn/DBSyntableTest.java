@@ -142,7 +142,7 @@ public class DBSyntableTest {
 		for (int s = 0; s < 4; s++) {
 			String conn = conns[s];
 			snm = new SynodeMeta(conn);
-			T_PhotoMeta phm = new T_PhotoMeta(conn); //.replace();
+			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn); //.replace();
 
 			SemanticTableMeta.setupSqliTables(conn, snm, chm, sbm, xbm, prm, ssm, phm);
 
@@ -596,8 +596,8 @@ public class DBSyntableTest {
 		DBSyntableBuilder ctb = ck[cli].trb;
 		DBSyntableBuilder stb = ck[srv].trb;
 
-		SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId());
-		SyntityMeta cphm = new T_PhotoMeta(ctb.basictx().connId());
+		SyntityMeta sphm = new T_DA_PhotoMeta(stb.basictx().connId());
+		SyntityMeta cphm = new T_DA_PhotoMeta(ctb.basictx().connId());
 		
 		exchange(ssm, sphm, stb, cphm, ctb, test, subno);
 	}

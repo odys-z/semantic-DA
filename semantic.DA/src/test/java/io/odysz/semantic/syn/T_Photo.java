@@ -60,10 +60,10 @@ public class T_Photo extends ExpSyncDoc {
 	public String albumId;
 	
 	public T_Photo(String conn, String org) throws SQLException, TransException {
-		super(new T_PhotoMeta(conn), org);
+		super(new T_DA_PhotoMeta(conn), org);
 	}
 	
-	public T_Photo(AnResultset rs, T_PhotoMeta m) throws SQLException {
+	public T_Photo(AnResultset rs, T_DA_PhotoMeta m) throws SQLException {
 		super(rs, m);
 		this.recId = rs.getString(m.pk);
 		this.pname = rs.getString(m.resname);
@@ -85,7 +85,7 @@ public class T_Photo extends ExpSyncDoc {
 		}
 	}
 
-	public T_Photo(String collectId, AnResultset rs, T_PhotoMeta m) throws SQLException {
+	public T_Photo(String collectId, AnResultset rs, T_DA_PhotoMeta m) throws SQLException {
 		this(rs, m);
 		this.collectId = collectId;
 	}
