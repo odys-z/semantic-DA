@@ -189,9 +189,9 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 			AnResultset entities, AnResultset changes) throws TransException, SQLException;
 
 	/**
-	 * <p>call select.cols(...)</p>
 	 * 
 	 * <p>Entity meta's query event handler, while synchronizing.</p>
+	 * <p>Note: call select.cols(...) first.</p>
 	 * 
 	 * A typical task finished here is to add an extFile() function object to the
 	 * parameter {@code select}.

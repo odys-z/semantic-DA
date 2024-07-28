@@ -222,9 +222,14 @@ public class DBSynmantics extends DASemantics {
 				return true;
 			
 			try { Utils.warnT(new Object() {},
-				"Syn-change's handler needs a builder of type DBSyntableBuilder, but got semantext %s on table %s.\n" +
+				"\nSyn-change's handler needs a builder of type DBSyntableBuilder.\n" +
+				"Semantext: %s.\nTransaction Builder: %s\n" +
+				"Table: %s, Synode: %s\n" +
 				"Semantics handling is ignored.",
-				stx.getClass().getName(), target);
+					stx.getClass().getName(),
+					((ISyncontext)stx).synbuilder() instanceof DBSyntableBuilder
+					? ((ISyncontext)stx).synbuilder() : null,
+					target, synode);
 			} catch (Exception e) { e.printStackTrace(); }
 			return false;
 		}

@@ -534,7 +534,8 @@ public class ExessionPersist {
 					.selectPage(trb
 						.select(exbm.tbl, "bf")
 						.col(exbm.pagex, "page")
-						.col_ases("bf", exbm.changeId)
+						// .col_ases("bf", exbm.changeId)
+						.cols_byAlias("bf", new Object[] {exbm.changeId})
 						.col("sub." + subm.synodee)
 						.je_(chgm.tbl, "chg", exbm.changeId, chgm.pk, exbm.peer, Funcall.constr(peer))
 						.je_(subm.tbl, "sub", "chg." + chgm.pk, subm.changeId)
@@ -751,7 +752,7 @@ public class ExessionPersist {
 			SyntityMeta entm = trb.getSyntityMeta(tbl);
 
 			AnResultset entities = ((AnResultset) entm
-				.onselectSyntities(trb.select(tbl, "e").col("e.*"))
+				.onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId, constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))

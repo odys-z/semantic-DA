@@ -895,7 +895,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			return new DBSyntext(conn,
 				initConfigs(conn, loadSemantics(conn),
 						(c) -> new DBSyntableBuilder.SynmanticsMap(synode(), c)),
-				usr, runtimepath);
+				usr, runtimepath).creator(this);
 		} catch (SAXException | IOException | SQLException e) {
 			e.printStackTrace();
 			throw new TransException(e.getMessage());
