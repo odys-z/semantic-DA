@@ -534,7 +534,7 @@ public class ExessionPersist {
 					.selectPage(trb
 						.select(exbm.tbl, "bf")
 						.col(exbm.pagex, "page")
-						.col_ases("bf", exbm.changeId)
+						.cols_byAlias("bf", exbm.changeId)
 						.col("sub." + subm.synodee)
 						.je_(chgm.tbl, "chg", exbm.changeId, chgm.pk, exbm.peer, Funcall.constr(peer))
 						.je_(subm.tbl, "sub", "chg." + chgm.pk, subm.changeId)
