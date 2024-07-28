@@ -35,7 +35,7 @@ import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.syn.T_PhotoMeta;
+import io.odysz.semantic.syn.T_DA_PhotoMeta;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -61,7 +61,7 @@ public class DASemantextTest {
 
 	public final static String rtroot = "src/test/res/";
 	private static String runtimepath;
-	private static T_PhotoMeta phm;
+	private static T_DA_PhotoMeta phm;
 
 	static {
 		try {
@@ -94,7 +94,7 @@ public class DASemantextTest {
 			usrAct.put("funcName", "test ISemantext implementation");
 			jo.put("usrAct", usrAct);
 			usr = new LoggingUser(connId, "tester", jo);
-			phm = new T_PhotoMeta(connId);
+			phm = new T_DA_PhotoMeta(connId);
 		} catch (SQLException | SAXException | IOException | TransException e) {
 			e.printStackTrace();
 		}

@@ -98,7 +98,7 @@ public class DBSyntextTest {
 		DATranscxt.key("user-pswd", rootkey);
 	}
 
-	static T_PhotoMeta phm;
+	static T_DA_PhotoMeta phm;
 
 	// @BeforeAll
 	@Disabled
@@ -157,7 +157,7 @@ public class DBSyntextTest {
 			// Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", usm.tbl));
 			// Connects.commit(conn, DATranscxt.dummyUser(), usm.ddlSqlite);
 
-			T_PhotoMeta phm = new T_PhotoMeta(conn).replace();
+			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn).replace();
 
 			Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", phm.tbl));
 			Connects.commit(conn, DATranscxt.dummyUser(), phm.ddlSqlite);
@@ -189,7 +189,7 @@ public class DBSyntextTest {
 			ck[s].trb.registerEntity(conn, snm);
 		}
 
-		phm = new T_PhotoMeta(conns[0]).replace(); // all entity table is the same in this test
+		phm = new T_DA_PhotoMeta(conns[0]).replace(); // all entity table is the same in this test
 
 		assertEquals("syn.00", ck[0].connId());
 	}
@@ -512,8 +512,8 @@ public class DBSyntextTest {
 		DBSynsactBuilder ctb = ck[cli].trb;
 		DBSynsactBuilder stb = ck[srv].trb;
 
-		SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId()).replace();
-		SyntityMeta cphm = new T_PhotoMeta(ctb.basictx().connId()).replace();
+		SyntityMeta sphm = new T_DA_PhotoMeta(stb.basictx().connId()).replace();
+		SyntityMeta cphm = new T_DA_PhotoMeta(ctb.basictx().connId()).replace();
 		
 		exchange(sphm, stb, cphm, ctb, test, subno);
 	}
@@ -690,7 +690,7 @@ public class DBSyntextTest {
 		DBSynsactBuilder trb = ck[s].trb;
 		SyncRobot robot = (SyncRobot) ck[s].robot();
 		
-		T_PhotoMeta m = ck[s].phm;
+		T_DA_PhotoMeta m = ck[s].phm;
 		String pid = ((SemanticObject) trb
 			.insert(m.tbl, robot)
 			.nv(m.uri, "")
@@ -734,7 +734,7 @@ public class DBSyntextTest {
 	}
 	
 	String deletePhoto(SynChangeMeta chgm, int s) throws TransException, SQLException {
-		T_PhotoMeta m = ck[s].phm;
+		T_DA_PhotoMeta m = ck[s].phm;
 		AnResultset slt = ((AnResultset) ck[s].trb
 				.select(chgm.tbl, conns)
 				.orderby(m.pk, "desc")
@@ -757,7 +757,7 @@ public class DBSyntextTest {
 	
 	String[] updatePname(int s)
 			throws SQLException, TransException, AnsonException, IOException {
-		T_PhotoMeta entm = ck[s].phm;
+		T_DA_PhotoMeta entm = ck[s].phm;
 		DBSynsactBuilder t = ck[s].trb;
 		AnResultset slt = ((AnResultset) t
 				.select(entm.tbl, "ch")
@@ -789,7 +789,7 @@ public class DBSyntextTest {
 	 */
 	public static class Ck {
 
-		public T_PhotoMeta phm;
+		public T_DA_PhotoMeta phm;
 		public SynodeMeta synm;
 
 		final DBSynsactBuilder trb;
@@ -801,7 +801,7 @@ public class DBSyntextTest {
 
 		public Ck(int s, DBSynsactBuilder trb) throws SQLException, TransException, ClassNotFoundException, IOException {
 			this(conns[s], trb, trb.domain(), String.format("s%s", s), "rob-" + trb.synode());
-			phm = new T_PhotoMeta(conns[s]);
+			phm = new T_DA_PhotoMeta(conns[s]);
 		}
 
 		/**

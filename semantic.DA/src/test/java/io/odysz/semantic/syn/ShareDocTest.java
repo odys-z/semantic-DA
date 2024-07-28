@@ -27,7 +27,7 @@ public class ShareDocTest {
 	static SynodeMeta sym;
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
-	static T_PhotoMeta phm;
+	static T_DA_PhotoMeta phm;
 
 	/**
 	 * <p>kyiv local -&gt; kyiv (hub) -&gt; kharkiv</p>
@@ -98,7 +98,7 @@ public class ShareDocTest {
 	 * @throws SQLException
 	 * @throws IOException 
 	 */
-	String createPhoto(String conn, T_Photo photo, SyncRobot usr, T_PhotoMeta meta)
+	String createPhoto(String conn, T_Photo photo, SyncRobot usr, T_DA_PhotoMeta meta)
 			throws TransException, SQLException, IOException {
 
 		if (!DATranscxt.hasSemantics(conn, meta.tbl, smtype.extFilev2))

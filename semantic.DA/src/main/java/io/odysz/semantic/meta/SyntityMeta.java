@@ -191,13 +191,19 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	/**
 	 * <p>call select.cols(...)</p>
 	 * 
-	 * Entity meta's handling for querying entities when synchronizing. The typical
-	 * task finished here is to add a extFile() function object to the parameter
-	 * {@code select}.
+	 * <p>Entity meta's query event handler, while synchronizing.</p>
 	 * 
-	 * @param select
+	 * A typical task finished here is to add an extFile() function object to the
+	 * parameter {@code select}.
+	 * <pre>  T_DA_PhotoMet entm = new T_DA_PhotoMet(conn);  // extends SyntityMeta
+	 *  AnResultset entities = ((AnResultset) entm
+	 *    .onselectSyntities(trb.select(tbl, "e").col("e.*"))
+	 * </pre>
+	 * 
+	 * @see io.odysz.semantic.syn.ExessionPersist#chpage()
+	 * @param select typically should already called {@link Query#cols(String...)}, etc. alrady.
 	 * @return select
 	 * @throws TransException, SQLException 
 	 */
-	public Query onselect(Query select) throws TransException, SQLException { return select; }
+	public Query onselectSyntities(Query select) throws TransException, SQLException { return select; }
 }

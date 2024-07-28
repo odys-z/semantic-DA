@@ -11,18 +11,18 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
-public class T_PhotoMeta extends ExpDocTableMeta {
+public class T_DA_PhotoMeta extends ExpDocTableMeta {
 
 	public final String exif;
 
-	public T_PhotoMeta(String conn) throws TransException {
+	public T_DA_PhotoMeta(String conn) throws TransException {
 		super("h_photos", "pid", "device", conn);
-		ddlSqlite = loadTxt(T_PhotoMeta.class, "h_photos.sqlite.ddl");
+		ddlSqlite = loadTxt(T_DA_PhotoMeta.class, "h_photos.sqlite.ddl");
 
 		exif = "exif";
 		synoder = "device";
 
-		ddlSqlite = loadTxt(T_PhotoMeta.class, "h_photos.sqlite.ddl");
+		ddlSqlite = loadTxt(T_DA_PhotoMeta.class, "h_photos.sqlite.ddl");
 	}
 
 	public String device() { return synoder; }
@@ -42,5 +42,4 @@ public class T_PhotoMeta extends ExpDocTableMeta {
 		}
 		return selects;
 	}
-
 }

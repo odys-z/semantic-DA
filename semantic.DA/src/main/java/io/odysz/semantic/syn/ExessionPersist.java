@@ -723,8 +723,12 @@ public class ExessionPersist {
 	public String[] ssinf;
 
 	/**
-	 * Get challenge page
-	 * @return ch-page
+	 * <p>Get a challenging page.</p>
+	 * 
+	 * Entities affected are also be loaded, and the entity metas get a chance to handling
+	 * the loaded records by calling {@link SyntityMeta#onselectSyntities(Query)}.
+	 * 
+	 * @return a change log page
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
@@ -747,10 +751,9 @@ public class ExessionPersist {
 			SyntityMeta entm = trb.getSyntityMeta(tbl);
 
 			AnResultset entities = ((AnResultset) entm
-				.onselect(trb.select(tbl, "e"))
+				.onselectSyntities(trb.select(tbl, "e").col("e.*"))
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId, constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
-				// .col("e.*")
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				.rs(0))
 				.index0(entm.synuid);
