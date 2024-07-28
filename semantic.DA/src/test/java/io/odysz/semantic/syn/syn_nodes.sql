@@ -1,6 +1,6 @@
-delete from syn_node;
-﻿INSERT INTO syn_node
-(synid,  org,   mac,  oper,   optime) VALUES
-('x',   'URA', '#00', 'odyz', 2023-04-11),
-('y',   'URA', '#01', 'odyz', 2023-04-11),
-('z',   'URA', '#02', 'odyz', 2023-04-11);
+-- delete from syn_node; 
+INSERT INTO syn_node
+(synid,  org,   mac,  nyq,  domain,   oper,   optime) VALUES
+('X',   'URA', '#00',  0,   'zsu',   'odyz',  '2024-04-01'),
+('Y',   'URA', '#01',  0,   'zsu',   'odyz',  '2024-04-01'),
+('Z',   'URA', '#02',  0,   'zsu',   'odyz',  '2024-04-01');

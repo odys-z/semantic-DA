@@ -1,4 +1,5 @@
 insert into oz_autoseq (sid, seq, remarks) values
+('syn_change.cid', 0, 'change-log id'),
 ('h_photos.pid', 0, 'photo'),
 ('a_attaches.attId', 0, 'attachements'),
 ('a_functions.funcId', 0, 'test'),

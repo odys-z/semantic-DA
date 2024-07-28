@@ -2,7 +2,6 @@ package io.odysz.semantic.syn;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Set;
 
 import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
@@ -11,9 +10,7 @@ import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
-import io.odysz.semantics.IUser;
-import io.odysz.semantics.meta.TableMeta;
-import io.odysz.transact.x.TransException;
+import io.odysz.transact.sql.Insert;
 
 /**
  * A synchronizable entity managed by the package, also a server side
@@ -22,7 +19,7 @@ import io.odysz.transact.x.TransException;
  * 
  * @author Ody
  */
-public class SynEntity extends Anson {
+public abstract class SynEntity extends Anson {
 	protected static String[] synpageCols;
 
 	public String recId;
@@ -31,11 +28,6 @@ public class SynEntity extends Anson {
 		recId = did;
 		return this;
 	}
-
-//	public String clientpath;
-//	public String fullpath() { return clientpath; }
-//	public String clientpath2;
-//	public String clientpath2() { return clientpath2; }
 
 	public String uids;
 
@@ -54,7 +46,7 @@ public class SynEntity extends Anson {
 	protected SynSubsMeta subMeta;
 
 	@AnsonField(ignoreTo=true)
-	protected SynChangeMeta chgMeta;
+	protected SynChangeMeta chgm;
 
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	ISemantext semantxt;
@@ -64,30 +56,22 @@ public class SynEntity extends Anson {
 	protected String synoder;
 	protected Nyquence nyquence;
 	
-	public SynEntity(AnResultset rs, SyntityMeta entity, SynChangeMeta change, SynSubsMeta subs) throws SQLException {
+	public SynEntity(AnResultset rs, SyntityMeta entity, SynChangeMeta change) throws SQLException {
 		this.entMeta = entity;
-		this.subMeta = subs;
-		this.chgMeta = change;
+		this.chgm = change;
+		this.subMeta = new SynSubsMeta(change);
 
 		format(rs);
 	}
 
 	public SynEntity(SyntityMeta entm) {
 		this.entMeta = entm;
-		this.subMeta = new SynSubsMeta();
-		this.chgMeta = new SynChangeMeta();
+		this.chgm = new SynChangeMeta();
+		this.subMeta = new SynSubsMeta(chgm);
 	}
 
 	public SynEntity(AnResultset rs, SyntityMeta meta) throws SQLException {
-		this(rs, meta, new SynChangeMeta(), new SynSubsMeta());
-	}
-
-	/**
-	 * @param meta TODO change to {@link SyntityMeta} after refactor
-	 * @return this
-	 */
-	public SynEntity onPush(TableMeta meta) {
-		return null;
+		this(rs, meta, new SynChangeMeta());
 	}
 
 	public SynEntity check(String conn, DBSynsactBuilder tr0, ArrayList<String[]> subs) {
@@ -102,61 +86,15 @@ public class SynEntity extends Anson {
 	 */
 	public SynEntity format(AnResultset rs) throws SQLException {
 		this.recId = rs.getString(entMeta.pk);
-		this.synode =  rs.getString(chgMeta.synoder);
+		this.synode =  rs.getString(chgm.synoder);
 		return this;
 	}
-
+	
 	/**
-	 * Commit synchronizations.
+	 * Setup {@code ins}'s nvs, e.g. nv(domain, v0) ....
 	 * 
-	 * <p>TODO the performance can be optimized with buffer writing.</p>
-	 * @param conn
-	 * @param trsb default transaction builder
-	 * @param subs subscriptions may or may not override this values
-	 * @param skips ignoring subscriptions
-	 * @param robot 
-	 * @return this
-	 * @throws SQLException 
-	 * @throws TransException 
+	 * @param ins
+	 * @return {@code ins}
 	 */
-	public SynEntity syncInto(String conn, DBSynsactBuilder trsb, AnResultset subs, Set<String> skips, IUser robot)
-			throws TransException, SQLException {
-		AnResultset ch = (AnResultset) trsb
-				.select(entMeta.tbl, "ent")
-				.je("ent", chgMeta.tbl, "ch", entMeta.pk, chgMeta.entfk)
-				.cols(chgMeta.cols()).cols(subMeta.cols())
-				.whereEq(chgMeta.synoder, synode)
-				.whereEq(chgMeta.uids, uids)
-				.rs(trsb.instancontxt(conn, robot))
-				.rs(0);
-		
-		if (ch.getString(chgMeta.synoder).equals(synoder)) {
-			// compare ch.n with s.nyq
-			int nc = Nyquence.compare64(nyquence.n, ch.getLong(chgMeta.nyquence));
-			if (nc > 0) {
-				// write subs to conn.subm.tbl
-				// DESIGN NOTES: There is no R/D/E in subscriptions, that's an attribute of Doc sharing relationship 
-				trsb.delete(subMeta.tbl, robot)
-					.whereEq(subMeta.org, ch.getString(entMeta.org()))
-					.whereEq(subMeta.entbl, ch.getString(chgMeta.entbl))
-					.whereEq(subMeta.uids, ch.getString(chgMeta.uids))
-					.post(trsb
-						.insert(subMeta.tbl, robot)
-						.values(subMeta.insubVals(subs, skips))
-					);
-			}
-			// else (nc <= 0) ignore incoming subscriptions
-		}
-		else {
-			// conflict
-		}
-
-		return this;
-	}
-	public AnResultset subs() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
+	public abstract Insert insertEntity(SyntityMeta m, Insert ins);
 }

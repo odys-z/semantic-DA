@@ -1,5 +1,10 @@
 package io.odysz.semantic.syn;
 
+import java.sql.SQLException;
+
+import io.odysz.anson.Anson;
+import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.x.TransException;
@@ -11,36 +16,46 @@ import io.odysz.transact.x.TransException;
  * @author odys-z@github.com
  *
  */
-public class Synode extends SynEntity {
+public class Synode extends Anson {
 
 	public final String org;
+	public final String synodeId;
 
-	public Synode(String conn, String synid, String family) throws TransException {
-		super(new SynodeMeta(conn));
-		
-		this.recId = synid;
-		this.org = family;
+	String mac;
+	String domain;
+	long nyquence;
+
+	public Synode(String conn, String synid, String org, String domain) throws TransException {
+		this.synodeId = synid;
+		this.org = org;
+		this.domain = domain;
 	}
 	
-//	public Synode clientpath(String path, String... path2) {
-//		clientpath = path;
-//		clientpath2 = isNull(path2) ? null :path2[0];
-//		return this;
-//	}
+	public Synode(AnResultset r, SynodeMeta synm) throws SQLException {
+		this.org = r.getString(synm.org);
+		this.synodeId = r.getString(synm.pk);
+		this.mac = r.getString(synm.mac);
+		this.domain = r.getString(synm.domain);
+		this.nyquence = r.getLong(synm.nyquence);
+	}
 
 	/**
-	 * Format the table record according to my fields.
+	 * Format the insert statement according to my fields.
+	 * Example:<pre>insert(synm, n0(), tranxbuilder.insert(synm.tbl, robot))</pre>
 	 * 
 	 * @param synm
 	 * @param insert
-	 * @return
+	 * @return {@link Insert} statement
 	 * @throws TransException
 	 */
-	public Insert insert(SynodeMeta synm, Insert insert) throws TransException {
+	public Insert insert(SynodeMeta synm, String creator, Nyquence n0, Insert insert) throws TransException {
 		return insert
-			.nv(synm.pk, recId)
-			.nv(synm.synoder, synoder)
-			.nv(synm.org(), org);
+			.nv(synm.pk, synodeId)
+			.nv(synm.mac, "#" + synodeId)
+			.nv(synm.nyquence, n0.n)
+			.nv(synm.domain, domain)
+			.nv(synm.synuid, SynChangeMeta.uids(creator, synodeId))
+			.nv(synm.org, org);
 	}
 	
 }

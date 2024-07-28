@@ -3,6 +3,8 @@ package io.odysz.semantic.syn;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import org.xml.sax.SAXException;
+
 import io.odysz.semantic.syn.DBSyntextTest.Ck;
 import io.odysz.transact.x.TransException;
 
@@ -11,7 +13,10 @@ import io.odysz.transact.x.TransException;
  * @author odys-z@github.com
  */
 public class ZSUNodesDA {
-	public static final String family = "ZSU";
+	/**
+	 * @since 1.4.40, this is the synchronizing domain
+	 */
+	public static final String family = "zsu";
 	
 	public final String folder;
 	public String png;
@@ -20,7 +25,7 @@ public class ZSUNodesDA {
 	public final String conn;
 	public final SyncRobot robot;
 	public final String nodeId;
-	public final SynodeMode mode = SynodeMode.hub;
+	public final SynodeMode mode = SynodeMode.peer;
 
 	public final String worker;
 	public String userId;
@@ -30,7 +35,7 @@ public class ZSUNodesDA {
 	public static ZSUNodesDA kharkiv;
 	public static ZSUNodesDA anDevice;
 	
-	static void init() throws ClassNotFoundException, SQLException, TransException, IOException {
+	static void init() throws ClassNotFoundException, SQLException, TransException, IOException, SAXException {
 		kyiv = new ZSUNodesDA(0);
 		kharkiv = new ZSUNodesDA(1);
 		anDevice  = new ZSUNodesDA(3);
@@ -38,12 +43,12 @@ public class ZSUNodesDA {
 		anDevice.userId = "user-3";
 	}
 
-	public ZSUNodesDA(int sid) throws ClassNotFoundException, SQLException, TransException, IOException {
+	public ZSUNodesDA(int sid) throws ClassNotFoundException, SQLException, TransException, IOException, SAXException {
 		this.sid = sid;
 		folder = "zsu-" + sid;
 		conn = DBSyntextTest.conns[sid];
-		ck = new Ck(sid); 
-		robot = (SyncRobot) ck.robot;
+		ck = new Ck(sid, new DBSynsactBuilder(null, "zsu-dev-" + sid, "zsu", 0));
+		robot = (SyncRobot) ck.robot();
 		nodeId = robot.deviceId;
 		worker = robot.uid();
 	}

@@ -1,14 +1,13 @@
-package io.odysz.semantic.syn;
+package io.odysz.semantic.meta;
 
-import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.transact.x.TransException;
 
 /**
- * Document entity table meta.
+ * Experimental: document entity table meta.
  *
  * @author odys-z@github.com
  */
-public class T_DocTableMeta extends SyntityMeta {
+public abstract class ExpDocTableMeta extends SyntityMeta {
 	/**
 	 * consts of share type: pub | priv 
 	 */
@@ -29,14 +28,6 @@ public class T_DocTableMeta extends SyntityMeta {
 		}
 	}
 
-	/**
-	 * @deprecated DBSynmantics now is using Nyquence.
-	 * DB column for automatic time stamp. 
-	 * Sqlite:<pre>syncstamp DATETIME DEFAULT CURRENT_TIMESTAMP not NULL</pre>
-	public final String stamp;
-	 */
-	/** resource's creating node's device id, originally named as device */
-	public final String synoder;
 	public final String fullpath;
 	/** aslo named as pname, clientname or filename previously */
 	public final String resname;
@@ -45,6 +36,8 @@ public class T_DocTableMeta extends SyntityMeta {
 	 * and updating with {@link io.odysz.semantic.DASemantics.ShExtFilev2 ShExtFile}.
 	 */
 	public final String uri;
+	public final String device;
+	public final String org;
 	public final String createDate;
 	public final String shareDate;
 	public final String shareby;
@@ -53,19 +46,22 @@ public class T_DocTableMeta extends SyntityMeta {
 	public final String mime;
 	public final String size;
 
-//	public final String syncflag;
 	public final String shareflag;
 
-	// final HashSet<String> globalIds;
+	public ExpDocTableMeta() throws TransException {
+		this("", "", "device", "conn");
+	}
 
-	public T_DocTableMeta(String tbl, String pk, String org, String conn) throws TransException {
-		super(tbl, pk, org, conn);
+	public ExpDocTableMeta(String tbl, String pk, String device, String conn) throws TransException {
+		super(tbl, pk, device, conn);
 
 		resname = "pname";
+		this.device = device;
 		uri = "uri";
 		folder = "folder";
 		createDate = "pdate";
-		// org = "family";
+		org = "family";
+
 		mime = "mime";
 		size = "filesize";
 		synoder = "device";
@@ -74,12 +70,5 @@ public class T_DocTableMeta extends SyntityMeta {
 		shareDate = "sharedate";
 		shareby = "shareby";
 		shareflag = "shareflag";
-		
-		// uids = new HashSet<String>() { {add(synoder);}; {addAll(uids);} };
 	}
-
-//	public HashSet<String> globalIds() {
-//		return globalIds;
-//	}
-
 }

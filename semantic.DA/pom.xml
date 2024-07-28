@@ -3,7 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.odys-z</groupId>
   <artifactId>semantic.DA</artifactId>
-  <version>1.4.41</version>
+<<<<<<< HEAD
+  <version>2.0.0-SNAPSHOT</version>
+=======
+  <version>2.0.0-SNAPSHOT</version>
+>>>>>>> one-domain
   <packaging>jar</packaging>
 
   <name>semantic.DA</name>
@@ -30,16 +34,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	<maven.compiler.source>1.8</maven.compiler.source>
 	<maven.compiler.target>1.8</maven.compiler.target>
+	<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
   </properties>
-
-  <!--
-  <repositories>
-  	<repository>
-  		<id>sonatype-snapshots</id>
-  		<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-  	</repository>
-  </repositories>
-   -->
 
   <dependencies>
 	<dependency>
@@ -53,8 +49,7 @@
 	<dependency>
 		<groupId>commons-io</groupId>
 		<artifactId>commons-io</artifactId>
-		<version>[2.11.0,)</version>
-	    <scope>test</scope>
+		<version>[2.15.0,)</version>
 	</dependency>
 
 	<dependency>
@@ -63,7 +58,7 @@
 			to update immediately. -->
 	    <groupId>io.github.odys-z</groupId>
 	    <artifactId>semantics.transact</artifactId>
-	    <version>1.4.41</version>
+	    <version>[1.4.44, 1.5.0-SNAPSHOT)</version>
 	</dependency>
 
 	<!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
@@ -120,7 +115,8 @@
 
   <build>
     <testResources>
-   	<testResource><directory>${project.basedir}/src/test/java</directory>
+   	<testResource>
+   		<directory>${project.basedir}/src/test/java</directory>
    	</testResource>
     </testResources>
 
@@ -143,6 +139,7 @@
           <target>1.8</target>
         </configuration>
       </plugin>
+
 
 	  <plugin>
 	  	<artifactId>maven-deploy-plugin</artifactId>

@@ -60,9 +60,6 @@ public class DASemantext implements ISemantext {
 	/** FIXME Flat auto resolving pool is not enought! */
 	private SemanticObject autoVals;
 	
-	// private List<SemanticObject> autostack;
-	// private int autoStacktop;
-	
 	private static Transcxt rawst;
 
 	/**Semantic Configurations */
@@ -110,12 +107,12 @@ public class DASemantext implements ISemantext {
 
 	/**
 	 * When inserting, process data row with configured semantics, like auto-pk, fk-ins, etc..
-	 * @throws SemanticException
+	 * @throws TransException 
 	 * @see io.odysz.semantics.ISemantext#onInsert(io.odysz.transact.sql.Insert, java.lang.String, java.util.List)
 	 */
 	@Override
 	public ISemantext onInsert(Insert insert, String tabl, List<ArrayList<Object[]>> rows)
-			throws SemanticException {
+			throws TransException {
 
 		if (rows != null && semants != null)
 			// second round
@@ -131,7 +128,7 @@ public class DASemantext implements ISemantext {
 
 	@Override
 	public ISemantext onUpdate(Update update, String tabl, ArrayList<Object[]> nvs)
-			throws SemanticException {
+			throws TransException {
 
 		if (nvs != null && semants != null) {
 			Map<String, Integer> cols = update.getColumns();

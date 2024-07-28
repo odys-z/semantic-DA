@@ -19,7 +19,7 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 /**
- * A robot is only used for test.
+ * A robot only used for test.
  * 
  * @author odys-z@github.com
  */

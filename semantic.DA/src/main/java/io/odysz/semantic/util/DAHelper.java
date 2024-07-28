@@ -38,7 +38,7 @@ public class DAHelper {
 		Query q = trb.select(m.tbl);
 
 		for (int i = 0; i < kvs.length; i+=2) {
-				q.whereEq((String)kvs[i], kvs[i+1]);
+			q.whereEq((String)kvs[i], kvs[i+1]);
 		}
 
 		AnResultset rs = (AnResultset) q

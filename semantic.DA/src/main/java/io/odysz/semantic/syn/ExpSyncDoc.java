@@ -8,11 +8,13 @@ import java.nio.file.attribute.FileTime;
 import java.sql.SQLException;
 import java.util.Date;
 
-import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
 import io.odysz.common.DateFormat;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantics.ISemantext;
+import io.odysz.transact.sql.Insert;
 
 import static io.odysz.common.LangExt.*;
 
@@ -22,19 +24,19 @@ import static io.odysz.common.LangExt.*;
  * 
  * @author ody
  */
-public class T_SyncDoc extends Anson {
+public class ExpSyncDoc extends SynEntity {
 	protected static String[] synpageCols;
 
 	public String recId;
 	public String recId() { return recId; }
-	public T_SyncDoc recId(String did) {
+	public ExpSyncDoc recId(String did) {
 		recId = did;
 		return this;
 	}
 
 	public String pname;
 	public String clientname() { return pname; }
-	public T_SyncDoc clientname(String clientname) {
+	public ExpSyncDoc clientname(String clientname) {
 		pname = clientname;
 		return this;
 	}
@@ -45,10 +47,12 @@ public class T_SyncDoc extends Anson {
 	/** Non-public: doc' device id is managed by session. */
 	protected String device;
 	public String device() { return device; }
-	public T_SyncDoc device(String device) {
+	public ExpSyncDoc device(String device) {
 		this.device = device;
 		return this;
 	}
+	
+	public final String org;
 
 	public String shareflag;
 	public String shareflag() { return shareflag; }
@@ -56,16 +60,16 @@ public class T_SyncDoc extends Anson {
 	/** usally reported by client file system, overriden by exif date, if exits */
 	public String createDate;
 	public String cdate() { return createDate; }
-	public T_SyncDoc cdate(String cdate) {
+	public ExpSyncDoc cdate(String cdate) {
 		createDate = cdate;
 		return this;
 	}
-	public T_SyncDoc cdate(FileTime fd) {
+	public ExpSyncDoc cdate(FileTime fd) {
 		createDate = DateFormat.formatime(fd);
 		return this;
 	}
 
-	public T_SyncDoc cdate(Date date) {
+	public ExpSyncDoc cdate(Date date) {
 		createDate = DateFormat.format(date);
 		return this;
 	}
@@ -83,28 +87,28 @@ public class T_SyncDoc extends Anson {
 	/** usually ignored when sending request */
 	public long size;
 
-	public T_SyncDoc shareby(String share) {
+	public ExpSyncDoc shareby(String share) {
 		this.shareby = share;
 		return this;
 	}
 
-	public T_SyncDoc sharedate(String format) {
+	public ExpSyncDoc sharedate(String format) {
 		sharedate = format;
 		return this;
 	}
 
-	public T_SyncDoc sharedate(Date date) {
+	public ExpSyncDoc sharedate(Date date) {
 		return sharedate(DateFormat.format(date));
 	}
 	
-	public T_SyncDoc share(String shareby, String flag, String sharedate) {
+	public ExpSyncDoc share(String shareby, String flag, String sharedate) {
 		this.shareflag = flag;
 		this.shareby = shareby;
 		sharedate(sharedate);
 		return this;
 	}
 
-	public T_SyncDoc share(String shareby, String s, Date sharedate) {
+	public ExpSyncDoc share(String shareby, String s, Date sharedate) {
 		this.shareflag = s;
 		this.shareby = shareby;
 		sharedate(sharedate);
@@ -112,21 +116,24 @@ public class T_SyncDoc extends Anson {
 	}
 
 	@AnsonField(ignoreTo=true)
-	T_DocTableMeta docMeta;
+	ExpDocTableMeta docMeta;
 
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	ISemantext semantxt;
 
-	protected String mime;
+	public String mime;
 	
-	public T_SyncDoc() {}
+	public ExpSyncDoc(SyntityMeta m, String orgId) {
+		super(m);
+		org = orgId;
+	}
 	
 	/**
 	 * A helper used to make sure query fields are correct.
 	 * @param meta
 	 * @return cols for Select.cols()
 	 */
-	public static String[] nvCols(T_DocTableMeta meta) {
+	public static String[] nvCols(ExpDocTableMeta meta) {
 		return new String[] {
 				meta.pk,
 				meta.resname,
@@ -147,7 +154,7 @@ public class T_SyncDoc extends Anson {
 	 * @param meta
 	 * @return String [meta.pk, meta.shareDate, meta.shareflag, meta.syncflag]
 	 */
-	public static String[] synPageCols(T_DocTableMeta meta) {
+	public static String[] synPageCols(ExpDocTableMeta meta) {
 		if (synpageCols == null)
 			synpageCols = new String[] {
 					meta.pk,
@@ -161,9 +168,11 @@ public class T_SyncDoc extends Anson {
 		return synpageCols;
 	}
 
-	public T_SyncDoc(AnResultset rs, T_DocTableMeta meta) throws SQLException {
+	public ExpSyncDoc(AnResultset rs, ExpDocTableMeta meta) throws SQLException {
+		super(meta);
 		this.docMeta = meta;
 		this.recId = rs.getString(meta.pk);
+		this.org = rs.getString(meta.org);
 		this.pname = rs.getString(meta.resname);
 		this.uri = rs.getString(meta.uri);
 		this.createDate = rs.getString(meta.createDate);
@@ -220,7 +229,7 @@ public class T_SyncDoc extends Anson {
 //		this.fullpath(fullpath);
 //	}
 
-	public T_SyncDoc fullpath(String clientpath) throws IOException {
+	public ExpSyncDoc fullpath(String clientpath) throws IOException {
 		this.clientpath = clientpath;
 
 		if (isblank(createDate)) {
@@ -253,7 +262,7 @@ public class T_SyncDoc extends Anson {
 
 	protected String folder;
 	public String folder() { return folder; }
-	public T_SyncDoc folder(String v) {
+	public ExpSyncDoc folder(String v) {
 		this.folder = v;
 		return this;
 	}
@@ -289,7 +298,7 @@ public class T_SyncDoc extends Anson {
 	 * @param flags
 	 * @return this
 	 */
-	public T_SyncDoc parseFlags(String[] flags) {
+	public ExpSyncDoc parseFlags(String[] flags) {
 		if (!isNull(flags)) {
 			syncFlag = flags[0];
 			shareflag = flags[1];
@@ -297,5 +306,24 @@ public class T_SyncDoc extends Anson {
 			sharedate(flags[3]);
 		}
 		return this;
+	}
+	
+	@Override
+	public Insert insertEntity(SyntityMeta m, Insert ins) {
+		ExpDocTableMeta md = (ExpDocTableMeta) m;
+		ins // .nv(md.domain, domain)
+			.nv(md.folder, folder)
+			.nv(md.org, org)
+			.nv(md.mime, mime)
+			.nv(md.uri, uri)
+			.nv(md.size, size)
+			.nv(md.createDate, createDate)
+			.nv(md.resname, pname)
+			.nv(md.synoder, device)
+			.nv(md.shareby, shareby)
+			.nv(md.shareDate, sharedate)
+			.nv(md.shareflag, shareflag)
+			.nv(md.fullpath, clientpath);
+		return ins;
 	}
 }

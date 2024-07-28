@@ -7,7 +7,7 @@ import java.util.HashSet;
 
 public class Assert {
 	
-	public static <T extends Object> HashSet<T> assertIn(T id, T ... ids) {
+	public static <T extends Object> HashSet<T> assertIn(T id, T ids) {
 		HashSet<T> s = new HashSet<T>(Arrays.asList(ids));
 		assertTrue(s.contains(id));
 		return s;

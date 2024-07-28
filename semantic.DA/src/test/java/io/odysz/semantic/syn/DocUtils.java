@@ -8,6 +8,7 @@ import io.odysz.common.LangExt;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
+import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -24,7 +25,7 @@ public class DocUtils {
 	 * <p>Photo is created as in the folder of user/[photo.folder]/;<br>
 	 * Photo's device and family are replaced with session information.</p>
 	 * 
-	 * @since 1.4.19, this method need DB triggering timestamp ({@link DocTableMeta#stamp}).
+	 * @since 1.4.19, this method need DB triggering timestamp
 	 * <pre>
 	 * sqlite example:
 	 * syncstamp DATETIME DEFAULT CURRENT_TIMESTAMP not NULL
@@ -40,7 +41,7 @@ public class DocUtils {
 	 * @throws SQLException
 	 * @throws IOException
 	 */
-	public static String createFileB64(String conn, T_SyncDoc photo, IUser usr, T_DocTableMeta meta, DATranscxt st, Update onDocreate)
+	public static String createFileB64(String conn, ExpSyncDoc photo, IUser usr, ExpDocTableMeta meta, DATranscxt st, Update onDocreate)
 			throws TransException, SQLException, IOException {
 		if (LangExt.isblank(photo.clientpath))
 			throw new SemanticException("Client path can't be null/empty.");
@@ -49,7 +50,7 @@ public class DocUtils {
 			throw new SemanticException("Folder of managed doc can not be empty - which is important for saving file. It's required for creating media file.");
 
 		Insert ins = st.insert(meta.tbl, usr)
-				.nv(meta.org(), usr.orgId())
+				.nv(meta.org, usr.orgId())
 				.nv(meta.uri, photo.uri)
 				.nv(meta.resname, photo.pname)
 				.nv(meta.synoder, usr.deviceId())
@@ -83,14 +84,14 @@ public class DocUtils {
 	 * @return decode then concatenated absolute path, for file accessing.
 	 * @see EnvPath#decodeUri(String, String)
 	 */
-	public static String resolvePrivRoot(String uri, T_DocTableMeta meta, String conn) {
+	public static String resolvePrivRoot(String uri, ExpDocTableMeta meta, String conn) {
 		String extroot = ((ShExtFilev2) DATranscxt
 				.getHandler(conn, meta.tbl, smtype.extFilev2))
 				.getFileRoot();
 		return EnvPath.decodeUri(extroot, uri);
 	}
 
-	public static String resolvExtroot(DATranscxt st, String conn, String docId, IUser usr, T_DocTableMeta meta) throws TransException, SQLException {
+	public static String resolvExtroot(DATranscxt st, String conn, String docId, IUser usr, ExpDocTableMeta meta) throws TransException, SQLException {
 		ISemantext stx = st.instancontxt(conn, usr);
 		AnResultset rs = (AnResultset) st
 				.select(meta.tbl)

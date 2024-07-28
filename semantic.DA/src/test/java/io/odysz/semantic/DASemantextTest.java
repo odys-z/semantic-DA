@@ -1,5 +1,6 @@
 package io.odysz.semantic;
 
+import static io.odysz.common.CheapIO.readB64;
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.Utils.loadTxt;
 import static io.odysz.semantic.DATranscxt.loadSemantics;
@@ -12,9 +13,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -37,7 +35,7 @@ import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.syn.T_PhotoMeta;
+import io.odysz.semantic.syn.T_DA_PhotoMeta;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -49,11 +47,11 @@ import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
-/**Test basic semantics for semantic-jserv.<br>
+/**
+ * Test basic semantics for semantic-jserv.<br>
  * This source can be used as examples of how to use semantic-* java API.
  * 
  * @author odys-z@github.com
- *
  */
 public class DASemantextTest {
 	public static final String connId = "local-sqlite";
@@ -61,9 +59,9 @@ public class DASemantextTest {
 	private static IUser usr;
 	private static SemanticsMap smtcfg;
 
-	public static final String rtroot = "src/test/res/";
+	public final static String rtroot = "src/test/res/";
 	private static String runtimepath;
-	private static T_PhotoMeta phm;
+	private static T_DA_PhotoMeta phm;
 
 	static {
 		try {
@@ -96,8 +94,7 @@ public class DASemantextTest {
 			usrAct.put("funcName", "test ISemantext implementation");
 			jo.put("usrAct", usrAct);
 			usr = new LoggingUser(connId, "tester", jo);
-			
-			phm = new T_PhotoMeta(connId);
+			phm = new T_DA_PhotoMeta(connId);
 		} catch (SQLException | SAXException | IOException | TransException e) {
 			e.printStackTrace();
 		}
@@ -117,7 +114,8 @@ public class DASemantextTest {
 		ArrayList<String> sqls = new ArrayList<String>();
 
 		try {
-			for (String tbl : new String[] {"oz_autoseq", "a_logs", "a_attaches",
+			for (String tbl : new String[] {
+					"oz_autoseq", "a_logs", "a_attaches",
 					"a_domain", "a_functions", "a_orgs", "a_role_func", "a_roles", "a_users",
 					"b_alarms", "b_alarm_logic", "b_logic_device",
 					"crs_a", "crs_b", "h_photos", "doc_devices"}) {
@@ -290,7 +288,7 @@ public class DASemantextTest {
 		try {assertEquals("1.4.34.000G01", rs.getString("device"));}
 		catch (Exception e) {assertEquals("1.4.34.000401", rs.getString("device"));}
 		rs.next();
-		assertEquals("synode0.000G02", rs.getString("device"));
+		assertEquals("synode0.000402", rs.getString("device"));
 	}
 
 	/**Test cross referencing auto k.<br>
@@ -531,7 +529,8 @@ public class DASemantextTest {
 		assertEquals(0, rs.getInt("cnt"));
 	}
 
-	/**Test: parent-child on del check should working.
+	/**
+	 * Test: parent-child on del check should working.
 	 * @throws TransException
 	 * @throws SQLException
 	 */
@@ -1022,7 +1021,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		String content64 = readB64("src/test/res/Sun Yet-sen.jpg");
 
 		st.insert(phm.tbl)
-			.nv(phm.org(), "zsu.ua")
+			.nv(phm.org, "zsu.ua")
 			.nv(phm.shareby, "ody")
 			.nv(phm.folder, "2022-10")
 			.nv(phm.resname, "Sun Yet-sen.jpg")
@@ -1062,7 +1061,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// uploads/zsu.ua/ody/2022-10/000001 Sun Yet-sen.jpg
 		assertEquals(String.format("uploads/zsu.ua/ody/2022-10/%s Sun Yet-sen.jpg", pid),
 				DAHelper.getValstr(st, connId, phm, phm.uri, phm.pk, pid));
-
 		assertEquals(content64,
 				DAHelper.getExprstr(st, connId, phm,
 					Funcall.extfile(phm.uri), phm.uri,
@@ -1071,7 +1069,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// 3 move
 		st.update(phm.tbl, usr)
 		  .nv(phm.resname, "Volodymyr Zelensky.jpg")
-		  .nv(phm.org(), "zsu.ua")
+		  .nv(phm.org, "zsu.ua")
 		  .nv(phm.folder, "2022-10")
 		  .nv(phm.shareby, "Zelensky")
 		  .whereEq(phm.pk, pid)
@@ -1100,123 +1098,5 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		
 		assertEquals(String.format("delete from h_photos where pid = '%s'", pid),
 				sqls.get(0));
-	}	
-	/**
-	public void testStampByNode() throws TransException, SQLException, IOException {
-		final long diffsnd = 300 * 1000;
-		final SyncTestRobot usr = new SyncTestRobot("robot").device("test");
-
-		String synode = usr.deviceId();
-		try { 
-			// C
-			SemanticObject res = (SemanticObject) st
-				.insert("h_photos", usr)
-				.nv("family", "ECY.ua")
-				.nv("shareby", "ody")
-				.nv("folder", "test-stamp")
-				.nv("pname", "Sun Yet-sen.jpg")
-				.nv("uri", "") // suppress uri handling
-				.nv("sync", "hub")
-				.ins(st.instancontxt(connId, usr));
-
-			// <args>,syn_stamp,tabl,synode,crud,recount,xmlstamp</args>
-			int recount = res.total();
-			String pid = res.resulve("h_photos", "pid");
-			
-			AnResultset rs = (AnResultset) st.select("syn_stamp", "s")
-				.whereEq("tabl", "h_photos")
-				.whereEq("synode", synode)
-				.rs(st.instancontxt(connId, usr))
-				.rs(0)
-				;
-		
-			rs.next();
-			assertEquals(recount, rs.getInt("recount"));
-			
-			Date di = rs.getDateTime("syncstamp");
-			Date dix = rs.getDateTime("xmlstamp");
-			long now = st.now(connId).getTime();
-			assertEquals(di.getTime(), dix.getTime());
-			assertTrue(now - di.getTime() < diffsnd);
-			
-			// U
-			Thread.sleep(1000);
-			res = (SemanticObject) st
-				.update("h_photos", usr)
-				.nv("sync", "jnode")
-				.whereEq("pid", pid)
-				.u(st.instancontxt(connId, usr));
-
-			// <args>syn_stamp,tabl,synode,crud,recount,xmlstamp</args>
-			recount = res.total();
-			
-			rs = (AnResultset) st.select("syn_stamp", "s")
-				.whereEq("tabl", "h_photos")
-				.whereEq("synode", synode)
-				.rs(st.instancontxt(connId, usr))
-				.rs(0)
-				;
-		
-			rs.next();
-			assertEquals(recount, rs.getInt("recount"));
-			
-			Date du = rs.getDateTime("syncstamp");
-			Date dux = rs.getDateTime("xmlstamp");
-			assertEquals(du.getTime(), dux.getTime());
-			assertTrue(du.getTime() > di.getTime());
-			assertTrue(st.now(connId).getTime() - du.getTime() < diffsnd);
-
-			// D
-			Thread.sleep(1000);
-			res = (SemanticObject) st
-				.delete("h_photos", usr)
-				.whereEq("pid", pid)
-				.d(st.instancontxt(connId, usr));
-
-			  // <args>syn_stamp,tabl,synode,crud,recount,xmlstamp</args>
-			assertEquals(1, res.total());
-			
-			rs = (AnResultset) st.select("syn_stamp", "s")
-				.whereEq("tabl", "h_photos")
-				.whereEq("synode", synode)
-				.rs(st.instancontxt(connId, usr))
-				.rs(0)
-				;
-		
-			rs.next();
-			assertEquals(1, rs.getInt("recount"));
-			
-			Date dd = rs.getDateTime("syncstamp");
-			Date ddx = rs.getDateTime("xmlstamp");
-			assertEquals(dd.getTime(), ddx.getTime());
-			assertTrue(dd.getTime() > du.getTime());
-			assertTrue(st.now(connId).getTime() - dd.getTime() < diffsnd);
-		
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-		finally {
-			// Clean up for test both handling branches that branched from device fingerprint.
-			// see ShStampHandler.onInsert()
-			st.delete("syn_stamp", usr)
-			  .whereEq("tabl", "h_photos")
-			  .whereEq("synode", synode)
-			  .d(st.instancontxt(connId, usr));
-		}
-	}
-	*/
-
-	/**
-	 * @deprecated replaced by {@link CheapIO#}
-	 * @param filename
-	 * @return
-	 * @throws IOException
-	 */
-	private String readB64(String filename) throws IOException {
-		Path p = Paths.get(filename);
-		byte[] f = Files.readAllBytes(p);
-		return AESHelper.encode64(f);
 	}
 }

@@ -27,7 +27,7 @@
   		<usr>test</usr>
   		<pswd>test</pswd>
   		<!-- enable sql printing -->
-  		<dbg>true</dbg>
+  		<dbg></dbg>
   		<smtcs>semantic-log.xml</smtcs>
   	</c>
 
@@ -74,8 +74,8 @@
   		<src>syn.00</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg>true</dbg>
-  		<smtcs>synmantics.xml</smtcs>
+  		<dbg>T</dbg>
+  		<smtcs>synmantics-syntabuilder.xml</smtcs>
 	</c>
 	<c>
 		<id>syn.01</id>
@@ -84,8 +84,8 @@
   		<src>syn.01</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg>true</dbg>
-  		<smtcs>synmantics.xml</smtcs>
+  		<dbg>True</dbg>
+  		<smtcs>synmantics-syntabuilder.xml</smtcs>
 	</c>
 	<c>
 		<id>syn.02</id>
@@ -94,8 +94,8 @@
   		<src>syn.02</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg>true</dbg>
-  		<smtcs>synmantics.xml</smtcs>
+  		<dbg></dbg>
+  		<smtcs>synmantics-syntabuilder.xml</smtcs>
 	</c>
 	<c>
 		<id>syn.03</id>
@@ -104,10 +104,9 @@
   		<src>syn.03</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg>true</dbg>
-  		<smtcs>synmantics.xml</smtcs>
+  		<dbg></dbg>
+  		<smtcs>synmantics-syntabuilder.xml</smtcs>
 	</c>
-
   </t>
 
   <!-- NOTE: dbcp configuration shouldn't work because you don't have container providing the connections.

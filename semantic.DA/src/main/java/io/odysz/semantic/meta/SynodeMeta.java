@@ -1,10 +1,12 @@
 package io.odysz.semantic.meta;
 
-import java.util.HashSet;
-
 import static io.odysz.common.Utils.loadTxt;
 
-import io.odysz.semantics.meta.TableMeta;
+import java.util.ArrayList;
+
+import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DASemantics.smtype;
+import io.odysz.semantic.DATranscxt;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
@@ -12,43 +14,50 @@ import io.odysz.transact.x.TransException;
  * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
  * 
  * @author odys-z@github.com
- *
  */
 public class SynodeMeta extends SyntityMeta {
-	/** organization's nodes */
-	public final String synode;
-	public final String inc;
-	final HashSet<String> globalPks;
 
-	@SuppressWarnings("serial")
+	public final String org;
+
+	public final String domain;
+
+	/** Nyquence for synchronizing */
+	public final String nyquence;
+
+	/** Nyquence for stamping change logs */
+	public final String nstamp;
+
+	public final String mac;
+
 	/**
 	 * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
 	 * 
 	 * @param conn
+	 * @param trb 
 	 * @throws SemanticException 
 	 */
 	public SynodeMeta(String conn) throws TransException {
-		super("syn_node", "synid", "org", conn);
-		
-		// org = "org";
-		synode = "synode";
-		
-		inc = "inc";
-		globalPks = new HashSet<String>() { {add(org);}; {add(synode);} };
+		super("syn_node", "synid", "synid", conn);
+
+		// synoder = pk;
+		mac     = "mac";
+		nyquence= "nyq";
+		nstamp  = "nstamp";
+		org     = "org";
+		domain  = "domain";
 
 		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
+
+		autopk = DATranscxt.hasSemantics(conn, tbl, smtype.autoInc);
 	}
 
 	@Override
-	public HashSet<String> globalIds() {
-		return globalPks;
+	public ArrayList<Object[]> updateEntNvs(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset challenges) {
+		return null;
 	}
-	
+
 	@Override
-	public SynodeMeta clone(TableMeta dbm) throws TransException {
-		super.clone(dbm);
-		if (dbm.coltype(org) == null)
-			throw new SemanticException("Internal Error");
-		return this;
+	public String[] insertSelectItems(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset changes) {
+		return null;
 	}
 }
