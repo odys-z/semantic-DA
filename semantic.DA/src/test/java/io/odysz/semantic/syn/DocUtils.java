@@ -8,7 +8,6 @@ import io.odysz.common.LangExt;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
-import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;

@@ -11,8 +11,8 @@ import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concat;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+// import static org.junit.jupiter.api.Assertions.azert.equals;
+// import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -26,7 +26,6 @@ import org.xml.sax.SAXException;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSessionMeta;
@@ -48,6 +47,8 @@ import io.odysz.transact.x.TransException;
  * @author Ody
  */
 public class Docheck {
+	static IAssert azert;
+
 	public static final String org = "URA";
 
 	public static Docheck[] ck = new Docheck[4];
@@ -57,6 +58,7 @@ public class Docheck {
 	public final DBSyntableBuilder trb;
 
 	final String domain;
+
 	
 	static SynChangeMeta chm = new SynChangeMeta();
 	static SynSubsMeta sbm = new SynSubsMeta(chm);
@@ -72,9 +74,10 @@ public class Docheck {
 
 	String connId() { return trb.basictx().connId(); }
 
-	public Docheck(String domain, String conn, String synid, SynodeMode mod, ExpDocTableMeta m)
+	public Docheck(IAssert assertImpl, String domain, String conn,
+			String synid, SynodeMode mod, ExpDocTableMeta m)
 			throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
-		this(m, domain, conn, mod, synid, "rob-" + synid);
+		this(assertImpl, m, domain, conn, mod, synid, "rob-" + synid);
 	}
 
 	/**
@@ -100,14 +103,17 @@ public class Docheck {
 			.whereIn(trb.synm.synoder, nodes)
 			.rs(trb.instancontxt(trb.basictx().connId(), trb.synrobot()))
 			.rs(0);
-		assertEquals(cnt, rs.getRowCount());
+
+		azert.equali(cnt, rs.getRowCount());
 	}
 
-	public Docheck(ExpDocTableMeta docm, String domain, String conn, SynodeMode mode,
-			String synid, String usrid)
+	public Docheck(IAssert assertImpl, ExpDocTableMeta docm, String domain, String conn,
+			SynodeMode mode, String synid, String usrid)
 			throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
 		trb = new DBSyntableBuilder(domain, conn, synid, mode)
 				.loadNyquvect(conn);
+
+		azert = assertImpl == null ? azert : assertImpl;
 
 		this.docm = docm;
 		this.domain = trb.domain();
@@ -125,7 +131,7 @@ public class Docheck {
 		if (!isNull(synids))
 			q.whereIn(docm.synuid, synids);
 
-		assertEquals(count, ((AnResultset) q
+		azert.equali(count, ((AnResultset) q
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				.rs(0))
 				.nxt()
@@ -178,13 +184,13 @@ public class Docheck {
 					.rs(0);
 			
 			if (!chg.next() && count > 0)
-				fail(String.format("Expecting count == %d, but is actual 0", count));
+				azert.fail(String.format("Expecting count == %d, but is actual 0", count));
 
-			assertEquals(count, chg.getRowCount());
+			azert.equali(count, chg.getRowCount());
 			if (count > 0) {
-				assertEquals(crud, chg.getString(trb.chgm.crud));
-				assertEquals(entm.tbl, chg.getString(trb.chgm.entbl));
-				assertEquals(synoder, chg.getString(trb.chgm.synoder));
+				azert.equals(crud, chg.getString(trb.chgm.crud));
+				azert.equals(entm.tbl, chg.getString(trb.chgm.entbl));
+				azert.equals(synoder, chg.getString(trb.chgm.synoder));
 				return chg.getLong(trb.chgm.nyquence);
 			}
 			return 0;
@@ -208,13 +214,13 @@ public class Docheck {
 				.rs(0);
 		
 		if (!chg.next() && count > 0)
-			fail(String.format("Expecting count == %d, but is actual 0", count));
+			azert.fail(String.format("Expecting count == %d, but is actual 0", count));
 
-		assertEquals(count, chg.getRowCount());
+		azert.equali(count, chg.getRowCount());
 		if (count > 0) {
-			assertEquals(crud, chg.getString(trb.chgm.crud));
-			assertEquals(entm.tbl, chg.getString(trb.chgm.entbl));
-			assertEquals(synoder, chg.getString(trb.chgm.synoder));
+			azert.equals(crud, chg.getString(trb.chgm.crud));
+			azert.equals(entm.tbl, chg.getString(trb.chgm.entbl));
+			azert.equals(synoder, chg.getString(trb.chgm.synoder));
 			return chg.getLong(trb.chgm.nyquence);
 		}
 		return 0;
@@ -242,13 +248,13 @@ public class Docheck {
 				.rs(0);
 		
 		if (!chg.next() && count > 0)
-			fail(String.format("Expecting count == %d, but is actual 0", count));
+			azert.fail(String.format("Expecting count == %d, but is actual 0", count));
 
-		assertEquals(count, chg.getRowCount());
+		azert.equali(count, chg.getRowCount());
 		if (count > 0) {
-			assertEquals(crud, chg.getString(trb.chgm.crud));
-			assertEquals(entm.tbl, chg.getString(trb.chgm.entbl));
-			assertEquals(synoder, chg.getString(trb.chgm.synoder));
+			azert.equals(crud, chg.getString(trb.chgm.crud));
+			azert.equals(entm.tbl, chg.getString(trb.chgm.entbl));
+			azert.equals(synoder, chg.getString(trb.chgm.synoder));
 			return chg.getLong(trb.chgm.nyquence);
 		}
 		return 0;
@@ -275,13 +281,11 @@ public class Docheck {
 			if (n >= 0)
 				toIds.add(ck[n].trb.synode());
 
-		// subsCount(synm, subcount, chgId, toIds.toArray(new String[0]));
 			int cnt = 0;
-			// AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
 			AnResultset subs = (AnResultset) trb
 					.select(trb.chgm.tbl, "ch")
 					.je_(trb.subm.tbl, "sb", trb.chgm.pk, trb.subm.changeId)
-					.cols_byAlias("sb", trb.subm.cols())
+					.cols_byAlias("sb", (Object[])trb.subm.cols())
 					.whereEq(trb.chgm.uids, uids)
 					.rs(trb.instancontxt(connId(), robot()))
 					.rs(0);
@@ -293,20 +297,18 @@ public class Docheck {
 					cnt++;
 			}
 
-			assertEquals(subcount, cnt);
-			assertEquals(subcount, subs.getRowCount());
+			azert.equali(subcount, cnt);
+			azert.equali(subcount, subs.getRowCount());
 	}
 
 	public void subsCount(SyntityMeta entm, int subcount, String chgId, String ... toIds)
 			throws SQLException, TransException {
 		if (isNull(toIds)) {
-			// AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
 			AnResultset subs = subscribes(connId(), chgId, entm, robot());
-			assertEquals(subcount, subs.getRowCount());
+			azert.equali(subcount, subs.getRowCount());
 		}
 		else {
 			int cnt = 0;
-			// AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
 			AnResultset subs = subscribes(connId(), chgId, entm, robot());
 			subs.beforeFirst();
 			while (subs.next()) {
@@ -314,8 +316,8 @@ public class Docheck {
 					cnt++;
 			}
 
-			assertEquals(subcount, cnt);
-			assertEquals(subcount, subs.getRowCount());
+			azert.equali(subcount, cnt);
+			azert.equali(subcount, subs.getRowCount());
 		}
 	}
 
@@ -461,10 +463,10 @@ public class Docheck {
 	 */
 	public static void assertnv(long... nvs) {
 		if (nvs == null || nvs.length == 0 || nvs.length % 2 != 0)
-			fail("Invalid arguments to assert.");
+			azert.fail("Invalid arguments to assert.");
 		
 		for (int i = 0; i < nvs.length/2; i++) {
-			assertEquals(nvs[i], nvs[i + nvs.length/2],
+			azert.equall(nvs[i], nvs[i + nvs.length/2],
 				String.format("nv[%d] %d : %d", i, nvs[i], nvs[i + nvs.length/2]));
 		}
 	}
@@ -472,7 +474,7 @@ public class Docheck {
 	public static void assertI(Docheck[] ck, HashMap<?, ?>[] nvs) {
 		for (int i = 0; i < nvs.length; i++) {
 			if (nvs[i] != null && nvs[i].size() > 0)
-				assertEquals(ck[i].trb.n0().n, ((Nyquence)nvs[i].get(ck[i].trb.synode())).n);
+				azert.equall(ck[i].trb.n0().n, ((Nyquence)nvs[i].get(ck[i].trb.synode())).n);
 			else break;
 		}
 	}
@@ -480,10 +482,10 @@ public class Docheck {
 	public static void assertnv(HashMap<String, Nyquence> nv0,
 			HashMap<String, Nyquence> nv1, int ... delta) {
 		if (nv0 == null || nv1 == null || nv0.size() != nv1.size() || nv1.size() != delta.length)
-			fail("Invalid arguments to assert.");
+			azert.fail("Invalid arguments to assert.");
 		
 		for (int i = 0; i < nv0.size(); i++) {
-			assertEquals(nv0.get(ck[i].trb.synode()).n + delta[i], nv1.get(ck[i].trb.synode()).n,
+			azert.equall(nv0.get(ck[i].trb.synode()).n + delta[i], nv1.get(ck[i].trb.synode()).n,
 				String.format("nv[%d] %d : %d + %d",
 						i, nv0.get(ck[i].trb.synode()).n,
 						nv1.get(ck[i].trb.synode()).n,

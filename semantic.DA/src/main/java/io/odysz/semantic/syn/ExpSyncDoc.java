@@ -12,7 +12,6 @@ import io.odysz.anson.AnsonField;
 import io.odysz.common.DateFormat;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.meta.SyntityMeta;
-import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.transact.sql.Insert;
 

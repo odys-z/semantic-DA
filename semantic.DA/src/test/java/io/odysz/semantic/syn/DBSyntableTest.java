@@ -29,13 +29,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.x.AnsonException;
+import io.odysz.common.AssertImpl;
 import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.AutoSeqMeta;
-import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SemanticTableMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
@@ -163,7 +163,7 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			Docheck.ck[s] = new Docheck(s != W ? zsu : null, conn, synodes[s],
+			Docheck.ck[s] = new Docheck(new AssertImpl(), s != W ? zsu : null, conn, synodes[s],
 					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm);
 			
 			// ck[s].synm = snm;
