@@ -36,6 +36,7 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.AutoSeqMeta;
+import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SemanticTableMeta;
 import io.odysz.semantic.meta.SynChangeMeta;

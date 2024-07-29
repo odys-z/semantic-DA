@@ -1,6 +1,5 @@
-package io.odysz.semantic.syn;
+package io.odysz.semantic.meta;
 
-import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.transact.x.TransException;
 
 /**

@@ -11,9 +11,6 @@ import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concat;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
-// import static org.junit.jupiter.api.Assertions.azert.equals;
-// import static org.junit.jupiter.api.Assertions.fail;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -26,6 +23,7 @@ import org.xml.sax.SAXException;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSessionMeta;
