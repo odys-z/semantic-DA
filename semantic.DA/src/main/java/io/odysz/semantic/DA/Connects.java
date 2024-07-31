@@ -83,9 +83,11 @@ public class Connects {
 		init(xmlDir);
 	}
 
-	/**parse connects.xml, setup connections configured in table "drvmnger", for JDBC DriverManger,
+	/**
+	 * parse connects.xml, setup connections configured in table "drvmnger", for JDBC DriverManger,
 	 * and "dbcp", for JDBC connection-pooled connection managed by container.
-	 * @param xmlDir
+	 * 
+	 * @param xmlDir configure file folder
 	 */
 	public static void init(String xmlDir) {
 		Utils.logi("Initializing connects with path to %s", xmlDir);
@@ -100,14 +102,14 @@ public class Connects {
 			conn_uri = loadConnUri("conn-uri", logger, xmlDir);
 		
 			if (srcs != null && srcs.size() > 0 && !srcs.containsKey(defltConn))
-				throw new SQLException("Found connection configruations, bud initialization failed. DB source must configured with a default source."); 
+				throw new SQLException("Found connection configruations, but initialization has failed. DB source must be configured with a default source."); 
 
 			if (LogFlags.Semantic.connects)
 				Utils.logi("INFO - JDBC initialized using %s (%s) as default connection.",
 					defltConn, srcs != null && srcs.size() > 0 ? srcs.get(defltConn).driverType() : "empty");
 		}
 		catch (Exception ex) {
-			System.err.println("\nFATAL - Connection initializing failed! !!\n");
+			System.err.println("FATAL - Connection initializing failed! !!\n");
 			ex.printStackTrace();
 			return;
 		}
@@ -152,7 +154,8 @@ public class Connects {
 					defltConn = id;
 				}
 			} catch (Exception e) {
-				Utils.warn("ERROR: Connection intiialization failed: %s. (default connection can be null.)", (Object)conn.getStrings("type"));
+				Utils.warn("ERROR: Connection intiialization failed: %s. (default connection can be null.)",
+						conn.getString("type"));
 				e.printStackTrace();
 				continue;
 			}

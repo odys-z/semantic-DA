@@ -1,5 +1,7 @@
 package io.odysz.common;
 
+import static io.odysz.common.LangExt.isNull;
+
 import java.io.File;
 import java.util.HashMap;
 
@@ -16,7 +18,7 @@ import io.odysz.module.xtable.XMLTable;
  * A servlet constext must been registed by LeisureFactory before Messages is inited */
 public class Configs {
 	protected static ILogger log;
-	protected static String cfgFile = "config.xml";
+	public static String cfgFile = "config.xml";
 
 	/** Handled keys for config.xml */
 	public static class keys {
@@ -40,6 +42,12 @@ public class Configs {
 		 * @since 1.4.36
 		 */
 		public static final String disableTokenKey = "disable-token";
+		
+		/**
+		 * key of synode id
+		 * @since 2.0.0
+		 */
+		public static final String synode = "io.oz.syn.synode";
 	}
 
 	protected static HashMap<String, HashMap<String, String>> cfgs;
@@ -56,6 +64,19 @@ public class Configs {
 	public static void init(String xmlDir) {
 		cfgFile = FilenameUtils.concat(xmlDir, cfgFile);
 		load(cfgs, keys.deftXTableId);
+	}
+
+	/**
+	 * 
+	 * @param xmlDir
+	 * @param cfgxml e. g. config.xml
+	 * @param tid optional [table-name]
+	 * @return absolute configure file path
+	 * @since 2.0.0
+	 */
+	public static String init(String xmlDir, String cfgxml, String... tid) {
+		cfgFile = FilenameUtils.concat(xmlDir, cfgxml);
+		return load(cfgs, cfgFile, isNull(tid) ? keys.deftXTableId : tid[0]);
 	}
 	
 	/**
@@ -102,6 +123,7 @@ public class Configs {
 		}
 		return p;
 	}
+
 
 	public static String getCfg(String key) {
 		return cfgs.get(keys.deftXTableId).get(key);

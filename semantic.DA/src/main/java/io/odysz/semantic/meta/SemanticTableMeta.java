@@ -41,7 +41,7 @@ public abstract class SemanticTableMeta extends TableMeta {
 	}
 	
 	/**
-	 * Commit table ddl defined by m[i].ddlSqlite.
+	 * Commit Sqlite3 table ddls defined by m[i].ddlSqlite.
 	 * 
 	 * @param conn
 	 * @param ms

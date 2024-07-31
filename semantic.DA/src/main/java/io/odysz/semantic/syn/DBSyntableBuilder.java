@@ -66,8 +66,8 @@ import io.odysz.transact.x.TransException;
  * commit:  ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c & ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c
  * About:
  * DBSyntableBuilder.stamp is managed not for each domain.
- * To use stamp in this way, nyquence numbers shold synchronized
- * in cross-domain style;
+ * To use stamp in this way, nyquence numbers should be synchronized
+ * in a cross-domain style;
  * To use stamps for each domain, multiple change-logs for each
  * domain of an entity changing operation must be generated.
  * </pre>
