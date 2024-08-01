@@ -23,7 +23,7 @@ import io.odysz.transact.x.TransException;
 public abstract class SyntityMeta extends SemanticTableMeta {
 
 	public static final String err_requires_synuid =
-			"Tables to be synchronized must come with a fixed column named '%s.%s'.";
+			"Tables to be synchronized must come with a fixed column named '%s.%s' [%s].";
 
 	/**
 	 * exposed to subclass to change
@@ -80,7 +80,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	public <T extends SemanticTableMeta> T replace() throws TransException, SQLException {
 		super.replace();
 		if (isNull(ftypes) || !ftypes.containsKey(synuid))
-			throw new TransException(err_requires_synuid, tbl, synuid);
+			throw new TransException(err_requires_synuid, tbl, synuid, conn);
 		return (T) this;
 	}
 

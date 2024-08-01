@@ -154,7 +154,7 @@ public class Connects {
 					defltConn = id;
 				}
 			} catch (Exception e) {
-				Utils.warn("ERROR: Connection intiialization failed: %s. (default connection can be null.)",
+				Utils.warn("ERROR: Connection intiialization failed: %s. (default connection id can be null.)",
 						conn.getString("type"));
 				e.printStackTrace();
 				continue;
@@ -445,7 +445,7 @@ public class Connects {
 	 * 
 	 * @param uri
 	 * @return
-	 * @throws SemanticException
+	 * @throws SemanticException uri is null
 	 */
 	public static String uri2conn(String uri) throws SemanticException {
 		if (LangExt.isblank(uri))
