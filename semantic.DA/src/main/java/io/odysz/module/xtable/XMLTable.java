@@ -1,5 +1,6 @@
 package io.odysz.module.xtable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -9,6 +10,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.x.TransException;
 
 public class XMLTable {
 	public interface IMapValue {
@@ -24,7 +26,7 @@ public class XMLTable {
 		 * @return parsed object
 		 * @throws SAXException
 		 */
-		T parse(XMLTable t) throws SAXException, SemanticException;
+		T parse(XMLTable t) throws Exception;
 	}
 
 	private static final String TAG = "XMLTable";
@@ -740,7 +742,7 @@ public class XMLTable {
 	}
 
 	public <T extends IMapValue> HashMap<String, T> map(IParser<T> parser)
-			throws SAXException, SemanticException {
+			throws Exception {
 		HashMap<String, T> m = new HashMap<String, T>(getRowCount());
 		beforeFirst();
 		while (next()) {

@@ -95,7 +95,7 @@ public class DASemantextTest {
 			jo.put("usrAct", usrAct);
 			usr = new LoggingUser(connId, "tester", jo);
 			phm = new T_DA_PhotoMeta(connId);
-		} catch (SQLException | SAXException | IOException | TransException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	

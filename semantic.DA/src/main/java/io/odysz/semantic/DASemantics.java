@@ -7,6 +7,7 @@ import static io.odysz.common.LangExt.split;
 import static io.odysz.common.LangExt.str;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io_odysz.FilenameUtils;
+import org.xml.sax.SAXException;
 
 import io.odysz.common.AESHelper;
 import io.odysz.common.EnvPath;
@@ -518,7 +520,7 @@ public class DASemantics {
 	}
 
 	public void addHandler(smtype semantic, String tabl, String recId, String[] args)
-			throws SemanticException {
+			throws Exception {
 		checkParas(tabl, pk, args);
 		if (isDuplicate(tabl, semantic))
 			return;
@@ -546,7 +548,7 @@ public class DASemantics {
 
 
 	public SemanticHandler parseHandler(Transcxt trb, String tabl, smtype semantic, String recId, String[] args)
-			throws SemanticException {
+			throws Exception {
 		if (smtype.fullpath == semantic)
 			return new ShFullpath(basicTsx, tabl, recId, args);
 		else if (smtype.autoInc == semantic)

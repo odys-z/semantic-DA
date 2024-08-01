@@ -94,7 +94,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	private HashMap<String, SyntityMeta> entityRegists;
 
 	public DBSynsactBuilder(String conn, String synodeId, String syndomain, int nodemode)
-			throws SQLException, SAXException, IOException, TransException {
+			throws Exception {
 		this(conn, synodeId, syndomain, nodemode,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
@@ -102,7 +102,7 @@ public class DBSynsactBuilder extends DATranscxt {
 	
 	public DBSynsactBuilder(String conn, String synodeId, String syndomain, int nodemode,
 			SynChangeMeta chgm, SynodeMeta synm)
-			throws SQLException, SAXException, IOException, TransException {
+			throws Exception {
 
 		super ( new DBSyntext(conn,
 			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSyntableBuilder.SynmanticsMap(synodeId, c)),
@@ -169,7 +169,7 @@ public class DBSynsactBuilder extends DATranscxt {
 				initConfigs(conn, loadSemantics(conn),
 						(c) -> new DBSyntableBuilder.SynmanticsMap(synode(), c)),
 				usr, runtimepath);
-		} catch (SAXException | IOException | SQLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			throw new TransException(e.getMessage());
 		}

@@ -161,7 +161,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	} 
 
 	public DBSyntableBuilder(String domain, String conn, String synodeId, SynodeMode mode)
-			throws SQLException, SAXException, IOException, TransException {
+			throws Exception {
 		this(domain, conn, synodeId, mode,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
@@ -169,7 +169,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	
 	public DBSyntableBuilder(String domain, String conn, String nid,
 			SynodeMode mode, SynChangeMeta chgm, SynodeMeta synm)
-			throws SQLException, SAXException, IOException, TransException {
+			throws Exception {
 
 		super ( new DBSyntext(conn,
 			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSyntableBuilder.SynmanticsMap(nid, c)),
@@ -896,7 +896,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				initConfigs(conn, loadSemantics(conn),
 						(c) -> new DBSyntableBuilder.SynmanticsMap(synode(), c)),
 				usr, runtimepath).creator(this);
-		} catch (SAXException | IOException | SQLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			throw new TransException(e.getMessage());
 		}

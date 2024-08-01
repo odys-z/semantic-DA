@@ -35,7 +35,7 @@ public class ZSUNodesDA {
 	public static ZSUNodesDA kharkiv;
 	public static ZSUNodesDA anDevice;
 	
-	static void init() throws ClassNotFoundException, SQLException, TransException, IOException, SAXException {
+	static void init() throws Exception {
 		kyiv = new ZSUNodesDA(0);
 		kharkiv = new ZSUNodesDA(1);
 		anDevice  = new ZSUNodesDA(3);
@@ -43,7 +43,7 @@ public class ZSUNodesDA {
 		anDevice.userId = "user-3";
 	}
 
-	public ZSUNodesDA(int sid) throws ClassNotFoundException, SQLException, TransException, IOException, SAXException {
+	public ZSUNodesDA(int sid) throws Exception {
 		this.sid = sid;
 		folder = "zsu-" + sid;
 		conn = DBSyntextTest.conns[sid];

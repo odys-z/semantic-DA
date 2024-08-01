@@ -74,7 +74,7 @@ public class Docheck {
 
 	public Docheck(IAssert assertImpl, String domain, String conn,
 			String synid, SynodeMode mod, ExpDocTableMeta m)
-			throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
+			throws Exception {
 		this(assertImpl, m, domain, conn, mod, synid, "rob-" + synid);
 	}
 
@@ -107,7 +107,7 @@ public class Docheck {
 
 	public Docheck(IAssert assertImpl, ExpDocTableMeta docm, String domain, String conn,
 			SynodeMode mode, String synid, String usrid)
-			throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
+			throws Exception {
 		trb = new DBSyntableBuilder(domain, conn, synid, mode)
 				.loadNyquvect(conn);
 
