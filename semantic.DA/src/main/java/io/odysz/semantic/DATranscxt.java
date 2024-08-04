@@ -288,7 +288,7 @@ public class DATranscxt extends Transcxt {
 		return d;
 	}
 
-	public String getSysConnId() { return Connects.defltConn(); }
+	// public String getSysConnId() { return Connects.defltConn(); }
 
 	/**<p>Create a transact builder with basic DASemantext instance.</p>
 	 * <p>If it's a null configuration, the semantics can not be used to resulving semantics between records,
@@ -357,7 +357,7 @@ public class DATranscxt extends Transcxt {
 			smtMaps.put(conn, smFactory.ctor(conn));
 		else
 			return (M) smtMaps.get(conn);
-
+		Utils.logT(new Object() {}, "Loading semantics of connection %s", conn);
 		xcfg.beforeFirst();
 
 		Transcxt trb = getBasicTrans(conn);

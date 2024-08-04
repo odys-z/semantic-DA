@@ -1,6 +1,5 @@
 package io.odysz.module.xtable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -9,12 +8,9 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import io.odysz.semantics.x.SemanticException;
-import io.odysz.transact.x.TransException;
-
 public class XMLTable {
 	public interface IMapValue {
-		String key();
+		String mapKey();
 	}
 
 	@FunctionalInterface
@@ -757,7 +753,7 @@ public class XMLTable {
 //			}
 			T v = parser.parse(this);
 			if (v != null)
-				m.put(v.key(), v);
+				m.put(v.mapKey(), v);
 		}
 		return m;
 	}

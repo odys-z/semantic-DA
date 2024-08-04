@@ -6,13 +6,18 @@ import static io.odysz.common.LangExt.eq;
 import java.sql.SQLException;
 
 import io.odysz.common.Utils;
+import io.odysz.module.xtable.XMLTable.IMapValue;
+import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.syn.DBSynmantics;
 import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.x.TransException;
 
-public abstract class SemanticTableMeta extends TableMeta {
+public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
+	@Override
+	public String mapKey() {
+		return tbl;
+	}
 
 	public SemanticTableMeta(String tbl, String... conn) {
 		super(tbl, conn); 
@@ -34,7 +39,7 @@ public abstract class SemanticTableMeta extends TableMeta {
 			Utils.warn( "Replacing existing Semantic table meta with new meta. Old: %s, new %s",
 						mdb.getClass().getName(), getClass().getName());
 
-		DBSynmantics.replaceMeta(tbl, this, conn);
+		DASemantics.replaceMeta(tbl, this, conn);
 		if (isNull(this.ftypes) && mdb.ftypes() != null)
 			this.ftypes = mdb.ftypes();
 		return (T) this;

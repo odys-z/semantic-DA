@@ -51,7 +51,13 @@ public class Configs {
 		 * key of synode id
 		 * @since 2.0.0
 		 */
-		public static final String synode = "io.oz.syn.synode";
+		public static final String synode    = "io.oz.syn.synode";
+		
+		/**
+		 * key of log connection,
+		 * args: conn-id (in connects.xml), log-table (e. e. a_logs)
+		 */
+		public static final String logConnId = "logConnId";
 	}
 
 	protected static HashMap<String, HashMap<String, String>> cfgs;

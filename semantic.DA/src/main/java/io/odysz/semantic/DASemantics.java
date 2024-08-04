@@ -7,7 +7,6 @@ import static io.odysz.common.LangExt.split;
 import static io.odysz.common.LangExt.str;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io_odysz.FilenameUtils;
-import org.xml.sax.SAXException;
 
 import io.odysz.common.AESHelper;
 import io.odysz.common.EnvPath;
@@ -465,6 +463,11 @@ public class DASemantics {
 
 	/**
 	 * Use this to replace metas from DB for semantics extension.
+	 * 
+	 * @deprecated since 2.0.0, to have a meta be the type of
+	 * {@link io.odysz.semantic.meta.SemanticTableMeta SemanticTableMeta}, configure
+	 * the class name in semantics.xml/t[id=metas], instead of calling this method.
+	 * 
 	 * @since 1.4.25
 	 * @param tbl
 	 * @param m
@@ -474,18 +477,13 @@ public class DASemantics {
 	 * @throws SQLException
 	 */
 	static public TableMeta replaceMeta(String tbl, TableMeta m, String ... connId)
-			throws TransException {
+			throws TransException, SQLException {
 		String conn = isNull(connId) ? Connects.defltConn() : connId[0];
-		try {
-			TableMeta mdb = Connects.getMeta(conn, m.tbl);
-			if (mdb == null)
-				throw new TransException("Can't find table %s from DB connection %s.", m.tbl, conn);
-			Connects.setMeta(conn, m.clone(mdb));
-			return mdb;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new TransException(e.getMessage());
-		}
+		TableMeta mdb = Connects.getMeta(conn, m.tbl);
+		if (mdb == null)
+			throw new TransException("Can't find table %s from DB connection %s.", m.tbl, conn);
+		Connects.setMeta(conn, m.clone(mdb));
+		return mdb;
 	}
 
 	///////////////////////////////// container class
@@ -581,7 +579,8 @@ public class DASemantics {
 		else if (smtype.extFilev2 == semantic)
 			return new ShExtFilev2(basicTsx, tabl, recId, args);
 		else
-			throw new SemanticException("Cannot load configured semantics of key: %s", semantic);
+			throw new SemanticException("Cannot load configured semantics of key: %s, with trans-builder: %s, on basic connection %s.",
+				semantic, trb.getClass().getName(), trb.basictx().connId());
 	}
 
 	/**
@@ -676,7 +675,7 @@ public class DASemantics {
 
 		protected String target;
 		@Override
-		public String key() { return target; }
+		public String mapKey() { return target; }
 		
 		protected String pkField;
 		protected String[] args;
