@@ -408,24 +408,26 @@ public class Connects {
 
 			XMLTable xmetas = xtabs.get("metas");
 
-			HashMap<String, IMapValue> semetas;
-			try {
-				semetas = xmetas.map(
-					(XMLTable t) -> {
-						String tabl = xmetas.getString("tabl");
-						String clzz = xmetas.getString("semanticlass");
-						
-						return (IMapValue) Class.forName(clzz)
-								.getConstructor(String.class, String.class)
-								.newInstance(tabl, connId);
-					});
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new SemanticException(e.getMessage());
-			}
+			if (xmetas != null) {
+				HashMap<String, IMapValue> semetas;
+				try {
+					semetas = xmetas.map(
+						(XMLTable t) -> {
+							String tabl = xmetas.getString("tabl");
+							String clzz = xmetas.getString("semanticlass");
+							
+							return (IMapValue) Class.forName(clzz)
+									.getConstructor(String.class, String.class)
+									.newInstance(tabl, connId);
+						});
+				} catch (Exception e) {
+					e.printStackTrace();
+					throw new SemanticException(e.getMessage());
+				}
 
-			for (String sm : semetas.keySet()) 
-				metas.put(sm, (TableMeta) semetas.remove(sm));
+				for (String sm : semetas.keySet()) 
+					metas.put(sm, (TableMeta) semetas.remove(sm));
+			}
 		}
 	}
 	
