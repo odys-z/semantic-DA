@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.odys-z</groupId>
   <artifactId>semantic.DA</artifactId>
-  <version>1.4.42</version>
+  <version>1.4.43</version>
   <packaging>jar</packaging>
 
   <name>semantic.DA</name>
@@ -77,7 +77,7 @@
 	<dependency>
 		<groupId>mysql</groupId>
 		<artifactId>mysql-connector-java</artifactId>
-		<version>[8.0.25,)</version>
+		<version>[8.0.33,)</version>
 	    <!-- This is only needed when testing, but we deployed this dependency because we don't want to skip tests when deploying.
 	    	see https://stackoverflow.com/questions/30108053/can-i-configure-maven-to-ignore-test-scoped-dependencies-if-im-skipping-runni
 		<scope>test</scope>
