@@ -86,7 +86,7 @@ public class Connects {
 	private static final int DmConn = 1;
 	private static final int CpConn = 2;
 
-	public static void reinit(String xmlDir) {
+	public static void reload(String xmlDir) {
 		srcs = null;
 		metas = null;
 		init(xmlDir);

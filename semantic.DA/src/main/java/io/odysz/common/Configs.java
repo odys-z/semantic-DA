@@ -18,7 +18,8 @@ import io.odysz.module.xtable.XMLTable;
  * A servlet constext must been registed by LeisureFactory before Messages is inited */
 public class Configs {
 	protected static ILogger log;
-	public static String cfgFile = "config.xml";
+	private static String cfgFilename = "config.xml";
+	public static String cfgFullpath;
 
 	/** Handled keys for config.xml */
 	public static class keys {
@@ -72,7 +73,7 @@ public class Configs {
 	 * @param xmlDir
 	 */
 	public static void init(String xmlDir) {
-		cfgFile = FilenameUtils.concat(xmlDir, cfgFile);
+		cfgFullpath = FilenameUtils.concat(xmlDir, cfgFilename);
 		load(cfgs, keys.deftXTableId);
 	}
 
@@ -85,8 +86,8 @@ public class Configs {
 	 * @since 2.0.0
 	 */
 	public static String init(String xmlDir, String cfgxml, String... tid) {
-		cfgFile = FilenameUtils.concat(xmlDir, cfgxml);
-		return load(cfgs, cfgFile, isNull(tid) ? keys.deftXTableId : tid[0]);
+		cfgFullpath = FilenameUtils.concat(xmlDir, cfgxml);
+		return load(cfgs, cfgFullpath, isNull(tid) ? keys.deftXTableId : tid[0]);
 	}
 	
 	/**
@@ -95,7 +96,7 @@ public class Configs {
 	 * @return absolute configure file path
 	 */
 	protected static String load(HashMap<String, HashMap<String, String>> cfgs, String tid) {
-		return load(cfgs, cfgFile, tid);
+		return load(cfgs, cfgFullpath, tid);
 	}
 
 	/**
