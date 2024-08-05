@@ -88,6 +88,7 @@
 		 -->
 	    <scope>provided</scope>
 	</dependency>
+
   </dependencies>
 
   <scm>
