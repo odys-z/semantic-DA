@@ -834,7 +834,7 @@ public class DBSyntableTest {
 		DBSyntableBuilder t = ck[s].trb;
 		AnResultset slt = ((AnResultset) t
 				.select(entm.tbl, "ch")
-				.whereEq(entm.synoder, t.synrobot().deviceId())
+				.whereEq(entm.device, t.synrobot().deviceId())
 				.orderby(entm.pk, "desc")
 				.limit(1)
 				.rs(ck[s].trb.instancontxt(ck[s].connId(), ck[s].robot()))

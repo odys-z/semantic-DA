@@ -146,7 +146,7 @@ public class T_ExpSyncDoc extends SynEntity {
 				meta.shareflag,
 				meta.mime,
 				meta.fullpath,
-				meta.synoder,
+				meta.device,
 				meta.folder,
 				meta.size
 		};
@@ -160,7 +160,7 @@ public class T_ExpSyncDoc extends SynEntity {
 		if (synpageCols == null)
 			synpageCols = new String[] {
 					meta.pk,
-					meta.synoder,
+					meta.device,
 					meta.fullpath,
 					meta.shareby,
 					meta.shareDate,
@@ -181,7 +181,7 @@ public class T_ExpSyncDoc extends SynEntity {
 		this.size = rs.getLong(meta.size, 0);
 		
 		this.clientpath =  rs.getString(meta.fullpath);
-		this.device =  rs.getString(meta.synoder);
+		this.device =  rs.getString(meta.device);
 		this.folder = rs.getString(meta.folder);
 		
 		try {
@@ -321,7 +321,7 @@ public class T_ExpSyncDoc extends SynEntity {
 			.nv(md.size, size)
 			.nv(md.createDate, createDate)
 			.nv(md.resname, pname)
-			.nv(md.synoder, device)
+			.nv(md.device, device)
 			.nv(md.shareby, shareby)
 			.nv(md.shareDate, sharedate)
 			.nv(md.shareflag, shareflag)

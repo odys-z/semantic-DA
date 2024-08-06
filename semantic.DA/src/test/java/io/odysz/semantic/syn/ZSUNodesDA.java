@@ -5,7 +5,6 @@ import java.sql.SQLException;
 
 import org.xml.sax.SAXException;
 
-import io.odysz.semantic.syn.DBSyntextTest.Ck;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -23,13 +22,13 @@ public class ZSUNodesDA {
 
 	public final int sid;
 	public final String conn;
-	public final SyncRobot robot;
-	public final String nodeId;
-	public final SynodeMode mode = SynodeMode.peer;
+	// public final SyncRobot robot;
+	// public final String nodeId;
+	// public final SynodeMode mode = SynodeMode.peer;
 
-	public final String worker;
+	// public final String worker;
 	public String userId;
-	public final Ck ck;
+	// public final Ck ck;
 	
 	public static ZSUNodesDA kyiv;
 	public static ZSUNodesDA kharkiv;
@@ -46,10 +45,10 @@ public class ZSUNodesDA {
 	public ZSUNodesDA(int sid) throws Exception {
 		this.sid = sid;
 		folder = "zsu-" + sid;
-		conn = DBSyntextTest.conns[sid];
-		ck = new Ck(sid, new DBSynsactBuilder(null, "zsu-dev-" + sid, "zsu", 0));
-		robot = (SyncRobot) ck.robot();
-		nodeId = robot.deviceId;
-		worker = robot.uid();
+		conn = DBSyntableTest.conns[sid];
+		// ck = new Docheck(sid, new DBSyntableBuilder(null, "zsu-dev-" + sid, "zsu", SynodeMode.peer));
+		// robot = (SyncRobot) ck.robot();
+		// nodeId = robot.deviceId;
+		// worker = robot.uid();
 	}
 }

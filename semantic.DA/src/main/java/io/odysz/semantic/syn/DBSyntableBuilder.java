@@ -23,8 +23,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import org.xml.sax.SAXException;
-
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;

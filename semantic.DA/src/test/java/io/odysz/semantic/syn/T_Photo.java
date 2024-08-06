@@ -76,7 +76,7 @@ public class T_Photo extends T_ExpSyncDoc {
 		// this.css = rs.getString(m.css);
 		
 		this.clientpath =  rs.getString(m.fullpath);
-		this.device =  rs.getString(m.device());
+		this.device =  rs.getString(m.device);
 		
 		try {
 			this.sharedate = DateFormat.formatime(rs.getDate("sharedate"));

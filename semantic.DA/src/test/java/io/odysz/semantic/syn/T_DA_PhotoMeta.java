@@ -20,12 +20,12 @@ public class T_DA_PhotoMeta extends ExpDocTableMeta {
 		ddlSqlite = loadTxt(T_DA_PhotoMeta.class, "h_photos.sqlite.ddl");
 
 		exif = "exif";
-		synoder = "device";
+		// synoder = "device";
 
 		ddlSqlite = loadTxt(T_DA_PhotoMeta.class, "h_photos.sqlite.ddl");
 	}
 
-	public String device() { return synoder; }
+	// public String device() { return synoder; }
 
 	@Override
 	public Object[] insertSelectItems(SynChangeMeta chgm, String entid,

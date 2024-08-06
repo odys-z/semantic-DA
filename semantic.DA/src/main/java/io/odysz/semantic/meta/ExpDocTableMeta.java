@@ -56,8 +56,10 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 			throws TransException {
 		super(tbl, pk, device, conn);
 
-		resname = "docname";
+		// synoder = "device";
 		this.device = device;
+
+		resname = "docname";
 		uri = "uri";
 		folder = "folder";
 		createDate = "pdate";
@@ -65,7 +67,6 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 
 		mime = "mime";
 		size = "filesize";
-		synoder = "device";
 		fullpath = "clientpath";
 
 		shareDate = "sharedate";

@@ -11,14 +11,11 @@ import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concat;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.xml.sax.SAXException;
 
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;

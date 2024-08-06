@@ -34,7 +34,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	public final String synuid;
 	
 	/** Entity creator's id used for identify originators in domain (globally?) */
-	public String synoder;
+	// public String synoder;
 
 	/** Entity's columns for generation global uid */
 	protected final HashSet<String> uids;
@@ -66,7 +66,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 
 		this.autopk = true;
 		this.pk = pk;
-		synoder = synodr;
+		// synoder = synodr;
 		synuid = "io_oz_synuid";
 		
 		uids = new HashSet<String>() {
