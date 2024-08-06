@@ -41,6 +41,7 @@ import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.Delete;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
@@ -735,24 +736,31 @@ public class DBSyntableBuilder extends DATranscxt {
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	public int deleteEntityBySynuid(SyntityMeta entm, String synuid) throws TransException, SQLException {
 		if (existsnyuid(entm, synuid)) {
-			SemanticObject res = (SemanticObject) delete(entm.tbl, synrobot())
-			.whereEq(entm.synuid, synuid)
-			.post(insert(chgm.tbl, synrobot())
-				.nv(chgm.entbl, entm.tbl)
-				.nv(chgm.crud, CRUD.D)
-				.nv(chgm.synoder, synode())
-				.nv(chgm.uids, synuid)
-				.nv(chgm.nyquence, stamp.n)
-				.nv(chgm.seq, incSeq())
-				.nv(chgm.domain, domain())
-				.post(insert(subm.tbl)
-					.cols(subm.insertCols())
-					.select((Query)select(synm.tbl)
-						.col(new Resulving(chgm.tbl, chgm.pk))
-						.col(synm.synoder)
-						.where(op.ne, synm.synoder, constr(synode()))
-						.whereEq(synm.domain, domain()))))
-			.d(instancontxt(basictx.connId(), synrobot()));
+//			Delete d = delete(entm.tbl, synrobot())
+//					.whereEq(entm.synuid, synuid);
+			SemanticObject res = (SemanticObject) DBSynmantics
+					.logChange(this, delete(entm.tbl, synrobot())
+						.whereEq(entm.synuid, synuid), entm, synuid)
+						.d(instancontxt(basictx.connId(), synrobot()));
+
+//				insert(chgm.tbl, synrobot())
+//				.nv(chgm.entbl, entm.tbl)
+//				.nv(chgm.crud, CRUD.D)
+//				.nv(chgm.synoder, synode())
+//				.nv(chgm.uids, synuid)
+//				.nv(chgm.nyquence, stamp.n)
+//				.nv(chgm.seq, incSeq())
+//				.nv(chgm.domain, domain())
+//				.post(insert(subm.tbl)
+//					.cols(subm.insertCols())
+//					.select((Query)select(synm.tbl)
+//						.col(new Resulving(chgm.tbl, chgm.pk))
+//						.col(synm.synoder)
+//						.where(op.ne, synm.synoder, constr(synode()))
+//						.whereEq(synm.domain, domain())))
+//				);
+//			SemanticObject res = (SemanticObject)d
+//					.d(instancontxt(basictx.connId(), synrobot()));
 			return res.total();
 		}
 		else return 0;
@@ -787,7 +795,6 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		Insert inse = e.insertEntity(m, insert(m.tbl, rob));
 		SemanticObject u = (SemanticObject) DBSynmantics
-				// .logChange(this, inse, synm, chgm, subm, m, synode(), pid)
 				.logChange(this, inse, synm, chgm, subm, m, synode())
 				.ins(instancontxt(conn, rob));
 
