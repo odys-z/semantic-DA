@@ -649,7 +649,9 @@ public class DASemantics {
 					handler.onUpdate(semantx, satemt, row, cols, usr);
 	}
 
-	public void onDelete(ISemantext semantx, Statement<? extends Statement<?>> stmt,
+	public void onDelete(ISemantext semantx,
+			// Statement<? extends Statement<?>> stmt,
+			Delete stmt,
 			Condit whereCondt, IUser usr) throws SemanticException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
@@ -710,14 +712,17 @@ public class DASemantics {
 		 * Handle onDelete event.
 		 * 
 		 * @param stx
-		 * @param stmt
+		 * @param del
 		 * @param whereCondt
 		 *            delete statement's condition.
 		 * @param usr
 		 * @throws SemanticException
 		 * @throws SQLException 
 		 */
-		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit whereCondt, IUser usr)
+		protected void onDelete(ISemantext stx,
+				// Statement<? extends Statement<?>> stmt,
+				Delete del,
+				Condit whereCondt, IUser usr)
 				throws SemanticException {
 		}
 
@@ -1094,7 +1099,10 @@ public class DASemantics {
 		}
 
 		@Override
-		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected void onDelete(ISemantext stx,
+				// Statement<? extends Statement<?>> stmt,
+				Delete stmt,
+				Condit condt, IUser usr)
 				throws SemanticException {
 			if (argss != null && argss.length > 0)
 				for (String[] args : argss)
@@ -1451,7 +1459,10 @@ public class DASemantics {
 		}
 
 		@Override
-		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected void onDelete(ISemantext stx,
+				// Statement<? extends Statement<?>> stmt,
+				Delete stmt,
+				Condit condt, IUser usr)
 				throws SemanticException {
 
 				// delete external files when sqls committed
@@ -1663,50 +1674,53 @@ public class DASemantics {
 		}
 
 		@Override
-		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected void onDelete(ISemantext stx,
+				// Statement<? extends Statement<?>> stmt,
+				Delete stmt,
+				Condit condt, IUser usr)
 				throws SemanticException {
 
-				try {
-					AnResultset rs = (AnResultset) stmt
-							.transc()
-							.select(target)
-							.col(args[ixUri], "uri")
-							.where(condt)
-							.rs(stmt.transc().instancontxt(stx.connId(), usr))
-							.rs(0);
-					rs.beforeFirst();
+			try {
+				AnResultset rs = (AnResultset) stmt
+						.transc()
+						.select(target)
+						.col(args[ixUri], "uri")
+						.where(condt)
+						.rs(stmt.transc().instancontxt(stx.connId(), usr))
+						.rs(0);
+				rs.beforeFirst();
 
-					while (rs.next()) {
-						try {
-							String uri = rs.getString("uri");
-							if (isblank(uri, "\\.*", "\\**", "\\s*"))
-								continue;
+				while (rs.next()) {
+					try {
+						String uri = rs.getString("uri");
+						if (isblank(uri, "\\.*", "\\**", "\\s*"))
+							continue;
 
-							uri = EnvPath.decodeUri(stx, uri);
+						uri = EnvPath.decodeUri(stx, uri);
 
-							if (verbose)
-								Utils.warn("deleting %s", uri);
+						if (verbose)
+							Utils.warn("deleting %s", uri);
 
-							final String v = uri;
-							stx.addOnRowsCommitted((st, sqls) -> {
-								File f = new File(v);
-								if (!f.isDirectory())
-									f.delete();
-								else 
-									Utils.warn("ShExtHandler#onDelete(): Ignoring deleting %s", v);
+						final String v = uri;
+						stx.addOnRowsCommitted((st, sqls) -> {
+							File f = new File(v);
+							if (!f.isDirectory())
+								f.delete();
+							else 
+								Utils.warn("ShExtHandler#onDelete(): Ignoring deleting %s", v);
 
-								return null;
-							});
-						}
-						catch (Exception ex) {
-							ex.printStackTrace();
-						}
+							return null;
+						});
 					}
-				} catch (SQLException e) {
-					e.printStackTrace();
-				} catch (TransException e) {
-					throw new SemanticException(e.getMessage());
+					catch (Exception ex) {
+						ex.printStackTrace();
+					}
 				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (TransException e) {
+				throw new SemanticException(e.getMessage());
+			}
 		}
 	}
 
@@ -1726,7 +1740,10 @@ public class DASemantics {
 		}
 
 		@Override
-		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected void onDelete(ISemantext stx,
+				// Statement<? extends Statement<?>> stmt,
+				Delete stmt,
+				Condit condt, IUser usr)
 				throws SemanticException {
 			if (argss != null && argss.length > 0)
 				for (String[] args : argss)

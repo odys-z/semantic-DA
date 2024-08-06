@@ -69,7 +69,6 @@ public class DBSynmantics extends DASemantics {
 	
 	public static Insert logChange(DBSyntableBuilder b, Insert inst,
 			SynodeMeta synm, SynChangeMeta chgm, SynSubsMeta subm, SyntityMeta entm,
-			// String synode, Object pid) throws TransException {
 			String synode) throws TransException {
 		Update u = b.update(entm.tbl);
 		Resulving pid = new Resulving(entm.tbl, entm.pk);
@@ -130,6 +129,32 @@ public class DBSynmantics extends DASemantics {
 	
 		return updt;
 	}
+	
+	public static Delete logChange(DBSyntableBuilder b, Delete delt,
+//			SynChangeMeta chgm, SynSubsMeta subm, String synoder,
+			SyntityMeta entm,
+			String synuid)
+				throws TransException, SQLException {
+		return delt.post(b
+				.insert(b.chgm.tbl)
+				.nv(b.chgm.entbl, entm.tbl)
+				.nv(b.chgm.crud, CRUD.D)
+				.nv(b.chgm.synoder, b.synode())
+				.nv(b.chgm.uids, synuid)
+				.nv(b.chgm.nyquence, b.stamp())
+				.nv(b.chgm.seq, b.incSeq())
+				.nv(b.chgm.domain, b.domain())
+				.post(b
+					.insert(b.subm.tbl)
+					.cols(b.subm.insertCols())
+					.select((Query)b
+						.select(b.synm.tbl)
+						.col(new Resulving(b.chgm.tbl, b.chgm.pk))
+						.col(b.synm.synoder)
+						.where(op.ne, b.synm.synoder, constr(b.synode()))
+						.whereEq(b.synm.domain, b.domain())))
+		);
+	}	
 
 	public static class ShSynChange extends SemanticHandler {
 		static String apidoc = "TODO ...";
@@ -189,30 +214,8 @@ public class DBSynmantics extends DASemantics {
 
 			if (verbose) Utils.logi("synChange: onInsert ...");
 
-			// verifyRequiredNvs(entm.globalIds(), cols, row);
-
 			DBSyntableBuilder synb = ((ISyncontext)stx).synbuilder();
 			logChange(synb, insrt, snm, chm, sbm, entm, synode);
-//			insrt
-//			  .post(st.update(entm.tbl)
-//				.nv(entm.synuid, SynChangeMeta.uids(synode, entId))
-//				.whereEq(entm.pk, entId))
-//			  .post(st.insert(chm.tbl)
-//				.nv(chm.entbl, entm.tbl)
-//				.nv(chm.crud, CRUD.C)
-//				.nv(chm.synoder, synode)
-//				.nv(chm.uids, SynChangeMeta.uids(synode, entId))
-//				.nv(chm.nyquence, stx.stamp().n)
-//				.nv(chm.seq, stx.incSeq())
-//				.nv(chm.domain, stx.domain())
-//				.post(st.insert(sbm.tbl)
-//					.cols(sbm.insertCols())
-//					.select((Query) st.select(snm.tbl)
-//						.col(new Resulving(chm.tbl, chm.pk))
-//						.col(snm.synoder)
-//						.where(op.ne, snm.synoder, constr(synode))
-//						.whereEq(snm.domain, stx.domain()))))
-			;
 		}
 		
 		protected boolean checkBuilder(ISemantext stx) {
@@ -255,7 +258,7 @@ public class DBSynmantics extends DASemantics {
 		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt,
 				Condit condt, IUser usr) throws SemanticException {
 			
-			throw new SemanticException("tested?");
+			// throw new SemanticException("tested?");
 			/*
 			try {
 				AnResultset row = (AnResultset) trxt
@@ -283,10 +286,6 @@ public class DBSynmantics extends DASemantics {
 			}
 			*/
 		}
-		
-//		static void verifyRequiredNvs(Set<String> required, Map<String, Integer> cols, ArrayList<Object[]> row)
-//				throws SemanticException {
-//		}
 		
 	}
 }
