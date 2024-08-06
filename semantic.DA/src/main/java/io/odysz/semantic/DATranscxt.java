@@ -175,7 +175,7 @@ public class DATranscxt extends Transcxt {
 				initConfigs(connId, loadSemantics(connId),
 						(c) -> new SemanticsMap(c)),
 				usr, runtimepath);
-		} catch (SemanticException | SQLException | SAXException | IOException e) {
+		} catch (Exception e) {
 			// meta is null? shouldn't happen because this instance is already created
 			e.printStackTrace();
 			throw new TransException(e.getMessage());
@@ -288,7 +288,7 @@ public class DATranscxt extends Transcxt {
 		return d;
 	}
 
-	public String getSysConnId() { return Connects.defltConn(); }
+	// public String getSysConnId() { return Connects.defltConn(); }
 
 	/**<p>Create a transact builder with basic DASemantext instance.</p>
 	 * <p>If it's a null configuration, the semantics can not be used to resulving semantics between records,
@@ -297,12 +297,9 @@ public class DATranscxt extends Transcxt {
 	 * When creating DATranscxt, db metas can not be null.
 	 * 
 	 * @param conn connection Id
-	 * @throws SQLException 
-	 * @throws IOException load semantics configuration failed
-	 * @throws SAXException load semantics configuration failed
-	 * @throws SemanticException 
+	 * @throws Exception 
 	 */
-	public DATranscxt(String conn) throws SQLException, SAXException, IOException, SemanticException {
+	public DATranscxt(String conn) throws Exception {
 		this(new DASemantext(conn,
 				isblank(conn) ? null : initConfigs(conn, loadSemantics(conn),
 						(c) -> new SemanticsMap(c)),
@@ -353,14 +350,14 @@ public class DATranscxt extends Transcxt {
 	@SuppressWarnings("unchecked")
 	public static <M extends SemanticsMap, S extends DASemantics> M initConfigs(
 			String conn, XMLTable xcfg, SmapFactory<M> smFactory)
-			throws SAXException, IOException, SQLException, SemanticException {
+			throws Exception {
 		if (smtMaps == null)
 			smtMaps = new HashMap<String, SemanticsMap>();
 		if (!smtMaps.containsKey(conn))
 			smtMaps.put(conn, smFactory.ctor(conn));
 		else
 			return (M) smtMaps.get(conn);
-
+		Utils.logT(new Object() {}, "Loading semantics of connection %s", conn);
 		xcfg.beforeFirst();
 
 		Transcxt trb = getBasicTrans(conn);

@@ -1,6 +1,10 @@
 package io.odysz.semantic.DA;
 
+import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.len;
+
 import java.io.File;
+import java.io.IOException;
 import java.sql.Clob;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -24,7 +28,10 @@ import io.odysz.module.xtable.ILogger;
 import io.odysz.module.xtable.IXMLStruct;
 import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactory;
+import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
+import io.odysz.module.xtable.XMLTable.IMapValue;
+import io.odysz.semantic.meta.SemanticTableMeta;
 import io.odysz.semantic.util.LogFlags;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.meta.TableMeta;
@@ -32,6 +39,8 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 /**
+ * Connection configurations and DB table meta data manager.
+ * 
  * @author odys-z@github.com
  */
 public class Connects {
@@ -77,15 +86,17 @@ public class Connects {
 	private static final int DmConn = 1;
 	private static final int CpConn = 2;
 
-	public static void reinit(String xmlDir) {
+	public static void reload(String xmlDir) {
 		srcs = null;
 		metas = null;
 		init(xmlDir);
 	}
 
-	/**parse connects.xml, setup connections configured in table "drvmnger", for JDBC DriverManger,
+	/**
+	 * parse connects.xml, setup connections configured in table "drvmnger", for JDBC DriverManger,
 	 * and "dbcp", for JDBC connection-pooled connection managed by container.
-	 * @param xmlDir
+	 * 
+	 * @param xmlDir configure file folder
 	 */
 	public static void init(String xmlDir) {
 		Utils.logi("Initializing connects with path to %s", xmlDir);
@@ -100,14 +111,14 @@ public class Connects {
 			conn_uri = loadConnUri("conn-uri", logger, xmlDir);
 		
 			if (srcs != null && srcs.size() > 0 && !srcs.containsKey(defltConn))
-				throw new SQLException("Found connection configruations, bud initialization failed. DB source must configured with a default source."); 
+				throw new SQLException("Found connection configruations, but initialization has failed. DB source must be configured with a default source."); 
 
 			if (LogFlags.Semantic.connects)
 				Utils.logi("INFO - JDBC initialized using %s (%s) as default connection.",
 					defltConn, srcs != null && srcs.size() > 0 ? srcs.get(defltConn).driverType() : "empty");
 		}
 		catch (Exception ex) {
-			System.err.println("\nFATAL - Connection initializing failed! !!\n");
+			System.err.println("FATAL - Connection initializing failed! !!\n");
 			ex.printStackTrace();
 			return;
 		}
@@ -152,7 +163,8 @@ public class Connects {
 					defltConn = id;
 				}
 			} catch (Exception e) {
-				Utils.warn("ERROR: Connection intiialization failed: %s. (default connection can be null.)", (Object)conn.getStrings("type"));
+				Utils.warn("ERROR: Connection intiialization failed: %s. (default connection id can be null.)",
+						conn.getString("type"));
 				e.printStackTrace();
 				continue;
 			}
@@ -342,10 +354,12 @@ public class Connects {
 	 * 
 	 * @param conn
 	 * @return metas
-	 * @throws SemanticException
-	 * @throws SQLException
+	 * @throws IOException 
+	 * @throws SQLException 
+	 * @throws Exception 
 	 */
-	public static HashMap<String, TableMeta> loadMeta(String conn) throws SemanticException, SQLException {
+	public static HashMap<String, TableMeta> loadMeta(String conn)
+			throws SemanticException, SQLException {
 		dbtype dt = driverType(conn);
 
 		HashMap<String, TableMeta> metas = new HashMap<String, TableMeta>();
@@ -362,12 +376,87 @@ public class Connects {
 			metas = MetaBuilder.buildSqlite(conn);
 		else
 			throw new SemanticException("Drived type not suppored: %s", dt.name());
+		
+		replaceSemantics(conn, metas);
 
 		return metas;
 	}
 
+	/**
+	 * Replace DB metas with classes defined in semantics.xml/t[id=metas]
+	 * 
+	 * @since 2.0.0
+	 * @param metas
+	 * @throws IOException 
+	 * @throws SAXException 
+	 * @throws Exception 
+	 */
+	static void replaceSemantics(String connId, HashMap<String, TableMeta> metas) throws SemanticException {
+		if (len(metas) > 0) {
+			String fpath = Connects.getSmtcsPath(connId);
+			LinkedHashMap<String, XMLTable> xtabs;
+			try {
+				xtabs = XMLDataFactoryEx.getXtables(
+						new Log4jWrapper("").setDebugMode(false), fpath, new IXMLStruct() {
+								@Override public String rootTag() { return "semantics"; }
+								@Override public String tableTag() { return "t"; }
+								@Override public String recordTag() { return "s"; }});
+			} catch (SAXException | IOException e1) {
+				e1.printStackTrace();
+				throw new SemanticException(e1.getMessage());
+			}
+
+			XMLTable xmetas = xtabs.get("metas");
+
+			if (xmetas != null) {
+				HashMap<String, IMapValue> semetas;
+				try {
+					semetas = xmetas.map(
+						(XMLTable t) -> {
+							String tabl = xmetas.getString("tabl");
+							String clzz = xmetas.getString("semanticlass");
+							
+							return (IMapValue) Class.forName(clzz)
+									.getConstructor(String.class, String.class)
+									.newInstance(tabl, connId);
+						});
+				} catch (Exception e) {
+					e.printStackTrace();
+					throw new SemanticException(e.getMessage());
+				}
+
+				for (String sm : semetas.keySet()) 
+					metas.put(sm, (TableMeta) semetas.remove(sm));
+			}
+		}
+	}
+	
+	protected static XMLTable loadMetaCfgs(String connId) throws SAXException, IOException, SemanticException {
+
+		String fpath = Connects.getSmtcsPath(connId);
+		if (isblank(fpath, "\\."))
+			throw new SemanticException(
+				"Trying to find semantics of conn %1$s, but the configuration path is empty.\n" +
+				"No 'smtcs' configured in connects.xml for connection \"%1$s\"?\n" +
+				"Looking in path: %2$s", connId, fpath);
+		
+
+		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
+			new Log4jWrapper("").setDebugMode(false), fpath, new IXMLStruct() {
+					@Override public String rootTag() { return "semantics"; }
+					@Override public String tableTag() { return "t"; }
+					@Override public String recordTag() { return "s"; }});
+
+		XMLTable xconn = xtabs.get("semantics");
+		if (xconn == null)
+			throw new SemanticException("Xml structure error (no semantics table) in\n%s", fpath);
+		
+		return xconn;
+	}
+
 	protected static HashMap<String, HashMap<String, TableMeta>> metas;
-	public static HashMap<String, TableMeta> getMeta(String connId) throws SemanticException, SQLException {
+	public static HashMap<String, TableMeta> getMeta(String connId)
+			throws SemanticException, SQLException {
 		if (metas == null)
 			metas = new HashMap<String, HashMap<String, TableMeta>>(srcs.size());
 
@@ -387,7 +476,8 @@ public class Connects {
 	 * @param tbl
 	 * @return table meta
 	 * @throws SemanticException
-	 * @throws SQLException
+	 * @throws SQLException 
+	 * @throws IOException 
 	 */
 	public static TableMeta getMeta(String connId, String tbl)
 			throws SemanticException, SQLException {
@@ -401,6 +491,8 @@ public class Connects {
 	 * @param m
 	 * @throws SemanticException
 	 * @throws SQLException
+	 * @throws IOException 
+	 * @throws SAXException 
 	 */
 	public static void setMeta(String connId, TableMeta m) throws SemanticException, SQLException {
 		if (m == null || !m.typesInited())
@@ -411,7 +503,9 @@ public class Connects {
 		getMeta(connId).put(m.tbl, m);
 	}
 
-	/**Get the smtcs file path configured in connects.xml.
+	/**
+	 * Get the smtcs file path configured in connects.xml.
+	 * 
 	 * @param conn
 	 * @return smtcs (e.g. semantics.xml)
 	 */
@@ -442,7 +536,7 @@ public class Connects {
 	 * 
 	 * @param uri
 	 * @return
-	 * @throws SemanticException
+	 * @throws SemanticException uri is null
 	 */
 	public static String uri2conn(String uri) throws SemanticException {
 		if (LangExt.isblank(uri))

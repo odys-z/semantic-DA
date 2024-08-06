@@ -23,8 +23,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import org.xml.sax.SAXException;
-
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
@@ -66,8 +64,8 @@ import io.odysz.transact.x.TransException;
  * commit:  ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c & ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c
  * About:
  * DBSyntableBuilder.stamp is managed not for each domain.
- * To use stamp in this way, nyquence numbers shold synchronized
- * in cross-domain style;
+ * To use stamp in this way, nyquence numbers should be synchronized
+ * in a cross-domain style;
  * To use stamps for each domain, multiple change-logs for each
  * domain of an entity changing operation must be generated.
  * </pre>
@@ -161,7 +159,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	} 
 
 	public DBSyntableBuilder(String domain, String conn, String synodeId, SynodeMode mode)
-			throws SQLException, SAXException, IOException, TransException {
+			throws Exception {
 		this(domain, conn, synodeId, mode,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
@@ -169,7 +167,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	
 	public DBSyntableBuilder(String domain, String conn, String nid,
 			SynodeMode mode, SynChangeMeta chgm, SynodeMeta synm)
-			throws SQLException, SAXException, IOException, TransException {
+			throws Exception {
 
 		super ( new DBSyntext(conn,
 			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSyntableBuilder.SynmanticsMap(nid, c)),
@@ -896,7 +894,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				initConfigs(conn, loadSemantics(conn),
 						(c) -> new DBSyntableBuilder.SynmanticsMap(synode(), c)),
 				usr, runtimepath).creator(this);
-		} catch (SAXException | IOException | SQLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			throw new TransException(e.getMessage());
 		}

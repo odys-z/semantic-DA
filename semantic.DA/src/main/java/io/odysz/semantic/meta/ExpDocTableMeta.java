@@ -48,15 +48,18 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 
 	public final String shareflag;
 
-	public ExpDocTableMeta() throws TransException {
-		this("", "", "device", "conn");
+	public ExpDocTableMeta(String conn) throws TransException {
+		this("syn_docs", "docId", "device", conn);
 	}
 
-	public ExpDocTableMeta(String tbl, String pk, String device, String conn) throws TransException {
+	public ExpDocTableMeta(String tbl, String pk, String device, String conn)
+			throws TransException {
 		super(tbl, pk, device, conn);
 
-		resname = "pname";
+		// synoder = "device";
 		this.device = device;
+
+		resname = "docname";
 		uri = "uri";
 		folder = "folder";
 		createDate = "pdate";
@@ -64,7 +67,6 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 
 		mime = "mime";
 		size = "filesize";
-		synoder = "device";
 		fullpath = "clientpath";
 
 		shareDate = "sharedate";

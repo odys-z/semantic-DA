@@ -29,6 +29,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.x.AnsonException;
+import io.odysz.common.AssertImpl;
 import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
@@ -163,7 +164,7 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			Docheck.ck[s] = new Docheck(s != W ? zsu : null, conn, synodes[s],
+			Docheck.ck[s] = new Docheck(new AssertImpl(), s != W ? zsu : null, conn, synodes[s],
 					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm);
 			
 			// ck[s].synm = snm;
@@ -833,7 +834,7 @@ public class DBSyntableTest {
 		DBSyntableBuilder t = ck[s].trb;
 		AnResultset slt = ((AnResultset) t
 				.select(entm.tbl, "ch")
-				.whereEq(entm.synoder, t.synrobot().deviceId())
+				.whereEq(entm.device, t.synrobot().deviceId())
 				.orderby(entm.pk, "desc")
 				.limit(1)
 				.rs(ck[s].trb.instancontxt(ck[s].connId(), ck[s].robot()))

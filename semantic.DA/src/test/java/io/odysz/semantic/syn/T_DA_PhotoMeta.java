@@ -5,8 +5,8 @@ import static io.odysz.common.Utils.loadTxt;
 import java.sql.SQLException;
 
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.ExpDocTableMeta;
+import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
@@ -20,12 +20,12 @@ public class T_DA_PhotoMeta extends ExpDocTableMeta {
 		ddlSqlite = loadTxt(T_DA_PhotoMeta.class, "h_photos.sqlite.ddl");
 
 		exif = "exif";
-		synoder = "device";
+		// synoder = "device";
 
 		ddlSqlite = loadTxt(T_DA_PhotoMeta.class, "h_photos.sqlite.ddl");
 	}
 
-	public String device() { return synoder; }
+	// public String device() { return synoder; }
 
 	@Override
 	public Object[] insertSelectItems(SynChangeMeta chgm, String entid,

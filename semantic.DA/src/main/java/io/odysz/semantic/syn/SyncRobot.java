@@ -40,15 +40,11 @@ public class SyncRobot extends SemanticObject implements IUser {
 
 	public SyncRobot orgId(String org) {
 		orgId = org;
-//		domain = org;
 		return this;
 	}
 
-//	protected String domain;
-//	public String domain() { return domain; }
 
 	public SyncRobot domain(String dom) {
-//		domain = dom;
 		return this;
 	}
 
@@ -102,13 +98,6 @@ public class SyncRobot extends SemanticObject implements IUser {
 				.clone(Connects.getMeta(
 				isNull(connId) ? null : connId[0], "a_users"));
 	}
-
-//	public IUser onCreate(Anson reqBody) throws GeneralSecurityException {
-//		deviceId = ((AnSessionReq)reqBody).deviceId();
-//		if (isblank(deviceId, "/", "\\."))
-//			throw new GeneralSecurityException("Photo user's device Id can not be null - used for distinguish files.");
-//		return this;
-//	}
 
 	@Override
 	public ArrayList<String> dbLog(ArrayList<String> sqls) throws TransException { return null; }
@@ -179,9 +168,4 @@ public class SyncRobot extends SemanticObject implements IUser {
 	public SessionInf sessionInf() {
 		return new SessionInf().device(deviceId);
 	}
-
-//	public SyncRobot device(String dev) {
-//		deviceId = dev;
-//		return this;
-//	}
 }

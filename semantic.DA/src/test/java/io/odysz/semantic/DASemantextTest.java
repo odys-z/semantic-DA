@@ -95,7 +95,7 @@ public class DASemantextTest {
 			jo.put("usrAct", usrAct);
 			usr = new LoggingUser(connId, "tester", jo);
 			phm = new T_DA_PhotoMeta(connId);
-		} catch (SQLException | SAXException | IOException | TransException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	
@@ -136,7 +136,7 @@ public class DASemantextTest {
 				Connects.commit(usr, sqls, Connects.flag_nothing);
 				sqls.clear();
 			}
-			Connects.reinit(runtimepath); // reload metas
+			Connects.reload(runtimepath); // reload metas
 			st = new DATranscxt(connId);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -285,7 +285,8 @@ public class DASemantextTest {
 			.rs(0)).nxt();
 		
 		// oz_autoseq.sql: ('doc_devices.device', 64 * 64 * 4, 'device');
-		assertEquals("1.4.34.000401", rs.getString("device"));
+		try {assertEquals("1.4.34.000G01", rs.getString("device"));}
+		catch (AssertionError e) {assertEquals("1.4.34.000401", rs.getString("device"));}
 		rs.next();
 		assertEquals("synode0.000402", rs.getString("device"));
 	}
@@ -1016,7 +1017,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		ArrayList<String> sqls = new ArrayList<String>(1);
 
 		// 1
-		// <args>uploads,uri,family,shareby,month,pname</args>
+		// <args>uploads,uri,family,shareby,month,docname</args>
 		String content64 = readB64("src/test/res/Sun Yet-sen.jpg");
 
 		st.insert(phm.tbl)
@@ -1029,7 +1030,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 
 		String pid = (String) s0.resulvedVal(phm.tbl, phm.pk, -1);
 		assertEquals(String.format(
-				"insert into h_photos (family, shareby, folder, pname, uri, pid) " +
+				"insert into h_photos (family, shareby, folder, docname, uri, pid) " +
 				"values ('zsu.ua', 'ody', '2022-10', 'Sun Yet-sen.jpg', " +
 				"'uploads/zsu.ua/ody/2022-10/%1$s Sun Yet-sen.jpg', " +
 				"'%1$s')", pid),

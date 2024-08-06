@@ -1,5 +1,7 @@
 package io.odysz.common;
 
+import static io.odysz.common.LangExt.isNull;
+
 import java.io.File;
 import java.util.HashMap;
 
@@ -16,14 +18,19 @@ import io.odysz.module.xtable.XMLTable;
  * A servlet constext must been registed by LeisureFactory before Messages is inited */
 public class Configs {
 	protected static ILogger log;
-	protected static String cfgFile = "config.xml";
+	private static String cfgFilename = "config.xml";
+	public static String cfgFullpath;
 
 	/** Handled keys for config.xml */
 	public static class keys {
 		/** Default xtable id, configs.xml/t[id="default"] */
 		public static final String deftXTableId = "default";
 		public static final String fileSys = "file-sys";
-		public static final String irUser = "IrUser";
+
+		// public static final String irUser = "IrUser";
+		/** key of JUser class name, "class-IUser" used in config.xml */
+		public static final String usrClzz = "class-IUser";
+
 		public static final String treeSemantics = "tree-semantics";
 		public static final String timeoutMin = "ss-timeout-min";
 		public static final String idLen = "id-len";
@@ -40,6 +47,18 @@ public class Configs {
 		 * @since 1.4.36
 		 */
 		public static final String disableTokenKey = "disable-token";
+		
+		/**
+		 * key of synode id
+		 * @since 2.0.0
+		 */
+		public static final String synode    = "io.oz.syn.synode";
+		
+		/**
+		 * key of log connection,
+		 * args: conn-id (in connects.xml), log-table (e. e. a_logs)
+		 */
+		public static final String logConnId = "logConnId";
 	}
 
 	protected static HashMap<String, HashMap<String, String>> cfgs;
@@ -54,8 +73,21 @@ public class Configs {
 	 * @param xmlDir
 	 */
 	public static void init(String xmlDir) {
-		cfgFile = FilenameUtils.concat(xmlDir, cfgFile);
+		cfgFullpath = FilenameUtils.concat(xmlDir, cfgFilename);
 		load(cfgs, keys.deftXTableId);
+	}
+
+	/**
+	 * 
+	 * @param xmlDir
+	 * @param cfgxml e. g. config.xml
+	 * @param tid optional [table-name]
+	 * @return absolute configure file path
+	 * @since 2.0.0
+	 */
+	public static String init(String xmlDir, String cfgxml, String... tid) {
+		cfgFullpath = FilenameUtils.concat(xmlDir, cfgxml);
+		return load(cfgs, cfgFullpath, isNull(tid) ? keys.deftXTableId : tid[0]);
 	}
 	
 	/**
@@ -64,7 +96,7 @@ public class Configs {
 	 * @return absolute configure file path
 	 */
 	protected static String load(HashMap<String, HashMap<String, String>> cfgs, String tid) {
-		return load(cfgs, cfgFile, tid);
+		return load(cfgs, cfgFullpath, tid);
 	}
 
 	/**
@@ -102,6 +134,7 @@ public class Configs {
 		}
 		return p;
 	}
+
 
 	public static String getCfg(String key) {
 		return cfgs.get(keys.deftXTableId).get(key);

@@ -38,15 +38,7 @@ public class DAHelper {
 		Query q = trb.select(m.tbl);
 
 		for (int i = 0; i < kvs.length; i+=2) {
-//			if (kvs[i].getClass().isArray()) {
-//				Object n = ((Object[])kvs[i])[0];
-//				Object v = ((Object[])kvs[i+1]);
-//				q.where(v instanceof ExprPart
-//						? new Condit(op.eq, (ExprPart)n, (ExprPart)kvs[i+1])
-//						: new Condit(op.eq, (ExprPart)n, new ExprPart((String)kvs[i+1])));
-//			}
-//			else
-				q.whereEq((String)kvs[i], kvs[i+1]);
+			q.whereEq((String)kvs[i], kvs[i+1]);
 		}
 
 		AnResultset rs = (AnResultset) q

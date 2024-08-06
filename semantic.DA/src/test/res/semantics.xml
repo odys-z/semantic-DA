@@ -139,7 +139,7 @@
   		<smtc>ef2.0</smtc>
   		<tabl>h_photos</tabl>
   		<pk>pid</pk>
-  		<args>uploads,uri,family,shareby,folder,pname</args>
+  		<args>uploads,uri,family,shareby,folder,docname</args>
   	</s>
 
   	<!-- delete attachments when deleting a user -->

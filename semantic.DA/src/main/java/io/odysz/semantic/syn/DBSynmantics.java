@@ -5,6 +5,7 @@ import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,17 +55,9 @@ public class DBSynmantics extends DASemantics {
 
 	@Override
 	public SemanticHandler parseHandler(Transcxt tsx, String tabl, smtype smtp,
-			String pk, String[] args) throws SemanticException {
+			String pk, String[] args) throws Exception {
 		if (smtype.synChange == smtp)
-			try {
-				return new DBSynmantics.ShSynChange(tsx, synode, tabl, pk, args);
-			} catch (TransException | SQLException | SAXException | IOException e) {
-				e.printStackTrace();
-				return null;
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
+			return new DBSynmantics.ShSynChange(tsx, synode, tabl, pk, args);
 		else
 			return super.parseHandler(tsx, tabl, smtp, pk, args);
 	}
@@ -154,7 +147,7 @@ public class DBSynmantics extends DASemantics {
 		protected final DATranscxt st;
 
 		ShSynChange(Transcxt trxt, String synode, String tabl, String pk, String[] args)
-				throws SQLException, SAXException, IOException, TransException, Exception {
+				throws Exception {
 			super(trxt, smtype.synChange, tabl, pk, args);
 			insert = true;
 			update = true;
@@ -174,10 +167,16 @@ public class DBSynmantics extends DASemantics {
 			
 			TableMeta m = trxt.tableMeta(tabl);
 			if (!eq(args[0], m.getClass().getName())) {
-				Class<?> cls = Class.forName(args[0]);
-				Constructor<?> constructor = cls.getConstructor(String.class);
-				entm = (SyntityMeta) constructor.newInstance(trxt.basictx().connId());
-				entm.replace();
+				Class<?> cls;
+				try {
+					cls = Class.forName(args[0]);
+					Constructor<?> constructor = cls.getConstructor(String.class);
+					entm = (SyntityMeta) constructor.newInstance(trxt.basictx().connId());
+					entm.replace();
+				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+					e.printStackTrace();
+					throw new SemanticException(e.getMessage());
+				}
 			}
 			else entm = (SyntityMeta) m;
 			entId = new Resulving(entm.tbl, entm.pk);
