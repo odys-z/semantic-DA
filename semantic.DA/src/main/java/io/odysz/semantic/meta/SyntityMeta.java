@@ -35,6 +35,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	
 	/** Entity creator's id used for identify originators in domain (globally?) */
 	// public String synoder;
+	public String device;
 
 	/** Entity's columns for generation global uid */
 	protected final HashSet<String> uids;
@@ -55,23 +56,24 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	/**
 	 * @param tbl
 	 * @param pk
-	 * @param domain DB field of orgnization - {@link io.odysz.semantic.syn.DBSynmantics}
-	 * @param node synode-id field
+	 * @param devid synode-id field
 	 * uses this to filter data for synchronization.
 	 * Could be changed in the future. 
 	 * @param conn
 	 */
-	public SyntityMeta(String tbl, String pk, String synodr, String conn) {
+	public SyntityMeta(String tbl, String pk, String devid, String conn) {
 		super(tbl, conn);
 
 		this.autopk = true;
 		this.pk = pk;
 		// synoder = synodr;
+		device = devid;
 		synuid = "io_oz_synuid";
 		
 		uids = new HashSet<String>() {
 			static final long serialVersionUID = 1L;
-			{ add(synoder); add(pk);}
+			// { add(domain); add(pk);}
+			{ add(synuid);}
 		};
 	}
 	
@@ -84,11 +86,11 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 		return (T) this;
 	}
 
-	public HashSet<String> globalIds() throws SemanticException {
-		if (uids == null)
-			throw new SemanticException("SyntityMeta.uids must initialized by subclasses. Uids is null.");
-		return uids;
-	}
+//	public HashSet<String> globalIds() throws SemanticException {
+//		if (uids == null)
+//			throw new SemanticException("SyntityMeta.uids must initialized by subclasses. Uids is null.");
+//		return uids;
+//	}
 
 	/**
 	 * Generate columns for inserting challenging entities.

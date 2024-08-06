@@ -847,10 +847,10 @@ public class DBSyntableTest {
 
 		String pid   = slt.getString(entm.pk);
 		String synuid= slt.getString(entm.synuid);
-		String synodr= slt.getString(entm.synoder);
+		// String synodr= slt.getString(entm.synoder);
 		String pname = slt.getString(entm.resname);
 
-		String chgid = t.updateEntity(synodr, synuid, entm,
+		String chgid = t.updateEntity(t.synode(), synuid, entm,
 			entm.resname, String.format("%s,%04d", (pname == null ? "" : pname), t.n0().n),
 			entm.createDate, now());
 

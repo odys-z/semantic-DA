@@ -34,7 +34,7 @@ public class Synode extends Anson {
 	public Synode(AnResultset r, SynodeMeta synm) throws SQLException {
 		this.org = r.getString(synm.org);
 		this.synodeId = r.getString(synm.pk);
-		this.mac = r.getString(synm.mac);
+		this.mac = r.getString(synm.device);
 		this.domain = r.getString(synm.domain);
 		this.nyquence = r.getLong(synm.nyquence);
 	}
@@ -51,7 +51,7 @@ public class Synode extends Anson {
 	public Insert insert(SynodeMeta synm, String creator, Nyquence n0, Insert insert) throws TransException {
 		return insert
 			.nv(synm.pk, synodeId)
-			.nv(synm.mac, "#" + synodeId)
+			.nv(synm.device, "#" + synodeId)
 			.nv(synm.nyquence, n0.n)
 			.nv(synm.domain, domain)
 			.nv(synm.synuid, SynChangeMeta.uids(creator, synodeId))
