@@ -1,5 +1,10 @@
 package io.odysz.semantic.meta;
 
+import java.sql.SQLException;
+
+import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DATranscxt;
+import io.odysz.transact.sql.Query;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -72,5 +77,30 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 		shareDate = "sharedate";
 		shareby = "shareby";
 		shareflag = "shareflag";
+	}
+
+	/**
+	 * Create select with cols can be understand by {@link #getPathInfo(AnResultset)}.
+	 * 
+	 * @param st
+	 * @param devid
+	 * @return {@link Query}
+	 * @throws TransException
+	 */
+	public Query selectSynPaths(DATranscxt st, String devid) throws TransException {
+		return  st.select(tbl, "t")
+				  .cols(device, shareflag, shareby, shareDate);
+
+	}
+
+	/**
+	 * Get fields from rs where cols is selcted with stamement generated
+	 * by {@link #selectSynPaths(DATranscxt, String)}.
+	 * @param rs
+	 * @return strings
+	 * @throws SQLException
+	 */
+	public Object[] getPathInfo(AnResultset rs) throws SQLException {
+		return rs.getFieldArray(device, shareflag, shareby, shareDate);
 	}
 }
