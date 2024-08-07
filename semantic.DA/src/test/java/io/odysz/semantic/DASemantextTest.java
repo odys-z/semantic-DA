@@ -271,7 +271,7 @@ public class DASemantextTest {
 			"Check configuration: synode0");
 
 		st.insert(tbl, usr)
-			// synode0 == null, will hard code 'synode0'
+			// synode0 == null, will hard code into 'synode0'
 			.nv("devname", devname)
 			.nv("owner",   usr.uid())
 			.nv("org",     "zsu.ua")
@@ -285,10 +285,11 @@ public class DASemantextTest {
 			.rs(0)).nxt();
 		
 		// oz_autoseq.sql: ('doc_devices.device', 64 * 64 * 4, 'device');
-		try {assertEquals("1.4.34.000G01", rs.getString("device"));}
-		catch (AssertionError e) {assertEquals("1.4.34.000401", rs.getString("device"));}
+		try {assertEquals("1.4.34.000G01", rs.getString("device"), "000G01");}
+		catch (AssertionError e) {assertEquals("1.4.34.000401", rs.getString("device"), "000401");}
 		rs.next();
-		assertEquals("synode0.000402", rs.getString("device"));
+		try {assertEquals("synode0.000402", rs.getString("device"), "000402");}
+		catch (AssertionError e) {assertEquals("synode0.000G02", rs.getString("device"), "000G02");}
 	}
 
 	/**Test cross referencing auto k.<br>
@@ -832,7 +833,8 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	 */
 	@Test
 	public void testExtfilePathHandler() throws Exception {
-		setEnv2("VOLUME_HOME", "/home/ody/volume");
+		// setEnv2("VOLUME_HOME", "/home/ody/volume");
+		EnvPath.extendEnv("VOLUME_HOME", "/home/ody/volume");
 
 		String[] args = "$VOLUME_HOME/shares,uri,userId,cate,docName".split(",");
 		String extroot = args[ShExtFilev2.ixExtRoot];
@@ -872,24 +874,24 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 					eq("\\home\\alice\\vol\\shares\\admin\\000003 f.txt", abspath));
 	}
 	
-	/**Only Linux/MacOs
-	 * https://stackoverflow.com/a/40682052/7362888
-	 * @param newenv
-	 * @throws Exception
-	 */
-	@SuppressWarnings("unchecked")
-	public static void setEnv2(String key, String value) {
-	    try {
-	        Map<String, String> env = System.getenv();
-	        Class<?> cl = env.getClass();
-	        Field field = cl.getDeclaredField("m");
-	        field.setAccessible(true);
-	        Map<String, String> writableEnv = (Map<String, String>) field.get(env);
-	        writableEnv.put(key, value);
-	    } catch (Exception e) {
-	        throw new IllegalStateException("Failed to set environment variable", e);
-	    }
-	}
+//	/**Only Linux/MacOs
+//	 * https://stackoverflow.com/a/40682052/7362888
+//	 * @param newenv
+//	 * @throws Exception
+//	 */
+//	@SuppressWarnings("unchecked")
+//	public static void setEnv2(String key, String value) {
+//	    try {
+//	        Map<String, String> env = System.getenv();
+//	        Class<?> cl = env.getClass();
+//	        Field field = cl.getDeclaredField("m");
+//	        field.setAccessible(true);
+//	        Map<String, String> writableEnv = (Map<String, String>) field.get(env);
+//	        writableEnv.put(key, value);
+//	    } catch (Exception e) {
+//	        throw new IllegalStateException("Failed to set environment variable", e);
+//	    }
+//	}
 
 	/**
 	 * @throws TransException
