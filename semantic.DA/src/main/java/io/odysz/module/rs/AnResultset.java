@@ -583,6 +583,10 @@ for (String coln : colnames.keySet())
 		return getBlob((Integer)colnames.get(colName.toUpperCase())[0]);
 	}
 
+	public Object getObject(String colName) throws SQLException {
+		return getObject((Integer)colnames.get(colName.toUpperCase())[0]);
+	}
+
 	public Object getObject(int colIndex) throws SQLException {
 		try {
 			if (rowIdx <= 0 || results == null || results.get(rowIdx - 1) == null) throw new SQLException("Null row to be accessed.");
