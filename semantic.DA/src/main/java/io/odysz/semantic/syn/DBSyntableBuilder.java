@@ -818,7 +818,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			.resulve(chgm.tbl, chgm.pk, -1);
 	}
 	
-	public DBSyntableBuilder registerEntity(String conn, SyntityMeta m)
+	public static void registerEntity(String conn, SyntityMeta m)
 			throws SemanticException, TransException, SQLException {
 		if (entityRegists == null)
 			entityRegists = new HashMap<String, HashMap<String, SyntityMeta>>();
@@ -826,7 +826,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			entityRegists.put(conn, new HashMap<String, SyntityMeta>());
 
 		entityRegists.get(conn).put(m.tbl, (SyntityMeta) m.clone(Connects.getMeta(conn, m.tbl)));
-		return this;
+		// return this;
 	}
 	
 	public SyntityMeta getEntityMeta(String entbl) throws SemanticException {
@@ -1079,6 +1079,13 @@ public class DBSyntableBuilder extends DATranscxt {
 		return colnames;
 	}
 	
+	/**
+	 * Get entity count, of {@code m.tbl}.
+	 * @param m
+	 * @return count
+	 * @throws SQLException
+	 * @throws TransException
+	 */
 	public int entities(SyntityMeta m) throws SQLException, TransException {
 		return DAHelper.count(this, synconn(), m.tbl);
 	}
