@@ -4,11 +4,11 @@ import static io.odysz.common.LangExt.eq;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
@@ -34,7 +34,7 @@ import io.odysz.transact.sql.parts.condition.Condit;
 import io.odysz.transact.x.TransException;
 
 /**
- * See the topic of <a href='https://odys-z.github.io/dev/topics/semantics/semantypes.html#extending-default-handler-plugin'>
+ * See the topic of <a href='https://odys-z.github.io/dev/topics/semantics/3plugin.html#extending-default-semantics-plugin'>
  * Extending default handler plugin</a>.
  * 
  * @author odys-z@github.com
@@ -63,8 +63,7 @@ public class DBSynmantics extends DASemantics {
 	}
 	
 	public static Insert logChange(DBSyntableBuilder b, Insert inst,
-			SynodeMeta synm, SynChangeMeta chgm, SynSubsMeta subm, SyntityMeta entm,
-			String synode) throws TransException {
+			SyntityMeta entm, String synode) throws TransException {
 		Update u = b.update(entm.tbl);
 		Resulving pid = new Resulving(entm.tbl, entm.pk);
 		if (pid instanceof Resulving)
@@ -72,23 +71,22 @@ public class DBSynmantics extends DASemantics {
 		else
 			u.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
 
-		Insert insc = b.insert(chgm.tbl)
-				.nv(chgm.entbl, entm.tbl)
-				.nv(chgm.crud, CRUD.C)
-				.nv(chgm.synoder, b.synode())
-				// .nv(chgm.uids, SynChangeMeta.uids(b.synode(), pid))
-				.nv(chgm.nyquence, b.stamp())
-				.nv(chgm.seq, b.incSeq())
-				.nv(chgm.domain, b.domain())
-				.post(b.insert(subm.tbl)
-					.cols(subm.insertCols())
-					.select((Query) b.select(synm.tbl)
-						.col(new Resulving(chgm.tbl, chgm.pk))
-						.col(synm.synoder)
-						.where(op.ne, synm.synoder, constr(b.synode()))
-						.whereEq(synm.domain, b.domain())));
+		Insert insc = b.insert(b.chgm.tbl)
+				.nv(b.chgm.entbl, entm.tbl)
+				.nv(b.chgm.crud, CRUD.C)
+				.nv(b.chgm.synoder, b.synode())
+				.nv(b.chgm.nyquence, b.stamp())
+				.nv(b.chgm.seq, b.incSeq())
+				.nv(b.chgm.domain, b.domain())
+				.post(b.insert(b.subm.tbl)
+					.cols(b.subm.insertCols())
+					.select((Query) b.select(b.synm.tbl)
+						.col(new Resulving(b.chgm.tbl, b.chgm.pk))
+						.col(b.synm.synoder)
+						.where(op.ne, b.synm.synoder, constr(b.synode()))
+						.whereEq(b.synm.domain, b.domain())));
 		if (pid instanceof Resulving)
-			insc.nv(chgm.uids, SynChangeMeta.uids(b.synode(), (Resulving)pid));
+			insc.nv(b.chgm.uids, SynChangeMeta.uids(b.synode(), (Resulving)pid));
 		else
 			insc.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
 
@@ -98,35 +96,33 @@ public class DBSynmantics extends DASemantics {
 	}
 
 	public static Update logChange(DBSyntableBuilder b, Update updt,
-			SynodeMeta synm, SynChangeMeta chgm, SynSubsMeta subm, SyntityMeta entm,
-			String synoder, List<String> synuids, Iterable<String> updcols)
+			SyntityMeta entm, String synoder, List<String> synuids, Iterable<String> updcols)
 				throws TransException, SQLException {
 
 		for (String synuid : synuids)
 			updt.post(b
-					.insert(chgm.tbl)
-					.nv(chgm.entbl, entm.tbl)
-					.nv(chgm.crud, CRUD.U)
-					.nv(chgm.synoder, synoder)
-					.nv(chgm.uids, synuid)
-					.nv(chgm.nyquence, b.stamp())
-					.nv(chgm.seq, b.incSeq())
-					.nv(chgm.domain, b.domain())
-					.nv(chgm.updcols, updcols)
-					.post(b.insert(subm.tbl)
-						.cols(subm.insertCols())
-						.select((Query)b.select(synm.tbl)
-							.col(new Resulving(chgm.tbl, chgm.pk))
-							.col(synm.synoder)
-							.where(op.ne, synm.synoder, constr(synoder))
-							.whereEq(synm.domain, b.domain()))))
+					.insert(b.chgm.tbl)
+					.nv(b.chgm.entbl, entm.tbl)
+					.nv(b.chgm.crud, CRUD.U)
+					.nv(b.chgm.synoder, synoder)
+					.nv(b.chgm.uids, synuid)
+					.nv(b.chgm.nyquence, b.stamp())
+					.nv(b.chgm.seq, b.incSeq())
+					.nv(b.chgm.domain, b.domain())
+					.nv(b.chgm.updcols, updcols)
+					.post(b.insert(b.subm.tbl)
+						.cols(b.subm.insertCols())
+						.select((Query)b.select(b.synm.tbl)
+							.col(new Resulving(b.chgm.tbl, b.chgm.pk))
+							.col(b.synm.synoder)
+							.where(op.ne, b.synm.synoder, constr(synoder))
+							.whereEq(b.synm.domain, b.domain()))))
 			;
 	
 		return updt;
 	}
 	
 	public static Delete logChange(DBSyntableBuilder b, Delete delt,
-//			SynChangeMeta chgm, SynSubsMeta subm, String synoder,
 			SyntityMeta entm,
 			String synuid)
 				throws TransException, SQLException {
@@ -167,39 +163,33 @@ public class DBSynmantics extends DASemantics {
 		protected final DATranscxt st;
 
 		ShSynChange(Transcxt trxt, String synode, String tabl, String pk, String[] args)
-				throws Exception {
+				throws SemanticException {
 			super(trxt, smtype.synChange, tabl, pk, args);
 			insert = true;
 			update = true;
 			delete = true;
 
 			this.synode = synode;
-			st = new DATranscxt(null);
-			
 			try {
+				st = new DATranscxt(null);
 				snm = new SynodeMeta(trxt.basictx().connId());
-			} catch (TransException e) {
+				chm = new SynChangeMeta();
+				sbm = new SynSubsMeta(chm);
+			
+				TableMeta m = trxt.tableMeta(tabl);
+				if (!eq(args[0], m.getClass().getName())) {
+					Class<?> cls;
+						cls = Class.forName(args[0]);
+						Constructor<?> constructor = cls.getConstructor(String.class);
+						entm = (SyntityMeta) constructor.newInstance(trxt.basictx().connId());
+						entm.replace();
+				}
+				else entm = (SyntityMeta) m;
+				entId = new Resulving(entm.tbl, entm.pk);
+			} catch (Exception e) {
 				e.printStackTrace();
 				throw new SemanticException(e.getMessage());
 			}
-			chm = new SynChangeMeta();
-			sbm = new SynSubsMeta(chm);
-			
-			TableMeta m = trxt.tableMeta(tabl);
-			if (!eq(args[0], m.getClass().getName())) {
-				Class<?> cls;
-				try {
-					cls = Class.forName(args[0]);
-					Constructor<?> constructor = cls.getConstructor(String.class);
-					entm = (SyntityMeta) constructor.newInstance(trxt.basictx().connId());
-					entm.replace();
-				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-					e.printStackTrace();
-					throw new SemanticException(e.getMessage());
-				}
-			}
-			else entm = (SyntityMeta) m;
-			entId = new Resulving(entm.tbl, entm.pk);
 		}
 
 		@Override
@@ -210,7 +200,7 @@ public class DBSynmantics extends DASemantics {
 			if (verbose) Utils.logi("synChange: onInsert ...");
 
 			DBSyntableBuilder synb = ((ISyncontext)stx).synbuilder();
-			logChange(synb, insrt, snm, chm, sbm, entm, synode);
+			logChange(synb, insrt, entm, synode);
 		}
 		
 		protected boolean checkBuilder(ISemantext stx) {
@@ -237,7 +227,7 @@ public class DBSynmantics extends DASemantics {
 			AnResultset hittings = isHit(stx, updt, row, cols, usr);
 			if (hittings.getRowCount() > 0)
 				updt = 
-				logChange(stx.synbuilder(), updt, snm, chm, sbm, entm, synode, null, cols.keySet());
+				logChange(stx.synbuilder(), updt, entm, synode, null, cols.keySet());
 		}
 
 		private AnResultset isHit(ISyncontext stx, Update updt,

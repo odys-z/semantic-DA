@@ -127,7 +127,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 
-	/** Nyquence vector [{synode, Nyquence}]*/
+	/** Nyquence vector {synode: Nyquence}*/
 	public HashMap<String, Nyquence> nyquvect;
 	public Nyquence n0() { return nyquvect.get(synode()); }
 	protected DBSyntableBuilder n0(Nyquence nyq) {
@@ -635,7 +635,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	
 	public HashMap<String, Nyquence> synyquvectMax(String peer,
 			HashMap<String, Nyquence> nv, HashMap<String, Nyquence> mynv)
-					throws TransException, SQLException {
+			throws TransException, SQLException {
 
 		if (nv == null) return mynv;
 		Update u = null;
@@ -739,8 +739,8 @@ public class DBSyntableBuilder extends DATranscxt {
 //					.whereEq(entm.synuid, synuid);
 			SemanticObject res = (SemanticObject) DBSynmantics
 					.logChange(this, delete(entm.tbl, synrobot())
-						.whereEq(entm.synuid, synuid), entm, synuid)
-						.d(instancontxt(basictx.connId(), synrobot()));
+					.whereEq(entm.synuid, synuid), entm, synuid)
+					.d(instancontxt(basictx.connId(), synrobot()));
 
 //				insert(chgm.tbl, synrobot())
 //				.nv(chgm.entbl, entm.tbl)
@@ -790,11 +790,9 @@ public class DBSyntableBuilder extends DATranscxt {
 		String conn   = synconn();
 		SyncRobot rob = (SyncRobot) synrobot();
 
-		// Resulving pid = new Resulving(m.tbl, m.pk);
-
 		Insert inse = e.insertEntity(m, insert(m.tbl, rob));
 		SemanticObject u = (SemanticObject) DBSynmantics
-				.logChange(this, inse, synm, chgm, subm, m, synode())
+				.logChange(this, inse, m, synode())
 				.ins(instancontxt(conn, rob));
 
 		String phid = u.resulve(m, -1);
@@ -813,14 +811,14 @@ public class DBSyntableBuilder extends DATranscxt {
 			.logChange(this, update(entm.tbl, synrobot())
 						.nvs((Object[])nvs)
 						.whereEq(entm.synuid, synuid),
-					synm, chgm, subm, entm, synoder,
+					entm, synoder,
 					new ArrayList<String>() {{add(synuid);}},
 					updcols)
 			.u(instancontxt(basictx.connId(), synrobot()))
 			.resulve(chgm.tbl, chgm.pk, -1);
 	}
 	
-	public DBSyntableBuilder registerEntity(String conn, SyntityMeta m)
+	public static void registerEntity(String conn, SyntityMeta m)
 			throws SemanticException, TransException, SQLException {
 		if (entityRegists == null)
 			entityRegists = new HashMap<String, HashMap<String, SyntityMeta>>();
@@ -828,7 +826,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			entityRegists.put(conn, new HashMap<String, SyntityMeta>());
 
 		entityRegists.get(conn).put(m.tbl, (SyntityMeta) m.clone(Connects.getMeta(conn, m.tbl)));
-		return this;
+		// return this;
 	}
 	
 	public SyntityMeta getEntityMeta(String entbl) throws SemanticException {
@@ -990,7 +988,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		if (stamp == null)
 			throw new SemanticException("TEMP");
 
-		persistamp(mxn);
+		// persistamp(mxn);
 
 		return new ExchangeBlock(synode(), admin, domainstatus.session,
 				new ExessionAct(ExessionAct.mode_client, setupDom)
@@ -1081,6 +1079,13 @@ public class DBSyntableBuilder extends DATranscxt {
 		return colnames;
 	}
 	
+	/**
+	 * Get entity count, of {@code m.tbl}.
+	 * @param m
+	 * @return count
+	 * @throws SQLException
+	 * @throws TransException
+	 */
 	public int entities(SyntityMeta m) throws SQLException, TransException {
 		return DAHelper.count(this, synconn(), m.tbl);
 	}
