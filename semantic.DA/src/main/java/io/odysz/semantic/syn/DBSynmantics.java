@@ -243,7 +243,7 @@ public class DBSynmantics extends DASemantics {
 		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt,
 				Condit condt, IUser usr) throws SemanticException {
 			
-			// throw new SemanticException("tested?");
+			throw new SemanticException("tested?");
 			/*
 			try {
 				AnResultset row = (AnResultset) trxt
