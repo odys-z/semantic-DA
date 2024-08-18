@@ -118,6 +118,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		return stamp;
 	}
 
+	/*
 	DBSyntableBuilder incStamp(ExessionPersist xp) throws TransException, SQLException {
 		if (Nyquence.abs(stamp, nyquvect.get(synode())) >= 1)
 			throw new ExchangeException(0, xp, "Nyquence stamp increaseing too much or out of range.");
@@ -126,14 +127,16 @@ public class DBSyntableBuilder extends DATranscxt {
 		seq = 0;
 		return this;
 	}
+	*/
 
-	/** Nyquence vector {synode: Nyquence}*/
+	/** Nyquence vector {synode: Nyquence}
 	public HashMap<String, Nyquence> nyquvect;
 	public Nyquence n0() { return nyquvect.get(synode()); }
 	protected DBSyntableBuilder n0(Nyquence nyq) {
 		nyquvect.put(synode(), new Nyquence(nyq.n));
 		return this;
 	}
+	*/
 
 	String dom;
 	public String domain() { return dom; }
@@ -219,6 +222,9 @@ public class DBSyntableBuilder extends DATranscxt {
 		else if (isblank(dom))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
 				this.getClass().getName(), tx.synode);
+
+		if (debug && force_clean_subs) Utils
+			.logT(new Object() {}, "Transaction builder created with forcing cleaning stale subscriptions.");
 	}
 	
 	////////////////////////////// protocol API ////////////////////////////////
@@ -231,9 +237,9 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public ExchangeBlock initExchange(ExessionPersist cp, String target)
+	public ExchangeBlock initExchange(ExessionPersist cp)
 			throws TransException, SQLException {
-		if (DAHelper.count(this, basictx().connId(), exbm.tbl, exbm.peer, target) > 0)
+		if (DAHelper.count(this, basictx().connId(), exbm.tbl, exbm.peer, cp.peer) > 0)
 			throw new ExchangeException(Exchanging.ready, cp,
 				"Can't initate new exchange session. There are exchanging records to be finished.");
 

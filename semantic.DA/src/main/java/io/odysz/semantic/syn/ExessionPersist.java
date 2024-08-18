@@ -376,18 +376,13 @@ public class ExessionPersist {
 			Nyquence dn = trb.nyquvect.get(peer);
 
 			if (dn == null) {
-				Utils.warnT(new Object() {},
-						"ERROR: Me, %s, don't have knowledge about %s.",
-						trb.synode(), peer);
 				throw new ExchangeException(ready, this,
-						"%s#%s(), don't have knowledge about %s.",
-						trb.synode(), new Object(){}.getClass().getEnclosingMethod().getName(), peer);
+					"%s:%s(), doesn't have knowledge about %s.",
+					trb.synode(), new Object(){}.getClass().getEnclosingMethod().getName(), peer);
 			}
 		}
 		else 
-			Utils.warn("[%s#%s()] Null transact builder. - null builder only for test",
-				getClass().getName(),
-				new Object(){}.getClass().getEnclosingMethod().getName());
+			Utils.warnT(new Object() {}, "Null transaction builder. - null builder only for test");
 		
 		challengeSeq = -1;
 		expAnswerSeq = -1; //challengeSeq;
@@ -426,9 +421,7 @@ public class ExessionPersist {
 			}
 		}
 		else 
-			Utils.warn("[%s#%s()] Null transact builder. - null builder only for test",
-				getClass().getName(),
-				new Object(){}.getClass().getEnclosingMethod().getName());
+			Utils.warnT(new Object() {}, "Null transaction builder. - null builder only for test");
 		
 		challengeSeq = -1;
 		expAnswerSeq = ini.answerSeq;
@@ -459,7 +452,11 @@ public class ExessionPersist {
 		return this;
 	}
 	public ExessionAct exstat() { return exstate; }
-	/** Counted when in {@link #init()}, not correct after {@link DBSyntableBuilder#cleanStale(HashMap, String)} has been called. */
+
+	/**
+	 * Counted when in {@link #init()}, and not correct after
+	 * {@link DBSyntableBuilder#cleanStale(HashMap, String)} has been called.
+	 */
 	public int totalChallenges;
 
 	public int expAnswerSeq;
