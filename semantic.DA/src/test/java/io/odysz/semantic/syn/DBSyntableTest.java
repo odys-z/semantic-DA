@@ -171,12 +171,9 @@ public class DBSyntableTest {
 			if (s != W)
 				Docheck.ck[s].trb.incNyquence();
 
-			Docheck.ck[s].trb.registerEntity(conn, Docheck.ck[s].docm);
-			// Docheck.ck[s].trb.registerEntity(conn, snm);
+			DBSyntableBuilder.registerEntity(conn, Docheck.ck[s].docm);
 		}
 		
-		// phm = new T_PhotoMeta(conns[0]).replace(); // all entity table is the same in this test
-
 		assertEquals("syn.00", ck[0].connId());
 	}
 
@@ -621,7 +618,7 @@ public class DBSyntableTest {
 		int no = 0;
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ExessionPersist cp = new ExessionPersist(ctb, stb.synode());
-		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
+		ExchangeBlock ini = ctb.initExchange(cp);
 		Utils.logrst(String.format("%s initiate: changes: %d    entities: %d",
 				ctb.synode(), ini.totalChallenges, ini.enitities(cphm.tbl)), test, subno, no, 1);
 
@@ -662,12 +659,12 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 
 		ExessionPersist cp = new ExessionPersist(stb, stb.synode());
-		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
+		ExchangeBlock ini = ctb.initExchange(cp);
 		assertTrue(ini.totalChallenges > 0);
 
 
 		ctb.abortExchange(cp, stb.synode(), null);
-		ini = ctb.initExchange(cp, stb.synode());
+		ini = ctb.initExchange(cp);
 		Utils.logrst(String.format("%s initiate changes: %d",
 				ctb.synode(), ini.totalChallenges), test, subno, ++no);
 		

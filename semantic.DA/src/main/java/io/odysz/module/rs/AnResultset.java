@@ -1,6 +1,7 @@
 package io.odysz.module.rs;
 
 import static io.odysz.common.LangExt.split;
+import static io.odysz.common.LangExt.isNull;
 
 import java.io.PrintStream;
 import java.sql.Blob;
@@ -1303,5 +1304,22 @@ for (String coln : colnames.keySet())
 		if (indices0 == null || !indices0.containsKey(id))
 			throw new SQLException("Call rowIndex0(col) first, and {id} must in it");
 		return results.get(rowIndex0(id));
+	}
+
+	/**
+	 * Get an object array of fields in the current row.
+	 * 
+	 * @param fields
+	 * @return [rs.field[0], rs.field[1], ...]
+	 * @throws SQLException 
+	 */
+	public Object[] getFieldArray(String ... fields ) throws SQLException {
+		Object[] vals = null;
+		if (!isNull(fields)) {
+			vals = new Object[fields.length];
+			for (int fx = 0; fx < vals.length; fx++)
+				vals[fx] = getObject(fields[fx]);
+		}
+		return vals;
 	}
 }
