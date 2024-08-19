@@ -833,48 +833,12 @@ public class DBSyntableBuilder extends DATranscxt {
 			.whereEq(synm.domain, perdomain)
 			.u(instancontxt(basictx.connId(), synrobot()));
 		
-//		nyquvect.put(synode(), getNyquence(this, basictx.connId(), synm, synm.nyquence,
-//				synm.pk, synode(), synm.domain, dom));
 		stamp.inc();
 		persistamp(stamp);
 		
-//		if (compareNyq(stamp, nyquvect.get(synode())) < 0)
-//			throw new SemanticException("Stamp is early than n0. stamp = %s, n0 = %s",
-//					stamp.n, nyquvect.get(synode()).n);
 		return this;
 	}
 	
-	/**
-	 * this.n0++, this.n0 = max(n0, maxn)
-	 * @param maxn
-	 * @return n0
-	 * @throws SQLException 
-	 * @throws TransException 
-	public Nyquence incN0(Nyquence... n) throws TransException, SQLException {
-		n0().inc(isNull(n) ? nyquvect.get(synode()).n : n[0].n);
-		DAHelper.updateFieldByPk(this, basictx.connId(), synm, synode(),
-				synm.nyquence, new ExprPart(n0().n), synrobot());
-		return n0();
-	}
-	
-	public DBSyntableBuilder loadNyquvect(String conn) throws SQLException, TransException {
-		AnResultset rs = ((AnResultset) select(synm.tbl)
-				.cols(synm.pk, synm.nyquence, synm.nstamp)
-				.rs(instancontxt(conn, synrobot()))
-				.rs(0));
-		
-		nyquvect = new HashMap<String, Nyquence>(rs.getRowCount());
-		while (rs.next()) {
-			nyquvect.put(rs.getString(synm.synoder), new Nyquence(rs.getLong(synm.nyquence)));
-			
-			if (eq(synode(), rs.getString(synm.pk)))
-				stamp = new Nyquence(rs.getLong(synm.nstamp));
-		}
-		
-		return this;
-	}
-	 */
-
 	@Override
 	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
 		try {
@@ -976,9 +940,6 @@ public class DBSyntableBuilder extends DATranscxt {
 				}
 			}
 		}
-
-//		if (stamp == null)
-//			throw new SemanticException("TEMP");
 
 		// persistamp(mxn);
 

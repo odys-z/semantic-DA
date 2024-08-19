@@ -61,8 +61,4 @@ public class DBSyntext extends DASemantext implements ISyncontext {
 		creator = (DATranscxt) semantext;
 		return this;
 	}
-
-	// final ExessionPersist xp;
-	// @Override
-	// public ExessionPersist xpersist() { return xp; }
 }
