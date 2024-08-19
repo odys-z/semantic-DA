@@ -98,7 +98,6 @@ public class DBSynmantics extends DASemantics {
 	public static Update logChange(DBSyntableBuilder b, Update updt,
 			SyntityMeta entm, String synoder, List<String> synuids, Iterable<String> updcols)
 				throws TransException, SQLException {
-
 		for (String synuid : synuids)
 			updt.post(b
 					.insert(b.chgm.tbl)
@@ -123,9 +122,7 @@ public class DBSynmantics extends DASemantics {
 	}
 	
 	public static Delete logChange(DBSyntableBuilder b, Delete delt,
-			SyntityMeta entm,
-			String synuid)
-				throws TransException, SQLException {
+			SyntityMeta entm, String synuid) throws TransException, SQLException {
 		return delt.post(b
 				.insert(b.chgm.tbl)
 				.nv(b.chgm.entbl, entm.tbl)
@@ -243,7 +240,7 @@ public class DBSynmantics extends DASemantics {
 		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt,
 				Condit condt, IUser usr) throws SemanticException {
 			
-			// throw new SemanticException("tested?");
+			throw new SemanticException("tested?");
 			/*
 			try {
 				AnResultset row = (AnResultset) trxt

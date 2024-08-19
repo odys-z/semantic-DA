@@ -12,6 +12,8 @@ import static io.odysz.semantic.syn.Docheck.printChangeLines;
 import static io.odysz.semantic.syn.Docheck.printNyquv;
 import static io.odysz.semantic.syn.ExessionAct.init;
 import static io.odysz.semantic.syn.ExessionAct.ready;
+import static io.odysz.semantic.syn.ExessionPersist.loadNyquvect;
+import static io.odysz.semantic.util.DAHelper.getNstamp;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -169,7 +171,7 @@ public class DBSyntableTest {
 			
 			// ck[s].synm = snm;
 			if (s != W)
-				Docheck.ck[s].trb.incNyquence();
+				Docheck.ck[s].trb.incNyquence0();
 
 			DBSyntableBuilder.registerEntity(conn, Docheck.ck[s].docm);
 		}
@@ -193,8 +195,11 @@ public class DBSyntableTest {
 			throws TransException, SQLException, IOException {
 		@SuppressWarnings("unchecked")
 		HashMap<String, Nyquence>[] nvs = (HashMap<String, Nyquence>[]) new HashMap[] {
-				ck[X].trb.nyquvect, ck[Y].trb.nyquvect, ck[Z].trb.nyquvect
-		};
+				// ck[X].nyquvect(), ck[Y].nyquvect(), ck[Z].nyquvect()
+				loadNyquvect(ck[X].trb),
+				loadNyquvect(ck[Y].trb),
+				loadNyquvect(ck[Z].trb)};
+
 		HashMap<String, Nyquence>[] nvs_ = Nyquence.clone(nvs);
 
 		int no = 0;
@@ -329,8 +334,8 @@ public class DBSyntableTest {
 
 			stb.onAbort(req);
 
-			assertEquals(ck[W].trb.n0().n, ctb.stamp());
-			assertEquals(ck[Z].trb.n0().n, stb.stamp());
+			assertEquals(ck[W].n0().n, ck[W].stamp());
+			assertEquals(ck[Z].n0().n, ck[Z].stamp());
 			return;
 		}
 		fail("W is unable to roaming with Z.");
@@ -364,7 +369,7 @@ public class DBSyntableTest {
 		
 		Utils.logrst("Y vs Z", section, ++no);
 		exchangeDocs(Y, Z, section, 2);
-		assertEquals(ck[Z].trb.n0().n, ck[Z].trb.stamp());
+		assertEquals(ck[Z].n0().n, ck[Z].stamp());
 		ck[Y].buf_change(0, C, z, z_uids[0], ck[Y].docm);
 		ck[Y].change_log(1, C, z, z_uids[0], ck[Y].docm);
 		ck[Y].psubs(2, z_uids[1], X, -1, -1, W);
@@ -635,7 +640,9 @@ public class DBSyntableTest {
 
 		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
 		ExchangeBlock req = ctb.closexchange(cp, rep);
-		assertEquals(req.nv.get(ctb.synode()).n + 1, ctb.stamp());
+		assertEquals(req.nv.get(ctb.synode()).n + 1,
+				// ctb.stamp());
+				getNstamp(ctb).n);
 		assertEquals(ready, cp.exstate());
 
 		printChangeLines(ck);
@@ -644,7 +651,8 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 		// FIXME what if the server doesn't agree?
 		rep = stb.onclosexchange(sp, req);
-		assertEquals(rep.nv.get(ctb.synode()).n + 1, stb.stamp());
+		assertEquals(rep.nv.get(ctb.synode()).n + 1, // stb.stamp());
+				getNstamp(stb).n);
 		assertEquals(ready, sp.exstate());
 
 		printChangeLines(ck);
@@ -791,7 +799,7 @@ public class DBSyntableTest {
 				.folder(rob.uid()));
 		
 		return new String[] {pid_chid[0], pid_chid[1],
-			SynChangeMeta.uids(synoder, pid_chid[0])};
+							SynChangeMeta.uids(synoder, pid_chid[0])};
 	}
 	
 	/**
@@ -848,7 +856,7 @@ public class DBSyntableTest {
 		String pname = slt.getString(entm.resname);
 
 		String chgid = t.updateEntity(t.synode(), synuid, entm,
-			entm.resname, String.format("%s,%04d", (pname == null ? "" : pname), t.n0().n),
+			entm.resname, String.format("%s,%04d", (pname == null ? "" : pname), ck[s].stamp()),
 			entm.createDate, now());
 
 		return new String[] {pid, chgid, synuid };

@@ -21,9 +21,10 @@ public class DBSyntext extends DASemantext implements ISyncontext {
 	public String synode;
 	private DATranscxt creator;
 
-	protected DBSyntext(String connId,
-			SynmanticsMap metas, IUser usr, String rtPath) throws SemanticException, SQLException {
+	protected DBSyntext(String connId, SynmanticsMap metas, IUser usr, String rtPath)
+			throws SemanticException, SQLException {
 		super(connId, metas, usr, rtPath);
+		// this.xp = xp;
 	}
 	
 	public IUser usr() { return super.usr; }
@@ -60,4 +61,8 @@ public class DBSyntext extends DASemantext implements ISyncontext {
 		creator = (DATranscxt) semantext;
 		return this;
 	}
+
+	// final ExessionPersist xp;
+	// @Override
+	// public ExessionPersist xpersist() { return xp; }
 }

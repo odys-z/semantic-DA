@@ -27,6 +27,7 @@ import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.IUser;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Logic.op;
@@ -106,7 +107,7 @@ public class Docheck {
 			SynodeMode mode, String synid, String usrid)
 			throws Exception {
 		trb = new DBSyntableBuilder(domain, conn, synid, mode)
-				.loadNyquvect(conn);
+					; // .loadNyquvect(conn);
 
 		azert = assertImpl == null ? azert : assertImpl;
 
@@ -114,12 +115,12 @@ public class Docheck {
 		this.domain = trb.domain();
 	}
 
-	public HashMap<String, Nyquence> cloneNv() {
-		HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(4);
-		for (String n : trb.nyquvect.keySet())
-			nv.put(n, new Nyquence(trb.nyquvect.get(n).n));
-		return nv;
-	}
+//	public HashMap<String, Nyquence> cloneNv() {
+//		HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(4);
+//		for (String n : trb.nyquvect.keySet())
+//			nv.put(n, new Nyquence(trb.nyquvect.get(n).n));
+//		return nv;
+//	}
 
 	public void doc(int count, String... synids) throws TransException, SQLException {
 		Query q = trb.select(docm.tbl).col(count(), "c");
@@ -363,10 +364,13 @@ public class Docheck {
 
 			boolean dbg = Connects.getDebug(t.synconn());
 			Connects.setDebug(t.synconn(), false);
-			t.loadNyquvect(t.synconn());
+
+			// t.loadNyquvect(t.synconn());
+			HashMap<String, Nyquence> nyquvect = ExessionPersist.loadNyquvect(t);
+
 			Connects.setDebug(t.synconn(), dbg);
 
-			nv2[cx] = Nyquence.clone(t.nyquvect);
+			nv2[cx] = Nyquence.clone(nyquvect);
 
 			Utils.logi(
 				t.synode() + " [ " +
@@ -375,8 +379,8 @@ public class Docheck {
 				.map((c) -> {
 					String n = c.trb.synode();
 					return String.format("%3s",
-						t.nyquvect.containsKey(n) ?
-						t.nyquvect.get(n).n : "");
+						nyquvect.containsKey(n) ?
+						nyquvect.get(n).n : "");
 					})
 				.collect(Collectors.joining(", ")) +
 				" ]");
@@ -466,14 +470,18 @@ public class Docheck {
 		}
 	}
 
-	public static void assertI(Docheck[] ck, HashMap<?, ?>[] nvs) {
+	public static void assertI(Docheck[] ck, HashMap<?, ?>[] nvs) throws SQLException, TransException {
 		for (int i = 0; i < nvs.length; i++) {
 			if (nvs[i] != null && nvs[i].size() > 0)
-				azert.equall(ck[i].trb.n0().n, ((Nyquence)nvs[i].get(ck[i].trb.synode())).n);
+				azert.equall(ck[i].n0().n, ((Nyquence)nvs[i].get(ck[i].trb.synode())).n);
 			else break;
 		}
 	}
 	
+	public Nyquence n0() throws SQLException, TransException {
+		return DAHelper.getNyquence(trb, trb.synconn(), trb.synm, trb.synm.nyquence, trb.synm.synoder, trb.synode());
+	}
+
 	public static void assertnv(HashMap<String, Nyquence> nv0,
 			HashMap<String, Nyquence> nv1, int ... delta) {
 		if (nv0 == null || nv1 == null || nv0.size() != nv1.size() || nv1.size() != delta.length)
@@ -486,5 +494,11 @@ public class Docheck {
 						nv1.get(ck[i].trb.synode()).n,
 						delta[i]));
 		}
+	}
+
+	public long stamp() throws SQLException, TransException {
+		boolean dbg = Connects.getDebug(trb.synconn());
+		try { return DAHelper.getNstamp(trb).n; }
+		finally { Connects.setDebug(trb.synconn(), dbg); }
 	}
 }

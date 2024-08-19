@@ -5,12 +5,5 @@ import io.odysz.semantics.ISemantext;
 
 public interface ISyncontext extends ISemantext {
 	public <T extends DATranscxt> T synbuilder();
-
-//	Long nyquence();
-
-//	String domain();
-
-//	Nyquence stamp();
-
-//	long incSeq();
+	// public ExessionPersist xpersist();
 }
