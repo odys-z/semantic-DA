@@ -727,10 +727,6 @@ public class ExessionPersist {
 	 */
 	public String[] ssinf;
 
-//	Nyquence stamp;
-//	public long stamp() { return stamp.n; }
-//	public Nyquence stampN() { return stamp; }
-
 	/** Nyquence vector {synode: Nyquence}*/
 	HashMap<String, Nyquence> nyquvect;
 	public Nyquence n0() { return nyquvect.get(trb.synode()); }
@@ -738,51 +734,6 @@ public class ExessionPersist {
 		nyquvect.put(trb.synode(), new Nyquence(nyq.n));
 		return this;
 	}
-	
-	/*
-	protected Nyquence persistamp(Nyquence n) throws TransException, SQLException {
-		stamp.n = n.n;
-		updateFieldWhereEqs(trb, trb.synconn(), trb.synrobot(), synm,
-				synm.nstamp, n.n,
-				synm.pk, trb.synode());
-		return stamp;
-	}
-
-	ExessionPersist incStamp(ExessionPersist xp) throws TransException, SQLException {
-		if (Nyquence.abs(stamp, xp.nyquvect.get(trb.synode())) >= 1)
-			throw new ExchangeException(0, xp, "Nyquence stamp increaseing too much or out of range.");
-		stamp.inc();
-		persistamp(stamp);
-		seq = 0;
-		return this;
-	}
-	
-	private long seq;
-	public long incSeq() { return ++seq; }
-	*/
-
-	/**
-	 * Inc my n0, then reload from DB.
-	 * @return this
-	 * @throws TransException
-	 * @throws SQLException
-	public ExessionPersist incNyquence() throws TransException, SQLException {
-		trb.update(synm.tbl, trb.synrobot())
-			.nv(synm.nyquence, Funcall.add(synm.nyquence, 1))
-			.whereEq(synm.pk, trb.synode())
-			.u(trb.instancontxt(trb.synconn(), trb.synrobot()));
-		
-		nyquvect.put(trb.synode(), getNyquence(trb, trb.synconn(), synm, synm.nyquence,
-				synm.pk, trb.synode(), synm.domain, trb.perdomain));
-		stamp.inc();
-		persistamp(stamp);
-		
-		if (compareNyq(stamp, nyquvect.get(trb.synode())) < 0)
-			throw new SemanticException("Stamp is early than n0. stamp = %s, n0 = %s",
-					stamp.n, nyquvect.get(trb.synode()).n);
-		return this;
-	}
-	 */
 	
 	/**
 	 * this.n0++, this.n0 = max(n0, maxn)
@@ -799,23 +750,7 @@ public class ExessionPersist {
 	}
 	
 	public ExessionPersist loadNyquvect(String conn) throws SQLException, TransException {
-//		AnResultset rs = ((AnResultset) trb.select(synm.tbl)
-//				.cols(synm.pk, synm.nyquence, synm.nstamp)
-//				.rs(trb.instancontxt(conn, trb.synrobot()))
-//				.rs(0));
-//		
-//		nyquvect = new HashMap<String, Nyquence>(rs.getRowCount());
-//		while (rs.next()) {
-//			nyquvect.put(rs.getString(synm.synoder), new Nyquence(rs.getLong(synm.nyquence)));
-//			
-//			if (eq(trb.synode(), rs.getString(synm.pk)))
-//				stamp = new Nyquence(rs.getLong(synm.nstamp));
-//		}
-
-		// nyquvect = loadNyquvect(conn, synm, trb, trb.synrobot());
 		nyquvect = loadNyquvect(trb);
-		// stamp = new Nyquence(nyquvect.get(trb.synode()).n);
-
 		return this;
 	}
 	

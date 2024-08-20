@@ -43,7 +43,7 @@ import io.odysz.transact.x.TransException;
  * @author Ody
  */
 public class Docheck {
-	static IAssert azert;
+	public static IAssert azert;
 
 	public static final String org = "URA";
 
@@ -113,6 +113,13 @@ public class Docheck {
 
 		this.docm = docm;
 		this.domain = trb.domain();
+		this.tops = null;
+	}
+	
+	private Docheck(boolean[] debugs) {
+		this.trb = null;
+		this.tops = debugs;
+		this.domain = null;
 	}
 
 //	public HashMap<String, Nyquence> cloneNv() {
@@ -362,28 +369,27 @@ public class Docheck {
 		for (int cx = 0; cx < ck.length && ck[cx] instanceof Docheck; cx++) {
 			DBSyntableBuilder t = ck[cx].trb;
 
-			boolean dbg = Connects.getDebug(t.synconn());
+			boolean top = Connects.getDebug(t.synconn());
 			Connects.setDebug(t.synconn(), false);
 
-			// t.loadNyquvect(t.synconn());
-			HashMap<String, Nyquence> nyquvect = ExessionPersist.loadNyquvect(t);
+			try { HashMap<String, Nyquence> nyquvect = ExessionPersist.loadNyquvect(t); 
 
-			Connects.setDebug(t.synconn(), dbg);
+				nv2[cx] = Nyquence.clone(nyquvect);
 
-			nv2[cx] = Nyquence.clone(nyquvect);
-
-			Utils.logi(
-				t.synode() + " [ " +
-				Stream.of(ck)
-				.filter(c -> c != null)
-				.map((c) -> {
-					String n = c.trb.synode();
-					return String.format("%3s",
-						nyquvect.containsKey(n) ?
-						nyquvect.get(n).n : "");
-					})
-				.collect(Collectors.joining(", ")) +
-				" ]");
+				Utils.logi(
+					t.synode() + " [ " +
+					Stream.of(ck)
+					.filter(c -> c != null)
+					.map((c) -> {
+						String n = c.trb.synode();
+						return String.format("%3s",
+							nyquvect.containsKey(n) ?
+							nyquvect.get(n).n : "");
+						})
+					.collect(Collectors.joining(", ")) +
+					" ]");
+			}
+			finally { Connects.setDebug(t.synconn(), top); }
 		}
 
 		return (HashMap<String, Nyquence>[]) nv2;
@@ -409,22 +415,30 @@ public class Docheck {
 
 		for (int cx = 0; cx < ck.length && ck[cx] instanceof Docheck; cx++) {
 			DBSyntableBuilder b = ck[cx].trb;
-			HashMap<String,String> idmap = ((AnResultset) b
+			boolean top = Connects.getDebug(b.synconn());
+			Connects.setDebug(b.synconn(), false);
+			try {
+				HashMap<String,String> idmap = ((AnResultset) b
 					.select(chm.tbl, "ch")
 					.cols("ch.*", sbm.synodee).col(concat(ifnull(xbm.peer, " "), "':'", xbm.pagex), xbm.pagex)
 					// .je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
 					.je_(sbm.tbl, "sub", chm.pk, sbm.changeId)
 					.l_(xbm.tbl, "xb", chm.pk, xbm.changeId)
 					.orderby(xbm.pagex, chm.entbl, chm.uids)
-					.rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
+					// .rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
+					.rs(b.instancontxt(b.synconn(), b.synrobot()))
 					.rs(0))
 					.<String>map(new String[] {chm.pk, sbm.synodee}, (r) -> changeLine(r));
 
-			for(String cid : idmap.keySet()) {
-				if (!uidss.containsKey(cid))
-					uidss.put(cid, new String[ck.length]);
+				for(String cid : idmap.keySet()) {
+					if (!uidss.containsKey(cid))
+						uidss.put(cid, new String[ck.length]);
 
-				uidss.get(cid)[cx] = idmap.get(cid);
+					uidss.get(cid)[cx] = idmap.get(cid);
+				}
+			}
+			finally { 
+				Connects.setDebug(b.synconn(), top);
 			}
 		}
 		
@@ -500,5 +514,35 @@ public class Docheck {
 		boolean dbg = Connects.getDebug(trb.synconn());
 		try { return DAHelper.getNstamp(trb).n; }
 		finally { Connects.setDebug(trb.synconn(), dbg); }
+	}
+	
+	final boolean[] tops;
+	public static Docheck pushDebug() {
+		if (ck != null) {
+			final boolean[] tops = new boolean[ck.length];
+			for (int cx = 0; cx < ck.length; cx++) {
+				if (ck[cx] != null) {
+					tops[cx] = Connects.getDebug(ck[cx].connId());
+					Connects.setDebug(ck[cx].connId(), tops[cx]);
+				}
+			}
+		
+			return new Docheck(tops);
+		}
+		return new Docheck(new boolean[0]);
+	}
+
+	public Docheck assertl(long ... n) {
+		if (!isNull(n))
+			for (int x = 0; x < n.length; x+=2)
+				azert.equall(n[x], n[x+1]);
+		return this;
+	}
+
+	public void popDebug() {
+		if (tops != null) 
+			for (int cx = 0; cx < ck.length; cx++) 
+				if (ck[cx] != null)
+				Connects.setDebug(ck[cx].connId(), tops[cx]);
 	}
 }

@@ -640,9 +640,7 @@ public class DBSyntableTest {
 
 		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
 		ExchangeBlock req = ctb.closexchange(cp, rep);
-		assertEquals(req.nv.get(ctb.synode()).n + 1,
-				// ctb.stamp());
-				getNstamp(ctb).n);
+		assertEquals(req.nv.get(ctb.synode()).n + 1, getNstamp(ctb).n);
 		assertEquals(ready, cp.exstate());
 
 		printChangeLines(ck);
@@ -651,8 +649,7 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 		// FIXME what if the server doesn't agree?
 		rep = stb.onclosexchange(sp, req);
-		assertEquals(rep.nv.get(ctb.synode()).n + 1, // stb.stamp());
-				getNstamp(stb).n);
+		assertEquals(rep.nv.get(ctb.synode()).n + 1, getNstamp(stb).n);
 		assertEquals(ready, sp.exstate());
 
 		printChangeLines(ck);

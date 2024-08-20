@@ -603,14 +603,15 @@ public class DBSyntableBuilder extends DATranscxt {
 			throw new SemanticException("Synchronizing Nyquence exception: stamp = %d < n0 = %d",
 					stamp.n, cx.n0().n);
 		
-		// HashMap<String, Nyquence> snapshot = synyquvectMax(cx.peer, rep.nv, cx.nyquvect);
 		HashMap<String, Nyquence> snapshot = synyquvectMax(cx, rep.nv);
 		persistamp(maxn(stamp, cx.n0()));
 
 		return cx.closexchange(rep).nv(snapshot); // cx.clear();
 	}
 
-	/**insert into exbm-buffer select peer's-subscriptions union 3rd parties subscriptions
+	/**
+	 * insert into exbm-buffer select peer's-subscriptions union 3rd parties subscriptions
+	 * 
 	 * @see #closexchange(ExessionPersist, ExchangeBlock)
 	 * 
 	 * @return insert statement to exchanging page buffer.
