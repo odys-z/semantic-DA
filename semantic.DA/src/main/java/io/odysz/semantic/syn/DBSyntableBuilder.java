@@ -1074,4 +1074,11 @@ public class DBSyntableBuilder extends DATranscxt {
 		this.xp = exessionPersist;
 		return this;
 	}
+
+
+	public DBSyntableBuilder loadNstamp() throws SQLException, TransException {
+		stamp = DAHelper.getNyquence(this, synconn(), synm, synm.nyquence,
+						synm.synoder, synode(), synm.domain, perdomain);
+		return this;
+	}
 }
