@@ -10,8 +10,8 @@ import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
 import static io.odysz.semantic.syn.Nyquence.maxn;
 import static io.odysz.semantic.syn.Nyquence.sqlCompare;
-import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.semantic.util.DAHelper.getNstamp;
+import static io.odysz.semantic.util.DAHelper.updateFieldByPk;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
@@ -183,9 +183,9 @@ public class DBSyntableBuilder extends DATranscxt {
 		DBSyntext tx = (DBSyntext) this.basictx;
 		tx.synode = nid;
 		// dom = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
-		((SyncRobot)tx.usr())
-			.orgId(getValstr((Transcxt) this, conn, synm, synm.org, synm.pk, nid))
-			.domain(getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, nid));
+//		((SyncRobot)tx.usr())
+//			.orgId(getValstr((Transcxt) this, conn, synm, synm.org, synm.pk, nid))
+//			.domain(getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, nid));
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
@@ -214,6 +214,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			else
 				stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
 						synm.synoder, nid, synm.domain, perdomain);
+
 			registerEntity(conn, synm);
 		}
 		else if (isblank(perdomain))
@@ -588,20 +589,20 @@ public class DBSyntableBuilder extends DATranscxt {
 				.saveChanges(changes.beforeFirst(), req.nv, req.entities);
 	}
 
-	public ExchangeBlock closexchange(ExessionPersist cx,
-			ExchangeBlock rep) throws TransException, SQLException {
+	public ExchangeBlock closexchange(ExessionPersist cx, ExchangeBlock rep)
+			throws TransException, SQLException {
 
 		// cx.clear();
 		HashMap<String, Nyquence> nv = rep.nv; 
 
 		Nyquence peerme = nv.get(synode());
 		if (peerme != null && Nyquence.compareNyq(cx.n0(), peerme) < 0)
-			throw new SemanticException("Synchronizing Nyquence exception: my.n0 = %d < peer.nv[me] = %d",
-					cx.n0().n, peerme.n);
+			throw new SemanticException("Synchronizing Nyquence exception: my.n0 = %d < peer.nv[me] = %d, at %s (me).",
+					cx.n0().n, peerme.n, synode());
 
 		if (Nyquence.compareNyq(stamp, cx.n0()) < 0)
-			throw new SemanticException("Synchronizing Nyquence exception: stamp = %d < n0 = %d",
-					stamp.n, cx.n0().n);
+			throw new SemanticException("Synchronizing Nyquence exception: %s.stamp = %d < n0 = %d.",
+					synode(), stamp.n, cx.n0().n);
 		
 		HashMap<String, Nyquence> snapshot = synyquvectMax(cx, rep.nv);
 		persistamp(maxn(stamp, cx.n0()));
@@ -657,7 +658,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				xp.incN0(mx);
 			}
 			else
-				snapshot.put(n, maxn(xnv.get(n), xp.nyquvect.get(n)));
+				snapshot.put(n, new Nyquence(maxn(xnv.get(n), xp.nyquvect.get(n)).n));
 
 			nyq = maxn(xnv.get(n), xp.nyquvect.get(n));
 
@@ -685,8 +686,9 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ExchangeBlock abortExchange(ExessionPersist cx)
 			throws TransException, SQLException {
 		HashMap<String, Nyquence> snapshot = Nyquence.clone(cx.nyquvect);
-		cx.incN0(stamp);
-		persistamp(maxn(stamp, cx.n0()));
+		// cx.incN0(stamp);
+		// persistamp(maxn(stamp, cx.n0()));
+		stamp.n = getNstamp(this).n;
 		return cx.abortExchange().nv(snapshot);
 	}
 	
@@ -843,10 +845,13 @@ public class DBSyntableBuilder extends DATranscxt {
 	@Override
 	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
 		try {
-			return new DBSyntext(conn,
+			ISemantext syntext = new DBSyntext(conn,
 				initConfigs(conn, loadSemantics(conn),
 						(c) -> new DBSyntableBuilder.SynmanticsMap(synode(), c)),
 				usr, runtimepath).creator(this);
+
+			// stamp = getNstamp(this);
+			return syntext;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new TransException(e.getMessage());
@@ -949,9 +954,28 @@ public class DBSyntableBuilder extends DATranscxt {
 			).nv(cp.nyquvect);
 	}
 
+	/**
+	 * close joining session.
+	 * <p>Debug Notes:<br>
+	 *  {@code rep.nv} is polluted, but should be safely dropped.</p>
+	 *  
+	 * @param cp
+	 * @param rep
+	 * @return reply
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public ExchangeBlock domainCloseJoin(ExessionPersist cp, ExchangeBlock rep)
 			throws TransException, SQLException {
 		// stamp = rep.nv.get(rep)
+		if (isblank(perdomain))
+			throw new ExchangeException(Exchanging.ready, cp, "domain is empty when closing domain joining?");
+
+		updateFieldByPk(this, synconn(), synm, synode(), synm.domain, perdomain, synrobot());
+
+		// Stamp will be persisted in closexchange().
+		stamp = maxn(rep.nv.get(cp.peer), stamp, cp.n0());
+
 		return closexchange(cp, rep);
 	}
 	

@@ -742,8 +742,8 @@ public class ExessionPersist {
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public Nyquence incN0(Nyquence... n) throws TransException, SQLException {
-		n0().inc(isNull(n) ? nyquvect.get(trb.synode()).n : n[0].n);
+	public Nyquence incN0(Nyquence... nomoreThan) throws TransException, SQLException {
+		n0().inc(isNull(nomoreThan) ? nyquvect.get(trb.synode()).n : nomoreThan[0].n);
 		DAHelper.updateFieldByPk(trb, trb.synconn(), synm, trb.synode(),
 				synm.nyquence, new ExprPart(n0().n), trb.synrobot());
 		return n0();

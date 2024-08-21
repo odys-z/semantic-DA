@@ -140,9 +140,34 @@ public class DAHelper {
 		return getNyquence(trb, trb.synconn(), trb.synm, trb.synm.nstamp, trb.synm.synoder, trb.synode());
 	}
 
+	/**
+	 * Load nyquence without triggering semantics handling.
+	 * 
+	 * @param trb
+	 * @param conn
+	 * @param m
+	 * @param nyqfield
+	 * @param where_eqs
+	 * @return nyquence
+	 * @throws SQLException
+	 * @throws TransException
+	 */
 	public static Nyquence getNyquence(DATranscxt trb, String conn, SynodeMeta m, String nyqfield, String... where_eqs)
 			throws SQLException, TransException {
-		return new Nyquence(getValong(trb, conn, m, nyqfield, where_eqs));
+		// return new Nyquence(getValong(trb, conn, m, nyqfield, where_eqs));
+		Query q = trb.select(m.tbl);
+		
+		for (int i = 0; i < where_eqs.length; i+=2)
+			q.whereEq(where_eqs[i], where_eqs[i+1]);
+		
+		AnResultset rs = (AnResultset) q 
+				.rs(trb.basictx().clone(DATranscxt.dummyUser()).connId(conn == null ? trb.basictx().connId() : conn))
+				.rs(0);
+		
+		if (rs.next())
+			return new Nyquence(rs.getLong(nyqfield));
+		else throw new SQLException(String
+			.format("Record not found: %s.%s = '%s' ... ", m.tbl, where_eqs[0], where_eqs[1]));
 	}
 	
 	/**
@@ -154,7 +179,7 @@ public class DAHelper {
 	 * @param conn
 	 * @param m
 	 * @param recId
-	 * @param field
+	 * @param vfield
 	 * @param v
 	 * @param usr
 	 * @return affected rows
@@ -162,9 +187,9 @@ public class DAHelper {
 	 * @throws SQLException
 	 */
 	public static SemanticObject updateFieldByPk(DATranscxt trb, String conn, TableMeta m, String recId,
-			String field, Object v, IUser usr) throws TransException, SQLException {
+			String vfield, Object v, IUser usr) throws TransException, SQLException {
 		return trb.update(m.tbl, usr)
-			.nv(field, v instanceof ExprPart
+			.nv(vfield, v instanceof ExprPart
 						? (ExprPart)v
 						: isPrimitive(v)
 						? new ExprPart(String.valueOf(v))
@@ -208,6 +233,8 @@ public class DAHelper {
 	 * Commit to DB({@code conn}) as user {@code usr}, with SQL:<br>
 	 * 
 	 * update m.tbl set field = v where whereqs[0] = whereqs[1] and whereqs[2] = whereqs[3] ...
+	 * 
+	 * @since 2.0.0
 	 * 
 	 * @param trb
 	 * @param conn

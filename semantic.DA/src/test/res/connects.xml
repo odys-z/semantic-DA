@@ -104,7 +104,7 @@
   		<src>syn.03</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg></dbg>
+  		<dbg>1</dbg>
   		<smtcs>synmantics-syntabuilder.xml</smtcs>
 	</c>
   </t>

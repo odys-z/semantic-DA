@@ -334,6 +334,8 @@ public class DBSyntableTest {
 
 			stb.onAbort(req);
 
+			printChangeLines(ck);
+			printNyquv(ck);
 			assertEquals(ck[W].n0().n, ck[W].stamp());
 			assertEquals(ck[Z].n0().n, ck[Z].stamp());
 			return;
@@ -560,7 +562,7 @@ public class DBSyntableTest {
 		Utils.logrst(String.format("%s initiate domain", cltb.synode()), testix, sect, ++no);
 
 		ExchangeBlock ack  = cltb.domainitMe(cltp, admin, resp);
-		Utils.logi(ack.nv);
+		Utils.logi(ack.nv, cltb.synode(), ".Ack.nv: ");
 
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -572,12 +574,12 @@ public class DBSyntableTest {
 
 		// applicant
 		Utils.logrst(new String[] {cltb.synode(), "closing application"}, testix, sect, ++no);
-		req = cltb.domainCloseJoin(cltp, resp);
+		req = cltb.domainCloseJoin(cltp, resp); // Debug Notes: resp.nv is polluted, but should be safely dropped.
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		Utils.logrst(new String[] {admb.synode(), "on closing"}, testix, sect, ++no);
-		admb.domainCloseJoin(admp, req);
+		admb.domainCloseJoin(admp, req); // Debug Notes: req.nv is polluted, but should be safely dropped.
 
 		printChangeLines(ck);
 		printNyquv(ck);
