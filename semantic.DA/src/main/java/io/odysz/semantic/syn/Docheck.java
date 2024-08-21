@@ -37,9 +37,6 @@ import io.odysz.transact.x.TransException;
 /**
  * Checker of each Synode.
  * 
- * TODO fail if found {@link io.odysz.semantic.DASemantics.smtype#synChange syn-change}
- * is configured.
- * 
  * @author Ody
  */
 public class Docheck {
@@ -121,13 +118,6 @@ public class Docheck {
 		this.tops = debugs;
 		this.domain = null;
 	}
-
-//	public HashMap<String, Nyquence> cloneNv() {
-//		HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(4);
-//		for (String n : trb.nyquvect.keySet())
-//			nv.put(n, new Nyquence(trb.nyquvect.get(n).n));
-//		return nv;
-//	}
 
 	public void doc(int count, String... synids) throws TransException, SQLException {
 		Query q = trb.select(docm.tbl).col(count(), "c");
@@ -517,6 +507,17 @@ public class Docheck {
 	}
 	
 	final boolean[] tops;
+	
+	/**
+	 * <p>Push connect' debug flags and return a checker instance.</p>
+	 * Example:
+	 * <pre>pushDebug()
+	 * .assertl(
+	 *  expect1, loadNyquvect(actual1), // logging suppressed
+	 *  expect2, loadNyquvect(actual2), // logging suppressed
+	 *  ...)
+	 * .popDebug();                     // logging restored</pre>
+	*/
 	public static Docheck pushDebug() {
 		if (ck != null) {
 			final boolean[] tops = new boolean[ck.length];
