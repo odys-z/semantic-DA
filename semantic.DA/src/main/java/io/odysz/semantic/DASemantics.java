@@ -1326,16 +1326,15 @@ public class DASemantics {
 	 * See Anclient.jave/album test for example.</p>
 	 * 
 	 * @author odys-z@github.com
-	 */
 	static public class ShExtFile extends SemanticHandler {
 		/** Saving root.<br>
-		 * The path rooted from return of {@link ISemantext#relativpath(String...)}. */
+		 * The path rooted from return of {@link ISemantext#relativpath(String...)}. * /
 		public static final int ixExtRoot = 0;
-		/** Index of Path field */
+		/** Index of Path field * /
 		static final int ixUri = 1;
 		static final int ixBusiCate = 2;
 		static final int ixSubCate = 3;
-		/** Index of client file name */
+		/** Index of client file name * /
 		static final int ixClientName = 4;
 
 		public ShExtFile(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException, SQLException {
@@ -1420,7 +1419,7 @@ public class DASemantics {
 		 * <p>Client should avoid updating an external file while handling business logics.</p>
 		 * <p><b>NOTE:</b><br>This can be changed in the future.</p>
 		 * @see io.odysz.semantic.DASemantics.SemanticHandler#onUpdate(io.odysz.semantics.ISemantext, io.odysz.transact.sql.Update, java.util.ArrayList, java.util.Map, io.odysz.semantics.IUser)
-		 */
+		 * /
 		@Override
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 			// onInsert(stx, null, row, cols, usr);
@@ -1512,6 +1511,7 @@ public class DASemantics {
 				}
 		}
 	}
+	*/
 
 	/**
 	 * <h5>Note</h5>
@@ -1572,6 +1572,9 @@ public class DASemantics {
 							if (clientname != null)
 								f.filename(clientname);
 						}
+						else Utils.warnT(new Object() {}, "Configured column name (%s) is not correct for generating document name.\n" +
+								"Check ext-file configuration: %s",
+								args[args.length - 1], target);
 
 						f.b64(nv[1].toString());
 						
