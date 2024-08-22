@@ -88,17 +88,6 @@ public class Connects {
 	private static final int CpConn = 2;
 
 	/**
-	 * Reload connects, including table metas.
-	 * 
-	 * @param xmlDir
-	public static void reload(String xmlDir) {
-		srcs = null;
-		metas = null;
-		init(xmlDir);
-	}
-	 */
-
-	/**
 	 * parse connects.xml, setup connections configured in table "drvmnger", for JDBC DriverManger,
 	 * and "dbcp", for JDBC connection-pooled connection managed by container.
 	 * 
