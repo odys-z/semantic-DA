@@ -136,7 +136,7 @@ public class DASemantextTest {
 				Connects.commit(usr, sqls, Connects.flag_nothing);
 				sqls.clear();
 			}
-			Connects.reload(runtimepath); // reload metas
+//			Connects.reload(runtimepath); // reload metas
 			st = new DATranscxt(connId);
 		} catch (Exception e) {
 			e.printStackTrace();

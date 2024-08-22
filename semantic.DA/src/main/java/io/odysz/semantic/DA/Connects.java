@@ -35,6 +35,7 @@ import io.odysz.semantic.meta.SemanticTableMeta;
 import io.odysz.semantic.util.LogFlags;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.meta.TableMeta;
+import io.odysz.semantic.DA.drvmnger.SqliteDriver2;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
@@ -86,11 +87,16 @@ public class Connects {
 	private static final int DmConn = 1;
 	private static final int CpConn = 2;
 
+	/**
+	 * Reload connects, including table metas.
+	 * 
+	 * @param xmlDir
 	public static void reload(String xmlDir) {
 		srcs = null;
 		metas = null;
 		init(xmlDir);
 	}
+	 */
 
 	/**
 	 * parse connects.xml, setup connections configured in table "drvmnger", for JDBC DriverManger,
@@ -147,6 +153,9 @@ public class Connects {
 				String id = conn.getString("id");
 				// boolean log = conn.getBool("log", false);
 				if (dmCp == DmConn)
+					if (srcs.get(id) != null)
+						;
+					else
 					srcs.put(id, AbsConnect.initDmConnect(xmlDir, type, conn.getString("src"),
 						conn.getString("usr"), conn.getString("pswd"),
 						conn.getBool("dbg", false), conn.getBool("log", false))

@@ -78,7 +78,7 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 * @return connection
 	 * @throws SQLException
 	 */
-	protected Connection getConnection() throws SQLException {
+	public Connection getConnection() throws SQLException {
 		return conn;
 	}
 	
