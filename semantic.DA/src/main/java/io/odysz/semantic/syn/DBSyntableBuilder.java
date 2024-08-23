@@ -159,20 +159,20 @@ public class DBSyntableBuilder extends DATranscxt {
 				: null;
 	} 
 
-	public DBSyntableBuilder(String domain, String conn, String synodeId, SynodeMode mode)
+	public DBSyntableBuilder(String domain, String conn, String mynodeId, SynodeMode mode)
 			throws Exception {
-		this(domain, conn, synodeId, mode,
+		this(domain, conn, mynodeId, mode,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
 	}
 	
-	public DBSyntableBuilder(String domain, String conn, String nid,
+	public DBSyntableBuilder(String domain, String conn, String mynid,
 			SynodeMode mode, SynChangeMeta chgm, SynodeMeta synm)
 			throws Exception {
 
 		super ( new DBSyntext(conn,
-			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSyntableBuilder.SynmanticsMap(nid, c)),
-			    	(IUser) new SyncRobot(nid, nid, "rob@" + nid, nid),
+			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSyntableBuilder.SynmanticsMap(mynid, c)),
+			    	(IUser) new SyncRobot(mynid, mynid, "rob@" + mynid, mynid),
 			    	runtimepath));
 		
 		debug    = Connects.getDebug(conn);
@@ -181,11 +181,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;
-		tx.synode = nid;
-		// dom = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
-//		((SyncRobot)tx.usr())
-//			.orgId(getValstr((Transcxt) this, conn, synm, synm.org, synm.pk, nid))
-//			.domain(getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, nid));
+		tx.synode = mynid;
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
@@ -204,16 +200,16 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		if (mode != SynodeMode.nonsyn) {
 			if (DAHelper.count(this, conn, synm.tbl,
-						synm.synoder, nid, synm.domain, perdomain) <= 0) {
+						synm.synoder, mynid, synm.domain, perdomain) <= 0) {
 				if (debug) Utils
 					.warnT(new Object() {},
 						  "\nThis syntable builder is being buit for node %s which doesn't exists in domain %s." +
 						  "\nThis instence can only be useful if is used to initialize the domain for the node",
-						  nid, perdomain);
+						  mynid, perdomain);
 			}
 			else
 				stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
-						synm.synoder, nid, synm.domain, perdomain);
+						synm.synoder, mynid, synm.domain, perdomain);
 
 			registerEntity(conn, synm);
 		}
