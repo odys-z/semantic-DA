@@ -128,14 +128,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 
-	/*
-	public Nyquence n0() { return nyquvect.get(synode()); }
-	protected DBSyntableBuilder n0(Nyquence nyq) {
-		nyquvect.put(synode(), new Nyquence(nyq.n));
-		return this;
-	}
-	*/
-
 	String perdomain;
 	public String domain() { return perdomain; }
 	private DBSyntableBuilder domain(String domain) {
