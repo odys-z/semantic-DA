@@ -674,8 +674,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ExchangeBlock abortExchange(ExessionPersist cx)
 			throws TransException, SQLException {
 		HashMap<String, Nyquence> snapshot = Nyquence.clone(cx.nyquvect);
-		// cx.incN0(stamp);
-		// persistamp(maxn(stamp, cx.n0()));
 		stamp.n = getNstamp(this).n;
 		return cx.abortExchange().nv(snapshot);
 	}

@@ -10,11 +10,9 @@ import io.odysz.transact.sql.Insert;
 import io.odysz.transact.x.TransException;
 
 /**
- * <b>Design Note</b>
- * <p>An entity type for used in the protocol layer.</p>
+ * Synode Information.
  * 
  * @author odys-z@github.com
- *
  */
 public class Synode extends Anson {
 
