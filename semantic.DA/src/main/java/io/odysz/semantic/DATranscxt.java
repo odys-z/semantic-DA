@@ -340,11 +340,11 @@ public class DATranscxt extends Transcxt {
 					@Override public String tableTag() { return "t"; }
 					@Override public String recordTag() { return "s"; }});
 
-		XMLTable xconn = xtabs.get("semantics");
-		if (xconn == null)
+		XMLTable xtbl = xtabs.get("semantics");
+		if (xtbl == null)
 			throw new SemanticException("Xml structure error (no semantics table) in\n%s", fpath);
 		
-		return xconn;
+		return xtbl;
 	}
 	
 	@SuppressWarnings("unchecked")

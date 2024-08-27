@@ -22,6 +22,8 @@ public class ExchangeBlock extends Anson {
 
 	public AnResultset anspage;
 
+	public ExchangeBlock() { }
+
 	/**
 	 * Is the synode has more challenge blocks, which is
 	 * need to behandled before closing exchange?
