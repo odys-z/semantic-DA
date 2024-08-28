@@ -31,11 +31,9 @@ import io.odysz.module.xtable.XMLDataFactory;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.module.xtable.XMLTable.IMapValue;
-import io.odysz.semantic.meta.SemanticTableMeta;
 import io.odysz.semantic.util.LogFlags;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.meta.TableMeta;
-import io.odysz.semantic.DA.drvmnger.SqliteDriver2;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 

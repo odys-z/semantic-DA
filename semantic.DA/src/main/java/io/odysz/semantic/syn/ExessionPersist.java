@@ -380,8 +380,8 @@ public class ExessionPersist {
 
 			if (dn == null) {
 				throw new ExchangeException(ready, this,
-					"%s:%s(), doesn't have knowledge about %s.",
-					trb.synode(), new Object(){}.getClass().getEnclosingMethod().getName(), peer);
+					"%1$s.init(): %1$s doesn't have knowledge about %2$s.",
+					trb.synode(), peer);
 			}
 		}
 		else 

@@ -304,11 +304,13 @@ public class DAHelper {
 		Insert ins = t0.insert(snm.tbl, usr);
 
 		for (int x = 0; x < nvs.length; x+=2)
-			ins.nv((String)nvs[x], nvs[x+1] instanceof ExprPart
-							? (ExprPart)nvs[x+1]
-							: isPrimitive(nvs[x+1])
-							? new ExprPart(String.valueOf(nvs[x+1]))
-							: Funcall.constr(nvs[x+1].toString()));
+			ins.nv((String)nvs[x], nvs[x+1] == null
+						? new ExprPart()
+						: nvs[x+1] instanceof ExprPart
+						? (ExprPart)nvs[x+1]
+						: isPrimitive(nvs[x+1])
+						? new ExprPart(String.valueOf(nvs[x+1]))
+						: Funcall.constr(nvs[x+1].toString()));
 			
 		return (SemanticObject) ins
 				.ins(t0.instancontxt(conn, usr));

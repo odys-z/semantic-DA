@@ -182,8 +182,11 @@ public class DATranscxt extends Transcxt {
 		}
 	}
 
-	/**Create a select statement.
+	/**
+	 * Create a select statement.
+	 * 
 	 * <p>This statement is the starting points to build a sql transact for querying.<br>
+	 * 
 	 * For how to use the created statements, see the testing class:
 	 * <a href='https://github.com/odys-z/semantic-transact/blob/master/semantic.transact/src/test/java/io/odysz/transact/sql/TestTransc.java'>
 	 * DASemantextTest</a>.</p>
@@ -216,11 +219,14 @@ public class DATranscxt extends Transcxt {
 		return q;
 	}
 
-	/**Create an insert statement that will report affected rows as data entry "total".
+	/**
+	 * Create an insert statement that will report affected rows as data entry "total".
+	 * 
 	 * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
 	 * For how to use the created statements, see the testing class:
 	 * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/java/io/odysz/semantic/DASemantextTest.java'>
 	 * DASemantextTest</a>.</p>
+	 * 
 	 * @param tabl
 	 * @param usr
 	 * @return the starting statement
@@ -233,7 +239,6 @@ public class DATranscxt extends Transcxt {
 			// Since v1.4.12, table stamps is handled here
 			sctx.onCommitted(sctx, tabl);
 
-			// return new SemanticObject().addInts("total", r).put("resulved", sctx.resulves());
 			return new SemanticObject().addInts("total", r).put("resulved", sctx.resulves());
 		});
 		return i;
@@ -244,7 +249,9 @@ public class DATranscxt extends Transcxt {
 		return ((HashMap<String, String>) ((SemanticObject) rslt.get("resulved")).get(tabl)).get(pk);
 	}
 
-	/**Create an update statement that will report affected rows as data entry "total".
+	/**
+	 * Create an update statement that will report affected rows as data entry "total".
+	 * 
 	 * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
 	 * For how to use the created statements, see the testing class:
 	 * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/java/io/odysz/semantic/DASemantextTest.java'>
@@ -288,9 +295,9 @@ public class DATranscxt extends Transcxt {
 		return d;
 	}
 
-	// public String getSysConnId() { return Connects.defltConn(); }
-
-	/**<p>Create a transact builder with basic DASemantext instance.</p>
+	/**
+	 * <p>Create a transact builder with basic DASemantext instance.</p>
+	 * 
 	 * <p>If it's a null configuration, the semantics can not be used to resulving semantics between records,
 	 * but can be used to do basic sql operation. (resulving is a special concept of semantic-*, see docs)</p>
 	 * 
@@ -324,7 +331,8 @@ public class DATranscxt extends Transcxt {
 	 * @throws SQLException 
 	 * @throws SemanticException 
 	 */
-	public static XMLTable loadSemantics(String connId) throws SAXException, IOException, SemanticException {
+	public static XMLTable loadSemantics(String connId)
+			throws SAXException, IOException, SemanticException {
 
 		String fpath = Connects.getSmtcsPath(connId);
 		if (isblank(fpath, "\\."))
@@ -463,14 +471,14 @@ public class DATranscxt extends Transcxt {
 	public static IUser dummyUser() {
 		if (dummy == null)
 			dummy = new IUser() {
-					@Override public TableMeta meta(String ... connId) { return null; }
-					@Override public String uid() { return "dummy"; }
-					@Override public IUser logAct(String funcName, String funcId) { return null; }
-					@Override public IUser notify(Object note) throws TransException { return this; }
-					@Override public List<Object> notifies() { return null; }
-					@Override public long touchedMs() { return 0; }
-					@Override public IUser sessionKey(String ssId) { return this; }
-					@Override public String sessionKey() { return null; } };
+				@Override public TableMeta meta(String ... connId) { return null; }
+				@Override public String uid() { return "dummy"; }
+				@Override public IUser logAct(String funcName, String funcId) { return null; }
+				@Override public IUser notify(Object note) throws TransException { return this; }
+				@Override public List<Object> notifies() { return null; }
+				@Override public long touchedMs() { return 0; }
+				@Override public IUser sessionKey(String ssId) { return this; }
+				@Override public String sessionKey() { return null; } };
 		return dummy;
 	}
 
