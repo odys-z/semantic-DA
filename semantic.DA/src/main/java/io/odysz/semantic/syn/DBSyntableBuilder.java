@@ -933,8 +933,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			}
 		}
 
-		// persistamp(mxn);
-
 		return new ExchangeBlock(synode(), admin, domainstatus.session,
 				new ExessionAct(ExessionAct.mode_client, setupDom)
 			).nv(cp.nyquvect);
