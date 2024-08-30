@@ -561,7 +561,7 @@ public class DBSyntableTest {
 		// applicant
 		Utils.logrst(String.format("%s initiate domain", cltb.synode()), testix, sect, ++no);
 
-		ExchangeBlock ack  = cltb.domainitMe(cltp, admin, resp);
+		ExchangeBlock ack  = cltb.domain("zsu").domainitMe(cltp, admin, resp);
 		Utils.logi(ack.nv, cltb.synode(), ".Ack.nv: ");
 
 		printChangeLines(ck);

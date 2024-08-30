@@ -346,6 +346,13 @@ public class ExessionPersist {
 		debug = trb == null ? true : Connects.getDebug(trb.synconn());
 	}
 
+	/**
+	 * Create a signing up request.
+	 * @param admin
+	 * @return the request
+	 * @throws SQLException
+	 * @throws TransException
+	 */
 	public ExchangeBlock signup(String admin) throws SQLException, TransException {
 		nyquvect = loadNyquvect(trb);
 		exstate.state = signup;

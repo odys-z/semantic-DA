@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import io.odysz.anson.Anson;
+import io.odysz.anson.AnsonField;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 
@@ -15,6 +16,8 @@ public class ExchangeBlock extends Anson {
 
 	public String srcnode;
 	public String peer;
+	
+	@AnsonField(valType="io.odysz.semantic.syn.Nyquence")
 	public HashMap<String, Nyquence> nv;
 
 	public AnResultset chpage;

@@ -130,7 +130,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	String perdomain;
 	public String domain() { return perdomain; }
-	private DBSyntableBuilder domain(String domain) {
+	public DBSyntableBuilder domain(String domain) {
 		this.perdomain = domain;
 		return this;
 	}
@@ -844,6 +844,14 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 	}
 	
+	/**
+	 * Set n-stamp, then create a request package.
+	 * @param app
+	 * @param admin
+	 * @return the request
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public ExchangeBlock domainSignup(ExessionPersist app, String admin) throws TransException, SQLException {
 		try {
 			stamp = getNstamp(this);
@@ -872,6 +880,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				.nv(chgm.uids, SynChangeMeta.uids(synode(), apply.synodeId))
 				.nv(chgm.nyquence, ap.n0().n)
 				.nv(chgm.seq, incSeq())
+				// .nv(chgm.domain, domain())
 				.nv(chgm.domain, domain())
 				.post(insert(subm.tbl)
 					.cols(subm.insertCols())
@@ -901,6 +910,10 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	public ExchangeBlock domainitMe(ExessionPersist cp, String admin, ExchangeBlock domainstatus)
 			throws TransException, SQLException {
+		
+		if (isblank(domain()))
+			throw new ExchangeException(setupDom, cp, "Domain is null for updating %s.%s?",
+					synm.tbl, synm.domain);
 
 		Nyquence mxn = domainstatus.nv.get(admin); 
 
@@ -934,8 +947,8 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 
 		return new ExchangeBlock(synode(), admin, domainstatus.session,
-				new ExessionAct(ExessionAct.mode_client, setupDom)
-			).nv(cp.nyquvect);
+				new ExessionAct(ExessionAct.mode_client, setupDom))
+				.nv(cp.nyquvect);
 	}
 
 	/**
