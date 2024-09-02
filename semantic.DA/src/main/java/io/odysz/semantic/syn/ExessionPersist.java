@@ -270,8 +270,6 @@ public class ExessionPersist {
 					: eq(change, CRUD.U)
 					? trb.update(entm.tbl, trb.synrobot())
 						.nvs(entm.updateEntNvs(chgm, chuids, entbuf.get(entm.tbl), changes))
-						// .whereEq(entm.synoder, synodr)
-						// .whereEq(entm.domain, domain)
 						.whereEq(entm.synuid, chuids)
 						.post(subscribeUC.size() <= 0
 							? null : trb.insert(chgm.tbl)
