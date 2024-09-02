@@ -20,7 +20,7 @@ public class AssertImpl implements IAssert {
 
 	@Override
 	public void fail(String e) throws Error {
-		fail(e);
+		org.junit.jupiter.api.Assertions.fail(e);
 	}
 
 	@Override

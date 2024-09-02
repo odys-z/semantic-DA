@@ -872,15 +872,18 @@ public class DBSyntableBuilder extends DATranscxt {
 		Synode apply = new Synode(basictx.connId(), childId, org, domain());
 
 		req.synodes.beforeFirst().next();
+		
+		String syn_uids = req.synodes.getString(synm.synuid);
 
 		((SemanticObject) apply
 			// .insert(synm, synode(), ap.n0(), insert(synm.tbl, robot))
-			.insert(synm, req.synodes.getString(synm.synuid), ap.n0(), insert(synm.tbl, robot))
+			.insert(synm, syn_uids, ap.n0(), insert(synm.tbl, robot))
 			.post(insert(chgm.tbl, robot)
 				.nv(chgm.entbl, synm.tbl)
 				.nv(chgm.crud, CRUD.C)
 				.nv(chgm.synoder, synode())
-				.nv(chgm.uids, SynChangeMeta.uids(synode(), apply.synodeId))
+				// .nv(chgm.uids, SynChangeMeta.uids(synode(), apply.synodeId))
+				.nv(chgm.uids, syn_uids)
 				.nv(chgm.nyquence, ap.n0().n)
 				.nv(chgm.seq, incSeq())
 				.nv(chgm.domain, domain())

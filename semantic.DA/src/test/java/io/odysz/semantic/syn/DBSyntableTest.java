@@ -293,9 +293,10 @@ public class DBSyntableTest {
 		ck[Z].synodes(X,  Y,  Z, -1);
 		ck[W].synodes(-1, Y, -1, W);
 
-		ck[Y].change_log(1, C, "Y", "W", ck[Y].trb.synm);
+		ck[Y].change_log_uids(1, C, "Y", "W,W", ck[Y].trb.synm);
+		ck[Y].change_log_uids(0, C, "Y", "Y,W", ck[Y].trb.synm);
 		ck[Y].buf_change(0, C, "W", ck[Y].trb.synm);
-		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
+		ck[Y].synsubs(2, "W,W", X, -1, Z, -1);
 		
 		assertEquals("Y,Y", DAHelper.getValstr(ck[Y].trb, ck[Y].trb.synconn(),
 					snm, snm.synuid, snm.synoder, "Y"));
@@ -303,12 +304,12 @@ public class DBSyntableTest {
 		Utils.logrst("X vs Y", section, ++no);
 		exchangeSynodes(X, Y, section, 2);
 		ck[X].synodes(X, Y, Z, W);
-		ck[X].change_log(1, C, "Y", "W", ck[X].trb.synm);
-		ck[X].buf_change(0, C, "Y", "W", ck[X].trb.synm);
-		ck[X].synsubs(1, "Y,W", -1, -1, Z, -1);
+		ck[X].change_log_uids(1, C, "Y", "W,W", ck[X].trb.synm);
+		ck[X].buf_change(0, C, "Y", "W,W", ck[X].trb.synm);
+		ck[X].synsubs(1, "W,W", -1, -1, Z, -1);
 
 		ck[Z].synodes(X, Y, Z, -1);
-		ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
+		ck[Z].synsubs(0, "W,W", -1, -1, -1, -1);
 		
 		Utils.logrst("X create photos", section, ++no);
 		String[] x_uids = insertPhoto(X);
@@ -323,7 +324,7 @@ public class DBSyntableTest {
 		Utils.logrst("X <= Z", section, ++no);
 		exchangeSynodes(X, Z, section, no);
 		ck[Z].synodes(X, Y, Z, W);
-		ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
+		ck[Z].synsubs(0, "W,W", -1, -1, -1, -1);
 		Utils.logrst("On X-Z: Now Z knows W", section, ++no);
 		
 		Utils.logrst("Z vs W", section, ++no);

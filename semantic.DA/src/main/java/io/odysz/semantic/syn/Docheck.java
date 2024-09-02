@@ -160,6 +160,7 @@ public class Docheck {
 		return change_log(count, crud, synoder, eid, docm);
 	}
 
+	// public long change_log(int count, String crud, String synoder, String eid, SyntityMeta entm)
 	public long change_log(int count, String crud, String synoder, String eid, SyntityMeta entm)
 			throws TransException, SQLException {
 		Query q = trb
@@ -169,6 +170,8 @@ public class Docheck {
 				.whereEq(trb.chgm.entbl, entm.tbl);
 			if (synoder != null)
 				q.whereEq(trb.chgm.synoder, synoder);
+
+			//
 			if (eid != null)
 				q.whereEq(trb.chgm.uids, SynChangeMeta.uids(synoder, eid));
 
@@ -188,6 +191,38 @@ public class Docheck {
 			}
 			return 0;
 	}
+
+	public long change_log_uids(int count, String crud, String synoder, String uids, SyntityMeta entm)
+			throws TransException, SQLException {
+		Query q = trb
+				.select(trb.chgm.tbl, "ch")
+				.cols((Object[])trb.chgm.insertCols())
+				.whereEq(trb.chgm.domain, domain)
+				.whereEq(trb.chgm.entbl, entm.tbl);
+			if (synoder != null)
+				q.whereEq(trb.chgm.synoder, synoder);
+
+			// 
+			if (uids != null)
+				q.whereEq(trb.chgm.uids, uids);
+
+			AnResultset chg = (AnResultset) q
+					.rs(trb.instancontxt(connId(), robot()))
+					.rs(0);
+			
+			if (!chg.next() && count > 0)
+				azert.fail(String.format("Expecting count == %d, but is actual 0", count));
+
+			azert.equali(count, chg.getRowCount());
+			if (count > 0) {
+				azert.equals(crud, chg.getString(trb.chgm.crud));
+				azert.equals(entm.tbl, chg.getString(trb.chgm.entbl));
+				azert.equals(synoder, chg.getString(trb.chgm.synoder));
+				return chg.getLong(trb.chgm.nyquence);
+			}
+			return 0;
+	}
+
 
 	public long buf_change(int count, String crud, String synoder, String eid, SyntityMeta entm)
 			throws TransException, SQLException {
