@@ -86,7 +86,8 @@ public class DBSynmantics extends DASemantics {
 						.where(op.ne, b.synm.synoder, constr(b.synode()))
 						.whereEq(b.synm.domain, b.domain())));
 		if (pid instanceof Resulving)
-			insc.nv(b.chgm.uids, SynChangeMeta.uids(b.synode(), (Resulving)pid));
+			// insc.nv(b.chgm.uids, SynChangeMeta.uids(b.synode(), (Resulving)pid));
+			insc.nv(b.chgm.uids, SynChangeMeta.uids(synode, (Resulving)pid));
 		else
 			insc.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
 

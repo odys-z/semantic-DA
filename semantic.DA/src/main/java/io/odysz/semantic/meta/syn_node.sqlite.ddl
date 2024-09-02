@@ -9,7 +9,7 @@ CREATE TABLE if not exists syn_node (
 	mac       varchar2(64),
 	oper      varchar2(12),
 	optime    datetime,
-	io_oz_synuid varchar2(25),
+	io_oz_synuid varchar2(25) NOT NULL,
 	-- this commound pk means the table can not maintained as a parent table by Semantics.DA
 	PRIMARY KEY (org, domain, synid)
 );

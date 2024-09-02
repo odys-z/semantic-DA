@@ -57,9 +57,8 @@ public class DAHelper {
 			Funcall valexpr, String as, Object...kvs) throws TransException, SQLException {
 		Query q = trb.select(m.tbl);
 
-		for (int i = 0; i < kvs.length; i+=2) {
-				q.whereEq((String)kvs[i], kvs[i+1]);
-		}
+		for (int i = 0; i < kvs.length; i+=2) 
+			q.whereEq((String)kvs[i], kvs[i+1]);
 
 		AnResultset rs = (AnResultset) q
 				.col(valexpr, as)
@@ -314,5 +313,12 @@ public class DAHelper {
 			
 		return (SemanticObject) ins
 				.ins(t0.instancontxt(conn, usr));
+	}
+	
+	public static AnResultset getEntityById(DATranscxt b, TableMeta m, String id)
+			throws SQLException, TransException {
+		return ((AnResultset) b.select(m.tbl)
+				.whereEq(m.pk, id).rs(b.instancontxt(b.basictx().connId(), DATranscxt.dummyUser()))
+				.rs(0));
 	}
 }

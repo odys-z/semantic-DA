@@ -47,6 +47,7 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
@@ -295,6 +296,9 @@ public class DBSyntableTest {
 		ck[Y].change_log(1, C, "Y", "W", ck[Y].trb.synm);
 		ck[Y].buf_change(0, C, "W", ck[Y].trb.synm);
 		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
+		
+		assertEquals("Y,Y", DAHelper.getValstr(ck[Y].trb, ck[Y].trb.synconn(),
+					snm, snm.synuid, snm.synoder, "Y"));
 		
 		Utils.logrst("X vs Y", section, ++no);
 		exchangeSynodes(X, Y, section, 2);
@@ -860,6 +864,4 @@ public class DBSyntableTest {
 
 		return new String[] {pid, chgid, synuid };
 	}
-	
-
 }

@@ -870,9 +870,12 @@ public class DBSyntableBuilder extends DATranscxt {
 		IUser robot = synrobot();
 	
 		Synode apply = new Synode(basictx.connId(), childId, org, domain());
-	
-		@SuppressWarnings("unused")
-		String chgid = ((SemanticObject) apply.insert(synm, synode(), ap.n0(), insert(synm.tbl, robot))
+
+		req.synodes.beforeFirst().next();
+
+		((SemanticObject) apply
+			// .insert(synm, synode(), ap.n0(), insert(synm.tbl, robot))
+			.insert(synm, req.synodes.getString(synm.synuid), ap.n0(), insert(synm.tbl, robot))
 			.post(insert(chgm.tbl, robot)
 				.nv(chgm.entbl, synm.tbl)
 				.nv(chgm.crud, CRUD.C)
@@ -880,9 +883,8 @@ public class DBSyntableBuilder extends DATranscxt {
 				.nv(chgm.uids, SynChangeMeta.uids(synode(), apply.synodeId))
 				.nv(chgm.nyquence, ap.n0().n)
 				.nv(chgm.seq, incSeq())
-				// .nv(chgm.domain, domain())
 				.nv(chgm.domain, domain())
-				.post(insert(subm.tbl)
+				.post(insert(subm.tbl) // TODO the tree mode is different here
 					.cols(subm.insertCols())
 					.select((Query)select(synm.tbl)
 						.col(new Resulving(chgm.tbl, chgm.pk))
@@ -938,7 +940,8 @@ public class DBSyntableBuilder extends DATranscxt {
 				else {
 					Synode n = new Synode(ns, synm);
 					mxn = maxn(domainstatus.nv);
-					n.insert(synm, synode(), mxn, insert(synm.tbl, synrobot()))
+					// n.insert(synm, synode(), mxn, insert(synm.tbl, synrobot()))
+					n.insert(synm, ns.getString(synm.synuid), mxn, insert(synm.tbl, synrobot()))
 						.ins(instancontxt(basictx.connId(), synrobot()));
 
 					cp.nyquvect.put(n.synodeId, new Nyquence(mxn.n));
