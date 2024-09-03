@@ -119,6 +119,13 @@ public class Docheck {
 		this.domain = null;
 	}
 
+	/**
+	 * Check doc count. 
+	 * @param count
+	 * @param synids
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public void doc(int count, String... synids) throws TransException, SQLException {
 		Query q = trb.select(docm.tbl).col(count(), "c");
 		if (!isNull(synids))
