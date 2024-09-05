@@ -1,7 +1,7 @@
 package io.odysz.semantic.syn;
 
 /**
- * Interface for separating Semantic.DA's utils, e. g. Docheck from depending
+ * Interface for separating Semantic.DA's utils, e. g. Docheck, from depending
  * on JUnit test package.
  * 
  * Implementation example:<pre>
