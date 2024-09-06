@@ -112,7 +112,7 @@ for (String coln : colnames.keySet())
 	 */
 	public int rowIndex0(String k) {
 		return indices0 == null || !indices0.containsKey(k)
-			? -1 : indices0.get(k);
+			? -1 : Integer.valueOf(indices0.get(k)); // FIXME
 	}
 
 	/** for deserializing */
