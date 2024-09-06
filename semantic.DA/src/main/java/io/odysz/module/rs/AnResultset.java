@@ -112,7 +112,7 @@ for (String coln : colnames.keySet())
 	 */
 	public int rowIndex0(String k) {
 		return indices0 == null || !indices0.containsKey(k)
-			? -1 : Integer.valueOf(indices0.get(k)); // FIXME
+			? -1 : indices0.get(k);
 	}
 
 	/** for deserializing */
@@ -830,7 +830,6 @@ for (String coln : colnames.keySet())
 		return null;
 	}
 
-
 	/**Get col index
 	 * @param colName
 	 * @return col index
@@ -905,7 +904,10 @@ for (String coln : colnames.keySet())
 		return set((Integer)colnames.get(colName.toUpperCase())[0], v);
 	}
 
-	/**Find the first row that contain a matched value in field <i>col</i>. The matching is done with {@code regex}.
+	/**
+	 * Find the first row that contain a matched value in field <i>col</i>.
+	 * The matching is done with {@code regex}.
+	 * 
 	 * @param col
 	 * @param regex
 	 * @return row index or 0
@@ -1174,6 +1176,21 @@ for (String coln : colnames.keySet())
 	}
 
 	/**
+	 * Generate row indices, start at 0.
+	 * FIXME move this method to Query and be called before rs construction.
+	 * @param pk
+	 * @return this
+	 */
+	public AnResultset index0(String pk) {
+		if (indices0 == null)
+			indices0 = new HashMap<String, Integer>();
+		for (int i = 0; i < results.size(); i++) {
+			indices0.put((String) results.get(i).get(getColumex(pk)-1), i);
+		}
+		return this;
+	}
+	
+	/**
 	 * A mutation of {@link #next()}. If has a next row, move index and
 	 * return this, otherwise null.
 	 * <p>For convenience if only needs to check the first row.</p>
@@ -1212,21 +1229,6 @@ for (String coln : colnames.keySet())
 	 */
 	public boolean hasprev() {
 		return (rs != null || results != null) && 1 < rowIdx;
-	}
-
-	/**
-	 * Generate row indices, start at 0.
-	 * FIXME move this method to Query and be called before rs construction.
-	 * @param pk
-	 * @return this
-	 */
-	public AnResultset index0(String pk) {
-		if (indices0 == null)
-			indices0 = new HashMap<String, Integer>();
-		for (int i = 0; i < results.size(); i++) {
-			indices0.put((String) results.get(i).get(getColumex(pk)-1), i);
-		}
-		return this;
 	}
 
 	/**
