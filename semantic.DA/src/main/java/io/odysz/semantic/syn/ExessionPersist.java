@@ -765,6 +765,10 @@ public class ExessionPersist {
 
 		AnResultset rs = ((AnResultset) t.select(t.synm.tbl)
 				.cols(t.synm.pk, t.synm.nyquence, t.synm.nstamp)
+
+				// FIXME no domain?
+				.whereEq(t.synm.domain, t.domain()) // ???
+				
 				.rs(t.instancontxt(t.synconn(), t.synrobot()))
 				.rs(0));
 		

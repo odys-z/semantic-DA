@@ -53,11 +53,11 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public static void setupSqliTables(String conn, SemanticTableMeta ... ms) throws SQLException, TransException {
+	public static void setupSqliTables(String conn, boolean force_drop, SemanticTableMeta ... ms) throws SQLException, TransException {
 		if (ms != null)
 		for (TableMeta m : ms)
 			if (m.ddlSqlite != null) {
-				Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", m.tbl));
+				if (force_drop) Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", m.tbl));
 				Connects.commit(conn, DATranscxt.dummyUser(), m.ddlSqlite);
 			}
 	}

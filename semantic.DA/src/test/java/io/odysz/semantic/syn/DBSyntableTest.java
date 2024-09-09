@@ -148,7 +148,7 @@ public class DBSyntableTest {
 			snm = new SynodeMeta(conn);
 			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn); //.replace();
 
-			SemanticTableMeta.setupSqliTables(conn, snm, chm, sbm, xbm, prm, ssm, phm);
+			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
 
 			phm.replace();
 
