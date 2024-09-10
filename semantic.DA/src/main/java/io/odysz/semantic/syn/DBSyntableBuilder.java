@@ -798,7 +798,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			entityRegists.put(conn, new HashMap<String, SyntityMeta>());
 
 		entityRegists.get(conn).put(m.tbl, (SyntityMeta) m.clone(Connects.getMeta(conn, m.tbl)));
-		// return this;
 	}
 	
 	public SyntityMeta getEntityMeta(String entbl) throws SemanticException {
