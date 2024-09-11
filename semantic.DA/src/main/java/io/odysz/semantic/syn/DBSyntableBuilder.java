@@ -912,7 +912,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		return rep;
 	}
 
-	public ExchangeBlock domainitMe(ExessionPersist cp, String admin, ExchangeBlock domainstatus)
+	public ExchangeBlock domainitMe(ExessionPersist cp, String admin, String adminserv, ExchangeBlock domainstatus)
 			throws TransException, SQLException {
 		
 		if (isblank(domain()))
@@ -944,7 +944,8 @@ public class DBSyntableBuilder extends DATranscxt {
 					mxn = maxn(domainstatus.nv);
 					// n.insert(synm, synode(), mxn, insert(synm.tbl, synrobot()))
 					n.insert(synm, ns.getString(synm.synuid), mxn, insert(synm.tbl, synrobot()))
-						.ins(instancontxt(basictx.connId(), synrobot()));
+					 .nv(synm.jserv, adminserv)
+					 .ins(instancontxt(basictx.connId(), synrobot()));
 
 					cp.nyquvect.put(n.synodeId, new Nyquence(mxn.n));
 				}

@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 import io.odysz.common.IAssert;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
@@ -59,6 +60,8 @@ public class Docheck {
 	static SynchangeBuffMeta xbm = new SynchangeBuffMeta(chm);
 	static SynSessionMeta ssm = new SynSessionMeta();
 	static PeersMeta prm = new PeersMeta();
+
+	public final DATranscxt b0;
 
 	public IUser robot() { return trb.synrobot(); }
 
@@ -112,12 +115,16 @@ public class Docheck {
 		this.docm = docm;
 		this.domain = trb.domain();
 		this.tops = null;
+		
+		this.b0 = new DATranscxt(trb.synconn());
 	}
 	
-	private Docheck(boolean[] debugs) {
+	private Docheck(boolean[] debugs) throws Exception {
 		this.trb = null;
 		this.tops = debugs;
 		this.domain = null;
+
+		this.b0 = new DATranscxt(null);
 	}
 
 	/**
@@ -560,8 +567,9 @@ public class Docheck {
 	 *  expect2, loadNyquvect(actual2), // logging suppressed
 	 *  ...)
 	 * .popDebug();                     // logging restored</pre>
+	 * @throws Exception 
 	*/
-	public static Docheck pushDebug() {
+	public static Docheck pushDebug() throws Exception {
 		if (ck != null) {
 			final boolean[] tops = new boolean[ck.length];
 			for (int cx = 0; cx < ck.length; cx++) {

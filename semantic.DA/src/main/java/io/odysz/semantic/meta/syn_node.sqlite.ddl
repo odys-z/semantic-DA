@@ -5,6 +5,7 @@ CREATE TABLE if not exists syn_node (
 	nyq       long NOT NULL DEFAULT 0, -- for synchronizing
 	nstamp    long NOT NULL DEFAULT 0, -- for stamping new change logs
 	domain    varchar2(12),            -- usually org id, null only for new nodes befor joining
+	jserv     varchar2(512),           -- long enough as URL with many arguemtns should be a new infrastructure 
 	remarks   varchar2(256),
 	mac       varchar2(64),
 	oper      varchar2(12),

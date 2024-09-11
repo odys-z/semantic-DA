@@ -49,6 +49,7 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 	 * Commit Sqlite3 table ddls defined by m[i].ddlSqlite.
 	 * 
 	 * @param conn
+	 * @param force_drop force dropping table before commit {@link TableMeta#ddlSqlite}.
 	 * @param ms
 	 * @throws SQLException
 	 * @throws TransException

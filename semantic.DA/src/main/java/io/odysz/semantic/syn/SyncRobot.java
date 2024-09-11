@@ -34,6 +34,7 @@ public class SyncRobot extends SemanticObject implements IUser {
 	protected long touched;
 	protected String userId;
 	protected String userName;
+	protected String pswd;
 
 	protected String orgId;
 	public String orgId() { return orgId; }
@@ -63,7 +64,6 @@ public class SyncRobot extends SemanticObject implements IUser {
 	public SyncRobot(String userid, String device) {
 		this.userId = userid;
 		deviceId = device;
-//		domain = syndomain;
 	}
 
 	/**
@@ -77,7 +77,7 @@ public class SyncRobot extends SemanticObject implements IUser {
 		this.userId = userid;
 		this.userName = userName;
 		this.deviceId = device;
-//		domain = device; // FIXME not correct
+		this.pswd = pswd;
 	}
 	
 	public static class RobotMeta extends TableMeta {
@@ -113,6 +113,8 @@ public class SyncRobot extends SemanticObject implements IUser {
 	@Override public long touchedMs() { return touched; } 
 
 	@Override public String uid() { return userId; }
+
+	@Override public String pswd() { return pswd; }
 
 	@Override public void writeJsonRespValue(Object writer) throws IOException { }
 

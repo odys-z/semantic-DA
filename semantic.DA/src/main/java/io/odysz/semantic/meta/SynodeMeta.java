@@ -8,7 +8,6 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantics.x.SemanticException;
-import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -32,6 +31,8 @@ public class SynodeMeta extends SyntityMeta {
 
 	public final String synoder;
 
+	public final String jserv;
+
 	/**
 	 * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
 	 * 
@@ -49,6 +50,7 @@ public class SynodeMeta extends SyntityMeta {
 		nstamp  = "nstamp";
 		org     = "org";
 		domain  = "domain";
+		jserv   = "jserv";
 		synoder = pk;
 
 		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
