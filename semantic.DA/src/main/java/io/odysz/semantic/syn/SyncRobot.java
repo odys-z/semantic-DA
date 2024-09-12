@@ -51,6 +51,10 @@ public class SyncRobot extends SemanticObject implements IUser {
 
 	protected String deviceId;
 	public String deviceId() { return deviceId; }
+	public SyncRobot deviceId(String devid) {
+		deviceId = devid;
+		return this;
+	}
 
 	protected String ssid;
 
@@ -61,9 +65,9 @@ public class SyncRobot extends SemanticObject implements IUser {
 		return this;
 	}
 
-	public SyncRobot(String userid, String device) {
+	public SyncRobot(String userid, String pswd) {
 		this.userId = userid;
-		deviceId = device;
+		this.pswd   = pswd;
 	}
 
 	/**
@@ -79,7 +83,20 @@ public class SyncRobot extends SemanticObject implements IUser {
 		this.deviceId = device;
 		this.pswd = pswd;
 	}
+
+	/**
+	 * @param userid
+	 * @param pswd
+	 * @param userName
+	 */
+	public SyncRobot(String userid, String pswd, String userName) {
+		this(userid, pswd, userName, null);
+	}
 	
+	public SyncRobot(SessionInf rob, String pswd) {
+		this(rob.uid(), rob.userName(), rob.device, pswd);
+	}
+
 	public static class RobotMeta extends TableMeta {
 		public final String device;
 		public final String iv;
@@ -170,4 +187,5 @@ public class SyncRobot extends SemanticObject implements IUser {
 	public SessionInf sessionInf() {
 		return new SessionInf().device(deviceId);
 	}
+
 }
