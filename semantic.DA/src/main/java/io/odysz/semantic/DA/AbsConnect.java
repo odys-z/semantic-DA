@@ -24,6 +24,7 @@ import io.odysz.semantic.DA.drvmnger.Msql2kDriver;
 import io.odysz.semantic.DA.drvmnger.MysqlDriver;
 import io.odysz.semantic.DA.drvmnger.OracleDriver;
 import io.odysz.semantic.DA.drvmnger.SqliteDriver2;
+import io.odysz.semantic.DA.drvmnger.SqliteDriverQueued;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
 
@@ -61,6 +62,19 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 				throw new SemanticException("Can't find DB file: %s", f.getAbsolutePath());
 
 			return SqliteDriver2.initConnection(String.format("jdbc:sqlite:%s", dbpath),
+					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+		}
+		else if (type == dbtype.sqlite_queue) {
+			Utils.logi("Resolving sqlite db (pooled), xmlDir: %s,\n\tjdbcUrl: %s", xmlDir, jdbcUrl);
+
+			String dbpath = FilenameUtils.concat(xmlDir, EnvPath.replaceEnv(jdbcUrl));
+			Utils.logi("\tUsing sqlite db (pooled): %s", dbpath);
+			
+			File f = new File(dbpath);
+			if (!f.exists())
+				throw new SemanticException("Can't find DB file: %s", f.getAbsolutePath());
+
+			return SqliteDriverQueued.initConnection(String.format("jdbc:sqlite:%s", dbpath),
 					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else if (type == dbtype.ms2k) {

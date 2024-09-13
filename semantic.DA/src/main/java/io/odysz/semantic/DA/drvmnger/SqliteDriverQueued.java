@@ -1,0 +1,152 @@
+package io.odysz.semantic.DA.drvmnger;
+
+import static io.odysz.common.LangExt.isblank;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.concurrent.ArrayBlockingQueue;
+
+import org.sqlite.SQLiteConfig;
+
+import io.odysz.semantic.DA.Connects;
+
+public class SqliteDriverQueued extends SqliteDriver2 {
+	static boolean test;
+
+	private Thread worker;
+	private ArrayBlockingQueue<StatementOnCall> qu;
+	
+	private boolean stop;
+	
+	Object lock;
+	
+	SqliteDriverQueued(boolean log) {
+		super(log);
+		
+		qu = test ? new T_ArrayBlockingQueue<StatementOnCall>(64)
+				  : new ArrayBlockingQueue<StatementOnCall>(64);
+		
+		stop = false;
+		
+		lock = new Object();
+
+		this.worker = new Thread(() -> {
+			while (!stop) {
+			try {
+				// commitHead(qu);
+				StatementOnCall stmt = qu.take();
+				synchronized(stmt.lock) {
+					try {
+						int[] ret = stmt.statment.executeBatch();
+						conn.commit();
+						
+						stmt.onCommit.ok(ret);
+						stmt.lock.notifyAll();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			} catch (InterruptedException e) {
+				if (!stop) e.printStackTrace();
+			}
+			}
+		});
+		this.worker.start();
+	}
+
+	/**
+	 * Get {@link SqliteDriver2} instance, with database connection got via {@link DriverManager}.
+	 * 
+	 * @param jdbc
+	 * @param user
+	 * @param psword
+	 * @param log
+	 * @param flags
+	 * @return SqliteDriver2 instance
+	 * @throws SQLException
+	 */
+	public static SqliteDriverQueued initConnection(String jdbc,
+			String user, String psword, boolean log, int flags) throws SQLException {
+		SqliteDriverQueued inst = new SqliteDriverQueued(log);
+
+		inst.enableSystemout = (flags & Connects.flag_printSql) > 0;
+		inst.jdbcUrl = jdbc;
+		inst.userName = user;
+		inst.pswd = psword;
+		
+		SQLiteConfig cfg = new SQLiteConfig();
+		cfg.setEncoding(SQLiteConfig.Encoding.UTF8);
+		inst.conn = DriverManager.getConnection(jdbc, cfg.toProperties());
+		inst.conn.setAutoCommit(false);
+		return inst;
+	}
+	
+	/**
+	 * Commit statement
+	 * 
+	 * @since 2.0.0
+	 * @param sqls
+	 * @param flags
+	 * @return The update counts in order of commands
+	 * @throws SQLException
+	 */
+	@Override
+	int[] commitst(ArrayList<String> sqls, int flags) throws SQLException {
+		Connects.printSql(enableSystemout, flags, sqls);;
+
+		int[][] ret = new int[1][];
+
+		Statement stmt = null;
+		try {
+			Connection conn = getConnection();
+
+			stmt = conn.createStatement();
+			try {
+				// conn.setAutoCommit(false);
+				stmt = conn.createStatement(
+						ResultSet.TYPE_FORWARD_ONLY,
+						ResultSet.CONCUR_READ_ONLY);
+
+				for (String sql : sqls) {
+					if (isblank(sql)) continue;
+					stmt.addBatch(sql);
+				}
+
+				// ret = stmt.executeBatch();
+				// conn.commit();
+
+				// TODO we need a better BlockingQueue
+				StatementOnCall stmtcall = new StatementOnCall(stmt, (re) -> ret[0] = re);
+				synchronized(stmtcall.lock) {
+					qu.put(stmtcall);
+					stmtcall.lock.wait();
+				}
+			} catch (Exception exx) {
+				conn.rollback();
+				exx.printStackTrace();
+				throw new SQLException(exx);
+			}
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+				stmt = null;
+			}
+		}
+		return ret[0];
+	}	
+	
+	@Override
+	public void close() {
+		stop = true;
+		try { qu.put(null);
+		} catch (InterruptedException e) { }
+	}
+}

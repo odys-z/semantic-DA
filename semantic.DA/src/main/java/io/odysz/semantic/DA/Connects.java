@@ -63,6 +63,8 @@ public class Connects {
 			return dbtype.ms2k;
 		else if (type.equals("oracle") || type.equals("orcl"))
 			return dbtype.oracle;
+		else if (type.startsWith("sqlit_queue"))
+			return dbtype.sqlite_queue;
 		else if (type.startsWith("sqlit"))
 			return dbtype.sqlite;
 		else

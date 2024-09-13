@@ -20,6 +20,20 @@
   	</c>
 
   	<c>
+  		<id>queued-sqlite</id>
+  		<type>sqlit_queue</type>
+  		<isdef></isdef>
+  		<!-- For sqlite, src = relative path from this configure file.
+  			So connection string can be: jdbc:sqlite:WEB-INF/remote.db -->
+  		<src>semantic-DA.db</src>
+  		<usr>queue</usr>
+  		<pswd>queue</pswd>
+  		<!-- enable sql printing -->
+  		<dbg>true</dbg>
+  		<smtcs>semantics.xml</smtcs>
+  	</c>
+
+  	<c>
   		<id>log</id>
   		<type>sqlite</type>
   		<isdef></isdef>

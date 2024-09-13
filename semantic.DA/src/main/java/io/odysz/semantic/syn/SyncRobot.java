@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
+import io.odysz.anson.IJsonable;
 import io.odysz.common.Utils;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
@@ -29,12 +30,13 @@ import io.odysz.transact.x.TransException;
  * 
  * @author odys-z@github.com
  */
-public class SyncRobot extends SemanticObject implements IUser {
+public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 
 	protected long touched;
 	protected String userId;
 	protected String userName;
 	protected String pswd;
+	protected String iv;
 
 	protected String orgId;
 	public String orgId() { return orgId; }
@@ -95,6 +97,10 @@ public class SyncRobot extends SemanticObject implements IUser {
 	
 	public SyncRobot(SessionInf rob, String pswd) {
 		this(rob.uid(), rob.userName(), rob.device, pswd);
+	}
+
+	public SyncRobot() {
+		this.userId = "to be init";
 	}
 
 	public static class RobotMeta extends TableMeta {
