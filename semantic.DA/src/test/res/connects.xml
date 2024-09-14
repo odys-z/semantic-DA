@@ -29,7 +29,7 @@
   		<usr>queue</usr>
   		<pswd>queue</pswd>
   		<!-- enable sql printing -->
-  		<dbg>true</dbg>
+  		<dbg></dbg>
   		<smtcs>semantics.xml</smtcs>
   	</c>
 

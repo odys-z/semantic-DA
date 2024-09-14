@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 
+/**
+ * {@link ArrayBlockingQueue>'s test version.
+ * 
+ * @param <S>
+ */
 public class T_ArrayBlockingQueue<S> extends ArrayBlockingQueue<S> {
 
 	static List<Integer> qusizeOnTaking;

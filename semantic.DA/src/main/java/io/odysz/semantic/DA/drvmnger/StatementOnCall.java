@@ -15,6 +15,7 @@ public class StatementOnCall {
 
 	// ReentrantLock lock;
 	Object lock;
+	public boolean finished;
 
 	public StatementOnCall(Statement stmt, OnCommit on) {
 		this.statment = stmt;
@@ -22,6 +23,7 @@ public class StatementOnCall {
 		
 		// lock = new ReentrantLock();
 		lock = new Object();
+		finished = false;
 	}
 
 //	public StatementOnCall lock() {

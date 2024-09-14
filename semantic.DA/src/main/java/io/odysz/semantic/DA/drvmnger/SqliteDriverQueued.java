@@ -35,23 +35,28 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 		lock = new Object();
 
 		this.worker = new Thread(() -> {
+			StatementOnCall stmt = null;
 			while (!stop) {
 			try {
 				// commitHead(qu);
-				StatementOnCall stmt = qu.take();
-				synchronized(stmt.lock) {
-					try {
-						int[] ret = stmt.statment.executeBatch();
-						conn.commit();
-						
-						stmt.onCommit.ok(ret);
-						stmt.lock.notifyAll();
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
-				}
+				stmt = qu.take();
+				int[] ret = stmt.statment.executeBatch();
+				conn.commit();
+				
+				stmt.onCommit.ok(ret);
 			} catch (InterruptedException e) {
 				if (!stop) e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			finally {
+				if (stmt != null) {
+					synchronized(stmt.lock) {
+						stmt.finished = true;
+						stmt.lock.notifyAll();
+					}
+				}
+				stmt = null;
 			}
 			}
 		});
@@ -98,7 +103,7 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 	int[] commitst(ArrayList<String> sqls, int flags) throws SQLException {
 		Connects.printSql(enableSystemout, flags, sqls);;
 
-		int[][] ret = new int[1][];
+		int[][] ret = new int[][] {new int[0]};
 
 		Statement stmt = null;
 		try {
@@ -106,7 +111,6 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 
 			stmt = conn.createStatement();
 			try {
-				// conn.setAutoCommit(false);
 				stmt = conn.createStatement(
 						ResultSet.TYPE_FORWARD_ONLY,
 						ResultSet.CONCUR_READ_ONLY);
@@ -121,9 +125,10 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 
 				// TODO we need a better BlockingQueue
 				StatementOnCall stmtcall = new StatementOnCall(stmt, (re) -> ret[0] = re);
+				qu.put(stmtcall);
 				synchronized(stmtcall.lock) {
-					qu.put(stmtcall);
-					stmtcall.lock.wait();
+					if (!stmtcall.finished)
+						stmtcall.lock.wait();
 				}
 			} catch (Exception exx) {
 				conn.rollback();
