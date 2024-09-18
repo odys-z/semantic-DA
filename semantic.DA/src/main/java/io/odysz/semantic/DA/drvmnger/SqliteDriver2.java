@@ -43,7 +43,7 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 * see <a href='https://stackoverflow.com/questions/13891006/getting-sqlite-busy-database-file-is-locked-with-select-statements'>
 	 * StackOverflow: Getting [SQLITE_BUSY] database file is locked with select statements</a>
 	 */
-	private Connection conn;
+	protected Connection conn;
 
 	static {
 		try {
