@@ -11,12 +11,12 @@ import io.odysz.semantics.SemanticObject;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
-public class Alarmer {
+public class T_Alarmer {
 
 	private Thread t;
 	private boolean[] lights;
 
-	public Alarmer(DATranscxt st, IUser usr, String connId, int no, int max, String iv) {
+	public T_Alarmer(DATranscxt st, IUser usr, String connId, int no, int max, String iv) {
 		
 		t = new Thread(() -> {try {
 			for (int u = 0; u < max; u++) {
