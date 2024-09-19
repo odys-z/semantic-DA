@@ -1,5 +1,5 @@
 -- drop table if exists b_alarms;
-
+-- changed v 1.4.45
 CREATE TABLE b_alarms (
 	alarmId text(20) NOT NULL,
 	remarks text(200),
