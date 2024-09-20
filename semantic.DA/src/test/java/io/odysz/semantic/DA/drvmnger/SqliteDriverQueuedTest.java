@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
@@ -89,7 +90,8 @@ class SqliteDriverQueuedTest {
 	
 	private static int threads = 64;
 	@Test
-	void testCommitst() throws TransException, SQLException, InterruptedException {
+	@Disabled("This test case can only be tested in a separated running.")
+	void testCommithreads() throws TransException, SQLException, InterruptedException {
 		
 		IUser usr = DATranscxt.dummyUser();
 		T_Alarmer[] ths = new T_Alarmer[threads];
@@ -126,6 +128,9 @@ class SqliteDriverQueuedTest {
 			assertTrue(DAHelper.count(st, connId, "b_alarm_domain") > total);
 			assertTrue(DAHelper.count(st, connId, "b_alarm_domain") < total * 2);
 			
+			if (T_ArrayBlockingQueue.qusizeOnTaking == null)
+				fail("This test case can only be tested in a separated running.");
+
 			Utils.logi(T_ArrayBlockingQueue
 					.qusizeOnTaking.stream()
 					.map(String::valueOf)
@@ -141,7 +146,8 @@ class SqliteDriverQueuedTest {
 			if (!reached)
 				fail("Expecting case hasn't been tested.");
 
-			Utils.logi("Time for completing commitments: %s seconds", TimeUnit.SECONDS.convert(t1 - t0, TimeUnit.NANOSECONDS));
+			Utils.logi("Time for completing commitments: %s seconds",
+					TimeUnit.SECONDS.convert(t1 - t0, TimeUnit.NANOSECONDS));
 		}
 		catch (InterruptedException e) {
 			Utils.logi(T_ArrayBlockingQueue

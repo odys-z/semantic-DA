@@ -12,13 +12,10 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Map;
-
 import org.apache.commons.io_odysz.FilenameUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -114,6 +111,7 @@ public class DASemantextTest {
 		ArrayList<String> sqls = new ArrayList<String>();
 
 		try {
+			// Thread.sleep(3000); // wait for previous tests
 			for (String tbl : new String[] {
 					"oz_autoseq", "a_logs", "a_attaches",
 					"a_domain", "a_functions", "a_orgs", "a_role_func", "a_roles", "a_users",
