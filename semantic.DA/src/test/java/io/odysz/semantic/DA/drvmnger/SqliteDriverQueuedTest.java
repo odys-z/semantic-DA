@@ -92,7 +92,7 @@ class SqliteDriverQueuedTest {
 	void testCommitst() throws TransException, SQLException, InterruptedException {
 		
 		IUser usr = DATranscxt.dummyUser();
-		Alarmer[] ths = new Alarmer[threads];
+		T_Alarmer[] ths = new T_Alarmer[threads];
 		int no = 0;
 		int total = 0;
 
@@ -103,7 +103,7 @@ class SqliteDriverQueuedTest {
 			mx = Math.max(7, mx);
 			System.out.print(mx);
 			System.out.print(" ");
-			ths[no] = new Alarmer(st, usr, connId, no, mx, "creator");
+			ths[no] = new T_Alarmer(st, usr, connId, no, mx, "creator");
 			total += mx;
 		}
 
