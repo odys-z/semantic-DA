@@ -30,7 +30,7 @@ import io.odysz.transact.x.TransException;
 /**
  * @since 2.0.0
  */
-@Disabled
+@Disabled("Must be tested in a separate running.")
 class SqliteDriverQueuedTest {
 	public static final String connId = "queued-sqlite";
 	private static DATranscxt st;
