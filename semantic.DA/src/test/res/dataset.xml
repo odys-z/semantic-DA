@@ -26,7 +26,7 @@
   			FROM "a_domain" order by "fullpath"
   		</orcl>
   		<sqlit>SELECT domainId id, parentId, domainName, domainValue, sort, "others", fullpath, stamp, upstamp
-  			FROM a_domain order by fullpath;
+  			FROM a_domain where others = NULL order by fullpath;
   		</sqlit>
   		<s-tree>checked,a_domain,id,parentId,fullpath,sort,domainName text,children,false</s-tree>
 	</c>

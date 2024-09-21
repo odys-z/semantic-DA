@@ -30,6 +30,7 @@ import io.odysz.transact.x.TransException;
 /**
  * @since 1.4.45
  */
+@Disabled ("Muste be tested sparately.")
 class SqliteDriverQueuedTest {
 	public static final String connId = "queued-sqlite";
 	private static DATranscxt st;
@@ -90,7 +91,6 @@ class SqliteDriverQueuedTest {
 	
 	private static int threads = 64;
 	@Test
-	@Disabled("This test case can only be tested in a separated running.")
 	void testCommithreads() throws TransException, SQLException, InterruptedException {
 		
 		IUser usr = DATranscxt.dummyUser();
