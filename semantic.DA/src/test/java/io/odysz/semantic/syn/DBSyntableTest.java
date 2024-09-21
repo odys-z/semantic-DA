@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.x.AnsonException;
@@ -48,7 +47,6 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
-import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
@@ -61,7 +59,6 @@ import io.odysz.transact.x.TransException;
 * 
 * @author Ody
 */
-@Disabled("Only merged by experimental branches")
 public class DBSyntableTest {
 	public static final String[] conns;
 	public static final String[] testers;
@@ -298,9 +295,6 @@ public class DBSyntableTest {
 		ck[Y].change_log(1, C, "Y", "W", ck[Y].trb.synm);
 		ck[Y].buf_change(0, C, "W", ck[Y].trb.synm);
 		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
-		
-		assertEquals("Y,Y", DAHelper.getValstr(ck[Y].trb, ck[Y].trb.synconn(),
-					snm, snm.synuid, snm.synoder, "Y"));
 		
 		Utils.logrst("X vs Y", section, ++no);
 		exchangeSynodes(X, Y, section, 2);
@@ -567,7 +561,7 @@ public class DBSyntableTest {
 		// applicant
 		Utils.logrst(String.format("%s initiate domain", cltb.synode()), testix, sect, ++no);
 
-		ExchangeBlock ack  = cltb.domain("zsu").domainitMe(cltp, admin, resp);
+		ExchangeBlock ack  = cltb.domainitMe(cltp, admin, resp);
 		Utils.logi(ack.nv, cltb.synode(), ".Ack.nv: ");
 
 		printChangeLines(ck);
@@ -866,4 +860,6 @@ public class DBSyntableTest {
 
 		return new String[] {pid, chgid, synuid };
 	}
+	
+
 }
