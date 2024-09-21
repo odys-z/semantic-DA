@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import org.junit.jupiter.api.Disabled;
+
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
@@ -71,6 +73,7 @@ import io.odysz.transact.x.TransException;
  *
  * @author Ody
  */
+@Disabled("Only after merged.")
 public class DBSyntableBuilder extends DATranscxt {
 	public static class SynmanticsMap extends SemanticsMap {
 		String synode;

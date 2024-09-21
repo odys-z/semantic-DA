@@ -30,7 +30,6 @@ import io.odysz.transact.x.TransException;
 /**
  * @since 2.0.0
  */
-
 @Disabled
 class SqliteDriverQueuedTest {
 	public static final String connId = "queued-sqlite";

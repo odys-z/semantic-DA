@@ -20,13 +20,13 @@
   		<sk>test.tree</sk>
   		<cols></cols>
   		<mysql>SELECT domainId id, parentId, domainName, domainValue, sort, "others", fullpath
-  			FROM a_domain order by fullpath limit 5;
+  			FROM a_domain where others is Null order by fullpath limit 5;
   		</mysql>
   		<orcl>SELECT "domId" "id", "parentId", "domName" "domainName", "domVal" "domainValue", "sort", "remarks", "fullpath"
-  			FROM "a_domain" order by "fullpath"
+  			FROM "a_domain" where others is Null order by "fullpath"
   		</orcl>
   		<sqlit>SELECT domainId id, parentId, domainName, domainValue, sort, "others", fullpath, stamp, upstamp
-  			FROM a_domain order by fullpath;
+  			FROM a_domain where others is Null order by fullpath;
   		</sqlit>
   		<s-tree>checked,a_domain,id,parentId,fullpath,sort,domainName text,children,false</s-tree>
 	</c>
