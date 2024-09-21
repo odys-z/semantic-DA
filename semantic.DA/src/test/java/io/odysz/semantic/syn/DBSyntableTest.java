@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.x.AnsonException;
@@ -60,6 +61,7 @@ import io.odysz.transact.x.TransException;
 * 
 * @author Ody
 */
+@Disabled("Only merged by experimental branches")
 public class DBSyntableTest {
 	public static final String[] conns;
 	public static final String[] testers;
