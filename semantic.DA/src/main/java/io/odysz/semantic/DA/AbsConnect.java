@@ -65,10 +65,10 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else if (type == dbtype.sqlite_queue) {
-			Utils.logi("Resolving sqlite db (pooled), xmlDir: %s,\n\tjdbcUrl: %s", xmlDir, jdbcUrl);
+			Utils.logi("Resolving sqlite db (queued), xmlDir: %s,\n\tjdbcUrl: %s", xmlDir, jdbcUrl);
 
 			String dbpath = FilenameUtils.concat(xmlDir, EnvPath.replaceEnv(jdbcUrl));
-			Utils.logi("\tUsing sqlite db (pooled): %s", dbpath);
+			Utils.logi("\tUsing sqlite db (queued): %s", dbpath);
 			
 			File f = new File(dbpath);
 			if (!f.exists())

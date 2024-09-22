@@ -799,7 +799,7 @@ public class ExessionPersist {
 		AnResultset entbls = (AnResultset) trb.select(chgm.tbl, "ch")
 				.je_(exbm.tbl, "bf", chgm.pk, exbm.changeId, "bf." + exbm.peer, constr(peer), constVal(challengeSeq), exbm.pagex)
 				.col(chgm.entbl)
-				.where(op.gt, chgm.nyquence, dn.n) // FIXME
+				.where(op.gt, chgm.nyquence, dn.n)
 				.groupby(chgm.entbl)
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				.rs(0);
