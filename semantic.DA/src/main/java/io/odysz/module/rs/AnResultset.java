@@ -142,7 +142,8 @@ for (String coln : colnames.keySet())
 			String colName = rsMeta.getColumnLabel(i).toUpperCase();
 			if (colnames.containsKey(colName)) {
 				if (debug)
-					System.err.println("WARN: As duplicated col name been found, only the last one's index is reserved: " + colName);
+					// System.err.println("WARN: As duplicated col name been found, only the last one's index is reserved: " + colName);
+					Utils.warnT(new Object() {}, "WARN: As duplicated col name been found, only the last one's index is reserved: " + colName);
 				colnames.put(colName + i, colnames.get(colName));
 			}
 			colnames.put(colName, new Object[] {i, rsMeta.getColumnLabel(i)});

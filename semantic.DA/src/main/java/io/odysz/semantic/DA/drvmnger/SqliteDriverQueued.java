@@ -1,6 +1,7 @@
 package io.odysz.semantic.DA.drvmnger;
 
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.f;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,6 +17,7 @@ import io.odysz.semantic.DA.Connects;
 
 public class SqliteDriverQueued extends SqliteDriver2 {
 	static boolean test;
+	static final int qulen = 64;
 
 	private Thread worker;
 	private ArrayBlockingQueue<StatementOnCall> qu;
@@ -27,8 +29,8 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 	SqliteDriverQueued(boolean log) {
 		super(log);
 		
-		qu = test ? new T_ArrayBlockingQueue<StatementOnCall>(64)
-				  : new ArrayBlockingQueue<StatementOnCall>(64);
+		qu = test ? new T_ArrayBlockingQueue<StatementOnCall>(qulen)
+				  : new ArrayBlockingQueue<StatementOnCall>(qulen);
 		
 		stop = false;
 		
@@ -59,7 +61,9 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 				stmt = null;
 			}
 			}
-		});
+		}, f("sqlite queue dirver %s[%s/%s]",
+			test ? "T_ArrayBlockingQueue" : "ArrayBlockingQueue",
+			qu.size(), qulen));
 		this.worker.start();
 	}
 
@@ -119,9 +123,6 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 					if (isblank(sql)) continue;
 					stmt.addBatch(sql);
 				}
-
-				// ret = stmt.executeBatch();
-				// conn.commit();
 
 				// TODO we need a better BlockingQueue
 				StatementOnCall stmtcall = new StatementOnCall(stmt, (re) -> ret[0] = re);

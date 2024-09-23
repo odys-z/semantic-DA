@@ -912,12 +912,13 @@ public class DBSyntableBuilder extends DATranscxt {
 		return rep;
 	}
 
-	public ExchangeBlock domainitMe(ExessionPersist cp, String admin, String adminserv, ExchangeBlock domainstatus)
+	public ExchangeBlock domainitMe(ExessionPersist cp, String admin, String adminserv, String domain, ExchangeBlock domainstatus)
 			throws TransException, SQLException {
 		
-		if (isblank(domain()))
-			throw new ExchangeException(setupDom, cp, "Domain is null for updating %s.%s?",
+		if (!isblank(domain()))
+			throw new ExchangeException(setupDom, cp, "Domain must be null for updating %s.%s?",
 					synm.tbl, synm.domain);
+		domain(domain);
 
 		Nyquence mxn = domainstatus.nv.get(admin); 
 

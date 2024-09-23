@@ -574,7 +574,6 @@ public class DASemantics {
 		else if (smtype.postFk == semantic)
 			return new ShPostFk(basicTsx, tabl, recId, args);
 		else if (smtype.extFile == semantic)
-			// throw new SemanticException("Since 1.5.0, smtype.extFile is replaced by extFilev2!");
 			return new ShExtFilev2(basicTsx, tabl, recId, args);
 		else if (smtype.extFilev2 == semantic)
 			return new ShExtFilev2(basicTsx, tabl, recId, args);

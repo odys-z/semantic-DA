@@ -43,7 +43,7 @@ public class T_Alarmer {
 			lights[no] = true;
 		} catch (TransException | SQLException e) {
 			e.printStackTrace();
-		} });
+		} }, "T_Alarmer");
 	}
 
 	public void start(boolean[] lights) {

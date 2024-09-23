@@ -63,9 +63,9 @@ public class Connects {
 			return dbtype.ms2k;
 		else if (type.equals("oracle") || type.equals("orcl"))
 			return dbtype.oracle;
-		else if (type.startsWith("sqlit_queue"))
+		else if (type.startsWith("sqlit_queue") || type.startsWith("sqlit-queue"))
 			return dbtype.sqlite_queue;
-		else if (type.startsWith("sqlit"))
+		else if (type.startsWith("sqlit") || type.startsWith("sqlite"))
 			return dbtype.sqlite;
 		else
 			throw new SemanticException("Driver type not suppored yet: %s", type);
