@@ -149,6 +149,7 @@ public class ExchangeBlock extends Anson {
 	String session;
 	/**One of {@link ExessionAct}'s constants. */
 	int act;
+	/**One of {@link ExessionAct}'s constants. */
 	public int synact () { return act; }
 	int challengeSeq;
 	int answerSeq;

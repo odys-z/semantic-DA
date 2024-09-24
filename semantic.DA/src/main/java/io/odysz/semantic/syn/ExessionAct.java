@@ -14,9 +14,10 @@ public class ExessionAct {
 	public static final int restore = -2;
 	public static final int unexpected = -1;
 	public static final int ready = 0;
-	public static final int init = 1;
+	public static final int init  = 1;
 	public static final int exchange = 2;
 	public static final int close = 3;
+	public static final int deny  = 9;
 
 	/** sign up */
 	public static final int signup   = 4;
@@ -27,10 +28,11 @@ public class ExessionAct {
 	public static final int mode_client = 1;
 
 	public int state;
-	int mode;
+	int exmode;
+	public int exmode() { return exmode; }
 
-	public ExessionAct(int serv_client, int ini) {
-		mode  = serv_client;
+	public ExessionAct(int mod_serv_client, int ini) {
+		exmode  = mod_serv_client;
 		state = ini;
 	}
 

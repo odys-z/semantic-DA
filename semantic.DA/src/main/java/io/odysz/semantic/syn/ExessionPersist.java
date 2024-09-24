@@ -62,6 +62,7 @@ public class ExessionPersist {
 	final PeersMeta pnvm;
 
 	final String peer;
+	public String peer() { return peer; }
 
 	final boolean debug;
 
@@ -641,7 +642,7 @@ public class ExessionPersist {
 
 			return new ExchangeBlock(trb == null
 				? rep.peer
-				: trb.synode(), peer, session, new ExessionAct(exstate.mode, close))
+				: trb.synode(), peer, session, new ExessionAct(exstate.exmode, close))
 					.totalChallenges(totalChallenges)
 					.chpagesize(this.chsize)
 					.seq(this);
@@ -672,7 +673,7 @@ public class ExessionPersist {
 
 			return new ExchangeBlock(trb == null
 				? null
-				: trb.synode(), peer, session, new ExessionAct(exstate.mode, close))
+				: trb.synode(), peer, session, new ExessionAct(exstate.exmode, close))
 					.totalChallenges(totalChallenges)
 					.chpagesize(this.chsize)
 					.seq(this);
@@ -854,7 +855,7 @@ public class ExessionPersist {
 				.nv(sysm.chpage, challengeSeq)
 				.nv(sysm.answerx, answerSeq)
 				.nv(sysm.expansx, expAnswerSeq)
-				.nv(sysm.mode,  exstate.mode)
+				.nv(sysm.mode,  exstate.exmode)
 				.nv(sysm.state, exstate.state)
 				.whereEq(sysm.peer, peer)
 				.u(trb.instancontxt(trb.synconn(), trb.synrobot()));
