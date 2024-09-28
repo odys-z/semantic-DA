@@ -64,7 +64,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	}
 
 	// private boolean printSql;
-	boolean printSql() { return enableSystemout; }
+	// boolean printSql() { return enableSystemout; }
 	private String srcId;
 	private DataSource ds;
 
@@ -115,7 +115,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	 */
 	protected Connection getConnection () throws SQLException, NamingException {
 		if (ds == null) {
-			System.out.print(srcId);
+			Utils.logi(srcId);
 			System.setProperty("https.protocols", "TLSv1 TLSv1.1 TLSv1.2 TLSv1.3");
 			
 			InitialContext ctx = new InitialContext();
