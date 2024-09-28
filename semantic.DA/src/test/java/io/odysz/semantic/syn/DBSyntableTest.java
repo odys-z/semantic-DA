@@ -60,7 +60,7 @@ import io.odysz.transact.x.TransException;
 * 
 * @author Ody
 */
-@Disabled("Only after experimental branches merged.")
+// @Disabled("Only after experimental branches merged.")
 public class DBSyntableTest {
 	public static final String[] conns;
 	public static final String[] testers;

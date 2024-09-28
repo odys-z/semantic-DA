@@ -360,6 +360,7 @@ public class ExessionPersist {
 				? null
 				: trb.synode(), peer, session, exstate)
 					.totalChallenges(1)
+					.synodes(DAHelper.getEntityById(trb, synm, trb.synode()))
 					.chpagesize(this.chsize)
 					.seq(this);
 	}
