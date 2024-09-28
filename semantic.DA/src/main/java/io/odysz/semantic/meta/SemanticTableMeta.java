@@ -14,6 +14,7 @@ import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.x.TransException;
 
 public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
+
 	@Override
 	public String mapKey() {
 		return tbl;
@@ -34,9 +35,9 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 	@SuppressWarnings("unchecked")
 	public <T extends SemanticTableMeta> T replace() throws TransException, SQLException {
 		TableMeta mdb = Connects.getMeta(conn, tbl);
-		if (mdb instanceof SemanticTableMeta
+		if (debug && mdb instanceof SemanticTableMeta
 			&& (Connects.getDebug(conn) || !eq(mdb.getClass().getName(), getClass().getName())))
-			Utils.warn( "Replacing existing Semantic table meta with new meta. Old: %s, new %s",
+			Utils.warn( "[TableMeta.debug true] Replacing existing Semantic table meta with new meta. Old: %s, new %s",
 						mdb.getClass().getName(), getClass().getName());
 
 		DASemantics.replaceMeta(tbl, this, conn);
