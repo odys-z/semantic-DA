@@ -70,9 +70,6 @@ public class ExessionPersist {
 
 	public DBSyntableBuilder trb;
 
-	// public HashMap<String, Nyquence> nyquvect() { return trb.nyquvect; }
-	// public Nyquence n0() { return trb.n0(); }
-
 	/**
 	 * Set nswers to the challenges, page {@link #challengeSeq}, with entities.
 	 * 
@@ -157,7 +154,6 @@ public class ExessionPersist {
 			s.commit(sqls, trb.synrobot());
 		Connects.commit(trb.synconn(), trb.synrobot(), sqls);
 		
-		// x.answer = null;
 		return this;
 	}
 
