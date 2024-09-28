@@ -80,6 +80,19 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 			return SqliteDriverQueued.initConnection(id, String.format("jdbc:sqlite:%s", dbpath),
 					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
+		else if (type == dbtype.sqlite_queue) {
+			Utils.logi("Resolving sqlite db (queued), xmlDir: %s,\n\tjdbcUrl: %s", xmlDir, jdbcUrl);
+
+			String dbpath = FilenameUtils.concat(xmlDir, EnvPath.replaceEnv(jdbcUrl));
+			Utils.logi("\tUsing sqlite db (pooled): %s", dbpath);
+			
+			File f = new File(dbpath);
+			if (!f.exists())
+				throw new SemanticException("Can't find DB file: %s", f.getAbsolutePath());
+
+			return SqliteDriverQueued.initConnection(id, String.format("jdbc:sqlite:%s", dbpath),
+					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+		}
 		else if (type == dbtype.ms2k) {
 			return Msql2kDriver.initConnection(jdbcUrl,
 				usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);

@@ -111,6 +111,7 @@ public class DASemantextTest {
 		ArrayList<String> sqls = new ArrayList<String>();
 
 		try {
+			// Thread.sleep(3000); // wait for previous tests
 			for (String tbl : new String[] {
 					"oz_autoseq", "a_logs", "a_attaches",
 					"a_domain", "a_functions", "a_orgs", "a_role_func", "a_roles", "a_users",

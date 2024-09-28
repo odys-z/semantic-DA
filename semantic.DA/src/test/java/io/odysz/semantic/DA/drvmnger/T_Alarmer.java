@@ -11,6 +11,9 @@ import io.odysz.semantics.SemanticObject;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
+/**
+ * @since 1.4.45
+ */
 public class T_Alarmer {
 
 	private Thread t;

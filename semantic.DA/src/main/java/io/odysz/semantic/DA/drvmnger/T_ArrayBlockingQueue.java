@@ -7,6 +7,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 /**
  * {@link ArrayBlockingQueue>'s test version.
  * 
+ * @since 1.4.45
  * @param <S>
  */
 public class T_ArrayBlockingQueue<S> extends ArrayBlockingQueue<S> {

@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
@@ -26,6 +27,10 @@ import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
+/**
+ * @since 2.0.0
+ */
+@Disabled("Must be tested in a separated running.")
 class SqliteDriverQueuedTest {
 	public static final String connId = "queued-sqlite";
 	private static DATranscxt st;

@@ -3,8 +3,14 @@ package io.odysz.semantic.DA.drvmnger;
 import java.sql.Statement;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * @since 1.4.45
+ */
 public class StatementOnCall {
 
+	/**
+	 * @since 2.0.0
+	 */
 	@FunctionalInterface
 	public interface OnCommit {
 		void ok(int[] res);
