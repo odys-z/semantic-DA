@@ -247,7 +247,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 		return ret;
 	}
 	
-	//////////////////////////////// oracle the hateful ///////////////////////////////////////
+	//////////////////////////////// oracle the special way ///////////////////////////////////////
 //	public void updateLobs(ArrayList<OracleLob> lobs) throws SQLException {
 //		if (!_isOrcl && lobs != null && lobs.size() > 0)
 //			throw new SQLException(" Why updating lobs to a non oracle db ? ");
