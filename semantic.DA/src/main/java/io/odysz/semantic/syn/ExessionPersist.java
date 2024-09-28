@@ -172,7 +172,7 @@ public class ExessionPersist {
 	 * @throws SQLException 
 	 */
 	ExessionPersist saveChanges(AnResultset changes, HashMap<String, Nyquence> srcnv,
-			HashMap<String, AnResultset> entites) throws SQLException, TransException {
+			HashMap<String, AnResultset> ents) throws SQLException, TransException {
 
 		List<Statement<?>> stats = new ArrayList<Statement<?>>();
 
@@ -192,9 +192,9 @@ public class ExessionPersist {
 			String chuids = changes.getString(chgm.uids);
 			String chgid  = changes.getString(chgm.pk);
 
-			HashMap<String, AnResultset> entbuf = entites; // x.onchanges.entities;
+			// HashMap<String, AnResultset> entbuf = entites; // x.onchanges.entities;
 			if (!eq(change, CRUD.D)
-				&& (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(chuids) < 0)) {
+				&& (ents == null || !ents.containsKey(entm.tbl) || ents.get(entm.tbl).rowIndex0(chuids) < 0)) {
 				Utils.warnT(new Object() {},
 						"Missing entity. This happens when the peer has updated then deletd the entity.\n" +
 						"entity name: %s\tsynode(answering): %s\tsynode(local): %s\tentity uid(by challenge): %s",
@@ -255,9 +255,9 @@ public class ExessionPersist {
 					stats.add(
 					eq(change, CRUD.C)
 					? trb.insert(entm.tbl, trb.synrobot())
-						.cols(entbuf.get(entm.tbl).getFlatColumns0())
-						.row(entbuf.get(entm.tbl).getColnames(),
-								entbuf.get(entm.tbl).getRowById(chuids))
+						.cols(ents.get(entm.tbl).getFlatColumns0())
+						.row(ents.get(entm.tbl).getColnames(),
+								ents.get(entm.tbl).getRowById(chuids))
 						.post(subscribeUC.size() <= 0 ? null :
 							trb.insert(chgm.tbl)
 							.nv(chgm.pk, chgid)
@@ -270,7 +270,7 @@ public class ExessionPersist {
 							.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode())))
 					: eq(change, CRUD.U)
 					? trb.update(entm.tbl, trb.synrobot())
-						.nvs(entm.updateEntNvs(chgm, chuids, entbuf.get(entm.tbl), changes))
+						.nvs(entm.updateEntNvs(chgm, chuids, ents.get(entm.tbl), changes))
 						.whereEq(entm.synuid, chuids)
 						.post(subscribeUC.size() <= 0
 							? null : trb.insert(chgm.tbl)
@@ -292,7 +292,7 @@ public class ExessionPersist {
 		}
 
 		if (Connects.getDebug(trb.synconn()))
-			Utils.logT(new Object() {}, "saving changes to local entities...");
+			Utils.logT(new Object() {}, "%s saving changes to local entities...", trb.synode());
 
 		ArrayList<String> sqls = new ArrayList<String>();
 		for (Statement<?> s : stats)
