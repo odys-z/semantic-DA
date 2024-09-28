@@ -520,7 +520,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		HashSet<String> warnsynodee = new HashSet<String>();
 		HashSet<String> warnsynoder = new HashSet<String>();
 
-		while (req.totalChallenges > 0 && reqChgs.next()) {
+		while (req.totalChallenges > 0 && reqChgs.next()) { // FIXME performance issue
 			String synodee = reqChgs.getString(subm.synodee);
 			String synoder = reqChgs.getString(chgm.synoder);
 
