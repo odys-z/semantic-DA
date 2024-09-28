@@ -31,6 +31,7 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
+import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.syn.T_DA_PhotoMeta;
 import io.odysz.semantic.util.DAHelper;
@@ -118,7 +119,7 @@ public class DASemantextTest {
 					"b_alarms", "b_alarm_logic", "b_logic_device",
 					"crs_a", "crs_b", "h_photos", "doc_devices"}) {
 				sqls.add("drop table if exists " + tbl);
-				Connects.commit(usr, sqls, Connects.flag_nothing);
+				Connects.commit(usr, sqls, AbsConnect.flag_nothing);
 				sqls.clear();
 			}
 
@@ -131,7 +132,7 @@ public class DASemantextTest {
 					"h_photos.ddl",    "doc_devices.ddl"}) {
 
 				sqls.add(loadTxt(DASemantextTest.class, tbl));
-				Connects.commit(usr, sqls, Connects.flag_nothing);
+				Connects.commit(usr, sqls, AbsConnect.flag_nothing);
 				sqls.clear();
 			}
 //			Connects.reload(runtimepath); // reload metas

@@ -96,7 +96,7 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	public static SqliteDriver2 initConnection(String id, String jdbc, String user, String psword, boolean log, int flags) throws SQLException {
 		SqliteDriver2 inst = new SqliteDriver2(id, log);
 
-		inst.enableSystemout = (flags & Connects.flag_printSql) > 0;
+		inst.enableSystemout = (flags & AbsConnect.flag_printSql) > 0;
 		inst.jdbcUrl = jdbc;
 		inst.userName = user;
 		inst.pswd = psword;
@@ -109,7 +109,9 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	
 	AnResultset selectStatic(String sql, int flag) throws SQLException {
 		Connection conn = getConnection();
-		Connects.printSql(enableSystemout, flag, sql);
+		// Connects.printSql(enableSystemout, flag, sql);
+		printSql(flag, sql);
+
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery(sql);
 		AnResultset icrs = new AnResultset(rs);
@@ -140,7 +142,8 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 * @throws SQLException
 	 */
 	int[] commitst(ArrayList<String> sqls, int flags) throws SQLException {
-		Connects.printSql(enableSystemout, flags, sqls);;
+		// Connects.printSql(enableSystemout, flags, sqls);;
+		printSql(flags, sqls);;
 
 		int[] ret;
 		Statement stmt = null;

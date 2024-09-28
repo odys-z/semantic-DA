@@ -44,9 +44,9 @@ import io.odysz.transact.x.TransException;
  */
 public class Connects {
 	/** nothing special for commit */
-	public static final int flag_nothing = 0;
-	public static final int flag_printSql = 1;
-	public static final int flag_disableSql = 2;
+//	public static final int flag_nothing = 0;
+//	public static final int flag_printSql = 1;
+//	public static final int flag_disableSql = 2;
 
 	/**Convert names like "sqlit" to {@link dbtype}.
 	 * @param type
@@ -221,29 +221,29 @@ public class Connects {
 	 * @param flag
 	 * @param sqls
 	 */
-	public static void printSql(boolean asking, int flag, ArrayList<String> sqls) {
-		if ((flag & flag_printSql) == flag_printSql
-			|| asking && (flag & flag_disableSql) != flag_disableSql)
-			Utils.logi(sqls);
-	}
-
-	public static void printSql(boolean asking, int flag, String sql) {
-		if ((flag & flag_printSql) == flag_printSql
-			|| asking && (flag & flag_disableSql) != flag_disableSql)
-			Utils.logi(sql);
-	}
+//	public static void printSql(boolean asking, int flag, ArrayList<String> sqls) {
+//		if ((flag & flag_printSql) == flag_printSql
+//			|| asking && (flag & flag_disableSql) != flag_disableSql)
+//			Utils.logi(sqls);
+//	}
+//
+//	public static void printSql(boolean asking, int flag, String sql) {
+//		if ((flag & flag_printSql) == flag_printSql
+//			|| asking && (flag & flag_disableSql) != flag_disableSql)
+//			Utils.logi(sql);
+//	}
 
 	///////////////////////////////////// select ///////////////////////////////
 	public static AnResultset select(String conn, String sql, int... flags) throws SQLException {
 		// This is probably because of wrong configuration in connects.xml. 
-		if (flags != null && flags.length > 0 && flags[0] == flag_printSql )
+		// if (flags != null && flags.length > 0 && flags[0] == flag_printSql )
 			if (conn != null && !srcs.containsKey(conn))
 				throw new SQLException("Can't find connection: " + conn);
 
 		String connId = conn == null ? defltConn : conn;
 		try {
 			return srcs.get(connId)
-				.select(sql, flags == null || flags.length <= 0 ? flag_nothing : flags[0]);
+				.select(sql, flags == null || flags.length <= 0 ? AbsConnect.flag_nothing : flags[0]);
 		} catch (NamingException e) {
 			throw new SQLException("Can't find connection, id=" + connId);
 		}
@@ -304,19 +304,19 @@ public class Connects {
 	 */
 	public static int[] commit(IUser usr, ArrayList<String> sqls, int... flags) throws SQLException, TransException {
 		try {
-			return srcs.get(defltConn).commit(usr, sqls, flags.length > 0 ? flags[0] : flag_nothing);
+			return srcs.get(defltConn).commit(usr, sqls, flags.length > 0 ? flags[0] : AbsConnect.flag_nothing);
 		} catch (NamingException e) {
 			throw new TransException("Can't find connection, id=" + defltConn);
 		}	
 	}
 	
 	public static int[] commit(IUser usr, ArrayList<String> sqls, ArrayList<Clob> lobs, int... flags) throws SQLException {
-		return srcs.get(defltConn).commit(usr, sqls, lobs, flags.length > 0 ? flags[0] : flag_nothing);
+		return srcs.get(defltConn).commit(usr, sqls, lobs, flags.length > 0 ? flags[0] : AbsConnect.flag_nothing);
 	}
 
 	@SuppressWarnings("serial")
 	public static int[] commit(String conn, IUser usr, String sql, int... flags) throws SQLException, TransException {
-		return commit(conn, usr, new ArrayList<String>() { {add(sql);} }, flags.length > 0 ? flags[0] : flag_nothing);
+		return commit(conn, usr, new ArrayList<String>() { {add(sql);} }, flags.length > 0 ? flags[0] : AbsConnect.flag_nothing);
 	}
 	
 	public static int[] commit(String conn, IUser usr, ArrayList<String> sqls, int... flags)
@@ -325,7 +325,7 @@ public class Connects {
 		if (srcs == null || !srcs.containsKey(conn))
 			throw new SemanticException("Can't find connection %s.", conn);
 		try {
-			return srcs.get(conn).commit(usr, sqls, flags.length > 0 ? flags[0] : flag_nothing);
+			return srcs.get(conn).commit(usr, sqls, flags.length > 0 ? flags[0] : AbsConnect.flag_nothing);
 		} catch (NamingException e) {
 			throw new TransException("Can't find connection, id=" + defltConn);
 		}

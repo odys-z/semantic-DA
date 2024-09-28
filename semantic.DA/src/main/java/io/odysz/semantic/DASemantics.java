@@ -24,6 +24,7 @@ import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.module.xtable.XMLTable.IMapValue;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
+import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -1816,7 +1817,7 @@ public class DASemantics {
 				}
 				String sql = String.format(args[args.length - 1], nv);
 				try {
-					AnResultset rs = Connects.select(stx.connId(), sql, Connects.flag_nothing);
+					AnResultset rs = Connects.select(stx.connId(), sql, AbsConnect.flag_nothing);
 					rs.beforeFirst().next();
 					if (rs.getInt(1) > 0)
 						throw new SemanticException("Checking count on %s.%s (%s = %s ...) failed",

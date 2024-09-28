@@ -139,7 +139,8 @@ public class CpConnect extends AbsConnect<CpConnect> {
         PreparedStatement pstmt;
         AnResultset icrs = null; 
         try {
-        	Connects.printSql(enableSystemout, flags, sql);
+        	// Connects.printSql(enableSystemout, flags, sql);
+        	printSql(flags, sql);
 
         	con = getConnection();
             con.setAutoCommit(false);
@@ -202,7 +203,8 @@ public class CpConnect extends AbsConnect<CpConnect> {
 //	}
 
 	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException, NamingException {
-		Connects.printSql(enableSystemout, flags, sqls);
+		// Connects.printSql(enableSystemout, flags, sqls);
+		printSql(flags, sqls);
 
 		int[] ret = null;
         Connection conn = null;

@@ -21,6 +21,7 @@ import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.semantic.DASemantextTest;
 import io.odysz.semantic.DATranscxt;
+import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.IUser;
@@ -69,7 +70,7 @@ class SqliteDriverQueuedTest {
 			for (String tbl : new String[] {
 					"b_alarms"}) {
 				sqls.add("delete from " + tbl);
-				Connects.commit(usr, sqls, Connects.flag_nothing);
+				Connects.commit(usr, sqls, AbsConnect.flag_nothing);
 				sqls.clear();
 			}
 			
@@ -78,7 +79,7 @@ class SqliteDriverQueuedTest {
 
 			for (String tbl : new String[] {"b_alarm_domain.ddl", "a_domain.sql"}) {
 				sqls.add(loadTxt(DASemantextTest.class, tbl));
-				Connects.commit(usr, sqls, Connects.flag_nothing);
+				Connects.commit(usr, sqls, AbsConnect.flag_nothing);
 				sqls.clear();
 			}
 

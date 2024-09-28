@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.AbsConnect;
-import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.IUser;
 
 import static io.odysz.common.LangExt.isblank;
@@ -66,13 +65,13 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 			inited = true;
 		}
 		MysqlDriver inst = new MysqlDriver(id, log);
-		inst.enableSystemout = (flags & Connects.flag_printSql) > 0;
+		inst.enableSystemout = (flags & AbsConnect.flag_printSql) > 0;
 		return inst;
 	}
  
 	public static AnResultset selectStatic(String sql, int flags) throws SQLException {
 		Connection conn = getConnection();
-		Connects.printSql(false, flags, sql);
+		// Connects.printSql(false, flags, sql);
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery(sql);
 		AnResultset icrs = new AnResultset(rs);
@@ -88,12 +87,14 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	}
 
 	public AnResultset select(String sql, int flags) throws SQLException {
+		printSql(flags, sql);
 		return selectStatic(sql, flags);
 	}
 	
 	@Override
 	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException {
-		Connects.printSql(enableSystemout, flags, sqls);
+		// Connects.printSql(enableSystemout, flags, sqls);
+		printSql(flags, sqls);
 		
 		int[] ret;
 		Connection conn = getConnection();

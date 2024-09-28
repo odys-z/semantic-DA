@@ -29,9 +29,14 @@ import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
 
 public abstract class AbsConnect<T extends AbsConnect<T>> {
-	protected boolean log;
+
+	public static final int flag_nothing = 0;
+	public static final int flag_printSql = 1;
+	public static final int flag_disableSql = 2;
+
 	public boolean enableSystemout = true;
 
+	protected boolean log;
 	protected dbtype drvName;
 	public dbtype driverType() { return drvName; }
 
@@ -51,7 +56,7 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 			String usr, String pswd, boolean printSql, boolean log) throws SQLException, SemanticException {
 		if (type == dbtype.mysql) {
 			return MysqlDriver.initConnection(id, jdbcUrl,
-					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+					usr, pswd, log, printSql ? flag_printSql : flag_nothing);
 		}
 		else if (type == dbtype.sqlite) {
 			// Since docker volume can not be mounted in tomcat webapps' sub-folder, file path handling can be replaced with environment variables now.
@@ -65,7 +70,7 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 				throw new SemanticException("Can't find DB file: %s", f.getAbsolutePath());
 
 			return SqliteDriver2.initConnection(id, String.format("jdbc:sqlite:%s", dbpath),
-					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+					usr, pswd, log, printSql ? flag_printSql : flag_nothing);
 		}
 		else if (type == dbtype.sqlite_queue) {
 			Utils.logi("Resolving sqlite db (queued), xmlDir: %s,\n\tjdbcUrl: %s", xmlDir, jdbcUrl);
@@ -78,7 +83,7 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 				throw new SemanticException("Can't find DB file: %s", f.getAbsolutePath());
 
 			return SqliteDriverQueued.initConnection(id, String.format("jdbc:sqlite:%s", dbpath),
-					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+					usr, pswd, log, printSql ? flag_printSql : flag_nothing);
 		}
 		else if (type == dbtype.sqlite_queue) {
 			Utils.logi("Resolving sqlite db (queued), xmlDir: %s,\n\tjdbcUrl: %s", xmlDir, jdbcUrl);
@@ -91,15 +96,15 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 				throw new SemanticException("Can't find DB file: %s", f.getAbsolutePath());
 
 			return SqliteDriverQueued.initConnection(id, String.format("jdbc:sqlite:%s", dbpath),
-					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+					usr, pswd, log, printSql ? flag_printSql : flag_nothing);
 		}
 		else if (type == dbtype.ms2k) {
 			return Msql2kDriver.initConnection(jdbcUrl,
-				usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+				usr, pswd, log, printSql ? flag_printSql : flag_nothing);
 		}
 		else if (type == dbtype.oracle) {
 			return OracleDriver.initConnection(id, jdbcUrl,
-				usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
+				usr, pswd, log, printSql ? flag_printSql : flag_nothing);
 		}
 		else
 			throw new SemanticException("The configured DB type %s is not supported yet.", type);
@@ -138,7 +143,7 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 					sqls = usr.dbLog(sqls);
 
 					if (sqls != null)
-						commit(null, sqls, Connects.flag_nothing);
+						commit(null, sqls, flag_nothing);
 				}
 			}
 			catch (Exception ex) {
@@ -174,5 +179,28 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 
 	public String prop(String k) {
 		return props == null ? null : props.get(k);
+	}
+
+	/////////////////////////////// common helper /////////////////////////////
+	/** If printSql is true or if asking enable, 
+	 * then print sqls.
+	 * @param asking
+	 * @param flag
+	 * @param sqls
+	 */
+	public void printSql(int flag, ArrayList<String> sqls) {
+		if ((flag & flag_printSql) == flag_printSql
+			|| enableSystemout && (flag & flag_disableSql) != flag_disableSql) {
+			Utils.logi("[%s]", id);
+			Utils.logi(sqls);
+		}
+	}
+
+	public void printSql(int flag, String sql) {
+		if ((flag & flag_printSql) == flag_printSql
+			|| enableSystemout && (flag & flag_disableSql) != flag_disableSql) {
+			Utils.logi("[%s]", id);
+			Utils.logi(sql);
+		}
 	}
 }

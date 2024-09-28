@@ -13,7 +13,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 import org.sqlite.SQLiteConfig;
 
-import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.DA.AbsConnect;
 
 public class SqliteDriverQueued extends SqliteDriver2 {
 	static boolean test;
@@ -82,7 +82,7 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 			String user, String psword, boolean log, int flags) throws SQLException {
 		SqliteDriverQueued inst = new SqliteDriverQueued(id, log);
 
-		inst.enableSystemout = (flags & Connects.flag_printSql) > 0;
+		inst.enableSystemout = (flags & AbsConnect.flag_printSql) > 0;
 		inst.jdbcUrl = jdbc;
 		inst.userName = user;
 		inst.pswd = psword;
@@ -105,7 +105,8 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 	 */
 	@Override
 	int[] commitst(ArrayList<String> sqls, int flags) throws SQLException {
-		Connects.printSql(enableSystemout, flags, sqls);;
+		// Connects.printSql(enableSystemout, flags, sqls);;
+		printSql(flags, sqls);;
 
 		int[][] ret = new int[][] {new int[0]};
 
