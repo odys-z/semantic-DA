@@ -49,7 +49,7 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 	 * @return new MysqlDriver
 	 * @throws SQLException
 	 */
-	public static MysqlDriver initConnection(String conn, String user, String psword, boolean log, int flags) throws SQLException {
+	public static MysqlDriver initConnection(String id, String conn, String user, String psword, boolean log, int flags) throws SQLException {
 		if (!inited) {
 			
 			connect = conn;
@@ -65,7 +65,7 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 			}
 			inited = true;
 		}
-		MysqlDriver inst = new MysqlDriver(log);
+		MysqlDriver inst = new MysqlDriver(id, log);
 		inst.enableSystemout = (flags & Connects.flag_printSql) > 0;
 		return inst;
 	}
@@ -83,8 +83,8 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 		return icrs;
 	}
 
-	public MysqlDriver(boolean log) {
-		super(dbtype.mysql, log);
+	public MysqlDriver(String id, boolean log) {
+		super(dbtype.mysql, id, log);
 	}
 
 	public AnResultset select(String sql, int flags) throws SQLException {

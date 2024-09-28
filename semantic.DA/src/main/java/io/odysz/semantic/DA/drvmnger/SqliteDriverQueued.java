@@ -26,8 +26,8 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 	
 	Object lock;
 	
-	SqliteDriverQueued(boolean log) {
-		super(log);
+	SqliteDriverQueued(String id, boolean log) {
+		super(id, log);
 		
 		qu = test ? new T_ArrayBlockingQueue<StatementOnCall>(qulen)
 				  : new ArrayBlockingQueue<StatementOnCall>(qulen);
@@ -78,9 +78,9 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 	 * @return SqliteDriver2 instance
 	 * @throws SQLException
 	 */
-	public static SqliteDriverQueued initConnection(String jdbc,
+	public static SqliteDriverQueued initConnection(String id, String jdbc,
 			String user, String psword, boolean log, int flags) throws SQLException {
-		SqliteDriverQueued inst = new SqliteDriverQueued(log);
+		SqliteDriverQueued inst = new SqliteDriverQueued(id, log);
 
 		inst.enableSystemout = (flags & Connects.flag_printSql) > 0;
 		inst.jdbcUrl = jdbc;

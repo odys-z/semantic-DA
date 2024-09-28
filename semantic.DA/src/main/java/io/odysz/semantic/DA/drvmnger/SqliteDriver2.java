@@ -56,8 +56,8 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 		}
 	}
 
-	SqliteDriver2(boolean log) {
-		super(dbtype.sqlite, log);
+	SqliteDriver2(String id, boolean log) {
+		super(dbtype.sqlite, id, log);
 		drvName = dbtype.sqlite;
 		locks = new HashMap<String, ReentrantLock>();
 	}
@@ -93,8 +93,8 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 * @return SqliteDriver2 instance
 	 * @throws SQLException
 	 */
-	public static SqliteDriver2 initConnection(String jdbc, String user, String psword, boolean log, int flags) throws SQLException {
-		SqliteDriver2 inst = new SqliteDriver2(log);
+	public static SqliteDriver2 initConnection(String id, String jdbc, String user, String psword, boolean log, int flags) throws SQLException {
+		SqliteDriver2 inst = new SqliteDriver2(id, log);
 
 		inst.enableSystemout = (flags & Connects.flag_printSql) > 0;
 		inst.jdbcUrl = jdbc;

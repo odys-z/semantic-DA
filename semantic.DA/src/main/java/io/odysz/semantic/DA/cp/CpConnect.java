@@ -76,8 +76,8 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	 * @param printSql
 	 * @param log
 	 */
-	public CpConnect (String srcId, dbtype driverType, boolean printSql, boolean log) {
-		super(driverType, log);
+	public CpConnect (String id, String srcId, dbtype driverType, boolean printSql, boolean log) {
+		super(driverType, id, log);
 		this.srcId = "java:/comp/env/" + srcId;
 		this.enableSystemout = printSql;
 	}
@@ -89,7 +89,8 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	 * @return map[tabl, [field, lob]]*/
 	public HashMap<String, HashMap<String, OracleLob>> getlobMeta() { return clobMeta; }
 	
-	/**Get Connection
+	/**
+	 * Get Connection
 	 * 
 	 * <h4>Issue with Mysql 8.0.2:</h4>
 	 * For mysql 8.0.0, the SSL connection is enabled by default. And got SSL connection exception:<pre>
@@ -125,7 +126,9 @@ public class CpConnect extends AbsConnect<CpConnect> {
         return conn;
 	}
 
-	/**For {@link Connects} creating Meta data before Datasource is usable.
+	/**
+	 * For {@link Connects} creating Meta data before Datasource is usable.
+	 * 
 	 * @param sql
 	 * @return query results
 	 * @throws SQLException

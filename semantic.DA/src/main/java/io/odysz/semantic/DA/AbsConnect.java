@@ -35,19 +35,22 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 	protected dbtype drvName;
 	public dbtype driverType() { return drvName; }
 
+	protected String id;
+
 	/**
 	 * @param drvName
 	 * @param log enable logging user action
 	 */
-	public AbsConnect (dbtype drvName, boolean log) {
+	public AbsConnect (dbtype drvName, String id, boolean log) {
 		this.drvName = drvName;
+		this.id = id;
 		this.log = log;
 	}
 	
-	public static AbsConnect<?> initDmConnect(String xmlDir, dbtype type, String jdbcUrl,
+	public static AbsConnect<?> initDmConnect(String xmlDir, dbtype type, String id, String jdbcUrl,
 			String usr, String pswd, boolean printSql, boolean log) throws SQLException, SemanticException {
 		if (type == dbtype.mysql) {
-			return MysqlDriver.initConnection(jdbcUrl,
+			return MysqlDriver.initConnection(id, jdbcUrl,
 					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else if (type == dbtype.sqlite) {
@@ -61,7 +64,7 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 			if (!f.exists())
 				throw new SemanticException("Can't find DB file: %s", f.getAbsolutePath());
 
-			return SqliteDriver2.initConnection(String.format("jdbc:sqlite:%s", dbpath),
+			return SqliteDriver2.initConnection(id, String.format("jdbc:sqlite:%s", dbpath),
 					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else if (type == dbtype.sqlite_queue) {
@@ -74,7 +77,7 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 			if (!f.exists())
 				throw new SemanticException("Can't find DB file: %s", f.getAbsolutePath());
 
-			return SqliteDriverQueued.initConnection(String.format("jdbc:sqlite:%s", dbpath),
+			return SqliteDriverQueued.initConnection(id, String.format("jdbc:sqlite:%s", dbpath),
 					usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else if (type == dbtype.ms2k) {
@@ -82,7 +85,7 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 				usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else if (type == dbtype.oracle) {
-			return OracleDriver.initConnection(jdbcUrl,
+			return OracleDriver.initConnection(id, jdbcUrl,
 				usr, pswd, log, printSql ? Connects.flag_printSql : Connects.flag_nothing);
 		}
 		else
@@ -90,8 +93,8 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 	}
 
 	public static AbsConnect<? extends AbsConnect<?>> initPooledConnect(String xmlDir, dbtype type,
-			String jdbcUrl, String usr, String pswd, boolean printSql, boolean log) {
-		return new CpConnect(jdbcUrl, type, printSql, log);
+			String id, String jdbcUrl, String usr, String pswd, boolean printSql, boolean log) {
+		return new CpConnect(id, jdbcUrl, type, printSql, log);
 	}
 	
 	protected void close() throws SQLException {}
