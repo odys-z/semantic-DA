@@ -649,9 +649,7 @@ public class DASemantics {
 					handler.onUpdate(semantx, satemt, row, cols, usr);
 	}
 
-	public void onDelete(ISemantext semantx,
-			// Statement<? extends Statement<?>> stmt,
-			Delete stmt,
+	public void onDelete(ISemantext semantx, Delete stmt,
 			Condit whereCondt, IUser usr) throws TransException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
