@@ -225,7 +225,7 @@ public class DBSynmantics extends DASemantics {
 				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws TransException {
 			try {
-				AnResultset hittings = hits(stx, updt, usr);
+				AnResultset hittings = hits(stx, updt);
 				if (hittings.getRowCount() > 0)
 					updt = logChange(((ISyncontext)stx).synbuilder(),
 									updt, entm, synode, null, cols.keySet());
@@ -235,14 +235,12 @@ public class DBSynmantics extends DASemantics {
 			}
 		}
 
-		private AnResultset hits(ISemantext stx, Statement<?> updt,
-				// ArrayList<Object[]> row, Map<String, Integer> cols,
-				IUser usr)
+		private AnResultset hits(ISemantext stx, Statement<?> updt)
 				throws TransException, SQLException {
 			return ((AnResultset) trxt.select(target)
 				.col(entm.synuid)
 				.where(updt.where())
-				.rs(trxt.instancontxt(stx.connId(), usr))
+				.rs(stx)
 				.rs(0))
 				.beforeFirst();
 		}
@@ -250,7 +248,7 @@ public class DBSynmantics extends DASemantics {
 		@Override
 		protected void onDelete(ISemantext stx, Delete stmt, Condit condt, IUser usr) throws TransException {
 			try {
-				AnResultset hittings = hits(stx, stmt, usr);
+				AnResultset hittings = hits(stx, stmt);
 				while (hittings.next())
 					stmt = logChange(((ISyncontext)stx).synbuilder(),
 								stmt, entm, hittings.getString(entm.synuid));
@@ -258,34 +256,6 @@ public class DBSynmantics extends DASemantics {
 				e.printStackTrace();
 				throw new TransException(e.getMessage());
 			}
-			// throw new SemanticException("tested?");
-
-			/*
-			try {
-				AnResultset row = (AnResultset) trxt
-						.select(target)
-						.where(condt)
-						.groupby(pkField)
-						.rs(trxt.instancontxt(stx.connId(), usr))
-						.rs(0);
-
-				while (row.next()) {
-					Delete delChg = trxt.delete(chm.tbl);
-					Delete delSub = trxt.delete(sbm.tbl);
-					// Not correct as chm.tbl doesn't have col of syntity's.
-					// Haven't reached here yet?
-					for (String id : ((SyntityMeta) stx.getTableMeta(target)).globalIds()) {
-						delChg.whereEq(id, row.getString(id));
-						delSub.whereEq(id, row.getString(id)); // TODO sub tabel changed
-					}
-
-					stmt.post(delChg);
-				}
-			} catch (TransException | SQLException e) {
-				e.printStackTrace();
-				throw new SemanticException(e.getMessage());
-			}
-			*/
 		}
 		
 	}
