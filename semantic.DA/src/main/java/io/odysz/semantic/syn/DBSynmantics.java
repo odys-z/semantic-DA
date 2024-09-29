@@ -235,9 +235,7 @@ public class DBSynmantics extends DASemantics {
 			}
 		}
 
-		private AnResultset hits(ISemantext stx, Statement<?> updt,
-				// ArrayList<Object[]> row, Map<String, Integer> cols,
-				IUser usr)
+		private AnResultset hits(ISemantext stx, Statement<?> updt, IUser usr)
 				throws TransException, SQLException {
 			return ((AnResultset) trxt.select(target)
 				.col(entm.synuid)
