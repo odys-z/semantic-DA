@@ -652,7 +652,7 @@ public class DASemantics {
 	public void onDelete(ISemantext semantx,
 			// Statement<? extends Statement<?>> stmt,
 			Delete stmt,
-			Condit whereCondt, IUser usr) throws SemanticException {
+			Condit whereCondt, IUser usr) throws TransException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
 				if (handler.delete)
@@ -723,7 +723,7 @@ public class DASemantics {
 				// Statement<? extends Statement<?>> stmt,
 				Delete del,
 				Condit whereCondt, IUser usr)
-				throws SemanticException {
+				throws TransException {
 		}
 
 		protected void onPost(ISemantext sm, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
@@ -1901,6 +1901,7 @@ public class DASemantics {
 			}
 		}
 
+		@Override
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols,
 				IUser usr) throws SemanticException {
 			onInsert(stx, null, row, cols, usr);
@@ -1996,6 +1997,7 @@ public class DASemantics {
 			*/
 		}
 
+		@Override
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			// Design Memo: insrt is not used in onInsert
 			onInsert(stx, null, row, cols, usr);

@@ -752,7 +752,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	/**
 	 * NOTE: This method sholdn't be used other than tests,
-	 * or don't configure syn-change semantics for the table.
+	 * - don't configure syn-change semantics for the table.
 	 * 
 	 * @param m
 	 * @param e
