@@ -313,4 +313,11 @@ public class DAHelper {
 		return (SemanticObject) ins
 				.ins(t0.instancontxt(conn, usr));
 	}
+	
+	public static AnResultset getEntityById(DATranscxt b, TableMeta m, String id)
+			throws SQLException, TransException {
+		return ((AnResultset) b.select(m.tbl)
+				.whereEq(m.pk, id).rs(b.instancontxt(b.basictx().connId(), DATranscxt.dummyUser()))
+				.rs(0));
+	}
 }
