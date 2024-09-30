@@ -43,7 +43,7 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 * see <a href='https://stackoverflow.com/questions/13891006/getting-sqlite-busy-database-file-is-locked-with-select-statements'>
 	 * StackOverflow: Getting [SQLITE_BUSY] database file is locked with select statements</a>
 	 */
-	private Connection conn;
+	protected Connection conn;
 
 	static {
 		try {
@@ -56,8 +56,8 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 		}
 	}
 
-	SqliteDriver2(boolean log) {
-		super(dbtype.sqlite, log);
+	SqliteDriver2(String id, boolean log) {
+		super(dbtype.sqlite, id, log);
 		drvName = dbtype.sqlite;
 		locks = new HashMap<String, ReentrantLock>();
 	}
@@ -78,7 +78,7 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 * @return connection
 	 * @throws SQLException
 	 */
-	protected Connection getConnection() throws SQLException {
+	public Connection getConnection() throws SQLException {
 		return conn;
 	}
 	
@@ -93,10 +93,10 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 * @return SqliteDriver2 instance
 	 * @throws SQLException
 	 */
-	public static SqliteDriver2 initConnection(String jdbc, String user, String psword, boolean log, int flags) throws SQLException {
-		SqliteDriver2 inst = new SqliteDriver2(log);
+	public static SqliteDriver2 initConnection(String id, String jdbc, String user, String psword, boolean log, int flags) throws SQLException {
+		SqliteDriver2 inst = new SqliteDriver2(id, log);
 
-		inst.enableSystemout = (flags & Connects.flag_printSql) > 0;
+		inst.enableSystemout = (flags & AbsConnect.flag_printSql) > 0;
 		inst.jdbcUrl = jdbc;
 		inst.userName = user;
 		inst.pswd = psword;
@@ -109,7 +109,9 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	
 	AnResultset selectStatic(String sql, int flag) throws SQLException {
 		Connection conn = getConnection();
-		Connects.printSql(enableSystemout, flag, sql);
+		// Connects.printSql(enableSystemout, flag, sql);
+		printSql(flag, sql);
+
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery(sql);
 		AnResultset icrs = new AnResultset(rs);
@@ -140,7 +142,8 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 * @throws SQLException
 	 */
 	int[] commitst(ArrayList<String> sqls, int flags) throws SQLException {
-		Connects.printSql(enableSystemout, flags, sqls);;
+		// Connects.printSql(enableSystemout, flags, sqls);;
+		printSql(flags, sqls);;
 
 		int[] ret;
 		Statement stmt = null;

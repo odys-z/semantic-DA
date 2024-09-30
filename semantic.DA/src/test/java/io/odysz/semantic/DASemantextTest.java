@@ -12,13 +12,10 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Map;
-
 import org.apache.commons.io_odysz.FilenameUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -34,6 +31,7 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
+import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.syn.T_DA_PhotoMeta;
 import io.odysz.semantic.util.DAHelper;
@@ -114,13 +112,14 @@ public class DASemantextTest {
 		ArrayList<String> sqls = new ArrayList<String>();
 
 		try {
+			// Thread.sleep(3000); // wait for previous tests
 			for (String tbl : new String[] {
 					"oz_autoseq", "a_logs", "a_attaches",
 					"a_domain", "a_functions", "a_orgs", "a_role_func", "a_roles", "a_users",
 					"b_alarms", "b_alarm_logic", "b_logic_device",
 					"crs_a", "crs_b", "h_photos", "doc_devices"}) {
 				sqls.add("drop table if exists " + tbl);
-				Connects.commit(usr, sqls, Connects.flag_nothing);
+				Connects.commit(usr, sqls, AbsConnect.flag_nothing);
 				sqls.clear();
 			}
 
@@ -128,15 +127,15 @@ public class DASemantextTest {
 					"oz_autoseq.ddl",  "oz_autoseq.sql",     "a_logs.ddl",      "a_attaches.ddl",
 					"a_domain.ddl",    "a_domain.sql",       "a_functions.ddl", "a_functions.sql",
 					"a_orgs.ddl",      "a_orgs.sql",
-					"a_role_func.ddl", "a_roles.ddl",        "a_users.ddl",     "a_alarm_logic.ddl",
+					"a_role_func.ddl", "a_roles.ddl",        "a_users.ddl",     "b_alarm_logic.ddl",
 					"b_alarms.ddl",    "b_logic_device.ddl", "crs_a.ddl",       "crs_b.ddl",
 					"h_photos.ddl",    "doc_devices.ddl"}) {
 
 				sqls.add(loadTxt(DASemantextTest.class, tbl));
-				Connects.commit(usr, sqls, Connects.flag_nothing);
+				Connects.commit(usr, sqls, AbsConnect.flag_nothing);
 				sqls.clear();
 			}
-			Connects.reload(runtimepath); // reload metas
+//			Connects.reload(runtimepath); // reload metas
 			st = new DATranscxt(connId);
 		} catch (Exception e) {
 			e.printStackTrace();

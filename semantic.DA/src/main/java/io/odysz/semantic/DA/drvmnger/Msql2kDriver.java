@@ -11,8 +11,8 @@ import io.odysz.semantics.IUser;
 
 public class Msql2kDriver extends AbsConnect<Msql2kDriver> {
 
-	public Msql2kDriver(dbtype drvName, boolean log) {
-		super(drvName, log);
+	public Msql2kDriver(dbtype drvName, String id, boolean log) {
+		super(drvName, id, log);
 	}
 
 	public static Msql2kDriver initConnection(String string, String string2, String string3, boolean log, int i) {

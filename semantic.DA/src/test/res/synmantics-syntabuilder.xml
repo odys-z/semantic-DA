@@ -9,6 +9,7 @@
   		args: arguments for sementics handlers. For args for different handlers, see above javadoc link.
    -->
   	<s>
+  		<!-- Issue: this configuration should be removed as this is a forced semantics iff the DB synchronization is supported -->
   		<id>00</id>
  		<smtc>autopk</smtc>
   		<tabl>syn_change</tabl>

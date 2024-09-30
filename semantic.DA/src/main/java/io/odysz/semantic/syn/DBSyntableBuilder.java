@@ -10,8 +10,8 @@ import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
 import static io.odysz.semantic.syn.Nyquence.maxn;
 import static io.odysz.semantic.syn.Nyquence.sqlCompare;
-import static io.odysz.semantic.util.DAHelper.getValstr;
 import static io.odysz.semantic.util.DAHelper.getNstamp;
+import static io.odysz.semantic.util.DAHelper.updateFieldByPk;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+
+import org.junit.jupiter.api.Disabled;
 
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
@@ -71,6 +73,7 @@ import io.odysz.transact.x.TransException;
  *
  * @author Ody
  */
+@Disabled("Only after merged.")
 public class DBSyntableBuilder extends DATranscxt {
 	public static class SynmanticsMap extends SemanticsMap {
 		String synode;
@@ -128,17 +131,9 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 
-	/*
-	public Nyquence n0() { return nyquvect.get(synode()); }
-	protected DBSyntableBuilder n0(Nyquence nyq) {
-		nyquvect.put(synode(), new Nyquence(nyq.n));
-		return this;
-	}
-	*/
-
 	String perdomain;
 	public String domain() { return perdomain; }
-	private DBSyntableBuilder domain(String domain) {
+	public DBSyntableBuilder domain(String domain) {
 		this.perdomain = domain;
 		return this;
 	}
@@ -159,20 +154,20 @@ public class DBSyntableBuilder extends DATranscxt {
 				: null;
 	} 
 
-	public DBSyntableBuilder(String domain, String conn, String synodeId, SynodeMode mode)
+	public DBSyntableBuilder(String domain, String conn, String mynodeId, SynodeMode mode)
 			throws Exception {
-		this(domain, conn, synodeId, mode,
+		this(domain, conn, mynodeId, mode,
 			new SynChangeMeta(conn),
 			new SynodeMeta(conn));
 	}
 	
-	public DBSyntableBuilder(String domain, String conn, String nid,
+	public DBSyntableBuilder(String domain, String conn, String mynid,
 			SynodeMode mode, SynChangeMeta chgm, SynodeMeta synm)
 			throws Exception {
 
 		super ( new DBSyntext(conn,
-			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSyntableBuilder.SynmanticsMap(nid, c)),
-			    	(IUser) new SyncRobot(nid, nid, "rob@" + nid, nid),
+			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSyntableBuilder.SynmanticsMap(mynid, c)),
+			    	(IUser) new SyncRobot(mynid, mynid, "rob@" + mynid, mynid),
 			    	runtimepath));
 		
 		debug    = Connects.getDebug(conn);
@@ -181,11 +176,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;
-		tx.synode = nid;
-		// dom = getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, synodeId);
-		((SyncRobot)tx.usr())
-			.orgId(getValstr((Transcxt) this, conn, synm, synm.org, synm.pk, nid))
-			.domain(getValstr((Transcxt) this, conn, synm, synm.domain, synm.pk, nid));
+		tx.synode = mynid;
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
@@ -204,16 +195,17 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		if (mode != SynodeMode.nonsyn) {
 			if (DAHelper.count(this, conn, synm.tbl,
-						synm.synoder, nid, synm.domain, perdomain) <= 0) {
+						synm.synoder, mynid, synm.domain, perdomain) <= 0) {
 				if (debug) Utils
 					.warnT(new Object() {},
 						  "\nThis syntable builder is being buit for node %s which doesn't exists in domain %s." +
 						  "\nThis instence can only be useful if is used to initialize the domain for the node",
-						  nid, perdomain);
+						  mynid, perdomain);
 			}
 			else
 				stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
-						synm.synoder, nid, synm.domain, perdomain);
+						synm.synoder, mynid, synm.domain, perdomain);
+
 			registerEntity(conn, synm);
 		}
 		else if (isblank(perdomain))
@@ -240,7 +232,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			throw new ExchangeException(Exchanging.ready, cp,
 				"Can't initate new exchange session. There are exchanging records to be finished.");
 
-		return cp.init(); //  .nv(nyquvect);
+		return cp.init();
 	}
 	
 	/**
@@ -531,7 +523,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		HashSet<String> warnsynodee = new HashSet<String>();
 		HashSet<String> warnsynoder = new HashSet<String>();
 
-		while (req.totalChallenges > 0 && reqChgs.next()) {
+		while (req.totalChallenges > 0 && reqChgs.next()) { // FIXME performance issue
 			String synodee = reqChgs.getString(subm.synodee);
 			String synoder = reqChgs.getString(chgm.synoder);
 
@@ -588,29 +580,30 @@ public class DBSyntableBuilder extends DATranscxt {
 				.saveChanges(changes.beforeFirst(), req.nv, req.entities);
 	}
 
-	public ExchangeBlock closexchange(ExessionPersist cx,
-			ExchangeBlock rep) throws TransException, SQLException {
+	public ExchangeBlock closexchange(ExessionPersist cx, ExchangeBlock rep)
+			throws TransException, SQLException {
 
 		// cx.clear();
 		HashMap<String, Nyquence> nv = rep.nv; 
 
 		Nyquence peerme = nv.get(synode());
 		if (peerme != null && Nyquence.compareNyq(cx.n0(), peerme) < 0)
-			throw new SemanticException("Synchronizing Nyquence exception: my.n0 = %d < peer.nv[me] = %d",
-					cx.n0().n, peerme.n);
+			throw new SemanticException("Synchronizing Nyquence exception: my.n0 = %d < peer.nv[me] = %d, at %s (me).",
+					cx.n0().n, peerme.n, synode());
 
 		if (Nyquence.compareNyq(stamp, cx.n0()) < 0)
-			throw new SemanticException("Synchronizing Nyquence exception: stamp = %d < n0 = %d",
-					stamp.n, cx.n0().n);
+			throw new SemanticException("Synchronizing Nyquence exception: %s.stamp = %d < n0 = %d.",
+					synode(), stamp.n, cx.n0().n);
 		
-		// HashMap<String, Nyquence> snapshot = synyquvectMax(cx.peer, rep.nv, cx.nyquvect);
 		HashMap<String, Nyquence> snapshot = synyquvectMax(cx, rep.nv);
 		persistamp(maxn(stamp, cx.n0()));
 
 		return cx.closexchange(rep).nv(snapshot); // cx.clear();
 	}
 
-	/**insert into exbm-buffer select peer's-subscriptions union 3rd parties subscriptions
+	/**
+	 * insert into exbm-buffer select peer's-subscriptions union 3rd parties subscriptions
+	 * 
 	 * @see #closexchange(ExessionPersist, ExchangeBlock)
 	 * 
 	 * @return insert statement to exchanging page buffer.
@@ -656,7 +649,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				xp.incN0(mx);
 			}
 			else
-				snapshot.put(n, maxn(xnv.get(n), xp.nyquvect.get(n)));
+				snapshot.put(n, new Nyquence(maxn(xnv.get(n), xp.nyquvect.get(n)).n));
 
 			nyq = maxn(xnv.get(n), xp.nyquvect.get(n));
 
@@ -684,8 +677,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ExchangeBlock abortExchange(ExessionPersist cx)
 			throws TransException, SQLException {
 		HashMap<String, Nyquence> snapshot = Nyquence.clone(cx.nyquvect);
-		cx.incN0(stamp);
-		persistamp(maxn(stamp, cx.n0()));
+		stamp.n = getNstamp(this).n;
 		return cx.abortExchange().nv(snapshot);
 	}
 	
@@ -760,7 +752,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	/**
 	 * NOTE: This method sholdn't be used other than tests,
-	 * or don't configure syn-change semantics for the table.
+	 * - don't configure syn-change semantics for the table.
 	 * 
 	 * @param m
 	 * @param e
@@ -809,7 +801,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			entityRegists.put(conn, new HashMap<String, SyntityMeta>());
 
 		entityRegists.get(conn).put(m.tbl, (SyntityMeta) m.clone(Connects.getMeta(conn, m.tbl)));
-		// return this;
 	}
 	
 	public SyntityMeta getEntityMeta(String entbl) throws SemanticException {
@@ -833,61 +824,36 @@ public class DBSyntableBuilder extends DATranscxt {
 			.whereEq(synm.domain, perdomain)
 			.u(instancontxt(basictx.connId(), synrobot()));
 		
-//		nyquvect.put(synode(), getNyquence(this, basictx.connId(), synm, synm.nyquence,
-//				synm.pk, synode(), synm.domain, dom));
 		stamp.inc();
 		persistamp(stamp);
 		
-//		if (compareNyq(stamp, nyquvect.get(synode())) < 0)
-//			throw new SemanticException("Stamp is early than n0. stamp = %s, n0 = %s",
-//					stamp.n, nyquvect.get(synode()).n);
 		return this;
 	}
 	
-	/**
-	 * this.n0++, this.n0 = max(n0, maxn)
-	 * @param maxn
-	 * @return n0
-	 * @throws SQLException 
-	 * @throws TransException 
-	public Nyquence incN0(Nyquence... n) throws TransException, SQLException {
-		n0().inc(isNull(n) ? nyquvect.get(synode()).n : n[0].n);
-		DAHelper.updateFieldByPk(this, basictx.connId(), synm, synode(),
-				synm.nyquence, new ExprPart(n0().n), synrobot());
-		return n0();
-	}
-	
-	public DBSyntableBuilder loadNyquvect(String conn) throws SQLException, TransException {
-		AnResultset rs = ((AnResultset) select(synm.tbl)
-				.cols(synm.pk, synm.nyquence, synm.nstamp)
-				.rs(instancontxt(conn, synrobot()))
-				.rs(0));
-		
-		nyquvect = new HashMap<String, Nyquence>(rs.getRowCount());
-		while (rs.next()) {
-			nyquvect.put(rs.getString(synm.synoder), new Nyquence(rs.getLong(synm.nyquence)));
-			
-			if (eq(synode(), rs.getString(synm.pk)))
-				stamp = new Nyquence(rs.getLong(synm.nstamp));
-		}
-		
-		return this;
-	}
-	 */
-
 	@Override
 	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
 		try {
-			return new DBSyntext(conn,
+			ISemantext syntext = new DBSyntext(conn,
 				initConfigs(conn, loadSemantics(conn),
 						(c) -> new DBSyntableBuilder.SynmanticsMap(synode(), c)),
 				usr, runtimepath).creator(this);
+
+			// stamp = getNstamp(this);
+			return syntext;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new TransException(e.getMessage());
 		}
 	}
 	
+	/**
+	 * Set n-stamp, then create a request package.
+	 * @param app
+	 * @param admin
+	 * @return the request
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public ExchangeBlock domainSignup(ExessionPersist app, String admin) throws TransException, SQLException {
 		try {
 			stamp = getNstamp(this);
@@ -906,18 +872,22 @@ public class DBSyntableBuilder extends DATranscxt {
 		IUser robot = synrobot();
 	
 		Synode apply = new Synode(basictx.connId(), childId, org, domain());
-	
-		@SuppressWarnings("unused")
-		String chgid = ((SemanticObject) apply.insert(synm, synode(), ap.n0(), insert(synm.tbl, robot))
+
+		req.synodes.beforeFirst().next();
+		
+		String syn_uids = req.synodes.getString(synm.synuid);
+
+		((SemanticObject) apply
+			.insert(synm, syn_uids, ap.n0(), insert(synm.tbl, robot))
 			.post(insert(chgm.tbl, robot)
 				.nv(chgm.entbl, synm.tbl)
 				.nv(chgm.crud, CRUD.C)
 				.nv(chgm.synoder, synode())
-				.nv(chgm.uids, SynChangeMeta.uids(synode(), apply.synodeId))
+				.nv(chgm.uids, syn_uids)
 				.nv(chgm.nyquence, ap.n0().n)
 				.nv(chgm.seq, incSeq())
 				.nv(chgm.domain, domain())
-				.post(insert(subm.tbl)
+				.post(insert(subm.tbl) // TODO the tree mode is different here
 					.cols(subm.insertCols())
 					.select((Query)select(synm.tbl)
 						.col(new Resulving(chgm.tbl, chgm.pk))
@@ -943,8 +913,13 @@ public class DBSyntableBuilder extends DATranscxt {
 		return rep;
 	}
 
-	public ExchangeBlock domainitMe(ExessionPersist cp, String admin, ExchangeBlock domainstatus)
+	public ExchangeBlock domainitMe(ExessionPersist cp, String admin, String adminserv, String domain, ExchangeBlock domainstatus)
 			throws TransException, SQLException {
+		
+		if (!isblank(domain()))
+			throw new ExchangeException(setupDom, cp, "Domain must be null for updating %s.%s?",
+					synm.tbl, synm.domain);
+		domain(domain);
 
 		Nyquence mxn = domainstatus.nv.get(admin); 
 
@@ -969,27 +944,42 @@ public class DBSyntableBuilder extends DATranscxt {
 				else {
 					Synode n = new Synode(ns, synm);
 					mxn = maxn(domainstatus.nv);
-					n.insert(synm, synode(), mxn, insert(synm.tbl, synrobot()))
-						.ins(instancontxt(basictx.connId(), synrobot()));
+					n.insert(synm, ns.getString(synm.synuid), mxn, insert(synm.tbl, synrobot()))
+					 .nv(synm.jserv, adminserv)
+					 .ins(instancontxt(basictx.connId(), synrobot()));
 
 					cp.nyquvect.put(n.synodeId, new Nyquence(mxn.n));
 				}
 			}
 		}
 
-//		if (stamp == null)
-//			throw new SemanticException("TEMP");
-
-		// persistamp(mxn);
-
 		return new ExchangeBlock(synode(), admin, domainstatus.session,
-				new ExessionAct(ExessionAct.mode_client, setupDom)
-			).nv(cp.nyquvect);
+				new ExessionAct(ExessionAct.mode_client, setupDom))
+				.nv(cp.nyquvect);
 	}
 
+	/**
+	 * close joining session.
+	 * <p>Debug Notes:<br>
+	 *  {@code rep.nv} is polluted, but should be safely dropped.</p>
+	 *  
+	 * @param cp
+	 * @param rep
+	 * @return reply
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public ExchangeBlock domainCloseJoin(ExessionPersist cp, ExchangeBlock rep)
 			throws TransException, SQLException {
 		// stamp = rep.nv.get(rep)
+		if (isblank(perdomain))
+			throw new ExchangeException(Exchanging.ready, cp, "domain is empty when closing domain joining?");
+
+		updateFieldByPk(this, synconn(), synm, synode(), synm.domain, perdomain, synrobot());
+
+		// Stamp will be persisted in closexchange().
+		stamp = maxn(rep.nv.get(cp.peer), stamp, cp.n0());
+
 		return closexchange(cp, rep);
 	}
 	
@@ -1086,6 +1076,13 @@ public class DBSyntableBuilder extends DATranscxt {
 	ExessionPersist xp;
 	public DBSyntableBuilder xp(ExessionPersist exessionPersist) {
 		this.xp = exessionPersist;
+		return this;
+	}
+
+
+	public DBSyntableBuilder loadNstamp() throws SQLException, TransException {
+		stamp = DAHelper.getNyquence(this, synconn(), synm, synm.nyquence,
+						synm.synoder, synode(), synm.domain, perdomain);
 		return this;
 	}
 }

@@ -64,9 +64,11 @@ public class Configs {
 	protected static HashMap<String, HashMap<String, String>> cfgs;
 
 	static {
+		Utils.logi("============= Semantic.DA 2.0.0 built on 2024-08-08 =============");
+
 		log = new Log4jWrapper("Configs");
 
-		cfgs = new HashMap<String, HashMap<String, String>>(3);
+		cfgs = new HashMap<String, HashMap<String, String>>();
 	}
 
 	/**For redirect path of config.xml

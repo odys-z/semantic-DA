@@ -86,7 +86,8 @@ public class DBSynmantics extends DASemantics {
 						.where(op.ne, b.synm.synoder, constr(b.synode()))
 						.whereEq(b.synm.domain, b.domain())));
 		if (pid instanceof Resulving)
-			insc.nv(b.chgm.uids, SynChangeMeta.uids(b.synode(), (Resulving)pid));
+			// insc.nv(b.chgm.uids, SynChangeMeta.uids(b.synode(), (Resulving)pid));
+			insc.nv(b.chgm.uids, SynChangeMeta.uids(synode, (Resulving)pid));
 		else
 			insc.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
 
@@ -145,7 +146,8 @@ public class DBSynmantics extends DASemantics {
 	}	
 
 	public static class ShSynChange extends SemanticHandler {
-		static String apidoc = "TODO ...";
+
+		// static String apidoc = "TODO ...";
 		protected final SynChangeMeta chm;
 		protected final SynodeMeta snm;
 		protected final SynSubsMeta sbm;
@@ -218,55 +220,42 @@ public class DBSynmantics extends DASemantics {
 			return false;
 		}
 
-		protected void onUpdate(ISyncontext stx, Update updt,
+		@Override
+		protected void onUpdate(ISemantext stx, Update updt,
 				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
-				throws TransException, SQLException {
-			AnResultset hittings = isHit(stx, updt, row, cols, usr);
-			if (hittings.getRowCount() > 0)
-				updt = 
-				logChange(stx.synbuilder(), updt, entm, synode, null, cols.keySet());
+				throws TransException {
+			try {
+				AnResultset hittings = hits(stx, updt);
+				if (hittings.getRowCount() > 0)
+					updt = logChange(((ISyncontext)stx).synbuilder(),
+									updt, entm, synode, null, cols.keySet());
+			} catch (TransException | SQLException e) {
+				e.printStackTrace();
+				throw new TransException(e.getMessage());
+			}
 		}
 
-		private AnResultset isHit(ISyncontext stx, Update updt,
-				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+		private AnResultset hits(ISemantext stx, Statement<?> updt)
 				throws TransException, SQLException {
 			return ((AnResultset) trxt.select(target)
 				.col(entm.synuid)
 				.where(updt.where())
-				.rs(trxt.instancontxt(stx.connId(), usr))
-				.rs(0));
+				.rs(stx)
+				.rs(0))
+				.beforeFirst();
 		}
 
-		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt,
-				Condit condt, IUser usr) throws SemanticException {
-			
-			throw new SemanticException("tested?");
-			/*
+		@Override
+		protected void onDelete(ISemantext stx, Delete stmt, Condit condt, IUser usr) throws TransException {
 			try {
-				AnResultset row = (AnResultset) trxt
-						.select(target)
-						.where(condt)
-						.groupby(pkField)
-						.rs(trxt.instancontxt(stx.connId(), usr))
-						.rs(0);
-
-				while (row.next()) {
-					Delete delChg = trxt.delete(chm.tbl);
-					Delete delSub = trxt.delete(sbm.tbl);
-					// Not correct as chm.tbl doesn't have col of syntity's.
-					// Haven't reached here yet?
-					for (String id : ((SyntityMeta) stx.getTableMeta(target)).globalIds()) {
-						delChg.whereEq(id, row.getString(id));
-						delSub.whereEq(id, row.getString(id)); // TODO sub tabel changed
-					}
-
-					stmt.post(delChg);
-				}
-			} catch (TransException | SQLException e) {
+				AnResultset hittings = hits(stx, stmt);
+				while (hittings.next())
+					stmt = logChange(((ISyncontext)stx).synbuilder(),
+								stmt, entm, hittings.getString(entm.synuid));
+			} catch (SQLException e) {
 				e.printStackTrace();
-				throw new SemanticException(e.getMessage());
+				throw new TransException(e.getMessage());
 			}
-			*/
 		}
 		
 	}

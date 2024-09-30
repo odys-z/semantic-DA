@@ -4,8 +4,6 @@ import static io.odysz.common.LangExt.isNull;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.odysz.semantic.syn.IAssert;
-
 public class AssertImpl implements IAssert {
 
 	@Override
@@ -20,7 +18,7 @@ public class AssertImpl implements IAssert {
 
 	@Override
 	public void fail(String e) throws Error {
-		fail(e);
+		org.junit.jupiter.api.Assertions.fail(e);
 	}
 
 	@Override

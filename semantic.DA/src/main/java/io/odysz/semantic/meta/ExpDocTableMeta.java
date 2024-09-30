@@ -9,6 +9,8 @@ import io.odysz.transact.x.TransException;
 
 /**
  * Experimental: document entity table meta.
+ * 
+ * TODO rename together with ExpDoctier, ExpSynodetier.
  *
  * @author odys-z@github.com
  */

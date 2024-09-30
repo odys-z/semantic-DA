@@ -67,9 +67,9 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 		return conn;
 	}
 
-	public static OracleDriver initConnection(String conn, String user, String psword, boolean log, int flag) throws SQLException {
+	public static OracleDriver initConnection(String id, String conn, String user, String psword, boolean log, int flag) throws SQLException {
 		if (!inited) {
-			enableSystemout = (flag & Connects.flag_printSql) > 0;
+			enableSystemout = (flag & flag_printSql) > 0;
 			
 			connect = conn;
 			userName = user;
@@ -85,7 +85,7 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 			}
 			inited = true;
 		}
-		return new OracleDriver(log);
+		return new OracleDriver(id, log);
 	}	
 
 	public static AnResultset select(String sql) throws SQLException {
@@ -302,14 +302,16 @@ public class OracleDriver extends AbsConnect<OracleDriver> {
 		}
 	}
 
-	public OracleDriver(boolean log) {
-		super(dbtype.oracle, log);
+	public OracleDriver(String id, boolean log) {
+		super(dbtype.oracle, id, log);
 	}
 
 	@Override
 	public AnResultset select(String sql, int flags) throws SQLException {
 		Connection conn = getConnection();
-		Connects.printSql(enableSystemout, flags, sql);
+		// Connects.printSql(enableSystemout, flags, sql);
+		printSql(flags, sql);
+		
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery(sql);
 		AnResultset icrs = new AnResultset(rs);

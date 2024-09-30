@@ -53,7 +53,10 @@ public class ConnectsTest {
 		('test00', '0002', 'Portal', 'views/portal.html', '0001', '1', '0 0001.1 0002'),
 		('test00', '0003', 'User Info', 'views/user-info.html', '0001', '2', '0 0001.2 0003');
 		*/
-		AnResultset rs = Connects.select("select * from a_functions where flags='test00' order by fullpath, sibling", Connects.flag_nothing);
+		AnResultset rs = Connects.select(
+						"select * from a_functions where flags='test00' order by fullpath, sibling",
+						AbsConnect.flag_nothing);
+
 		rs.printSomeData(false, 3, "funcId", "funcName", "fullpath");
 		assertEquals(rs.getRowCount(), 0);
 		

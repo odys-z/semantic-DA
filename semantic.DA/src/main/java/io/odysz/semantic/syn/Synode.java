@@ -10,11 +10,9 @@ import io.odysz.transact.sql.Insert;
 import io.odysz.transact.x.TransException;
 
 /**
- * <b>Design Note</b>
- * <p>An entity type for used in the protocol layer.</p>
+ * Synode Information.
  * 
  * @author odys-z@github.com
- *
  */
 public class Synode extends Anson {
 
@@ -41,20 +39,21 @@ public class Synode extends Anson {
 
 	/**
 	 * Format the insert statement according to my fields.
-	 * Example:<pre>insert(synm, n0(), tranxbuilder.insert(synm.tbl, robot))</pre>
+	 * Example:<pre>insert(synm, synode, n0(), tranxbuilder.insert(synm.tbl, robot))</pre>
 	 * 
 	 * @param synm
 	 * @param insert
 	 * @return {@link Insert} statement
 	 * @throws TransException
 	 */
-	public Insert insert(SynodeMeta synm, String creator, Nyquence n0, Insert insert) throws TransException {
+	public Insert insert(SynodeMeta synm, String syn_uid, Nyquence n0, Insert insert) throws TransException {
 		return insert
 			.nv(synm.pk, synodeId)
 			.nv(synm.device, "#" + synodeId)
 			.nv(synm.nyquence, n0.n)
 			.nv(synm.domain, domain)
-			.nv(synm.synuid, SynChangeMeta.uids(creator, synodeId))
+			// .nv(synm.synuid, SynChangeMeta.uids(creator, synodeId))
+			.nv(synm.synuid, syn_uid)
 			.nv(synm.org, org);
 	}
 	

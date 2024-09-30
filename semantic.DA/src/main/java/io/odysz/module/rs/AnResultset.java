@@ -142,7 +142,8 @@ for (String coln : colnames.keySet())
 			String colName = rsMeta.getColumnLabel(i).toUpperCase();
 			if (colnames.containsKey(colName)) {
 				if (debug)
-					System.err.println("WARN: As duplicated col name been found, only the last one's index is reserved: " + colName);
+					// System.err.println("WARN: As duplicated col name been found, only the last one's index is reserved: " + colName);
+					Utils.warnT(new Object() {}, "WARN: As duplicated col name been found, only the last one's index is reserved: " + colName);
 				colnames.put(colName + i, colnames.get(colName));
 			}
 			colnames.put(colName, new Object[] {i, rsMeta.getColumnLabel(i)});
@@ -830,7 +831,6 @@ for (String coln : colnames.keySet())
 		return null;
 	}
 
-
 	/**Get col index
 	 * @param colName
 	 * @return col index
@@ -905,7 +905,10 @@ for (String coln : colnames.keySet())
 		return set((Integer)colnames.get(colName.toUpperCase())[0], v);
 	}
 
-	/**Find the first row that contain a matched value in field <i>col</i>. The matching is done with {@code regex}.
+	/**
+	 * Find the first row that contain a matched value in field <i>col</i>.
+	 * The matching is done with {@code regex}.
+	 * 
 	 * @param col
 	 * @param regex
 	 * @return row index or 0
@@ -1174,6 +1177,21 @@ for (String coln : colnames.keySet())
 	}
 
 	/**
+	 * Generate row indices, start at 0.
+	 * FIXME move this method to Query and be called before rs construction.
+	 * @param pk
+	 * @return this
+	 */
+	public AnResultset index0(String pk) {
+		if (indices0 == null)
+			indices0 = new HashMap<String, Integer>();
+		for (int i = 0; i < results.size(); i++) {
+			indices0.put((String) results.get(i).get(getColumex(pk)-1), i);
+		}
+		return this;
+	}
+	
+	/**
 	 * A mutation of {@link #next()}. If has a next row, move index and
 	 * return this, otherwise null.
 	 * <p>For convenience if only needs to check the first row.</p>
@@ -1212,21 +1230,6 @@ for (String coln : colnames.keySet())
 	 */
 	public boolean hasprev() {
 		return (rs != null || results != null) && 1 < rowIdx;
-	}
-
-	/**
-	 * Generate row indices, start at 0.
-	 * FIXME move this method to Query and be called before rs construction.
-	 * @param pk
-	 * @return this
-	 */
-	public AnResultset index0(String pk) {
-		if (indices0 == null)
-			indices0 = new HashMap<String, Integer>();
-		for (int i = 0; i < results.size(); i++) {
-			indices0.put((String) results.get(i).get(getColumex(pk)-1), i);
-		}
-		return this;
 	}
 
 	/**
@@ -1273,7 +1276,9 @@ for (String coln : colnames.keySet())
 		return getRowAt(getRow() - 1);
 	}
 
+	/** Column names in the same sequence with rows */
 	String[] flatcols;
+
 	/**
 	 * Get the cached flat column names in the same sequence with rows.
 	 * @return column names, index start at 0

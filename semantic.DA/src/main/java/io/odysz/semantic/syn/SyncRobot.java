@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
+import io.odysz.anson.IJsonable;
 import io.odysz.common.Utils;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
@@ -29,11 +30,13 @@ import io.odysz.transact.x.TransException;
  * 
  * @author odys-z@github.com
  */
-public class SyncRobot extends SemanticObject implements IUser {
+public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 
 	protected long touched;
 	protected String userId;
 	protected String userName;
+	protected String pswd;
+	protected String iv;
 
 	protected String orgId;
 	public String orgId() { return orgId; }
@@ -50,6 +53,10 @@ public class SyncRobot extends SemanticObject implements IUser {
 
 	protected String deviceId;
 	public String deviceId() { return deviceId; }
+	public SyncRobot deviceId(String devid) {
+		deviceId = devid;
+		return this;
+	}
 
 	protected String ssid;
 
@@ -60,10 +67,9 @@ public class SyncRobot extends SemanticObject implements IUser {
 		return this;
 	}
 
-	public SyncRobot(String userid, String device) {
+	public SyncRobot(String userid, String pswd) {
 		this.userId = userid;
-		deviceId = device;
-//		domain = syndomain;
+		this.pswd   = pswd;
 	}
 
 	/**
@@ -77,9 +83,26 @@ public class SyncRobot extends SemanticObject implements IUser {
 		this.userId = userid;
 		this.userName = userName;
 		this.deviceId = device;
-//		domain = device; // FIXME not correct
+		this.pswd = pswd;
+	}
+
+	/**
+	 * @param userid
+	 * @param pswd
+	 * @param userName
+	 */
+	public SyncRobot(String userid, String pswd, String userName) {
+		this(userid, pswd, userName, null);
 	}
 	
+	public SyncRobot(SessionInf rob, String pswd) {
+		this(rob.uid(), rob.userName(), rob.device, pswd);
+	}
+
+	public SyncRobot() {
+		this.userId = "to be init";
+	}
+
 	public static class RobotMeta extends TableMeta {
 		public final String device;
 		public final String iv;
@@ -113,6 +136,8 @@ public class SyncRobot extends SemanticObject implements IUser {
 	@Override public long touchedMs() { return touched; } 
 
 	@Override public String uid() { return userId; }
+
+	@Override public String pswd() { return pswd; }
 
 	@Override public void writeJsonRespValue(Object writer) throws IOException { }
 
@@ -168,4 +193,5 @@ public class SyncRobot extends SemanticObject implements IUser {
 	public SessionInf sessionInf() {
 		return new SessionInf().device(deviceId);
 	}
+
 }

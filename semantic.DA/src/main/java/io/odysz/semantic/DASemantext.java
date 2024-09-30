@@ -20,6 +20,7 @@ import io.odysz.common.Radix64;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
+import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -431,9 +432,9 @@ end;
 		lock.lock();
 		try {
 			// for efficiency
-			Connects.commit(conn, sqliteDumyUser, sqls, Connects.flag_nothing);
+			Connects.commit(conn, sqliteDumyUser, sqls, AbsConnect.flag_nothing);
 
-			rs = Connects.select(conn, q.sql(null), Connects.flag_nothing);
+			rs = Connects.select(conn, q.sql(null), AbsConnect.flag_nothing);
 		} finally { lock.unlock();}
 
 		if (rs.getRowCount() <= 0)

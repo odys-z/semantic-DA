@@ -59,6 +59,7 @@ import io.odysz.transact.x.TransException;
 * 
 * @author Ody
 */
+//@Disabled("Only after experimental branches merged.")
 public class DBSyntableTest {
 	public static final String[] conns;
 	public static final String[] testers;
@@ -147,7 +148,7 @@ public class DBSyntableTest {
 			snm = new SynodeMeta(conn);
 			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn); //.replace();
 
-			SemanticTableMeta.setupSqliTables(conn, snm, chm, sbm, xbm, prm, ssm, phm);
+			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
 
 			phm.replace();
 
@@ -292,19 +293,20 @@ public class DBSyntableTest {
 		ck[Z].synodes(X,  Y,  Z, -1);
 		ck[W].synodes(-1, Y, -1, W);
 
-		ck[Y].change_log(1, C, "Y", "W", ck[Y].trb.synm);
+		ck[Y].change_log_uids(1, C, "Y", "W,W", ck[Y].trb.synm);
+		ck[Y].change_log_uids(0, C, "Y", "Y,W", ck[Y].trb.synm);
 		ck[Y].buf_change(0, C, "W", ck[Y].trb.synm);
-		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
+		ck[Y].synsubs(2, "W,W", X, -1, Z, -1);
 		
 		Utils.logrst("X vs Y", section, ++no);
 		exchangeSynodes(X, Y, section, 2);
 		ck[X].synodes(X, Y, Z, W);
-		ck[X].change_log(1, C, "Y", "W", ck[X].trb.synm);
-		ck[X].buf_change(0, C, "Y", "W", ck[X].trb.synm);
-		ck[X].synsubs(1, "Y,W", -1, -1, Z, -1);
+		ck[X].change_log_uids(1, C, "Y", "W,W", ck[X].trb.synm);
+		ck[X].buf_change(0, C, "Y", "W,W", ck[X].trb.synm);
+		ck[X].synsubs(1, "W,W", -1, -1, Z, -1);
 
 		ck[Z].synodes(X, Y, Z, -1);
-		ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
+		ck[Z].synsubs(0, "W,W", -1, -1, -1, -1);
 		
 		Utils.logrst("X create photos", section, ++no);
 		String[] x_uids = insertPhoto(X);
@@ -319,7 +321,7 @@ public class DBSyntableTest {
 		Utils.logrst("X <= Z", section, ++no);
 		exchangeSynodes(X, Z, section, no);
 		ck[Z].synodes(X, Y, Z, W);
-		ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
+		ck[Z].synsubs(0, "W,W", -1, -1, -1, -1);
 		Utils.logrst("On X-Z: Now Z knows W", section, ++no);
 		
 		Utils.logrst("Z vs W", section, ++no);
@@ -334,6 +336,8 @@ public class DBSyntableTest {
 
 			stb.onAbort(req);
 
+			printChangeLines(ck);
+			printNyquv(ck);
 			assertEquals(ck[W].n0().n, ck[W].stamp());
 			assertEquals(ck[Z].n0().n, ck[Z].stamp());
 			return;
@@ -559,8 +563,10 @@ public class DBSyntableTest {
 		// applicant
 		Utils.logrst(String.format("%s initiate domain", cltb.synode()), testix, sect, ++no);
 
-		ExchangeBlock ack  = cltb.domainitMe(cltp, admin, resp);
-		Utils.logi(ack.nv);
+		ExchangeBlock ack  = cltb//.domain("zsu")
+				.domainitMe(cltp, admin, "jserv/not-used-in-test", "zsu", resp);
+//		ExchangeBlock ack  = cltb.domainitMe(cltp, admin, resp);
+		Utils.logi(ack.nv, cltb.synode(), ".Ack.nv: ");
 
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -572,12 +578,12 @@ public class DBSyntableTest {
 
 		// applicant
 		Utils.logrst(new String[] {cltb.synode(), "closing application"}, testix, sect, ++no);
-		req = cltb.domainCloseJoin(cltp, resp);
+		req = cltb.domainCloseJoin(cltp, resp); // Debug Notes: resp.nv is polluted, but should be safely dropped.
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		Utils.logrst(new String[] {admb.synode(), "on closing"}, testix, sect, ++no);
-		admb.domainCloseJoin(admp, req);
+		admb.domainCloseJoin(admp, req); // Debug Notes: req.nv is polluted, but should be safely dropped.
 
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -640,9 +646,7 @@ public class DBSyntableTest {
 
 		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
 		ExchangeBlock req = ctb.closexchange(cp, rep);
-		assertEquals(req.nv.get(ctb.synode()).n + 1,
-				// ctb.stamp());
-				getNstamp(ctb).n);
+		assertEquals(req.nv.get(ctb.synode()).n + 1, getNstamp(ctb).n);
 		assertEquals(ready, cp.exstate());
 
 		printChangeLines(ck);
@@ -651,8 +655,7 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 		// FIXME what if the server doesn't agree?
 		rep = stb.onclosexchange(sp, req);
-		assertEquals(rep.nv.get(ctb.synode()).n + 1, // stb.stamp());
-				getNstamp(stb).n);
+		assertEquals(rep.nv.get(ctb.synode()).n + 1, getNstamp(stb).n);
 		assertEquals(ready, sp.exstate());
 
 		printChangeLines(ck);

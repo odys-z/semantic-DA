@@ -17,8 +17,10 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.odysz.common.IAssert;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
@@ -37,13 +39,10 @@ import io.odysz.transact.x.TransException;
 /**
  * Checker of each Synode.
  * 
- * TODO fail if found {@link io.odysz.semantic.DASemantics.smtype#synChange syn-change}
- * is configured.
- * 
  * @author Ody
  */
 public class Docheck {
-	static IAssert azert;
+	public static IAssert azert;
 
 	public static final String org = "URA";
 
@@ -61,6 +60,8 @@ public class Docheck {
 	static SynchangeBuffMeta xbm = new SynchangeBuffMeta(chm);
 	static SynSessionMeta ssm = new SynSessionMeta();
 	static PeersMeta prm = new PeersMeta();
+
+	public final DATranscxt b0;
 
 	public IUser robot() { return trb.synrobot(); }
 
@@ -113,15 +114,26 @@ public class Docheck {
 
 		this.docm = docm;
 		this.domain = trb.domain();
+		this.tops = null;
+		
+		this.b0 = new DATranscxt(trb.synconn());
+	}
+	
+	private Docheck(boolean[] debugs) throws Exception {
+		this.trb = null;
+		this.tops = debugs;
+		this.domain = null;
+
+		this.b0 = new DATranscxt(null);
 	}
 
-//	public HashMap<String, Nyquence> cloneNv() {
-//		HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(4);
-//		for (String n : trb.nyquvect.keySet())
-//			nv.put(n, new Nyquence(trb.nyquvect.get(n).n));
-//		return nv;
-//	}
-
+	/**
+	 * Check doc count. 
+	 * @param count
+	 * @param synids
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public void doc(int count, String... synids) throws TransException, SQLException {
 		Query q = trb.select(docm.tbl).col(count(), "c");
 		if (!isNull(synids))
@@ -163,6 +175,7 @@ public class Docheck {
 		return change_log(count, crud, synoder, eid, docm);
 	}
 
+	// public long change_log(int count, String crud, String synoder, String eid, SyntityMeta entm)
 	public long change_log(int count, String crud, String synoder, String eid, SyntityMeta entm)
 			throws TransException, SQLException {
 		Query q = trb
@@ -172,6 +185,8 @@ public class Docheck {
 				.whereEq(trb.chgm.entbl, entm.tbl);
 			if (synoder != null)
 				q.whereEq(trb.chgm.synoder, synoder);
+
+			//
 			if (eid != null)
 				q.whereEq(trb.chgm.uids, SynChangeMeta.uids(synoder, eid));
 
@@ -191,6 +206,38 @@ public class Docheck {
 			}
 			return 0;
 	}
+
+	public long change_log_uids(int count, String crud, String synoder, String uids, SyntityMeta entm)
+			throws TransException, SQLException {
+		Query q = trb
+				.select(trb.chgm.tbl, "ch")
+				.cols((Object[])trb.chgm.insertCols())
+				.whereEq(trb.chgm.domain, domain)
+				.whereEq(trb.chgm.entbl, entm.tbl);
+			if (synoder != null)
+				q.whereEq(trb.chgm.synoder, synoder);
+
+			// 
+			if (uids != null)
+				q.whereEq(trb.chgm.uids, uids);
+
+			AnResultset chg = (AnResultset) q
+					.rs(trb.instancontxt(connId(), robot()))
+					.rs(0);
+			
+			if (!chg.next() && count > 0)
+				azert.fail(String.format("Expecting count == %d, but is actual 0", count));
+
+			azert.equali(count, chg.getRowCount());
+			if (count > 0) {
+				azert.equals(crud, chg.getString(trb.chgm.crud));
+				azert.equals(entm.tbl, chg.getString(trb.chgm.entbl));
+				azert.equals(synoder, chg.getString(trb.chgm.synoder));
+				return chg.getLong(trb.chgm.nyquence);
+			}
+			return 0;
+	}
+
 
 	public long buf_change(int count, String crud, String synoder, String eid, SyntityMeta entm)
 			throws TransException, SQLException {
@@ -362,28 +409,27 @@ public class Docheck {
 		for (int cx = 0; cx < ck.length && ck[cx] instanceof Docheck; cx++) {
 			DBSyntableBuilder t = ck[cx].trb;
 
-			boolean dbg = Connects.getDebug(t.synconn());
+			boolean top = Connects.getDebug(t.synconn());
 			Connects.setDebug(t.synconn(), false);
 
-			// t.loadNyquvect(t.synconn());
-			HashMap<String, Nyquence> nyquvect = ExessionPersist.loadNyquvect(t);
+			try { HashMap<String, Nyquence> nyquvect = ExessionPersist.loadNyquvect(t); 
 
-			Connects.setDebug(t.synconn(), dbg);
+				nv2[cx] = Nyquence.clone(nyquvect);
 
-			nv2[cx] = Nyquence.clone(nyquvect);
-
-			Utils.logi(
-				t.synode() + " [ " +
-				Stream.of(ck)
-				.filter(c -> c != null)
-				.map((c) -> {
-					String n = c.trb.synode();
-					return String.format("%3s",
-						nyquvect.containsKey(n) ?
-						nyquvect.get(n).n : "");
-					})
-				.collect(Collectors.joining(", ")) +
-				" ]");
+				Utils.logi(
+					t.synode() + " [ " +
+					Stream.of(ck)
+					.filter(c -> c != null)
+					.map((c) -> {
+						String n = c.trb.synode();
+						return String.format("%3s",
+							nyquvect.containsKey(n) ?
+							nyquvect.get(n).n : "");
+						})
+					.collect(Collectors.joining(", ")) +
+					" ]");
+			}
+			finally { Connects.setDebug(t.synconn(), top); }
 		}
 
 		return (HashMap<String, Nyquence>[]) nv2;
@@ -409,22 +455,30 @@ public class Docheck {
 
 		for (int cx = 0; cx < ck.length && ck[cx] instanceof Docheck; cx++) {
 			DBSyntableBuilder b = ck[cx].trb;
-			HashMap<String,String> idmap = ((AnResultset) b
+			boolean top = Connects.getDebug(b.synconn());
+			Connects.setDebug(b.synconn(), false);
+			try {
+				HashMap<String,String> idmap = ((AnResultset) b
 					.select(chm.tbl, "ch")
 					.cols("ch.*", sbm.synodee).col(concat(ifnull(xbm.peer, " "), "':'", xbm.pagex), xbm.pagex)
 					// .je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
 					.je_(sbm.tbl, "sub", chm.pk, sbm.changeId)
 					.l_(xbm.tbl, "xb", chm.pk, xbm.changeId)
 					.orderby(xbm.pagex, chm.entbl, chm.uids)
-					.rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
+					// .rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
+					.rs(b.instancontxt(b.synconn(), b.synrobot()))
 					.rs(0))
 					.<String>map(new String[] {chm.pk, sbm.synodee}, (r) -> changeLine(r));
 
-			for(String cid : idmap.keySet()) {
-				if (!uidss.containsKey(cid))
-					uidss.put(cid, new String[ck.length]);
+				for(String cid : idmap.keySet()) {
+					if (!uidss.containsKey(cid))
+						uidss.put(cid, new String[ck.length]);
 
-				uidss.get(cid)[cx] = idmap.get(cid);
+					uidss.get(cid)[cx] = idmap.get(cid);
+				}
+			}
+			finally { 
+				Connects.setDebug(b.synconn(), top);
 			}
 		}
 		
@@ -500,5 +554,47 @@ public class Docheck {
 		boolean dbg = Connects.getDebug(trb.synconn());
 		try { return DAHelper.getNstamp(trb).n; }
 		finally { Connects.setDebug(trb.synconn(), dbg); }
+	}
+	
+	final boolean[] tops;
+	
+	/**
+	 * <p>Push connect' debug flags and return a checker instance.</p>
+	 * Example:
+	 * <pre>pushDebug()
+	 * .assertl(
+	 *  expect1, loadNyquvect(actual1), // logging suppressed
+	 *  expect2, loadNyquvect(actual2), // logging suppressed
+	 *  ...)
+	 * .popDebug();                     // logging restored</pre>
+	 * @throws Exception 
+	*/
+	public static Docheck pushDebug() throws Exception {
+		if (ck != null) {
+			final boolean[] tops = new boolean[ck.length];
+			for (int cx = 0; cx < ck.length; cx++) {
+				if (ck[cx] != null) {
+					tops[cx] = Connects.getDebug(ck[cx].connId());
+					Connects.setDebug(ck[cx].connId(), tops[cx]);
+				}
+			}
+		
+			return new Docheck(tops);
+		}
+		return new Docheck(new boolean[0]);
+	}
+
+	public Docheck assertl(long ... n) {
+		if (!isNull(n))
+			for (int x = 0; x < n.length; x+=2)
+				azert.equall(n[x], n[x+1]);
+		return this;
+	}
+
+	public void popDebug() {
+		if (tops != null) 
+			for (int cx = 0; cx < ck.length; cx++) 
+				if (ck[cx] != null)
+				Connects.setDebug(ck[cx].connId(), tops[cx]);
 	}
 }

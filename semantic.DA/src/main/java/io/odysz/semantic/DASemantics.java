@@ -24,6 +24,7 @@ import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.module.xtable.XMLTable.IMapValue;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
+import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -574,7 +575,6 @@ public class DASemantics {
 		else if (smtype.postFk == semantic)
 			return new ShPostFk(basicTsx, tabl, recId, args);
 		else if (smtype.extFile == semantic)
-			// throw new SemanticException("Since 1.5.0, smtype.extFile is replaced by extFilev2!");
 			return new ShExtFilev2(basicTsx, tabl, recId, args);
 		else if (smtype.extFilev2 == semantic)
 			return new ShExtFilev2(basicTsx, tabl, recId, args);
@@ -649,10 +649,8 @@ public class DASemantics {
 					handler.onUpdate(semantx, satemt, row, cols, usr);
 	}
 
-	public void onDelete(ISemantext semantx,
-			// Statement<? extends Statement<?>> stmt,
-			Delete stmt,
-			Condit whereCondt, IUser usr) throws SemanticException {
+	public void onDelete(ISemantext semantx, Delete stmt,
+			Condit whereCondt, IUser usr) throws TransException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
 				if (handler.delete)
@@ -723,7 +721,7 @@ public class DASemantics {
 				// Statement<? extends Statement<?>> stmt,
 				Delete del,
 				Condit whereCondt, IUser usr)
-				throws SemanticException {
+				throws TransException {
 		}
 
 		protected void onPost(ISemantext sm, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
@@ -1817,7 +1815,7 @@ public class DASemantics {
 				}
 				String sql = String.format(args[args.length - 1], nv);
 				try {
-					AnResultset rs = Connects.select(stx.connId(), sql, Connects.flag_nothing);
+					AnResultset rs = Connects.select(stx.connId(), sql, AbsConnect.flag_nothing);
 					rs.beforeFirst().next();
 					if (rs.getInt(1) > 0)
 						throw new SemanticException("Checking count on %s.%s (%s = %s ...) failed",
@@ -1901,6 +1899,7 @@ public class DASemantics {
 			}
 		}
 
+		@Override
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols,
 				IUser usr) throws SemanticException {
 			onInsert(stx, null, row, cols, usr);
@@ -1996,6 +1995,7 @@ public class DASemantics {
 			*/
 		}
 
+		@Override
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			// Design Memo: insrt is not used in onInsert
 			onInsert(stx, null, row, cols, usr);

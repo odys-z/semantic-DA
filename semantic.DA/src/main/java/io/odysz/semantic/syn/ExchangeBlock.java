@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import io.odysz.anson.Anson;
+import io.odysz.anson.AnsonField;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 
@@ -15,12 +16,16 @@ public class ExchangeBlock extends Anson {
 
 	public String srcnode;
 	public String peer;
+	
+	@AnsonField(valType="io.odysz.semantic.syn.Nyquence")
 	public HashMap<String, Nyquence> nv;
 
 	public AnResultset chpage;
 	public HashMap<String, AnResultset> entities;
 
 	public AnResultset anspage;
+
+	public ExchangeBlock() { }
 
 	/**
 	 * Is the synode has more challenge blocks, which is
@@ -144,6 +149,7 @@ public class ExchangeBlock extends Anson {
 	String session;
 	/**One of {@link ExessionAct}'s constants. */
 	int act;
+	/**One of {@link ExessionAct}'s constants. */
 	public int synact () { return act; }
 	int challengeSeq;
 	int answerSeq;
