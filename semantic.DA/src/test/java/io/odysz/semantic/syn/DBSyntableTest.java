@@ -745,8 +745,7 @@ public class DBSyntableTest {
 
 	static void challengeAnswerLoop(ExessionPersist sp, DBSyntableBuilder stb, 
 				ExessionPersist cp, DBSyntableBuilder ctb, ExchangeBlock rep,
-				int test, int subno, int step)
-				throws SQLException, TransException {
+				int test, int subno, int step) throws SQLException, TransException {
 		int no = 0;
 		
 		if (rep != null) {
@@ -770,7 +769,6 @@ public class DBSyntableTest {
 
 				// server
 				Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, step, ++no);
-				// rep = sp.onextExchange(ctb.synode(), req);
 				rep = sp.nextExchange(req);
 
 				Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",

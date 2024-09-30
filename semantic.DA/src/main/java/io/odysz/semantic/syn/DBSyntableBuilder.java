@@ -22,8 +22,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
-
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
@@ -73,7 +71,6 @@ import io.odysz.transact.x.TransException;
  *
  * @author Ody
  */
-@Disabled("Only after merged.")
 public class DBSyntableBuilder extends DATranscxt {
 	public static class SynmanticsMap extends SemanticsMap {
 		String synode;
@@ -275,7 +272,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		return cp
 			.commitAnswers(lastconf, cp.peer, cp.n0().n)
 			.exchange(cp.peer, lastconf)
-			// .nv(nyquvect)
 			.answers(answer_save(cp, lastconf, cp.peer))
 			.seq(cp.persisession());
 	}
@@ -288,7 +284,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		return sp
 			.commitAnswers(req, peer, sp.n0().n)
 			.onExchange(peer, req) // The challenge page is ready
-			// .nv(nyquvect)
 			.answers(answer_save(sp, req, peer))
 			.seq(sp.persisession());
 	}
