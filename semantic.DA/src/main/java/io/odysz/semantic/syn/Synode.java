@@ -22,6 +22,7 @@ public class Synode extends Anson {
 	String mac;
 	String domain;
 	long nyquence;
+	String syn_uid;
 
 	/** for update peers' jserv */
 	public String jserv;
@@ -41,6 +42,7 @@ public class Synode extends Anson {
 		this.mac = r.getString(synm.device);
 		this.domain = r.getString(synm.domain);
 		this.nyquence = r.getLong(synm.nyquence);
+		this.syn_uid = r.getString(synm.synuid);
 	}
 
 	/**
