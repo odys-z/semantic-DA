@@ -1,10 +1,10 @@
 package io.odysz.semantic.syn;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import io.odysz.anson.Anson;
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.x.TransException;
@@ -16,12 +16,18 @@ import io.odysz.transact.x.TransException;
  */
 public class Synode extends Anson {
 
-	public final String org;
-	public final String synodeId;
+	public String org;
+	public String synodeId;
 
 	String mac;
 	String domain;
 	long nyquence;
+
+	/** for update peers' jserv */
+	public String jserv;
+	
+	public Synode() {
+	}
 
 	public Synode(String conn, String synid, String org, String domain) throws TransException {
 		this.synodeId = synid;
@@ -42,7 +48,8 @@ public class Synode extends Anson {
 	 * Example:<pre>insert(synm, synode, n0(), tranxbuilder.insert(synm.tbl, robot))</pre>
 	 * 
 	 * @param synm
-	 * @param insert
+	 * @param syn_uid global synuid
+	 * @param n0
 	 * @return {@link Insert} statement
 	 * @throws TransException
 	 */
@@ -56,5 +63,26 @@ public class Synode extends Anson {
 			.nv(synm.synuid, syn_uid)
 			.nv(synm.org, org);
 	}
-	
+
+	/**
+	 * Format the insert statement according to my fields.
+	 * 
+	 * @param synm
+	 * @param insert
+	 * @return
+	 * @throws TransException
+	 * @since 
+	 */
+	public Insert insertRow(SynodeMeta synm, Insert insert) throws TransException {
+		return insert.value(new ArrayList<Object[]>() {
+			private static final long serialVersionUID = 1L;
+			{add(new Object[] {synm.pk, synodeId});}
+			{add(new Object[] {synm.device, "#" + synodeId});}
+			{add(new Object[] {synm.nyquence, nyquence});}
+			{add(new Object[] {synm.domain, domain});}
+			{add(new Object[] {synm.synuid, syn_uid});}
+			{add(new Object[] {synm.org, org});}
+		});
+	}
+
 }
