@@ -195,7 +195,7 @@ public class DBSyntableBuilder extends DATranscxt {
 						synm.synoder, mynid, synm.domain, perdomain) <= 0) {
 				if (debug) Utils
 					.warnT(new Object() {},
-						  "\nThis syntable builder is being buit for node %s which doesn't exists in domain %s." +
+						  "\nThis syntable builder is being built for node %s which doesn't exists in domain %s." +
 						  "\nThis instence can only be useful if is used to initialize the domain for the node",
 						  mynid, perdomain);
 			}
