@@ -162,7 +162,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			SynodeMode mode, SynChangeMeta chgm, SynodeMeta synm)
 			throws Exception {
 
-		super ( new DBSyntext(conn,
+		super ( new DBSyntext(conn, mynid,
 			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSyntableBuilder.SynmanticsMap(mynid, c)),
 			    	(IUser) new SyncRobot(mynid, mynid, "rob@" + mynid, mynid),
 			    	runtimepath));
@@ -173,7 +173,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		// wire up local identity
 		DBSyntext tx = (DBSyntext) this.basictx;
-		tx.synode = mynid;
+		// tx.synode = mynid;
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
@@ -207,7 +207,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 		else if (isblank(perdomain))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
-				this.getClass().getName(), tx.synode);
+				this.getClass().getName(), mynid);
 
 		if (debug && force_clean_subs) Utils
 			.logT(new Object() {}, "Transaction builder created with forcing cleaning stale subscriptions.");
@@ -828,7 +828,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	@Override
 	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
 		try {
-			ISemantext syntext = new DBSyntext(conn,
+			ISemantext syntext = new DBSyntext(conn, synode(),
 				initConfigs(conn, loadSemantics(conn),
 						(c) -> new DBSyntableBuilder.SynmanticsMap(synode(), c)),
 				usr, runtimepath).creator(this);
@@ -866,7 +866,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		String childId = req.srcnode;
 		IUser robot = synrobot();
 	
-		Synode apply = new Synode(basictx.connId(), childId, org, domain());
+		Synode apply = new Synode(childId, null, org, domain());
 
 		req.synodes.beforeFirst().next();
 		

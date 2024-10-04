@@ -6,6 +6,7 @@ import static io.odysz.common.LangExt.eq;
 import java.sql.SQLException;
 
 import io.odysz.common.Utils;
+import io.odysz.common.dbtype;
 import io.odysz.module.xtable.XMLTable.IMapValue;
 import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
@@ -56,7 +57,7 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 	 * @throws TransException
 	 */
 	public static void setupSqliTables(String conn, boolean force_drop, SemanticTableMeta ... ms) throws SQLException, TransException {
-		if (ms != null)
+		if (ms != null && Connects.driverType(conn) == dbtype.sqlite)
 		for (TableMeta m : ms)
 			if (m.ddlSqlite != null) {
 				if (force_drop) Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", m.tbl));

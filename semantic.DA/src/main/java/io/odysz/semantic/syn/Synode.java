@@ -30,10 +30,19 @@ public class Synode extends Anson {
 	public Synode() {
 	}
 
-	public Synode(String conn, String synid, String org, String domain) throws TransException {
+	/**
+	 * 
+	 * @param synid
+	 * @param synuid must be null when joining by peer, must be provided without synmantics handling 
+	 * @param org
+	 * @param domain
+	 * @throws TransException
+	 */
+	public Synode(String synid, String synuid, String org, String domain) throws TransException {
 		this.synodeId = synid;
 		this.org = org;
 		this.domain = domain;
+		this.syn_uid = synuid;
 	}
 	
 	public Synode(AnResultset r, SynodeMeta synm) throws SQLException {

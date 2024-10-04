@@ -51,8 +51,8 @@ public class Configs {
 		/**
 		 * key of synode id
 		 * @since 2.0.0
-		 */
 		public static final String synode    = "io.oz.syn.synode";
+		 */
 		
 		/**
 		 * key of log connection,

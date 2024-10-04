@@ -579,7 +579,9 @@ public class DASemantics {
 		else if (smtype.extFilev2 == semantic)
 			return new ShExtFilev2(basicTsx, tabl, recId, args);
 		else
-			throw new SemanticException("Cannot load configured semantics of key: %s, with trans-builder: %s, on basic connection %s.",
+			throw new SemanticException("Cannot load configured semantics of key: %s, with trans-builder: %s, on basic connection %s."
+					+ "See Extending default semantics plugin at Dev Community:"
+					+ "https://odys-z.github.io/dev/topics/semantics/3plugin.html",
 				semantic, trb.getClass().getName(), trb.basictx().connId());
 	}
 

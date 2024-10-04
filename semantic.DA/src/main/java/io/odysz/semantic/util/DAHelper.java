@@ -308,7 +308,7 @@ public class DAHelper {
 							? (ExprPart)nvs[x+1]
 							: isPrimitive(nvs[x+1])
 							? new ExprPart(String.valueOf(nvs[x+1]))
-							: Funcall.constr(nvs[x+1].toString()));
+							: Funcall.constr(nvs[x+1] == null ? null : nvs[x+1].toString()));
 			
 		return (SemanticObject) ins
 				.ins(t0.instancontxt(conn, usr));
