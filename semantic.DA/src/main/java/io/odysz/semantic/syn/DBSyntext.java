@@ -24,7 +24,6 @@ public class DBSyntext extends DASemantext implements ISyncontext {
 	protected DBSyntext(String connId, String synodeId, SynmanticsMap metas, IUser usr, String rtPath)
 			throws SemanticException, SQLException {
 		super(connId, metas, usr, rtPath);
-		// this.xp = xp;
 		this.synode = synodeId;
 	}
 	
