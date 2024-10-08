@@ -510,7 +510,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		if (req == null || req.chpage == null) return xp;
 		
 		AnResultset changes = new AnResultset(req.chpage.colnames());
-		ExchangeBlock resp = new ExchangeBlock(synode(), peer, xp.session(), xp.exstat())
+		ExchangeBlock resp = new ExchangeBlock(domain(), synode(), peer, xp.session(), xp.exstat())
 							.nv(xp.nyquvect);
 
 		AnResultset reqChgs = req.chpage;
@@ -686,7 +686,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 	
 	public ExchangeBlock requirestore(ExessionPersist xp, String peer) {
-		return new ExchangeBlock(synode(), peer, xp.session(), xp.exstat())
+		return new ExchangeBlock(domain(), synode(), peer, xp.session(), xp.exstat())
 				.nv(xp.nyquvect)
 				.requirestore()
 				.seq(xp);
@@ -896,7 +896,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		
 		ap.nyquvect.put(apply.synid, new Nyquence(apply.nyquence));
 	
-		ExchangeBlock rep = new ExchangeBlock(synode(), childId, ap.session(), ap.exstat())
+		ExchangeBlock rep = new ExchangeBlock(domain(), synode(), childId, ap.session(), ap.exstat())
 			.nv(ap.nyquvect)
 			.synodes(req.act == ExessionAct.signup
 			? ((AnResultset) select(synm.tbl, "syn")
@@ -909,11 +909,11 @@ public class DBSyntableBuilder extends DATranscxt {
 		return rep;
 	}
 
-	public ExchangeBlock domainitMe(ExessionPersist cp, String admin, String adminserv, String domain, ExchangeBlock domainstatus)
-			throws TransException, SQLException {
+	public ExchangeBlock domainitMe(ExessionPersist cp, String admin, String adminserv,
+			String domain, ExchangeBlock domainstatus) throws TransException, SQLException {
 		
 		if (!isblank(domain()))
-			throw new ExchangeException(setupDom, cp, "Domain must be null for updating %s.%s?",
+			throw new ExchangeException(setupDom, cp, "Domain must not be null for updating %s.%s.",
 					synm.tbl, synm.domain);
 		domain(domain);
 
@@ -949,7 +949,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			}
 		}
 
-		return new ExchangeBlock(synode(), admin, domainstatus.session,
+		return new ExchangeBlock(domain, synode(), admin, domainstatus.session,
 				new ExessionAct(ExessionAct.mode_client, setupDom))
 				.nv(cp.nyquvect);
 	}

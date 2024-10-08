@@ -14,6 +14,7 @@ public class ExchangeBlock extends Anson {
 
 	public static final String ExchangeFlagCol = "change";
 
+	public String domain;
 	public String srcnode;
 	public String peer;
 	
@@ -36,11 +37,12 @@ public class ExchangeBlock extends Anson {
 			|| anspage != null && anspage.size() > 0;
 	}
 
-	public ExchangeBlock(String src, String peer, String sessionId, ExessionAct exstate) {
+	public ExchangeBlock(String domain, String src, String peer, String sessionId, ExessionAct exstate) {
 		srcnode = src;
 		session = sessionId;
 		act = exstate.state;
 		this.peer = peer;
+		this.domain = domain;
 	}
 	
 	public ExchangeBlock nv(HashMap<String, Nyquence> nyquvect) {

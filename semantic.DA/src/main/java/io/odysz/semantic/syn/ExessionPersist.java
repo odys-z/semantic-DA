@@ -352,13 +352,13 @@ public class ExessionPersist {
 		nyquvect = loadNyquvect(trb);
 		exstate.state = signup;
 	
-		return new ExchangeBlock(trb == null
-				? null
-				: trb.synode(), peer, session, exstate)
-					.totalChallenges(1)
-					.synodes(DAHelper.getEntityById(trb, synm, trb.synode()))
-					.chpagesize(this.chsize)
-					.seq(this);
+		return new ExchangeBlock(trb.domain(),
+					trb == null ? null : trb.synode(),
+					peer, session, exstate)
+				.totalChallenges(1)
+				.synodes(DAHelper.getEntityById(trb, synm, trb.synode()))
+				.chpagesize(this.chsize)
+				.seq(this);
 	}
 
 	/**
@@ -399,7 +399,9 @@ public class ExessionPersist {
 		
 		exstate = new ExessionAct(mode_client, init);
 
-		return new ExchangeBlock(trb == null ? null : trb.synode(), peer, session, exstate)
+		return new ExchangeBlock(trb.domain(),
+				trb == null ? null : trb.synode(),
+				peer, session, exstate)
 			.totalChallenges(totalChallenges)
 			.chpagesize(this.chsize)
 			.seq(persistarting(peer))
@@ -442,7 +444,9 @@ public class ExessionPersist {
 
 		exstate = new ExessionAct(mode_server, init);
 
-		return new ExchangeBlock(trb == null ? ini.peer : trb.synode(), peer, session, exstate)
+		return new ExchangeBlock(trb.domain(),
+					trb == null ? ini.peer : trb.synode(),
+					peer, session, exstate)
 				.totalChallenges(totalChallenges)
 				.chpagesize(ini.chpagesize)
 				.seq(persistarting(peer))
@@ -525,7 +529,7 @@ public class ExessionPersist {
 		me.exstate(nextChpage() ? exchange : close);
 
 		return trb == null // null for test
-			? new ExchangeBlock(rep.peer, peer, session, me.exstate).seq(this)
+			? new ExchangeBlock(trb.domain(), rep.peer, peer, session, me.exstate).seq(this)
 			: trb.exchangePage(this, rep);
 	}
 
@@ -592,8 +596,9 @@ public class ExessionPersist {
 
 		// exstate.state = exchange;
 
-		return new ExchangeBlock(trb == null ? rep.peer :
-			trb.synode(), peer, session, exstate)
+		return new ExchangeBlock(trb.domain(),
+					trb == null ? rep.peer : trb.synode(),
+					peer, session, exstate)
 				.chpage(rs, entities)
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
@@ -610,9 +615,9 @@ public class ExessionPersist {
 
 		exstate.state = exchange;
 
-		return new ExchangeBlock(trb == null
-			? req.peer
-			: trb.synode(), peer, session, exstate)
+		return new ExchangeBlock(trb.domain(),
+					trb == null ? req.peer
+					: trb.synode(), peer, session, exstate)
 				.chpage(chpage(), entities)
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
@@ -636,9 +641,9 @@ public class ExessionPersist {
 
 			exstate.state = ready;
 
-			return new ExchangeBlock(trb == null
-				? rep.peer
-				: trb.synode(), peer, session, new ExessionAct(exstate.exmode, close))
+			return new ExchangeBlock(trb.domain(), 
+						trb == null ? rep.peer
+						: trb.synode(), peer, session, new ExessionAct(exstate.exmode, close))
 					.totalChallenges(totalChallenges)
 					.chpagesize(this.chsize)
 					.seq(this);
@@ -652,7 +657,6 @@ public class ExessionPersist {
 				e.printStackTrace();
 			}
 			finally {
-				// clean unaccepted subscriptions
 				trb.cleanStaleSubs(peer);
 			}
 		}
@@ -667,9 +671,9 @@ public class ExessionPersist {
 
 			exstate.state = ready;
 
-			return new ExchangeBlock(trb == null
-				? null
-				: trb.synode(), peer, session, new ExessionAct(exstate.exmode, close))
+			return new ExchangeBlock(trb.domain(),
+						trb == null ? null : trb.synode(),
+						peer, session, new ExessionAct(exstate.exmode, close))
 					.totalChallenges(totalChallenges)
 					.chpagesize(this.chsize)
 					.seq(this);
@@ -698,7 +702,9 @@ public class ExessionPersist {
 		exstate.state = restore;
 		// expAnswerSeq = challengeSeq; // see nextChpage()
 
-		return new ExchangeBlock(trb == null ? null : trb.synode(), peer, session, exstate)
+		return new ExchangeBlock(trb.domain(),
+					trb == null ? null : trb.synode(),
+					peer, session, exstate)
 				.requirestore()
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
