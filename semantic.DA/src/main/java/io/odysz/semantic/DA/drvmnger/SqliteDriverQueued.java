@@ -40,7 +40,6 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 			StatementOnCall stmt = null;
 			while (!stop) {
 			try {
-				// commitHead(qu);
 				stmt = qu.take();
 				int[] ret = stmt.statment.executeBatch();
 				conn.commit();

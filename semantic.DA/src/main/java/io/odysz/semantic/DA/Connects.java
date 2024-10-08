@@ -1,6 +1,7 @@
 package io.odysz.semantic.DA;
 
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.len;
 
 import java.io.File;
@@ -339,7 +340,8 @@ public class Connects {
 	public static dbtype driverType(String conn) {
 		conn = conn == null ? defltConn : conn;
 		if (!srcs.containsKey(conn))
-			throw new NullPointerException("Can't find datasourse: " + conn);
+			throw new NullPointerException(f("Can't find datasourse: %s. Known sources: %s",
+					conn, srcs.keySet().stream().collect(Collectors.joining(","))));
 		return srcs.get(conn).driverType();
 	}
 
@@ -543,5 +545,10 @@ public class Connects {
 			if (reg.match(uri))
 				return conn_uri.get(reg);
 		return defltConn;
+	}
+
+	public static boolean isqlite(String conn) {
+		return Connects.driverType(conn) == dbtype.sqlite
+			|| Connects.driverType(conn) == dbtype.sqlite_queue;
 	}
 }

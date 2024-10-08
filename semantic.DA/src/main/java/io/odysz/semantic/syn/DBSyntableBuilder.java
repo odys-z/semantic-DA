@@ -88,7 +88,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	private final boolean debug;
 
-	public    SynodeMeta synm;
+	public final SynodeMeta synm;
 	protected PeersMeta pnvm;
 	protected SynSubsMeta subm;
 	protected SynChangeMeta chgm;
@@ -893,7 +893,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			.ins(instancontxt(basictx.connId(), robot)))
 			.resulve(chgm.tbl, chgm.pk, -1);
 		
-		ap.nyquvect.put(apply.synodeId, new Nyquence(apply.nyquence));
+		ap.nyquvect.put(apply.synid, new Nyquence(apply.nyquence));
 	
 		ExchangeBlock rep = new ExchangeBlock(synode(), childId, ap.session(), ap.exstat())
 			.nv(ap.nyquvect)
@@ -943,7 +943,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					 .nv(synm.jserv, adminserv)
 					 .ins(instancontxt(basictx.connId(), synrobot()));
 
-					cp.nyquvect.put(n.synodeId, new Nyquence(mxn.n));
+					cp.nyquvect.put(n.synid, new Nyquence(mxn.n));
 				}
 			}
 		}

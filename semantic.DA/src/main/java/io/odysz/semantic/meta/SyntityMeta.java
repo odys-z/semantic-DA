@@ -1,6 +1,7 @@
 package io.odysz.semantic.meta;
 
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.isNull;
 
 import java.sql.SQLException;
@@ -22,8 +23,10 @@ import io.odysz.transact.x.TransException;
  */
 public abstract class SyntityMeta extends SemanticTableMeta {
 
-	public static final String err_requires_synuid =
-			"Tables to be synchronized must come with a fixed column named '%s.%s' [%s].";
+	public static final String err_requires_synuid(String tabl, String syn_uid, String conn) {
+		return f("Tables to be synchronized must come with a fixed column named '%s.%s' [%s].",
+				 tabl, syn_uid, conn);
+	}
 
 	/**
 	 * exposed to subclass to change
@@ -82,7 +85,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	public <T extends SemanticTableMeta> T replace() throws TransException, SQLException {
 		super.replace();
 		if (isNull(ftypes) || !ftypes.containsKey(synuid))
-			throw new TransException(err_requires_synuid, tbl, synuid, conn);
+			throw new TransException(err_requires_synuid(tbl, synuid, conn));
 		return (T) this;
 	}
 
@@ -113,7 +116,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 			throw new SemanticException("This table meta is not initialized with information from DB. Call clone() or replace() first.");
 
 		if (!ftypes.containsKey(synuid)) 
-			throw new SemanticException(err_requires_synuid, synuid);
+			throw new SemanticException(err_requires_synuid(tbl, synuid, conn));
 					
 		Object[] cols = new Object[autopk() ? ftypes.size() - 1 : ftypes.size()];
 		int cx = 0;
