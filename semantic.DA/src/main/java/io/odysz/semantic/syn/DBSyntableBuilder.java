@@ -172,7 +172,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		synmode  = mode;
 
 		// wire up local identity
-		DBSyntext tx = (DBSyntext) this.basictx;
+		// DBSyntext tx = (DBSyntext) this.basictx;
 		// tx.synode = mynid;
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
@@ -829,9 +829,10 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
 		try {
 			ISemantext syntext = new DBSyntext(conn, synode(),
-				initConfigs(conn, loadSemantics(conn),
+					// debug note: class cast exception will raise if connection is not correct.
+					initConfigs(conn, loadSemantics(conn), 
 						(c) -> new DBSyntableBuilder.SynmanticsMap(synode(), c)),
-				usr, runtimepath).creator(this);
+					usr, runtimepath).creator(this);
 
 			// stamp = getNstamp(this);
 			return syntext;
