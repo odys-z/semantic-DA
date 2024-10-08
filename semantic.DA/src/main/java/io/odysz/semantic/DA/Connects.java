@@ -21,6 +21,7 @@ import org.apache.commons.io_odysz.FilenameUtils;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.dbtype;
+import io.odysz.common.EnvPath;
 import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
@@ -514,7 +515,7 @@ public class Connects {
 			conn = defltConn;
 		return FilenameUtils.concat(workingDir,
 				srcs == null || !srcs.containsKey(conn) ? null
-				: srcs.get(conn).prop("smtcs"));
+				: EnvPath.replaceEnv(srcs.get(conn).prop("smtcs")));
 	}
 
 	public static boolean getDebug(String conn) {
