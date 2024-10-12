@@ -762,7 +762,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		Insert inst = e.insertEntity(m, insert(m.tbl, rob));
 		SemanticObject u = (SemanticObject) DBSynmantics
-				.logChange(this, inst, m, synode())
+				.logChange(this, inst, m, synode(), null)
 				.ins(instancontxt(conn, rob));
 
 		String phid = u.resulve(m, -1);
