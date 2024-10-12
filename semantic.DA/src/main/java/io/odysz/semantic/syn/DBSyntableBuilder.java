@@ -491,14 +491,14 @@ public class DBSyntableBuilder extends DATranscxt {
 							"ch." + chgm.domain,  "cl." + chgm.domain,
 							"ch." + chgm.entbl, "cl." + chgm.entbl,
 							subm.changeId, chgm.pk)))
-			.d(instancontxt(basictx.connId(), synrobot()));
+			.d(instancontxt(synconn(), synrobot()));
 			
 		if (debug) {
 			try {
 				@SuppressWarnings("unchecked")
 				ArrayList<Integer> chgsubs = ((ArrayList<Integer>)res.get("total"));
 				if (chgsubs != null && chgsubs.size() > 1 && hasGt(chgsubs, 0)) {
-					Utils.logi("Subscribe record(s) are affected:");
+					Utils.logi("Subscribe record(s) be affected:");
 					Utils.logi(str(chgsubs, new String[] {"subscribes", "propagations", "change-logs"}));
 				}
 			} catch (Exception e) { e.printStackTrace(); }
@@ -729,7 +729,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			SemanticObject res = (SemanticObject) DBSynmantics
 					.logChange(this, delete(entm.tbl, synrobot())
 					.whereEq(entm.synuid, synuid), entm, synuid)
-					.d(instancontxt(basictx.connId(), synrobot()));
+					.d(instancontxt(synconn(), synrobot()));
 			return res.total();
 		}
 		else return 0;
@@ -784,7 +784,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					entm, synoder,
 					new ArrayList<String>() {{add(synuid);}},
 					updcols)
-			.u(instancontxt(basictx.connId(), synrobot()))
+			.u(instancontxt(synconn(), synrobot()))
 			.resulve(chgm.tbl, chgm.pk, -1);
 	}
 	
@@ -817,7 +817,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			.nv(synm.nyquence, Funcall.add(synm.nyquence, 1))
 			.whereEq(synm.pk, synode())
 			.whereEq(synm.domain, perdomain)
-			.u(instancontxt(basictx.connId(), synrobot()));
+			.u(instancontxt(synconn(), synrobot()));
 		
 		stamp.inc();
 		persistamp(stamp);
@@ -891,7 +891,7 @@ public class DBSyntableBuilder extends DATranscxt {
 						.where(op.ne, synm.synoder, constr(synode()))
 						.where(op.ne, synm.synoder, constr(childId))
 						.whereEq(synm.domain, domain()))))
-			.ins(instancontxt(basictx.connId(), robot)))
+			.ins(instancontxt(synconn(), robot)))
 			.resulve(chgm.tbl, chgm.pk, -1);
 		
 		ap.nyquvect.put(apply.synid, new Nyquence(apply.nyquence));
@@ -903,7 +903,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				.whereIn(synm.synoder, childId, synode())
 				.whereEq(synm.domain, domain())
 				.whereEq(synm.org, org)
-				.rs(instancontxt(basictx.connId(), synrobot()))
+				.rs(instancontxt(synconn(), synrobot()))
 				.rs(0))
 			: null);
 		return rep;
@@ -930,7 +930,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					.whereEq(synm.pk, synode())
 					.whereEq(synm.org, synrobot().orgId())
 					.whereEq(synm.domain, domain())
-					.u(instancontxt(basictx.connId(), synrobot()));
+					.u(instancontxt(synconn(), synrobot()));
 
 					domain(ns.getString(synm.domain));
 					cp.nyquvect.put(synode(), new Nyquence(mxn.n));
@@ -942,7 +942,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					mxn = maxn(domainstatus.nv);
 					n.insert(synm, ns.getString(synm.synuid), mxn, insert(synm.tbl, synrobot()))
 					 .nv(synm.jserv, adminserv)
-					 .ins(instancontxt(basictx.connId(), synrobot()));
+					 .ins(instancontxt(synconn(), synrobot()));
 
 					cp.nyquvect.put(n.synid, new Nyquence(mxn.n));
 				}
