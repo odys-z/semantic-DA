@@ -204,7 +204,7 @@ public class ExessionPersist {
 			// current entity's subscribes
 			ArrayList<Statement<?>> subscribeUC = new ArrayList<Statement<?>>();
 
-			if (eq(change, CRUD.D)) {
+			if (eq(change, CRUD.D)) { // Does deletion's propagation be tested correctly, as no propagaton here?
 				String subsrb = changes.getString(subm.synodee);
 				stats.add(trb.delete(subm.tbl, trb.synrobot())
 					.whereEq(subm.synodee, subsrb)
@@ -233,9 +233,9 @@ public class ExessionPersist {
 					if (compareNyq(chgnyq, nyquvect.get(synodr)) > 0
 						&& eq(subsrb, trb.synode()))
 						iamSynodee = true;
+
 					else if (compareNyq(chgnyq, nyquvect.get(synodr)) > 0
-						&& !eq(subsrb, trb.synode())
-						)
+						&& !eq(subsrb, trb.synode()))
 						subscribeUC.add(trb.insert(subm.tbl)
 							.cols(subm.insertCols())
 							.value(subm.insertSubVal(changes))); 
