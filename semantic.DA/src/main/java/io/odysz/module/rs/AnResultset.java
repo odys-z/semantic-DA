@@ -1280,7 +1280,7 @@ for (String coln : colnames.keySet())
 	String[] flatcols;
 
 	/**
-	 * Get the cached flat column names in the same sequence with rows.
+	 * Get the cached flat column names in the same sequence with rows. (cached for performance)
 	 * @return column names, index start at 0
 	 * @since 2.0.0
 	 * ISSUE

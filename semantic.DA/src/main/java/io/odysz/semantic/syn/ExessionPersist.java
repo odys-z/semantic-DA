@@ -288,7 +288,7 @@ public class ExessionPersist {
 		}
 
 		if (Connects.getDebug(trb.synconn()))
-			Utils.logT(new Object() {}, "%s saving changes to local entities...", trb.synode());
+			Utils.logT(new Object() {}, "\n[%1$s <- %2$s] : %1$s saving changes to local entities...", trb.synode(), peer);
 
 		ArrayList<String> sqls = new ArrayList<String>();
 		for (Statement<?> s : stats)

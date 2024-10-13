@@ -31,6 +31,7 @@ import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Condit;
+import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -68,12 +69,12 @@ public class DBSynmantics extends DASemantics {
 	 * @param inst
 	 * @param entm
 	 * @param synode
-	 * @param synuid null for create new records, string for synchronizing a records into local db.
+	 * @param synuid the global id for synchronizing a records into local db, null for create new records (post updating into entity).
 	 * @return inst
 	 * @throws TransException
 	 */
 	public static Insert logChange(DBSyntableBuilder b, Insert inst,
-			SyntityMeta entm, String synode, String synuid) throws TransException {
+			SyntityMeta entm, String synode, Object synuid) throws TransException {
 		Update upe = null;
 		Resulving pid = new Resulving(entm.tbl, entm.pk);
 
@@ -92,26 +93,37 @@ public class DBSynmantics extends DASemantics {
 						.where(op.ne, b.synm.synoder, constr(b.synode()))
 						.whereEq(b.synm.domain, b.domain())));
 
+		// TODO refactor for a decent style
 		if (synuid == null) {
 			upe =  b.update(entm.tbl);
-			if (pid instanceof Resulving)
+			if (pid instanceof Resulving) {
 				upe.nv(entm.synuid, SynChangeMeta.uids(synode, (Resulving)pid));
-			else
-				upe.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
-
-			if (pid instanceof Resulving)
-				// insc.nv(b.chgm.uids, SynChangeMeta.uids(b.synode(), (Resulving)pid));
 				insc.nv(b.chgm.uids, SynChangeMeta.uids(synode, (Resulving)pid));
-			else
-				// ????
-				insc.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
-				// insc.nv(b.chgm.uids, SynChangeMeta.uids(synode,  pid.toString()));
+			}
+			else {
+				upe.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
+				insc.nv(b.chgm.uids, SynChangeMeta.uids(synode,  pid.toString()));
+			}
+
+// 			upe.nv(entm.synuid, SynChangeMeta.uids(synode, synuid));
+
+//			if (pid instanceof Resulving)
+//				// insc.nv(b.chgm.uids, SynChangeMeta.uids(b.synode(), (Resulving)pid));
+//				insc.nv(b.chgm.uids, SynChangeMeta.uids(synode, (Resulving)pid));
+//			else
+//				// insc.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
+//				insc.nv(b.chgm.uids, SynChangeMeta.uids(synode,  pid.toString()));
 		}
-		else 
-			insc.nv(b.chgm.uids, synuid);
+		else {
+			if (synuid instanceof Resulving) 
+				insc.nv(b.chgm.uids, (Resulving)synuid);
+			else if (pid instanceof ExprPart)
+				insc.nv(b.chgm.uids, (ExprPart)synuid);
+			else
+				insc.nv(b.chgm.uids, synuid.toString());
+		}
 
 		return inst
-			// .post(upe.whereEq(entm.pk, pid))
 			.post(upe == null ? null : upe.whereEq(entm.pk, pid))
 			.post(insc);
 	}
@@ -220,10 +232,14 @@ public class DBSynmantics extends DASemantics {
 
 			DBSyntableBuilder synb = ((ISyncontext)stx).synbuilder();
 			
-			String synuid = null;
+			Object synuid = null;
 			try {
-				synuid = (String) row.get(cols.get(entm.synuid))[1];
-			} catch (Exception e) {}
+				if (cols.containsKey(entm.synuid))
+					synuid = row.get(cols.get(entm.synuid))[1];
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
 			logChange(synb, insrt, entm, synode, synuid);
 		}
 		
