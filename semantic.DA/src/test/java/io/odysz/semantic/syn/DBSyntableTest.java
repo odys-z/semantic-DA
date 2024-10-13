@@ -853,7 +853,6 @@ public class DBSyntableTest {
 
 		String pid   = slt.getString(entm.pk);
 		String synuid= slt.getString(entm.synuid);
-		// String synodr= slt.getString(entm.synoder);
 		String pname = slt.getString(entm.resname);
 
 		String chgid = t.updateEntity(t.synode(), synuid, entm,

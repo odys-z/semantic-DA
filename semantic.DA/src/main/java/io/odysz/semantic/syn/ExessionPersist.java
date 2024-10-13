@@ -204,7 +204,7 @@ public class ExessionPersist {
 			// current entity's subscribes
 			ArrayList<Statement<?>> subscribeUC = new ArrayList<Statement<?>>();
 
-			if (eq(change, CRUD.D)) {
+			if (eq(change, CRUD.D)) { // Does deletion's propagation be tested correctly, as no propagaton here?
 				String subsrb = changes.getString(subm.synodee);
 				stats.add(trb.delete(subm.tbl, trb.synrobot())
 					.whereEq(subm.synodee, subsrb)
@@ -233,9 +233,9 @@ public class ExessionPersist {
 					if (compareNyq(chgnyq, nyquvect.get(synodr)) > 0
 						&& eq(subsrb, trb.synode()))
 						iamSynodee = true;
+
 					else if (compareNyq(chgnyq, nyquvect.get(synodr)) > 0
-						&& !eq(subsrb, trb.synode())
-						)
+						&& !eq(subsrb, trb.synode()))
 						subscribeUC.add(trb.insert(subm.tbl)
 							.cols(subm.insertCols())
 							.value(subm.insertSubVal(changes))); 
@@ -288,7 +288,7 @@ public class ExessionPersist {
 		}
 
 		if (Connects.getDebug(trb.synconn()))
-			Utils.logT(new Object() {}, "%s saving changes to local entities...", trb.synode());
+			Utils.logT(new Object() {}, "\n[%1$s <- %2$s] : %1$s saving changes to local entities...", trb.synode(), peer);
 
 		ArrayList<String> sqls = new ArrayList<String>();
 		for (Statement<?> s : stats)
@@ -352,13 +352,13 @@ public class ExessionPersist {
 		nyquvect = loadNyquvect(trb);
 		exstate.state = signup;
 	
-		return new ExchangeBlock(trb == null
-				? null
-				: trb.synode(), peer, session, exstate)
-					.totalChallenges(1)
-					.synodes(DAHelper.getEntityById(trb, synm, trb.synode()))
-					.chpagesize(this.chsize)
-					.seq(this);
+		return new ExchangeBlock(trb.domain(),
+					trb == null ? null : trb.synode(),
+					peer, session, exstate)
+				.totalChallenges(1)
+				.synodes(DAHelper.getEntityById(trb, synm, trb.synode()))
+				.chpagesize(this.chsize)
+				.seq(this);
 	}
 
 	/**
@@ -399,7 +399,9 @@ public class ExessionPersist {
 		
 		exstate = new ExessionAct(mode_client, init);
 
-		return new ExchangeBlock(trb == null ? null : trb.synode(), peer, session, exstate)
+		return new ExchangeBlock(trb.domain(),
+				trb == null ? null : trb.synode(),
+				peer, session, exstate)
 			.totalChallenges(totalChallenges)
 			.chpagesize(this.chsize)
 			.seq(persistarting(peer))
@@ -442,7 +444,9 @@ public class ExessionPersist {
 
 		exstate = new ExessionAct(mode_server, init);
 
-		return new ExchangeBlock(trb == null ? ini.peer : trb.synode(), peer, session, exstate)
+		return new ExchangeBlock(trb.domain(),
+					trb == null ? ini.peer : trb.synode(),
+					peer, session, exstate)
 				.totalChallenges(totalChallenges)
 				.chpagesize(ini.chpagesize)
 				.seq(persistarting(peer))
@@ -525,7 +529,7 @@ public class ExessionPersist {
 		me.exstate(nextChpage() ? exchange : close);
 
 		return trb == null // null for test
-			? new ExchangeBlock(rep.peer, peer, session, me.exstate).seq(this)
+			? new ExchangeBlock(trb.domain(), rep.peer, peer, session, me.exstate).seq(this)
 			: trb.exchangePage(this, rep);
 	}
 
@@ -592,8 +596,9 @@ public class ExessionPersist {
 
 		// exstate.state = exchange;
 
-		return new ExchangeBlock(trb == null ? rep.peer :
-			trb.synode(), peer, session, exstate)
+		return new ExchangeBlock(trb.domain(),
+					trb == null ? rep.peer : trb.synode(),
+					peer, session, exstate)
 				.chpage(rs, entities)
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
@@ -610,9 +615,9 @@ public class ExessionPersist {
 
 		exstate.state = exchange;
 
-		return new ExchangeBlock(trb == null
-			? req.peer
-			: trb.synode(), peer, session, exstate)
+		return new ExchangeBlock(trb.domain(),
+					trb == null ? req.peer
+					: trb.synode(), peer, session, exstate)
 				.chpage(chpage(), entities)
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
@@ -636,9 +641,9 @@ public class ExessionPersist {
 
 			exstate.state = ready;
 
-			return new ExchangeBlock(trb == null
-				? rep.peer
-				: trb.synode(), peer, session, new ExessionAct(exstate.exmode, close))
+			return new ExchangeBlock(trb.domain(), 
+						trb == null ? rep.peer
+						: trb.synode(), peer, session, new ExessionAct(exstate.exmode, close))
 					.totalChallenges(totalChallenges)
 					.chpagesize(this.chsize)
 					.seq(this);
@@ -652,7 +657,6 @@ public class ExessionPersist {
 				e.printStackTrace();
 			}
 			finally {
-				// clean unaccepted subscriptions
 				trb.cleanStaleSubs(peer);
 			}
 		}
@@ -667,9 +671,9 @@ public class ExessionPersist {
 
 			exstate.state = ready;
 
-			return new ExchangeBlock(trb == null
-				? null
-				: trb.synode(), peer, session, new ExessionAct(exstate.exmode, close))
+			return new ExchangeBlock(trb.domain(),
+						trb == null ? null : trb.synode(),
+						peer, session, new ExessionAct(exstate.exmode, close))
 					.totalChallenges(totalChallenges)
 					.chpagesize(this.chsize)
 					.seq(this);
@@ -698,7 +702,9 @@ public class ExessionPersist {
 		exstate.state = restore;
 		// expAnswerSeq = challengeSeq; // see nextChpage()
 
-		return new ExchangeBlock(trb == null ? null : trb.synode(), peer, session, exstate)
+		return new ExchangeBlock(trb.domain(),
+					trb == null ? null : trb.synode(),
+					peer, session, exstate)
 				.requirestore()
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
@@ -791,12 +797,12 @@ public class ExessionPersist {
 		// 
 		if (trb == null) return null; // test
 
-		Nyquence dn = nyquvect.get(peer);
+		// Nyquence dn = nyquvect.get(peer);
 
 		AnResultset entbls = (AnResultset) trb.select(chgm.tbl, "ch")
 				.je_(exbm.tbl, "bf", chgm.pk, exbm.changeId, "bf." + exbm.peer, constr(peer), constVal(challengeSeq), exbm.pagex)
 				.col(chgm.entbl)
-				.where(op.gt, chgm.nyquence, dn.n)
+				// .where(op.gt, chgm.nyquence, dn.n)
 				.groupby(chgm.entbl)
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				.rs(0);
