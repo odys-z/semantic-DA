@@ -247,48 +247,17 @@ public class ExessionPersist {
 					.row(ents.get(entm.tbl).getColnames(),
 							ents.get(entm.tbl).getRowById(chuids))
 					.post(chlog)
-//					.post(subscribeUC.size() <= 0 ? null :
-//						trb.insert(chgm.tbl)
-//						.nv(chgm.pk, chgid)
-//						.nv(chgm.crud, CRUD.C).nv(chgm.domain, domain)
-//						.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr)
-//						.nv(chgm.nyquence, changes.getLong(chgm.nyquence))
-//						.nv(chgm.seq, trb.incSeq())
-//						.nv(chgm.uids, chuids)
-//						.post(subscribeUC)
-//						.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode())))
 
 				: eq(change, CRUD.U)
 				? trb.update(entm.tbl, trb.synrobot())
 					.nvs(entm.updateEntNvs(chgm, chuids, ents.get(entm.tbl), changes))
 					.whereEq(entm.synuid, chuids)
 					.post(chlog)
-//					.post(subscribeUC.size() <= 0
-//						? null : trb.insert(chgm.tbl)
-//						.nv(chgm.pk, chgid)
-//						.nv(chgm.crud, CRUD.U).nv(chgm.domain, domain)
-//						.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr)
-//						.nv(chgm.nyquence, chgnyq.n)
-//						.nv(chgm.seq, trb.incSeq())
-//						.nv(chgm.uids, constr(chuids))
-//						.nv(chgm.updcols, changes.getString(chgm.updcols))
-//						.post(subscribeUC)
-//						.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode())))
 
 				: eq(change, CRUD.D)
 				? trb.delete(entm.tbl, trb.synrobot())
 					.whereEq(entm.synuid, chuids)
 					.post(chlog)
-//					.post(subscribeUC.size() <= 0
-//						? null : trb.insert(chgm.tbl)
-//						.nv(chgm.pk, chgid)
-//						.nv(chgm.crud, CRUD.D).nv(chgm.domain, domain)
-//						.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr)
-//						.nv(chgm.nyquence, chgnyq.n)
-//						.nv(chgm.seq, trb.incSeq())
-//						.nv(chgm.uids, constr(chuids))
-//						.post(subscribeUC)
-//						.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode())))
 
 				: null);
 
