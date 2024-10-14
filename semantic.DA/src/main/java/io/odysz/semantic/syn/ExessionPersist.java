@@ -179,6 +179,9 @@ public class ExessionPersist {
 		missings.removeAll(srcnv.keySet());
 		missings.remove(trb.synode());
 
+		if (debug)
+			Utils.logT(new Object() {}, "\n[%1$s <- %2$s] : %1$s saving changes to local entities...", trb.synode(), peer);
+
 		while (changes.next()) {
 			String change = changes.getString(chgm.crud);
 			Nyquence chgnyq = getn(changes, chgm.nyquence);
@@ -263,11 +266,9 @@ public class ExessionPersist {
 
 				subscribeUC = new ArrayList<Statement<?>>();
 				iamSynodee  = false;
+				chlog = null;
 			}
 		}
-
-		if (debug)
-			Utils.logT(new Object() {}, "\n[%1$s <- %2$s] : %1$s saving changes to local entities...", trb.synode(), peer);
 
 		ArrayList<String> sqls = new ArrayList<String>();
 		for (Statement<?> s : stats)

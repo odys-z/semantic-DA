@@ -86,7 +86,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 	}
 
-	private final boolean debug;
+	final boolean debug;
 
 	public final SynodeMeta synm;
 	protected PeersMeta pnvm;
