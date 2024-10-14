@@ -121,7 +121,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	DBSyntableBuilder incStamp(ExessionPersist xp) throws TransException, SQLException {
 		if (xp.nyquvect.containsKey(synode()) && Nyquence.abs(stamp, xp.nyquvect.get(synode())) >= 1)
-			throw new ExchangeException(0, xp, "Nyquence stamp increaseing too much or out of range.");
+			throw new ExchangeException(0, xp, "Nyquence stamp going to increase too much or out of range.");
 		stamp.inc();
 		persistamp(stamp);
 		seq = 0;
@@ -591,7 +591,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					synode(), stamp.n, cx.n0().n);
 		
 		HashMap<String, Nyquence> snapshot = synyquvectMax(cx, rep.nv);
-		persistamp(maxn(stamp, cx.n0()));
+		cx.n0(persistamp(maxn(stamp, cx.n0())));
 
 		return cx.closexchange(rep).nv(snapshot); // cx.clear();
 	}
@@ -652,10 +652,12 @@ public class DBSyntableBuilder extends DATranscxt {
 				if (u == null)
 					u = update(synm.tbl, synrobot())
 						.nv(synm.nyquence, nyq.n)
+						.whereEq(synm.domain, domain())
 						.whereEq(synm.pk, n);
 				else
 					u.post(update(synm.tbl)
 						.nv(synm.nyquence, nyq.n)
+						.whereEq(synm.domain, domain())
 						.whereEq(synm.pk, n));
 			}
 		}
@@ -1067,6 +1069,10 @@ public class DBSyntableBuilder extends DATranscxt {
 	 */
 	public int entities(SyntityMeta m) throws SQLException, TransException {
 		return DAHelper.count(this, synconn(), m.tbl);
+	}
+
+	public AnResultset entitySynuids(SyntityMeta m) throws SQLException, TransException {
+		return (AnResultset) select(m.tbl).col(m.synuid).orderby(m.synuid).rs(basictx).rs(0);
 	}
 
 	ExessionPersist xp;

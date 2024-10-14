@@ -204,24 +204,24 @@ public class ExessionPersist {
 			// current entity's subscribes
 			ArrayList<Statement<?>> subscribeUC = new ArrayList<Statement<?>>();
 
-			if (eq(change, CRUD.D)) { // Does deletion's propagation be tested correctly, as no propagaton here?
-				String subsrb = changes.getString(subm.synodee);
-				stats.add(trb.delete(subm.tbl, trb.synrobot())
-					.whereEq(subm.synodee, subsrb)
-					.whereEq(subm.changeId, chgid)
-					.post(ofLastEntity(changes, chuids, chentbl, domain)
-						? trb.delete(chgm.tbl)
-							.whereEq(chgm.entbl, chentbl)
-							.whereEq(chgm.domain, domain)
-							.whereEq(chgm.synoder, synodr)
-							.whereEq(chgm.uids, chuids)
-							.post(trb.delete(entm.tbl)
-								// .whereEq(entm.domain, domain)
-								// .whereEq(entm.synoder, synodr)
-								.whereEq(entm.synuid, chuids))
-						: null));
-			}
-			else { // CRUD.C || CRUD.U
+//			if (eq(change, CRUD.D)) { // Does deletion's propagation be tested correctly, as no propagaton here?
+//				String subsrb = changes.getString(subm.synodee);
+//				stats.add(trb.delete(subm.tbl, trb.synrobot())
+//					.whereEq(subm.synodee, subsrb)
+//					.whereEq(subm.changeId, chgid)
+//					.post(ofLastEntity(changes, chuids, chentbl, domain)
+//						? trb.delete(chgm.tbl)
+//							.whereEq(chgm.entbl, chentbl)
+//							.whereEq(chgm.domain, domain)
+//							.whereEq(chgm.synoder, synodr)
+//							.whereEq(chgm.uids, chuids)
+//							.post(trb.delete(entm.tbl)
+//								// .whereEq(entm.domain, domain)
+//								// .whereEq(entm.synoder, synodr)
+//								.whereEq(entm.synuid, chuids))
+//						: null));
+//			}
+//			else { // CRUD.C || CRUD.U
 				boolean iamSynodee = false;
 
 				while (changes.validx()) {
@@ -248,7 +248,7 @@ public class ExessionPersist {
 				appendMissings(stats, missings, changes);
 
 				if (iamSynodee || subscribeUC.size() > 0) {
-					stats.add(
+				  stats.add(
 					eq(change, CRUD.C)
 					? trb.insert(entm.tbl, trb.synrobot())
 						.cols(ents.get(entm.tbl).getFlatColumns0())
@@ -264,6 +264,7 @@ public class ExessionPersist {
 							.nv(chgm.uids, chuids)
 							.post(subscribeUC)
 							.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode())))
+
 					: eq(change, CRUD.U)
 					? trb.update(entm.tbl, trb.synrobot())
 						.nvs(entm.updateEntNvs(chgm, chuids, ents.get(entm.tbl), changes))
@@ -279,8 +280,22 @@ public class ExessionPersist {
 							.nv(chgm.updcols, changes.getString(chgm.updcols))
 							.post(subscribeUC)
 							.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode())))
+
+					: eq(change, CRUD.D)
+					? trb.delete(entm.tbl, trb.synrobot())
+						.whereEq(entm.synuid, chuids)
+						.post(subscribeUC.size() <= 0
+							? null : trb.insert(chgm.tbl)
+							.nv(chgm.pk, chgid)
+							.nv(chgm.crud, CRUD.D).nv(chgm.domain, domain)
+							.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr)
+							.nv(chgm.nyquence, chgnyq.n)
+							.nv(chgm.seq, trb.incSeq())
+							.nv(chgm.uids, constr(chuids))
+							.post(subscribeUC)
+							.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode())))
+
 					: null);
-				}
 
 				subscribeUC = new ArrayList<Statement<?>>();
 				iamSynodee  = false;
@@ -739,8 +754,14 @@ public class ExessionPersist {
 	/** Nyquence vector {synode: Nyquence}*/
 	HashMap<String, Nyquence> nyquvect;
 	public Nyquence n0() { return nyquvect.get(trb.synode()); }
-	protected ExessionPersist n0(Nyquence nyq) {
-		nyquvect.put(trb.synode(), new Nyquence(nyq.n));
+	protected ExessionPersist n0(Nyquence nyq) throws TransException, SQLException {
+		if (Nyquence.compareNyq(nyquvect.get(trb.synode()), nyq) != 0) {
+			nyquvect.put(trb.synode(), new Nyquence(nyq.n));
+			DAHelper.updateFieldWhereEqs(trb, trb.synconn(), trb.synrobot(), synm,
+				synm.nyquence, nyq.n,
+				synm.pk, trb.synode(),
+				synm.domain, trb.domain());
+		}
 		return this;
 	}
 	

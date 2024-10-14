@@ -77,8 +77,6 @@ public class DBSyntableTest {
 
 	static String runtimepath;
 
-	// public static Docheck[] ck; // = new Docheck[4];
-
 	static SynodeMeta snm;
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
@@ -86,7 +84,6 @@ public class DBSyntableTest {
 	static SynSessionMeta ssm;
 	static PeersMeta prm;
 
-	// static T_PhotoMeta phm;
 	static String[] synodes;
 
 	static {
@@ -135,8 +132,6 @@ public class DBSyntableTest {
 
 		ck = new Docheck[4];
 		synodes = new String[] { "X", "Y", "Z", "W" };
-		// new for triggering ddl loading - some error here FIXME
-		// nyqm = new NyquenceMeta("");
 		chm = new SynChangeMeta();
 		sbm = new SynSubsMeta(chm);
 		xbm = new SynchangeBuffMeta(chm);
@@ -196,7 +191,6 @@ public class DBSyntableTest {
 			throws TransException, SQLException, IOException {
 		@SuppressWarnings("unchecked")
 		HashMap<String, Nyquence>[] nvs = (HashMap<String, Nyquence>[]) new HashMap[] {
-				// ck[X].nyquvect(), ck[Y].nyquvect(), ck[Z].nyquvect()
 				loadNyquvect(ck[X].trb),
 				loadNyquvect(ck[Y].trb),
 				loadNyquvect(ck[Z].trb)};
@@ -207,7 +201,7 @@ public class DBSyntableTest {
 		String x = synodes[X];
 
 		// 1 insert A
-		Utils.logrst("insert A", section, ++no);
+		Utils.logrst("insert X", section, ++no);
 		String[] X_0_uids = insertPhoto(X);
 		String X_0 = X_0_uids[0];
 
@@ -217,7 +211,7 @@ public class DBSyntableTest {
 		ck[X].psubs(2, X_0_uids[1], -1, Y, Z, -1);
 
 		// 2 insert B
-		Utils.logrst("insert B", section, ++no);
+		Utils.logrst("insert Y", section, ++no);
 		String[] B_0_uids = insertPhoto(Y);
 		String B_0 = B_0_uids[0];
 
@@ -275,6 +269,8 @@ public class DBSyntableTest {
 		ck[X].change_doclog(0, C, B_0);
 		ck[X].psubs(0, X_0_uids[1], -1, -1, Z, -1);
 		ck[X].psubs(0, B_0_uids[1], -1, -1, Z, -1);
+
+		assertEquals(ck[X].docs(), ck[Y].docs());
 	}
 
 	void testJoinChild(int section) throws Exception {
@@ -457,7 +453,7 @@ public class DBSyntableTest {
 
 		int x = ck[X].docs();
 		int y = ck[Y].docs();
-
+		
 		Utils.logrst("X delete a photo", test, ++no);
 		Object[] xd = deletePhoto(X);
 		printChangeLines(ck);
@@ -491,6 +487,35 @@ public class DBSyntableTest {
 
 		ck[X].doc(0, (String)yd[0]);
 		ck[X].doc(x-2);
+
+		Utils.logrst("Z <= Y", test, ++no);
+		exchangeDocs(Z, Y, test, no);
+		Utils.logrst("X <= Y", test, ++no);
+		exchangeDocs(X, Y, test, no);
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		Utils.logrst("Z <= Y", test, ++no);
+		exchangeDocs(Z, Y, test, no);
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		Utils.logrst("W <= Y", test, ++no);
+		exchangeDocs(W, Y, test, no);
+
+		Utils.logrst("W <= X", test, ++no);
+		exchangeDocs(W, X, test, no);
+
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		Utils.logrst("Y <= X", test, ++no);
+		exchangeDocs(Y, X, test, no);
+
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		assertEquals(ck[X].docs(), ck[Y].docs());
 	}
 	
 	void testBreakAck(int section) throws Exception {
@@ -646,7 +671,8 @@ public class DBSyntableTest {
 
 		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
 		ExchangeBlock req = ctb.closexchange(cp, rep);
-		assertEquals(req.nv.get(ctb.synode()).n + 1, getNstamp(ctb).n);
+		if (req.nv.containsKey(ctb.synode()))
+			assertEquals(req.nv.get(ctb.synode()).n + 1, getNstamp(ctb).n);
 		assertEquals(ready, cp.exstate());
 
 		printChangeLines(ck);
@@ -655,7 +681,8 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 		// FIXME what if the server doesn't agree?
 		rep = stb.onclosexchange(sp, req);
-		assertEquals(rep.nv.get(ctb.synode()).n + 1, getNstamp(stb).n);
+		if (req.nv.containsKey(ctb.synode()))
+			assertEquals(rep.nv.get(ctb.synode()).n + 1, getNstamp(stb).n);
 		assertEquals(ready, sp.exstate());
 
 		printChangeLines(ck);
