@@ -1,5 +1,4 @@
 Configuration root path: src/test/res/
-Runtime root path: C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res
 [io.odysz.semantic.DATranscxt#initConfigs()] Loading semantics of connection syn.00
 [io.odysz.semantic.DATranscxt#initConfigs()] Loading semantics of connection syn.01
 [io.odysz.semantic.DATranscxt#initConfigs()] Loading semantics of connection syn.02

@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.util.List;
 
 import io.odysz.common.Utils;
-import io.odysz.common.dbtype;
 import io.odysz.module.xtable.XMLTable.IMapValue;
 import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
