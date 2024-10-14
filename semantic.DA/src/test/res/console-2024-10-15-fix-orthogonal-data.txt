@@ -1,30 +1,3 @@
-[queued-sqlite]
-Resolving sqlite db (queued), xmlDir: C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res,
-	jdbcUrl: semantic-DA.db
-	Using sqlite db (queued): C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res\semantic-DA.db
-[log]
-Resolving sqlite db, xmlDir: C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res,
-	jdbcUrl: semantic-DA.db
-	Using sqlite db: C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res\semantic-DA.db
-[syn.00]
-Resolving sqlite db (queued), xmlDir: C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res,
-	jdbcUrl: syn.00
-	Using sqlite db (queued): C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res\syn.00
-[syn.01]
-Resolving sqlite db (queued), xmlDir: C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res,
-	jdbcUrl: syn.01
-	Using sqlite db (queued): C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res\syn.01
-[syn.02]
-Resolving sqlite db (queued), xmlDir: C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res,
-	jdbcUrl: syn.02
-	Using sqlite db (queued): C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res\syn.02
-[syn.03]
-Resolving sqlite db (queued), xmlDir: C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res,
-	jdbcUrl: syn.03
-	Using sqlite db (queued): C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res\syn.03
-C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res\connects.xml
-C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res\connects.xml
-INFO - JDBC initialized using local-sqlite (sqlite) as default connection.
 Configuration root path: src/test/res/
 Runtime root path: C:\Users\Alice\github\semantic-DA\semantic.DA\src\test\res
 [io.odysz.semantic.DATranscxt#initConfigs()] Loading semantics of connection syn.00
