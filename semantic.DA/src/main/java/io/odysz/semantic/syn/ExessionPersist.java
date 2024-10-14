@@ -302,7 +302,7 @@ public class ExessionPersist {
 			}
 		}
 
-		if (Connects.getDebug(trb.synconn()))
+		if (debug)
 			Utils.logT(new Object() {}, "\n[%1$s <- %2$s] : %1$s saving changes to local entities...", trb.synode(), peer);
 
 		ArrayList<String> sqls = new ArrayList<String>();
@@ -441,7 +441,7 @@ public class ExessionPersist {
 				.ins(trb.instancontxt(conn, trb.synrobot()))
 				).total();
 
-			if (total > 0 && Connects.getDebug(trb.synconn())) {
+			if (total > 0 && debug) {
 				Utils.logi("Changes in buffer for %s -> %s: %s",
 					trb.synode(), peer, total);
 			}

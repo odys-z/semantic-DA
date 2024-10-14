@@ -289,13 +289,14 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	/**
-	 * clean: change[z].n < y.z when X &lt;= Y or change[z].n <= z.synoder when Y &lt;= Z ,
+	 * clean: change[z].n < y.z when X &lt;= Y<br> 
+	 * or change[z].n <= z.synoder when Y &lt;= Z ,
 	 * i.e.<pre>
 	 * my-change[him].n < your-nv[him]
 	 * or
 	 * my-change[by him][you].n < your-nv[him]</pre>
 	 * 
-	 * <p>Clean staleness. (Your knowledge about Z is newer than what I am presenting to)</p>
+	 * <p>Clean staleness. (Your knowledge about Z is newer than what I am presenting to you)</p>
 	 * 
 	 * <ul>
 	 * <li>When propagating 3rd node's information, clean the older one
@@ -620,7 +621,9 @@ public class DBSyntableBuilder extends DATranscxt {
 					.cols(constr(peer), chgm.pk, new ExprPart(-1))
 					.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
 											.and(Sql.condt(op.ne, constr(synode()), subm.synodee)))
-					.je_(pnvm.tbl, "nvee", "sb." + subm.synodee, pnvm.synid, constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
+					// .je_(pnvm.tbl, "nvee", "sb." + subm.synodee, pnvm.synid,
+					.je_(pnvm.tbl, "nvee", "cl." + chgm.synoder, pnvm.synid,
+											constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
 					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0)
 				)
 			);

@@ -8,7 +8,9 @@ import io.odysz.semantic.syn.Nyquence;
 
 public class PeersMeta extends SemanticTableMeta {
 
+	/** The target id at this synode, nv.key. */
 	public final String synid;
+	/** Synssion peer */
 	public final String peer;
 	public final String domain;
 	public final String nyq;
