@@ -621,6 +621,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					.cols(constr(peer), chgm.pk, new ExprPart(-1))
 					.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
 											.and(Sql.condt(op.ne, constr(synode()), subm.synodee)))
+					// fixed: orthogonal data handling
 					// .je_(pnvm.tbl, "nvee", "sb." + subm.synodee, pnvm.synid,
 					.je_(pnvm.tbl, "nvee", "cl." + chgm.synoder, pnvm.synid,
 											constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
