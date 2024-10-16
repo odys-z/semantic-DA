@@ -6,7 +6,6 @@ import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import java.lang.reflect.Constructor;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import io.odysz.common.Utils;
@@ -31,7 +30,6 @@ import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Condit;
-import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -59,8 +57,8 @@ public class DBSynmantics extends DASemantics {
 	}
 	
 	@Override
-	public DBSyntableBuilder.SynmanticsMap createSMap(String conn) {
-		return new DBSyntableBuilder.SynmanticsMap(synode, conn);
+	public DBSynTransBuilder.SynmanticsMap createSMap(String conn) {
+		return new DBSynTransBuilder.SynmanticsMap(synode, conn);
 	}
 	
 	/**
@@ -136,7 +134,7 @@ public class DBSynmantics extends DASemantics {
 	public static Update logChange(DBSyntableBuilder b, Update updt,
 			SyntityMeta entm, String synoder, AnResultset hittings, Iterable<String> updcols)
 				throws TransException, SQLException {
-		if (hittings == null) {
+		if (hittings != null) {
 			hittings.beforeFirst();
 
 			while (hittings.next())

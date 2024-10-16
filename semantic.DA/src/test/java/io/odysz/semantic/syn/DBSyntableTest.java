@@ -169,7 +169,7 @@ public class DBSyntableTest {
 			if (s != W)
 				Docheck.ck[s].trb.incNyquence0();
 
-			DBSyntableBuilder.registerEntity(conn, Docheck.ck[s].docm);
+			// DBSyntableBuilder.registerEntity(conn, Docheck.ck[s].docm);
 		}
 		
 		assertEquals("syn.00", ck[0].connId());

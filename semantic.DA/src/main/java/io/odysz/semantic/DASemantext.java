@@ -91,7 +91,7 @@ public class DASemantext implements ISemantext {
 	 * @throws SemanticException metas is null
 	 * @throws SQLException 
 	 */
-	protected DASemantext(String connId, SemanticsMap semanticsMap,
+	public DASemantext(String connId, SemanticsMap semanticsMap,
 			IUser usr, String rtPath) throws SemanticException, SQLException {
 		basePath = rtPath;
 		this.connId = connId;

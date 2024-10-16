@@ -98,7 +98,9 @@ public class ExessionPersist {
 			if (compareNyq(rply.getLong(chgm.nyquence), tillN0) > 0)
 				break; // FIXME continue? Or throw?
 	
-			SyntityMeta entm = trb.getEntityMeta(rply.getString(chgm.entbl));
+			// SyntityMeta entm = trb.getEntityMeta(rply.getString(chgm.entbl));
+			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(trb.synconn(), rply.getString(chgm.entbl));
+
 			String change = rply.getString(ChangeLogs.ChangeFlag);
 			HashMap<String, AnResultset> entbuf = entities;
 			
@@ -192,7 +194,8 @@ public class ExessionPersist {
 			String change = changes.getString(chgm.crud);
 			Nyquence chgnyq = getn(changes, chgm.nyquence);
 
-			SyntityMeta entm = trb.getEntityMeta(changes.getString(chgm.entbl));
+			// SyntityMeta entm = trb.getEntityMeta(changes.getString(chgm.entbl));
+			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(trb.synconn(), changes.getString(chgm.entbl));
 
 			String synodr = changes.getString(chgm.synoder);
 			String chuids = changes.getString(chgm.uids);
@@ -789,19 +792,18 @@ public class ExessionPersist {
 		// 
 		if (trb == null) return null; // test
 
-		// Nyquence dn = nyquvect.get(peer);
-
 		AnResultset entbls = (AnResultset) trb.select(chgm.tbl, "ch")
 				.je_(exbm.tbl, "bf", chgm.pk, exbm.changeId, "bf." + exbm.peer, constr(peer), constVal(challengeSeq), exbm.pagex)
 				.col(chgm.entbl)
-				// .where(op.gt, chgm.nyquence, dn.n)
 				.groupby(chgm.entbl)
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				.rs(0);
 
 		while (entbls.next()) {
 			String tbl = entbls.getString(chgm.entbl);
-			SyntityMeta entm = trb.getSyntityMeta(tbl);
+
+			// SyntityMeta entm = trb.getSyntityMeta(tbl);
+			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(trb.synconn(), tbl);
 
 			AnResultset entities = ((AnResultset) entm
 				.onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))
