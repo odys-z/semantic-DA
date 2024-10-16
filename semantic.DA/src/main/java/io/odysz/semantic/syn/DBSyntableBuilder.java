@@ -89,10 +89,10 @@ public class DBSyntableBuilder extends DATranscxt {
 	final boolean debug;
 
 	public final SynodeMeta synm;
-	protected PeersMeta pnvm;
-	protected SynSubsMeta subm;
-	protected SynChangeMeta chgm;
-	protected SynchangeBuffMeta exbm;
+	protected final PeersMeta pnvm;
+	protected final SynSubsMeta subm;
+	protected final SynChangeMeta chgm;
+	protected final SynchangeBuffMeta exbm;
 
 	final SynodeMode synmode;
 
@@ -171,20 +171,19 @@ public class DBSyntableBuilder extends DATranscxt {
 		perdomain= domain;
 		synmode  = mode;
 
-		// wire up local identity
-		// DBSyntext tx = (DBSyntext) this.basictx;
-		// tx.synode = mynid;
-
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
-		this.subm = subm != null ? subm : new SynSubsMeta(chgm, conn);
+		// this.subm = subm != null ? subm : new SynSubsMeta(chgm, conn);
+		this.subm = new SynSubsMeta(chgm, conn);
 		this.subm.replace();
 		this.synm = synm != null ? synm : (SynodeMeta) new SynodeMeta(conn).autopk(false);
 		this.synm.replace();
 
-		this.exbm = exbm != null ? exbm : new SynchangeBuffMeta(chgm, conn);
+		// this.exbm = exbm != null ? exbm : new SynchangeBuffMeta(chgm, conn);
+		this.exbm = new SynchangeBuffMeta(chgm, conn);
 		this.exbm.replace();
-		this.pnvm = pnvm != null ? pnvm : new PeersMeta(conn);
+		// this.pnvm = pnvm != null ? pnvm : new PeersMeta(conn);
+		this.pnvm = new PeersMeta(conn);
 		this.pnvm.replace();
 		
 		// seq = 0;
@@ -776,22 +775,35 @@ public class DBSyntableBuilder extends DATranscxt {
 		return new String[] {phid, chid};
 	}
 	
-	@SuppressWarnings("serial")
-	public String updateEntity(String synoder, String synuid, SyntityMeta entm, Object ... nvs)
+	public String updateEntity(String synoder, String[] uids, SyntityMeta entm, Object ... nvs)
 			throws TransException, SQLException, IOException {
 		List<String> updcols = new ArrayList<String>(nvs.length/2);
 		for (int i = 0; i < nvs.length; i += 2)
 			updcols.add((String) nvs[i]);
 
+		Update u = update(entm.tbl, synrobot())
+					.nvs((Object[])nvs);
+
+		for (int ix = 0; ix < uids.length; ix++)
+			u.whereEq(entm.uids.get(ix), uids[ix]);
+
+		return DBSynmantics
+			.logChange(this, u,
+					entm, synoder, null, updcols)
+			.u(instancontxt(synconn(), synrobot()))
+			.resulve(chgm.tbl, chgm.pk, -1);
+
+		/*
 		return DBSynmantics
 			.logChange(this, update(entm.tbl, synrobot())
 						.nvs((Object[])nvs)
 						.whereEq(entm.synuid, synuid),
 					entm, synoder,
-					new ArrayList<String>() {{add(synuid);}},
+					null, // new ArrayList<String>() {{add(synuid);}},
 					updcols)
 			.u(instancontxt(synconn(), synrobot()))
 			.resulve(chgm.tbl, chgm.pk, -1);
+		*/
 	}
 	
 	public static void registerEntity(String conn, SyntityMeta m)

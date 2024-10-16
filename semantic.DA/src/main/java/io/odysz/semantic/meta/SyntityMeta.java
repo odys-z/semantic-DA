@@ -8,10 +8,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
+import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -29,19 +31,17 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	}
 
 	/**
-	 * exposed to subclass to change
-	 * @see SyntityMeta#SyntityMeta
-	public final String domain;
+	 * Global syn-uid. Must be transparent to users.
+	 * 
+	 * (using this field in transactions will supress semantics handling of smtyp.synchange)
 	 */
-
 	public final String synuid;
 	
 	/** Entity creator's id used for identify originators in domain (globally?) */
-	// public String synoder;
 	public String device;
 
 	/** Entity's columns for generation global uid */
-	protected final HashSet<String> uids;
+	public final ArrayList<String> uids;
 
 	/**
 	 * Entity columns figured out from entity type, 
@@ -73,11 +73,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 		device = devid;
 		synuid = "io_oz_synuid";
 		
-		uids = new HashSet<String>() {
-			static final long serialVersionUID = 1L;
-			// { add(domain); add(pk);}
-			{ add(synuid);}
-		};
+		uids = new ArrayList<String>();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -211,4 +207,18 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * @throws TransException, SQLException 
 	 */
 	public Query onselectSyntities(Query select) throws TransException, SQLException { return select; }
+
+	public String synuid(AnResultset rs) {
+		if (rs != null) {
+			return uids.stream().map(f -> {
+				try {
+					return rs.getString(f);
+				} catch (SQLException e) {
+					e.printStackTrace();
+					return f;
+				}
+			}).collect(Collectors.joining(","));
+		}
+		return null;
+	}
 }

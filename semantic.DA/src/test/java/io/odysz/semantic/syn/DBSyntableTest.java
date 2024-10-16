@@ -878,15 +878,17 @@ public class DBSyntableTest {
 			throw new SemanticException("No entity found: synode=%s, ck=%d",
 					t.synode(), s);
 
-		String pid   = slt.getString(entm.pk);
-		String synuid= slt.getString(entm.synuid);
-		String pname = slt.getString(entm.resname);
+		String pid    = slt.getString(entm.pk);
+		// String synuid= slt.getString(entm.synuid);
+		String device = slt.getString(entm.device);
+		String clientpath = slt.getString(entm.fullpath);
+		String pname  = slt.getString(entm.resname);
 
-		String chgid = t.updateEntity(t.synode(), synuid, entm,
+		String chgid = t.updateEntity(t.synode(), new String[] { device, clientpath }, entm,
 			entm.resname, String.format("%s,%04d", (pname == null ? "" : pname), ck[s].stamp()),
 			entm.createDate, now());
 
-		return new String[] {pid, chgid, synuid };
+		return new String[] {pid, chgid, slt.getString(entm.synuid) };
 	}
 	
 

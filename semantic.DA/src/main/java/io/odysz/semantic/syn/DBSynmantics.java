@@ -134,15 +134,18 @@ public class DBSynmantics extends DASemantics {
 	}
 
 	public static Update logChange(DBSyntableBuilder b, Update updt,
-			SyntityMeta entm, String synoder, List<String> synuids, Iterable<String> updcols)
+			SyntityMeta entm, String synoder, AnResultset hittings, Iterable<String> updcols)
 				throws TransException, SQLException {
-		for (String synuid : synuids)
-			updt.post(b
+		if (hittings == null) {
+			hittings.beforeFirst();
+
+			while (hittings.next())
+				updt.post(b
 					.insert(b.chgm.tbl)
 					.nv(b.chgm.entbl, entm.tbl)
 					.nv(b.chgm.crud, CRUD.U)
 					.nv(b.chgm.synoder, synoder)
-					.nv(b.chgm.uids, synuid)
+					.nv(b.chgm.uids, entm.synuid(hittings))
 					.nv(b.chgm.nyquence, b.stamp())
 					.nv(b.chgm.seq, b.incSeq())
 					.nv(b.chgm.domain, b.domain())
@@ -155,6 +158,7 @@ public class DBSynmantics extends DASemantics {
 							.where(op.ne, b.synm.synoder, constr(synoder))
 							.whereEq(b.synm.domain, b.domain()))))
 			;
+		}
 	
 		return updt;
 	}
