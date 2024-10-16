@@ -67,7 +67,7 @@ public class ExessionPersist {
 
 	final boolean debug;
 
-	public AnResultset answerPage;
+	AnResultset answerPage;
 
 	public DBSyntableBuilder trb;
 
@@ -104,49 +104,50 @@ public class ExessionPersist {
 			
 			String rporg  = rply.getString(chgm.domain);
 			String rpent  = rply.getString(chgm.entbl);
-			String rpuids = rply.getString(chgm.uids);
+			String rsynuid= rply.getString(chgm.uids);
 			String rpnodr = rply.getString(chgm.synoder);
 			String rpscrb = rply.getString(subm.synodee);
-			String rpcid  = rply.getString(chgm.pk);
+			String rpchid = rply.getString(chgm.pk);
 	
 			if (debug && !eq(change, CRUD.D)
-				&& (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(rpuids) < 0)) {
+				&& (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(rsynuid) < 0)) {
 				Utils.warnT(new Object() {},
 						"Missing entity. This happens when the entity is deleted locally.\n" +
 						"entity name: %s\tsynode(peer): %s\tsynode(local): %s\tentity id(by peer): %s",
-						entm.tbl, srcnode, trb.synode(), rpuids);
+						entm.tbl, srcnode, trb.synode(), rsynuid);
 				continue;
 			}
 				
 			stats.add(eq(change, CRUD.C)
 				// create an entity, and trigger change log
-				? !eq(recId, rpuids)
-					? trb.insert(entm.tbl, trb.synrobot())
+				? !eq(recId, rsynuid)
+					? // TODO FIXME a branch that tests never reached?
+					  trb.insert(entm.tbl, trb.synrobot())
 						.cols((String[])entm.entCols())
-						.value(entm.insertChallengeEnt(rpuids, entbuf.get(entm.tbl)))
+						.value(entm.insertChallengeEnt(rsynuid, entbuf.get(entm.tbl)))
 						.post(trb.insert(chgm.tbl)
-							.nv(chgm.pk, rpcid)
+							.nv(chgm.pk, rpchid)
 							.nv(chgm.crud, CRUD.C)
 							.nv(chgm.domain, rporg)
 							.nv(chgm.entbl, rpent)
 							.nv(chgm.synoder, rpnodr)
-							.nv(chgm.uids, rpuids)
-							// .nv(chgm.entfk, new Resulving(entm.tbl, entm.pk))
+							.nv(chgm.uids, rsynuid)
 							.post(trb.insert(subm.tbl)
 								.cols(subm.insertCols())
 								.value(subm.insertSubVal(rply))))
 					: trb.insert(subm.tbl)
 						.cols(subm.insertCols())
 						.value(subm.insertSubVal(rply))
+
+				// : eq(change, CRUD.U) ? WHAT()
 	
 				// remove subscribers & backward change logs's deletion propagation
 				: trb.delete(subm.tbl, trb.synrobot())
-					.whereEq(subm.changeId, rpcid)
+					.whereEq(subm.changeId, rpchid)
 					.whereEq(subm.synodee, rpscrb)
-					.post(del0subchange(entm, rporg, rpnodr, rpuids, rpcid, rpscrb)
+					.post(del0subchange(entm, rporg, rpnodr, rsynuid, rpchid, rpscrb)
 					));
-			// entid = entid1;
-			recId = rpuids;
+			recId = rsynuid;
 		}
 	
 		Utils.logT(new Object() {}, "Locally committing answers to %s ...", peer);
@@ -156,6 +157,11 @@ public class ExessionPersist {
 		Connects.commit(trb.synconn(), trb.synrobot(), sqls);
 		
 		return this;
+	}
+
+	@SuppressWarnings("unused")
+	private Statement<?> WHAT() throws SemanticException {
+		throw new SemanticException("TODO FIXME!");
 	}
 
 	/**
