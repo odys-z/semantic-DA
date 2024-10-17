@@ -244,10 +244,11 @@ public class ExessionPersist {
 			
 			Insert chlog = subscribeUC.size() <= 0 ? null : trb
 					.insert(chgm.tbl)
-					.nv(chgm.pk, chgid) .nv(chgm.crud, CRUD.C).nv(chgm.domain, domain)
+					.nv(chgm.pk, chgid).nv(chgm.domain, domain)
+					.nv(chgm.crud, change).nv(chgm.updcols, changes.getString(chgm.updcols))
 					.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr)
 					.nv(chgm.nyquence, changes.getLong(chgm.nyquence))
-					.nv(chgm.seq, trb.incSeq()) .nv(chgm.uids, chuids)
+					.nv(chgm.seq, trb.incSeq()).nv(chgm.uids, chuids)
 					.post(subscribeUC)
 					.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode()));
 

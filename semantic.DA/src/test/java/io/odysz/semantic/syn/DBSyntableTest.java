@@ -103,6 +103,7 @@ public class DBSyntableTest {
 		DATranscxt.key("user-pswd", rootkey);
 	}
 
+	@SuppressWarnings("deprecation")
 	@BeforeAll
 	public static void testInit() throws Exception {
 		// DDL
@@ -144,8 +145,8 @@ public class DBSyntableTest {
 			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn); //.replace();
 
 			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
-
 			phm.replace();
+			DBSynTransBuilder.registerEntity(conn, phm);
 
 			ArrayList<String> sqls = new ArrayList<String>();
 			sqls.add("delete from oz_autoseq;");
@@ -169,7 +170,6 @@ public class DBSyntableTest {
 			if (s != W)
 				Docheck.ck[s].trb.incNyquence0();
 
-			// DBSyntableBuilder.registerEntity(conn, Docheck.ck[s].docm);
 		}
 		
 		assertEquals("syn.00", ck[0].connId());
@@ -425,15 +425,15 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[X].change_doclog(1, U, null);
+		ck[X].change_doclog(2, U, null);
 		ck[X].buf_change(0, U, null, ck[X].docm);
-		ck[X].psubs(4, null, X, Y, Z, W);
-		ck[X].psubs(4, null, -1, -1, Z, W);
+		ck[X].psubs(6, null, X, Y, Z, W);
+		ck[X].psubs(6, null, -1, -1, Z, W);
 
 		ck[Y].change_doclog(1, U, null);
 		ck[Y].buf_change_p(0, U, null);
-		ck[Y].psubs(4, null, X, Y, Z, W);
-		ck[Y].psubs(4, null, -1, -1, Z, W);
+		ck[Y].psubs(6, null, X, Y, Z, W);
+		ck[Y].psubs(6, null, -1, -1, Z, W);
 
 		Utils.logrst("Y <= Z", section, ++no);
 		exchangeDocs(Y, Z, section, no);
@@ -441,8 +441,8 @@ public class DBSyntableTest {
 		printNyquv(ck);
 
 		ck[Y].change_doclog(1, U, null);
-		ck[Y].psubs(2, null, X, Y, Z, W);
-		ck[Y].psubs(2, null, -1, -1, -1, W);
+		ck[Y].psubs(3, null, X, Y, Z, W);
+		ck[Y].psubs(3, null, -1, -1, -1, W);
 		ck[Y].psubs(1, yu[1], -1, -1, -1, W);
 		ck[Y].psubs(1, xu[1], -1, -1, -1, W);
 	}

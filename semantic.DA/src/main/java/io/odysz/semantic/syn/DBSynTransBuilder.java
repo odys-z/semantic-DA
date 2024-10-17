@@ -25,6 +25,7 @@ import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.x.TransException;
 
 public class DBSynTransBuilder extends DATranscxt {
+	public static String synodeTabl;
 
 	public static class SynmanticsMap extends SemanticsMap {
 		String synode;
@@ -42,6 +43,7 @@ public class DBSynTransBuilder extends DATranscxt {
 	
 	String synconn() { return basictx.connId(); }
 
+	/** { syn-conn: { tabl: SyntityMeta } } */
 	static HashMap<String, HashMap<String, SyntityMeta>> entityRegists;
 	public SyntityMeta getSyntityMeta(String tbl) {
 		return entityRegists != null
@@ -61,10 +63,16 @@ public class DBSynTransBuilder extends DATranscxt {
 	@Deprecated
 	public static void registerEntity(String conn, SyntityMeta m)
 			throws SemanticException, TransException, SQLException {
+			
 		if (entityRegists == null)
 			entityRegists = new HashMap<String, HashMap<String, SyntityMeta>>();
-		if (!entityRegists.containsKey(conn))
+
+		if (!entityRegists.containsKey(conn)) {
 			entityRegists.put(conn, new HashMap<String, SyntityMeta>());
+			SynodeMeta synm = new SynodeMeta(conn);
+			synodeTabl = synm.tbl;
+			entityRegists.get(conn).put(synodeTabl, synm);
+		}
 
 		entityRegists.get(conn).put(m.tbl, (SyntityMeta) m.clone(Connects.getMeta(conn, m.tbl)));
 	}
@@ -84,7 +92,7 @@ public class DBSynTransBuilder extends DATranscxt {
 	protected final SynSubsMeta subm;
 	protected final SynChangeMeta chgm;
 	protected final SynchangeBuffMeta exbm;
-	protected final String perdomain;
+	public final String perdomain;
 
 	final SynodeMode synmode;
 
@@ -135,7 +143,7 @@ public class DBSynTransBuilder extends DATranscxt {
 				stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
 						synm.synoder, mynid, synm.domain, perdomain);
 
-			registerEntity(conn, synm);
+			// registerEntity(conn, synm);
 		}
 		else if (isblank(perdomain))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
@@ -146,14 +154,18 @@ public class DBSynTransBuilder extends DATranscxt {
 
 	}
 
-	public String domain() {
-		// TODO Auto-generated method stub
-		return null;
+	public static SynodeMeta getSynodeMeta(String conn) {
+		return (SynodeMeta) entityRegists.get(conn).get(synodeTabl);
 	}
 
-	public DBSynTransBuilder loadNstamp() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	public String domain() {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	public DBSynTransBuilder loadNstamp() {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 }

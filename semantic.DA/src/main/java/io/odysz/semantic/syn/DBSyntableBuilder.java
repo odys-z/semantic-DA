@@ -136,16 +136,12 @@ public class DBSyntableBuilder extends DATranscxt {
 //				: null;
 //	} 
 
-	public DBSyntableBuilder(String domain, String conn, String mynodeId, SynodeMode mode)
-			throws Exception {
-		this(domain, conn, mynodeId, mode,
-			new SynChangeMeta(conn),
-			new SynodeMeta(conn));
-	}
+//	public DBSyntableBuilder(String domain, String conn, String mynodeId, SynodeMode mode)
+//			throws Exception {
+//		this(domain, conn, mynodeId, mode);
+//	}
 	
-	public DBSyntableBuilder(String domain, String conn, String mynid,
-			SynodeMode mode, SynChangeMeta chgm, SynodeMeta synm)
-			throws Exception {
+	public DBSyntableBuilder(String domain, String conn, String mynid, SynodeMode mode) throws Exception {
 
 //		super ( new DBSyntext(conn, mynid,
 //			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSynTransBuilder.SynmanticsMap(mynid, c)),
@@ -161,12 +157,11 @@ public class DBSyntableBuilder extends DATranscxt {
 		synmode  = mode;
 		synode   = mynid;
 
-		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
+		this.chgm = new SynChangeMeta(conn);
 		this.chgm.replace();
-		// this.subm = subm != null ? subm : new SynSubsMeta(chgm, conn);
 		this.subm = new SynSubsMeta(chgm, conn);
 		this.subm.replace();
-		this.synm = synm != null ? synm : (SynodeMeta) new SynodeMeta(conn).autopk(false);
+		this.synm = DBSynTransBuilder.getSynodeMeta(conn);// synm != null ? synm : (SynodeMeta) new SynodeMeta(conn).autopk(false);
 		this.synm.replace();
 
 		// this.exbm = exbm != null ? exbm : new SynchangeBuffMeta(chgm, conn);
@@ -192,7 +187,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
 						synm.synoder, mynid, synm.domain, perdomain);
 
-			// registerEntity(conn, synm);
+			// DBSynTransBuilder.registerEntity(conn, synm);
 		}
 		else if (isblank(perdomain))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
@@ -562,7 +557,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 
 		return xp.saveAnswer(resp.anspage)
-				.saveChanges(changes.beforeFirst(), req.nv, req.entities);
+				.saveChanges(changes, req.nv, req.entities);
 	}
 
 	public ExchangeBlock closexchange(ExessionPersist cx, ExchangeBlock rep)
@@ -720,10 +715,16 @@ public class DBSyntableBuilder extends DATranscxt {
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	public int deleteEntityBySynuid(SyntityMeta entm, String synuid)
 			throws TransException, SQLException {
+		AnResultset hittings = (AnResultset) select(entm.tbl)
+					.col(entm.synuid).cols(entm.uids)
+					.whereEq(entm.synuid, synuid)
+					.rs(instancontxt(synconn(), synrobot()))
+					.rs(0);
+
 		if (existsnyuid(entm, synuid)) {
 			SemanticObject res = (SemanticObject) DBSynmantics
 					.logChange(this, delete(entm.tbl, synrobot())
-					.whereEq(entm.synuid, synuid), entm, synuid)
+					.whereEq(entm.synuid, synuid), entm, hittings)
 					.d(instancontxt(synconn(), synrobot()));
 			return res.total();
 		}
@@ -777,9 +778,16 @@ public class DBSyntableBuilder extends DATranscxt {
 		for (int ix = 0; ix < uids.length; ix++)
 			u.whereEq(entm.uids.get(ix), uids[ix]);
 
+		AnResultset hittings = ((AnResultset) select(entm.tbl)
+				.col(entm.synuid).cols(entm.uids)
+				.where(u.where())
+				.rs(instancontxt(synconn(), synrobot()))
+				.rs(0))
+				.beforeFirst();
+
 		return DBSynmantics
 			.logChange(this, u,
-					entm, synoder, null, updcols)
+					entm, synoder, hittings, updcols)
 			.u(instancontxt(synconn(), synrobot()))
 			.resulve(chgm.tbl, chgm.pk, -1);
 

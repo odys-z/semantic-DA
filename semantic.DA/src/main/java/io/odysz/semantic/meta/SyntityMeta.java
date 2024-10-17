@@ -7,13 +7,11 @@ import static io.odysz.common.LangExt.isNull;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.stream.Collectors;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
-import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.x.TransException;
 
 /**
