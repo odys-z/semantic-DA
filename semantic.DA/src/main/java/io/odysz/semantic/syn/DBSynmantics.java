@@ -57,8 +57,8 @@ public class DBSynmantics extends DASemantics {
 	}
 	
 	@Override
-	public DBSyntableBuilder.SynmanticsMap createSMap(String conn) {
-		return new DBSyntableBuilder.SynmanticsMap(synode, conn);
+	public DBSynTransBuilder.SynmanticsMap createSMap(String conn) {
+		return new DBSynTransBuilder.SynmanticsMap(synode, conn);
 	}
 	
 	/**
@@ -138,12 +138,14 @@ public class DBSynmantics extends DASemantics {
 			hittings.beforeFirst();
 
 			while (hittings.next())
+				// if (isblank(hittings.getString(entm.synuid)))
 				updt.post(b
 					.insert(b.chgm.tbl)
 					.nv(b.chgm.entbl, entm.tbl)
 					.nv(b.chgm.crud, CRUD.U)
 					.nv(b.chgm.synoder, synoder)
-					.nv(b.chgm.uids, entm.synuid(hittings))
+					// .nv(b.chgm.uids, entm.synuid(hittings))
+					.nv(b.chgm.uids, hittings.getString(entm.synuid))
 					.nv(b.chgm.nyquence, b.stamp())
 					.nv(b.chgm.seq, b.incSeq())
 					.nv(b.chgm.domain, b.domain())
@@ -162,26 +164,37 @@ public class DBSynmantics extends DASemantics {
 	}
 	
 	public static Delete logChange(DBSyntableBuilder b, Delete delt,
-			SyntityMeta entm, String synuid) throws TransException, SQLException {
-		return delt.post(b
-				.insert(b.chgm.tbl)
-				.nv(b.chgm.entbl, entm.tbl)
-				.nv(b.chgm.crud, CRUD.D)
-				.nv(b.chgm.synoder, b.synode())
-				.nv(b.chgm.uids, synuid)
-				.nv(b.chgm.nyquence, b.stamp())
-				.nv(b.chgm.seq, b.incSeq())
-				.nv(b.chgm.domain, b.domain())
-				.post(b
-					.insert(b.subm.tbl)
-					.cols(b.subm.insertCols())
-					.select((Query)b
-						.select(b.synm.tbl)
-						.col(new Resulving(b.chgm.tbl, b.chgm.pk))
-						.col(b.synm.synoder)
-						.where(op.ne, b.synm.synoder, constr(b.synode()))
-						.whereEq(b.synm.domain, b.domain())))
-		);
+			SyntityMeta entm, AnResultset hittings) throws TransException, SQLException {
+
+		if (hittings != null) {
+			hittings.beforeFirst();
+
+			while (hittings.next()) {
+				String synuid = hittings.getString(entm.synuid);
+
+				// if (isblank(synuid))
+				return delt.post(b
+					.insert(b.chgm.tbl)
+					.nv(b.chgm.entbl, entm.tbl)
+					.nv(b.chgm.crud, CRUD.D)
+					.nv(b.chgm.synoder, b.synode())
+					.nv(b.chgm.uids, synuid)
+					.nv(b.chgm.nyquence, b.stamp())
+					.nv(b.chgm.seq, b.incSeq())
+					.nv(b.chgm.domain, b.domain())
+					.post(b
+						.insert(b.subm.tbl)
+						.cols(b.subm.insertCols())
+						.select((Query)b
+							.select(b.synm.tbl)
+							.col(new Resulving(b.chgm.tbl, b.chgm.pk))
+							.col(b.synm.synoder)
+							.where(op.ne, b.synm.synoder, constr(b.synode()))
+							.whereEq(b.synm.domain, b.domain())))
+					);
+			}
+		}
+		return delt;
 	}	
 
 	public static class ShSynChange extends SemanticHandler {
@@ -299,7 +312,7 @@ public class DBSynmantics extends DASemantics {
 				AnResultset hittings = hits(stx, stmt);
 				while (hittings.next())
 					stmt = logChange(((ISyncontext)stx).synbuilder(),
-								stmt, entm, hittings.getString(entm.synuid));
+								stmt, entm, hittings);
 			} catch (SQLException e) {
 				e.printStackTrace();
 				throw new TransException(e.getMessage());

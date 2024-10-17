@@ -98,7 +98,9 @@ public class ExessionPersist {
 			if (compareNyq(rply.getLong(chgm.nyquence), tillN0) > 0)
 				break; // FIXME continue? Or throw?
 	
-			SyntityMeta entm = trb.getEntityMeta(rply.getString(chgm.entbl));
+			// SyntityMeta entm = trb.getEntityMeta(rply.getString(chgm.entbl));
+			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(trb.synconn(), rply.getString(chgm.entbl));
+
 			String change = rply.getString(ChangeLogs.ChangeFlag);
 			HashMap<String, AnResultset> entbuf = entities;
 			
@@ -192,7 +194,8 @@ public class ExessionPersist {
 			String change = changes.getString(chgm.crud);
 			Nyquence chgnyq = getn(changes, chgm.nyquence);
 
-			SyntityMeta entm = trb.getEntityMeta(changes.getString(chgm.entbl));
+			// SyntityMeta entm = trb.getEntityMeta(changes.getString(chgm.entbl));
+			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(trb.synconn(), changes.getString(chgm.entbl));
 
 			String synodr = changes.getString(chgm.synoder);
 			String chuids = changes.getString(chgm.uids);
@@ -241,10 +244,11 @@ public class ExessionPersist {
 			
 			Insert chlog = subscribeUC.size() <= 0 ? null : trb
 					.insert(chgm.tbl)
-					.nv(chgm.pk, chgid) .nv(chgm.crud, CRUD.C).nv(chgm.domain, domain)
+					.nv(chgm.pk, chgid).nv(chgm.domain, domain)
+					.nv(chgm.crud, change).nv(chgm.updcols, changes.getString(chgm.updcols))
 					.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr)
 					.nv(chgm.nyquence, changes.getLong(chgm.nyquence))
-					.nv(chgm.seq, trb.incSeq()) .nv(chgm.uids, chuids)
+					.nv(chgm.seq, trb.incSeq()).nv(chgm.uids, chuids)
 					.post(subscribeUC)
 					.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode()));
 
@@ -798,7 +802,9 @@ public class ExessionPersist {
 
 		while (entbls.next()) {
 			String tbl = entbls.getString(chgm.entbl);
-			SyntityMeta entm = trb.getSyntityMeta(tbl);
+
+			// SyntityMeta entm = trb.getSyntityMeta(tbl);
+			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(trb.synconn(), tbl);
 
 			AnResultset entities = ((AnResultset) entm
 				.onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))
