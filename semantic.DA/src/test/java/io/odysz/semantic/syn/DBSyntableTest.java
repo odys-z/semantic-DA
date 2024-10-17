@@ -827,7 +827,7 @@ public class DBSyntableTest {
 				.folder(rob.uid()));
 		
 		return new String[] {pid_chid[0], pid_chid[1],
-							SynChangeMeta.uids(synoder, pid_chid[0])};
+					SynChangeMeta.uids(synoder, pid_chid[0])};
 	}
 	
 	/**

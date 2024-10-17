@@ -34,7 +34,6 @@ import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.util.DAHelper;
-import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
@@ -87,7 +86,11 @@ public class DBSyntableBuilder extends DATranscxt {
 	 */
 	public String synconn() { return basictx.connId(); }
 
-	public String synode() { return ((DBSyntext)this.basictx).synode; }
+	final String synode;
+	public String synode() { return synode; }
+
+	IUser robot;
+	public IUser synrobot() { return robot; }
 
 	/* */
 	private Nyquence stamp;
@@ -119,8 +122,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 
-	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
-
 //	static HashMap<String, HashMap<String, SyntityMeta>> entityRegists;
 
 	private final boolean force_clean_subs;
@@ -151,10 +152,14 @@ public class DBSyntableBuilder extends DATranscxt {
 //			    	(IUser) new SyncRobot(mynid, mynid, "rob@" + mynid, mynid),
 //			    	runtimepath));
 		super(conn);	
+
+		// FIXME: Comparing to mobile device node. a device is the equivalent to synode at Synode tier, robot.device should be removed.
+		robot = (IUser) new SyncRobot(mynid, mynid, "rob@" + mynid, mynid);
 		
 		debug    = Connects.getDebug(conn);
 		perdomain= domain;
 		synmode  = mode;
+		synode   = mynid;
 
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
@@ -191,7 +196,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 		else if (isblank(perdomain))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
-				this.getClass().getName(), mynid);
+				this.getClass().getName(), mynid);	
 
 		if (debug && force_clean_subs) Utils
 			.logT(new Object() {}, "Transaction builder created with forcing cleaning stale subscriptions.");
@@ -828,22 +833,22 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 	
-	@Override
-	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
-		try {
-			ISemantext syntext = new DBSyntext(conn, synode(),
-					// debug note: class cast exception will raise if connection is not correct.
-					initConfigs(conn, loadSemantics(conn), 
-						(c) -> new DBSynTransBuilder.SynmanticsMap(synode(), c)),
-					usr, runtimepath).creator(this);
-
-			// stamp = getNstamp(this);
-			return syntext;
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new TransException(e.getMessage());
-		}
-	}
+//	@Override
+//	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
+//		try {
+//			ISemantext syntext = new DBSyntext(conn, synode(),
+//					// debug note: class cast exception will raise if connection is not correct.
+//					initConfigs(conn, loadSemantics(conn), 
+//						(c) -> new DBSynTransBuilder.SynmanticsMap(synode(), c)),
+//					usr, runtimepath).creator(this);
+//
+//			// stamp = getNstamp(this);
+//			return syntext;
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			throw new TransException(e.getMessage());
+//		}
+//	}
 	
 	/**
 	 * Set n-stamp, then create a request package.
