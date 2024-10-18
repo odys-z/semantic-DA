@@ -4,7 +4,6 @@ import java.sql.SQLException;
 
 import io.odysz.semantic.DASemantext;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.syn.DBSynTransBuilder.SynmanticsMap;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;

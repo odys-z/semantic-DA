@@ -4,8 +4,6 @@ import static io.odysz.common.LangExt.isblank;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashMap;
-
 import org.xml.sax.SAXException;
 
 import io.odysz.common.Utils;
@@ -18,14 +16,15 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.syn.registry.Syntities;
 import io.odysz.semantic.util.DAHelper;
+import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.x.TransException;
 
 public class DBSynTransBuilder extends DATranscxt {
-	public static String synodeTabl;
 
 	public static class SynmanticsMap extends SemanticsMap {
 		String synode;
@@ -43,7 +42,7 @@ public class DBSynTransBuilder extends DATranscxt {
 	
 	String synconn() { return basictx.connId(); }
 
-	/** { syn-conn: { tabl: SyntityMeta } } */
+	/** { syn-conn: { tabl: SyntityMeta } } 
 	static HashMap<String, HashMap<String, SyntityMeta>> entityRegists;
 	public SyntityMeta getSyntityMeta(String tbl) {
 		return entityRegists != null
@@ -51,6 +50,7 @@ public class DBSynTransBuilder extends DATranscxt {
 				? entityRegists.get(synconn()).get(tbl)
 				: null;
 	} 
+	*/
 
 	/**
 	 * Shouldn't be called as docm is loaded from semantic-syn.xml, except for tests.
@@ -59,7 +59,6 @@ public class DBSynTransBuilder extends DATranscxt {
 	 * @throws SemanticException
 	 * @throws TransException
 	 * @throws SQLException
-	 */
 	@Deprecated
 	public static void registerEntity(String conn, SyntityMeta m)
 			throws SemanticException, TransException, SQLException {
@@ -84,17 +83,22 @@ public class DBSynTransBuilder extends DATranscxt {
 			
 		return entityRegists.get(synconn).get(entbl);
 	}
+	 */
 	
 	final boolean debug;
 
+	public final String perdomain;
 	public final SynodeMeta synm;
+
 	protected final PeersMeta pnvm;
 	protected final SynSubsMeta subm;
 	protected final SynChangeMeta chgm;
 	protected final SynchangeBuffMeta exbm;
-	public final String perdomain;
 
 	final SynodeMode synmode;
+
+	final String synode;
+	public String synode() { return synode; }
 
 	private final boolean force_clean_subs;
 
@@ -115,6 +119,7 @@ public class DBSynTransBuilder extends DATranscxt {
 		debug    = Connects.getDebug(conn);
 		perdomain= domain;
 		synmode  = mode;
+		synode   = mynid;
 
 		this.chgm = new SynChangeMeta(conn);
 		this.chgm.replace();
@@ -155,17 +160,27 @@ public class DBSynTransBuilder extends DATranscxt {
 	}
 
 	public static SynodeMeta getSynodeMeta(String conn) {
-		return (SynodeMeta) entityRegists.get(conn).get(synodeTabl);
+		return (SynodeMeta) Syntities.getSynodeMeta(conn);
+	}
+	public static SyntityMeta getEntityMeta(String synconn, String tbl) {
+		return (SynodeMeta) Syntities.get(synconn).meta(tbl);
 	}
 
-//	public String domain() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
+//	@Override
+//	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
+//		try {
+//			ISemantext syntext = new DBSyntext(conn, synode(),
+//					// debug note: class cast exception will raise if connection is not correct.
+//					initConfigs(conn, loadSemantics(conn), 
+//						(c) -> new DBSynTransBuilder.SynmanticsMap(synode(), c)),
+//					usr, runtimepath).creator(this);
 //
-//	public DBSynTransBuilder loadNstamp() {
-//		// TODO Auto-generated method stub
-//		return null;
+//			// stamp = getNstamp(this);
+//			return syntext;
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			throw new TransException(e.getMessage());
+//		}
 //	}
 
 }

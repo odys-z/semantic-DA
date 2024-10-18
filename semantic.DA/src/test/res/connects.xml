@@ -88,7 +88,7 @@
   		<src>syn.00</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg></dbg>
+  		<dbg>1</dbg>
   		<smtcs>synmantics-syntabuilder.xml</smtcs>
 	</c>
 	<c>
@@ -98,7 +98,7 @@
   		<src>syn.01</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg>1</dbg>
+  		<dbg></dbg>
   		<smtcs>synmantics-syntabuilder.xml</smtcs>
 	</c>
 	<c>

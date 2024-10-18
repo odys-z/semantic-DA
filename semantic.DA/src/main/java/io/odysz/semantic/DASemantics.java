@@ -451,8 +451,11 @@ public class DASemantics {
 			else if ("ef".equals(type) || "e-f".equals(type) || "ext-file".equals(type)
 					|| "xf".equals(type) || "x-f".equals(type))
 				return extFile;
+//			else if (eq("syn-change", type))
+//				Utils.warn("Syn-change semantics is silented as a newer design decision");
 			else
 				throw new SemanticException("semantics not known, type: " + type);
+
 		}
 	}
 
@@ -487,8 +490,6 @@ public class DASemantics {
 		return mdb;
 	}
 
-	///////////////////////////////// container class
-	///////////////////////////////// ///////////////////////////////
 	protected ArrayList<SemanticHandler> handlers;
 
 	private String tabl;
@@ -578,11 +579,15 @@ public class DASemantics {
 			return new ShExtFilev2(basicTsx, tabl, recId, args);
 		else if (smtype.extFilev2 == semantic)
 			return new ShExtFilev2(basicTsx, tabl, recId, args);
+		else if (smtype.synChange == semantic)
+			Utils.warn("The syn-change semantics is silented as a newer design decision");
 		else
 			throw new SemanticException("Cannot load configured semantics of key: %s, with trans-builder: %s, on basic connection %s.\n"
 					+ "See Extending default semantics plugin at Dev Community:\n"
 					+ "https://odys-z.github.io/dev/topics/semantics/3plugin.html",
 				semantic, trb.getClass().getName(), trb.basictx().connId());
+		
+		return null;
 	}
 
 	/**

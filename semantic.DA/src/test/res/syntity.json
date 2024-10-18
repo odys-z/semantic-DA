@@ -1,3 +1,4 @@
    {"type": "io.odysz.semantic.syn.registry.Syntities",
+    "conn": "syn.00",
    	"syntities": [{"name": "T_PhotoMeta"}]
    }

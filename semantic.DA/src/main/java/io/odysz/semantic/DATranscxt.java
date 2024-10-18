@@ -367,6 +367,7 @@ public class DATranscxt extends Transcxt {
 			smtMaps.put(conn, smFactory.ctor(conn));
 		else
 			return (M) smtMaps.get(conn);
+
 		Utils.logT(new Object() {}, "Loading semantics of connection %s", conn);
 		xcfg.beforeFirst();
 

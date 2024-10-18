@@ -94,10 +94,10 @@ public class DBSyntableTest {
 		File file = new File(rtroot);
 		runtimepath = file.getAbsolutePath();
 		logi(runtimepath);
+
 		Configs.init(runtimepath);
 		Connects.init(runtimepath);
 
-		// load metas, then semantics
 		DATranscxt.configRoot(rtroot, runtimepath);
 		String rootkey = System.getProperty("rootkey");
 		DATranscxt.key("user-pswd", rootkey);
@@ -145,8 +145,8 @@ public class DBSyntableTest {
 			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn); //.replace();
 
 			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
-			phm.replace();
-			DBSynTransBuilder.registerEntity(conn, phm);
+			// phm.replace();
+			// DBSynTransBuilder.registerEntity(conn, phm);
 
 			ArrayList<String> sqls = new ArrayList<String>();
 			sqls.add("delete from oz_autoseq;");
