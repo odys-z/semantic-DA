@@ -70,7 +70,8 @@ public class DBSynmantics extends DASemantics {
 	 * @param inst
 	 * @param entm
 	 * @param synode
-	 * @param synuid the global id for synchronizing a records into local db, null for create new records (post updating into entity).
+	 * @param synuid the global id for synchronizing a records into local db,
+	 * null for create new records (post updating into entity).
 	 * @return inst
 	 * @throws TransException
 	 */
