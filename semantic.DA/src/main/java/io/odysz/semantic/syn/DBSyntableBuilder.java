@@ -121,19 +121,10 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
 
-//	static HashMap<String, HashMap<String, SyntityMeta>> entityRegists;
-
 	private final boolean force_clean_subs;
 
 	private long seq;
 	public long incSeq() { return ++seq; }
-
-//	public SyntityMeta getSyntityMeta(String tbl) {
-//		return entityRegists != null
-//			&& entityRegists.containsKey(synconn())
-//				? entityRegists.get(synconn()).get(tbl)
-//				: null;
-//	} 
 
 	public DBSyntableBuilder(String domain, String conn, String mynodeId, SynodeMode mode)
 			throws Exception {
@@ -146,10 +137,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			SynodeMode mode, SynChangeMeta chgm, SynodeMeta synm)
 			throws Exception {
 
-//		super ( new DBSyntext(conn, mynid,
-//			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSynTransBuilder.SynmanticsMap(mynid, c)),
-//			    	(IUser) new SyncRobot(mynid, mynid, "rob@" + mynid, mynid),
-//			    	runtimepath));
 		super(conn);	
 		
 		debug    = Connects.getDebug(conn);
