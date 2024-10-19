@@ -1,8 +1,3 @@
-Configuration root path: src/test/res/
-[io.odysz.semantic.DATranscxt#initConfigs()] Loading semantics of connection syn.00
-[io.odysz.semantic.DATranscxt#initConfigs()] Loading semantics of connection syn.01
-[io.odysz.semantic.DATranscxt#initConfigs()] Loading semantics of connection syn.02
-[io.odysz.semantic.DATranscxt#initConfigs()] Loading semantics of connection syn.03
       X    Y    Z    W
 X [   1,   0,   0,     ] {  }
 Y [   0,   1,   0,     ] {  }
@@ -70,7 +65,7 @@ entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:29  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-15  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Y  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:18  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Y  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  X.000001  X,000021  1  Z [Y:-1] |                                    |                                    |                                    
@@ -101,7 +96,7 @@ entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:29  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-15  11 : pub  12 : X  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:18  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : X  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
 answer page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	12 : change	
 row count: 1
@@ -135,7 +130,7 @@ entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:29  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-15  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Y  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:18  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Y  16 : null  
 answer page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	12 : change	
 row count: 1
@@ -168,7 +163,7 @@ entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:29  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-15  11 : pub  12 : X  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:18  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : X  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  X.000001  X,000021  1  Z [ Y:0] | I  X.000001  X,000021  1  Z [    ] |                                    |                                    
@@ -278,8 +273,8 @@ entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 2
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:30  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-15  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:29  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-15  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Y  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:18  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:18  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Y  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  X.000001  X,000021  1  Z [    ] | I  X.000001  X,000021  1  Z [ Z:0] |                                    |                                    
@@ -334,8 +329,8 @@ entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 2
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:30  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-15  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:29  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-15  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Y  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:18  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:18  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Y  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  X.000001  X,000021  1  Z [    ] |                                    |                                    |                                    
@@ -787,7 +782,7 @@ row count: 1
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:31  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-15  11 : pub  12 : X  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:19  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : X  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  X.000002  X,000023  6  W [ Z:0] |                                    |                                    |                                    
@@ -851,7 +846,7 @@ row count: 1
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:31  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-15  11 : pub  12 : X  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:19  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : X  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  X.000002  X,000023  6  W [ Z:0] |                                    | I  X.000002  X,000023  6  W [    ] |                                    
@@ -985,8 +980,8 @@ entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 2
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:31  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-15  11 : pub  12 : Z  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:31  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Z,008004  8 : src/test/res/Ukraine.png  9 : Z  10 : 2024-10-15  11 : pub  12 : Z  13 : zsu  14 : Ukraine.png  15 : Z  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:19  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : Z  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:19  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Z,008004  8 : src/test/res/Ukraine.png  9 : Z  10 : 2024-10-20  11 : pub  12 : Z  13 : zsu  14 : Ukraine.png  15 : Z  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  X.000002  X,000023  6  W [    ] |                                    | I  X.000002  X,000023  6  W [ Y:0] |                                    
@@ -1047,8 +1042,8 @@ entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 2
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:31  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-15  11 : pub  12 : Z  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:31  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Z,008004  8 : src/test/res/Ukraine.png  9 : Z  10 : 2024-10-15  11 : pub  12 : Z  13 : zsu  14 : Ukraine.png  15 : Z  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:19  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : Z  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:19  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Z,008004  8 : src/test/res/Ukraine.png  9 : Z  10 : 2024-10-20  11 : pub  12 : Z  13 : zsu  14 : Ukraine.png  15 : Z  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [ Y:0] |                                    
@@ -1258,7 +1253,7 @@ entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:31  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Z,008004  8 : src/test/res/Ukraine.png  9 : Z  10 : 2024-10-15  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Z  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:19  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Z,008004  8 : src/test/res/Ukraine.png  9 : Z  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Z  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
                                     |                                    | I  X.000002  X,000023  6  W [    ] |                                    
@@ -1314,7 +1309,7 @@ entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-14 19:06:31  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Z,008004  8 : src/test/res/Ukraine.png  9 : Z  10 : 2024-10-15  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Z  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-10-19 20:47:19  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Z,008004  8 : src/test/res/Ukraine.png  9 : Z  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Z  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
                                     |                                    | I  X.000002  X,000023  6  W [    ] |                                    
@@ -1476,9 +1471,12 @@ W [    ,   8,    ,   9 ] {  }
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [    ] |                                    |                                    |                                    
- U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
- U  X.000003  X,000023 10  Y [    ] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] |                                    |                                    |                                    
+ U  X.000003  X,000021 10  W [    ] |                                    |                                    |                                    
+ U  X.000003  X,000021 10  Z [    ] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  Y [    ] |                                    |                                    |                                    
+ U  X.000003  X,000021 10  Y [    ] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  Z [    ] |                                    |                                    |                                    
       X    Y    Z    W
 X [  10,   9,   7,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
 Y [   7,  11,  10,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
@@ -1490,10 +1488,13 @@ W [    ,   8,    ,   9 ] {  }
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [    ] |                                    |                                    |                                    
- U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
- U  X.000003  X,000023 10  Y [    ] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] |                                    |                                    |                                    
+ U  X.000003  X,000021 10  W [    ] |                                    |                                    |                                    
+ U  X.000003  X,000021 10  Z [    ] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  Y [    ] |                                    |                                    |                                    
+ U  X.000003  X,000021 10  Y [    ] |                                    |                                    |                                    
                                     | U  Y.000003  Y,000401 11  W [    ] |                                    |                                    
+ U  X.000004  X,000023 10  Z [    ] |                                    |                                    |                                    
                                     | U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    
                                     | U  Y.000003  Y,000401 11  X [    ] |                                    |                                    
       X    Y    Z    W
@@ -1530,28 +1531,35 @@ ____________________________
 ++++++++++++++++++
 
 
-4.3.3.1.1 X exchange challenge    changes: 1    entities: 1    answers: 0
+4.3.3.1.1 X exchange challenge    changes: 2    entities: 2    answers: 0
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Exchange Package: X -> Y : null
 challenge seq: 0	answer-seq -1
 challenge page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
-row count: 3
-1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 1  11 : W  
-1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 1  11 : Y  
-1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 1  11 : Z  
+row count: 6
+1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000021  8 : 10  9 : docname,pdate  10 : 1  11 : W  
+1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000021  8 : 10  9 : docname,pdate  10 : 1  11 : Y  
+1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000021  8 : 10  9 : docname,pdate  10 : 1  11 : Z  
+1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 2  11 : W  
+1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 2  11 : Y  
+1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 2  11 : Z  
 entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
-row count: 1
-1 : ody@kyiv  2 : 2024-10-14 19:06:32  3 : null  4 : 2024-10-14 19:06:32  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-15  11 : pub  12 : X  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
+row count: 2
+1 : ody@kyiv  2 : 2024-10-19 20:47:20  3 : null  4 : 2024-10-19 20:47:20  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : X  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
+1 : ody@kyiv  2 : 2024-10-19 20:47:20  3 : null  4 : 2024-10-19 20:47:20  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : X  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [ Y:0] |                                    |                                    |                                    
- U  X.000003  X,000023 10  Z [ Y:0] |                                    |                                    |                                    
- U  X.000003  X,000023 10  Y [ Y:0] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  W [ Y:0] |                                    |                                    |                                    
+ U  X.000003  X,000021 10  W [ Y:0] |                                    |                                    |                                    
+ U  X.000003  X,000021 10  Z [ Y:0] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  Y [ Y:0] |                                    |                                    |                                    
+ U  X.000003  X,000021 10  Y [ Y:0] |                                    |                                    |                                    
                                     | U  Y.000003  Y,000401 11  W [X:-1] |                                    |                                    
+ U  X.000004  X,000023 10  Z [ Y:0] |                                    |                                    |                                    
                                     | U  Y.000003  Y,000401 11  Z [X:-1] |                                    |                                    
                                     | U  Y.000003  Y,000401 11  X [X:-1] |                                    |                                    
       X    Y    Z    W
@@ -1564,7 +1572,7 @@ W [    ,   8,    ,   9 ] {  }
 +++++++++++++++++++++
 
 
-4.3.3.2.1 Y on exchange response    changes: 1    entities: 1    answers: 1
+4.3.3.2.1 Y on exchange response    changes: 1    entities: 1    answers: 2
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Exchange Package: Y -> X : null
@@ -1579,17 +1587,21 @@ entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : ody@kyiv  2 : 2024-10-14 19:06:32  3 : null  4 : 2024-10-14 19:06:32  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-15  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0011  15 : Y  16 : null  
+1 : ody@kyiv  2 : 2024-10-19 20:47:20  3 : null  4 : 2024-10-19 20:47:20  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0011  15 : Y  16 : null  
 answer page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	12 : change	
-row count: 1
+row count: 2
+
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [ Y:0] | U  X.000003  X,000023 10  W [    ] |                                    |                                    
- U  X.000003  X,000023 10  Z [ Y:0] | U  X.000003  X,000023 10  Z [    ] |                                    |                                    
- U  X.000003  X,000023 10  Y [ Y:0] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  W [ Y:0] | U  X.000004  X,000023 10  W [    ] |                                    |                                    
+ U  X.000003  X,000021 10  W [ Y:0] | U  X.000003  X,000021 10  W [    ] |                                    |                                    
+ U  X.000003  X,000021 10  Z [ Y:0] | U  X.000003  X,000021 10  Z [    ] |                                    |                                    
+ U  X.000004  X,000023 10  Y [ Y:0] |                                    |                                    |                                    
+ U  X.000003  X,000021 10  Y [ Y:0] |                                    |                                    |                                    
                                     | U  Y.000003  Y,000401 11  W [ X:0] |                                    |                                    
+ U  X.000004  X,000023 10  Z [ Y:0] | U  X.000004  X,000023 10  Z [    ] |                                    |                                    
                                     | U  Y.000003  Y,000401 11  Z [ X:0] |                                    |                                    
                                     | U  Y.000003  Y,000401 11  X [ X:0] |                                    |                                    
       X    Y    Z    W
@@ -1603,7 +1615,7 @@ W [    ,   8,    ,   9 ] {  }
 
 [io.odysz.semantic.syn.ExessionPersist#commitAnswers()] Locally committing answers to Y ...
 
-4.3.3.3.1 X exchange challenge    changes: 1    entities: 1    answers: 1
+4.3.3.3.1 X exchange challenge    changes: 2    entities: 2    answers: 1
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Exchange Package: X -> Y : null
@@ -1614,17 +1626,20 @@ row count: 0
 entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
-row count: 1
-1 : ody@kyiv  2 : 2024-10-14 19:06:32  3 : null  4 : 2024-10-14 19:06:32  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-15  11 : pub  12 : X  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
+row count: 2
+1 : ody@kyiv  2 : 2024-10-19 20:47:20  3 : null  4 : 2024-10-19 20:47:20  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : X  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
+1 : ody@kyiv  2 : 2024-10-19 20:47:20  3 : null  4 : 2024-10-19 20:47:20  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : X  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
 answer page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	12 : change	
 row count: 1
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [ Y:0] | U  X.000003  X,000023 10  W [    ] |                                    |                                    
- U  X.000003  X,000023 10  Z [ Y:0] | U  X.000003  X,000023 10  Z [    ] |                                    |                                    
+ U  X.000004  X,000023 10  W [ Y:0] | U  X.000004  X,000023 10  W [    ] |                                    |                                    
+ U  X.000003  X,000021 10  W [ Y:0] | U  X.000003  X,000021 10  W [    ] |                                    |                                    
+ U  X.000003  X,000021 10  Z [ Y:0] | U  X.000003  X,000021 10  Z [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ X:0] |                                    |                                    
+ U  X.000004  X,000023 10  Z [ Y:0] | U  X.000004  X,000023 10  Z [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [ X:0] |                                    |                                    
                                     | U  Y.000003  Y,000401 11  X [ X:0] |                                    |                                    
       X    Y    Z    W
@@ -1650,12 +1665,14 @@ entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : ody@kyiv  2 : 2024-10-14 19:06:32  3 : null  4 : 2024-10-14 19:06:32  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-15  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0011  15 : Y  16 : null  
+1 : ody@kyiv  2 : 2024-10-19 20:47:20  3 : null  4 : 2024-10-19 20:47:20  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0011  15 : Y  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [ Y:0] | U  X.000003  X,000023 10  W [    ] |                                    |                                    
- U  X.000003  X,000023 10  Z [ Y:0] | U  X.000003  X,000023 10  Z [    ] |                                    |                                    
+ U  X.000004  X,000023 10  W [ Y:0] | U  X.000004  X,000023 10  W [    ] |                                    |                                    
+ U  X.000003  X,000021 10  W [ Y:0] | U  X.000003  X,000021 10  W [    ] |                                    |                                    
+ U  X.000003  X,000021 10  Z [ Y:0] | U  X.000003  X,000021 10  Z [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ X:0] |                                    |                                    
+ U  X.000004  X,000023 10  Z [ Y:0] | U  X.000004  X,000023 10  Z [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [ X:0] |                                    |                                    
       X    Y    Z    W
 X [  10,   9,   7,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
@@ -1668,9 +1685,11 @@ ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    |                                    
- U  X.000003  X,000023 10  Z [    ] | U  X.000003  X,000023 10  Z [    ] |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    |                                    
+ U  X.000003  X,000021 10  Z [    ] | U  X.000003  X,000021 10  Z [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ X:0] |                                    |                                    
+ U  X.000004  X,000023 10  Z [    ] | U  X.000004  X,000023 10  Z [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [ X:0] |                                    |                                    
       X    Y    Z    W
 X [  12,  11,  10,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
@@ -1683,9 +1702,11 @@ ___________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    |                                    
- U  X.000003  X,000023 10  Z [    ] | U  X.000003  X,000023 10  Z [    ] |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    |                                    
+ U  X.000003  X,000021 10  Z [    ] | U  X.000003  X,000021 10  Z [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    |                                    
+ U  X.000004  X,000023 10  Z [    ] | U  X.000004  X,000023 10  Z [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    
       X    Y    Z    W
 X [  12,  11,  10,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
@@ -1694,9 +1715,11 @@ Z [   7,  10,  11,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
 W [    ,   8,    ,   9 ] {  }
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    |                                    
- U  X.000003  X,000023 10  Z [    ] | U  X.000003  X,000023 10  Z [    ] |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    |                                    
+ U  X.000003  X,000021 10  Z [    ] | U  X.000003  X,000021 10  Z [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    |                                    
+ U  X.000004  X,000023 10  Z [    ] | U  X.000004  X,000023 10  Z [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    
       X    Y    Z    W
 X [  12,  11,  10,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
@@ -1720,7 +1743,7 @@ ________________
 ___________________
 
 
-4.4.2.1 Y on initiate: changes: 2
+4.4.2.1 Y on initiate: changes: 3
 +++++++++++++++++++++++++++++++++
 
 
@@ -1742,9 +1765,11 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [Z:-1] |                                    |                                    
- U  X.000003  X,000023 10  Z [    ] | U  X.000003  X,000023 10  Z [Z:-1] |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [Z:-1] |                                    |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [Z:-1] |                                    |                                    
+ U  X.000003  X,000021 10  Z [    ] | U  X.000003  X,000021 10  Z [Z:-1] |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [Z:-1] |                                    |                                    
+ U  X.000004  X,000023 10  Z [    ] | U  X.000004  X,000023 10  Z [Z:-1] |                                    |                                    
  U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [Z:-1] |                                    |                                    
       X    Y    Z    W
 X [  12,  11,  10,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
@@ -1756,29 +1781,34 @@ W [    ,   8,    ,   9 ] {  }
 +++++++++++++++++++++
 
 
-4.4.3.2.1 Y on exchange response    changes: 2    entities: 2    answers: 0
+4.4.3.2.1 Y on exchange response    changes: 3    entities: 3    answers: 0
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Exchange Package: Y -> Z : null
 challenge seq: 0	answer-seq -1
 challenge page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
-row count: 4
-1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 1  11 : W  
-1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 1  11 : Z  
+row count: 6
+1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000021  8 : 10  9 : docname,pdate  10 : 1  11 : W  
+1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000021  8 : 10  9 : docname,pdate  10 : 1  11 : Z  
+1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 2  11 : W  
+1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 2  11 : Z  
 1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 11  9 : docname,pdate  10 : 1  11 : W  
 1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 11  9 : docname,pdate  10 : 1  11 : Z  
 entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
-row count: 2
-1 : ody@kyiv  2 : 2024-10-14 19:06:32  3 : null  4 : 2024-10-14 19:06:32  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-15  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
-1 : ody@kyiv  2 : 2024-10-14 19:06:32  3 : null  4 : 2024-10-14 19:06:32  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-15  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0011  15 : Y  16 : null  
+row count: 3
+1 : ody@kyiv  2 : 2024-10-19 20:47:20  3 : null  4 : 2024-10-19 20:47:20  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
+1 : ody@kyiv  2 : 2024-10-19 20:47:20  3 : null  4 : 2024-10-19 20:47:20  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
+1 : ody@kyiv  2 : 2024-10-19 20:47:20  3 : null  4 : 2024-10-19 20:47:20  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0011  15 : Y  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [ Z:0] |                                    |                                    
- U  X.000003  X,000023 10  Z [    ] | U  X.000003  X,000023 10  Z [ Z:0] |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [ Z:0] |                                    |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [ Z:0] |                                    |                                    
+ U  X.000003  X,000021 10  Z [    ] | U  X.000003  X,000021 10  Z [ Z:0] |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ Z:0] |                                    |                                    
+ U  X.000004  X,000023 10  Z [    ] | U  X.000004  X,000023 10  Z [ Z:0] |                                    |                                    
  U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [ Z:0] |                                    |                                    
       X    Y    Z    W
 X [  12,  11,  10,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
@@ -1790,7 +1820,7 @@ W [    ,   8,    ,   9 ] {  }
 ++++++++++++++++++
 
 
-4.4.3.3.1 Z exchange challenge    changes: 0    entities: 0    answers: 2
+4.4.3.3.1 Z exchange challenge    changes: 0    entities: 0    answers: 3
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Exchange Package: Z -> Y : null
@@ -1800,14 +1830,17 @@ challenge page:
 row count: 0
 answer page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	12 : change	
-row count: 2
+row count: 3
+
 
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [ Z:0] | U  X.000003  X,000023 10  W [    ] |                                    
- U  X.000003  X,000023 10  Z [    ] | U  X.000003  X,000023 10  Z [ Z:0] |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [ Z:0] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [ Z:0] | U  X.000003  X,000021 10  W [    ] |                                    
+ U  X.000003  X,000021 10  Z [    ] | U  X.000003  X,000021 10  Z [ Z:0] |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ Z:0] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ U  X.000004  X,000023 10  Z [    ] | U  X.000004  X,000023 10  Z [ Z:0] |                                    |                                    
  U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [ Z:0] |                                    |                                    
       X    Y    Z    W
 X [  12,  11,  10,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
@@ -1820,7 +1853,7 @@ W [    ,   8,    ,   9 ] {  }
 
 [io.odysz.semantic.syn.ExessionPersist#commitAnswers()] Locally committing answers to Z ...
 
-4.4.3.4.1 Y on exchange response    changes: 2    entities: 2    answers: 0
+4.4.3.4.1 Y on exchange response    changes: 3    entities: 3    answers: 0
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Exchange Package: Y -> Z : null
@@ -1831,14 +1864,17 @@ row count: 0
 entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
-row count: 2
-1 : ody@kyiv  2 : 2024-10-14 19:06:32  3 : null  4 : 2024-10-14 19:06:32  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-15  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
-1 : ody@kyiv  2 : 2024-10-14 19:06:32  3 : null  4 : 2024-10-14 19:06:32  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-15  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0011  15 : Y  16 : null  
+row count: 3
+1 : ody@kyiv  2 : 2024-10-19 20:47:20  3 : null  4 : 2024-10-19 20:47:20  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
+1 : ody@kyiv  2 : 2024-10-19 20:47:20  3 : null  4 : 2024-10-19 20:47:20  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
+1 : ody@kyiv  2 : 2024-10-19 20:47:20  3 : null  4 : 2024-10-19 20:47:20  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-10-20  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0011  15 : Y  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [ Z:0] | U  X.000003  X,000023 10  W [    ] |                                    
- U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [ Z:0] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [ Z:0] | U  X.000003  X,000021 10  W [    ] |                                    
+ U  X.000003  X,000021 10  Z [    ] |                                    |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ Z:0] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ U  X.000004  X,000023 10  Z [    ] |                                    |                                    |                                    
  U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    |                                    
       X    Y    Z    W
 X [  12,  11,  10,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
@@ -1851,9 +1887,11 @@ ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [ Z:0] | U  X.000003  X,000023 10  W [    ] |                                    
- U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [ Z:0] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [ Z:0] | U  X.000003  X,000021 10  W [    ] |                                    
+ U  X.000003  X,000021 10  Z [    ] |                                    |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ Z:0] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ U  X.000004  X,000023 10  Z [    ] |                                    |                                    |                                    
  U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    |                                    
       X    Y    Z    W
 X [  12,  11,  10,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
@@ -1866,9 +1904,11 @@ ___________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
- U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ U  X.000003  X,000021 10  Z [    ] |                                    |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ U  X.000004  X,000023 10  Z [    ] |                                    |                                    |                                    
  U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    |                                    
       X    Y    Z    W
 X [  12,  11,  10,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
@@ -1877,9 +1917,11 @@ Z [  11,  12,  13,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
 W [    ,   8,    ,   9 ] {  }
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
- U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ U  X.000003  X,000021 10  Z [    ] |                                    |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ U  X.000004  X,000023 10  Z [    ] |                                    |                                    |                                    
  U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    |                                    
       X    Y    Z    W
 X [  12,  11,  10,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
@@ -1896,12 +1938,14 @@ W [    ,   8,    ,   9 ] {  }
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] |                                    |                                    |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
- U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
- D  X.000004  X,000021 12  Y [    ] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ U  X.000003  X,000021 10  Z [    ] |                                    |                                    |                                    
+ D  X.000005  X,000021 12  W [    ] |                                    |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [    ] |                                    |                                    |                                    
+ D  X.000005  X,000021 12  Z [    ] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  Z [    ] |                                    |                                    |                                    
+ D  X.000005  X,000021 12  Y [    ] |                                    |                                    |                                    
  U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    |                                    
       X    Y    Z    W
 X [  12,  11,  10,   8 ] { X,000023 Y,000401 Z,008004 }
@@ -1918,12 +1962,14 @@ ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] |                                    |                                    |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
- U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
- D  X.000004  X,000021 12  Y [    ] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ U  X.000003  X,000021 10  Z [    ] |                                    |                                    |                                    
+ D  X.000005  X,000021 12  W [    ] |                                    |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [    ] |                                    |                                    |                                    
+ D  X.000005  X,000021 12  Z [    ] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  Z [    ] |                                    |                                    |                                    
+ D  X.000005  X,000021 12  Y [    ] |                                    |                                    |                                    
                                     | D  Y.000004  Y,000401 13  Z [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    |                                    
                                     | D  Y.000004  Y,000401 13  X [    ] |                                    |                                    
@@ -1983,11 +2029,12 @@ entities:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [Y:-1] |                                    |                                    |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
- D  X.000004  X,000021 12  Y [Y:-1] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [Y:-1] |                                    |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [Y:-1] |                                    |                                    |                                    
+ D  X.000005  X,000021 12  Z [Y:-1] |                                    |                                    |                                    
+ D  X.000005  X,000021 12  Y [Y:-1] |                                    |                                    |                                    
                                     | D  Y.000004  Y,000401 13  Z [ X:0] |                                    |                                    
                                     | D  Y.000004  Y,000401 13  X [ X:0] |                                    |                                    
                                     | D  Y.000004  Y,000401 13  W [ X:0] |                                    |                                    
@@ -2009,9 +2056,9 @@ challenge seq: 0	answer-seq 0
 challenge page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
 row count: 3
-1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 12  9 : null  10 : 2  11 : W  
-1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 12  9 : null  10 : 2  11 : Y  
-1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 12  9 : null  10 : 2  11 : Z  
+1 : 0  2 : X.000005  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 12  9 : null  10 : 2  11 : W  
+1 : 0  2 : X.000005  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 12  9 : null  10 : 2  11 : Y  
+1 : 0  2 : X.000005  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 12  9 : null  10 : 2  11 : Z  
 entities:
 	name: h_photos
 1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
@@ -2022,11 +2069,12 @@ row count: 1
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [ Y:0] |                                    |                                    |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
- D  X.000004  X,000021 12  Y [ Y:0] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [ Y:0] |                                    |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [ Y:0] |                                    |                                    |                                    
+ D  X.000005  X,000021 12  Z [ Y:0] |                                    |                                    |                                    
+ D  X.000005  X,000021 12  Y [ Y:0] |                                    |                                    |                                    
  D  Y.000004  Y,000401 13  Z [    ] | D  Y.000004  Y,000401 13  Z [ X:0] |                                    |                                    
                                     | D  Y.000004  Y,000401 13  X [ X:0] |                                    |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [ X:0] |                                    |                                    
@@ -2059,11 +2107,12 @@ row count: 1
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [ Y:0] | D  X.000004  X,000021 12  W [    ] |                                    |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
- D  X.000004  X,000021 12  Y [ Y:0] |                                    |                                    |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [ Y:0] | D  X.000005  X,000021 12  W [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [ Y:0] | D  X.000004  X,000021 12  Z [    ] |                                    |                                    
+ D  X.000005  X,000021 12  Z [ Y:0] | D  X.000005  X,000021 12  Z [    ] |                                    |                                    
+ D  X.000005  X,000021 12  Y [ Y:0] |                                    |                                    |                                    
  D  Y.000004  Y,000401 13  Z [    ] | D  Y.000004  Y,000401 13  Z [ X:0] |                                    |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [ X:0] |                                    |                                    
       X    Y    Z    W
@@ -2091,10 +2140,11 @@ entities:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [ Y:0] | D  X.000004  X,000021 12  W [    ] |                                    |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [ Y:0] | D  X.000005  X,000021 12  W [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [ Y:0] | D  X.000004  X,000021 12  Z [    ] |                                    |                                    
+ D  X.000005  X,000021 12  Z [ Y:0] | D  X.000005  X,000021 12  Z [    ] |                                    |                                    
  D  Y.000004  Y,000401 13  Z [    ] | D  Y.000004  Y,000401 13  Z [ X:0] |                                    |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [ X:0] |                                    |                                    
       X    Y    Z    W
@@ -2108,10 +2158,11 @@ ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [ Y:0] | D  X.000004  X,000021 12  W [    ] |                                    |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [ Y:0] | D  X.000005  X,000021 12  W [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [ Y:0] | D  X.000004  X,000021 12  Z [    ] |                                    |                                    
+ D  X.000005  X,000021 12  Z [ Y:0] | D  X.000005  X,000021 12  Z [    ] |                                    |                                    
  D  Y.000004  Y,000401 13  Z [    ] | D  Y.000004  Y,000401 13  Z [    ] |                                    |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    |                                    
       X    Y    Z    W
@@ -2125,10 +2176,11 @@ ___________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [    ] | D  X.000004  X,000021 12  Z [    ] |                                    |                                    
+ D  X.000005  X,000021 12  Z [    ] | D  X.000005  X,000021 12  Z [    ] |                                    |                                    
  D  Y.000004  Y,000401 13  Z [    ] | D  Y.000004  Y,000401 13  Z [    ] |                                    |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    |                                    
       X    Y    Z    W
@@ -2138,10 +2190,11 @@ Z [  11,  12,  13,   8 ] { X,000021 X,000023 Y,000401 Z,008004 }
 W [    ,   8,    ,   9 ] {  }
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [    ] | D  X.000004  X,000021 12  Z [    ] |                                    |                                    
+ D  X.000005  X,000021 12  Z [    ] | D  X.000005  X,000021 12  Z [    ] |                                    |                                    
  D  Y.000004  Y,000401 13  Z [    ] | D  Y.000004  Y,000401 13  Z [    ] |                                    |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    |                                    
       X    Y    Z    W
@@ -2186,8 +2239,8 @@ challenge seq: 0	answer-seq -1
 challenge page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
 row count: 4
-1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 12  9 : null  10 : 1  11 : W  
-1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 12  9 : null  10 : 1  11 : Z  
+1 : 0  2 : X.000005  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 12  9 : null  10 : 1  11 : W  
+1 : 0  2 : X.000005  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 12  9 : null  10 : 1  11 : Z  
 1 : 0  2 : Y.000004  3 : zsu  4 : h_photos  5 : D  6 : Y  7 : Y,000401  8 : 13  9 : null  10 : 1  11 : W  
 1 : 0  2 : Y.000004  3 : zsu  4 : h_photos  5 : D  6 : Y  7 : Y,000401  8 : 13  9 : null  10 : 1  11 : Z  
 entities:
@@ -2196,10 +2249,11 @@ entities:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [ Z:0] |                                    |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [ Z:0] |                                    |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [    ] | D  X.000004  X,000021 12  Z [ Z:0] |                                    |                                    
+ D  X.000005  X,000021 12  Z [    ] | D  X.000005  X,000021 12  Z [ Z:0] |                                    |                                    
  D  Y.000004  Y,000401 13  Z [    ] | D  Y.000004  Y,000401 13  Z [ Z:0] |                                    |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [ Z:0] |                                    |                                    
       X    Y    Z    W
@@ -2227,10 +2281,11 @@ row count: 2
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [ Z:0] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [ Z:0] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [    ] | D  X.000004  X,000021 12  Z [ Z:0] |                                    |                                    
+ D  X.000005  X,000021 12  Z [    ] | D  X.000005  X,000021 12  Z [ Z:0] |                                    |                                    
  D  Y.000004  Y,000401 13  Z [    ] | D  Y.000004  Y,000401 13  Z [ Z:0] |                                    |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [ Z:0] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2258,10 +2313,11 @@ entities:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [ Z:0] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [ Z:0] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [    ] |                                    |                                    |                                    
+ D  X.000005  X,000021 12  Z [    ] |                                    |                                    |                                    
  D  Y.000004  Y,000401 13  Z [    ] |                                    |                                    |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [ Z:0] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2284,10 +2340,11 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [ Z:0] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [ Z:0] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [    ] |                                    |                                    |                                    
+ D  X.000005  X,000021 12  Z [    ] |                                    |                                    |                                    
  D  Y.000004  Y,000401 13  Z [    ] |                                    |                                    |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [ Z:0] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2301,10 +2358,11 @@ ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [    ] |                                    |                                    |                                    
+ D  X.000005  X,000021 12  Z [    ] |                                    |                                    |                                    
  D  Y.000004  Y,000401 13  Z [    ] |                                    |                                    |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2318,10 +2376,11 @@ ___________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
- D  X.000004  X,000021 12  Z [    ] |                                    |                                    |                                    
+ D  X.000005  X,000021 12  Z [    ] |                                    |                                    |                                    
  D  Y.000004  Y,000401 13  Z [    ] |                                    |                                    |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2368,8 +2427,9 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2392,8 +2452,9 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2407,8 +2468,9 @@ ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2422,8 +2484,9 @@ ___________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2433,8 +2496,9 @@ Z [  12,  14,  15,   8 ] { X,000023 Z,008004 }
 W [    ,   8,    ,   9 ] {  }
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2481,8 +2545,9 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2505,8 +2570,9 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2520,8 +2586,9 @@ ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2535,8 +2602,9 @@ ___________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2546,8 +2614,9 @@ Z [  14,  16,  17,   8 ] { X,000023 Z,008004 }
 W [    ,   8,    ,   9 ] {  }
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2600,8 +2669,9 @@ entities:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ W:0] | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [ W:0] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2631,8 +2701,9 @@ row count: 2
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ W:0] | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] | D  Y.000004  Y,000401 13  W [ W:0] | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2660,8 +2731,9 @@ entities:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] |                                    | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] |                                    | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2684,8 +2756,9 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] |                                    | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] |                                    | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2699,8 +2772,9 @@ ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] |                                    | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] |                                    | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] |                                    | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] |                                    | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] |                                    | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] |                                    | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] |                                    | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2714,8 +2788,9 @@ ___________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] |                                    | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] |                                    | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] |                                    | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] |                                    | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] |                                    | D  X.000005  X,000021 12  W [    ] |                                    
  U  Y.000003  Y,000401 11  W [    ] |                                    | U  Y.000003  Y,000401 11  W [    ] |                                    
  D  Y.000004  Y,000401 13  W [    ] |                                    | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2762,8 +2837,9 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] |                                    | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] |                                    | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] |                                    | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] |                                    | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] |                                    | D  X.000005  X,000021 12  W [    ] |                                    
                                     |                                    | U  Y.000003  Y,000401 11  W [    ] |                                    
                                     |                                    | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2786,8 +2862,9 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 12  W [    ] |                                    | D  X.000004  X,000021 12  W [    ] |                                    
- U  X.000003  X,000023 10  W [    ] |                                    | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000004  X,000023 10  W [    ] |                                    | U  X.000004  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000021 10  W [    ] |                                    | U  X.000003  X,000021 10  W [    ] |                                    
+ D  X.000005  X,000021 12  W [    ] |                                    | D  X.000005  X,000021 12  W [    ] |                                    
                                     |                                    | U  Y.000003  Y,000401 11  W [    ] |                                    
                                     |                                    | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2801,8 +2878,9 @@ _________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-                                    |                                    | D  X.000004  X,000021 12  W [    ] |                                    
-                                    |                                    | U  X.000003  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000004  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000003  X,000021 10  W [    ] |                                    
+                                    |                                    | D  X.000005  X,000021 12  W [    ] |                                    
                                     |                                    | U  Y.000003  Y,000401 11  W [    ] |                                    
                                     |                                    | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2816,8 +2894,9 @@ ____________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-                                    |                                    | D  X.000004  X,000021 12  W [    ] |                                    
-                                    |                                    | U  X.000003  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000004  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000003  X,000021 10  W [    ] |                                    
+                                    |                                    | D  X.000005  X,000021 12  W [    ] |                                    
                                     |                                    | U  Y.000003  Y,000401 11  W [    ] |                                    
                                     |                                    | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2827,8 +2906,9 @@ Z [  14,  16,  17,   8 ] { X,000023 Z,008004 }
 W [    ,  17,    ,  19 ] {  }
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-                                    |                                    | D  X.000004  X,000021 12  W [    ] |                                    
-                                    |                                    | U  X.000003  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000004  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000003  X,000021 10  W [    ] |                                    
+                                    |                                    | D  X.000005  X,000021 12  W [    ] |                                    
                                     |                                    | U  Y.000003  Y,000401 11  W [    ] |                                    
                                     |                                    | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2875,8 +2955,9 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-                                    |                                    | D  X.000004  X,000021 12  W [    ] |                                    
-                                    |                                    | U  X.000003  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000004  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000003  X,000021 10  W [    ] |                                    
+                                    |                                    | D  X.000005  X,000021 12  W [    ] |                                    
                                     |                                    | U  Y.000003  Y,000401 11  W [    ] |                                    
                                     |                                    | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2899,8 +2980,9 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-                                    |                                    | D  X.000004  X,000021 12  W [    ] |                                    
-                                    |                                    | U  X.000003  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000004  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000003  X,000021 10  W [    ] |                                    
+                                    |                                    | D  X.000005  X,000021 12  W [    ] |                                    
                                     |                                    | U  Y.000003  Y,000401 11  W [    ] |                                    
                                     |                                    | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2914,8 +2996,9 @@ _________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-                                    |                                    | D  X.000004  X,000021 12  W [    ] |                                    
-                                    |                                    | U  X.000003  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000004  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000003  X,000021 10  W [    ] |                                    
+                                    |                                    | D  X.000005  X,000021 12  W [    ] |                                    
                                     |                                    | U  Y.000003  Y,000401 11  W [    ] |                                    
                                     |                                    | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2929,8 +3012,9 @@ ____________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-                                    |                                    | D  X.000004  X,000021 12  W [    ] |                                    
-                                    |                                    | U  X.000003  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000004  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000003  X,000021 10  W [    ] |                                    
+                                    |                                    | D  X.000005  X,000021 12  W [    ] |                                    
                                     |                                    | U  Y.000003  Y,000401 11  W [    ] |                                    
                                     |                                    | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
@@ -2940,8 +3024,9 @@ Z [  14,  16,  17,   8 ] { X,000023 Z,008004 }
 W [    ,  17,    ,  19 ] {  }
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-                                    |                                    | D  X.000004  X,000021 12  W [    ] |                                    
-                                    |                                    | U  X.000003  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000004  X,000023 10  W [    ] |                                    
+                                    |                                    | U  X.000003  X,000021 10  W [    ] |                                    
+                                    |                                    | D  X.000005  X,000021 12  W [    ] |                                    
                                     |                                    | U  Y.000003  Y,000401 11  W [    ] |                                    
                                     |                                    | D  Y.000004  Y,000401 13  W [    ] |                                    
       X    Y    Z    W
