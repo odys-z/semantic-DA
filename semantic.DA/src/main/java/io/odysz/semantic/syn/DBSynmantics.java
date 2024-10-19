@@ -208,10 +208,24 @@ public class DBSynmantics extends DASemantics {
 		 * Target synchronzed table meta, e.g. PhotoMeta.
 		 */
 		public final SyntityMeta entm;
-		protected final Resulving entId;
+		// protected final Resulving entId;
 		protected final String synode;
 		
 		protected final DATranscxt st;
+
+		ShSynChange(Transcxt trxt, String synode, SyntityMeta m) throws TransException {
+			super(trxt, smtype.synChange, m.tbl, m.pk, null);
+			insert = true;
+			update = true;
+			delete = true;
+
+			this.entm = m;
+			this.synode = synode;
+			this.st = (DATranscxt) trxt;
+			this.snm = new SynodeMeta(trxt.basictx().connId());
+			this.chm = new SynChangeMeta();
+			this.sbm = new SynSubsMeta(chm);
+		}
 
 		ShSynChange(Transcxt trxt, String synode, String tabl, String pk, String[] args)
 				throws SemanticException {
@@ -236,7 +250,8 @@ public class DBSynmantics extends DASemantics {
 						entm.replace();
 				}
 				else entm = (SyntityMeta) m;
-				entId = new Resulving(entm.tbl, entm.pk);
+
+				// entId = new Resulving(entm.tbl, entm.pk);
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new SemanticException(e.getMessage());

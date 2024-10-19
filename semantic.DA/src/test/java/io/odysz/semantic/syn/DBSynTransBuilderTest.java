@@ -4,6 +4,7 @@ import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.syn.Docheck.ck;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static io.odysz.semantic.syn.DBSyntableTest.*;
 import java.io.File;
 import java.util.ArrayList;
@@ -23,6 +24,8 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.syn.registry.Syntities;
+import io.odysz.semantic.util.DAHelper;
+import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 
 class DBSynTransBuilderTest {
@@ -55,15 +58,15 @@ class DBSynTransBuilderTest {
 			String conn = conns[0];
 			snm = new SynodeMeta(conn);
 
-			Syntities regists = Syntities.load(runtimepath, "syntity.json", 
+			Syntities regists = Syntities.load(runtimepath, "syntity-0.json", 
 				(synreg) -> {
-					if (eq(synreg.name, "T_PhotoMeta"))
+					if (eq(synreg.table, "h_photos"))
 						return new T_DA_PhotoMeta(conn);
 					else
-						throw new SemanticException("TODO %s", synreg.name);
+						throw new SemanticException("TODO %s", synreg.table);
 				});
 
-			T_DA_PhotoMeta phm = regists.meta("T_PhotoMeta");
+			T_DA_PhotoMeta phm = regists.meta("h_photos");
 
 			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
 			// phm.replace();
@@ -84,23 +87,30 @@ class DBSynTransBuilderTest {
 			Docheck.ck[0] = new Docheck(new AssertImpl(), zsu, conn, synodes[0],
 									SynodeMode.peer, phm);
 			
-			DBSyntableBuilder b = Docheck.ck[0]
-								.trb.incNyquence0();
+			DBSyntableBuilder logger = Docheck.ck[0].trb.incNyquence0();
 
 		
-		DBSynTransBuilder tb = new DBSynTransBuilder(zsu, conn, synodes[0], SynodeMode.peer);
+		DBSynTransBuilder synb= new DBSynTransBuilder(zsu, conn, synodes[0], "syntity-0.json", SynodeMode.peer, logger);
 
 		// create photo
-		tb.insert(phm.tbl, ck[0].robot())
-		  .nv(phm.device, "device")
-		  .nv(phm.fullpath, "full.path")
-		  .nv(phm.folder, "folder").nv(phm.org, "org")
-		  .nv(phm.uri, "").nv(phm.shareDate, "1911-10-10")
-		  .ins(b.instancontxt(conn, ck[0].robot()))
-		;
+		SemanticObject ins = (SemanticObject) synb
+				.insert(phm.tbl, ck[0].robot())
+				.nv(phm.device, "device")
+				.nv(phm.fullpath, "full.path")
+				.nv(phm.folder, "folder").nv(phm.org, "org")
+				.nv(phm.uri, "").nv(phm.shareDate, "1911-10-10")
+				.ins(synb.instancontxt(conn, ck[0].robot()))
+				;
+
+		String phid = ins.resulve(phm, -1);
+		String chid = ins.resulve(synb.chgm, -1);
 		
 		ck[0].doc(1);
-		ck[0].change_doclog(3, CRUD.C, null);
+		ck[0].change_doclog(1, CRUD.C, null);
+
+		// ck[0].synsubs(3, chid, X, Y, Z, W);
+		assertEquals(3, DAHelper.count(new DATranscxt(conn), conn, snm.tbl, snm.domain, zsu));
+		assertEquals(2, DAHelper.count(new DATranscxt(conn), conn, sbm.tbl, sbm.changeId, chid));
 	}
 
 }

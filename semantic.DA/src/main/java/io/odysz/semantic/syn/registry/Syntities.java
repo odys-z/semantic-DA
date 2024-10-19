@@ -1,7 +1,11 @@
 package io.odysz.semantic.syn.registry;
 
+import static io.odysz.common.LangExt.isblank;
+
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -31,17 +35,19 @@ public class Syntities extends Anson {
 	}
 
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
+	public
 	HashMap<String, SyntityMeta> metas;
 
 	String conn;
 	ArrayList<SyntityReg> syntities;
 	
+	public boolean debug;
+	
 	public Syntities() { 
 		metas = new HashMap<String, SyntityMeta>();
 	}
 
-	public static Syntities load(String runtimepath, String json, MetaFactory mf)
-			throws AnsonException, TransException, IOException {
+	public static Syntities load(String runtimepath, String json, MetaFactory mf) throws Exception {
 		String p = FilenameUtils.concat(
 				EnvPath.replaceEnv(runtimepath),
 				EnvPath.replaceEnv(json));
@@ -58,9 +64,24 @@ public class Syntities extends Anson {
 			if (!registries.containsKey(reg.conn))
 				registries.put(reg.conn, reg);
 
-			reg.metas.put(synt.name, mf.create(synt));
+			reg.metas.put(synt.table, !isblank(synt.meta)
+					? instance4name(reg.conn, synt)
+					: mf == null
+					? null
+					: mf.create(synt));
 		}
 		return reg;
+	}
+
+	private static SyntityMeta instance4name(String conn, SyntityReg synt) throws Exception {
+
+		@SuppressWarnings("unchecked")
+		Class<SyntityMeta> cls = (Class<SyntityMeta>) Class.forName(synt.meta);
+		Constructor<SyntityMeta> constructor = null;
+
+		constructor = cls.getConstructor(String.class);
+
+		return (SyntityMeta) constructor.newInstance(conn).replace();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -75,4 +96,5 @@ public class Syntities extends Anson {
 	public static SynodeMeta getSynodeMeta(String conn) {
 		return registries.get(conn).synodeMeta;
 	}
+
 }

@@ -34,6 +34,7 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.syn.registry.Syntities;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
@@ -804,12 +805,13 @@ public class ExessionPersist {
 			String tbl = entbls.getString(chgm.entbl);
 
 			// SyntityMeta entm = trb.getSyntityMeta(tbl);
-			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(trb.synconn(), tbl);
+			SyntityMeta entm = eq(tbl, synm.tbl) ? synm : Syntities.get(trb.synconn()).meta(tbl);
 
 			AnResultset entities = ((AnResultset) entm
 				.onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.synuid, chgm.uids)
-				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId, constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
+				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId,
+					 constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				.rs(0))
 				.index0(entm.synuid);
@@ -820,7 +822,8 @@ public class ExessionPersist {
 		return trb == null ? null : (AnResultset)trb
 			.select(chgm.tbl, "ch")
 			.cols(exbm.pagex, "ch.*", "sb." + subm.synodee)
-			.je_(exbm.tbl, "bf", chgm.pk, exbm.changeId, constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
+			.je_(exbm.tbl, "bf", chgm.pk, exbm.changeId,
+				 constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
 			.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
 			.orderby(chgm.synoder)
 			.orderby(chgm.entbl)

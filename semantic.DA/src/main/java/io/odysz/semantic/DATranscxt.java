@@ -79,10 +79,10 @@ public class DATranscxt extends Transcxt {
 	 */
 	public static class SemanticsMap {
 
-		String conn;
+		public String conn;
 		
 		/** {table: semantics[handlers]} */
-		protected HashMap<String, DASemantics> ss;
+		public HashMap<String, DASemantics> ss;
 		
 		public SemanticsMap(String conn) {
 			this.conn = conn;
@@ -105,10 +105,10 @@ public class DATranscxt extends Transcxt {
 			return handlers;
 		}
 
-		SemanticHandler parseHandler(Transcxt basicTrs, XMLTable x) {
-			return null;
-		}
-
+//		SemanticHandler parseHandler(Transcxt basicTrs, XMLTable x) {
+//			return null;
+//		}
+		
 		/**
 		 * Note: trb is already created per the connection, i. e. connect id is known. 
 		 * @param trb

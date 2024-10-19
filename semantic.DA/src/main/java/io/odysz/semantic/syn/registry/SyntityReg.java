@@ -4,6 +4,7 @@ import io.odysz.anson.Anson;
 
 public class SyntityReg extends Anson {
 
-	public String name;
+	public String table;
+	public String meta;
 
 }

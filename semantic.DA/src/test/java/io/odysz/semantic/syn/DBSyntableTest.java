@@ -1,5 +1,7 @@
 package io.odysz.semantic.syn;
 
+import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
@@ -47,6 +49,7 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.syn.registry.Syntities;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
@@ -103,7 +106,6 @@ public class DBSyntableTest {
 		DATranscxt.key("user-pswd", rootkey);
 	}
 
-	@SuppressWarnings("deprecation")
 	@BeforeAll
 	public static void testInit() throws Exception {
 		// DDL
@@ -163,13 +165,20 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
+			Syntities.load(runtimepath, f("syntity-%s.json", s), 
+					(synreg) -> {
+						if (eq(synreg.table, "h_photos"))
+							return new T_DA_PhotoMeta(conn);
+						else
+							throw new SemanticException("TODO %s", synreg.table);
+					});
+
 			Docheck.ck[s] = new Docheck(new AssertImpl(), s != W ? zsu : null, conn, synodes[s],
 					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm);
 			
 			// ck[s].synm = snm;
 			if (s != W)
 				Docheck.ck[s].trb.incNyquence0();
-
 		}
 		
 		assertEquals("syn.00", ck[0].connId());

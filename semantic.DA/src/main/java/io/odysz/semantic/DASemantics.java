@@ -492,7 +492,7 @@ public class DASemantics {
 
 	protected ArrayList<SemanticHandler> handlers;
 
-	private String tabl;
+	public final String tabl;
 	private String pk;
 
 	/**

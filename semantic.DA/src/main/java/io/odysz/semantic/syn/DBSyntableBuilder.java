@@ -161,7 +161,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		this.chgm.replace();
 		this.subm = new SynSubsMeta(chgm, conn);
 		this.subm.replace();
-		this.synm = DBSynTransBuilder.getSynodeMeta(conn);// synm != null ? synm : (SynodeMeta) new SynodeMeta(conn).autopk(false);
+		this.synm = new SynodeMeta(conn); // DBSynTransBuilder.getSynodeMeta(conn);// synm != null ? synm : (SynodeMeta) new SynodeMeta(conn).autopk(false);
 		this.synm.replace();
 
 		// this.exbm = exbm != null ? exbm : new SynchangeBuffMeta(chgm, conn);
