@@ -109,6 +109,7 @@ class DBSynTransBuilderTest {
 		ck[0].change_doclog(1, CRUD.C, null);
 
 		// ck[0].synsubs(3, chid, X, Y, Z, W);
+		assertEquals(1, DAHelper.count(new DATranscxt(conn), conn, phm.tbl, phm.pk, phid));
 		assertEquals(3, DAHelper.count(new DATranscxt(conn), conn, snm.tbl, snm.domain, zsu));
 		assertEquals(2, DAHelper.count(new DATranscxt(conn), conn, sbm.tbl, sbm.changeId, chid));
 	}
