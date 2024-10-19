@@ -67,7 +67,7 @@ public class ExessionPersist {
 
 	final boolean debug;
 
-	public AnResultset answerPage;
+	AnResultset answerPage;
 
 	public DBSyntableBuilder trb;
 
@@ -98,55 +98,58 @@ public class ExessionPersist {
 			if (compareNyq(rply.getLong(chgm.nyquence), tillN0) > 0)
 				break; // FIXME continue? Or throw?
 	
-			SyntityMeta entm = trb.getEntityMeta(rply.getString(chgm.entbl));
+			// SyntityMeta entm = trb.getEntityMeta(rply.getString(chgm.entbl));
+			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(trb.synconn(), rply.getString(chgm.entbl));
+
 			String change = rply.getString(ChangeLogs.ChangeFlag);
 			HashMap<String, AnResultset> entbuf = entities;
 			
 			String rporg  = rply.getString(chgm.domain);
 			String rpent  = rply.getString(chgm.entbl);
-			String rpuids = rply.getString(chgm.uids);
+			String rsynuid= rply.getString(chgm.uids);
 			String rpnodr = rply.getString(chgm.synoder);
 			String rpscrb = rply.getString(subm.synodee);
-			String rpcid  = rply.getString(chgm.pk);
+			String rpchid = rply.getString(chgm.pk);
 	
 			if (debug && !eq(change, CRUD.D)
-				&& (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(rpuids) < 0)) {
+				&& (entbuf == null || !entbuf.containsKey(entm.tbl) || entbuf.get(entm.tbl).rowIndex0(rsynuid) < 0)) {
 				Utils.warnT(new Object() {},
 						"Missing entity. This happens when the entity is deleted locally.\n" +
 						"entity name: %s\tsynode(peer): %s\tsynode(local): %s\tentity id(by peer): %s",
-						entm.tbl, srcnode, trb.synode(), rpuids);
+						entm.tbl, srcnode, trb.synode(), rsynuid);
 				continue;
 			}
 				
 			stats.add(eq(change, CRUD.C)
 				// create an entity, and trigger change log
-				? !eq(recId, rpuids)
-					? trb.insert(entm.tbl, trb.synrobot())
+				? !eq(recId, rsynuid)
+					? // TODO FIXME a branch that tests never reached?
+					  trb.insert(entm.tbl, trb.synrobot())
 						.cols((String[])entm.entCols())
-						.value(entm.insertChallengeEnt(rpuids, entbuf.get(entm.tbl)))
+						.value(entm.insertChallengeEnt(rsynuid, entbuf.get(entm.tbl)))
 						.post(trb.insert(chgm.tbl)
-							.nv(chgm.pk, rpcid)
+							.nv(chgm.pk, rpchid)
 							.nv(chgm.crud, CRUD.C)
 							.nv(chgm.domain, rporg)
 							.nv(chgm.entbl, rpent)
 							.nv(chgm.synoder, rpnodr)
-							.nv(chgm.uids, rpuids)
-							// .nv(chgm.entfk, new Resulving(entm.tbl, entm.pk))
+							.nv(chgm.uids, rsynuid)
 							.post(trb.insert(subm.tbl)
 								.cols(subm.insertCols())
 								.value(subm.insertSubVal(rply))))
 					: trb.insert(subm.tbl)
 						.cols(subm.insertCols())
 						.value(subm.insertSubVal(rply))
+
+				// : eq(change, CRUD.U) ? WHAT()
 	
 				// remove subscribers & backward change logs's deletion propagation
 				: trb.delete(subm.tbl, trb.synrobot())
-					.whereEq(subm.changeId, rpcid)
+					.whereEq(subm.changeId, rpchid)
 					.whereEq(subm.synodee, rpscrb)
-					.post(del0subchange(entm, rporg, rpnodr, rpuids, rpcid, rpscrb)
+					.post(del0subchange(entm, rporg, rpnodr, rsynuid, rpchid, rpscrb)
 					));
-			// entid = entid1;
-			recId = rpuids;
+			recId = rsynuid;
 		}
 	
 		Utils.logT(new Object() {}, "Locally committing answers to %s ...", peer);
@@ -156,6 +159,11 @@ public class ExessionPersist {
 		Connects.commit(trb.synconn(), trb.synrobot(), sqls);
 		
 		return this;
+	}
+
+	@SuppressWarnings("unused")
+	private Statement<?> WHAT() throws SemanticException {
+		throw new SemanticException("TODO FIXME!");
 	}
 
 	/**
@@ -179,11 +187,15 @@ public class ExessionPersist {
 		missings.removeAll(srcnv.keySet());
 		missings.remove(trb.synode());
 
+		if (debug)
+			Utils.logT(new Object() {}, "\n[%1$s <- %2$s] : %1$s saving changes to local entities...", trb.synode(), peer);
+
 		while (changes.next()) {
 			String change = changes.getString(chgm.crud);
 			Nyquence chgnyq = getn(changes, chgm.nyquence);
 
-			SyntityMeta entm = trb.getEntityMeta(changes.getString(chgm.entbl));
+			// SyntityMeta entm = trb.getEntityMeta(changes.getString(chgm.entbl));
+			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(trb.synconn(), changes.getString(chgm.entbl));
 
 			String synodr = changes.getString(chgm.synoder);
 			String chuids = changes.getString(chgm.uids);
@@ -263,11 +275,9 @@ public class ExessionPersist {
 
 				subscribeUC = new ArrayList<Statement<?>>();
 				iamSynodee  = false;
+				chlog = null;
 			}
 		}
-
-		if (debug)
-			Utils.logT(new Object() {}, "\n[%1$s <- %2$s] : %1$s saving changes to local entities...", trb.synode(), peer);
 
 		ArrayList<String> sqls = new ArrayList<String>();
 		for (Statement<?> s : stats)
@@ -782,19 +792,18 @@ public class ExessionPersist {
 		// 
 		if (trb == null) return null; // test
 
-		// Nyquence dn = nyquvect.get(peer);
-
 		AnResultset entbls = (AnResultset) trb.select(chgm.tbl, "ch")
 				.je_(exbm.tbl, "bf", chgm.pk, exbm.changeId, "bf." + exbm.peer, constr(peer), constVal(challengeSeq), exbm.pagex)
 				.col(chgm.entbl)
-				// .where(op.gt, chgm.nyquence, dn.n)
 				.groupby(chgm.entbl)
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				.rs(0);
 
 		while (entbls.next()) {
 			String tbl = entbls.getString(chgm.entbl);
-			SyntityMeta entm = trb.getSyntityMeta(tbl);
+
+			// SyntityMeta entm = trb.getSyntityMeta(tbl);
+			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(trb.synconn(), tbl);
 
 			AnResultset entities = ((AnResultset) entm
 				.onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))

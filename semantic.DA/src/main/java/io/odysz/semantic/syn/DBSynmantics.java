@@ -6,7 +6,6 @@ import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import java.lang.reflect.Constructor;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import io.odysz.common.Utils;
@@ -31,7 +30,6 @@ import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Condit;
-import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -60,8 +58,8 @@ public class DBSynmantics extends DASemantics {
 	}
 	
 	@Override
-	public DBSyntableBuilder.SynmanticsMap createSMap(String conn) {
-		return new DBSyntableBuilder.SynmanticsMap(synode, conn);
+	public DBSynTransBuilder.SynmanticsMap createSMap(String conn) {
+		return new DBSynTransBuilder.SynmanticsMap(synode, conn);
 	}
 	
 	/**
@@ -77,10 +75,9 @@ public class DBSynmantics extends DASemantics {
 	 */
 	public static Insert logChange(DBSyntableBuilder b, Insert inst,
 			SyntityMeta entm, String synode, Object synuid) throws TransException {
-		Update upe = null;
-		Resulving pid = new Resulving(entm.tbl, entm.pk);
+		if (synuid == null) {
 
-		Insert insc = b.insert(b.chgm.tbl)
+			Insert insc = b.insert(b.chgm.tbl)
 				.nv(b.chgm.entbl, entm.tbl)
 				.nv(b.chgm.crud, CRUD.C)
 				.nv(b.chgm.synoder, b.synode())
@@ -95,17 +92,21 @@ public class DBSynmantics extends DASemantics {
 						.where(op.ne, b.synm.synoder, constr(b.synode()))
 						.whereEq(b.synm.domain, b.domain())));
 
-		// TODO refactor for a decent style
-		if (synuid == null) {
-			upe =  b.update(entm.tbl);
-			if (pid instanceof Resulving) {
+			Resulving pid = new Resulving(entm.tbl, entm.pk);
+
+			Update upe =  b.update(entm.tbl);
+
+//			if (pid instanceof Resulving) {
 				upe.nv(entm.synuid, SynChangeMeta.uids(synode, (Resulving)pid));
 				insc.nv(b.chgm.uids, SynChangeMeta.uids(synode, (Resulving)pid));
-			}
-			else {
-				upe.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
-				insc.nv(b.chgm.uids, SynChangeMeta.uids(synode,  pid.toString()));
-			}
+//			}
+//			else {
+//				upe.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
+//				insc.nv(b.chgm.uids, SynChangeMeta.uids(synode,  pid.toString())); throw new TransException("Here!");
+//			}
+
+			inst.post(upe.whereEq(entm.pk, pid))
+				.post(insc);
 
 // 			upe.nv(entm.synuid, SynChangeMeta.uids(synode, synuid));
 
@@ -117,29 +118,34 @@ public class DBSynmantics extends DASemantics {
 //				insc.nv(b.chgm.uids, SynChangeMeta.uids(synode,  pid.toString()));
 		}
 		else {
-			if (synuid instanceof Resulving) 
-				insc.nv(b.chgm.uids, (Resulving)synuid);
-			else if (pid instanceof ExprPart)
-				insc.nv(b.chgm.uids, (ExprPart)synuid);
-			else
-				insc.nv(b.chgm.uids, synuid.toString());
+			;
+//			if (synuid instanceof Resulving) 
+//				insc.nv(b.chgm.uids, (Resulving)synuid);
+//			else if (synuid instanceof ExprPart)
+//				insc.nv(b.chgm.uids, (ExprPart)synuid);
+//			else
+//				insc.nv(b.chgm.uids, synuid.toString());
 		}
 
 		return inst
-			.post(upe == null ? null : upe.whereEq(entm.pk, pid))
-			.post(insc);
+			//.post(upe == null ? null : upe.whereEq(entm.pk, pid))
+			// .post(insc)
+			;
 	}
 
 	public static Update logChange(DBSyntableBuilder b, Update updt,
-			SyntityMeta entm, String synoder, List<String> synuids, Iterable<String> updcols)
+			SyntityMeta entm, String synoder, AnResultset hittings, Iterable<String> updcols)
 				throws TransException, SQLException {
-		for (String synuid : synuids)
-			updt.post(b
+		if (hittings != null) {
+			hittings.beforeFirst();
+
+			while (hittings.next())
+				updt.post(b
 					.insert(b.chgm.tbl)
 					.nv(b.chgm.entbl, entm.tbl)
 					.nv(b.chgm.crud, CRUD.U)
 					.nv(b.chgm.synoder, synoder)
-					.nv(b.chgm.uids, synuid)
+					.nv(b.chgm.uids, entm.synuid(hittings))
 					.nv(b.chgm.nyquence, b.stamp())
 					.nv(b.chgm.seq, b.incSeq())
 					.nv(b.chgm.domain, b.domain())
@@ -152,6 +158,7 @@ public class DBSynmantics extends DASemantics {
 							.where(op.ne, b.synm.synoder, constr(synoder))
 							.whereEq(b.synm.domain, b.domain()))))
 			;
+		}
 	
 		return updt;
 	}

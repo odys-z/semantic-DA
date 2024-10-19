@@ -25,7 +25,6 @@ import java.util.List;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
-import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.PeersMeta;
@@ -43,7 +42,6 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
-import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
@@ -72,27 +70,13 @@ import io.odysz.transact.x.TransException;
  * @author Ody
  */
 public class DBSyntableBuilder extends DATranscxt {
-	public static class SynmanticsMap extends SemanticsMap {
-		String synode;
-	
-		public SynmanticsMap(String synode, String conn) {
-			super(conn);
-			this.synode = synode;
-		}
-	
-		@Override
-		public DASemantics createSemantics(Transcxt trb, String tabl, String pk, boolean debug) {
-			return new DBSynmantics(trb, synode, tabl, pk, debug);
-		}
-	}
-
-	private final boolean debug;
+	final boolean debug;
 
 	public final SynodeMeta synm;
-	protected PeersMeta pnvm;
-	protected SynSubsMeta subm;
-	protected SynChangeMeta chgm;
-	protected SynchangeBuffMeta exbm;
+	protected final PeersMeta pnvm;
+	protected final SynSubsMeta subm;
+	protected final SynChangeMeta chgm;
+	protected final SynchangeBuffMeta exbm;
 
 	final SynodeMode synmode;
 
@@ -137,19 +121,19 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	public IUser synrobot() { return ((DBSyntext) this.basictx).usr(); }
 
-	static HashMap<String, HashMap<String, SyntityMeta>> entityRegists;
+//	static HashMap<String, HashMap<String, SyntityMeta>> entityRegists;
 
 	private final boolean force_clean_subs;
 
 	private long seq;
 	public long incSeq() { return ++seq; }
 
-	public SyntityMeta getSyntityMeta(String tbl) {
-		return entityRegists != null
-			&& entityRegists.containsKey(synconn())
-				? entityRegists.get(synconn()).get(tbl)
-				: null;
-	} 
+//	public SyntityMeta getSyntityMeta(String tbl) {
+//		return entityRegists != null
+//			&& entityRegists.containsKey(synconn())
+//				? entityRegists.get(synconn()).get(tbl)
+//				: null;
+//	} 
 
 	public DBSyntableBuilder(String domain, String conn, String mynodeId, SynodeMode mode)
 			throws Exception {
@@ -162,29 +146,29 @@ public class DBSyntableBuilder extends DATranscxt {
 			SynodeMode mode, SynChangeMeta chgm, SynodeMeta synm)
 			throws Exception {
 
-		super ( new DBSyntext(conn, mynid,
-			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSyntableBuilder.SynmanticsMap(mynid, c)),
-			    	(IUser) new SyncRobot(mynid, mynid, "rob@" + mynid, mynid),
-			    	runtimepath));
+//		super ( new DBSyntext(conn, mynid,
+//			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSynTransBuilder.SynmanticsMap(mynid, c)),
+//			    	(IUser) new SyncRobot(mynid, mynid, "rob@" + mynid, mynid),
+//			    	runtimepath));
+		super(conn);	
 		
 		debug    = Connects.getDebug(conn);
 		perdomain= domain;
 		synmode  = mode;
 
-		// wire up local identity
-		// DBSyntext tx = (DBSyntext) this.basictx;
-		// tx.synode = mynid;
-
 		this.chgm = chgm != null ? chgm : new SynChangeMeta(conn);
 		this.chgm.replace();
-		this.subm = subm != null ? subm : new SynSubsMeta(chgm, conn);
+		// this.subm = subm != null ? subm : new SynSubsMeta(chgm, conn);
+		this.subm = new SynSubsMeta(chgm, conn);
 		this.subm.replace();
 		this.synm = synm != null ? synm : (SynodeMeta) new SynodeMeta(conn).autopk(false);
 		this.synm.replace();
 
-		this.exbm = exbm != null ? exbm : new SynchangeBuffMeta(chgm, conn);
+		// this.exbm = exbm != null ? exbm : new SynchangeBuffMeta(chgm, conn);
+		this.exbm = new SynchangeBuffMeta(chgm, conn);
 		this.exbm.replace();
-		this.pnvm = pnvm != null ? pnvm : new PeersMeta(conn);
+		// this.pnvm = pnvm != null ? pnvm : new PeersMeta(conn);
+		this.pnvm = new PeersMeta(conn);
 		this.pnvm.replace();
 		
 		// seq = 0;
@@ -203,7 +187,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
 						synm.synoder, mynid, synm.domain, perdomain);
 
-			registerEntity(conn, synm);
+			// registerEntity(conn, synm);
 		}
 		else if (isblank(perdomain))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
@@ -621,6 +605,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					.cols(constr(peer), chgm.pk, new ExprPart(-1))
 					.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
 											.and(Sql.condt(op.ne, constr(synode()), subm.synodee)))
+					// fixed: orthogonal data handling
 					// .je_(pnvm.tbl, "nvee", "sb." + subm.synodee, pnvm.synid,
 					.je_(pnvm.tbl, "nvee", "cl." + chgm.synoder, pnvm.synid,
 											constr(domain()), pnvm.domain, constr(peer), pnvm.peer)
@@ -775,42 +760,55 @@ public class DBSyntableBuilder extends DATranscxt {
 		return new String[] {phid, chid};
 	}
 	
-	@SuppressWarnings("serial")
-	public String updateEntity(String synoder, String synuid, SyntityMeta entm, Object ... nvs)
+	public String updateEntity(String synoder, String[] uids, SyntityMeta entm, Object ... nvs)
 			throws TransException, SQLException, IOException {
 		List<String> updcols = new ArrayList<String>(nvs.length/2);
 		for (int i = 0; i < nvs.length; i += 2)
 			updcols.add((String) nvs[i]);
 
+		Update u = update(entm.tbl, synrobot())
+					.nvs((Object[])nvs);
+
+		for (int ix = 0; ix < uids.length; ix++)
+			u.whereEq(entm.uids.get(ix), uids[ix]);
+
+		return DBSynmantics
+			.logChange(this, u,
+					entm, synoder, null, updcols)
+			.u(instancontxt(synconn(), synrobot()))
+			.resulve(chgm.tbl, chgm.pk, -1);
+
+		/*
 		return DBSynmantics
 			.logChange(this, update(entm.tbl, synrobot())
 						.nvs((Object[])nvs)
 						.whereEq(entm.synuid, synuid),
 					entm, synoder,
-					new ArrayList<String>() {{add(synuid);}},
+					null, // new ArrayList<String>() {{add(synuid);}},
 					updcols)
 			.u(instancontxt(synconn(), synrobot()))
 			.resulve(chgm.tbl, chgm.pk, -1);
+		*/
 	}
 	
-	public static void registerEntity(String conn, SyntityMeta m)
-			throws SemanticException, TransException, SQLException {
-		if (entityRegists == null)
-			entityRegists = new HashMap<String, HashMap<String, SyntityMeta>>();
-		if (!entityRegists.containsKey(conn))
-			entityRegists.put(conn, new HashMap<String, SyntityMeta>());
+//	public static void registerEntity(String conn, SyntityMeta m)
+//			throws SemanticException, TransException, SQLException {
+//		if (entityRegists == null)
+//			entityRegists = new HashMap<String, HashMap<String, SyntityMeta>>();
+//		if (!entityRegists.containsKey(conn))
+//			entityRegists.put(conn, new HashMap<String, SyntityMeta>());
+//
+//		entityRegists.get(conn).put(m.tbl, (SyntityMeta) m.clone(Connects.getMeta(conn, m.tbl)));
+//	}
+//	
+//	public SyntityMeta getEntityMeta(String entbl) throws SemanticException {
+//		if (entityRegists == null || !entityRegists.containsKey(synconn())
+//			|| !entityRegists.get(synconn()).containsKey(entbl))
+//			throw new SemanticException("Register %s first.", entbl);
+//			
+//		return entityRegists.get(synconn()).get(entbl);
+//	}
 
-		entityRegists.get(conn).put(m.tbl, (SyntityMeta) m.clone(Connects.getMeta(conn, m.tbl)));
-	}
-	
-	public SyntityMeta getEntityMeta(String entbl) throws SemanticException {
-		if (entityRegists == null || !entityRegists.containsKey(synconn())
-			|| !entityRegists.get(synconn()).containsKey(entbl))
-			throw new SemanticException("Register %s first.", entbl);
-			
-		return entityRegists.get(synconn()).get(entbl);
-	}
-	
 	/**
 	 * Inc my n0, then reload from DB.
 	 * @return this
@@ -836,7 +834,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			ISemantext syntext = new DBSyntext(conn, synode(),
 					// debug note: class cast exception will raise if connection is not correct.
 					initConfigs(conn, loadSemantics(conn), 
-						(c) -> new DBSyntableBuilder.SynmanticsMap(synode(), c)),
+						(c) -> new DBSynTransBuilder.SynmanticsMap(synode(), c)),
 					usr, runtimepath).creator(this);
 
 			// stamp = getNstamp(this);
