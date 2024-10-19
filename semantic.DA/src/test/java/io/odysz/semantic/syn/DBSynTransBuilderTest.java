@@ -69,8 +69,6 @@ class DBSynTransBuilderTest {
 			T_DA_PhotoMeta phm = regists.meta("h_photos");
 
 			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
-			// phm.replace();
-			// DBSynTransBuilder.registerEntity(conn, phm);
 
 			ArrayList<String> sqls = new ArrayList<String>();
 			sqls.add("delete from oz_autoseq;");

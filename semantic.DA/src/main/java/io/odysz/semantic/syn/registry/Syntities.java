@@ -3,9 +3,7 @@ package io.odysz.semantic.syn.registry;
 import static io.odysz.common.LangExt.isblank;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -13,8 +11,8 @@ import org.apache.commons.io_odysz.FilenameUtils;
 
 import io.odysz.anson.Anson;
 import io.odysz.anson.AnsonField;
-import io.odysz.anson.x.AnsonException;
 import io.odysz.common.EnvPath;
+import io.odysz.common.Utils;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.x.SemanticException;
@@ -51,6 +49,8 @@ public class Syntities extends Anson {
 		String p = FilenameUtils.concat(
 				EnvPath.replaceEnv(runtimepath),
 				EnvPath.replaceEnv(json));
+		
+		Utils.logi("Loading syntities registry: %s", p);
 
 		Syntities reg =  (Syntities) Anson.fromJson(new FileInputStream(p));
 

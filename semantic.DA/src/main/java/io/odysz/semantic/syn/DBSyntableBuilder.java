@@ -122,31 +122,13 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 
-//	static HashMap<String, HashMap<String, SyntityMeta>> entityRegists;
-
 	private final boolean force_clean_subs;
 
 	private long seq;
 	public long incSeq() { return ++seq; }
 
-//	public SyntityMeta getSyntityMeta(String tbl) {
-//		return entityRegists != null
-//			&& entityRegists.containsKey(synconn())
-//				? entityRegists.get(synconn()).get(tbl)
-//				: null;
-//	} 
-
-//	public DBSyntableBuilder(String domain, String conn, String mynodeId, SynodeMode mode)
-//			throws Exception {
-//		this(domain, conn, mynodeId, mode);
-//	}
-	
 	public DBSyntableBuilder(String domain, String conn, String mynid, SynodeMode mode) throws Exception {
 
-//		super ( new DBSyntext(conn, mynid,
-//			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSynTransBuilder.SynmanticsMap(mynid, c)),
-//			    	(IUser) new SyncRobot(mynid, mynid, "rob@" + mynid, mynid),
-//			    	runtimepath));
 		super(conn);	
 
 		// FIXME: Comparing to mobile device node. a device is the equivalent to synode at Synode tier, robot.device should be removed.

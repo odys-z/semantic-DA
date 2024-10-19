@@ -65,49 +65,6 @@ public class DBSynTransBuilder extends DATranscxt {
 	
 	String synconn() { return basictx.connId(); }
 
-	/** { syn-conn: { tabl: SyntityMeta } } 
-	static HashMap<String, HashMap<String, SyntityMeta>> entityRegists;
-	public SyntityMeta getSyntityMeta(String tbl) {
-		return entityRegists != null
-			&& entityRegists.containsKey(synconn())
-				? entityRegists.get(synconn()).get(tbl)
-				: null;
-	} 
-	*/
-
-	/**
-	 * Shouldn't be called as docm is loaded from semantic-syn.xml, except for tests.
-	 * @param conn
-	 * @param m
-	 * @throws SemanticException
-	 * @throws TransException
-	 * @throws SQLException
-	@Deprecated
-	public static void registerEntity(String conn, SyntityMeta m)
-			throws SemanticException, TransException, SQLException {
-			
-		if (entityRegists == null)
-			entityRegists = new HashMap<String, HashMap<String, SyntityMeta>>();
-
-		if (!entityRegists.containsKey(conn)) {
-			entityRegists.put(conn, new HashMap<String, SyntityMeta>());
-			SynodeMeta synm = new SynodeMeta(conn);
-			synodeTabl = synm.tbl;
-			entityRegists.get(conn).put(synodeTabl, synm);
-		}
-
-		entityRegists.get(conn).put(m.tbl, (SyntityMeta) m.clone(Connects.getMeta(conn, m.tbl)));
-	}
-	
-	public static SyntityMeta getEntityMeta(String synconn, String entbl) throws SemanticException {
-		if (entityRegists == null || !entityRegists.containsKey(synconn)
-			|| !entityRegists.get(synconn).containsKey(entbl))
-			throw new SemanticException("Register %s first.", entbl);
-			
-		return entityRegists.get(synconn).get(entbl);
-	}
-	 */
-	
 	final boolean debug;
 
 	public final String perdomain;
@@ -137,10 +94,6 @@ public class DBSynTransBuilder extends DATranscxt {
 				String syntity_json, SynodeMode mode, DBSyntableBuilder logger)
 				throws SemanticException, SQLException, SAXException, IOException, Exception {
 
-//		super ( new DBSyntext(conn, mynid,
-//			    	initConfigs(conn, loadSemantics(conn), (c) -> new DBSynTransBuilder.SynmanticsMap(mynid, c)),
-//			    	(IUser) new SyncRobot(mynid, mynid, "rob@" + mynid, mynid),
-//			    	runtimepath));
 		super(conn);
 		
 		debug    = Connects.getDebug(conn);
@@ -174,7 +127,7 @@ public class DBSynTransBuilder extends DATranscxt {
 
 			// registerEntity(conn, synm);
 			synSemantics (this, conn, synode, 
-					Syntities.load(runtimepath, syntity_json, 
+					Syntities.load(cfgroot, syntity_json, 
 					(synreg) -> {
 						throw new SemanticException(
 							"TODO syntity name: %s (Configure syntity.meta to avoid this error)",
@@ -237,10 +190,6 @@ public class DBSynTransBuilder extends DATranscxt {
 			throw new TransException(e.getMessage());
 		}
 	}
-
-//	public static SynodeMeta getSynodeMeta(String conn) {
-//		return (SynodeMeta) Syntities.getSynodeMeta(conn);
-//	}
 	
 	public static SyntityMeta getEntityMeta(String synconn, String tbl) {
 		return Syntities.get(synconn).meta(tbl);

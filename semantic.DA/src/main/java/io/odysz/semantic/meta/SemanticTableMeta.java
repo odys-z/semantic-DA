@@ -68,7 +68,7 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 			}
 	}
 
-	public static void setupSqlitables(String conn, boolean force_drop, List<SyntityMeta> ms)
+	public static void setupSqlitables(String conn, boolean force_drop, Iterable<SyntityMeta> ms)
 			throws SQLException, TransException {
 		if (ms != null && Connects.isqlite(conn))
 		for (TableMeta m : ms)
