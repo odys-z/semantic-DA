@@ -4,7 +4,6 @@ import java.sql.SQLException;
 
 import io.odysz.semantic.DASemantext;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.DATranscxt.SemanticsMap;
 import io.odysz.semantic.syn.DBSynTransBuilder.SynmanticsMap;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -17,7 +16,6 @@ public class DBSynmantext extends DASemantext implements ISyncontext {
 	private DATranscxt creator;
 
 	protected DBSynmantext(String connId, String synodeId, SynmanticsMap metas, IUser usr, String rtPath)
-
 			throws SemanticException, SQLException {
 		super(connId, metas, usr, rtPath);
 		this.synode = synodeId;
