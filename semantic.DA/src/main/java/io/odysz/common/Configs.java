@@ -51,8 +51,8 @@ public class Configs {
 		/**
 		 * key of synode id
 		 * @since 2.0.0
-		 */
 		public static final String synode    = "io.oz.syn.synode";
+		 */
 		
 		/**
 		 * key of log connection,
@@ -125,7 +125,6 @@ public class Configs {
 				while (deft.next()) {
 					String k = deft.getString("k");
 					if (defaults.containsKey(k))
-						// log.e("Configs", "duplicate key found: " + k);
 						Utils.warn("Configs: duplicate key found: %s", k);
 					defaults.put(k, deft.getString("v"));
 				}

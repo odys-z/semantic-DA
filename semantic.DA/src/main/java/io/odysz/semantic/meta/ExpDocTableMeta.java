@@ -63,7 +63,6 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 			throws TransException {
 		super(tbl, pk, device, conn);
 
-		// synoder = "device";
 		this.device = device;
 
 		resname = "docname";
@@ -79,6 +78,9 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 		shareDate = "sharedate";
 		shareby = "shareby";
 		shareflag = "shareflag";
+
+		uids.add(device);
+		uids.add(fullpath);
 	}
 
 	/**

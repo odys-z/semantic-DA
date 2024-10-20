@@ -1,6 +1,7 @@
 package io.odysz.semantic.DA;
 
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.len;
 
 import java.io.File;
@@ -20,6 +21,7 @@ import org.apache.commons.io_odysz.FilenameUtils;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.dbtype;
+import io.odysz.common.EnvPath;
 import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
@@ -339,7 +341,8 @@ public class Connects {
 	public static dbtype driverType(String conn) {
 		conn = conn == null ? defltConn : conn;
 		if (!srcs.containsKey(conn))
-			throw new NullPointerException("Can't find datasourse: " + conn);
+			throw new NullPointerException(f("Can't find datasourse: %s. Known sources: %s",
+					conn, srcs.keySet().stream().collect(Collectors.joining(","))));
 		return srcs.get(conn).driverType();
 	}
 
@@ -512,7 +515,7 @@ public class Connects {
 			conn = defltConn;
 		return FilenameUtils.concat(workingDir,
 				srcs == null || !srcs.containsKey(conn) ? null
-				: srcs.get(conn).prop("smtcs"));
+				: EnvPath.replaceEnv(srcs.get(conn).prop("smtcs")));
 	}
 
 	public static boolean getDebug(String conn) {
@@ -543,5 +546,10 @@ public class Connects {
 			if (reg.match(uri))
 				return conn_uri.get(reg);
 		return defltConn;
+	}
+
+	public static boolean isqlite(String conn) {
+		return Connects.driverType(conn) == dbtype.sqlite
+			|| Connects.driverType(conn) == dbtype.sqlite_queue;
 	}
 }

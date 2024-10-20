@@ -43,6 +43,6 @@ A jpg file for test extFile semantics. It will create a sub-folder here named "u
 
 - synmatics.xml
 
-- synode-[1234].db
+- synode-\[1234\].db
 
 Sqlite storage file for 4 synodes.

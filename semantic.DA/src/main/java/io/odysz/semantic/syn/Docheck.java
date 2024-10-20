@@ -69,6 +69,15 @@ public class Docheck {
 		return trb.entities(docm);
 	}
 
+	public String doclist() throws SQLException, TransException {
+		AnResultset rs = trb.entitySynuids(docm).beforeFirst();
+		String r = "";
+		while (rs.next()) {
+			r += " " + rs.getString(1);
+		}
+		return r.trim();
+	}
+
 	String connId() { return trb.basictx().connId(); }
 
 	public Docheck(IAssert assertImpl, String domain, String conn,
@@ -416,8 +425,8 @@ public class Docheck {
 
 				nv2[cx] = Nyquence.clone(nyquvect);
 
-				Utils.logi(
-					t.synode() + " [ " +
+				Utils.logi("%s [ %s ] { %s }",
+					t.synode(),
 					Stream.of(ck)
 					.filter(c -> c != null)
 					.map((c) -> {
@@ -426,8 +435,8 @@ public class Docheck {
 							nyquvect.containsKey(n) ?
 							nyquvect.get(n).n : "");
 						})
-					.collect(Collectors.joining(", ")) +
-					" ]");
+					.collect(Collectors.joining(", ")),
+					ck[cx].doclist());
 			}
 			finally { Connects.setDebug(t.synconn(), top); }
 		}
