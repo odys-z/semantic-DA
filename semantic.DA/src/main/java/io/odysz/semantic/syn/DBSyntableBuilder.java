@@ -107,8 +107,11 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	DBSyntableBuilder incStamp(ExessionPersist xp) throws TransException, SQLException {
-		if (xp.nyquvect.containsKey(synode()) && Nyquence.abs(stamp, xp.nyquvect.get(synode())) >= 1)
-			throw new ExchangeException(0, xp, "Nyquence stamp going to increase too much or out of range.");
+		if (xp.nyquvect.containsKey(synode())
+			&& Nyquence.abs(stamp, xp.nyquvect.get(synode())) >= 1)
+			throw new ExchangeException(0, xp,
+				"Nyquence stamp going to increase too much or out of range.");
+
 		stamp.inc();
 		persistamp(stamp);
 		seq = 0;

@@ -254,26 +254,26 @@ public class ExessionPersist {
 					.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode()));
 
 			if (iamSynodee || subscribeUC.size() > 0) {
-			  stats.add(
-				eq(change, CRUD.C)
-				? trb.insert(entm.tbl, trb.synrobot())
-					.cols(ents.get(entm.tbl).getFlatColumns0())
-					.row(ents.get(entm.tbl).getColnames(),
-							ents.get(entm.tbl).getRowById(chuids))
-					.post(chlog)
+				stats.add(
+					eq(change, CRUD.C)
+					? trb.insert(entm.tbl, trb.synrobot())
+						.cols(ents.get(entm.tbl).getFlatColumns0())
+						.row(ents.get(entm.tbl).getColnames(),
+								ents.get(entm.tbl).getRowById(chuids))
+						.post(chlog)
 
-				: eq(change, CRUD.U)
-				? trb.update(entm.tbl, trb.synrobot())
-					.nvs(entm.updateEntNvs(chgm, chuids, ents.get(entm.tbl), changes))
-					.whereEq(entm.synuid, chuids)
-					.post(chlog)
+					: eq(change, CRUD.U)
+					? trb.update(entm.tbl, trb.synrobot())
+						.nvs(entm.updateEntNvs(chgm, chuids, ents.get(entm.tbl), changes))
+						.whereEq(entm.synuid, chuids)
+						.post(chlog)
 
-				: eq(change, CRUD.D)
-				? trb.delete(entm.tbl, trb.synrobot())
-					.whereEq(entm.synuid, chuids)
-					.post(chlog)
+					: eq(change, CRUD.D)
+					? trb.delete(entm.tbl, trb.synrobot())
+						.whereEq(entm.synuid, chuids)
+						.post(chlog)
 
-				: null);
+					: null);
 
 				subscribeUC = new ArrayList<Statement<?>>();
 				iamSynodee  = false;
