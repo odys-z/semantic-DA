@@ -42,10 +42,10 @@ public class SyndomContext {
 	
 	Nyquence incN0(Nyquence maxn) {
 		try {
-			stamplock.lock();
+			nvlock.lock();
 			return nv.get(synode).inc(maxn);
 		}
-		finally { stamplock.unlock(); }
+		finally { nvlock.unlock(); }
 	}
 	
 }
