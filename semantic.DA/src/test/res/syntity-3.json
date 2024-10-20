@@ -1,0 +1,4 @@
+   {"type": "io.odysz.semantic.syn.registry.Syntities",
+    "conn": "syn.03",
+   	"syntities": [{"table": "h_photos", "meta": "io.odysz.semantic.syn.T_DA_PhotoMeta"}]
+   }

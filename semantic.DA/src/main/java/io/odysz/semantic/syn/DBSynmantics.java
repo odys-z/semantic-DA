@@ -6,7 +6,6 @@ import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 import java.lang.reflect.Constructor;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import io.odysz.common.Utils;
@@ -58,20 +57,25 @@ public class DBSynmantics extends DASemantics {
 	}
 	
 	@Override
-	public DBSyntableBuilder.SynmanticsMap createSMap(String conn) {
-		return new DBSyntableBuilder.SynmanticsMap(synode, conn);
+	public DBSynTransBuilder.SynmanticsMap createSMap(String conn) {
+		return new DBSynTransBuilder.SynmanticsMap(synode, conn);
 	}
 	
+	/**
+	 * 
+	 * @param b
+	 * @param inst
+	 * @param entm
+	 * @param synode
+	 * @param synuid the global id for synchronizing a records into local db, null for create new records (post updating into entity).
+	 * @return inst
+	 * @throws TransException
+	 */
 	public static Insert logChange(DBSyntableBuilder b, Insert inst,
-			SyntityMeta entm, String synode) throws TransException {
-		Update u = b.update(entm.tbl);
-		Resulving pid = new Resulving(entm.tbl, entm.pk);
-		if (pid instanceof Resulving)
-			u.nv(entm.synuid, SynChangeMeta.uids(synode, (Resulving)pid));
-		else
-			u.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
+			SyntityMeta entm, String synode, Object synuid) throws TransException {
+		if (synuid == null) {
 
-		Insert insc = b.insert(b.chgm.tbl)
+			Insert insc = b.insert(b.chgm.tbl)
 				.nv(b.chgm.entbl, entm.tbl)
 				.nv(b.chgm.crud, CRUD.C)
 				.nv(b.chgm.synoder, b.synode())
@@ -85,27 +89,63 @@ public class DBSynmantics extends DASemantics {
 						.col(b.synm.synoder)
 						.where(op.ne, b.synm.synoder, constr(b.synode()))
 						.whereEq(b.synm.domain, b.domain())));
-		if (pid instanceof Resulving)
-			// insc.nv(b.chgm.uids, SynChangeMeta.uids(b.synode(), (Resulving)pid));
-			insc.nv(b.chgm.uids, SynChangeMeta.uids(synode, (Resulving)pid));
-		else
-			insc.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
+
+			Resulving pid = new Resulving(entm.tbl, entm.pk);
+
+			Update upe =  b.update(entm.tbl);
+
+//			if (pid instanceof Resulving) {
+				upe.nv(entm.synuid, SynChangeMeta.uids(synode, (Resulving)pid));
+				insc.nv(b.chgm.uids, SynChangeMeta.uids(synode, (Resulving)pid));
+//			}
+//			else {
+//				upe.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
+//				insc.nv(b.chgm.uids, SynChangeMeta.uids(synode,  pid.toString())); throw new TransException("Here!");
+//			}
+
+			inst.post(upe.whereEq(entm.pk, pid))
+				.post(insc);
+
+// 			upe.nv(entm.synuid, SynChangeMeta.uids(synode, synuid));
+
+//			if (pid instanceof Resulving)
+//				// insc.nv(b.chgm.uids, SynChangeMeta.uids(b.synode(), (Resulving)pid));
+//				insc.nv(b.chgm.uids, SynChangeMeta.uids(synode, (Resulving)pid));
+//			else
+//				// insc.nv(entm.synuid, SynChangeMeta.uids(synode,  pid.toString()));
+//				insc.nv(b.chgm.uids, SynChangeMeta.uids(synode,  pid.toString()));
+		}
+		else {
+			;
+//			if (synuid instanceof Resulving) 
+//				insc.nv(b.chgm.uids, (Resulving)synuid);
+//			else if (synuid instanceof ExprPart)
+//				insc.nv(b.chgm.uids, (ExprPart)synuid);
+//			else
+//				insc.nv(b.chgm.uids, synuid.toString());
+		}
 
 		return inst
-			.post(u.whereEq(entm.pk, pid))
-			.post(insc);
+			//.post(upe == null ? null : upe.whereEq(entm.pk, pid))
+			// .post(insc)
+			;
 	}
 
 	public static Update logChange(DBSyntableBuilder b, Update updt,
-			SyntityMeta entm, String synoder, List<String> synuids, Iterable<String> updcols)
+			SyntityMeta entm, String synoder, AnResultset hittings, Iterable<String> updcols)
 				throws TransException, SQLException {
-		for (String synuid : synuids)
-			updt.post(b
+		if (hittings != null) {
+			hittings.beforeFirst();
+
+			while (hittings.next())
+				// if (isblank(hittings.getString(entm.synuid)))
+				updt.post(b
 					.insert(b.chgm.tbl)
 					.nv(b.chgm.entbl, entm.tbl)
 					.nv(b.chgm.crud, CRUD.U)
 					.nv(b.chgm.synoder, synoder)
-					.nv(b.chgm.uids, synuid)
+					// .nv(b.chgm.uids, entm.synuid(hittings))
+					.nv(b.chgm.uids, hittings.getString(entm.synuid))
 					.nv(b.chgm.nyquence, b.stamp())
 					.nv(b.chgm.seq, b.incSeq())
 					.nv(b.chgm.domain, b.domain())
@@ -118,31 +158,43 @@ public class DBSynmantics extends DASemantics {
 							.where(op.ne, b.synm.synoder, constr(synoder))
 							.whereEq(b.synm.domain, b.domain()))))
 			;
+		}
 	
 		return updt;
 	}
 	
 	public static Delete logChange(DBSyntableBuilder b, Delete delt,
-			SyntityMeta entm, String synuid) throws TransException, SQLException {
-		return delt.post(b
-				.insert(b.chgm.tbl)
-				.nv(b.chgm.entbl, entm.tbl)
-				.nv(b.chgm.crud, CRUD.D)
-				.nv(b.chgm.synoder, b.synode())
-				.nv(b.chgm.uids, synuid)
-				.nv(b.chgm.nyquence, b.stamp())
-				.nv(b.chgm.seq, b.incSeq())
-				.nv(b.chgm.domain, b.domain())
-				.post(b
-					.insert(b.subm.tbl)
-					.cols(b.subm.insertCols())
-					.select((Query)b
-						.select(b.synm.tbl)
-						.col(new Resulving(b.chgm.tbl, b.chgm.pk))
-						.col(b.synm.synoder)
-						.where(op.ne, b.synm.synoder, constr(b.synode()))
-						.whereEq(b.synm.domain, b.domain())))
-		);
+			SyntityMeta entm, AnResultset hittings) throws TransException, SQLException {
+
+		if (hittings != null) {
+			hittings.beforeFirst();
+
+			while (hittings.next()) {
+				String synuid = hittings.getString(entm.synuid);
+
+				// if (isblank(synuid))
+				return delt.post(b
+					.insert(b.chgm.tbl)
+					.nv(b.chgm.entbl, entm.tbl)
+					.nv(b.chgm.crud, CRUD.D)
+					.nv(b.chgm.synoder, b.synode())
+					.nv(b.chgm.uids, synuid)
+					.nv(b.chgm.nyquence, b.stamp())
+					.nv(b.chgm.seq, b.incSeq())
+					.nv(b.chgm.domain, b.domain())
+					.post(b
+						.insert(b.subm.tbl)
+						.cols(b.subm.insertCols())
+						.select((Query)b
+							.select(b.synm.tbl)
+							.col(new Resulving(b.chgm.tbl, b.chgm.pk))
+							.col(b.synm.synoder)
+							.where(op.ne, b.synm.synoder, constr(b.synode()))
+							.whereEq(b.synm.domain, b.domain())))
+					);
+			}
+		}
+		return delt;
 	}	
 
 	public static class ShSynChange extends SemanticHandler {
@@ -156,10 +208,24 @@ public class DBSynmantics extends DASemantics {
 		 * Target synchronzed table meta, e.g. PhotoMeta.
 		 */
 		public final SyntityMeta entm;
-		protected final Resulving entId;
+		// protected final Resulving entId;
 		protected final String synode;
 		
 		protected final DATranscxt st;
+
+		ShSynChange(Transcxt trxt, String synode, SyntityMeta m) throws TransException {
+			super(trxt, smtype.synChange, m.tbl, m.pk, null);
+			insert = true;
+			update = true;
+			delete = true;
+
+			this.entm = m;
+			this.synode = synode;
+			this.st = (DATranscxt) trxt;
+			this.snm = new SynodeMeta(trxt.basictx().connId());
+			this.chm = new SynChangeMeta();
+			this.sbm = new SynSubsMeta(chm);
+		}
 
 		ShSynChange(Transcxt trxt, String synode, String tabl, String pk, String[] args)
 				throws SemanticException {
@@ -184,7 +250,8 @@ public class DBSynmantics extends DASemantics {
 						entm.replace();
 				}
 				else entm = (SyntityMeta) m;
-				entId = new Resulving(entm.tbl, entm.pk);
+
+				// entId = new Resulving(entm.tbl, entm.pk);
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new SemanticException(e.getMessage());
@@ -199,7 +266,16 @@ public class DBSynmantics extends DASemantics {
 			if (verbose) Utils.logi("synChange: onInsert ...");
 
 			DBSyntableBuilder synb = ((ISyncontext)stx).synbuilder();
-			logChange(synb, insrt, entm, synode);
+			
+			Object synuid = null;
+			try {
+				if (cols.containsKey(entm.synuid))
+					synuid = row.get(cols.get(entm.synuid))[1];
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			logChange(synb, insrt, entm, synode, synuid);
 		}
 		
 		protected boolean checkBuilder(ISemantext stx) {
@@ -251,7 +327,7 @@ public class DBSynmantics extends DASemantics {
 				AnResultset hittings = hits(stx, stmt);
 				while (hittings.next())
 					stmt = logChange(((ISyncontext)stx).synbuilder(),
-								stmt, entm, hittings.getString(entm.synuid));
+								stmt, entm, hittings);
 			} catch (SQLException e) {
 				e.printStackTrace();
 				throw new TransException(e.getMessage());

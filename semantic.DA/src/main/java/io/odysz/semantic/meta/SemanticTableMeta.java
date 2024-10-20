@@ -4,6 +4,7 @@ import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.eq;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import io.odysz.common.Utils;
 import io.odysz.module.xtable.XMLTable.IMapValue;
@@ -55,12 +56,28 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public static void setupSqliTables(String conn, boolean force_drop, SemanticTableMeta ... ms) throws SQLException, TransException {
-		if (ms != null)
+	public static void setupSqliTables(String conn, boolean force_drop, SemanticTableMeta ... ms)
+			throws SQLException, TransException {
+		if (ms != null && Connects.isqlite(conn))
 		for (TableMeta m : ms)
 			if (m.ddlSqlite != null) {
-				if (force_drop) Connects.commit(conn, DATranscxt.dummyUser(), String.format("drop table if exists %s;", m.tbl));
+				if (force_drop) Connects.commit(conn, DATranscxt.dummyUser(),
+						String.format("drop table if exists %s;", m.tbl));
+
 				Connects.commit(conn, DATranscxt.dummyUser(), m.ddlSqlite);
 			}
 	}
+
+	public static void setupSqlitables(String conn, boolean force_drop, Iterable<SyntityMeta> ms)
+			throws SQLException, TransException {
+		if (ms != null && Connects.isqlite(conn))
+		for (TableMeta m : ms)
+			if (m.ddlSqlite != null) {
+				if (force_drop) Connects.commit(conn, DATranscxt.dummyUser(),
+						String.format("drop table if exists %s;", m.tbl));
+
+				Connects.commit(conn, DATranscxt.dummyUser(), m.ddlSqlite);
+			}
+	}
+
 }

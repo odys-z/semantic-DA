@@ -67,20 +67,15 @@ public class SynSubsMeta extends SemanticTableMeta {
 	}
 
 	/**
-	 * 
+	 * Add a subscribing synodee's record according to current row of {@code chlogs}.
 	 * @param chlogs
-	 * @return
+	 * @return val list, the row
 	 * @throws SQLException
 	 */
 	public ArrayList<Object[]> insertSubVal(AnResultset chlogs) throws SQLException {
 		String[] cols = insertCols();
 		ArrayList<Object[]> val = new ArrayList<Object[]> (cols.length);
 
-		/*
-		for (int cx = 0; cx < cols.length; cx++) {
-			val.add(new Object[] {cols[cx], chlogs.getString(cols[cx])});
-		}
-		*/
 		val.add(new Object[] {cols[0], chlogs.getString(chgm.pk)});
 		val.add(new Object[] {cols[1], chlogs.getString(synodee)});
 
