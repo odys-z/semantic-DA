@@ -28,7 +28,7 @@ public class DBSynmantext extends DASemantext implements ISyncontext {
 	@Override
 	public ISemantext clone(IUser usr) {
 		try {
-			return new DBSyntext(connId, synode, (SynmanticsMap) super.semants, usr, basePath);
+			return new DBSynmantext(connId, synode, (SynmanticsMap) super.semants, usr, basePath);
 
 		} catch (SQLException | SemanticException e) {
 			e.printStackTrace();
@@ -39,7 +39,7 @@ public class DBSynmantext extends DASemantext implements ISyncontext {
 	@Override
 	protected ISemantext clone(DASemantext srctx, IUser usr) {
 		try {
-			DASemantext newInst = new DBSyntext(connId, synode, (SynmanticsMap) semants, usr, basePath);
+			DASemantext newInst = new DBSynmantext(connId, synode, (SynmanticsMap) semants, usr, basePath);
 
 			return newInst;
 		} catch (SemanticException | SQLException e) {
