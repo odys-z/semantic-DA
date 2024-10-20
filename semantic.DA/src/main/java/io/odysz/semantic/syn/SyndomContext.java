@@ -11,11 +11,11 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author ody
  *
  */
-public class SyndomContext {
+class SyndomContext {
 
-	public final String synode;
-	public final String domain;
-	public final String synconn;
+	final String synode;
+	final String domain;
+	final String synconn;
 
 	Nyquence stamp;
 	ReentrantLock stamplock;
