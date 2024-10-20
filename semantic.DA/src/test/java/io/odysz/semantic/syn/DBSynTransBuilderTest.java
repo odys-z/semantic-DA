@@ -4,6 +4,8 @@ import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.syn.Docheck.ck;
+import static io.odysz.semantic.syn.Docheck.printChangeLines;
+import static io.odysz.semantic.syn.Docheck.printNyquv;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static io.odysz.semantic.syn.DBSyntableTest.*;
 import java.io.File;
@@ -102,6 +104,10 @@ class DBSynTransBuilderTest {
 
 		String phid = ins.resulve(phm, -1);
 		String chid = ins.resulve(synb.chgm, -1);
+
+
+		printChangeLines(ck);
+		printNyquv(ck);
 		
 		ck[0].doc(1);
 		ck[0].change_doclog(1, CRUD.C, null);

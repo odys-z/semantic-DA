@@ -62,7 +62,6 @@ import io.odysz.transact.x.TransException;
 * 
 * @author Ody
 */
-//@Disabled("Only after experimental branches merged.")
 public class DBSyntableTest {
 	public static final String[] conns;
 	public static final String[] testers;
@@ -147,8 +146,6 @@ public class DBSyntableTest {
 			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn); //.replace();
 
 			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
-			// phm.replace();
-			// DBSynTransBuilder.registerEntity(conn, phm);
 
 			ArrayList<String> sqls = new ArrayList<String>();
 			sqls.add("delete from oz_autoseq;");
@@ -176,7 +173,6 @@ public class DBSyntableTest {
 			Docheck.ck[s] = new Docheck(new AssertImpl(), s != W ? zsu : null, conn, synodes[s],
 					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm);
 			
-			// ck[s].synm = snm;
 			if (s != W)
 				Docheck.ck[s].trb.incNyquence0();
 		}

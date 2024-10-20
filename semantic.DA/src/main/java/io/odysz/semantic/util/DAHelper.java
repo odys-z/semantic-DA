@@ -135,6 +135,14 @@ public class DAHelper {
 		return getNyquence(trb, trb.synconn(), trb.synm, trb.synm.nyquence, where_eqs);
 	}
 
+	/**
+	 * Load stamp form synode table.
+	 * 
+	 * @param trb
+	 * @return
+	 * @throws SQLException
+	 * @throws TransException
+	 */
 	public static Nyquence getNstamp(DBSyntableBuilder trb)
 			throws SQLException, TransException {
 		return getNyquence(trb, trb.synconn(), trb.synm, trb.synm.nstamp, trb.synm.synoder, trb.synode());

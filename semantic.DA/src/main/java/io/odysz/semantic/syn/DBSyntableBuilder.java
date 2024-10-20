@@ -772,38 +772,8 @@ public class DBSyntableBuilder extends DATranscxt {
 					entm, synoder, hittings, updcols)
 			.u(instancontxt(synconn(), synrobot()))
 			.resulve(chgm.tbl, chgm.pk, -1);
-
-		/*
-		return DBSynmantics
-			.logChange(this, update(entm.tbl, synrobot())
-						.nvs((Object[])nvs)
-						.whereEq(entm.synuid, synuid),
-					entm, synoder,
-					null, // new ArrayList<String>() {{add(synuid);}},
-					updcols)
-			.u(instancontxt(synconn(), synrobot()))
-			.resulve(chgm.tbl, chgm.pk, -1);
-		*/
 	}
 	
-//	public static void registerEntity(String conn, SyntityMeta m)
-//			throws SemanticException, TransException, SQLException {
-//		if (entityRegists == null)
-//			entityRegists = new HashMap<String, HashMap<String, SyntityMeta>>();
-//		if (!entityRegists.containsKey(conn))
-//			entityRegists.put(conn, new HashMap<String, SyntityMeta>());
-//
-//		entityRegists.get(conn).put(m.tbl, (SyntityMeta) m.clone(Connects.getMeta(conn, m.tbl)));
-//	}
-//	
-//	public SyntityMeta getEntityMeta(String entbl) throws SemanticException {
-//		if (entityRegists == null || !entityRegists.containsKey(synconn())
-//			|| !entityRegists.get(synconn()).containsKey(entbl))
-//			throw new SemanticException("Register %s first.", entbl);
-//			
-//		return entityRegists.get(synconn()).get(entbl);
-//	}
-
 	/**
 	 * Inc my n0, then reload from DB.
 	 * @return this
@@ -822,23 +792,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		
 		return this;
 	}
-	
-//	@Override
-//	public ISemantext instancontxt(String conn, IUser usr) throws TransException {
-//		try {
-//			ISemantext syntext = new DBSyntext(conn, synode(),
-//					// debug note: class cast exception will raise if connection is not correct.
-//					initConfigs(conn, loadSemantics(conn), 
-//						(c) -> new DBSynTransBuilder.SynmanticsMap(synode(), c)),
-//					usr, runtimepath).creator(this);
-//
-//			// stamp = getNstamp(this);
-//			return syntext;
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			throw new TransException(e.getMessage());
-//		}
-//	}
 	
 	/**
 	 * Set n-stamp, then create a request package.
@@ -908,17 +861,17 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	public ExchangeBlock domainitMe(ExessionPersist cp, String admin, String adminserv,
-			String domain, ExchangeBlock domainstatus) throws TransException, SQLException {
+			String domain, ExchangeBlock domainof) throws TransException, SQLException {
 		
 		if (!isblank(domain()))
 			throw new ExchangeException(setupDom, cp, "Domain must not be null for updating %s.%s.",
 					synm.tbl, synm.domain);
 		domain(domain);
 
-		Nyquence mxn = domainstatus.nv.get(admin); 
+		Nyquence mxn = domainof.nv.get(admin); 
 
-		if (domainstatus.synodes != null) {
-			AnResultset ns = domainstatus.synodes.beforeFirst();
+		if (domainof.synodes != null) {
+			AnResultset ns = domainof.synodes.beforeFirst();
 			cp.nyquvect = new HashMap<String, Nyquence>(ns.getRowCount());
 
 			while (ns.next()) {
@@ -937,7 +890,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				}
 				else {
 					Synode n = new Synode(ns, synm);
-					mxn = maxn(domainstatus.nv);
+					mxn = maxn(domainof.nv);
 					n.insert(synm, ns.getString(synm.synuid), mxn, insert(synm.tbl, synrobot()))
 					 .nv(synm.jserv, adminserv)
 					 .ins(instancontxt(synconn(), synrobot()));
@@ -947,7 +900,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			}
 		}
 
-		return new ExchangeBlock(domain, synode(), admin, domainstatus.session,
+		return new ExchangeBlock(domain, synode(), admin, domainof.session,
 				new ExessionAct(ExessionAct.mode_client, setupDom))
 				.nv(cp.nyquvect);
 	}
