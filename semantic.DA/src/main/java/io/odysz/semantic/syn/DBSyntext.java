@@ -3,11 +3,9 @@ package io.odysz.semantic.syn;
 import java.sql.SQLException;
 
 import io.odysz.semantic.DASemantext;
-import io.odysz.semantic.DATranscxt;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
-import io.odysz.transact.sql.Transcxt;
 
 /**
  * Used by {@link DBSyntableBuilder}.
@@ -17,7 +15,6 @@ import io.odysz.transact.sql.Transcxt;
 public class DBSyntext extends DASemantext {
 
 	public final String synode;
-//	private DATranscxt creator;
 
 	protected DBSyntext(String connId, String synodeId, DBSynTransBuilder.SynmanticsMap metas, IUser usr, String rtPath)
 			throws SemanticException, SQLException {
@@ -47,16 +44,4 @@ public class DBSyntext extends DASemantext {
 			return null; // meta is null? how could it be?
 		}
 	}
-
-//	@SuppressWarnings("unchecked")
-//	@Override
-//	public DATranscxt synbuilder() {
-//		return creator;
-//	}
-//
-//	@Override
-//	public <B extends Transcxt> ISemantext creator(B semantext) {
-//		creator = (DATranscxt) semantext;
-//		return this;
-//	}
 }
