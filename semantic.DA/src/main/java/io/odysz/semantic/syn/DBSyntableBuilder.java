@@ -911,7 +911,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			String domain, ExchangeBlock domainstatus) throws TransException, SQLException {
 		
 		if (!isblank(domain()))
-			throw new ExchangeException(setupDom, cp, "Domain must not be null for updating %s.%s.",
+			throw new ExchangeException(setupDom, cp, "Domain must be null before creating %s.%s.",
 					synm.tbl, synm.domain);
 		domain(domain);
 
