@@ -44,7 +44,6 @@ import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.QueryPage;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.parts.Logic.op;
-import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
@@ -56,6 +55,7 @@ import io.odysz.transact.x.TransException;
  * @author Ody
  */
 public class ExessionPersist {
+	final SyndomContext synx;
 	final SynChangeMeta chgm;
 	final SynSubsMeta subm;
 	final SynchangeBuffMeta exbm;
@@ -100,7 +100,7 @@ public class ExessionPersist {
 				break; // FIXME continue? Or throw?
 	
 			// SyntityMeta entm = trb.getEntityMeta(rply.getString(chgm.entbl));
-			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(trb.synconn(), rply.getString(chgm.entbl));
+			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(synx.synconn, rply.getString(chgm.entbl));
 
 			String change = rply.getString(ChangeLogs.ChangeFlag);
 			HashMap<String, AnResultset> entbuf = entities;
@@ -117,7 +117,7 @@ public class ExessionPersist {
 				Utils.warnT(new Object() {},
 						"Missing entity. This happens when the entity is deleted locally.\n" +
 						"entity name: %s\tsynode(peer): %s\tsynode(local): %s\tentity id(by peer): %s",
-						entm.tbl, srcnode, trb.synode(), rsynuid);
+						entm.tbl, srcnode, synx.synode, rsynuid);
 				continue;
 			}
 				
@@ -157,14 +157,9 @@ public class ExessionPersist {
 		ArrayList<String> sqls = new ArrayList<String>();
 		for (Statement<?> s : stats)
 			s.commit(sqls, trb.synrobot());
-		Connects.commit(trb.synconn(), trb.synrobot(), sqls);
+		Connects.commit(synx.synconn, trb.synrobot(), sqls);
 		
 		return this;
-	}
-
-	@SuppressWarnings("unused")
-	private Statement<?> WHAT() throws SemanticException {
-		throw new SemanticException("TODO FIXME!");
 	}
 
 	/**
@@ -184,19 +179,18 @@ public class ExessionPersist {
 
 		changes.beforeFirst();
 
-		HashSet<String> missings = new HashSet<String>(nyquvect.keySet());
+		HashSet<String> missings = new HashSet<String>(synx.nv.keySet());
 		missings.removeAll(srcnv.keySet());
-		missings.remove(trb.synode());
+		missings.remove(synx.synode);
 
 		if (debug)
-			Utils.logT(new Object() {}, "\n[%1$s <- %2$s] : %1$s saving changes to local entities...", trb.synode(), peer);
+			Utils.logT(new Object() {}, "\n[%1$s <- %2$s] : %1$s saving changes to local entities...", synx.synode, peer);
 
 		while (changes.next()) {
 			String change = changes.getString(chgm.crud);
 			Nyquence chgnyq = getn(changes, chgm.nyquence);
 
-			// SyntityMeta entm = trb.getEntityMeta(changes.getString(chgm.entbl));
-			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(trb.synconn(), changes.getString(chgm.entbl));
+			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(synx.synconn, changes.getString(chgm.entbl));
 
 			String synodr = changes.getString(chgm.synoder);
 			String chuids = changes.getString(chgm.uids);
@@ -208,7 +202,7 @@ public class ExessionPersist {
 				Utils.warnT(new Object() {},
 						"Missing entity. This happens when the peer has updated then deletd the entity.\n" +
 						"entity name: %s\tsynode(answering): %s\tsynode(local): %s\tentity uid(by challenge): %s",
-						entm.tbl, peer, trb.synode(), chuids);
+						entm.tbl, peer, synx.synode, chuids);
 				continue;
 			}
 			
@@ -222,16 +216,16 @@ public class ExessionPersist {
 
 			while (changes.validx()) {
 				String subsrb = changes.getString(subm.synodee);
-				if (!nyquvect.containsKey(synodr))
+				if (!synx.nv.containsKey(synodr))
 					Utils.warn("This node (%s) don't care changes from %s, and sholdn't be here.",
-							trb.synode(), synodr);
+							synx.synode, synodr);
 
-				if (compareNyq(chgnyq, nyquvect.get(synodr)) > 0
-					&& eq(subsrb, trb.synode()))
+				if (compareNyq(chgnyq, synx.nv.get(synodr)) > 0
+					&& eq(subsrb, synx.synode))
 					iamSynodee = true;
 
-				else if (compareNyq(chgnyq, nyquvect.get(synodr)) > 0
-					&& !eq(subsrb, trb.synode()))
+				else if (compareNyq(chgnyq, synx.nv.get(synodr)) > 0
+					&& !eq(subsrb, synx.synode))
 					subscribeUC.add(trb.insert(subm.tbl)
 						.cols(subm.insertCols())
 						.value(subm.insertSubVal(changes))); 
@@ -251,7 +245,7 @@ public class ExessionPersist {
 					.nv(chgm.nyquence, changes.getLong(chgm.nyquence))
 					.nv(chgm.seq, trb.incSeq()).nv(chgm.uids, chuids)
 					.post(subscribeUC)
-					.post(del0subchange(entm, domain, synodr, chuids, chgid, trb.synode()));
+					.post(del0subchange(entm, domain, synodr, chuids, chgid, synx.synode));
 
 			if (iamSynodee || subscribeUC.size() > 0) {
 				stats.add(
@@ -285,7 +279,7 @@ public class ExessionPersist {
 		for (Statement<?> s : stats)
 			if (s != null)
 				s.commit(sqls, trb.synrobot());
-		Connects.commit(trb.synconn(), trb.synrobot(), sqls);
+		Connects.commit(synx.synconn, trb.synrobot(), sqls);
 		
 		return this;
 	}
@@ -314,22 +308,23 @@ public class ExessionPersist {
 	 */
 	public  ExessionPersist(DBSyntableBuilder tb, String peer, ExchangeBlock ini) {
 
-		if (tb != null && eq(tb.synode(), peer))
+		if (tb != null && eq(tb.syndomx.synode, peer))
 			Utils.warn("Creating persisting context for local builder, i.e. peer(%s) = this.synode?", peer);;
 
+		this.synx = tb.syndomx;
 		this.trb = tb.xp(this);
-		this.exbm = tb.exbm;
+		this.exbm = synx.exbm;
 		this.session = ini == null ? null : ini.session;
 		this.peer = peer;
-		this.chgm = tb.chgm;
-		this.subm = tb.subm;
-		this.synm = tb.synm;
-		this.sysm = new SynSessionMeta(tb.synconn());
-		this.pnvm = tb.pnvm;
+		this.chgm = synx.chgm;
+		this.subm = synx.subm;
+		this.synm = synx.synm;
+		this.sysm = new SynSessionMeta(synx.synconn);
+		this.pnvm = synx.pnvm;
 		this.exstate = new ExessionAct(mode_server, ready);
 		this.chsize = 480;
 
-		debug = trb == null ? true : Connects.getDebug(trb.synconn());
+		debug = trb == null ? true : Connects.getDebug(synx.synconn);
 	}
 
 	/**
@@ -340,14 +335,15 @@ public class ExessionPersist {
 	 * @throws TransException
 	 */
 	public ExchangeBlock signup(String admin) throws SQLException, TransException {
-		nyquvect = loadNyquvect(trb);
+		// nyquvect = synx.loadNyquvect(trb);
+		synx.loadNvstamp(trb);
 		exstate.state = signup;
 	
-		return new ExchangeBlock(trb.domain(),
-					trb == null ? null : trb.synode(),
+		return new ExchangeBlock(synx.domain,
+					trb == null ? null : synx.synode,
 					peer, session, exstate)
 				.totalChallenges(1)
-				.synodes(DAHelper.getEntityById(trb, synm, trb.synode()))
+				.synodes(DAHelper.getEntityById(trb, synm, synx.synode))
 				.chpagesize(this.chsize)
 				.seq(this);
 	}
@@ -369,13 +365,14 @@ public class ExessionPersist {
 	 */
 	public ExchangeBlock init() throws TransException, SQLException {
 		if (trb != null) {
-			nyquvect = loadNyquvect(trb);
-			Nyquence dn = nyquvect.get(peer);
+			// nyquvect = loadNyquvect(trb);
+			synx.loadNvstamp(trb);
+			Nyquence dn = synx.nv.get(peer);
 
 			if (dn == null) {
 				throw new ExchangeException(ready, this,
 					"%1$s.init(): %1$s doesn't have knowledge about %2$s.",
-					trb.synode(), peer);
+					synx.synode, peer);
 			}
 		}
 		else 
@@ -386,17 +383,17 @@ public class ExessionPersist {
 		answerSeq = -1;
 
 		if (trb != null)
-			totalChallenges = DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer);
+			totalChallenges = DAHelper.count(trb, synx.synconn, exbm.tbl, exbm.peer, peer);
 		
 		exstate = new ExessionAct(mode_client, init);
 
-		return new ExchangeBlock(trb.domain(),
-				trb == null ? null : trb.synode(),
+		return new ExchangeBlock(synx.domain,
+				trb == null ? null : synx.synode,
 				peer, session, exstate)
 			.totalChallenges(totalChallenges)
 			.chpagesize(this.chsize)
 			.seq(persistarting(peer))
-			.nv(nyquvect);
+			.nv(synx.nv);
 	}
 
 	/**
@@ -409,7 +406,8 @@ public class ExessionPersist {
 	 */
 	public ExchangeBlock onInit(ExchangeBlock ini) throws TransException, SQLException {
 		if (trb != null) {
-			nyquvect = loadNyquvect(trb);
+			// nyquvect = loadNyquvect(trb);
+			synx.loadNvstamp(trb);
 
 			String conn = trb.basictx().connId();
 			int total = ((SemanticObject) trb
@@ -419,7 +417,7 @@ public class ExessionPersist {
 
 			if (total > 0 && debug) {
 				Utils.logi("Changes in buffer for %s -> %s: %s",
-					trb.synode(), peer, total);
+					synx.synode, peer, total);
 			}
 		}
 		else 
@@ -430,18 +428,18 @@ public class ExessionPersist {
 		answerSeq = ini.challengeSeq;
 	
 		if (trb != null) 
-			totalChallenges = DAHelper.count(trb, trb.synconn(), exbm.tbl, exbm.peer, peer);
+			totalChallenges = DAHelper.count(trb, synx.synconn, exbm.tbl, exbm.peer, peer);
 		chsize = ini.chpagesize > 0 ? ini.chpagesize : -1;
 
 		exstate = new ExessionAct(mode_server, init);
 
-		return new ExchangeBlock(trb.domain(),
-					trb == null ? ini.peer : trb.synode(),
+		return new ExchangeBlock(synx.domain,
+					trb == null ? ini.peer : synx.synode,
 					peer, session, exstate)
 				.totalChallenges(totalChallenges)
 				.chpagesize(ini.chpagesize)
 				.seq(persistarting(peer))
-				.nv(nyquvect);
+				.nv(synx.nv);
 	}
 
 	public void clear() { }
@@ -520,7 +518,7 @@ public class ExessionPersist {
 		me.exstate(nextChpage() ? exchange : close);
 
 		return trb == null // null for test
-			? new ExchangeBlock(trb.domain(), rep.peer, peer, session, me.exstate).seq(this)
+			? new ExchangeBlock(synx.domain, rep.peer, peer, session, me.exstate).seq(this)
 			: trb.exchangePage(this, rep);
 	}
 
@@ -546,7 +544,7 @@ public class ExessionPersist {
 				trb.update(exbm.tbl, trb.synrobot())
 					.nv(exbm.pagex, challengeSeq)
 					.whereIn(exbm.changeId, page)
-					.u(trb.instancontxt(trb.synconn(), trb.synrobot()))
+					.u(trb.instancontxt(synx.synconn, trb.synrobot()))
 					;
 			}
 		}
@@ -587,14 +585,14 @@ public class ExessionPersist {
 
 		// exstate.state = exchange;
 
-		return new ExchangeBlock(trb.domain(),
-					trb == null ? rep.peer : trb.synode(),
+		return new ExchangeBlock(synx.domain,
+					trb == null ? rep.peer : synx.synode,
 					peer, session, exstate)
 				.chpage(rs, entities)
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
 				.seq(this)
-				.nv(nyquvect);
+				.nv(synx.nv);
 	}
 
 	ExchangeBlock onExchange(String peer, ExchangeBlock req)
@@ -606,14 +604,14 @@ public class ExessionPersist {
 
 		exstate.state = exchange;
 
-		return new ExchangeBlock(trb.domain(),
+		return new ExchangeBlock(synx.domain,
 					trb == null ? req.peer
-					: trb.synode(), peer, session, exstate)
+					: synx.synode, peer, session, exstate)
 				.chpage(chpage(), entities)
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
 				.seq(this)
-				.nv(nyquvect);
+				.nv(synx.nv);
 	}
 
 	public ExchangeBlock closexchange(ExchangeBlock rep) throws ExchangeException {
@@ -632,9 +630,9 @@ public class ExessionPersist {
 
 			exstate.state = ready;
 
-			return new ExchangeBlock(trb.domain(), 
+			return new ExchangeBlock(synx.domain, 
 						trb == null ? rep.peer
-						: trb.synode(), peer, session, new ExessionAct(exstate.exmode, close))
+						: synx.synode, peer, session, new ExessionAct(exstate.exmode, close))
 					.totalChallenges(totalChallenges)
 					.chpagesize(this.chsize)
 					.seq(this);
@@ -643,7 +641,7 @@ public class ExessionPersist {
 			try {
 				trb.delete(exbm.tbl, trb.synrobot())
 					.whereEq(exbm.peer, peer)
-					.d(trb.instancontxt(trb.synconn(), trb.synrobot()));
+					.d(trb.instancontxt(synx.synconn, trb.synrobot()));
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
 			}
@@ -662,8 +660,8 @@ public class ExessionPersist {
 
 			exstate.state = ready;
 
-			return new ExchangeBlock(trb.domain(),
-						trb == null ? null : trb.synode(),
+			return new ExchangeBlock(synx.domain,
+						trb == null ? null : synx.synode,
 						peer, session, new ExessionAct(exstate.exmode, close))
 					.totalChallenges(totalChallenges)
 					.chpagesize(this.chsize)
@@ -672,7 +670,7 @@ public class ExessionPersist {
 			try {
 				trb.delete(exbm.tbl, trb.synrobot())
 					.whereEq(exbm.peer, peer)
-					.d(trb.instancontxt(trb.synconn(), trb.synrobot()));
+					.d(trb.instancontxt(synx.synconn, trb.synrobot()));
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
 			}
@@ -693,8 +691,8 @@ public class ExessionPersist {
 		exstate.state = restore;
 		// expAnswerSeq = challengeSeq; // see nextChpage()
 
-		return new ExchangeBlock(trb.domain(),
-					trb == null ? null : trb.synode(),
+		return new ExchangeBlock(synx.domain,
+					trb == null ? null : synx.synode,
 					peer, session, exstate)
 				.requirestore()
 				.totalChallenges(totalChallenges)
@@ -713,7 +711,7 @@ public class ExessionPersist {
 //			// previous request has been lost
 //			onExchange(peer, req);
 //		
-//		return new ExchangeBlock(trb == null ? req.peer : trb.synode(), peer, session, exstate)
+//		return new ExchangeBlock(trb == null ? req.peer : synx.synode, peer, session, exstate)
 //			.requirestore()
 //			.totalChallenges(totalChallenges)
 //			.chpagesize(this.chsize)
@@ -728,18 +726,25 @@ public class ExessionPersist {
 	public String[] ssinf;
 
 	/** Nyquence vector {synode: Nyquence}*/
-	HashMap<String, Nyquence> nyquvect;
-	public Nyquence n0() { return nyquvect.get(trb.synode()); }
-	protected ExessionPersist n0(Nyquence nyq) throws TransException, SQLException {
-		if (Nyquence.compareNyq(nyquvect.get(trb.synode()), nyq) != 0) {
-			nyquvect.put(trb.synode(), new Nyquence(nyq.n));
-			DAHelper.updateFieldWhereEqs(trb, trb.synconn(), trb.synrobot(), synm,
-				synm.nyquence, nyq.n,
-				synm.pk, trb.synode(),
-				synm.domain, trb.domain());
-		}
-		return this;
-	}
+	// HashMap<String, Nyquence> nyquvect;
+	 public Nyquence n0() { return synx.nv.get(synx.synode); }
+//	public Nyquence n0() { return synx.nv.get(synx.synode); }
+//
+//	protected ExessionPersist n0(Nyquence nyq) throws TransException, SQLException {
+//		synx.n0(nyq);
+//		return this;
+//	}
+
+//	protected ExessionPersist n0(Nyquence nyq) throws TransException, SQLException {
+//		if (Nyquence.compareNyq(nyquvect.get(synx.synode), nyq) != 0) {
+//			nyquvect.put(synx.synode, new Nyquence(nyq.n));
+//			DAHelper.updateFieldWhereEqs(trb, synx.synconn, trb.synrobot(), synm,
+//				synm.nyquence, nyq.n,
+//				synm.pk, synx.synode,
+//				synm.domain, synx.domain);
+//		}
+//		return this;
+//	}
 	
 	/**
 	 * this.n0++, this.n0 = max(n0, maxn)
@@ -747,14 +752,15 @@ public class ExessionPersist {
 	 * @return n0
 	 * @throws SQLException 
 	 * @throws TransException 
-	 */
 	public Nyquence incN0(Nyquence... nomoreThan) throws TransException, SQLException {
-		n0().inc(isNull(nomoreThan) ? nyquvect.get(trb.synode()).n : nomoreThan[0].n);
-		DAHelper.updateFieldByPk(trb, trb.synconn(), synm, trb.synode(),
+		n0().inc(isNull(nomoreThan) ? synx.nv.get(synx.synode).n : nomoreThan[0].n);
+		DAHelper.updateFieldByPk(trb, synx.synconn, synm, synx.synode,
 				synm.nyquence, new ExprPart(n0().n), trb.synrobot());
 		return n0();
 	}
+	 */
 	
+	/*
 	public ExessionPersist loadNyquvect(String conn) throws SQLException, TransException {
 		nyquvect = loadNyquvect(trb);
 		return this;
@@ -778,6 +784,7 @@ public class ExessionPersist {
 		}
 		return nyquvect;
 	}
+	*/
 	
 
 	/**
@@ -798,21 +805,21 @@ public class ExessionPersist {
 				.je_(exbm.tbl, "bf", chgm.pk, exbm.changeId, "bf." + exbm.peer, constr(peer), constVal(challengeSeq), exbm.pagex)
 				.col(chgm.entbl)
 				.groupby(chgm.entbl)
-				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
+				.rs(trb.instancontxt(synx.synconn, trb.synrobot()))
 				.rs(0);
 
 		while (entbls.next()) {
 			String tbl = entbls.getString(chgm.entbl);
 
 			// SyntityMeta entm = trb.getSyntityMeta(tbl);
-			SyntityMeta entm = eq(tbl, synm.tbl) ? synm : Syntities.get(trb.synconn()).meta(tbl);
+			SyntityMeta entm = eq(tbl, synm.tbl) ? synm : Syntities.get(synx.synconn).meta(tbl);
 
 			AnResultset entities = ((AnResultset) entm
 				.onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId,
 					 constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
-				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
+				.rs(trb.instancontxt(synx.synconn, trb.synrobot()))
 				.rs(0))
 				.index0(entm.synuid);
 			
@@ -828,7 +835,7 @@ public class ExessionPersist {
 			.orderby(chgm.synoder)
 			.orderby(chgm.entbl)
 			.orderby(chgm.seq)
-			.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
+			.rs(trb.instancontxt(synx.synconn, trb.synrobot()))
 			.rs(0);
 	}
 
@@ -858,7 +865,7 @@ public class ExessionPersist {
 				.nv(sysm.mode,  exstate.exmode)
 				.nv(sysm.state, exstate.state)
 				.whereEq(sysm.peer, peer)
-				.u(trb.instancontxt(trb.synconn(), trb.synrobot()));
+				.u(trb.instancontxt(synx.synconn, trb.synrobot()));
 		}
 		return this;
 	}
@@ -875,7 +882,7 @@ public class ExessionPersist {
 			trb.delete(sysm.tbl, trb.synrobot())
 				.whereEq(sysm.peer, peer)
 				.post(sysm.insertSession(trb.insert(sysm.tbl), peer))
-				.d(trb.instancontxt(trb.synconn(), trb.synrobot()));
+				.d(trb.instancontxt(synx.synconn, trb.synrobot()));
 		}
 		return this;
 	}

@@ -57,4 +57,10 @@ public class DBSynmantext extends DASemantext implements ISyncontext {
 		creator = (DATranscxt) semantext;
 		return this;
 	}
+
+	@Override
+	public SyndomContext syndomContext() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

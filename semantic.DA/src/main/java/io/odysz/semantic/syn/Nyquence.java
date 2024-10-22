@@ -60,6 +60,11 @@ public class Nyquence {
 		return this;
 	}
 
+	public Nyquence add(int inc) {
+		n += inc;
+		return this;
+	}
+
 	@Override
 	public String toString() {
 		return String.valueOf(n);

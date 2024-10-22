@@ -87,7 +87,8 @@ class DBSynTransBuilderTest {
 			Docheck.ck[0] = new Docheck(new AssertImpl(), zsu, conn, synodes[0],
 									SynodeMode.peer, phm);
 			
-			DBSyntableBuilder logger = Docheck.ck[0].trb.incNyquence0();
+			DBSyntableBuilder logger = Docheck.ck[0].synb;
+			logger.incN0();
 
 		
 		DBSynTransBuilder synb= new DBSynTransBuilder(zsu, conn, synodes[0], "syntity-0.json", SynodeMode.peer, logger);
