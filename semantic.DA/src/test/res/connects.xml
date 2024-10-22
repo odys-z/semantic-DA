@@ -20,6 +20,20 @@
   	</c>
 
   	<c>
+  		<id>queued-sqlite</id>
+  		<type>sqlit_queue</type>
+  		<isdef></isdef>
+  		<!-- For sqlite, src = relative path from this configure file.
+  			So connection string can be: jdbc:sqlite:WEB-INF/remote.db -->
+  		<src>semantic-DA.db</src>
+  		<usr>queue</usr>
+  		<pswd>queue</pswd>
+  		<!-- enable sql printing -->
+  		<dbg></dbg>
+  		<smtcs>semantics.xml</smtcs>
+  	</c>
+
+  	<c>
   		<id>log</id>
   		<type>sqlite</type>
   		<isdef></isdef>
@@ -31,45 +45,9 @@
   		<smtcs>semantic-log.xml</smtcs>
   	</c>
 
-  	<!-- error
-   	<c>
-  		<id>synode-sqlite</id>
-  		<type>sqlite</type>
-  		<isdef>false</isdef>
-  		<src>synode.db</src>
-  		<usr>test</usr>
-  		<pswd>test</pswd>
-  		<dbg>true</dbg>
-  		<smtcs>synmantics.xml</smtcs>
-  	</c>
-  	 -->
-
-  	<!-- connection examples
-	<c>
-  		<id>local-mysql</id>
-  		<type>mysql</type>
-  		<isdef></isdef>
-  		<src>jdbc:mysql://[host]:3306/[mysql-db]?characterEncoding=utf8</src>
-  		<usr>???</usr>
-  		<pswd>*******</pswd>
-  		<dbg>true</dbg>
-  		<smtcs>src/test/res/semantics.xml</smtcs>
-  	</c>
-
-	<c>
-  		<id>local-orcl</id>
-  		<type>oracle</type>
-  		<isdef></isdef>
-  		<src>jdbc:oracle:thin:@[host]:1521:[orcl]</src>
-  		<usr>???</usr>
-  		<pswd>*******</pswd>
-  		<dbg>true</dbg>
-  		<smtcs>src/test/res/semantics.xml</smtcs>
-	</c> -->
-
 	<c>
 		<id>syn.00</id>
-  		<type>sqlite</type>
+  		<type>sqlit_queue</type>
   		<isdef></isdef>
   		<src>syn.00</src>
   		<usr></usr>
@@ -79,17 +57,17 @@
 	</c>
 	<c>
 		<id>syn.01</id>
-  		<type>sqlite</type>
+  		<type>sqlit_queue</type>
   		<isdef></isdef>
   		<src>syn.01</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg>1</dbg>
+  		<dbg></dbg>
   		<smtcs>synmantics-syntabuilder.xml</smtcs>
 	</c>
 	<c>
 		<id>syn.02</id>
-  		<type>sqlite</type>
+  		<type>sqlit_queue</type>
   		<isdef></isdef>
   		<src>syn.02</src>
   		<usr></usr>
@@ -99,7 +77,7 @@
 	</c>
 	<c>
 		<id>syn.03</id>
-  		<type>sqlite</type>
+  		<type>sqlit_queue</type>
   		<isdef></isdef>
   		<src>syn.03</src>
   		<usr></usr>

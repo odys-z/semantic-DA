@@ -20,6 +20,7 @@ import io.odysz.common.Radix64;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
+import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -60,9 +61,6 @@ public class DASemantext implements ISemantext {
 	/** FIXME Flat auto resolving pool is not enought! */
 	private SemanticObject autoVals;
 	
-	// private List<SemanticObject> autostack;
-	// private int autoStacktop;
-	
 	private static Transcxt rawst;
 
 	/**Semantic Configurations */
@@ -93,7 +91,7 @@ public class DASemantext implements ISemantext {
 	 * @throws SemanticException metas is null
 	 * @throws SQLException 
 	 */
-	protected DASemantext(String connId, SemanticsMap semanticsMap,
+	public DASemantext(String connId, SemanticsMap semanticsMap,
 			IUser usr, String rtPath) throws SemanticException, SQLException {
 		basePath = rtPath;
 		this.connId = connId;
@@ -230,15 +228,6 @@ public class DASemantext implements ISemantext {
 		return autoVals;
 	}
 
-	
-	/*
-	public ISemantext reset() {
-		if (autoVals != null)
-			autoVals.clear();
-		return this;
-	}
-	 */
-
 	///////////////////////////////////////////////////////////////////////////
 	// auto ID
 	///////////////////////////////////////////////////////////////////////////
@@ -266,20 +255,6 @@ public class DASemantext implements ISemantext {
 
 		return newv;
 	}
-	
-//	@Override
-//	public ISemantext beginPostCommit(String parentName) {
-//		autoStacktop++;
-//		if (autostack != null && autostack.size() < autoStacktop)
-//			autostack.add(new SemanticObject());
-//		return this;
-//	}
-//
-//	@Override
-//	public ISemantext endPostCommit() {
-//		autoStacktop--;
-//		return this;
-//	}
 	
 	/**Generate new Id with the help of db function f_incSeq(varchar idName)<br>
 	 * Sql script for stored function:<br>
@@ -434,9 +409,9 @@ end;
 		lock.lock();
 		try {
 			// for efficiency
-			Connects.commit(conn, sqliteDumyUser, sqls, Connects.flag_nothing);
+			Connects.commit(conn, sqliteDumyUser, sqls, AbsConnect.flag_nothing);
 
-			rs = Connects.select(conn, q.sql(null), Connects.flag_nothing);
+			rs = Connects.select(conn, q.sql(null), AbsConnect.flag_nothing);
 		} finally { lock.unlock();}
 
 		if (rs.getRowCount() <= 0)

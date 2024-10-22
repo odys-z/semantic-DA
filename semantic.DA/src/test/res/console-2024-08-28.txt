@@ -1,5 +1,7 @@
-[io.odysz.semantic.syn.DBSyntableBuilder] Synchrnizer builder (id W) created without domain specified
-Replacing existing Semantic table meta with new meta. Old: io.odysz.semantic.syn.T_PhotoMeta, new io.odysz.semantic.syn.T_PhotoMeta
+[io.odysz.semantic.DATranscxt#initConfigs()] Loading semantics of connection syn.00
+[io.odysz.semantic.DATranscxt#initConfigs()] Loading semantics of connection syn.01
+[io.odysz.semantic.DATranscxt#initConfigs()] Loading semantics of connection syn.02
+[io.odysz.semantic.DATranscxt#initConfigs()] Loading semantics of connection syn.03
       X    Y    Z    W
 X [   1,   0,   0,     ]
 Y [   0,   1,   0,     ]
@@ -65,9 +67,9 @@ row count: 2
 1 : 0  2 : Y.000001  3 : zsu  4 : h_photos  5 : I  6 : Y  7 : Y,000401  8 : 1  9 : null  10 : 1  11 : Z  
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 000401  2 :   3 : rob-Y  4 : Ukraine.png  5 : ... 6 : null  7 : Y  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : Y,000401  17 : rob-Y  18 : 2024-07-08 04:34:50  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-08-06 04:54:01  5 : 0  6 :   7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-08-06  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Y  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  X.000001  X,000021  1  Z [Y:-1] |                                    |                                    |                                    
@@ -96,9 +98,9 @@ row count: 2
 1 : 0  2 : X.000001  3 : zsu  4 : h_photos  5 : I  6 : X  7 : X,000021  8 : 1  9 : null  10 : 1  11 : Z  
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 000021  2 :   3 : rob-X  4 : Ukraine.png  5 : ... 6 : null  7 : X  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : X,000021  17 : rob-X  18 : 2024-07-08 04:34:50  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-08-06 04:54:00  5 : 0  6 :   7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-08-06  11 : pub  12 : X  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
 answer page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	12 : change	
 row count: 1
@@ -130,9 +132,9 @@ challenge page:
 row count: 0
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 000401  2 :   3 : rob-Y  4 : Ukraine.png  5 : ... 6 : null  7 : Y  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : Y,000401  17 : rob-Y  18 : 2024-07-08 04:34:50  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-08-06 04:54:01  5 : 0  6 :   7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-08-06  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Y  16 : null  
 answer page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	12 : change	
 row count: 1
@@ -163,9 +165,9 @@ challenge page:
 row count: 0
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 000021  2 :   3 : rob-X  4 : Ukraine.png  5 : ... 6 : null  7 : X  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : X,000021  17 : rob-X  18 : 2024-07-08 04:34:50  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-08-06 04:54:00  5 : 0  6 :   7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-08-06  11 : pub  12 : X  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  X.000001  X,000021  1  Z [ Y:0] | I  X.000001  X,000021  1  Z [    ] |                                    |                                    
@@ -272,9 +274,9 @@ row count: 1
 1 : 0  2 : Y.000001  3 : zsu  4 : h_photos  5 : I  6 : Y  7 : Y,000401  8 : 1  9 : null  10 : 1  11 : Z  
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 000401  2 :   3 : rob-Y  4 : Ukraine.png  5 : ... 6 : null  7 : Y  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : Y,000401  17 : rob-Y  18 : 2024-07-08 04:34:50  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-08-06 04:54:01  5 : 0  6 :   7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-08-06  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Y  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  X.000001  X,000021  1  Z [    ] | I  X.000001  X,000021  1  Z [    ] |                                    |                                    
@@ -326,9 +328,9 @@ challenge page:
 row count: 0
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 000401  2 :   3 : rob-Y  4 : Ukraine.png  5 : ... 6 : null  7 : Y  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : Y,000401  17 : rob-Y  18 : 2024-07-08 04:34:50  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-08-06 04:54:01  5 : 0  6 :   7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-08-06  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Y  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  X.000001  X,000021  1  Z [    ] | I  X.000001  X,000021  1  Z [    ] |                                    |                                    
@@ -471,10 +473,9 @@ W [    ,    ,    ,   0 ]
 2.1.1 sign up by W
 __________________
 
-Creating persisting context for local builder, i.e. peer(W) = this.synode?
+
 2.1.2 Y on sign up
 __________________
-
 
 
 2.1.3 sign up by Y : null
@@ -486,7 +487,7 @@ _________________________
                                     | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
 X [   4,   3,   2,     ]
-Y [   2,   4,   2,   0 ]
+Y [   2,   4,   2,   4 ]
 Z [   1,   2,   3,     ]
 W [    ,    ,    ,   0 ]
 
@@ -500,9 +501,9 @@ _______________________
                                     | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
 X [   4,   3,   2,     ]
-Y [   2,   4,   2,   0 ]
+Y [   2,   4,   2,   4 ]
 Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+W [    ,   4,    ,   0 ]
 
 2.1.5 Y ack initiation
 ______________________
@@ -513,9 +514,9 @@ ______________________
                                     | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
 X [   4,   3,   2,     ]
-Y [   2,   4,   2,   0 ]
+Y [   2,   4,   2,   4 ]
 Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+W [    ,   4,    ,   0 ]
 
 2.1.6 W closing application
 ___________________________
@@ -526,9 +527,9 @@ ___________________________
                                     | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
 X [   4,   3,   2,     ]
-Y [   2,   4,   2,   0 ]
+Y [   2,   4,   2,   4 ]
 Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+W [    ,   4,    ,   5 ]
 
 2.1.7 Y on closing
 __________________
@@ -539,15 +540,13 @@ __________________
                                     | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
 X [   4,   3,   2,     ]
-Y [   2,   4,   2,   0 ]
+Y [   2,   5,   2,   4 ]
 Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+W [    ,   4,    ,   5 ]
 
 2.2 X vs Y
 ----------
 
-Replacing existing Semantic table meta with new meta. Old: io.odysz.semantic.meta.SynodeMeta, new io.odysz.semantic.meta.SynodeMeta
-Replacing existing Semantic table meta with new meta. Old: io.odysz.semantic.meta.SynodeMeta, new io.odysz.semantic.meta.SynodeMeta
 
 2.2.1 Y initiate
 ________________
@@ -585,18 +584,18 @@ row count: 2
 1 : 0  2 : Y.000002  3 : zsu  4 : syn_node  5 : I  6 : Y  7 : Y,W  8 : 4  9 : null  10 : 1  11 : Z  
 entities:
 	name: syn_node
-1 : org	2 : synid	3 : nyq	4 : nstamp	5 : domain	6 : remarks	7 : mac	8 : oper	9 : optime	10 : io_oz_synuid	
+1 : optime	2 : org	3 : nyq	4 : domain	5 : nstamp	6 : oper	7 : synid	8 : remarks	9 : mac	10 : io_oz_synuid	
 row count: 1
-1 : URA  2 : W  3 : 4  4 : 0  5 : zsu  6 : null  7 : #W  8 : null  9 : null  10 : Y,W  
+1 : null  2 : URA  3 : 4  4 : zsu  5 : 0  6 : null  7 : W  8 : null  9 : #W  10 : Y,W  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
                                     | I  Y.000002       Y,W  4  X [ X:0] |                                    |                                    
                                     | I  Y.000002       Y,W  4  Z [ X:0] |                                    |                                    
       X    Y    Z    W
 X [   4,   3,   2,     ]
-Y [   2,   4,   2,   0 ]
+Y [   2,   5,   2,   4 ]
 Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+W [    ,   4,    ,   5 ]
 
 2.2.3.2 X on exchange
 +++++++++++++++++++++
@@ -619,10 +618,10 @@ row count: 1
                                     | I  Y.000002       Y,W  4  X [ X:0] |                                    |                                    
  I  Y.000002       Y,W  4  Z [    ] | I  Y.000002       Y,W  4  Z [ X:0] |                                    |                                    
       X    Y    Z    W
-X [   4,   3,   2,     ]
-Y [   2,   4,   2,   0 ]
+X [   4,   3,   2,   4 ]
+Y [   2,   5,   2,   4 ]
 Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+W [    ,   4,    ,   5 ]
 
 2.2.3.3 Y exchange
 ++++++++++++++++++
@@ -639,17 +638,17 @@ challenge page:
 row count: 0
 entities:
 	name: syn_node
-1 : org	2 : synid	3 : nyq	4 : nstamp	5 : domain	6 : remarks	7 : mac	8 : oper	9 : optime	10 : io_oz_synuid	
+1 : optime	2 : org	3 : nyq	4 : domain	5 : nstamp	6 : oper	7 : synid	8 : remarks	9 : mac	10 : io_oz_synuid	
 row count: 1
-1 : URA  2 : W  3 : 4  4 : 0  5 : zsu  6 : null  7 : #W  8 : null  9 : null  10 : Y,W  
+1 : null  2 : URA  3 : 4  4 : zsu  5 : 0  6 : null  7 : W  8 : null  9 : #W  10 : Y,W  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  Y.000002       Y,W  4  Z [    ] | I  Y.000002       Y,W  4  Z [ X:0] |                                    |                                    
       X    Y    Z    W
-X [   4,   3,   2,     ]
-Y [   2,   4,   2,   0 ]
+X [   4,   3,   2,   4 ]
+Y [   2,   5,   2,   4 ]
 Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+W [    ,   4,    ,   5 ]
 
 2.2.3.4 X on exchange
 +++++++++++++++++++++
@@ -667,10 +666,10 @@ row count: 0
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  Y.000002       Y,W  4  Z [    ] | I  Y.000002       Y,W  4  Z [ X:0] |                                    |                                    
       X    Y    Z    W
-X [   4,   3,   2,     ]
-Y [   2,   4,   2,   0 ]
+X [   4,   3,   2,   4 ]
+Y [   2,   5,   2,   4 ]
 Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+W [    ,   4,    ,   5 ]
 
 2.2.4 Y closing exchange
 ________________________
@@ -679,10 +678,10 @@ ________________________
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  Y.000002       Y,W  4  Z [    ] | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
-X [   4,   3,   2,     ]
-Y [   4,   5,   2,   4 ]
+X [   4,   3,   2,   4 ]
+Y [   4,   6,   2,   4 ]
 Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+W [    ,   4,    ,   5 ]
 
 2.2.5 X on closing exchange
 ___________________________
@@ -691,35 +690,33 @@ ___________________________
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
  I  Y.000002       Y,W  4  Z [    ] | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
-X [   5,   4,   2,   4 ]
-Y [   4,   5,   2,   4 ]
+X [   6,   5,   2,   4 ]
+Y [   4,   6,   2,   4 ]
 Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+W [    ,   4,    ,   5 ]
 
 2.3 X create photos
 -------------------
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] |                                    |                                    |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    |                                    |                                    
- I  X.000002  X,000022  5  Z [    ] |                                    |                                    |                                    
+ I  X.000002  X,000023  6  W [    ] |                                    |                                    |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    |                                    |                                    
+ I  X.000002  X,000023  6  Z [    ] |                                    |                                    |                                    
  I  Y.000002       Y,W  4  Z [    ] | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
-X [   5,   4,   2,   4 ]
-Y [   4,   5,   2,   4 ]
+X [   6,   5,   2,   4 ]
+Y [   4,   6,   2,   4 ]
 Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+W [    ,   4,    ,   5 ]
 
 2.4 X <= Z
 ----------
 
-Replacing existing Semantic table meta with new meta. Old: io.odysz.semantic.meta.SynodeMeta, new io.odysz.semantic.meta.SynodeMeta
 
 2.4.1 Z initiate
 ________________
 
-Replacing existing Semantic table meta with new meta. Old: io.odysz.semantic.meta.SynodeMeta, new io.odysz.semantic.meta.SynodeMeta
 
 2.4.1.1 Z initiate: changes: 0    entities: 0
 +++++++++++++++++++++++++++++++++++++++++++++
@@ -751,15 +748,15 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [Z:-1] |                                    |                                    |                                    
- I  X.000002  X,000022  5  Y [Z:-1] |                                    |                                    |                                    
- I  X.000002  X,000022  5  Z [Z:-1] |                                    |                                    |                                    
+ I  X.000002  X,000023  6  W [Z:-1] |                                    |                                    |                                    
+ I  X.000002  X,000023  6  Y [Z:-1] |                                    |                                    |                                    
+ I  X.000002  X,000023  6  Z [Z:-1] |                                    |                                    |                                    
  I  Y.000002       Y,W  4  Z [Z:-1] | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
-X [   5,   4,   2,   4 ]
-Y [   4,   5,   2,   4 ]
+X [   6,   5,   2,   4 ]
+Y [   4,   6,   2,   4 ]
 Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+W [    ,   4,    ,   5 ]
 
 2.4.3.2 X on exchange
 +++++++++++++++++++++
@@ -773,35 +770,35 @@ challenge seq: 0	answer-seq -1
 challenge page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
 row count: 4
-1 : 0  2 : X.000002  3 : zsu  4 : h_photos  5 : I  6 : X  7 : X,000022  8 : 5  9 : null  10 : 2  11 : W  
-1 : 0  2 : X.000002  3 : zsu  4 : h_photos  5 : I  6 : X  7 : X,000022  8 : 5  9 : null  10 : 2  11 : Y  
-1 : 0  2 : X.000002  3 : zsu  4 : h_photos  5 : I  6 : X  7 : X,000022  8 : 5  9 : null  10 : 2  11 : Z  
+1 : 0  2 : X.000002  3 : zsu  4 : h_photos  5 : I  6 : X  7 : X,000023  8 : 6  9 : null  10 : 2  11 : W  
+1 : 0  2 : X.000002  3 : zsu  4 : h_photos  5 : I  6 : X  7 : X,000023  8 : 6  9 : null  10 : 2  11 : Y  
+1 : 0  2 : X.000002  3 : zsu  4 : h_photos  5 : I  6 : X  7 : X,000023  8 : 6  9 : null  10 : 2  11 : Z  
 1 : 0  2 : Y.000002  3 : zsu  4 : syn_node  5 : I  6 : Y  7 : Y,W  8 : 4  9 : null  10 : 1  11 : Z  
 entities:
 	name: syn_node
-1 : org	2 : synid	3 : nyq	4 : nstamp	5 : domain	6 : remarks	7 : mac	8 : oper	9 : optime	10 : io_oz_synuid	
+1 : optime	2 : org	3 : nyq	4 : domain	5 : nstamp	6 : oper	7 : synid	8 : remarks	9 : mac	10 : io_oz_synuid	
 row count: 1
-1 : URA  2 : W  3 : 4  4 : 0  5 : zsu  6 : null  7 : #W  8 : null  9 : null  10 : Y,W  
+1 : null  2 : URA  3 : 4  4 : zsu  5 : 0  6 : null  7 : W  8 : null  9 : #W  10 : Y,W  
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 000022  2 :   3 : rob-X  4 : Ukraine.png  5 : ... 6 : null  7 : X  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : X,000022  17 : rob-X  18 : 2024-07-08 04:35:02  
-Z has no idea about W. The change is committed at this node. This can either be automatically fixed or causing data lost later.                  X                 |                  Y                 |                  Z                 |                  W                 
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-08-06 04:54:13  5 : 0  6 :   7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-08-06  11 : pub  12 : X  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
+                  X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [ Z:0] |                                    |                                    |                                    
- I  X.000002  X,000022  5  Y [ Z:0] |                                    |                                    |                                    
- I  X.000002  X,000022  5  Z [ Z:0] |                                    |                                    |                                    
+ I  X.000002  X,000023  6  W [ Z:0] |                                    |                                    |                                    
+ I  X.000002  X,000023  6  Y [ Z:0] |                                    |                                    |                                    
+ I  X.000002  X,000023  6  Z [ Z:0] |                                    |                                    |                                    
  I  Y.000002       Y,W  4  Z [ Z:0] | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
-X [   5,   4,   2,   4 ]
-Y [   4,   5,   2,   4 ]
+X [   6,   5,   2,   4 ]
+Y [   4,   6,   2,   4 ]
 Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+W [    ,   4,    ,   5 ]
 
 2.4.3.3 Z exchange
 ++++++++++++++++++
 
-
+Z has no idea about W. The change is committed at this node. This can either be automatically fixed or causing data lost later.
 
 2.4.3.3.1 Z exchange challenge    changes: 0    entities: 0    answers: 2
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -818,15 +815,15 @@ row count: 2
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [ Z:0] |                                    | I  X.000002  X,000022  5  W [    ] |                                    
- I  X.000002  X,000022  5  Y [ Z:0] |                                    | I  X.000002  X,000022  5  Y [    ] |                                    
- I  X.000002  X,000022  5  Z [ Z:0] |                                    |                                    |                                    
+ I  X.000002  X,000023  6  W [ Z:0] |                                    | I  X.000002  X,000023  6  W [    ] |                                    
+ I  X.000002  X,000023  6  Y [ Z:0] |                                    | I  X.000002  X,000023  6  Y [    ] |                                    
+ I  X.000002  X,000023  6  Z [ Z:0] |                                    |                                    |                                    
  I  Y.000002       Y,W  4  Z [ Z:0] | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
-X [   5,   4,   2,   4 ]
-Y [   4,   5,   2,   4 ]
-Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+X [   6,   5,   2,   4 ]
+Y [   4,   6,   2,   4 ]
+Z [   1,   2,   3,   4 ]
+W [    ,   4,    ,   5 ]
 
 2.4.3.4 X on exchange
 +++++++++++++++++++++
@@ -843,66 +840,64 @@ challenge page:
 row count: 0
 entities:
 	name: syn_node
-1 : org	2 : synid	3 : nyq	4 : nstamp	5 : domain	6 : remarks	7 : mac	8 : oper	9 : optime	10 : io_oz_synuid	
+1 : optime	2 : org	3 : nyq	4 : domain	5 : nstamp	6 : oper	7 : synid	8 : remarks	9 : mac	10 : io_oz_synuid	
 row count: 1
-1 : URA  2 : W  3 : 4  4 : 0  5 : zsu  6 : null  7 : #W  8 : null  9 : null  10 : Y,W  
+1 : null  2 : URA  3 : 4  4 : zsu  5 : 0  6 : null  7 : W  8 : null  9 : #W  10 : Y,W  
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 000022  2 :   3 : rob-X  4 : Ukraine.png  5 : ... 6 : null  7 : X  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : X,000022  17 : rob-X  18 : 2024-07-08 04:35:02  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-08-06 04:54:13  5 : 0  6 :   7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-08-06  11 : pub  12 : X  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [ Z:0] |                                    | I  X.000002  X,000022  5  W [    ] |                                    
- I  X.000002  X,000022  5  Y [ Z:0] |                                    | I  X.000002  X,000022  5  Y [    ] |                                    
+ I  X.000002  X,000023  6  W [ Z:0] |                                    | I  X.000002  X,000023  6  W [    ] |                                    
+ I  X.000002  X,000023  6  Y [ Z:0] |                                    | I  X.000002  X,000023  6  Y [    ] |                                    
                                     | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
-X [   5,   4,   2,   4 ]
-Y [   4,   5,   2,   4 ]
-Z [   1,   2,   3,     ]
-W [    ,   4,    ,   4 ]
+X [   6,   5,   2,   4 ]
+Y [   4,   6,   2,   4 ]
+Z [   1,   2,   3,   4 ]
+W [    ,   4,    ,   5 ]
 
 2.4.4 Z closing exchange
 ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [ Z:0] |                                    | I  X.000002  X,000022  5  W [    ] |                                    
- I  X.000002  X,000022  5  Y [ Z:0] |                                    | I  X.000002  X,000022  5  Y [    ] |                                    
+ I  X.000002  X,000023  6  W [ Z:0] |                                    | I  X.000002  X,000023  6  W [    ] |                                    
+ I  X.000002  X,000023  6  Y [ Z:0] |                                    | I  X.000002  X,000023  6  Y [    ] |                                    
                                     | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
-X [   5,   4,   2,   4 ]
-Y [   4,   5,   2,   4 ]
-Z [   5,   4,   6,   4 ]
-W [    ,   4,    ,   4 ]
+X [   6,   5,   2,   4 ]
+Y [   4,   6,   2,   4 ]
+Z [   6,   5,   7,   4 ]
+W [    ,   4,    ,   5 ]
 
 2.4.5 X on closing exchange
 ___________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] |                                    | I  X.000002  X,000022  5  W [    ] |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    | I  X.000002  X,000022  5  Y [    ] |                                    
+ I  X.000002  X,000023  6  W [    ] |                                    | I  X.000002  X,000023  6  W [    ] |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    | I  X.000002  X,000023  6  Y [    ] |                                    
                                     | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   4,   5,   2,   4 ]
-Z [   5,   4,   6,   4 ]
-W [    ,   4,    ,   4 ]
+X [   7,   5,   6,   4 ]
+Y [   4,   6,   2,   4 ]
+Z [   6,   5,   7,   4 ]
+W [    ,   4,    ,   5 ]
 
-2.4.1 On X-Z: Now Z know W
-__________________________
+2.5 On X-Z: Now Z knows W
+-------------------------
 
 
-2.5 Z vs W
+2.6 Z vs W
 ----------
 
-Replacing existing Semantic table meta with new meta. Old: io.odysz.semantic.meta.SynodeMeta, new io.odysz.semantic.meta.SynodeMeta
 
-2.5.1 W initiate
+2.6.1 W initiate
 ________________
 
-Replacing existing Semantic table meta with new meta. Old: io.odysz.semantic.meta.SynodeMeta, new io.odysz.semantic.meta.SynodeMeta
-[io.odysz.semantic.syn.ExessionPersist.init] ERROR: Me, W, don't have knowledge about Z.
+[io.odysz.semantic.syn.ExessionPersist#init()] ERROR: Me, W, don't have knowledge about Z.
 W#init(), don't have knowledge about Z.
 
 3 testBranchPropagation - must call testJoinChild() first
@@ -913,23 +908,23 @@ W#init(), don't have knowledge about Z.
 -------------------
 
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   4,   5,   2,   4 ]
-Z [   5,   4,   6,   4 ]
-W [    ,   4,    ,   5 ]
+X [   7,   5,   6,   4 ]
+Y [   4,   6,   2,   4 ]
+Z [   6,   5,   7,   4 ]
+W [    ,   4,    ,   6 ]
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] |                                    | I  X.000002  X,000022  5  W [    ] |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    | I  X.000002  X,000022  5  Y [    ] |                                    
-                                    |                                    | I  Z.000001  Z,008001  6  W [    ] |                                    
-                                    |                                    | I  Z.000001  Z,008001  6  X [    ] |                                    
-                                    |                                    | I  Z.000001  Z,008001  6  Y [    ] |                                    
+ I  X.000002  X,000023  6  W [    ] |                                    | I  X.000002  X,000023  6  W [    ] |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    | I  X.000002  X,000023  6  Y [    ] |                                    
+                                    |                                    | I  Z.000001  Z,008003  7  W [    ] |                                    
+                                    |                                    | I  Z.000001  Z,008003  7  X [    ] |                                    
+                                    |                                    | I  Z.000001  Z,008003  7  Y [    ] |                                    
                                     | I  Y.000002       Y,W  4  Z [    ] |                                    |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   4,   5,   2,   4 ]
-Z [   5,   4,   6,   4 ]
-W [    ,   4,    ,   5 ]
+X [   7,   5,   6,   4 ]
+Y [   4,   6,   2,   4 ]
+Z [   6,   5,   7,   4 ]
+W [    ,   4,    ,   6 ]
 
 3.2 Y vs Z
 ----------
@@ -967,29 +962,29 @@ challenge seq: 0	answer-seq -1
 challenge page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
 row count: 5
-1 : 0  2 : X.000002  3 : zsu  4 : h_photos  5 : I  6 : X  7 : X,000022  8 : 5  9 : null  10 : 1  11 : W  
-1 : 0  2 : X.000002  3 : zsu  4 : h_photos  5 : I  6 : X  7 : X,000022  8 : 5  9 : null  10 : 1  11 : Y  
-1 : 0  2 : Z.000001  3 : zsu  4 : h_photos  5 : I  6 : Z  7 : Z,008001  8 : 6  9 : null  10 : 2  11 : W  
-1 : 0  2 : Z.000001  3 : zsu  4 : h_photos  5 : I  6 : Z  7 : Z,008001  8 : 6  9 : null  10 : 2  11 : X  
-1 : 0  2 : Z.000001  3 : zsu  4 : h_photos  5 : I  6 : Z  7 : Z,008001  8 : 6  9 : null  10 : 2  11 : Y  
+1 : 0  2 : X.000002  3 : zsu  4 : h_photos  5 : I  6 : X  7 : X,000023  8 : 6  9 : null  10 : 1  11 : W  
+1 : 0  2 : X.000002  3 : zsu  4 : h_photos  5 : I  6 : X  7 : X,000023  8 : 6  9 : null  10 : 1  11 : Y  
+1 : 0  2 : Z.000001  3 : zsu  4 : h_photos  5 : I  6 : Z  7 : Z,008003  8 : 7  9 : null  10 : 2  11 : W  
+1 : 0  2 : Z.000001  3 : zsu  4 : h_photos  5 : I  6 : Z  7 : Z,008003  8 : 7  9 : null  10 : 2  11 : X  
+1 : 0  2 : Z.000001  3 : zsu  4 : h_photos  5 : I  6 : Z  7 : Z,008003  8 : 7  9 : null  10 : 2  11 : Y  
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 2
-1 : 000022  2 :   3 : rob-X  4 : Ukraine.png  5 : ... 6 : null  7 : X  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : X,000022  17 : rob-Z  18 : 2024-07-08 04:35:04  
-1 : 008001  2 :   3 : rob-Z  4 : Ukraine.png  5 : ... 6 : null  7 : Z  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : Z,008001  17 : rob-Z  18 : 2024-07-08 04:35:05  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-08-06 04:54:15  5 : 0  6 :   7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-08-06  11 : pub  12 : Z  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-08-06 04:54:17  5 : 0  6 :   7 : Z,008003  8 : src/test/res/Ukraine.png  9 : Z  10 : 2024-08-06  11 : pub  12 : Z  13 : zsu  14 : Ukraine.png  15 : Z  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] |                                    | I  X.000002  X,000022  5  W [ Y:0] |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    | I  X.000002  X,000022  5  Y [ Y:0] |                                    
-                                    |                                    | I  Z.000001  Z,008001  6  W [ Y:0] |                                    
-                                    |                                    | I  Z.000001  Z,008001  6  X [ Y:0] |                                    
-                                    |                                    | I  Z.000001  Z,008001  6  Y [ Y:0] |                                    
+ I  X.000002  X,000023  6  W [    ] |                                    | I  X.000002  X,000023  6  W [ Y:0] |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    | I  X.000002  X,000023  6  Y [ Y:0] |                                    
+                                    |                                    | I  Z.000001  Z,008003  7  W [ Y:0] |                                    
+                                    |                                    | I  Z.000001  Z,008003  7  X [ Y:0] |                                    
+                                    |                                    | I  Z.000001  Z,008003  7  Y [ Y:0] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   4,   5,   2,   4 ]
-Z [   5,   4,   6,   4 ]
-W [    ,   4,    ,   5 ]
+X [   7,   5,   6,   4 ]
+Y [   4,   6,   2,   4 ]
+Z [   6,   5,   7,   4 ]
+W [    ,   4,    ,   6 ]
 
 3.2.3.2 Y on exchange
 +++++++++++++++++++++
@@ -1010,16 +1005,16 @@ row count: 2
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [ Y:0] |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    | I  X.000002  X,000022  5  Y [ Y:0] |                                    
-                                    | I  Z.000001  Z,008001  6  W [    ] | I  Z.000001  Z,008001  6  W [ Y:0] |                                    
-                                    | I  Z.000001  Z,008001  6  X [    ] | I  Z.000001  Z,008001  6  X [ Y:0] |                                    
-                                    |                                    | I  Z.000001  Z,008001  6  Y [ Y:0] |                                    
+ I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [ Y:0] |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    | I  X.000002  X,000023  6  Y [ Y:0] |                                    
+                                    | I  Z.000001  Z,008003  7  W [    ] | I  Z.000001  Z,008003  7  W [ Y:0] |                                    
+                                    | I  Z.000001  Z,008003  7  X [    ] | I  Z.000001  Z,008003  7  X [ Y:0] |                                    
+                                    |                                    | I  Z.000001  Z,008003  7  Y [ Y:0] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   4,   5,   2,   4 ]
-Z [   5,   4,   6,   4 ]
-W [    ,   4,    ,   5 ]
+X [   7,   5,   6,   4 ]
+Y [   4,   6,   2,   4 ]
+Z [   6,   5,   7,   4 ]
+W [    ,   4,    ,   6 ]
 
 3.2.3.3 Z exchange
 ++++++++++++++++++
@@ -1036,21 +1031,21 @@ challenge page:
 row count: 0
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 2
-1 : 000022  2 :   3 : rob-X  4 : Ukraine.png  5 : ... 6 : null  7 : X  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : X,000022  17 : rob-Z  18 : 2024-07-08 04:35:04  
-1 : 008001  2 :   3 : rob-Z  4 : Ukraine.png  5 : ... 6 : null  7 : Z  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : Z,008001  17 : rob-Z  18 : 2024-07-08 04:35:05  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-08-06 04:54:15  5 : 0  6 :   7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-08-06  11 : pub  12 : Z  13 : zsu  14 : Ukraine.png  15 : X  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-08-06 04:54:17  5 : 0  6 :   7 : Z,008003  8 : src/test/res/Ukraine.png  9 : Z  10 : 2024-08-06  11 : pub  12 : Z  13 : zsu  14 : Ukraine.png  15 : Z  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [ Y:0] |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    |                                    |                                    
-                                    | I  Z.000001  Z,008001  6  W [    ] | I  Z.000001  Z,008001  6  W [ Y:0] |                                    
-                                    | I  Z.000001  Z,008001  6  X [    ] | I  Z.000001  Z,008001  6  X [ Y:0] |                                    
+ I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [ Y:0] |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    |                                    |                                    
+                                    | I  Z.000001  Z,008003  7  W [    ] | I  Z.000001  Z,008003  7  W [ Y:0] |                                    
+                                    | I  Z.000001  Z,008003  7  X [    ] | I  Z.000001  Z,008003  7  X [ Y:0] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   4,   5,   2,   4 ]
-Z [   5,   4,   6,   4 ]
-W [    ,   4,    ,   5 ]
+X [   7,   5,   6,   4 ]
+Y [   4,   6,   2,   4 ]
+Z [   6,   5,   7,   4 ]
+W [    ,   4,    ,   6 ]
 
 3.2.3.4 Y on exchange
 +++++++++++++++++++++
@@ -1066,45 +1061,45 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [ Y:0] |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    |                                    |                                    
-                                    | I  Z.000001  Z,008001  6  W [    ] | I  Z.000001  Z,008001  6  W [ Y:0] |                                    
-                                    | I  Z.000001  Z,008001  6  X [    ] | I  Z.000001  Z,008001  6  X [ Y:0] |                                    
+ I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [ Y:0] |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    |                                    |                                    
+                                    | I  Z.000001  Z,008003  7  W [    ] | I  Z.000001  Z,008003  7  W [ Y:0] |                                    
+                                    | I  Z.000001  Z,008003  7  X [    ] | I  Z.000001  Z,008003  7  X [ Y:0] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   4,   5,   2,   4 ]
-Z [   5,   4,   6,   4 ]
-W [    ,   4,    ,   5 ]
+X [   7,   5,   6,   4 ]
+Y [   4,   6,   2,   4 ]
+Z [   6,   5,   7,   4 ]
+W [    ,   4,    ,   6 ]
 
 3.2.4 Z closing exchange
 ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    |                                    |                                    
-                                    | I  Z.000001  Z,008001  6  W [    ] | I  Z.000001  Z,008001  6  W [    ] |                                    
-                                    | I  Z.000001  Z,008001  6  X [    ] | I  Z.000001  Z,008001  6  X [    ] |                                    
+ I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    |                                    |                                    
+                                    | I  Z.000001  Z,008003  7  W [    ] | I  Z.000001  Z,008003  7  W [    ] |                                    
+                                    | I  Z.000001  Z,008003  7  X [    ] | I  Z.000001  Z,008003  7  X [    ] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   4,   5,   2,   4 ]
-Z [   5,   5,   7,   4 ]
-W [    ,   4,    ,   5 ]
+X [   7,   5,   6,   4 ]
+Y [   4,   6,   2,   4 ]
+Z [   6,   6,   8,   4 ]
+W [    ,   4,    ,   6 ]
 
 3.2.5 Y on closing exchange
 ___________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    |                                    |                                    
-                                    | I  Z.000001  Z,008001  6  W [    ] | I  Z.000001  Z,008001  6  W [    ] |                                    
-                                    | I  Z.000001  Z,008001  6  X [    ] | I  Z.000001  Z,008001  6  X [    ] |                                    
+ I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    |                                    |                                    
+                                    | I  Z.000001  Z,008003  7  W [    ] | I  Z.000001  Z,008003  7  W [    ] |                                    
+                                    | I  Z.000001  Z,008003  7  X [    ] | I  Z.000001  Z,008003  7  X [    ] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   5,   7,   6,   4 ]
-Z [   5,   5,   7,   4 ]
-W [    ,   4,    ,   5 ]
+X [   7,   5,   6,   4 ]
+Y [   6,   8,   7,   4 ]
+Z [   6,   6,   8,   4 ]
+W [    ,   4,    ,   6 ]
 
 3.3 Y vs W
 ----------
@@ -1144,15 +1139,15 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    |                                    |                                    
-                                    | I  Z.000001  Z,008001  6  W [W:-1] | I  Z.000001  Z,008001  6  W [    ] |                                    
-                                    | I  Z.000001  Z,008001  6  X [W:-1] | I  Z.000001  Z,008001  6  X [    ] |                                    
+ I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    |                                    |                                    
+                                    | I  Z.000001  Z,008003  7  W [W:-1] | I  Z.000001  Z,008003  7  W [    ] |                                    
+                                    | I  Z.000001  Z,008003  7  X [W:-1] | I  Z.000001  Z,008003  7  X [    ] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   5,   7,   6,   4 ]
-Z [   5,   5,   7,   4 ]
-W [    ,   4,    ,   5 ]
+X [   7,   5,   6,   4 ]
+Y [   6,   8,   7,   4 ]
+Z [   6,   6,   8,   4 ]
+W [    ,   4,    ,   6 ]
 
 3.3.3.2 Y on exchange
 +++++++++++++++++++++
@@ -1166,29 +1161,29 @@ challenge seq: 0	answer-seq -1
 challenge page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
 row count: 2
-1 : 0  2 : Z.000001  3 : zsu  4 : h_photos  5 : I  6 : Z  7 : Z,008001  8 : 6  9 : null  10 : 2  11 : W  
-1 : 0  2 : Z.000001  3 : zsu  4 : h_photos  5 : I  6 : Z  7 : Z,008001  8 : 6  9 : null  10 : 2  11 : X  
+1 : 0  2 : Z.000001  3 : zsu  4 : h_photos  5 : I  6 : Z  7 : Z,008003  8 : 7  9 : null  10 : 2  11 : W  
+1 : 0  2 : Z.000001  3 : zsu  4 : h_photos  5 : I  6 : Z  7 : Z,008003  8 : 7  9 : null  10 : 2  11 : X  
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 008001  2 :   3 : rob-Z  4 : Ukraine.png  5 : ... 6 : null  7 : Z  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : Z,008001  17 : rob-Y  18 : 2024-07-08 04:35:07  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-08-06 04:54:19  5 : 0  6 :   7 : Z,008003  8 : src/test/res/Ukraine.png  9 : Z  10 : 2024-08-06  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Z  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    |                                    |                                    
-                                    | I  Z.000001  Z,008001  6  W [ W:0] | I  Z.000001  Z,008001  6  W [    ] |                                    
-                                    | I  Z.000001  Z,008001  6  X [ W:0] | I  Z.000001  Z,008001  6  X [    ] |                                    
+ I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    |                                    |                                    
+                                    | I  Z.000001  Z,008003  7  W [ W:0] | I  Z.000001  Z,008003  7  W [    ] |                                    
+                                    | I  Z.000001  Z,008003  7  X [ W:0] | I  Z.000001  Z,008003  7  X [    ] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   5,   7,   6,   4 ]
-Z [   5,   5,   7,   4 ]
-W [    ,   4,    ,   5 ]
+X [   7,   5,   6,   4 ]
+Y [   6,   8,   7,   4 ]
+Z [   6,   6,   8,   4 ]
+W [    ,   4,    ,   6 ]
 
 3.3.3.3 W exchange
 ++++++++++++++++++
 
-W has no idea about Z. The changes Z,008001 -> W are ignored.
+W has no idea about Z. The changes Z,008003 -> W are ignored.
 
 3.3.3.3.1 W exchange challenge    changes: 0    entities: 0    answers: 0
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1200,15 +1195,15 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    |                                    |                                    
-                                    | I  Z.000001  Z,008001  6  W [ W:0] | I  Z.000001  Z,008001  6  W [    ] |                                    
-                                    | I  Z.000001  Z,008001  6  X [ W:0] | I  Z.000001  Z,008001  6  X [    ] |                                    
+ I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    |                                    |                                    
+                                    | I  Z.000001  Z,008003  7  W [ W:0] | I  Z.000001  Z,008003  7  W [    ] |                                    
+                                    | I  Z.000001  Z,008003  7  X [ W:0] | I  Z.000001  Z,008003  7  X [    ] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   5,   7,   6,   4 ]
-Z [   5,   5,   7,   4 ]
-W [    ,   4,    ,   5 ]
+X [   7,   5,   6,   4 ]
+Y [   6,   8,   7,   4 ]
+Z [   6,   6,   8,   4 ]
+W [    ,   4,    ,   6 ]
 
 3.3.3.4 Y on exchange
 +++++++++++++++++++++
@@ -1224,50 +1219,50 @@ challenge page:
 row count: 0
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 008001  2 :   3 : rob-Z  4 : Ukraine.png  5 : ... 6 : null  7 : Z  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : Z,008001  17 : rob-Y  18 : 2024-07-08 04:35:07  
+1 : ody@kyiv  2 : null  3 : null  4 : 2024-08-06 04:54:19  5 : 0  6 :   7 : Z,008003  8 : src/test/res/Ukraine.png  9 : Z  10 : 2024-08-06  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png  15 : Z  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    |                                    |                                    
-                                    | I  Z.000001  Z,008001  6  W [ W:0] | I  Z.000001  Z,008001  6  W [    ] |                                    
-                                    | I  Z.000001  Z,008001  6  X [ W:0] | I  Z.000001  Z,008001  6  X [    ] |                                    
+ I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    |                                    |                                    
+                                    | I  Z.000001  Z,008003  7  W [ W:0] | I  Z.000001  Z,008003  7  W [    ] |                                    
+                                    | I  Z.000001  Z,008003  7  X [ W:0] | I  Z.000001  Z,008003  7  X [    ] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   5,   7,   6,   4 ]
-Z [   5,   5,   7,   4 ]
-W [    ,   4,    ,   5 ]
+X [   7,   5,   6,   4 ]
+Y [   6,   8,   7,   4 ]
+Z [   6,   6,   8,   4 ]
+W [    ,   4,    ,   6 ]
 
 3.3.4 W closing exchange
 ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] | I  X.000002  X,000022  5  W [    ] |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    |                                    |                                    
-                                    | I  Z.000001  Z,008001  6  W [ W:0] | I  Z.000001  Z,008001  6  W [    ] |                                    
-                                    | I  Z.000001  Z,008001  6  X [ W:0] | I  Z.000001  Z,008001  6  X [    ] |                                    
+ I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] | I  X.000002  X,000023  6  W [    ] |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    |                                    |                                    
+                                    | I  Z.000001  Z,008003  7  W [ W:0] | I  Z.000001  Z,008003  7  W [    ] |                                    
+                                    | I  Z.000001  Z,008003  7  X [ W:0] | I  Z.000001  Z,008003  7  X [    ] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   5,   7,   6,   4 ]
-Z [   5,   5,   7,   4 ]
-W [    ,   7,    ,   8 ]
+X [   7,   5,   6,   4 ]
+Y [   6,   8,   7,   4 ]
+Z [   6,   6,   8,   4 ]
+W [    ,   8,    ,   9 ]
 
 3.3.5 Y on closing exchange
 ___________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- I  X.000002  X,000022  5  W [    ] |                                    | I  X.000002  X,000022  5  W [    ] |                                    
- I  X.000002  X,000022  5  Y [    ] |                                    |                                    |                                    
-                                    |                                    | I  Z.000001  Z,008001  6  W [    ] |                                    
-                                    | I  Z.000001  Z,008001  6  X [    ] | I  Z.000001  Z,008001  6  X [    ] |                                    
+ I  X.000002  X,000023  6  W [    ] |                                    | I  X.000002  X,000023  6  W [    ] |                                    
+ I  X.000002  X,000023  6  Y [    ] |                                    |                                    |                                    
+                                    |                                    | I  Z.000001  Z,008003  7  W [    ] |                                    
+                                    | I  Z.000001  Z,008003  7  X [    ] | I  Z.000001  Z,008003  7  X [    ] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   5,   8,   6,   7 ]
-Z [   5,   5,   7,   4 ]
-W [    ,   7,    ,   8 ]
+X [   7,   5,   6,   4 ]
+Y [   6,   9,   7,   8 ]
+Z [   6,   6,   8,   4 ]
+W [    ,   8,    ,   9 ]
 
 3.4 X vs Y
 ----------
@@ -1307,14 +1302,14 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-                                    |                                    | I  X.000002  X,000022  5  W [    ] |                                    
-                                    |                                    | I  Z.000001  Z,008001  6  W [    ] |                                    
-                                    | I  Z.000001  Z,008001  6  X [    ] | I  Z.000001  Z,008001  6  X [    ] |                                    
+                                    |                                    | I  X.000002  X,000023  6  W [    ] |                                    
+                                    |                                    | I  Z.000001  Z,008003  7  W [    ] |                                    
+                                    | I  Z.000001  Z,008003  7  X [    ] | I  Z.000001  Z,008003  7  X [    ] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   5,   8,   6,   7 ]
-Z [   5,   5,   7,   4 ]
-W [    ,   7,    ,   8 ]
+X [   7,   5,   6,   4 ]
+Y [   6,   9,   7,   8 ]
+Z [   6,   6,   8,   4 ]
+W [    ,   8,    ,   9 ]
 
 3.4.3.2 X on exchange
 +++++++++++++++++++++
@@ -1330,42 +1325,42 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-                                    |                                    | I  X.000002  X,000022  5  W [    ] |                                    
-                                    |                                    | I  Z.000001  Z,008001  6  W [    ] |                                    
-                                    | I  Z.000001  Z,008001  6  X [    ] | I  Z.000001  Z,008001  6  X [    ] |                                    
+                                    |                                    | I  X.000002  X,000023  6  W [    ] |                                    
+                                    |                                    | I  Z.000001  Z,008003  7  W [    ] |                                    
+                                    | I  Z.000001  Z,008003  7  X [    ] | I  Z.000001  Z,008003  7  X [    ] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   5,   8,   6,   7 ]
-Z [   5,   5,   7,   4 ]
-W [    ,   7,    ,   8 ]
+X [   7,   5,   6,   4 ]
+Y [   6,   9,   7,   8 ]
+Z [   6,   6,   8,   4 ]
+W [    ,   8,    ,   9 ]
 
 3.4.4 Y closing exchange
 ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-                                    |                                    | I  X.000002  X,000022  5  W [    ] |                                    
-                                    |                                    | I  Z.000001  Z,008001  6  W [    ] |                                    
-                                    |                                    | I  Z.000001  Z,008001  6  X [    ] |                                    
+                                    |                                    | I  X.000002  X,000023  6  W [    ] |                                    
+                                    |                                    | I  Z.000001  Z,008003  7  W [    ] |                                    
+                                    |                                    | I  Z.000001  Z,008003  7  X [    ] |                                    
       X    Y    Z    W
-X [   6,   4,   5,   4 ]
-Y [   6,   9,   6,   7 ]
-Z [   5,   5,   7,   4 ]
-W [    ,   7,    ,   8 ]
+X [   7,   5,   6,   4 ]
+Y [   7,  10,   7,   8 ]
+Z [   6,   6,   8,   4 ]
+W [    ,   8,    ,   9 ]
 
 3.4.5 X on closing exchange
 ___________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-                                    |                                    | I  X.000002  X,000022  5  W [    ] |                                    
-                                    |                                    | I  Z.000001  Z,008001  6  W [    ] |                                    
-                                    |                                    | I  Z.000001  Z,008001  6  X [    ] |                                    
+                                    |                                    | I  X.000002  X,000023  6  W [    ] |                                    
+                                    |                                    | I  Z.000001  Z,008003  7  W [    ] |                                    
+                                    |                                    | I  Z.000001  Z,008003  7  X [    ] |                                    
       X    Y    Z    W
-X [   9,   8,   6,   7 ]
-Y [   6,   9,   6,   7 ]
-Z [   5,   5,   7,   4 ]
-W [    ,   7,    ,   8 ]
+X [  10,   9,   7,   8 ]
+Y [   7,  10,   7,   8 ]
+Z [   6,   6,   8,   4 ]
+W [    ,   8,    ,   9 ]
 
 3.5 Y vs Z
 ----------
@@ -1407,10 +1402,10 @@ row count: 0
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
 
       X    Y    Z    W
-X [   9,   8,   6,   7 ]
-Y [   6,   9,   6,   7 ]
-Z [   5,   5,   7,   4 ]
-W [    ,   7,    ,   8 ]
+X [  10,   9,   7,   8 ]
+Y [   7,  10,   7,   8 ]
+Z [   6,   6,   8,   4 ]
+W [    ,   8,    ,   9 ]
 
 3.4.3.2 Y on exchange
 +++++++++++++++++++++
@@ -1428,10 +1423,10 @@ row count: 0
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
 
       X    Y    Z    W
-X [   9,   8,   6,   7 ]
-Y [   6,   9,   6,   7 ]
-Z [   5,   5,   7,   4 ]
-W [    ,   7,    ,   8 ]
+X [  10,   9,   7,   8 ]
+Y [   7,  10,   7,   8 ]
+Z [   6,   6,   8,   4 ]
+W [    ,   8,    ,   9 ]
 
 3.4.4 Z closing exchange
 ________________________
@@ -1440,10 +1435,10 @@ ________________________
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
 
       X    Y    Z    W
-X [   9,   8,   6,   7 ]
-Y [   6,   9,   6,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  10,   9,   7,   8 ]
+Y [   7,  10,   7,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
 
 3.4.5 Y on closing exchange
 ___________________________
@@ -1452,10 +1447,10 @@ ___________________________
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
 
       X    Y    Z    W
-X [   9,   8,   6,   7 ]
-Y [   6,  10,   9,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  10,   9,   7,   8 ]
+Y [   7,  11,  10,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
 
 4 test02Update
 ==============
@@ -1466,31 +1461,31 @@ W [    ,   7,    ,   8 ]
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [    ] |                                    |                                    |                                    
- U  X.000003  X,000022  9  Z [    ] |                                    |                                    |                                    
- U  X.000003  X,000022  9  Y [    ] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  Y [    ] |                                    |                                    |                                    
       X    Y    Z    W
-X [   9,   8,   6,   7 ]
-Y [   6,  10,   9,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  10,   9,   7,   8 ]
+Y [   7,  11,  10,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
 
 4.2 Y update photos
 -------------------
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [    ] |                                    |                                    |                                    
- U  X.000003  X,000022  9  Z [    ] |                                    |                                    |                                    
- U  X.000003  X,000022  9  Y [    ] |                                    |                                    |                                    
-                                    | U  Y.000003  Y,000401 10  W [    ] |                                    |                                    
-                                    | U  Y.000003  Y,000401 10  Z [    ] |                                    |                                    
-                                    | U  Y.000003  Y,000401 10  X [    ] |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  Y [    ] |                                    |                                    |                                    
+                                    | U  Y.000003  Y,000401 11  W [    ] |                                    |                                    
+                                    | U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    
+                                    | U  Y.000003  Y,000401 11  X [    ] |                                    |                                    
       X    Y    Z    W
-X [   9,   8,   6,   7 ]
-Y [   6,  10,   9,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  10,   9,   7,   8 ]
+Y [   7,  11,  10,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
 
 4.3 X => Y
 ----------
@@ -1528,27 +1523,27 @@ challenge seq: 0	answer-seq -1
 challenge page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
 row count: 3
-1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000022  8 : 9  9 : pname,pdate  10 : 1  11 : W  
-1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000022  8 : 9  9 : pname,pdate  10 : 1  11 : Y  
-1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000022  8 : 9  9 : pname,pdate  10 : 1  11 : Z  
+1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 1  11 : W  
+1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 1  11 : Y  
+1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 1  11 : Z  
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 000022  2 :   3 : rob-X  4 : Ukraine.png,0009  5 : ... 6 : 2024-07-08 04:35:15  7 : X  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : X,000022  17 : rob-X  18 : 2024-07-08 04:35:15  
+1 : ody@kyiv  2 : 2024-08-06 04:54:27  3 : null  4 : 2024-08-06 04:54:27  5 : 0  6 :   7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-08-06  11 : pub  12 : X  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [ Y:0] |                                    |                                    |                                    
- U  X.000003  X,000022  9  Z [ Y:0] |                                    |                                    |                                    
- U  X.000003  X,000022  9  Y [ Y:0] |                                    |                                    |                                    
-                                    | U  Y.000003  Y,000401 10  W [X:-1] |                                    |                                    
-                                    | U  Y.000003  Y,000401 10  Z [X:-1] |                                    |                                    
-                                    | U  Y.000003  Y,000401 10  X [X:-1] |                                    |                                    
+ U  X.000003  X,000023 10  W [ Y:0] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  Z [ Y:0] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  Y [ Y:0] |                                    |                                    |                                    
+                                    | U  Y.000003  Y,000401 11  W [X:-1] |                                    |                                    
+                                    | U  Y.000003  Y,000401 11  Z [X:-1] |                                    |                                    
+                                    | U  Y.000003  Y,000401 11  X [X:-1] |                                    |                                    
       X    Y    Z    W
-X [   9,   8,   6,   7 ]
-Y [   6,  10,   9,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  10,   9,   7,   8 ]
+Y [   7,  11,  10,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
 
 4.3.3.2 Y on exchange
 +++++++++++++++++++++
@@ -1562,31 +1557,31 @@ challenge seq: 0	answer-seq 0
 challenge page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
 row count: 3
-1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 10  9 : pname,pdate  10 : 1  11 : W  
-1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 10  9 : pname,pdate  10 : 1  11 : X  
-1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 10  9 : pname,pdate  10 : 1  11 : Z  
+1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 11  9 : docname,pdate  10 : 1  11 : W  
+1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 11  9 : docname,pdate  10 : 1  11 : X  
+1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 11  9 : docname,pdate  10 : 1  11 : Z  
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 000401  2 :   3 : rob-Y  4 : Ukraine.png,0010  5 : ... 6 : 2024-07-08 04:35:15  7 : Y  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : Y,000401  17 : rob-Y  18 : 2024-07-08 04:35:15  
+1 : ody@kyiv  2 : 2024-08-06 04:54:27  3 : null  4 : 2024-08-06 04:54:27  5 : 0  6 :   7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-08-06  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0011  15 : Y  16 : null  
 answer page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	12 : change	
 row count: 1
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [ Y:0] | U  X.000003  X,000022  9  W [    ] |                                    |                                    
- U  X.000003  X,000022  9  Z [ Y:0] | U  X.000003  X,000022  9  Z [    ] |                                    |                                    
- U  X.000003  X,000022  9  Y [ Y:0] |                                    |                                    |                                    
-                                    | U  Y.000003  Y,000401 10  W [ X:0] |                                    |                                    
-                                    | U  Y.000003  Y,000401 10  Z [ X:0] |                                    |                                    
-                                    | U  Y.000003  Y,000401 10  X [ X:0] |                                    |                                    
+ U  X.000003  X,000023 10  W [ Y:0] | U  X.000003  X,000023 10  W [    ] |                                    |                                    
+ U  X.000003  X,000023 10  Z [ Y:0] | U  X.000003  X,000023 10  Z [    ] |                                    |                                    
+ U  X.000003  X,000023 10  Y [ Y:0] |                                    |                                    |                                    
+                                    | U  Y.000003  Y,000401 11  W [ X:0] |                                    |                                    
+                                    | U  Y.000003  Y,000401 11  Z [ X:0] |                                    |                                    
+                                    | U  Y.000003  Y,000401 11  X [ X:0] |                                    |                                    
       X    Y    Z    W
-X [   9,   8,   6,   7 ]
-Y [   6,  10,   9,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  10,   9,   7,   8 ]
+Y [   7,  11,  10,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
 
 4.3.3.3 X exchange
 ++++++++++++++++++
@@ -1603,25 +1598,25 @@ challenge page:
 row count: 0
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 000022  2 :   3 : rob-X  4 : Ukraine.png,0009  5 : ... 6 : 2024-07-08 04:35:15  7 : X  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : X,000022  17 : rob-X  18 : 2024-07-08 04:35:15  
+1 : ody@kyiv  2 : 2024-08-06 04:54:27  3 : null  4 : 2024-08-06 04:54:27  5 : 0  6 :   7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-08-06  11 : pub  12 : X  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
 answer page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	12 : change	
 row count: 1
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [ Y:0] | U  X.000003  X,000022  9  W [    ] |                                    |                                    
- U  X.000003  X,000022  9  Z [ Y:0] | U  X.000003  X,000022  9  Z [    ] |                                    |                                    
- U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [ X:0] |                                    |                                    
- U  Y.000003  Y,000401 10  Z [    ] | U  Y.000003  Y,000401 10  Z [ X:0] |                                    |                                    
-                                    | U  Y.000003  Y,000401 10  X [ X:0] |                                    |                                    
+ U  X.000003  X,000023 10  W [ Y:0] | U  X.000003  X,000023 10  W [    ] |                                    |                                    
+ U  X.000003  X,000023 10  Z [ Y:0] | U  X.000003  X,000023 10  Z [    ] |                                    |                                    
+ U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ X:0] |                                    |                                    
+ U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [ X:0] |                                    |                                    
+                                    | U  Y.000003  Y,000401 11  X [ X:0] |                                    |                                    
       X    Y    Z    W
-X [   9,   8,   6,   7 ]
-Y [   6,  10,   9,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  10,   9,   7,   8 ]
+Y [   7,  11,  10,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
 
 4.3.3.4 Y on exchange
 +++++++++++++++++++++
@@ -1638,61 +1633,61 @@ challenge page:
 row count: 0
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 000401  2 :   3 : rob-Y  4 : Ukraine.png,0010  5 : ... 6 : 2024-07-08 04:35:15  7 : Y  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : Y,000401  17 : rob-Y  18 : 2024-07-08 04:35:15  
+1 : ody@kyiv  2 : 2024-08-06 04:54:27  3 : null  4 : 2024-08-06 04:54:27  5 : 0  6 :   7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-08-06  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0011  15 : Y  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [ Y:0] | U  X.000003  X,000022  9  W [    ] |                                    |                                    
- U  X.000003  X,000022  9  Z [ Y:0] | U  X.000003  X,000022  9  Z [    ] |                                    |                                    
- U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [ X:0] |                                    |                                    
- U  Y.000003  Y,000401 10  Z [    ] | U  Y.000003  Y,000401 10  Z [ X:0] |                                    |                                    
+ U  X.000003  X,000023 10  W [ Y:0] | U  X.000003  X,000023 10  W [    ] |                                    |                                    
+ U  X.000003  X,000023 10  Z [ Y:0] | U  X.000003  X,000023 10  Z [    ] |                                    |                                    
+ U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ X:0] |                                    |                                    
+ U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [ X:0] |                                    |                                    
       X    Y    Z    W
-X [   9,   8,   6,   7 ]
-Y [   6,  10,   9,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  10,   9,   7,   8 ]
+Y [   7,  11,  10,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
 
 4.3.4 X closing exchange
 ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] |                                    |                                    
- U  X.000003  X,000022  9  Z [    ] | U  X.000003  X,000022  9  Z [    ] |                                    |                                    
- U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [ X:0] |                                    |                                    
- U  Y.000003  Y,000401 10  Z [    ] | U  Y.000003  Y,000401 10  Z [ X:0] |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    |                                    
+ U  X.000003  X,000023 10  Z [    ] | U  X.000003  X,000023 10  Z [    ] |                                    |                                    
+ U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ X:0] |                                    |                                    
+ U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [ X:0] |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [   6,  10,   9,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [   7,  11,  10,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
 
 4.3.5 Y on closing exchange
 ___________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] |                                    |                                    
- U  X.000003  X,000022  9  Z [    ] | U  X.000003  X,000022  9  Z [    ] |                                    |                                    
- U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [    ] |                                    |                                    
- U  Y.000003  Y,000401 10  Z [    ] | U  Y.000003  Y,000401 10  Z [    ] |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    |                                    
+ U  X.000003  X,000023 10  Z [    ] | U  X.000003  X,000023 10  Z [    ] |                                    |                                    
+ U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    |                                    
+ U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  11,   9,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  12,  10,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] |                                    |                                    
- U  X.000003  X,000022  9  Z [    ] | U  X.000003  X,000022  9  Z [    ] |                                    |                                    
- U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [    ] |                                    |                                    
- U  Y.000003  Y,000401 10  Z [    ] | U  Y.000003  Y,000401 10  Z [    ] |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    |                                    
+ U  X.000003  X,000023 10  Z [    ] | U  X.000003  X,000023 10  Z [    ] |                                    |                                    
+ U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    |                                    
+ U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  11,   9,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  12,  10,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
 
 4.4 Y <= Z
 ----------
@@ -1732,15 +1727,15 @@ challenge page:
 row count: 0
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [Z:-1] |                                    |                                    
- U  X.000003  X,000022  9  Z [    ] | U  X.000003  X,000022  9  Z [Z:-1] |                                    |                                    
- U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [Z:-1] |                                    |                                    
- U  Y.000003  Y,000401 10  Z [    ] | U  Y.000003  Y,000401 10  Z [Z:-1] |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [Z:-1] |                                    |                                    
+ U  X.000003  X,000023 10  Z [    ] | U  X.000003  X,000023 10  Z [Z:-1] |                                    |                                    
+ U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [Z:-1] |                                    |                                    
+ U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [Z:-1] |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  11,   9,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  12,  10,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
 
 4.4.3.2 Y on exchange
 +++++++++++++++++++++
@@ -1754,27 +1749,27 @@ challenge seq: 0	answer-seq -1
 challenge page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
 row count: 4
-1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000022  8 : 9  9 : pname,pdate  10 : 1  11 : W  
-1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000022  8 : 9  9 : pname,pdate  10 : 1  11 : Z  
-1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 10  9 : pname,pdate  10 : 1  11 : W  
-1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 10  9 : pname,pdate  10 : 1  11 : Z  
+1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 1  11 : W  
+1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 1  11 : Z  
+1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 11  9 : docname,pdate  10 : 1  11 : W  
+1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 11  9 : docname,pdate  10 : 1  11 : Z  
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 2
-1 : 000022  2 :   3 : rob-X  4 : Ukraine.png  5 : ... 6 : null  7 : X  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : X,000022  17 : rob-Y  18 : 2024-07-08 04:35:07  
-1 : 000401  2 :   3 : rob-Y  4 : Ukraine.png,0010  5 : ... 6 : 2024-07-08 04:35:15  7 : Y  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : Y,000401  17 : rob-Y  18 : 2024-07-08 04:35:15  
+1 : ody@kyiv  2 : 2024-08-06 04:54:27  3 : null  4 : 2024-08-06 04:54:29  5 : 0  6 :   7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-08-06  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
+1 : ody@kyiv  2 : 2024-08-06 04:54:27  3 : null  4 : 2024-08-06 04:54:27  5 : 0  6 :   7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-08-06  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0011  15 : Y  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [ Z:0] |                                    |                                    
- U  X.000003  X,000022  9  Z [    ] | U  X.000003  X,000022  9  Z [ Z:0] |                                    |                                    
- U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [ Z:0] |                                    |                                    
- U  Y.000003  Y,000401 10  Z [    ] | U  Y.000003  Y,000401 10  Z [ Z:0] |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [ Z:0] |                                    |                                    
+ U  X.000003  X,000023 10  Z [    ] | U  X.000003  X,000023 10  Z [ Z:0] |                                    |                                    
+ U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ Z:0] |                                    |                                    
+ U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [ Z:0] |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  11,   9,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  12,  10,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
 
 4.4.3.3 Z exchange
 ++++++++++++++++++
@@ -1795,15 +1790,15 @@ row count: 2
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [ Z:0] | U  X.000003  X,000022  9  W [    ] |                                    
- U  X.000003  X,000022  9  Z [    ] | U  X.000003  X,000022  9  Z [ Z:0] |                                    |                                    
- U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [ Z:0] | U  Y.000003  Y,000401 10  W [    ] |                                    
- U  Y.000003  Y,000401 10  Z [    ] | U  Y.000003  Y,000401 10  Z [ Z:0] |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [ Z:0] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000023 10  Z [    ] | U  X.000003  X,000023 10  Z [ Z:0] |                                    |                                    
+ U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ Z:0] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ U  Y.000003  Y,000401 11  Z [    ] | U  Y.000003  Y,000401 11  Z [ Z:0] |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  11,   9,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  12,  10,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
 
 4.4.3.4 Y on exchange
 +++++++++++++++++++++
@@ -1820,62 +1815,62 @@ challenge page:
 row count: 0
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 2
-1 : 000022  2 :   3 : rob-X  4 : Ukraine.png  5 : ... 6 : null  7 : X  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : X,000022  17 : rob-Y  18 : 2024-07-08 04:35:07  
-1 : 000401  2 :   3 : rob-Y  4 : Ukraine.png,0010  5 : ... 6 : 2024-07-08 04:35:15  7 : Y  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : Y,000401  17 : rob-Y  18 : 2024-07-08 04:35:15  
+1 : ody@kyiv  2 : 2024-08-06 04:54:27  3 : null  4 : 2024-08-06 04:54:29  5 : 0  6 :   7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-08-06  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
+1 : ody@kyiv  2 : 2024-08-06 04:54:27  3 : null  4 : 2024-08-06 04:54:27  5 : 0  6 :   7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-08-06  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0011  15 : Y  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [ Z:0] | U  X.000003  X,000022  9  W [    ] |                                    
- U  X.000003  X,000022  9  Z [    ] |                                    |                                    |                                    
- U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [ Z:0] | U  Y.000003  Y,000401 10  W [    ] |                                    
- U  Y.000003  Y,000401 10  Z [    ] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [ Z:0] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
+ U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ Z:0] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  11,   9,   7 ]
-Z [   6,   9,  10,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  12,  10,   8 ]
+Z [   7,  10,  11,   8 ]
+W [    ,   8,    ,   9 ]
 
 4.4.4 Z closing exchange
 ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [ Z:0] | U  X.000003  X,000022  9  W [    ] |                                    
- U  X.000003  X,000022  9  Z [    ] |                                    |                                    |                                    
- U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [ Z:0] | U  Y.000003  Y,000401 10  W [    ] |                                    
- U  Y.000003  Y,000401 10  Z [    ] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [ Z:0] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
+ U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [ Z:0] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  11,   9,   7 ]
-Z [  10,  11,  12,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  12,  10,   8 ]
+Z [  11,  12,  13,   8 ]
+W [    ,   8,    ,   9 ]
 
 4.4.5 Y on closing exchange
 ___________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] |                                    
- U  X.000003  X,000022  9  Z [    ] |                                    |                                    |                                    
- U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [    ] |                                    
- U  Y.000003  Y,000401 10  Z [    ] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
+ U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  12,  11,   7 ]
-Z [  10,  11,  12,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  13,  12,   8 ]
+Z [  11,  12,  13,   8 ]
+W [    ,   8,    ,   9 ]
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] |                                    
- U  X.000003  X,000022  9  Z [    ] |                                    |                                    |                                    
- U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [    ] |                                    
- U  Y.000003  Y,000401 10  Z [    ] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
+ U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  12,  11,   7 ]
-Z [  10,  11,  12,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  13,  12,   8 ]
+Z [  11,  12,  13,   8 ]
+W [    ,   8,    ,   9 ]
 
 5 test03delete
 ==============
@@ -1886,69 +1881,77 @@ W [    ,   7,    ,   8 ]
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 11  W [    ] |                                    |                                    |                                    
- U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] |                                    
- U  X.000003  X,000022  9  Z [    ] |                                    |                                    |                                    
- D  X.000004  X,000021 11  Y [    ] |                                    |                                    |                                    
- U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [    ] |                                    
- D  X.000004  X,000021 11  Z [    ] |                                    |                                    |                                    
- U  Y.000003  Y,000401 10  Z [    ] |                                    |                                    |                                    
+ D  X.000004  X,000021 12  W [    ] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
+ D  X.000004  X,000021 12  Y [    ] |                                    |                                    |                                    
+ U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ D  X.000004  X,000021 12  Z [    ] |                                    |                                    |                                    
+ U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  12,  11,   7 ]
-Z [  10,  11,  12,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  13,  12,   8 ]
+Z [  11,  12,  13,   8 ]
+W [    ,   8,    ,   9 ]
 
-5.2 Y delete a photo
+5.2.1 X deleted X,000021
+________________________
+
+
+5.3 Y delete a photo
 --------------------
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 11  W [    ] |                                    |                                    |                                    
- U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] |                                    
- U  X.000003  X,000022  9  Z [    ] |                                    |                                    |                                    
- D  X.000004  X,000021 11  Y [    ] |                                    |                                    |                                    
- U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [    ] |                                    
- D  X.000004  X,000021 11  Z [    ] |                                    |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  Z [    ] |                                    |                                    
- U  Y.000003  Y,000401 10  Z [    ] |                                    |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  X [    ] |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  W [    ] |                                    |                                    
+ D  X.000004  X,000021 12  W [    ] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+ U  X.000003  X,000023 10  Z [    ] |                                    |                                    |                                    
+ D  X.000004  X,000021 12  Y [    ] |                                    |                                    |                                    
+ U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ D  X.000004  X,000021 12  Z [    ] |                                    |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  Z [    ] |                                    |                                    
+ U  Y.000003  Y,000401 11  Z [    ] |                                    |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  X [    ] |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  W [    ] |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  12,  11,   7 ]
-Z [  10,  11,  12,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  13,  12,   8 ]
+Z [  11,  12,  13,   8 ]
+W [    ,   8,    ,   9 ]
 
-5.3 X <= Y
+5.4.1 Y deleted Y,000401
+________________________
+
+
+5.5 X <= Y
 ----------
 
 
-5.3.1 Y initiate
+5.5.1 Y initiate
 ________________
 
 
-5.3.1.1 Y initiate: changes: 0    entities: 0
+5.5.1.1 Y initiate: changes: 0    entities: 0
 +++++++++++++++++++++++++++++++++++++++++++++
 
 
-5.3.2 X on initiate
+5.5.2 X on initiate
 ___________________
 
 
-5.3.2.1 X on initiate: changes: 3
+5.5.2.1 X on initiate: changes: 3
 +++++++++++++++++++++++++++++++++
 
 
-5.3.3 exchange loops X <=> Y
+5.5.3 exchange loops X <=> Y
 ____________________________
 
 
-5.3.3.1 Y exchange
+5.5.3.1 Y exchange
 ++++++++++++++++++
 
 
-5.3.3.1.1 Y exchange challenge    changes: 3    entities: 1    answers: 0
+5.5.3.1.1 Y exchange challenge    changes: 3    entities: 1    answers: 0
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Exchange Package: Y -> X : null
@@ -1956,39 +1959,37 @@ challenge seq: 0	answer-seq -1
 challenge page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
 row count: 5
-1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000022  8 : 9  9 : pname,pdate  10 : 1  11 : W  
-1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 10  9 : pname,pdate  10 : 1  11 : W  
-1 : 0  2 : Y.000004  3 : zsu  4 : h_photos  5 : D  6 : Y  7 : Y,000401  8 : 12  9 : null  10 : 1  11 : W  
-1 : 0  2 : Y.000004  3 : zsu  4 : h_photos  5 : D  6 : Y  7 : Y,000401  8 : 12  9 : null  10 : 1  11 : X  
-1 : 0  2 : Y.000004  3 : zsu  4 : h_photos  5 : D  6 : Y  7 : Y,000401  8 : 12  9 : null  10 : 1  11 : Z  
+1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 1  11 : W  
+1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 11  9 : docname,pdate  10 : 1  11 : W  
+1 : 0  2 : Y.000004  3 : zsu  4 : h_photos  5 : D  6 : Y  7 : Y,000401  8 : 13  9 : null  10 : 1  11 : W  
+1 : 0  2 : Y.000004  3 : zsu  4 : h_photos  5 : D  6 : Y  7 : Y,000401  8 : 13  9 : null  10 : 1  11 : X  
+1 : 0  2 : Y.000004  3 : zsu  4 : h_photos  5 : D  6 : Y  7 : Y,000401  8 : 13  9 : null  10 : 1  11 : Z  
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 000022  2 :   3 : rob-X  4 : Ukraine.png  5 : ... 6 : null  7 : X  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : X,000022  17 : rob-Y  18 : 2024-07-08 04:35:07  
+1 : ody@kyiv  2 : 2024-08-06 04:54:27  3 : null  4 : 2024-08-06 04:54:29  5 : 0  6 :   7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-08-06  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 11  W [Y:-1] |                                    |                                    |                                    
- U  X.000003  X,000022  9  W [Y:-1] | U  X.000003  X,000022  9  W [ X:0] | U  X.000003  X,000022  9  W [    ] |                                    
- D  X.000004  X,000021 11  Y [Y:-1] |                                    |                                    |                                    
- U  Y.000003  Y,000401 10  W [Y:-1] | U  Y.000003  Y,000401 10  W [ X:0] | U  Y.000003  Y,000401 10  W [    ] |                                    
- D  X.000004  X,000021 11  Z [Y:-1] |                                    |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  Z [ X:0] |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  X [ X:0] |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  W [ X:0] |                                    |                                    
+ D  X.000004  X,000021 12  W [Y:-1] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  W [Y:-1] | U  X.000003  X,000023 10  W [ X:0] | U  X.000003  X,000023 10  W [    ] |                                    
+ D  X.000004  X,000021 12  Y [Y:-1] |                                    |                                    |                                    
+ U  Y.000003  Y,000401 11  W [Y:-1] | U  Y.000003  Y,000401 11  W [ X:0] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ D  X.000004  X,000021 12  Z [Y:-1] |                                    |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  Z [ X:0] |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  X [ X:0] |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  W [ X:0] |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  12,  11,   7 ]
-Z [  10,  11,  12,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  13,  12,   8 ]
+Z [  11,  12,  13,   8 ]
+W [    ,   8,    ,   9 ]
 
-5.3.3.2 X on exchange
+5.5.3.2 X on exchange
 +++++++++++++++++++++
 
-Ignore this?
-Ignore this?
 
-5.3.3.2.1 X on exchange response    changes: 3    entities: 2    answers: 1
+5.5.3.2.1 X on exchange response    changes: 3    entities: 2    answers: 1
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Exchange Package: X -> Y : null
@@ -1996,45 +1997,43 @@ challenge seq: 0	answer-seq 0
 challenge page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
 row count: 5
-1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000022  8 : 9  9 : pname,pdate  10 : 1  11 : W  
-1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 11  9 : null  10 : 2  11 : W  
-1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 11  9 : null  10 : 2  11 : Y  
-1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 11  9 : null  10 : 2  11 : Z  
-1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 10  9 : pname,pdate  10 : 1  11 : W  
+1 : 0  2 : X.000003  3 : zsu  4 : h_photos  5 : U  6 : X  7 : X,000023  8 : 10  9 : docname,pdate  10 : 1  11 : W  
+1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 12  9 : null  10 : 2  11 : W  
+1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 12  9 : null  10 : 2  11 : Y  
+1 : 0  2 : X.000004  3 : zsu  4 : h_photos  5 : D  6 : X  7 : X,000021  8 : 12  9 : null  10 : 2  11 : Z  
+1 : 0  2 : Y.000003  3 : zsu  4 : h_photos  5 : U  6 : Y  7 : Y,000401  8 : 11  9 : docname,pdate  10 : 1  11 : W  
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 2
-1 : 000022  2 :   3 : rob-X  4 : Ukraine.png,0009  5 : ... 6 : 2024-07-08 04:35:15  7 : X  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : X,000022  17 : rob-X  18 : 2024-07-08 04:35:15  
-1 : 000401  2 :   3 : rob-Y  4 : Ukraine.png  5 : ... 6 : null  7 : Y  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : Y,000401  17 : rob-X  18 : 2024-07-08 04:34:52  
+1 : ody@kyiv  2 : 2024-08-06 04:54:27  3 : null  4 : 2024-08-06 04:54:27  5 : 0  6 :   7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-08-06  11 : pub  12 : X  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
+1 : ody@kyiv  2 : 2024-08-06 04:54:27  3 : null  4 : 2024-08-06 04:54:29  5 : 0  6 :   7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-08-06  11 : pub  12 : X  13 : zsu  14 : Ukraine.png,0011  15 : Y  16 : null  
 answer page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	12 : change	
 row count: 1
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 11  W [ Y:0] |                                    |                                    |                                    
- U  X.000003  X,000022  9  W [ Y:0] | U  X.000003  X,000022  9  W [ X:0] | U  X.000003  X,000022  9  W [    ] |                                    
- D  X.000004  X,000021 11  Y [ Y:0] |                                    |                                    |                                    
-                                    | U  Y.000003  Y,000401 10  W [ X:0] | U  Y.000003  Y,000401 10  W [    ] |                                    
- D  X.000004  X,000021 11  Z [ Y:0] |                                    |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  Z [ X:0] |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  X [ X:0] |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  W [ X:0] |                                    |                                    
+ D  X.000004  X,000021 12  W [ Y:0] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  W [ Y:0] | U  X.000003  X,000023 10  W [ X:0] | U  X.000003  X,000023 10  W [    ] |                                    
+ D  X.000004  X,000021 12  Y [ Y:0] |                                    |                                    |                                    
+                                    | U  Y.000003  Y,000401 11  W [ X:0] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ D  X.000004  X,000021 12  Z [ Y:0] |                                    |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  Z [ X:0] |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  X [ X:0] |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  W [ X:0] |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  12,  11,   7 ]
-Z [  10,  11,  12,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  13,  12,   8 ]
+Z [  11,  12,  13,   8 ]
+W [    ,   8,    ,   9 ]
 
-5.3.3.3 Y exchange
+5.5.3.3 Y exchange
 ++++++++++++++++++
 
 [io.odysz.semantic.syn.ExessionPersist#commitAnswers()] Locally committing answers to X ...
-Ignore this?
-Ignore this?
 
-5.3.3.3.1 Y exchange challenge    changes: 3    entities: 1    answers: 1
+5.5.3.3.1 Y exchange challenge    changes: 3    entities: 1    answers: 1
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Exchange Package: Y -> X : null
@@ -2044,34 +2043,34 @@ challenge page:
 row count: 0
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 1
-1 : 000022  2 :   3 : rob-X  4 : Ukraine.png  5 : ... 6 : null  7 : X  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : X,000022  17 : rob-Y  18 : 2024-07-08 04:35:07  
+1 : ody@kyiv  2 : 2024-08-06 04:54:27  3 : null  4 : 2024-08-06 04:54:29  5 : 0  6 :   7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-08-06  11 : pub  12 : Y  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
 answer page:
 1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	12 : change	
 row count: 1
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 11  W [ Y:0] |                                    |                                    |                                    
- U  X.000003  X,000022  9  W [ Y:0] | U  X.000003  X,000022  9  W [ X:0] | U  X.000003  X,000022  9  W [    ] |                                    
- D  X.000004  X,000021 11  Y [ Y:0] |                                    |                                    |                                    
-                                    | U  Y.000003  Y,000401 10  W [ X:0] | U  Y.000003  Y,000401 10  W [    ] |                                    
- D  X.000004  X,000021 11  Z [ Y:0] |                                    |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  Z [ X:0] |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  W [ X:0] |                                    |                                    
+ D  X.000004  X,000021 12  W [ Y:0] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  W [ Y:0] | U  X.000003  X,000023 10  W [ X:0] | U  X.000003  X,000023 10  W [    ] |                                    
+ D  X.000004  X,000021 12  Y [ Y:0] |                                    |                                    |                                    
+                                    | U  Y.000003  Y,000401 11  W [ X:0] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ D  X.000004  X,000021 12  Z [ Y:0] |                                    |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  Z [ X:0] |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  W [ X:0] |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  12,  11,   7 ]
-Z [  10,  11,  12,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  13,  12,   8 ]
+Z [  11,  12,  13,   8 ]
+W [    ,   8,    ,   9 ]
 
-5.3.3.4 X on exchange
+5.5.3.4 X on exchange
 +++++++++++++++++++++
 
 [io.odysz.semantic.syn.ExessionPersist#commitAnswers()] Locally committing answers to Y ...
 
-5.3.3.4.1 X on exchange response    changes: 3    entities: 2    answers: 0
+5.5.3.4.1 X on exchange response    changes: 3    entities: 2    answers: 0
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Exchange Package: X -> Y : null
@@ -2081,67 +2080,67 @@ challenge page:
 row count: 0
 entities:
 	name: h_photos
-1 : pid	2 : family	3 : folder	4 : pname	5 : uri	6 : pdate	7 : device	8 : clientpath	9 : shareby	10 : sharedate	11 : exif	12 : mime	13 : filesize	14 : shareflag	15 : crud	16 : io_oz_synuid	17 : oper	18 : opertime	
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
 row count: 2
-1 : 000022  2 :   3 : rob-X  4 : Ukraine.png,0009  5 : ... 6 : 2024-07-08 04:35:15  7 : X  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : X,000022  17 : rob-X  18 : 2024-07-08 04:35:15  
-1 : 000401  2 :   3 : rob-Y  4 : Ukraine.png  5 : ... 6 : null  7 : Y  8 : src/test/res/Ukraine.png  9 : ody@kyiv  10 : 2024-07-08  11 : null  12 : null  13 : 0  14 : pub  15 : null  16 : Y,000401  17 : rob-X  18 : 2024-07-08 04:34:52  
+1 : ody@kyiv  2 : 2024-08-06 04:54:27  3 : null  4 : 2024-08-06 04:54:27  5 : 0  6 :   7 : X,000023  8 : src/test/res/Ukraine.png  9 : X  10 : 2024-08-06  11 : pub  12 : X  13 : zsu  14 : Ukraine.png,0010  15 : X  16 : null  
+1 : ody@kyiv  2 : 2024-08-06 04:54:27  3 : null  4 : 2024-08-06 04:54:29  5 : 0  6 :   7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2024-08-06  11 : pub  12 : X  13 : zsu  14 : Ukraine.png,0011  15 : Y  16 : null  
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 11  W [ Y:0] |                                    |                                    |                                    
- U  X.000003  X,000022  9  W [ Y:0] | U  X.000003  X,000022  9  W [ X:0] | U  X.000003  X,000022  9  W [    ] |                                    
-                                    | U  Y.000003  Y,000401 10  W [ X:0] | U  Y.000003  Y,000401 10  W [    ] |                                    
- D  X.000004  X,000021 11  Z [ Y:0] |                                    |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  Z [ X:0] |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  W [ X:0] |                                    |                                    
+ D  X.000004  X,000021 12  W [ Y:0] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  W [ Y:0] | U  X.000003  X,000023 10  W [ X:0] | U  X.000003  X,000023 10  W [    ] |                                    
+                                    | U  Y.000003  Y,000401 11  W [ X:0] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ D  X.000004  X,000021 12  Z [ Y:0] |                                    |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  Z [ X:0] |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  W [ X:0] |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  10,  12,  11,   7 ]
-Z [  10,  11,  12,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  11,  13,  12,   8 ]
+Z [  11,  12,  13,   8 ]
+W [    ,   8,    ,   9 ]
 
-5.3.4 Y closing exchange
+5.5.4 Y closing exchange
 ________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 11  W [ Y:0] |                                    |                                    |                                    
- U  X.000003  X,000022  9  W [ Y:0] | U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] |                                    
-                                    | U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [    ] |                                    
- D  X.000004  X,000021 11  Z [ Y:0] |                                    |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  Z [    ] |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  W [    ] |                                    |                                    
+ D  X.000004  X,000021 12  W [ Y:0] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  W [ Y:0] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+                                    | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ D  X.000004  X,000021 12  Z [ Y:0] |                                    |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  Z [    ] |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  W [    ] |                                    |                                    
       X    Y    Z    W
-X [  11,  10,   9,   7 ]
-Y [  11,  13,  11,   7 ]
-Z [  10,  11,  12,   7 ]
-W [    ,   7,    ,   8 ]
+X [  12,  11,  10,   8 ]
+Y [  12,  14,  12,   8 ]
+Z [  11,  12,  13,   8 ]
+W [    ,   8,    ,   9 ]
 
-5.3.5 X on closing exchange
+5.5.5 X on closing exchange
 ___________________________
 
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 11  W [    ] |                                    |                                    |                                    
- U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] |                                    
-                                    | U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [    ] |                                    
- D  X.000004  X,000021 11  Z [    ] |                                    |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  Z [    ] |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  W [    ] |                                    |                                    
+ D  X.000004  X,000021 12  W [    ] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+                                    | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ D  X.000004  X,000021 12  Z [    ] |                                    |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  Z [    ] |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  W [    ] |                                    |                                    
       X    Y    Z    W
-X [  13,  12,  11,   7 ]
-Y [  11,  13,  11,   7 ]
-Z [  10,  11,  12,   7 ]
-W [    ,   7,    ,   8 ]
+X [  14,  13,  12,   8 ]
+Y [  12,  14,  12,   8 ]
+Z [  11,  12,  13,   8 ]
+W [    ,   8,    ,   9 ]
                   X                 |                  Y                 |                  Z                 |                  W                 
 ------------------------------------+------------------------------------+------------------------------------+------------------------------------
- D  X.000004  X,000021 11  W [    ] |                                    |                                    |                                    
- U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] | U  X.000003  X,000022  9  W [    ] |                                    
-                                    | U  Y.000003  Y,000401 10  W [    ] | U  Y.000003  Y,000401 10  W [    ] |                                    
- D  X.000004  X,000021 11  Z [    ] |                                    |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  Z [    ] |                                    |                                    
-                                    | D  Y.000004  Y,000401 12  W [    ] |                                    |                                    
+ D  X.000004  X,000021 12  W [    ] |                                    |                                    |                                    
+ U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] | U  X.000003  X,000023 10  W [    ] |                                    
+                                    | U  Y.000003  Y,000401 11  W [    ] | U  Y.000003  Y,000401 11  W [    ] |                                    
+ D  X.000004  X,000021 12  Z [    ] |                                    |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  Z [    ] |                                    |                                    
+                                    | D  Y.000004  Y,000401 13  W [    ] |                                    |                                    
       X    Y    Z    W
-X [  13,  12,  11,   7 ]
-Y [  11,  13,  11,   7 ]
-Z [  10,  11,  12,   7 ]
-W [    ,   7,    ,   8 ]
+X [  14,  13,  12,   8 ]
+Y [  12,  14,  12,   8 ]
+Z [  11,  12,  13,   8 ]
+W [    ,   8,    ,   9 ]

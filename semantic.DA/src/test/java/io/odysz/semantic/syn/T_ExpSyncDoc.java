@@ -11,8 +11,8 @@ import java.util.Date;
 import io.odysz.anson.AnsonField;
 import io.odysz.common.DateFormat;
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.meta.ExpDocTableMeta;
+import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.transact.sql.Insert;
 
@@ -24,19 +24,19 @@ import static io.odysz.common.LangExt.*;
  * 
  * @author ody
  */
-public class ExpSyncDoc extends SynEntity {
+public class T_ExpSyncDoc extends SynEntity {
 	protected static String[] synpageCols;
 
 	public String recId;
 	public String recId() { return recId; }
-	public ExpSyncDoc recId(String did) {
+	public T_ExpSyncDoc recId(String did) {
 		recId = did;
 		return this;
 	}
 
 	public String pname;
 	public String clientname() { return pname; }
-	public ExpSyncDoc clientname(String clientname) {
+	public T_ExpSyncDoc clientname(String clientname) {
 		pname = clientname;
 		return this;
 	}
@@ -44,10 +44,12 @@ public class ExpSyncDoc extends SynEntity {
 	public String clientpath;
 	public String fullpath() { return clientpath; }
 
+	public String mime() { return mime; }
+
 	/** Non-public: doc' device id is managed by session. */
 	protected String device;
 	public String device() { return device; }
-	public ExpSyncDoc device(String device) {
+	public T_ExpSyncDoc device(String device) {
 		this.device = device;
 		return this;
 	}
@@ -60,16 +62,16 @@ public class ExpSyncDoc extends SynEntity {
 	/** usally reported by client file system, overriden by exif date, if exits */
 	public String createDate;
 	public String cdate() { return createDate; }
-	public ExpSyncDoc cdate(String cdate) {
+	public T_ExpSyncDoc cdate(String cdate) {
 		createDate = cdate;
 		return this;
 	}
-	public ExpSyncDoc cdate(FileTime fd) {
+	public T_ExpSyncDoc cdate(FileTime fd) {
 		createDate = DateFormat.formatime(fd);
 		return this;
 	}
 
-	public ExpSyncDoc cdate(Date date) {
+	public T_ExpSyncDoc cdate(Date date) {
 		createDate = DateFormat.format(date);
 		return this;
 	}
@@ -87,28 +89,28 @@ public class ExpSyncDoc extends SynEntity {
 	/** usually ignored when sending request */
 	public long size;
 
-	public ExpSyncDoc shareby(String share) {
+	public T_ExpSyncDoc shareby(String share) {
 		this.shareby = share;
 		return this;
 	}
 
-	public ExpSyncDoc sharedate(String format) {
+	public T_ExpSyncDoc sharedate(String format) {
 		sharedate = format;
 		return this;
 	}
 
-	public ExpSyncDoc sharedate(Date date) {
+	public T_ExpSyncDoc sharedate(Date date) {
 		return sharedate(DateFormat.format(date));
 	}
 	
-	public ExpSyncDoc share(String shareby, String flag, String sharedate) {
+	public T_ExpSyncDoc share(String shareby, String flag, String sharedate) {
 		this.shareflag = flag;
 		this.shareby = shareby;
 		sharedate(sharedate);
 		return this;
 	}
 
-	public ExpSyncDoc share(String shareby, String s, Date sharedate) {
+	public T_ExpSyncDoc share(String shareby, String s, Date sharedate) {
 		this.shareflag = s;
 		this.shareby = shareby;
 		sharedate(sharedate);
@@ -123,7 +125,7 @@ public class ExpSyncDoc extends SynEntity {
 
 	public String mime;
 	
-	public ExpSyncDoc(SyntityMeta m, String orgId) {
+	public T_ExpSyncDoc(SyntityMeta m, String orgId) {
 		super(m);
 		org = orgId;
 	}
@@ -144,7 +146,7 @@ public class ExpSyncDoc extends SynEntity {
 				meta.shareflag,
 				meta.mime,
 				meta.fullpath,
-				meta.synoder,
+				meta.device,
 				meta.folder,
 				meta.size
 		};
@@ -158,7 +160,7 @@ public class ExpSyncDoc extends SynEntity {
 		if (synpageCols == null)
 			synpageCols = new String[] {
 					meta.pk,
-					meta.synoder,
+					meta.device,
 					meta.fullpath,
 					meta.shareby,
 					meta.shareDate,
@@ -168,7 +170,7 @@ public class ExpSyncDoc extends SynEntity {
 		return synpageCols;
 	}
 
-	public ExpSyncDoc(AnResultset rs, ExpDocTableMeta meta) throws SQLException {
+	public T_ExpSyncDoc(AnResultset rs, ExpDocTableMeta meta) throws SQLException {
 		super(meta);
 		this.docMeta = meta;
 		this.recId = rs.getString(meta.pk);
@@ -179,7 +181,7 @@ public class ExpSyncDoc extends SynEntity {
 		this.size = rs.getLong(meta.size, 0);
 		
 		this.clientpath =  rs.getString(meta.fullpath);
-		this.device =  rs.getString(meta.synoder);
+		this.device =  rs.getString(meta.device);
 		this.folder = rs.getString(meta.folder);
 		
 		try {
@@ -229,7 +231,7 @@ public class ExpSyncDoc extends SynEntity {
 //		this.fullpath(fullpath);
 //	}
 
-	public ExpSyncDoc fullpath(String clientpath) throws IOException {
+	public T_ExpSyncDoc fullpath(String clientpath) throws IOException {
 		this.clientpath = clientpath;
 
 		if (isblank(createDate)) {
@@ -262,7 +264,7 @@ public class ExpSyncDoc extends SynEntity {
 
 	protected String folder;
 	public String folder() { return folder; }
-	public ExpSyncDoc folder(String v) {
+	public T_ExpSyncDoc folder(String v) {
 		this.folder = v;
 		return this;
 	}
@@ -298,7 +300,7 @@ public class ExpSyncDoc extends SynEntity {
 	 * @param flags
 	 * @return this
 	 */
-	public ExpSyncDoc parseFlags(String[] flags) {
+	public T_ExpSyncDoc parseFlags(String[] flags) {
 		if (!isNull(flags)) {
 			syncFlag = flags[0];
 			shareflag = flags[1];
@@ -319,7 +321,7 @@ public class ExpSyncDoc extends SynEntity {
 			.nv(md.size, size)
 			.nv(md.createDate, createDate)
 			.nv(md.resname, pname)
-			.nv(md.synoder, device)
+			.nv(md.device, device)
 			.nv(md.shareby, shareby)
 			.nv(md.shareDate, sharedate)
 			.nv(md.shareflag, shareflag)

@@ -74,10 +74,10 @@ public abstract class SynEntity extends Anson {
 		this(rs, meta, new SynChangeMeta());
 	}
 
-	public SynEntity check(String conn, DBSynsactBuilder tr0, ArrayList<String[]> subs) {
-		this.subs = subs;
-		return this;
-	}
+//	public SynEntity check(String conn, DBSynsactBuilder tr0, ArrayList<String[]> subs) {
+//		this.subs = subs;
+//		return this;
+//	}
 
 	/**
 	 * Format entity synchronization task

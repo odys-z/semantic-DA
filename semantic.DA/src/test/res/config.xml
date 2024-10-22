@@ -11,7 +11,7 @@
     	<v>6</v>
     </c>
 	<c>
-		<k>IrUser</k>
+		<k>class-IUser</k>
 		<v>Class name of SUser Implementation</v>
 	</c>
 	

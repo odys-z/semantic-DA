@@ -24,6 +24,7 @@ import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.module.xtable.XMLTable.IMapValue;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
+import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -135,6 +136,8 @@ import io.odysz.transact.x.TransException;
  * {@link io.odysz.transact.sql.Transcxt} with null semantics, which will
  * disable semantic supporting. In that way, it's working as a structured sql
  * composing API.
+ * 
+ * <h5><a href='https://odys-z.github.io/dev/topics/index.html'>Documents</a></h5>
  * 
  * @author odys-z@github.com
  */
@@ -337,42 +340,23 @@ public class DASemantics {
 		 * <b>Handler:</b> {@link DASemantics.ShPostFk}
 		 */
 		postFk,
+
 		/**
-		 * Attach Attachments to Attaching Table (saving file in file system)<br>
 		 * xml/smtc = "ef" | "xf" | "ext-file" | "e-f" | "x-f" <br>
-		 * Take the update statement's file field as a separated file clob (base 64
-		 * encoded). When updating, save it to file system, then replace the nv's v with
-		 * filename<br>
-		 * on-events: insert, update<br>
-		 * <p>
-		 * args<br> 
-		 * 0: uploads (relative or start with $env_var),<br>
-		 * 1: uri,<br>
-		 * 2: busiTbl, the folder name, e.g. "a_users", or "month"<br>
-		 * 3: busiId, the recored value used for sub folder<br>
-		 * 4: client-name (optional)<br>
-		 * See handler for args' details: {@link DASemantics.ShExtFile} <br>
-		 * 
-		 * <h5>About Updating Handling</h5>
-		 * <p>On updating external files handler.</p>
-		 * <p>This method throw an exception if the uri provided, applying the semantics predefined as:<br>
-		 * AS all files are treaded as binary file, no file can be modified, only delete then create it makes sense.</p>
-		 * <p>Client should avoid updating an external file while handling business logics.
-		 * However, since v1.3.9, the updating file path is suppored via {@link ExtFileUpdate}.</p>
-		 * 
-		 * <p><b>NOTE: </b>This semantics only guard the data for updating.</p>
-		 * <p>To replace uri back into file when selecting, use "extfile(uri)" (js) or {@link io.odysz.transact.sql.parts.condition.Funcall#sqlExtFile(ISemantext, String[]) sqlExtFile(uri)} in java. </p>
-		 * 
-		 * @since 1.4.25
 		 * @deprecated this is the same with {@link #extFilev2} 
 		 */
 		extFile,
+		
 		/**
-		 * <p>Save and load a special field as file of file system.</p>
+		 * xml/smtc = "ef2.0" | "xf2.0" | "ext-file2.0" | "e-f2.0" | "x-f2.0"
+		 * <p>Save and load a special field as file of file system.
+		 * Can handle more subfolder (configered in xml as field name of data table).</p>
 		 * <p>The file content should be a Base 64 encoded block.</p>
 		 * <p>This semantics only used for handling small files.
 		 * If the file is large, there are an example in Semantic.jserv which
 		 * uses a block sequence for uploading files.</p>
+		 * <p>Tips</p>
+		 * <ul><li>Multiple nodes writing into the same file path can causing the file locking exception.</li></ul>
 		 * <p>args:</br>
 		 * 0: rec-id<br>
 		 * 1: uri, the Base64 content<br>
@@ -380,9 +364,14 @@ public class DASemantics {
 		 * 3: ...<br>
 		 *-1: file name<br>
 		 * </p> 
-		 * xml/smtc = "ef2.0" | "xf2.0" | "ext-file2.0" | "e-f2.0" | "x-f2.0" <br>
-		 * Similar to {@link #extFile}, but can handle more subfolder (configered in xml as field name of data table).
-		 * 
+		 * <p>args<br>
+		 * 0: uploads,<br>
+		 * 1: uri - uri field,<br>
+		 * 2: sub-folder level 0,<br>
+		 * 3: sub-folder level 1,<br>
+		 * ... ,<br>
+		 *-1: client-name for saving readable file name<br></p>
+		 * At least one level of subfolder is recommended.
 		 * @since 1.4.25
 		 */
 		extFilev2,
@@ -462,8 +451,11 @@ public class DASemantics {
 			else if ("ef".equals(type) || "e-f".equals(type) || "ext-file".equals(type)
 					|| "xf".equals(type) || "x-f".equals(type))
 				return extFile;
+//			else if (eq("syn-change", type))
+//				Utils.warn("Syn-change semantics is silented as a newer design decision");
 			else
 				throw new SemanticException("semantics not known, type: " + type);
+
 		}
 	}
 
@@ -475,6 +467,11 @@ public class DASemantics {
 
 	/**
 	 * Use this to replace metas from DB for semantics extension.
+	 * 
+	 * @deprecated since 2.0.0, to have a meta be the type of
+	 * {@link io.odysz.semantic.meta.SemanticTableMeta SemanticTableMeta}, configure
+	 * the class name in semantics.xml/t[id=metas], instead of calling this method.
+	 * 
 	 * @since 1.4.25
 	 * @param tbl
 	 * @param m
@@ -484,25 +481,18 @@ public class DASemantics {
 	 * @throws SQLException
 	 */
 	static public TableMeta replaceMeta(String tbl, TableMeta m, String ... connId)
-			throws TransException {
+			throws TransException, SQLException {
 		String conn = isNull(connId) ? Connects.defltConn() : connId[0];
-		try {
-			TableMeta mdb = Connects.getMeta(conn, m.tbl);
-			if (mdb == null)
-				throw new TransException("Can't find table %s from DB connection %s.", m.tbl, conn);
-			Connects.setMeta(conn, m.clone(mdb));
-			return mdb;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new TransException(e.getMessage());
-		}
+		TableMeta mdb = Connects.getMeta(conn, m.tbl);
+		if (mdb == null)
+			throw new TransException("Can't find table %s from DB connection %s.", m.tbl, conn);
+		Connects.setMeta(conn, m.clone(mdb));
+		return mdb;
 	}
 
-	///////////////////////////////// container class
-	///////////////////////////////// ///////////////////////////////
 	protected ArrayList<SemanticHandler> handlers;
 
-	private String tabl;
+	public final String tabl;
 	private String pk;
 
 	/**
@@ -530,7 +520,7 @@ public class DASemantics {
 	}
 
 	public void addHandler(smtype semantic, String tabl, String recId, String[] args)
-			throws SemanticException {
+			throws Exception {
 		checkParas(tabl, pk, args);
 		if (isDuplicate(tabl, semantic))
 			return;
@@ -558,7 +548,7 @@ public class DASemantics {
 
 
 	public SemanticHandler parseHandler(Transcxt trb, String tabl, smtype semantic, String recId, String[] args)
-			throws SemanticException {
+			throws Exception {
 		if (smtype.fullpath == semantic)
 			return new ShFullpath(basicTsx, tabl, recId, args);
 		else if (smtype.autoInc == semantic)
@@ -586,12 +576,18 @@ public class DASemantics {
 		else if (smtype.postFk == semantic)
 			return new ShPostFk(basicTsx, tabl, recId, args);
 		else if (smtype.extFile == semantic)
-			// throw new SemanticException("Since 1.5.0, smtype.extFile is replaced by extFilev2!");
 			return new ShExtFilev2(basicTsx, tabl, recId, args);
 		else if (smtype.extFilev2 == semantic)
 			return new ShExtFilev2(basicTsx, tabl, recId, args);
+		else if (smtype.synChange == semantic)
+			Utils.warn("The syn-change semantics is silented as a newer design decision");
 		else
-			throw new SemanticException("Cannot load configured semantics of key: %s", semantic);
+			throw new SemanticException("Cannot load configured semantics of key: %s, with trans-builder: %s, on basic connection %s.\n"
+					+ "See Extending default semantics plugin at Dev Community:\n"
+					+ "https://odys-z.github.io/dev/topics/semantics/3plugin.html",
+				semantic, trb.getClass().getName(), trb.basictx().connId());
+		
+		return null;
 	}
 
 	/**
@@ -660,8 +656,8 @@ public class DASemantics {
 					handler.onUpdate(semantx, satemt, row, cols, usr);
 	}
 
-	public void onDelete(ISemantext semantx, Statement<? extends Statement<?>> stmt,
-			Condit whereCondt, IUser usr) throws SemanticException {
+	public void onDelete(ISemantext semantx, Delete stmt,
+			Condit whereCondt, IUser usr) throws TransException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
 				if (handler.delete)
@@ -686,7 +682,7 @@ public class DASemantics {
 
 		protected String target;
 		@Override
-		public String key() { return target; }
+		public String mapKey() { return target; }
 		
 		protected String pkField;
 		protected String[] args;
@@ -721,15 +717,18 @@ public class DASemantics {
 		 * Handle onDelete event.
 		 * 
 		 * @param stx
-		 * @param stmt
+		 * @param del
 		 * @param whereCondt
 		 *            delete statement's condition.
 		 * @param usr
 		 * @throws SemanticException
 		 * @throws SQLException 
 		 */
-		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit whereCondt, IUser usr)
-				throws SemanticException {
+		protected void onDelete(ISemantext stx,
+				// Statement<? extends Statement<?>> stmt,
+				Delete del,
+				Condit whereCondt, IUser usr)
+				throws TransException {
 		}
 
 		protected void onPost(ISemantext sm, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
@@ -1105,7 +1104,10 @@ public class DASemantics {
 		}
 
 		@Override
-		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected void onDelete(ISemantext stx,
+				// Statement<? extends Statement<?>> stmt,
+				Delete stmt,
+				Condit condt, IUser usr)
 				throws SemanticException {
 			if (argss != null && argss.length > 0)
 				for (String[] args : argss)
@@ -1179,7 +1181,7 @@ public class DASemantics {
 		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
 				throws SemanticException {
 			for (String[] argus : argss) {
-				// busiTbl for fk-ins-cate must known
+				// busiTbl for fk-ins-cate must be known
 				if (cols == null ||
 						!cols.containsKey(argus[ixbusiTbl]) || cols.get(argus[ixbusiTbl]) == null) {
 					Utils.warn("Can't handle fk-busi without column %s", argus[ixbusiTbl]);
@@ -1462,7 +1464,10 @@ public class DASemantics {
 		}
 
 		@Override
-		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected void onDelete(ISemantext stx,
+				// Statement<? extends Statement<?>> stmt,
+				Delete stmt,
+				Condit condt, IUser usr)
 				throws SemanticException {
 
 				// delete external files when sqls committed
@@ -1514,21 +1519,12 @@ public class DASemantics {
 	}
 
 	/**
-	 * Save configured nv as file.<br>
-	 * <p>args<br>
-	 * 0: uploads,<br>
-	 * 1: uri - uri field,<br>
-	 * 2: sub-folder level 0,<br>
-	 * 3: sub-folder level 1,<br>
-	 * ... ,<br>
-	 *-1: client-name for saving readable file name<br></p>
-	 * At least one level of subfolder is recommended.
-	 * 
 	 * <h5>Note</h5>
 	 * <p>For large file, use stream asynchronous mode, otherwise it's performance problem here.</p>
 	 * <p>Whether uses or not a stream mode file up down loading is a business tier decision by semantic-jserv.
 	 * See Anclient.jave/album test for example.</p>
 	 * 
+	 * @see smtype#extFilev2
 	 * @author odys-z@github.com
 	 */
 	static public class ShExtFilev2 extends SemanticHandler {
@@ -1557,7 +1553,6 @@ public class DASemantics {
 
 		@Override
 		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
-			// if (args.length > 1 && args[1] != null) {
 			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
 				Object[] nv;
 				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
@@ -1684,50 +1679,53 @@ public class DASemantics {
 		}
 
 		@Override
-		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected void onDelete(ISemantext stx,
+				// Statement<? extends Statement<?>> stmt,
+				Delete stmt,
+				Condit condt, IUser usr)
 				throws SemanticException {
 
-				try {
-					AnResultset rs = (AnResultset) stmt
-							.transc()
-							.select(target)
-							.col(args[ixUri], "uri")
-							.where(condt)
-							.rs(stmt.transc().instancontxt(stx.connId(), usr))
-							.rs(0);
-					rs.beforeFirst();
+			try {
+				AnResultset rs = (AnResultset) stmt
+						.transc()
+						.select(target)
+						.col(args[ixUri], "uri")
+						.where(condt)
+						.rs(stmt.transc().instancontxt(stx.connId(), usr))
+						.rs(0);
+				rs.beforeFirst();
 
-					while (rs.next()) {
-						try {
-							String uri = rs.getString("uri");
-							if (isblank(uri, "\\.*", "\\**", "\\s*"))
-								continue;
+				while (rs.next()) {
+					try {
+						String uri = rs.getString("uri");
+						if (isblank(uri, "\\.*", "\\**", "\\s*"))
+							continue;
 
-							uri = EnvPath.decodeUri(stx, uri);
+						uri = EnvPath.decodeUri(stx, uri);
 
-							if (verbose)
-								Utils.warn("deleting %s", uri);
+						if (verbose)
+							Utils.warn("deleting %s", uri);
 
-							final String v = uri;
-							stx.addOnRowsCommitted((st, sqls) -> {
-								File f = new File(v);
-								if (!f.isDirectory())
-									f.delete();
-								else 
-									Utils.warn("ShExtHandler#onDelete(): Ignoring deleting %s", v);
+						final String v = uri;
+						stx.addOnRowsCommitted((st, sqls) -> {
+							File f = new File(v);
+							if (!f.isDirectory())
+								f.delete();
+							else 
+								Utils.warn("ShExtHandler#onDelete(): Ignoring deleting %s", v);
 
-								return null;
-							});
-						}
-						catch (Exception ex) {
-							ex.printStackTrace();
-						}
+							return null;
+						});
 					}
-				} catch (SQLException e) {
-					e.printStackTrace();
-				} catch (TransException e) {
-					throw new SemanticException(e.getMessage());
+					catch (Exception ex) {
+						ex.printStackTrace();
+					}
 				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (TransException e) {
+				throw new SemanticException(e.getMessage());
+			}
 		}
 	}
 
@@ -1747,7 +1745,10 @@ public class DASemantics {
 		}
 
 		@Override
-		protected void onDelete(ISemantext stx, Statement<? extends Statement<?>> stmt, Condit condt, IUser usr)
+		protected void onDelete(ISemantext stx,
+				// Statement<? extends Statement<?>> stmt,
+				Delete stmt,
+				Condit condt, IUser usr)
 				throws SemanticException {
 			if (argss != null && argss.length > 0)
 				for (String[] args : argss)
@@ -1821,7 +1822,7 @@ public class DASemantics {
 				}
 				String sql = String.format(args[args.length - 1], nv);
 				try {
-					AnResultset rs = Connects.select(stx.connId(), sql, Connects.flag_nothing);
+					AnResultset rs = Connects.select(stx.connId(), sql, AbsConnect.flag_nothing);
 					rs.beforeFirst().next();
 					if (rs.getInt(1) > 0)
 						throw new SemanticException("Checking count on %s.%s (%s = %s ...) failed",
@@ -1905,6 +1906,7 @@ public class DASemantics {
 			}
 		}
 
+		@Override
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols,
 				IUser usr) throws SemanticException {
 			onInsert(stx, null, row, cols, usr);
@@ -2000,6 +2002,7 @@ public class DASemantics {
 			*/
 		}
 
+		@Override
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			// Design Memo: insrt is not used in onInsert
 			onInsert(stx, null, row, cols, usr);

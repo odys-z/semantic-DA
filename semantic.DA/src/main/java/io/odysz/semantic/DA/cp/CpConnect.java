@@ -64,7 +64,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	}
 
 	// private boolean printSql;
-	boolean printSql() { return enableSystemout; }
+	// boolean printSql() { return enableSystemout; }
 	private String srcId;
 	private DataSource ds;
 
@@ -76,8 +76,8 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	 * @param printSql
 	 * @param log
 	 */
-	public CpConnect (String srcId, dbtype driverType, boolean printSql, boolean log) {
-		super(driverType, log);
+	public CpConnect (String id, String srcId, dbtype driverType, boolean printSql, boolean log) {
+		super(driverType, id, log);
 		this.srcId = "java:/comp/env/" + srcId;
 		this.enableSystemout = printSql;
 	}
@@ -89,7 +89,8 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	 * @return map[tabl, [field, lob]]*/
 	public HashMap<String, HashMap<String, OracleLob>> getlobMeta() { return clobMeta; }
 	
-	/**Get Connection
+	/**
+	 * Get Connection
 	 * 
 	 * <h4>Issue with Mysql 8.0.2:</h4>
 	 * For mysql 8.0.0, the SSL connection is enabled by default. And got SSL connection exception:<pre>
@@ -115,7 +116,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 	 */
 	protected Connection getConnection () throws SQLException, NamingException {
 		if (ds == null) {
-			System.out.print(srcId);
+			Utils.logi(srcId);
 			System.setProperty("https.protocols", "TLSv1 TLSv1.1 TLSv1.2 TLSv1.3");
 			
 			InitialContext ctx = new InitialContext();
@@ -125,7 +126,9 @@ public class CpConnect extends AbsConnect<CpConnect> {
         return conn;
 	}
 
-	/**For {@link Connects} creating Meta data before Datasource is usable.
+	/**
+	 * For {@link Connects} creating Meta data before Datasource is usable.
+	 * 
 	 * @param sql
 	 * @return query results
 	 * @throws SQLException
@@ -136,7 +139,8 @@ public class CpConnect extends AbsConnect<CpConnect> {
         PreparedStatement pstmt;
         AnResultset icrs = null; 
         try {
-        	Connects.printSql(enableSystemout, flags, sql);
+        	// Connects.printSql(enableSystemout, flags, sql);
+        	printSql(flags, sql);
 
         	con = getConnection();
             con.setAutoCommit(false);
@@ -199,7 +203,8 @@ public class CpConnect extends AbsConnect<CpConnect> {
 //	}
 
 	public int[] commit(ArrayList<String> sqls, int flags) throws SQLException, NamingException {
-		Connects.printSql(enableSystemout, flags, sqls);
+		// Connects.printSql(enableSystemout, flags, sqls);
+		printSql(flags, sqls);
 
 		int[] ret = null;
         Connection conn = null;
@@ -247,7 +252,7 @@ public class CpConnect extends AbsConnect<CpConnect> {
 		return ret;
 	}
 	
-	//////////////////////////////// oracle the hateful ///////////////////////////////////////
+	//////////////////////////////// oracle the special way ///////////////////////////////////////
 //	public void updateLobs(ArrayList<OracleLob> lobs) throws SQLException {
 //		if (!_isOrcl && lobs != null && lobs.size() > 0)
 //			throw new SQLException(" Why updating lobs to a non oracle db ? ");

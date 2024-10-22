@@ -27,24 +27,31 @@ public class SynodeMeta extends SyntityMeta {
 	/** Nyquence for stamping change logs */
 	public final String nstamp;
 
-	public final String mac;
+	// public final String mac;
+
+	public final String synoder;
+
+	public final String jserv;
 
 	/**
 	 * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
+	 * 
+	 * Using 'mac' as device id field.
 	 * 
 	 * @param conn
 	 * @param trb 
 	 * @throws SemanticException 
 	 */
 	public SynodeMeta(String conn) throws TransException {
-		super("syn_node", "synid", "synid", conn);
+		super("syn_node", "synid", "mac", conn);
 
-		// synoder = pk;
-		mac     = "mac";
+		// mac     = "mac";
 		nyquence= "nyq";
 		nstamp  = "nstamp";
 		org     = "org";
 		domain  = "domain";
+		jserv   = "jserv";
+		synoder = pk;
 
 		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
 

@@ -60,7 +60,7 @@ public class SynChangeMeta extends SemanticTableMeta {
 	}
 
 	/**
-	 * Compose function for uids
+	 * Composing function for uids
 	 * @param synoder
 	 * @param entityId
 	 * @return "synoder + UIDsep + entityId"

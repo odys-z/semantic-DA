@@ -11,20 +11,16 @@ import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concat;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.xml.sax.SAXException;
-
+import io.odysz.common.IAssert;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
@@ -33,6 +29,7 @@ import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.IUser;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Logic.op;
@@ -42,12 +39,11 @@ import io.odysz.transact.x.TransException;
 /**
  * Checker of each Synode.
  * 
- * TODO fail if found {@link io.odysz.semantic.DASemantics.smtype#synChange syn-change}
- * is configured.
- * 
  * @author Ody
  */
 public class Docheck {
+	public static IAssert azert;
+
 	public static final String org = "URA";
 
 	public static Docheck[] ck = new Docheck[4];
@@ -57,6 +53,7 @@ public class Docheck {
 	public final DBSyntableBuilder trb;
 
 	final String domain;
+
 	
 	static SynChangeMeta chm = new SynChangeMeta();
 	static SynSubsMeta sbm = new SynSubsMeta(chm);
@@ -64,17 +61,29 @@ public class Docheck {
 	static SynSessionMeta ssm = new SynSessionMeta();
 	static PeersMeta prm = new PeersMeta();
 
+	public final DATranscxt b0;
+
 	public IUser robot() { return trb.synrobot(); }
 
 	public int docs() throws SQLException, TransException {
 		return trb.entities(docm);
 	}
 
+	public String doclist() throws SQLException, TransException {
+		AnResultset rs = trb.entitySynuids(docm).beforeFirst();
+		String r = "";
+		while (rs.next()) {
+			r += " " + rs.getString(1);
+		}
+		return r.trim();
+	}
+
 	String connId() { return trb.basictx().connId(); }
 
-	public Docheck(String domain, String conn, String synid, SynodeMode mod, ExpDocTableMeta m)
-			throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
-		this(m, domain, conn, mod, synid, "rob-" + synid);
+	public Docheck(IAssert assertImpl, String domain, String conn,
+			String synid, SynodeMode mod, ExpDocTableMeta m)
+			throws Exception {
+		this(assertImpl, m, domain, conn, mod, synid, "rob-" + synid);
 	}
 
 	/**
@@ -100,32 +109,46 @@ public class Docheck {
 			.whereIn(trb.synm.synoder, nodes)
 			.rs(trb.instancontxt(trb.basictx().connId(), trb.synrobot()))
 			.rs(0);
-		assertEquals(cnt, rs.getRowCount());
+
+		azert.equali(cnt, rs.getRowCount());
 	}
 
-	public Docheck(ExpDocTableMeta docm, String domain, String conn, SynodeMode mode,
-			String synid, String usrid)
-			throws SQLException, TransException, ClassNotFoundException, IOException, SAXException {
+	public Docheck(IAssert assertImpl, ExpDocTableMeta docm, String domain, String conn,
+			SynodeMode mode, String synid, String usrid)
+			throws Exception {
 		trb = new DBSyntableBuilder(domain, conn, synid, mode)
-				.loadNyquvect(conn);
+					; // .loadNyquvect(conn);
+
+		azert = assertImpl == null ? azert : assertImpl;
 
 		this.docm = docm;
 		this.domain = trb.domain();
+		this.tops = null;
+		
+		this.b0 = new DATranscxt(trb.synconn());
+	}
+	
+	private Docheck(boolean[] debugs) throws Exception {
+		this.trb = null;
+		this.tops = debugs;
+		this.domain = null;
+
+		this.b0 = new DATranscxt(null);
 	}
 
-	public HashMap<String, Nyquence> cloneNv() {
-		HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(4);
-		for (String n : trb.nyquvect.keySet())
-			nv.put(n, new Nyquence(trb.nyquvect.get(n).n));
-		return nv;
-	}
-
+	/**
+	 * Check doc count. 
+	 * @param count
+	 * @param synids
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public void doc(int count, String... synids) throws TransException, SQLException {
 		Query q = trb.select(docm.tbl).col(count(), "c");
 		if (!isNull(synids))
 			q.whereIn(docm.synuid, synids);
 
-		assertEquals(count, ((AnResultset) q
+		azert.equali(count, ((AnResultset) q
 				.rs(trb.instancontxt(trb.synconn(), trb.synrobot()))
 				.rs(0))
 				.nxt()
@@ -161,6 +184,7 @@ public class Docheck {
 		return change_log(count, crud, synoder, eid, docm);
 	}
 
+	// public long change_log(int count, String crud, String synoder, String eid, SyntityMeta entm)
 	public long change_log(int count, String crud, String synoder, String eid, SyntityMeta entm)
 			throws TransException, SQLException {
 		Query q = trb
@@ -170,6 +194,8 @@ public class Docheck {
 				.whereEq(trb.chgm.entbl, entm.tbl);
 			if (synoder != null)
 				q.whereEq(trb.chgm.synoder, synoder);
+
+			//
 			if (eid != null)
 				q.whereEq(trb.chgm.uids, SynChangeMeta.uids(synoder, eid));
 
@@ -178,17 +204,49 @@ public class Docheck {
 					.rs(0);
 			
 			if (!chg.next() && count > 0)
-				fail(String.format("Expecting count == %d, but is actual 0", count));
+				azert.fail(String.format("Expecting count == %d, but is actual 0", count));
 
-			assertEquals(count, chg.getRowCount());
+			azert.equali(count, chg.getRowCount());
 			if (count > 0) {
-				assertEquals(crud, chg.getString(trb.chgm.crud));
-				assertEquals(entm.tbl, chg.getString(trb.chgm.entbl));
-				assertEquals(synoder, chg.getString(trb.chgm.synoder));
+				azert.equals(crud, chg.getString(trb.chgm.crud));
+				azert.equals(entm.tbl, chg.getString(trb.chgm.entbl));
+				azert.equals(synoder, chg.getString(trb.chgm.synoder));
 				return chg.getLong(trb.chgm.nyquence);
 			}
 			return 0;
 	}
+
+	public long change_log_uids(int count, String crud, String synoder, String uids, SyntityMeta entm)
+			throws TransException, SQLException {
+		Query q = trb
+				.select(trb.chgm.tbl, "ch")
+				.cols((Object[])trb.chgm.insertCols())
+				.whereEq(trb.chgm.domain, domain)
+				.whereEq(trb.chgm.entbl, entm.tbl);
+			if (synoder != null)
+				q.whereEq(trb.chgm.synoder, synoder);
+
+			// 
+			if (uids != null)
+				q.whereEq(trb.chgm.uids, uids);
+
+			AnResultset chg = (AnResultset) q
+					.rs(trb.instancontxt(connId(), robot()))
+					.rs(0);
+			
+			if (!chg.next() && count > 0)
+				azert.fail(String.format("Expecting count == %d, but is actual 0", count));
+
+			azert.equali(count, chg.getRowCount());
+			if (count > 0) {
+				azert.equals(crud, chg.getString(trb.chgm.crud));
+				azert.equals(entm.tbl, chg.getString(trb.chgm.entbl));
+				azert.equals(synoder, chg.getString(trb.chgm.synoder));
+				return chg.getLong(trb.chgm.nyquence);
+			}
+			return 0;
+	}
+
 
 	public long buf_change(int count, String crud, String synoder, String eid, SyntityMeta entm)
 			throws TransException, SQLException {
@@ -208,13 +266,13 @@ public class Docheck {
 				.rs(0);
 		
 		if (!chg.next() && count > 0)
-			fail(String.format("Expecting count == %d, but is actual 0", count));
+			azert.fail(String.format("Expecting count == %d, but is actual 0", count));
 
-		assertEquals(count, chg.getRowCount());
+		azert.equali(count, chg.getRowCount());
 		if (count > 0) {
-			assertEquals(crud, chg.getString(trb.chgm.crud));
-			assertEquals(entm.tbl, chg.getString(trb.chgm.entbl));
-			assertEquals(synoder, chg.getString(trb.chgm.synoder));
+			azert.equals(crud, chg.getString(trb.chgm.crud));
+			azert.equals(entm.tbl, chg.getString(trb.chgm.entbl));
+			azert.equals(synoder, chg.getString(trb.chgm.synoder));
 			return chg.getLong(trb.chgm.nyquence);
 		}
 		return 0;
@@ -242,13 +300,13 @@ public class Docheck {
 				.rs(0);
 		
 		if (!chg.next() && count > 0)
-			fail(String.format("Expecting count == %d, but is actual 0", count));
+			azert.fail(String.format("Expecting count == %d, but is actual 0", count));
 
-		assertEquals(count, chg.getRowCount());
+		azert.equali(count, chg.getRowCount());
 		if (count > 0) {
-			assertEquals(crud, chg.getString(trb.chgm.crud));
-			assertEquals(entm.tbl, chg.getString(trb.chgm.entbl));
-			assertEquals(synoder, chg.getString(trb.chgm.synoder));
+			azert.equals(crud, chg.getString(trb.chgm.crud));
+			azert.equals(entm.tbl, chg.getString(trb.chgm.entbl));
+			azert.equals(synoder, chg.getString(trb.chgm.synoder));
 			return chg.getLong(trb.chgm.nyquence);
 		}
 		return 0;
@@ -275,13 +333,11 @@ public class Docheck {
 			if (n >= 0)
 				toIds.add(ck[n].trb.synode());
 
-		// subsCount(synm, subcount, chgId, toIds.toArray(new String[0]));
 			int cnt = 0;
-			// AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
 			AnResultset subs = (AnResultset) trb
 					.select(trb.chgm.tbl, "ch")
 					.je_(trb.subm.tbl, "sb", trb.chgm.pk, trb.subm.changeId)
-					.cols_byAlias("sb", trb.subm.cols())
+					.cols_byAlias("sb", (Object[])trb.subm.cols())
 					.whereEq(trb.chgm.uids, uids)
 					.rs(trb.instancontxt(connId(), robot()))
 					.rs(0);
@@ -293,20 +349,18 @@ public class Docheck {
 					cnt++;
 			}
 
-			assertEquals(subcount, cnt);
-			assertEquals(subcount, subs.getRowCount());
+			azert.equali(subcount, cnt);
+			azert.equali(subcount, subs.getRowCount());
 	}
 
 	public void subsCount(SyntityMeta entm, int subcount, String chgId, String ... toIds)
 			throws SQLException, TransException {
 		if (isNull(toIds)) {
-			// AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
 			AnResultset subs = subscribes(connId(), chgId, entm, robot());
-			assertEquals(subcount, subs.getRowCount());
+			azert.equali(subcount, subs.getRowCount());
 		}
 		else {
 			int cnt = 0;
-			// AnResultset subs = trb.subscribes(connId(), domain, uids, entm, robot());
 			AnResultset subs = subscribes(connId(), chgId, entm, robot());
 			subs.beforeFirst();
 			while (subs.next()) {
@@ -314,8 +368,8 @@ public class Docheck {
 					cnt++;
 			}
 
-			assertEquals(subcount, cnt);
-			assertEquals(subcount, subs.getRowCount());
+			azert.equali(subcount, cnt);
+			azert.equali(subcount, subs.getRowCount());
 		}
 	}
 
@@ -364,25 +418,27 @@ public class Docheck {
 		for (int cx = 0; cx < ck.length && ck[cx] instanceof Docheck; cx++) {
 			DBSyntableBuilder t = ck[cx].trb;
 
-			boolean dbg = Connects.getDebug(t.synconn());
+			boolean top = Connects.getDebug(t.synconn());
 			Connects.setDebug(t.synconn(), false);
-			t.loadNyquvect(t.synconn());
-			Connects.setDebug(t.synconn(), dbg);
 
-			nv2[cx] = Nyquence.clone(t.nyquvect);
+			try { HashMap<String, Nyquence> nyquvect = ExessionPersist.loadNyquvect(t); 
 
-			Utils.logi(
-				t.synode() + " [ " +
-				Stream.of(ck)
-				.filter(c -> c != null)
-				.map((c) -> {
-					String n = c.trb.synode();
-					return String.format("%3s",
-						t.nyquvect.containsKey(n) ?
-						t.nyquvect.get(n).n : "");
-					})
-				.collect(Collectors.joining(", ")) +
-				" ]");
+				nv2[cx] = Nyquence.clone(nyquvect);
+
+				Utils.logi("%s [ %s ] { %s }",
+					t.synode(),
+					Stream.of(ck)
+					.filter(c -> c != null)
+					.map((c) -> {
+						String n = c.trb.synode();
+						return String.format("%3s",
+							nyquvect.containsKey(n) ?
+							nyquvect.get(n).n : "");
+						})
+					.collect(Collectors.joining(", ")),
+					ck[cx].doclist());
+			}
+			finally { Connects.setDebug(t.synconn(), top); }
 		}
 
 		return (HashMap<String, Nyquence>[]) nv2;
@@ -408,22 +464,30 @@ public class Docheck {
 
 		for (int cx = 0; cx < ck.length && ck[cx] instanceof Docheck; cx++) {
 			DBSyntableBuilder b = ck[cx].trb;
-			HashMap<String,String> idmap = ((AnResultset) b
+			boolean top = Connects.getDebug(b.synconn());
+			Connects.setDebug(b.synconn(), false);
+			try {
+				HashMap<String,String> idmap = ((AnResultset) b
 					.select(chm.tbl, "ch")
 					.cols("ch.*", sbm.synodee).col(concat(ifnull(xbm.peer, " "), "':'", xbm.pagex), xbm.pagex)
 					// .je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
 					.je_(sbm.tbl, "sub", chm.pk, sbm.changeId)
 					.l_(xbm.tbl, "xb", chm.pk, xbm.changeId)
 					.orderby(xbm.pagex, chm.entbl, chm.uids)
-					.rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
+					// .rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
+					.rs(b.instancontxt(b.synconn(), b.synrobot()))
 					.rs(0))
 					.<String>map(new String[] {chm.pk, sbm.synodee}, (r) -> changeLine(r));
 
-			for(String cid : idmap.keySet()) {
-				if (!uidss.containsKey(cid))
-					uidss.put(cid, new String[ck.length]);
+				for(String cid : idmap.keySet()) {
+					if (!uidss.containsKey(cid))
+						uidss.put(cid, new String[ck.length]);
 
-				uidss.get(cid)[cx] = idmap.get(cid);
+					uidss.get(cid)[cx] = idmap.get(cid);
+				}
+			}
+			finally { 
+				Connects.setDebug(b.synconn(), top);
 			}
 		}
 		
@@ -461,33 +525,85 @@ public class Docheck {
 	 */
 	public static void assertnv(long... nvs) {
 		if (nvs == null || nvs.length == 0 || nvs.length % 2 != 0)
-			fail("Invalid arguments to assert.");
+			azert.fail("Invalid arguments to assert.");
 		
 		for (int i = 0; i < nvs.length/2; i++) {
-			assertEquals(nvs[i], nvs[i + nvs.length/2],
+			azert.equall(nvs[i], nvs[i + nvs.length/2],
 				String.format("nv[%d] %d : %d", i, nvs[i], nvs[i + nvs.length/2]));
 		}
 	}
 
-	public static void assertI(Docheck[] ck, HashMap<?, ?>[] nvs) {
+	public static void assertI(Docheck[] ck, HashMap<?, ?>[] nvs) throws SQLException, TransException {
 		for (int i = 0; i < nvs.length; i++) {
 			if (nvs[i] != null && nvs[i].size() > 0)
-				assertEquals(ck[i].trb.n0().n, ((Nyquence)nvs[i].get(ck[i].trb.synode())).n);
+				azert.equall(ck[i].n0().n, ((Nyquence)nvs[i].get(ck[i].trb.synode())).n);
 			else break;
 		}
 	}
 	
+	public Nyquence n0() throws SQLException, TransException {
+		return DAHelper.getNyquence(trb, trb.synconn(), trb.synm, trb.synm.nyquence, trb.synm.synoder, trb.synode());
+	}
+
 	public static void assertnv(HashMap<String, Nyquence> nv0,
 			HashMap<String, Nyquence> nv1, int ... delta) {
 		if (nv0 == null || nv1 == null || nv0.size() != nv1.size() || nv1.size() != delta.length)
-			fail("Invalid arguments to assert.");
+			azert.fail("Invalid arguments to assert.");
 		
 		for (int i = 0; i < nv0.size(); i++) {
-			assertEquals(nv0.get(ck[i].trb.synode()).n + delta[i], nv1.get(ck[i].trb.synode()).n,
+			azert.equall(nv0.get(ck[i].trb.synode()).n + delta[i], nv1.get(ck[i].trb.synode()).n,
 				String.format("nv[%d] %d : %d + %d",
 						i, nv0.get(ck[i].trb.synode()).n,
 						nv1.get(ck[i].trb.synode()).n,
 						delta[i]));
 		}
+	}
+
+	public long stamp() throws SQLException, TransException {
+		boolean dbg = Connects.getDebug(trb.synconn());
+		try { return DAHelper.getNstamp(trb).n; }
+		finally { Connects.setDebug(trb.synconn(), dbg); }
+	}
+	
+	final boolean[] tops;
+	
+	/**
+	 * <p>Push connect' debug flags and return a checker instance.</p>
+	 * Example:
+	 * <pre>pushDebug()
+	 * .assertl(
+	 *  expect1, loadNyquvect(actual1), // logging suppressed
+	 *  expect2, loadNyquvect(actual2), // logging suppressed
+	 *  ...)
+	 * .popDebug();                     // logging restored</pre>
+	 * @throws Exception 
+	*/
+	public static Docheck pushDebug() throws Exception {
+		if (ck != null) {
+			final boolean[] tops = new boolean[ck.length];
+			for (int cx = 0; cx < ck.length; cx++) {
+				if (ck[cx] != null) {
+					tops[cx] = Connects.getDebug(ck[cx].connId());
+					Connects.setDebug(ck[cx].connId(), tops[cx]);
+				}
+			}
+		
+			return new Docheck(tops);
+		}
+		return new Docheck(new boolean[0]);
+	}
+
+	public Docheck assertl(long ... n) {
+		if (!isNull(n))
+			for (int x = 0; x < n.length; x+=2)
+				azert.equall(n[x], n[x+1]);
+		return this;
+	}
+
+	public void popDebug() {
+		if (tops != null) 
+			for (int cx = 0; cx < ck.length; cx++) 
+				if (ck[cx] != null)
+				Connects.setDebug(ck[cx].connId(), tops[cx]);
 	}
 }

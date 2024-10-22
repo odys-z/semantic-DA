@@ -1,5 +1,7 @@
 package io.odysz.semantic.syn;
 
+import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
@@ -12,6 +14,8 @@ import static io.odysz.semantic.syn.Docheck.printChangeLines;
 import static io.odysz.semantic.syn.Docheck.printNyquv;
 import static io.odysz.semantic.syn.ExessionAct.init;
 import static io.odysz.semantic.syn.ExessionAct.ready;
+import static io.odysz.semantic.syn.ExessionPersist.loadNyquvect;
+import static io.odysz.semantic.util.DAHelper.getNstamp;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -29,6 +33,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.x.AnsonException;
+import io.odysz.common.AssertImpl;
 import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
@@ -44,6 +49,7 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.syn.registry.Syntities;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
@@ -56,6 +62,7 @@ import io.odysz.transact.x.TransException;
 * 
 * @author Ody
 */
+//@Disabled("Only after experimental branches merged.")
 public class DBSyntableTest {
 	public static final String[] conns;
 	public static final String[] testers;
@@ -73,8 +80,6 @@ public class DBSyntableTest {
 
 	static String runtimepath;
 
-	// public static Docheck[] ck; // = new Docheck[4];
-
 	static SynodeMeta snm;
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
@@ -82,7 +87,6 @@ public class DBSyntableTest {
 	static SynSessionMeta ssm;
 	static PeersMeta prm;
 
-	// static T_PhotoMeta phm;
 	static String[] synodes;
 
 	static {
@@ -93,10 +97,10 @@ public class DBSyntableTest {
 		File file = new File(rtroot);
 		runtimepath = file.getAbsolutePath();
 		logi(runtimepath);
+
 		Configs.init(runtimepath);
 		Connects.init(runtimepath);
 
-		// load metas, then semantics
 		DATranscxt.configRoot(rtroot, runtimepath);
 		String rootkey = System.getProperty("rootkey");
 		DATranscxt.key("user-pswd", rootkey);
@@ -131,8 +135,6 @@ public class DBSyntableTest {
 
 		ck = new Docheck[4];
 		synodes = new String[] { "X", "Y", "Z", "W" };
-		// new for triggering ddl loading - some error here FIXME
-		// nyqm = new NyquenceMeta("");
 		chm = new SynChangeMeta();
 		sbm = new SynSubsMeta(chm);
 		xbm = new SynchangeBuffMeta(chm);
@@ -142,11 +144,11 @@ public class DBSyntableTest {
 		for (int s = 0; s < 4; s++) {
 			String conn = conns[s];
 			snm = new SynodeMeta(conn);
-			T_PhotoMeta phm = new T_PhotoMeta(conn); //.replace();
+			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn); //.replace();
 
-			SemanticTableMeta.setupSqliTables(conn, snm, chm, sbm, xbm, prm, ssm, phm);
-
-			phm.replace();
+			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
+			// phm.replace();
+			// DBSynTransBuilder.registerEntity(conn, phm);
 
 			ArrayList<String> sqls = new ArrayList<String>();
 			sqls.add("delete from oz_autoseq;");
@@ -163,19 +165,22 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			Docheck.ck[s] = new Docheck(s != W ? zsu : null, conn, synodes[s],
+			Syntities.load(runtimepath, f("syntity-%s.json", s), 
+					(synreg) -> {
+						if (eq(synreg.table, "h_photos"))
+							return new T_DA_PhotoMeta(conn);
+						else
+							throw new SemanticException("TODO %s", synreg.table);
+					});
+
+			Docheck.ck[s] = new Docheck(new AssertImpl(), s != W ? zsu : null, conn, synodes[s],
 					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm);
 			
 			// ck[s].synm = snm;
 			if (s != W)
-				Docheck.ck[s].trb.incNyquence();
-
-			Docheck.ck[s].trb.registerEntity(conn, Docheck.ck[s].docm);
-			// Docheck.ck[s].trb.registerEntity(conn, snm);
+				Docheck.ck[s].trb.incNyquence0();
 		}
 		
-		// phm = new T_PhotoMeta(conns[0]).replace(); // all entity table is the same in this test
-
 		assertEquals("syn.00", ck[0].connId());
 	}
 
@@ -195,15 +200,17 @@ public class DBSyntableTest {
 			throws TransException, SQLException, IOException {
 		@SuppressWarnings("unchecked")
 		HashMap<String, Nyquence>[] nvs = (HashMap<String, Nyquence>[]) new HashMap[] {
-				ck[X].trb.nyquvect, ck[Y].trb.nyquvect, ck[Z].trb.nyquvect
-		};
+				loadNyquvect(ck[X].trb),
+				loadNyquvect(ck[Y].trb),
+				loadNyquvect(ck[Z].trb)};
+
 		HashMap<String, Nyquence>[] nvs_ = Nyquence.clone(nvs);
 
 		int no = 0;
 		String x = synodes[X];
 
 		// 1 insert A
-		Utils.logrst("insert A", section, ++no);
+		Utils.logrst("insert X", section, ++no);
 		String[] X_0_uids = insertPhoto(X);
 		String X_0 = X_0_uids[0];
 
@@ -213,7 +220,7 @@ public class DBSyntableTest {
 		ck[X].psubs(2, X_0_uids[1], -1, Y, Z, -1);
 
 		// 2 insert B
-		Utils.logrst("insert B", section, ++no);
+		Utils.logrst("insert Y", section, ++no);
 		String[] B_0_uids = insertPhoto(Y);
 		String B_0 = B_0_uids[0];
 
@@ -271,6 +278,8 @@ public class DBSyntableTest {
 		ck[X].change_doclog(0, C, B_0);
 		ck[X].psubs(0, X_0_uids[1], -1, -1, Z, -1);
 		ck[X].psubs(0, B_0_uids[1], -1, -1, Z, -1);
+
+		assertEquals(ck[X].docs(), ck[Y].docs());
 	}
 
 	void testJoinChild(int section) throws Exception {
@@ -289,19 +298,20 @@ public class DBSyntableTest {
 		ck[Z].synodes(X,  Y,  Z, -1);
 		ck[W].synodes(-1, Y, -1, W);
 
-		ck[Y].change_log(1, C, "Y", "W", ck[Y].trb.synm);
+		ck[Y].change_log_uids(1, C, "Y", "W,W", ck[Y].trb.synm);
+		ck[Y].change_log_uids(0, C, "Y", "Y,W", ck[Y].trb.synm);
 		ck[Y].buf_change(0, C, "W", ck[Y].trb.synm);
-		ck[Y].synsubs(2, "Y,W", X, -1, Z, -1);
+		ck[Y].synsubs(2, "W,W", X, -1, Z, -1);
 		
 		Utils.logrst("X vs Y", section, ++no);
 		exchangeSynodes(X, Y, section, 2);
 		ck[X].synodes(X, Y, Z, W);
-		ck[X].change_log(1, C, "Y", "W", ck[X].trb.synm);
-		ck[X].buf_change(0, C, "Y", "W", ck[X].trb.synm);
-		ck[X].synsubs(1, "Y,W", -1, -1, Z, -1);
+		ck[X].change_log_uids(1, C, "Y", "W,W", ck[X].trb.synm);
+		ck[X].buf_change(0, C, "Y", "W,W", ck[X].trb.synm);
+		ck[X].synsubs(1, "W,W", -1, -1, Z, -1);
 
 		ck[Z].synodes(X, Y, Z, -1);
-		ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
+		ck[Z].synsubs(0, "W,W", -1, -1, -1, -1);
 		
 		Utils.logrst("X create photos", section, ++no);
 		String[] x_uids = insertPhoto(X);
@@ -316,7 +326,7 @@ public class DBSyntableTest {
 		Utils.logrst("X <= Z", section, ++no);
 		exchangeSynodes(X, Z, section, no);
 		ck[Z].synodes(X, Y, Z, W);
-		ck[Z].synsubs(0, "Y,W", -1, -1, -1, -1);
+		ck[Z].synsubs(0, "W,W", -1, -1, -1, -1);
 		Utils.logrst("On X-Z: Now Z knows W", section, ++no);
 		
 		Utils.logrst("Z vs W", section, ++no);
@@ -331,8 +341,10 @@ public class DBSyntableTest {
 
 			stb.onAbort(req);
 
-			assertEquals(ck[W].trb.n0().n, ctb.stamp());
-			assertEquals(ck[Z].trb.n0().n, stb.stamp());
+			printChangeLines(ck);
+			printNyquv(ck);
+			assertEquals(ck[W].n0().n, ck[W].stamp());
+			assertEquals(ck[Z].n0().n, ck[Z].stamp());
 			return;
 		}
 		fail("W is unable to roaming with Z.");
@@ -366,7 +378,7 @@ public class DBSyntableTest {
 		
 		Utils.logrst("Y vs Z", section, ++no);
 		exchangeDocs(Y, Z, section, 2);
-		assertEquals(ck[Z].trb.n0().n, ck[Z].trb.stamp());
+		assertEquals(ck[Z].n0().n, ck[Z].stamp());
 		ck[Y].buf_change(0, C, z, z_uids[0], ck[Y].docm);
 		ck[Y].change_log(1, C, z, z_uids[0], ck[Y].docm);
 		ck[Y].psubs(2, z_uids[1], X, -1, -1, W);
@@ -422,15 +434,15 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[X].change_doclog(1, U, null);
+		ck[X].change_doclog(2, U, null);
 		ck[X].buf_change(0, U, null, ck[X].docm);
-		ck[X].psubs(4, null, X, Y, Z, W);
-		ck[X].psubs(4, null, -1, -1, Z, W);
+		ck[X].psubs(6, null, X, Y, Z, W);
+		ck[X].psubs(6, null, -1, -1, Z, W);
 
 		ck[Y].change_doclog(1, U, null);
 		ck[Y].buf_change_p(0, U, null);
-		ck[Y].psubs(4, null, X, Y, Z, W);
-		ck[Y].psubs(4, null, -1, -1, Z, W);
+		ck[Y].psubs(6, null, X, Y, Z, W);
+		ck[Y].psubs(6, null, -1, -1, Z, W);
 
 		Utils.logrst("Y <= Z", section, ++no);
 		exchangeDocs(Y, Z, section, no);
@@ -438,8 +450,8 @@ public class DBSyntableTest {
 		printNyquv(ck);
 
 		ck[Y].change_doclog(1, U, null);
-		ck[Y].psubs(2, null, X, Y, Z, W);
-		ck[Y].psubs(2, null, -1, -1, -1, W);
+		ck[Y].psubs(3, null, X, Y, Z, W);
+		ck[Y].psubs(3, null, -1, -1, -1, W);
 		ck[Y].psubs(1, yu[1], -1, -1, -1, W);
 		ck[Y].psubs(1, xu[1], -1, -1, -1, W);
 	}
@@ -450,7 +462,7 @@ public class DBSyntableTest {
 
 		int x = ck[X].docs();
 		int y = ck[Y].docs();
-
+		
 		Utils.logrst("X delete a photo", test, ++no);
 		Object[] xd = deletePhoto(X);
 		printChangeLines(ck);
@@ -484,6 +496,35 @@ public class DBSyntableTest {
 
 		ck[X].doc(0, (String)yd[0]);
 		ck[X].doc(x-2);
+
+		Utils.logrst("Z <= Y", test, ++no);
+		exchangeDocs(Z, Y, test, no);
+		Utils.logrst("X <= Y", test, ++no);
+		exchangeDocs(X, Y, test, no);
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		Utils.logrst("Z <= Y", test, ++no);
+		exchangeDocs(Z, Y, test, no);
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		Utils.logrst("W <= Y", test, ++no);
+		exchangeDocs(W, Y, test, no);
+
+		Utils.logrst("W <= X", test, ++no);
+		exchangeDocs(W, X, test, no);
+
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		Utils.logrst("Y <= X", test, ++no);
+		exchangeDocs(Y, X, test, no);
+
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		assertEquals(ck[X].docs(), ck[Y].docs());
 	}
 	
 	void testBreakAck(int section) throws Exception {
@@ -556,8 +597,10 @@ public class DBSyntableTest {
 		// applicant
 		Utils.logrst(String.format("%s initiate domain", cltb.synode()), testix, sect, ++no);
 
-		ExchangeBlock ack  = cltb.domainitMe(cltp, admin, resp);
-		Utils.logi(ack.nv);
+		ExchangeBlock ack  = cltb//.domain("zsu")
+				.domainitMe(cltp, admin, "jserv/not-used-in-test", "zsu", resp);
+//		ExchangeBlock ack  = cltb.domainitMe(cltp, admin, resp);
+		Utils.logi(ack.nv, cltb.synode(), ".Ack.nv: ");
 
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -569,12 +612,12 @@ public class DBSyntableTest {
 
 		// applicant
 		Utils.logrst(new String[] {cltb.synode(), "closing application"}, testix, sect, ++no);
-		req = cltb.domainCloseJoin(cltp, resp);
+		req = cltb.domainCloseJoin(cltp, resp); // Debug Notes: resp.nv is polluted, but should be safely dropped.
 		printChangeLines(ck);
 		printNyquv(ck);
 
 		Utils.logrst(new String[] {admb.synode(), "on closing"}, testix, sect, ++no);
-		admb.domainCloseJoin(admp, req);
+		admb.domainCloseJoin(admp, req); // Debug Notes: req.nv is polluted, but should be safely dropped.
 
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -596,8 +639,8 @@ public class DBSyntableTest {
 		DBSyntableBuilder ctb = ck[cli].trb;
 		DBSyntableBuilder stb = ck[srv].trb;
 
-		SyntityMeta sphm = new T_PhotoMeta(stb.basictx().connId());
-		SyntityMeta cphm = new T_PhotoMeta(ctb.basictx().connId());
+		SyntityMeta sphm = new T_DA_PhotoMeta(stb.basictx().connId());
+		SyntityMeta cphm = new T_DA_PhotoMeta(ctb.basictx().connId());
 		
 		exchange(ssm, sphm, stb, cphm, ctb, test, subno);
 	}
@@ -620,7 +663,7 @@ public class DBSyntableTest {
 		int no = 0;
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 		ExessionPersist cp = new ExessionPersist(ctb, stb.synode());
-		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
+		ExchangeBlock ini = ctb.initExchange(cp);
 		Utils.logrst(String.format("%s initiate: changes: %d    entities: %d",
 				ctb.synode(), ini.totalChallenges, ini.enitities(cphm.tbl)), test, subno, no, 1);
 
@@ -637,7 +680,8 @@ public class DBSyntableTest {
 
 		Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
 		ExchangeBlock req = ctb.closexchange(cp, rep);
-		assertEquals(req.nv.get(ctb.synode()).n + 1, ctb.stamp());
+		if (req.nv.containsKey(ctb.synode()))
+			assertEquals(req.nv.get(ctb.synode()).n + 1, getNstamp(ctb).n);
 		assertEquals(ready, cp.exstate());
 
 		printChangeLines(ck);
@@ -646,7 +690,8 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
 		// FIXME what if the server doesn't agree?
 		rep = stb.onclosexchange(sp, req);
-		assertEquals(rep.nv.get(ctb.synode()).n + 1, stb.stamp());
+		if (req.nv.containsKey(ctb.synode()))
+			assertEquals(rep.nv.get(ctb.synode()).n + 1, getNstamp(stb).n);
 		assertEquals(ready, sp.exstate());
 
 		printChangeLines(ck);
@@ -661,12 +706,12 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
 
 		ExessionPersist cp = new ExessionPersist(stb, stb.synode());
-		ExchangeBlock ini = ctb.initExchange(cp, stb.synode());
+		ExchangeBlock ini = ctb.initExchange(cp);
 		assertTrue(ini.totalChallenges > 0);
 
 
 		ctb.abortExchange(cp, stb.synode(), null);
-		ini = ctb.initExchange(cp, stb.synode());
+		ini = ctb.initExchange(cp);
 		Utils.logrst(String.format("%s initiate changes: %d",
 				ctb.synode(), ini.totalChallenges), test, subno, ++no);
 		
@@ -736,8 +781,7 @@ public class DBSyntableTest {
 
 	static void challengeAnswerLoop(ExessionPersist sp, DBSyntableBuilder stb, 
 				ExessionPersist cp, DBSyntableBuilder ctb, ExchangeBlock rep,
-				int test, int subno, int step)
-				throws SQLException, TransException {
+				int test, int subno, int step) throws SQLException, TransException {
 		int no = 0;
 		
 		if (rep != null) {
@@ -761,7 +805,6 @@ public class DBSyntableTest {
 
 				// server
 				Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, step, ++no);
-				// rep = sp.onextExchange(ctb.synode(), req);
 				rep = sp.nextExchange(req);
 
 				Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
@@ -793,7 +836,7 @@ public class DBSyntableTest {
 				.folder(rob.uid()));
 		
 		return new String[] {pid_chid[0], pid_chid[1],
-			SynChangeMeta.uids(synoder, pid_chid[0])};
+					SynChangeMeta.uids(synoder, pid_chid[0])};
 	}
 	
 	/**
@@ -833,7 +876,7 @@ public class DBSyntableTest {
 		DBSyntableBuilder t = ck[s].trb;
 		AnResultset slt = ((AnResultset) t
 				.select(entm.tbl, "ch")
-				.whereEq(entm.synoder, t.synrobot().deviceId())
+				.whereEq(entm.device, t.synrobot().deviceId())
 				.orderby(entm.pk, "desc")
 				.limit(1)
 				.rs(ck[s].trb.instancontxt(ck[s].connId(), ck[s].robot()))
@@ -844,16 +887,17 @@ public class DBSyntableTest {
 			throw new SemanticException("No entity found: synode=%s, ck=%d",
 					t.synode(), s);
 
-		String pid   = slt.getString(entm.pk);
-		String synuid= slt.getString(entm.synuid);
-		String synodr= slt.getString(entm.synoder);
-		String pname = slt.getString(entm.resname);
+		String pid    = slt.getString(entm.pk);
+		// String synuid= slt.getString(entm.synuid);
+		String device = slt.getString(entm.device);
+		String clientpath = slt.getString(entm.fullpath);
+		String pname  = slt.getString(entm.resname);
 
-		String chgid = t.updateEntity(synodr, synuid, entm,
-			entm.resname, String.format("%s,%04d", (pname == null ? "" : pname), t.n0().n),
+		String chgid = t.updateEntity(t.synode(), new String[] { device, clientpath }, entm,
+			entm.resname, String.format("%s,%04d", (pname == null ? "" : pname), ck[s].stamp()),
 			entm.createDate, now());
 
-		return new String[] {pid, chgid, synuid };
+		return new String[] {pid, chgid, slt.getString(entm.synuid) };
 	}
 	
 

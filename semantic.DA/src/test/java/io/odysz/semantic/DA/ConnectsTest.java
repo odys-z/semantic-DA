@@ -4,13 +4,11 @@ package io.odysz.semantic.DA;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 
 import org.junit.jupiter.api.Test;
-import org.xml.sax.SAXException;
 
 import io.odysz.common.Configs;
 import io.odysz.common.DateFormat;
@@ -42,7 +40,7 @@ public class ConnectsTest {
 		try {
 			DATranscxt.configRoot(null, abspath);
 			st = new DATranscxt(DASemantextTest.connId);
-		} catch (SemanticException | SQLException | SAXException | IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -55,7 +53,10 @@ public class ConnectsTest {
 		('test00', '0002', 'Portal', 'views/portal.html', '0001', '1', '0 0001.1 0002'),
 		('test00', '0003', 'User Info', 'views/user-info.html', '0001', '2', '0 0001.2 0003');
 		*/
-		AnResultset rs = Connects.select("select * from a_functions where flags='test00' order by fullpath, sibling", Connects.flag_nothing);
+		AnResultset rs = Connects.select(
+						"select * from a_functions where flags='test00' order by fullpath, sibling",
+						AbsConnect.flag_nothing);
+
 		rs.printSomeData(false, 3, "funcId", "funcName", "fullpath");
 		assertEquals(rs.getRowCount(), 0);
 		

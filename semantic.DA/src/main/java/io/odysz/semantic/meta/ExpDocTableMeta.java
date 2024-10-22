@@ -1,9 +1,16 @@
 package io.odysz.semantic.meta;
 
+import java.sql.SQLException;
+
+import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DATranscxt;
+import io.odysz.transact.sql.Query;
 import io.odysz.transact.x.TransException;
 
 /**
  * Experimental: document entity table meta.
+ * 
+ * TODO rename together with ExpDoctier, ExpSynodetier.
  *
  * @author odys-z@github.com
  */
@@ -48,15 +55,17 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 
 	public final String shareflag;
 
-	public ExpDocTableMeta() throws TransException {
-		this("", "", "device", "conn");
+	public ExpDocTableMeta(String conn) throws TransException {
+		this("syn_docs", "docId", "device", conn);
 	}
 
-	public ExpDocTableMeta(String tbl, String pk, String device, String conn) throws TransException {
+	public ExpDocTableMeta(String tbl, String pk, String device, String conn)
+			throws TransException {
 		super(tbl, pk, device, conn);
 
-		resname = "pname";
 		this.device = device;
+
+		resname = "docname";
 		uri = "uri";
 		folder = "folder";
 		createDate = "pdate";
@@ -64,11 +73,38 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 
 		mime = "mime";
 		size = "filesize";
-		synoder = "device";
 		fullpath = "clientpath";
 
 		shareDate = "sharedate";
 		shareby = "shareby";
 		shareflag = "shareflag";
+
+		uids.add(device);
+		uids.add(fullpath);
+	}
+
+	/**
+	 * Create select with cols can be understand by {@link #getPathInfo(AnResultset)}.
+	 * 
+	 * @param st
+	 * @param devid
+	 * @return {@link Query}
+	 * @throws TransException
+	 */
+	public Query selectSynPaths(DATranscxt st, String devid) throws TransException {
+		return  st.select(tbl, "t")
+				  .cols(device, shareflag, shareby, shareDate);
+
+	}
+
+	/**
+	 * Get fields from rs where cols is selcted with stamement generated
+	 * by {@link #selectSynPaths(DATranscxt, String)}.
+	 * @param rs
+	 * @return strings
+	 * @throws SQLException
+	 */
+	public Object[] getPathInfo(AnResultset rs) throws SQLException {
+		return rs.getFieldArray(device, shareflag, shareby, shareDate);
 	}
 }

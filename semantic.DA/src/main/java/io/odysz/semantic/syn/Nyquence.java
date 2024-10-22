@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.transact.sql.parts.condition.ExprPart;
 
 public class Nyquence {
@@ -157,4 +158,21 @@ public class Nyquence {
 	public static ExprPart sqlCompare(String lalias, String lcol, String ralias, String rcol) {
 		return sqlCompare(String.format("%s.%s", lalias, lcol), String.format("%s.%s", ralias, rcol));
 	}
+	
+	/**
+	 * // FIXME Not used? Unfinished
+	 * // FIXME Not used? Unfinished
+	 * // FIXME Not used? Unfinished
+	 * <pre>
+	 * |uids  |nyquence|updcols|seq|
+	 * +------+--------+-------+---+
+	 * |X,0002|       2|       |  3|
+	 * |X,0003|       2|       |  4|
+	 * |X,0001|       2|       |  2|
+	 * |Y,0003|       2|       |  1|
+	 * |X,0004|       3|       |  2|</pre>
+	 * @param m
+	 * @return ??
+	 */
+	public static ExprPart sqlOrderby(SynChangeMeta m) { return null; }
 }

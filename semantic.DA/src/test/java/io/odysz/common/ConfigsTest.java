@@ -19,7 +19,7 @@ public class ConfigsTest {
 
 	@Test
 	public void testGetCfgString() {
-		String v = Configs.getCfg(keys.irUser);
+		String v = Configs.getCfg(keys.usrClzz);
 		assertEquals(v, "Class name of SUser Implementation");
 
 		v = Configs.getCfg(keys.treeSemantics, "templ-treegrid");

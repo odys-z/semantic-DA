@@ -23,7 +23,7 @@ import static io.odysz.common.LangExt.isblank;
 /**
  * @author ody
  */
-public class T_Photo extends ExpSyncDoc {
+public class T_Photo extends T_ExpSyncDoc {
 	public String geox;
 	public String geoy;
 	
@@ -60,10 +60,10 @@ public class T_Photo extends ExpSyncDoc {
 	public String albumId;
 	
 	public T_Photo(String conn, String org) throws SQLException, TransException {
-		super(new T_PhotoMeta(conn), org);
+		super(new T_DA_PhotoMeta(conn), org);
 	}
 	
-	public T_Photo(AnResultset rs, T_PhotoMeta m) throws SQLException {
+	public T_Photo(AnResultset rs, T_DA_PhotoMeta m) throws SQLException {
 		super(rs, m);
 		this.recId = rs.getString(m.pk);
 		this.pname = rs.getString(m.resname);
@@ -76,7 +76,7 @@ public class T_Photo extends ExpSyncDoc {
 		// this.css = rs.getString(m.css);
 		
 		this.clientpath =  rs.getString(m.fullpath);
-		this.device =  rs.getString(m.device());
+		this.device =  rs.getString(m.device);
 		
 		try {
 			this.sharedate = DateFormat.formatime(rs.getDate("sharedate"));
@@ -85,7 +85,7 @@ public class T_Photo extends ExpSyncDoc {
 		}
 	}
 
-	public T_Photo(String collectId, AnResultset rs, T_PhotoMeta m) throws SQLException {
+	public T_Photo(String collectId, AnResultset rs, T_DA_PhotoMeta m) throws SQLException {
 		this(rs, m);
 		this.collectId = collectId;
 	}
@@ -146,7 +146,7 @@ public class T_Photo extends ExpSyncDoc {
 		}
 	}
 
-	public ExpSyncDoc fullpath(String clientpath) throws IOException {
+	public T_ExpSyncDoc fullpath(String clientpath) throws IOException {
 		super.fullpath(clientpath);
 
 		if (isblank(folder)) {
@@ -155,7 +155,7 @@ public class T_Photo extends ExpSyncDoc {
 		return this;
 	}
 
-	public ExpSyncDoc shareflag(String share) {
+	public T_ExpSyncDoc shareflag(String share) {
 		shareflag = share;
 		return this;
 	}

@@ -79,10 +79,10 @@ public class DATranscxt extends Transcxt {
 	 */
 	public static class SemanticsMap {
 
-		String conn;
+		public String conn;
 		
 		/** {table: semantics[handlers]} */
-		protected HashMap<String, DASemantics> ss;
+		public HashMap<String, DASemantics> ss;
 		
 		public SemanticsMap(String conn) {
 			this.conn = conn;
@@ -105,10 +105,10 @@ public class DATranscxt extends Transcxt {
 			return handlers;
 		}
 
-		SemanticHandler parseHandler(Transcxt basicTrs, XMLTable x) {
-			return null;
-		}
-
+//		SemanticHandler parseHandler(Transcxt basicTrs, XMLTable x) {
+//			return null;
+//		}
+		
 		/**
 		 * Note: trb is already created per the connection, i. e. connect id is known. 
 		 * @param trb
@@ -174,16 +174,19 @@ public class DATranscxt extends Transcxt {
 			return new DASemantext(connId,
 				initConfigs(connId, loadSemantics(connId),
 						(c) -> new SemanticsMap(c)),
-				usr, connId);
-		} catch (SemanticException | SQLException | SAXException | IOException e) {
+				usr, runtimepath);
+		} catch (Exception e) {
 			// meta is null? shouldn't happen because this instance is already created
 			e.printStackTrace();
 			throw new TransException(e.getMessage());
 		}
 	}
 
-	/**Create a select statement.
+	/**
+	 * Create a select statement.
+	 * 
 	 * <p>This statement is the starting points to build a sql transact for querying.<br>
+	 * 
 	 * For how to use the created statements, see the testing class:
 	 * <a href='https://github.com/odys-z/semantic-transact/blob/master/semantic.transact/src/test/java/io/odysz/transact/sql/TestTransc.java'>
 	 * DASemantextTest</a>.</p>
@@ -216,11 +219,14 @@ public class DATranscxt extends Transcxt {
 		return q;
 	}
 
-	/**Create an insert statement that will report affected rows as data entry "total".
+	/**
+	 * Create an insert statement that will report affected rows as data entry "total".
+	 * 
 	 * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
 	 * For how to use the created statements, see the testing class:
 	 * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/java/io/odysz/semantic/DASemantextTest.java'>
 	 * DASemantextTest</a>.</p>
+	 * 
 	 * @param tabl
 	 * @param usr
 	 * @return the starting statement
@@ -233,8 +239,9 @@ public class DATranscxt extends Transcxt {
 			// Since v1.4.12, table stamps is handled here
 			sctx.onCommitted(sctx, tabl);
 
-			// return new SemanticObject().addInts("total", r).put("resulved", sctx.resulves());
-			return new SemanticObject().addInts("total", r).put("resulved", sctx.resulves());
+			return new SemanticObject()
+					.addInts("total", r)
+					.put("resulved", sctx.resulves());
 		});
 		return i;
 	}
@@ -244,7 +251,9 @@ public class DATranscxt extends Transcxt {
 		return ((HashMap<String, String>) ((SemanticObject) rslt.get("resulved")).get(tabl)).get(pk);
 	}
 
-	/**Create an update statement that will report affected rows as data entry "total".
+	/**
+	 * Create an update statement that will report affected rows as data entry "total".
+	 * 
 	 * <p>Those statements are the starting points to build a sql transact for querying, updating, etc.<br>
 	 * For how to use the created statements, see the testing class:
 	 * <a href='https://github.com/odys-z/semantic-DA/blob/master/semantic.DA/src/test/java/io/odysz/semantic/DASemantextTest.java'>
@@ -288,21 +297,18 @@ public class DATranscxt extends Transcxt {
 		return d;
 	}
 
-	public String getSysConnId() { return Connects.defltConn(); }
-
-	/**<p>Create a transact builder with basic DASemantext instance.</p>
+	/**
+	 * <p>Create a transact builder with basic DASemantext instance.</p>
+	 * 
 	 * <p>If it's a null configuration, the semantics can not be used to resulving semantics between records,
 	 * but can be used to do basic sql operation. (resulving is a special concept of semantic-*, see docs)</p>
 	 * 
 	 * When creating DATranscxt, db metas can not be null.
 	 * 
 	 * @param conn connection Id
-	 * @throws SQLException 
-	 * @throws IOException load semantics configuration failed
-	 * @throws SAXException load semantics configuration failed
-	 * @throws SemanticException 
+	 * @throws Exception 
 	 */
-	public DATranscxt(String conn) throws SQLException, SAXException, IOException, SemanticException {
+	public DATranscxt(String conn) throws Exception {
 		this(new DASemantext(conn,
 				isblank(conn) ? null : initConfigs(conn, loadSemantics(conn),
 						(c) -> new SemanticsMap(c)),
@@ -327,7 +333,8 @@ public class DATranscxt extends Transcxt {
 	 * @throws SQLException 
 	 * @throws SemanticException 
 	 */
-	public static XMLTable loadSemantics(String connId) throws SAXException, IOException, SemanticException {
+	public static XMLTable loadSemantics(String connId)
+			throws SAXException, IOException, SemanticException {
 
 		String fpath = Connects.getSmtcsPath(connId);
 		if (isblank(fpath, "\\."))
@@ -343,17 +350,17 @@ public class DATranscxt extends Transcxt {
 					@Override public String tableTag() { return "t"; }
 					@Override public String recordTag() { return "s"; }});
 
-		XMLTable xconn = xtabs.get("semantics");
-		if (xconn == null)
+		XMLTable xtbl = xtabs.get("semantics");
+		if (xtbl == null)
 			throw new SemanticException("Xml structure error (no semantics table) in\n%s", fpath);
 		
-		return xconn;
+		return xtbl;
 	}
 	
 	@SuppressWarnings("unchecked")
 	public static <M extends SemanticsMap, S extends DASemantics> M initConfigs(
 			String conn, XMLTable xcfg, SmapFactory<M> smFactory)
-			throws SAXException, IOException, SQLException, SemanticException {
+			throws Exception {
 		if (smtMaps == null)
 			smtMaps = new HashMap<String, SemanticsMap>();
 		if (!smtMaps.containsKey(conn))
@@ -361,6 +368,7 @@ public class DATranscxt extends Transcxt {
 		else
 			return (M) smtMaps.get(conn);
 
+		Utils.logT(new Object() {}, "Loading semantics of connection %s", conn);
 		xcfg.beforeFirst();
 
 		Transcxt trb = getBasicTrans(conn);
@@ -466,14 +474,14 @@ public class DATranscxt extends Transcxt {
 	public static IUser dummyUser() {
 		if (dummy == null)
 			dummy = new IUser() {
-					@Override public TableMeta meta(String ... connId) { return null; }
-					@Override public String uid() { return "dummy"; }
-					@Override public IUser logAct(String funcName, String funcId) { return null; }
-					@Override public IUser notify(Object note) throws TransException { return this; }
-					@Override public List<Object> notifies() { return null; }
-					@Override public long touchedMs() { return 0; }
-					@Override public IUser sessionKey(String ssId) { return this; }
-					@Override public String sessionKey() { return null; } };
+				@Override public TableMeta meta(String ... connId) { return null; }
+				@Override public String uid() { return "dummy"; }
+				@Override public IUser logAct(String funcName, String funcId) { return null; }
+				@Override public IUser notify(Object note) throws TransException { return this; }
+				@Override public List<Object> notifies() { return null; }
+				@Override public long touchedMs() { return 0; }
+				@Override public IUser sessionKey(String ssId) { return this; }
+				@Override public String sessionKey() { return null; } };
 		return dummy;
 	}
 

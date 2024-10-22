@@ -3,7 +3,7 @@ CREATE TABLE if not exists h_photos (
   pid        varchar(12)   NOT NULL,
   family     varchar2(12)  NOT NULL,
   folder     varchar2(256) NOT NULL,
-  pname      varchar2(256),
+  docname    varchar2(256),
   uri        varchar2(512) NOT NULL,    -- storage/userId/folder/recId-clientname
   pdate      datetime,                  -- picture taken time
 
@@ -16,7 +16,7 @@ CREATE TABLE if not exists h_photos (
   mime       varchar2(64),
   filesize   integer,
   shareflag  varchar2(12) default 'prv' NOT NULL,
-  crud       char(1),
+  -- crud       char(1),
   oper       varchar(12)  NOT NULL,
   opertime   datetime     NOT NULL,
   io_oz_synuid varchar2(25),
