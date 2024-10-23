@@ -83,8 +83,7 @@ public class Docheck {
 	public Docheck(IAssert assertImpl, String domain, String conn,
 			String synid, SynodeMode mod, ExpDocTableMeta m)
 			throws Exception {
-		this(assertImpl, new SyndomContext(mod, domain, synid, conn),
-				m, domain, conn, mod, synid);
+		this(assertImpl, new SyndomContext(mod, domain, synid, conn), m);
 	}
 
 	/**
@@ -116,10 +115,8 @@ public class Docheck {
 		azert.equali(cnt, rs.getRowCount());
 	}
 
-	public Docheck(IAssert assertImpl, SyndomContext x, ExpDocTableMeta docm, String domain, String conn,
-			SynodeMode mode, String synid)
-			throws Exception {
-		synb = new DBSyntableBuilder(x, mode).loadContext();
+	public Docheck(IAssert assertImpl, SyndomContext x, ExpDocTableMeta docm) throws Exception {
+		synb = new DBSyntableBuilder(x).loadContext();
 
 		azert = assertImpl == null ? azert : assertImpl;
 

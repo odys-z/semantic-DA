@@ -490,12 +490,12 @@ public class ExessionPersist {
 			return this;
 
 		if (!eq(req.srcnode, this.peer) || !eq(session, req.session))
-			throw new ExchangeException(ExessionAct.unexpected, this,
+			throw new ExchangeException(ExessionAct.unexpect, this,
 					"Session Id or peer mismatched [%s : %s vs %s : %s]",
 					this.peer, session, req.srcnode, req.session);
 		
 		if (req.challengeSeq >= 0 && (req.act != restore && answerSeq + 1 != req.challengeSeq))
-			throw new ExchangeException(ExessionAct.unexpected, this,
+			throw new ExchangeException(ExessionAct.unexpect, this,
 					"Challenge page lost, expecting %s",
 					answerSeq + 1);
 		
@@ -506,7 +506,7 @@ public class ExessionPersist {
 			return this;
 		}
 
-		throw new ExchangeException(ExessionAct.unexpected, this,
+		throw new ExchangeException(ExessionAct.unexpect, this,
 			"for challenge %s, got answer %s, expecting %s",
 			req.challengeSeq, req.answerSeq, expAnswerSeq);
 	}

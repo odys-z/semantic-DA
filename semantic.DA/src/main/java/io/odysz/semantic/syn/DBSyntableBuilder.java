@@ -70,32 +70,10 @@ public class DBSyntableBuilder extends DATranscxt {
 	final boolean debug;
 
 	public SyndomContext syndomx;
-//	public final SynodeMeta synm;
-//	protected final PeersMeta pnvm;
-//	protected final SynSubsMeta subm;
-//	protected final SynChangeMeta chgm;
-//	protected final SynchangeBuffMeta exbm;
-
-//	final SynodeMode synmode;
-
-	/**
-	 * Get synchronization meta connection id.
-	 * 
-	 * @return conn-id
-	 */
-//	public String synconn() { return basictx.connId(); }
-
-//	final String synode;
-//	public String synode() { return synode; }
 
 	IUser robot;
 	public IUser synrobot() { return robot; }
 
-	/* */
-//	private Nyquence stamp;
-//	public long stamp() { return stamp.n; }
-//	public Nyquence stampN() { return stamp; }
-	
 //	protected Nyquence persistamp(Nyquence n) throws TransException, SQLException {
 //		stamp.n = n.n;
 //		DAHelper.updateFieldWhereEqs(this, synconn(), synrobot(), synm,
@@ -129,29 +107,24 @@ public class DBSyntableBuilder extends DATranscxt {
 	private long seq;
 	public long incSeq() { return ++seq; }
 
-	public DBSyntableBuilder(SyndomContext x, SynodeMode mode) throws Exception {
+	public DBSyntableBuilder(String domain, String myconn, String synode, SynodeMode mod) throws TransException, SQLException, Exception {
+		this(new SyndomContext(mod, domain, synode, myconn));
+	}
+
+	public DBSyntableBuilder(SyndomContext x) throws Exception {
 
 		super(x.synconn);	
 
 		syndomx = x;
-		// FIXME: Comparing to mobile device node. a device is the equivalent to synode at Synode tier, robot.device should be removed.
+		// FIXME: Comparing to mobile device node, a device is the equivalent to synode at Synode tier, robot.device should be removed.
 		robot = (IUser) new SyncRobot(x.synode, x.synode, "rob@" + x.synode, x.synode);
 		
 		debug    = Connects.getDebug(x.synconn);
-//		perdomain= domain;
-//		synmode  = mode;
-//		synode   = mynid;
-
-//		this.chgm = new SynChangeMeta(conn).replace();
-//		this.subm = new SynSubsMeta(chgm, conn).replace();
-//		this.synm = new SynodeMeta(conn).replace();
-//		this.exbm = new SynchangeBuffMeta(chgm, conn).replace();
-//		this.pnvm = new PeersMeta(conn).replace();
 		
 		// seq = 0;
 		force_clean_subs = true;
 
-		if (mode != SynodeMode.nonsyn) {
+		if (x.mode != SynodeMode.nonsyn) {
 			if (DAHelper.count(this, x.synconn, syndomx.synm.tbl,
 						x.synm.synoder, x.synode, x.synm.domain, x.domain) <= 0) {
 				if (debug) Utils
@@ -172,6 +145,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			.logT(new Object() {}, "Transaction builder created with forcing cleaning stale subscriptions.");
 	}
 	
+
 	////////////////////////////// protocol API ////////////////////////////////
 	/**
 	 * insert into exchanges select * from change_logs where n > nyquvect[target].n
@@ -1084,17 +1058,4 @@ public class DBSyntableBuilder extends DATranscxt {
 		syndomx.loadNvstamp(this);
 		return this;
 	}
-
-
-//	public DBSyntableBuilder loadNstamp() throws SQLException, TransException {
-//
-//		String synode = syndomx.synode;
-//		String domain = syndomx.domain;
-//		String synconn= syndomx.synconn;
-//		SynodeMeta synm = syndomx.synm;
-//
-//		syndomx.stamp(DAHelper.getNyquence(this, synconn, synm, synm.nyquence,
-//						synm.synoder, synode, synm.domain, domain));
-//		return this;
-//	}
 }

@@ -8,8 +8,6 @@ import static io.odysz.semantic.syn.Nyquence.maxn;
 
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.concurrent.locks.ReentrantLock;
-
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.meta.PeersMeta;
