@@ -13,7 +13,7 @@ import io.odysz.transact.sql.Transcxt;
 public class DBSynmantext extends DASemantext implements ISyncontext { 
 
 	public final String synode;
-	private DATranscxt creator;
+	private DBSyntableBuilder creator;
 
 	protected DBSynmantext(String connId, String synodeId, SynmanticsMap metas, IUser usr, String rtPath)
 			throws SemanticException, SQLException {
@@ -54,13 +54,12 @@ public class DBSynmantext extends DASemantext implements ISyncontext {
 
 	@Override
 	public <B extends Transcxt> ISemantext creator(B semantext) {
-		creator = (DATranscxt) semantext;
+		creator = (DBSyntableBuilder) semantext;
 		return this;
 	}
 
 	@Override
 	public SyndomContext syndomContext() {
-		// TODO Auto-generated method stub
-		return null;
+		return creator.syndomx;
 	}
 }
