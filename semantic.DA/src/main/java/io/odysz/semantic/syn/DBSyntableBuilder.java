@@ -911,7 +911,6 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		if (domainof.synodes != null) {
 			AnResultset ns = domainof.synodes.beforeFirst();
-			// cp.synx.nv = new HashMap<String, Nyquence>(ns.getRowCount());
 
 			while (ns.next()) {
 				if (eq(synode, ns.getString(synm.pk))) {
@@ -922,13 +921,8 @@ public class DBSyntableBuilder extends DATranscxt {
 					.whereEq(synm.domain, domain)
 					.u(instancontxt(synconn, synrobot()));
 
+					// don't delete: all local data before joining is ignored
 					syndomx.domainitOnjoin(this, domain, mxn);
-					// syndomx.domain(ns.getString(synm.domain));
-
-					// cp.synx.nv.put(synode, new Nyquence(mxn.n));
-					// cp.synx.n0(this, mxn);
-					
-					// syndomx.persistamp(this, new Nyquence(mxn.n)); // don't delete: all local data before joining is ignored
 				}
 				else {
 					Synode n = new Synode(ns, synm);
@@ -937,7 +931,6 @@ public class DBSyntableBuilder extends DATranscxt {
 					 .nv(synm.jserv, adminserv)
 					 .ins(instancontxt(synconn, synrobot()));
 
-					// cp.synx.nv.put(n.synid, new Nyquence(mxn.n));
 					cp.synx.persistNyquence(this, n.synid, mxn);
 				}
 			}

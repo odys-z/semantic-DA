@@ -33,25 +33,23 @@ import io.odysz.transact.x.TransException;
  */
 public class SyndomContext {
 
-	final String synode;
 	String domain;
-	public final String synconn;
+	final String synode;
+	final String synconn;
 
-	Nyquence stamp;
-	ReentrantLock stamplock;
-	
 	public final SynodeMeta synm;
 	protected final PeersMeta pnvm;
 	protected final SynSubsMeta subm;
 	protected final SynChangeMeta chgm;
 	protected final SynchangeBuffMeta exbm;
 
-	HashMap<String, Nyquence> nv;
-	ReentrantLock nvlock;
-
 	public final SynodeMode mode;
-	
 	long seq;
+
+	HashMap<String, Nyquence> nv;
+//	ReentrantLock nvlock;
+	Nyquence stamp;
+//	ReentrantLock stamplock;
 
 	SyndomContext(SynodeMode mod, String dom, String synode, String synconn)
 			throws TransException, SQLException {
@@ -61,8 +59,8 @@ public class SyndomContext {
 		this.synconn = notBlank(synconn);
 		this.mode    = notNull(mod);
 		
-		stamplock = new ReentrantLock();
-		nvlock    = new ReentrantLock();
+//		stamplock = new ReentrantLock();
+//		nvlock    = new ReentrantLock();
 
 		this.chgm = new SynChangeMeta(synconn).replace();
 		this.subm = new SynSubsMeta(chgm, synconn).replace();
@@ -74,31 +72,60 @@ public class SyndomContext {
 	public Nyquence n0() { return nv.get(synode); }
 
 	Nyquence incN0(DBSyntableBuilder synb, Nyquence... maxn) throws TransException, SQLException {
-		try {
-			nvlock.lock();
-			return persistNyquence(synb, domain, nv.get(synode).inc(maxn));
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			return stamp;
-		}
-		finally { nvlock.unlock(); }
+//		try {
+//			nvlock.lock();
+			nv.get(synode).inc(maxn);
+//		}
+//		finally { nvlock.unlock(); }
+
+		return persistNyquence(synb, domain, nv.get(synode));
 	}
 
 	public void incStamp(DBSyntableBuilder synb) throws TransException, SQLException {
-		try {
-			stamplock.lock();
 			
-			if (nv.containsKey(synode)
-				&& Nyquence.abs(stamp, nv.get(synode)) >= 1)
-				throw new SemanticException(
-					"Nyquence stamp is going to increase too much or out of range.");
+		if (nv.containsKey(synode)
+			&& Nyquence.abs(stamp, nv.get(synode)) >= 1)
+			throw new SemanticException(
+				"Nyquence stamp is going to increase too much or out of range.");
 
+//		try {
+//			stamplock.lock();
 			stamp.inc();
-			stamp = persistamp(synb);
-			seq = 0;
-		} finally { stamplock.unlock(); }
+//		} finally { stamplock.unlock(); }
+
+		stamp = persistamp(synb);
+		seq = 0;
 	}
+
+	public Nyquence incN0(DBSyntableBuilder b) throws TransException, SQLException {
+		persistNyquence(b, synode, nv.get(synode).inc());
+
+		// increase stamp and avoid difference checking
+//		try {
+//			stamplock.lock(); 
+			stamp.inc();
+//		} finally { stamplock.unlock(); }
+
+		persistamp(b);
+
+		return nv.get(synode);
+	}
+	
+	public Nyquence n0(DBSyntableBuilder synb, Nyquence maxn)
+			throws TransException, SQLException {
+		Nyquence n;
+//		try {
+//			nvlock.lock();
+			n = maxn(nv.get(synode), maxn);
+			nv.put(synode, n);
+//		}
+//		finally { nvlock.unlock(); }
+
+		persistNyquence(synb, synode, n);
+
+		return n;
+	}
+
 
 	public HashMap<String, Nyquence> loadNvstamp(DBSyntableBuilder synb) throws TransException, SQLException {
 		AnResultset rs = ((AnResultset) synb.select(synm.tbl)
@@ -115,71 +142,6 @@ public class SyndomContext {
 				stamp = new Nyquence(rs.getLong(synm.nstamp));
 		}
 		return nv;
-	}
-
-	public Nyquence incN0(DBSyntableBuilder b) throws TransException, SQLException {
-		persistNyquence(b, synode, nv.get(synode).inc());
-
-		// increase stamp and avoid difference checking
-		stamp.inc();
-		persistamp(b);
-
-		return nv.get(synode);
-	}
-	
-	public Nyquence n0(DBSyntableBuilder synb, Nyquence maxn)
-			throws TransException, SQLException {
-		Nyquence n = maxn(nv.get(synode), maxn);
-		nv.put(synode, n);
-		persistNyquence(synb, synode, n);
-		return n;
-	}
-
-	public Nyquence persistamp(DBSyntableBuilder trb, Nyquence... up2max)
-			throws TransException, SQLException {
-
-		try {
-			stamplock.lock();
-
-			// stamp.add(inc);
-			if (stamp == null)
-				stamp = new Nyquence(up2max[0].n);
-			else if (!isNull(up2max) && Nyquence.compareNyq(up2max[0], stamp) > 0)
-				stamp.n = up2max[0].n;
-
-			DAHelper.updateFieldWhereEqs(trb, synconn, trb.synrobot(), synm,
-					synm.nstamp, stamp.n,
-					synm.pk, synode,
-					synm.domain, domain);
-
-			return stamp;
-		} finally { stamplock.unlock(); }
-	}
-
-	public Nyquence persistNyquence(DBSyntableBuilder trb, String synid, Nyquence n)
-			throws TransException, SQLException {
-
-		DAHelper.updateFieldWhereEqs(trb, synconn, trb.synrobot(), synm,
-				synm.nyquence, n.n,
-				synm.pk, synode,
-				synm.domain, domain);
-		return n;
-	}
-
-	/**
-	 * @deprecated replaced by {@link #getNyquence(DATranscxt, String, TableMeta, String, String...)}.
-	 * @param trb
-	 * @param conn
-	 * @param m
-	 * @param recId
-	 * @param field
-	 * @return Nyquence
-	 * @throws SQLException
-	 * @throws TransException
-	 */
-	public static Nyquence loadRecNyquence(DATranscxt trb, String conn, SynodeMeta m, String recId, String field)
-			throws SQLException, TransException {
-		return new Nyquence(DAHelper.loadRecLong(trb, conn, m, recId, field));
 	}
 
 	/**
@@ -242,4 +204,35 @@ public class SyndomContext {
 		persistNyquence(b, synm.nyquence, n0);
 		persistamp(b, n0);
 	}
+
+	public Nyquence persistamp(DBSyntableBuilder trb, Nyquence... up2max)
+			throws TransException, SQLException {
+
+//		try {
+//			stamplock.lock();
+
+			if (stamp == null)
+				stamp = new Nyquence(up2max[0].n);
+			else if (!isNull(up2max) && Nyquence.compareNyq(up2max[0], stamp) > 0)
+				stamp.n = up2max[0].n;
+//		} finally { stamplock.unlock(); }
+//
+		DAHelper.updateFieldWhereEqs(trb, synconn, trb.synrobot(), synm,
+				synm.nstamp, stamp.n,
+				synm.pk, synode,
+				synm.domain, domain);
+
+		return stamp;
+	}
+
+	public Nyquence persistNyquence(DBSyntableBuilder trb, String synid, Nyquence n)
+			throws TransException, SQLException {
+
+		DAHelper.updateFieldWhereEqs(trb, synconn, trb.synrobot(), synm,
+				synm.nyquence, n.n,
+				synm.pk, synode,
+				synm.domain, domain);
+		return n;
+	}
+
 }
