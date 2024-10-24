@@ -107,9 +107,9 @@ public class DBSyntableBuilder extends DATranscxt {
 	private long seq;
 	public long incSeq() { return ++seq; }
 
-	public DBSyntableBuilder(String domain, String myconn, String synode, SynodeMode mod) throws TransException, SQLException, Exception {
-		this(new SyndomContext(mod, domain, synode, myconn));
-	}
+//	public DBSyntableBuilder(String domain, String myconn, String synode, SynodeMode mod) throws TransException, SQLException, Exception {
+//		this(new SyndomContext(mod, domain, synode, myconn));
+//	}
 
 	public DBSyntableBuilder(SyndomContext x) throws Exception {
 

@@ -67,6 +67,8 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 		return this;
 	}
 
+	private Syndomanager syndomanager;
+
 	public SyncRobot(String userid, String pswd) {
 		this.userId = userid;
 		this.pswd   = pswd;
@@ -162,6 +164,10 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 				Utils.warn("Can not delete folder: %s.\n%s", temp, e.getMessage());
 			}
 		}
+
+		if (syndomanager != null)
+			syndomanager.unlock(deviceId, userId);
+
 		return null;
 	}
 
