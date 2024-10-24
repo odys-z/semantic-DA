@@ -4,8 +4,6 @@ import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.eq;
 
 import java.sql.SQLException;
-import java.util.List;
-
 import io.odysz.common.Utils;
 import io.odysz.module.xtable.XMLTable.IMapValue;
 import io.odysz.semantic.DASemantics;
