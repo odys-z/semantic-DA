@@ -107,16 +107,31 @@ public class DBSyntableBuilder extends DATranscxt {
 	private long seq;
 	public long incSeq() { return ++seq; }
 
-//	public DBSyntableBuilder(String domain, String myconn, String synode, SynodeMode mod) throws TransException, SQLException, Exception {
-//		this(new SyndomContext(mod, domain, synode, myconn));
-//	}
+	/**
+	 * FIXME
+	 * FIXME
+	 * FIXME
+	 * @deprecated Wrong! must not create SyndomContext more than once.
+	 * 
+	 * @param domain
+	 * @param myconn
+	 * @param synode
+	 * @param mod
+	 * @throws TransException
+	 * @throws SQLException
+	 * @throws Exception
+	 */
+	// public DBSyntableBuilder(String domain, String myconn, String synode, SynodeMode mod) throws TransException, SQLException, Exception {
+	// 	this(new SyndomContext(mod, domain, synode, myconn));
+	// }
 
 	public DBSyntableBuilder(SyndomContext x) throws Exception {
 
 		super(x.synconn);	
 
 		syndomx = x;
-		// FIXME: Comparing to mobile device node, a device is the equivalent to synode at Synode tier, robot.device should be removed.
+		// FIXME: Comparing to mobile device node, a device is the equivalent to synode
+		// at Synode tier, so robot.device should be removed.
 		robot = (IUser) new SyncRobot(x.synode, x.synode, "rob@" + x.synode, x.synode);
 		
 		debug    = Connects.getDebug(x.synconn);
