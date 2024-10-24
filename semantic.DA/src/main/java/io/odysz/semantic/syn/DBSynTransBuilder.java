@@ -83,12 +83,12 @@ public class DBSynTransBuilder extends DATranscxt {
 	private final boolean force_clean_subs;
 
 	/* */
-	private Nyquence stamp;
+//	private Nyquence stamp;
 
 	private DBSyntableBuilder changelogBuilder;
 
-	public long stamp() { return stamp.n; }
-	public Nyquence stampN() { return stamp; }
+//	public long stamp() { return stamp.n; }
+//	public Nyquence stampN() { return stamp; }
 	
 	public DBSynTransBuilder (String domain, String conn, String mynid,
 				String syntity_json, SynodeMode mode, DBSyntableBuilder logger)
@@ -121,9 +121,9 @@ public class DBSynTransBuilder extends DATranscxt {
 						  "\nThis instence can only be useful if is used to initialize the domain for the node",
 						  mynid, perdomain);
 			}
-			else
-				stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
-						synm.synoder, mynid, synm.domain, perdomain);
+//			else
+//				stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
+//						synm.synoder, mynid, synm.domain, perdomain);
 
 			// registerEntity(conn, synm);
 			synSemantics (this, conn, synode, 
@@ -154,7 +154,7 @@ public class DBSynTransBuilder extends DATranscxt {
 	 * @param xcfg
 	 * @param synode2
 	 * @param syntities 
-	 * @return
+	 * @return semantics map of connection conn
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")

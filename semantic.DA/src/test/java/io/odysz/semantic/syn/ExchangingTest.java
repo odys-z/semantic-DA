@@ -87,15 +87,19 @@ class ExchangingTest {
 		PeersMeta         prm = new PeersMeta();
 		*/
 
-		String server = "server";
 
-						String client = "client";
-						Utils.logrst("client initate", ++no);
-						ExessionPersist cp = new ExessionPersist(null, server)
-								.forcetest(16, 5);
-						ExchangeBlock req = cp.init();
-						int ch_c = -1;
-						req.print(System.out);
+		String server = "server";
+		String client = "client";
+//		SyndomContext synxc = new SyndomContext(SynodeMode.peer, "zsu", client, "syn.00");
+//		SyndomContext synxs = new SyndomContext(SynodeMode.peer, "zsu", client, "syn.01");
+
+		Utils.logrst("client initate", ++no);
+		ExessionPersist cp = new ExessionPersist(null, server)
+				.forcetest(16, 5);
+
+		ExchangeBlock req = cp.init();
+		int ch_c = -1;
+		req.print(System.out);
 
 		Utils.logrst("server initate", ++no);
 		ExessionPersist sp = new ExessionPersist(null, client, req)

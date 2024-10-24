@@ -193,15 +193,4 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 	public SessionInf sessionInf() {
 		return new SessionInf().device(deviceId);
 	}
-
-//	/**
-//	 * Fill {@code insert}'s nvs with fields.
-//	 * @param insert
-//	 * @return insert
-//	 */
-//	public Insert insert(JUser.JUserMeta m, Insert insert) {
-//		insert.nv(m, "");
-//		return insert;
-//	}
-
 }
