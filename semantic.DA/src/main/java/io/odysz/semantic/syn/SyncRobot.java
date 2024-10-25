@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -26,7 +25,7 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 /**
- * A robot is only used for test.
+ * A robot only used for test at DA layer, and the super class for syn-user.
  * 
  * @author odys-z@github.com
  */
@@ -66,8 +65,6 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 		orgName = org;
 		return this;
 	}
-
-	private Syndomanager syndomanager;
 
 	public SyncRobot(String userid, String pswd) {
 		this.userId = userid;
@@ -149,10 +146,6 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 
 	@Override public IUser sessionId(String ssid) { this.ssid = ssid; return this; }
 
-	@Override public IUser notify(Object note) throws TransException { return this; }
-
-	@Override public List<Object> notifies() { return null; }
-
 	@Override
 	public SemanticObject logout() {
 		if (tempDirs != null)
@@ -164,9 +157,6 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 				Utils.warn("Can not delete folder: %s.\n%s", temp, e.getMessage());
 			}
 		}
-
-		if (syndomanager != null)
-			syndomanager.unlock(deviceId, userId);
 
 		return null;
 	}

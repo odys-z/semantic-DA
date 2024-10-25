@@ -110,8 +110,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	/**
 	 * FIXME
 	 * FIXME
-	 * FIXME
-	 * @deprecated Wrong! must not create SyndomContext more than once.
+	 * FIXME Wrong! must not create SyndomContext more than once.
 	 * 
 	 * @param domain
 	 * @param myconn
@@ -125,6 +124,11 @@ public class DBSyntableBuilder extends DATranscxt {
 	// 	this(new SyndomContext(mod, domain, synode, myconn));
 	// }
 
+	/**
+	 * 
+	 * @param x
+	 * @throws Exception
+	 */
 	public DBSyntableBuilder(SyndomContext x) throws Exception {
 
 		super(x.synconn);	

@@ -90,9 +90,14 @@ public class DBSynTransBuilder extends DATranscxt {
 //	public long stamp() { return stamp.n; }
 //	public Nyquence stampN() { return stamp; }
 	
-	public DBSynTransBuilder (String domain, String conn, String mynid,
+	public DBSynTransBuilder (SyndomContext syndomx, String syntity_json, DBSyntableBuilder logger)
+			throws SemanticException, SQLException, SAXException, IOException, Exception {
+		this(syndomx.domain, syndomx.synconn, syndomx.synode, syntity_json, syndomx.mode, logger);
+	}
+
+	DBSynTransBuilder (String domain, String conn, String mynid,
 				String syntity_json, SynodeMode mode, DBSyntableBuilder logger)
-				throws SemanticException, SQLException, SAXException, IOException, Exception {
+			throws SemanticException, SQLException, SAXException, IOException, Exception {
 
 		super(conn);
 		

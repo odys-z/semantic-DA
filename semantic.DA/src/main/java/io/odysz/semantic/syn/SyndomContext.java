@@ -32,8 +32,10 @@ import io.odysz.transact.x.TransException;
 public class SyndomContext {
 
 	String domain;
-	final String synode;
-	final String synconn;
+	public String domain() { return domain; }
+	
+	public final String synode;
+	public final String synconn;
 
 	public final SynodeMeta synm;
 	protected final PeersMeta pnvm;
@@ -45,9 +47,7 @@ public class SyndomContext {
 	long seq;
 
 	HashMap<String, Nyquence> nv;
-//	ReentrantLock nvlock;
 	Nyquence stamp;
-//	ReentrantLock stamplock;
 
 	SyndomContext(SynodeMode mod, String dom, String synode, String synconn)
 			throws TransException, SQLException {
@@ -57,9 +57,6 @@ public class SyndomContext {
 		this.synconn = notBlank(synconn);
 		this.mode    = notNull(mod);
 		
-//		stamplock = new ReentrantLock();
-//		nvlock    = new ReentrantLock();
-
 		this.chgm = new SynChangeMeta(synconn).replace();
 		this.subm = new SynSubsMeta(chgm, synconn).replace();
 		this.synm = new SynodeMeta(synconn).replace();
@@ -70,11 +67,7 @@ public class SyndomContext {
 	public Nyquence n0() { return nv.get(synode); }
 
 	Nyquence incN0(DBSyntableBuilder synb, Nyquence... maxn) throws TransException, SQLException {
-//		try {
-//			nvlock.lock();
-			nv.get(synode).inc(maxn);
-//		}
-//		finally { nvlock.unlock(); }
+		nv.get(synode).inc(maxn);
 
 		return persistNyquence(synb, domain, nv.get(synode));
 	}
@@ -86,10 +79,7 @@ public class SyndomContext {
 			throw new SemanticException(
 				"Nyquence stamp is going to increase too much or out of range.");
 
-//		try {
-//			stamplock.lock();
-			stamp.inc();
-//		} finally { stamplock.unlock(); }
+		stamp.inc();
 
 		stamp = persistamp(synb);
 		seq = 0;
@@ -98,11 +88,7 @@ public class SyndomContext {
 	public Nyquence incN0(DBSyntableBuilder b) throws TransException, SQLException {
 		persistNyquence(b, synode, nv.get(synode).inc());
 
-		// increase stamp and avoid difference checking
-//		try {
-//			stamplock.lock(); 
-			stamp.inc();
-//		} finally { stamplock.unlock(); }
+		stamp.inc();
 
 		persistamp(b);
 
@@ -112,12 +98,8 @@ public class SyndomContext {
 	public Nyquence n0(DBSyntableBuilder synb, Nyquence maxn)
 			throws TransException, SQLException {
 		Nyquence n;
-//		try {
-//			nvlock.lock();
-			n = maxn(nv.get(synode), maxn);
-			nv.put(synode, n);
-//		}
-//		finally { nvlock.unlock(); }
+		n = maxn(nv.get(synode), maxn);
+		nv.put(synode, n);
 
 		persistNyquence(synb, synode, n);
 
@@ -191,30 +173,28 @@ public class SyndomContext {
 	 * @param b
 	 * @param dom
 	 * @param n0
+	 * @return 
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public void domainitOnjoin(DBSyntableBuilder b, String dom, Nyquence n0) throws TransException, SQLException {
+	public SyndomContext domainitOnjoin(DBSyntableBuilder b, String dom, Nyquence n0) throws TransException, SQLException {
 		DAHelper.updateFieldWhereEqs(b, synconn, b.synrobot(), synm, synm.domain, dom,
 				synm.synoder, synode, synm.domain, this.domain);
 		domain = dom;
 
 		persistNyquence(b, synm.nyquence, n0);
 		persistamp(b, n0);
+		return this;
 	}
 
 	public Nyquence persistamp(DBSyntableBuilder trb, Nyquence... up2max)
 			throws TransException, SQLException {
 
-//		try {
-//			stamplock.lock();
-
-			if (stamp == null)
-				stamp = new Nyquence(up2max[0].n);
-			else if (!isNull(up2max) && Nyquence.compareNyq(up2max[0], stamp) > 0)
+		if (stamp == null)
+			stamp = new Nyquence(up2max[0].n);
+		else if (!isNull(up2max) && Nyquence.compareNyq(up2max[0], stamp) > 0)
 				stamp.n = up2max[0].n;
-//		} finally { stamplock.unlock(); }
-//
+		
 		DAHelper.updateFieldWhereEqs(trb, synconn, trb.synrobot(), synm,
 				synm.nstamp, stamp.n,
 				synm.pk, synode,
@@ -232,5 +212,4 @@ public class SyndomContext {
 				synm.domain, domain);
 		return n;
 	}
-
 }
