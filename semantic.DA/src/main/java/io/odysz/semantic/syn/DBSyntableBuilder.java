@@ -896,10 +896,9 @@ public class DBSyntableBuilder extends DATranscxt {
 		SynodeMeta synm = syndomx.synm;
 
 		if (!isblank(syndomx.domain))
-			throw new ExchangeException(setupDom, cp, "Domain must not be null for updating %s.%s.",
+			throw new ExchangeException(setupDom, cp, "Domain must be null for initialization %s in %s.",
 					synm.tbl, synm.domain);
 
-		// syndomx = new SyndomContext(syndomx.mode, domain, synode, synconn);
 		Nyquence mxn = domainof.nv.get(admin); 
 
 		if (domainof.synodes != null) {
