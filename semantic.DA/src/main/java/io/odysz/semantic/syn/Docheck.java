@@ -49,7 +49,6 @@ public class Docheck {
 
 	public ExpDocTableMeta docm;
 
-	// public final SyndomContext synx;
 	public final DBSyntableBuilder synb;
 
 	final String domain;
@@ -63,7 +62,7 @@ public class Docheck {
 
 	public final DATranscxt b0;
 
-	public IUser robot() { return synb.synrobot(); }
+//	public IUser robot() { return synb.synrobot(); }
 
 	public int docs() throws SQLException, TransException {
 		return synb.entities(docm);
@@ -116,7 +115,9 @@ public class Docheck {
 	}
 
 	public Docheck(IAssert assertImpl, SyndomContext x, ExpDocTableMeta docm) throws Exception {
-		synb = new DBSyntableBuilder(x).loadContext();
+		synb = new DBSyntableBuilder(x); // .loadContext();
+
+		x.loadNvstamp(synb);
 
 		azert = assertImpl == null ? azert : assertImpl;
 
@@ -201,7 +202,7 @@ public class Docheck {
 				q.whereEq(synb.syndomx.chgm.uids, SynChangeMeta.uids(synoder, eid));
 
 			AnResultset chg = (AnResultset) q
-					.rs(synb.instancontxt(connId(), robot()))
+					.rs(synb.instancontxt())
 					.rs(0);
 			
 			if (!chg.next() && count > 0)
@@ -234,7 +235,7 @@ public class Docheck {
 				q.whereEq(chgm.uids, uids);
 
 			AnResultset chg = (AnResultset) q
-					.rs(synb.instancontxt(connId(), robot()))
+					.rs(synb.instancontxt())
 					.rs(0);
 			
 			if (!chg.next() && count > 0)
@@ -268,7 +269,7 @@ public class Docheck {
 			q.whereEq(chgm.uids, SynChangeMeta.uids(synoder, eid));
 
 		AnResultset chg = (AnResultset) q
-				.rs(synb.instancontxt(connId(), robot()))
+				.rs(synb.instancontxt())
 				.rs(0);
 		
 		if (!chg.next() && count > 0)
@@ -304,7 +305,7 @@ public class Docheck {
 			q.whereEq(chgm.uids, SynChangeMeta.uids(synoder, eid));
 
 		AnResultset chg = (AnResultset) q
-				.rs(synb.instancontxt(connId(), robot()))
+				.rs(synb.instancontxt())
 				.rs(0);
 		
 		if (!chg.next() && count > 0)
@@ -350,7 +351,7 @@ public class Docheck {
 					.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
 					.cols_byAlias("sb", (Object[])subm.cols())
 					.whereEq(chgm.uids, uids)
-					.rs(synb.instancontxt(connId(), robot()))
+					.rs(synb.instancontxt())
 					.rs(0);
 					;
 
@@ -367,12 +368,12 @@ public class Docheck {
 	public void subsCount(SyntityMeta entm, int subcount, String chgId, String ... toIds)
 			throws SQLException, TransException {
 		if (isNull(toIds)) {
-			AnResultset subs = subscribes(connId(), chgId, entm, robot());
+			AnResultset subs = subscribes(connId(), chgId, entm);
 			azert.equali(subcount, subs.getRowCount());
 		}
 		else {
 			int cnt = 0;
-			AnResultset subs = subscribes(connId(), chgId, entm, robot());
+			AnResultset subs = subscribes(connId(), chgId, entm);
 			subs.beforeFirst();
 			while (subs.next()) {
 				if (indexOf(toIds, subs.getString(synb.syndomx.subm.synodee)) >= 0)
@@ -392,7 +393,7 @@ public class Docheck {
 	 * @param robot
 	 * @return results
 	 */
-	private AnResultset subscribes(String connId, String chgId, SyntityMeta entm, IUser robot) 
+	private AnResultset subscribes(String connId, String chgId, SyntityMeta entm) 
 		throws TransException, SQLException {
 		SynSubsMeta subm = synb.syndomx.subm;
 
@@ -403,7 +404,7 @@ public class Docheck {
 			q.whereEq(subm.changeId, chgId) ;
 
 		return (AnResultset) q
-				.rs(synb.instancontxt(connId, robot))
+				.rs(synb.instancontxt())
 				.rs(0);
 	}
 	
@@ -584,6 +585,8 @@ public class Docheck {
 	}
 	
 	final boolean[] tops;
+
+	public SyncRobot sessionUsr;
 	
 	/**
 	 * <p>Push connection's debug flags and return a checker instance.</p>

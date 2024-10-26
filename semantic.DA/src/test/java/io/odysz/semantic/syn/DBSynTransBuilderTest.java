@@ -97,12 +97,12 @@ class DBSynTransBuilderTest {
 
 		// create photo
 		SemanticObject ins = (SemanticObject) synb
-				.insert(phm.tbl, ck[0].robot())
+				.insert(phm.tbl, logger.synrobot)
 				.nv(phm.device, "device")
 				.nv(phm.fullpath, "full.path")
 				.nv(phm.folder, "folder").nv(phm.org, "org")
 				.nv(phm.uri, "").nv(phm.shareDate, "1911-10-10")
-				.ins(synb.instancontxt(conn, ck[0].robot()))
+				.ins(synb.instancontxt(conn, logger.synrobot))
 				;
 
 		String phid = ins.resulve(phm, -1);

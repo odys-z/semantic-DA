@@ -32,6 +32,7 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.util.DAHelper;
+import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
@@ -71,58 +72,16 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	public SyndomContext syndomx;
 
-	IUser robot;
-	public IUser synrobot() { return robot; }
+	IUser locrobot;
 
-//	protected Nyquence persistamp(Nyquence n) throws TransException, SQLException {
-//		stamp.n = n.n;
-//		DAHelper.updateFieldWhereEqs(this, synconn(), synrobot(), synm,
-//				synm.nstamp, n.n,
-//				synm.pk, synode(),
-//				synm.domain, perdomain);
-//		return stamp;
-//	}
-
-//	DBSyntableBuilder incStamp(ExessionPersist xp) throws TransException, SQLException {
-//		if (xp.nyquvect.containsKey(synode())
-//			&& Nyquence.abs(stamp, xp.nyquvect.get(synode())) >= 1)
-//			throw new ExchangeException(0, xp,
-//				"Nyquence stamp going to increase too much or out of range.");
-//
-//		stamp.inc();
-//		persistamp(stamp);
-//		seq = 0;
-//		return this;
-//	}
-
-//	String perdomain;
-//	public String domain() { return perdomain; }
-//	public DBSyntableBuilder domain(String domain) {
-//		this.perdomain = domain;
-//		return this;
-//	}
+	SyncRobot synrobot;
+	public DBSyntableBuilder synrobot(SyncRobot robt) { synrobot = robt; return this; }
+	 public SyncRobot synrobot() { return synrobot; }
 
 	private final boolean force_clean_subs;
 
 	private long seq;
 	public long incSeq() { return ++seq; }
-
-	/**
-	 * FIXME
-	 * FIXME
-	 * FIXME Wrong! must not create SyndomContext more than once.
-	 * 
-	 * @param domain
-	 * @param myconn
-	 * @param synode
-	 * @param mod
-	 * @throws TransException
-	 * @throws SQLException
-	 * @throws Exception
-	 */
-	// public DBSyntableBuilder(String domain, String myconn, String synode, SynodeMode mod) throws TransException, SQLException, Exception {
-	// 	this(new SyndomContext(mod, domain, synode, myconn));
-	// }
 
 	/**
 	 * 
@@ -136,7 +95,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		syndomx = x;
 		// FIXME: Comparing to mobile device node, a device is the equivalent to synode
 		// at Synode tier, so robot.device should be removed.
-		robot = (IUser) new SyncRobot(x.synode, x.synode, "rob@" + x.synode, x.synode);
+		locrobot = (IUser) new SyncRobot(x.synode, x.synode, "rob@" + x.synode, x.synode);
 		
 		debug    = Connects.getDebug(x.synconn);
 		
@@ -189,6 +148,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * 
 	 * @param sp
 	 * @param inireq
+	 * @param peeruser 
 	 * @return response block
 	 * @throws TransException 
 	 * @throws SQLException 
@@ -199,7 +159,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			cleanStale(inireq.nv, sp.peer);
 
 			// insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
-			return sp.onInit(inireq); // .nv(nyquvect);
+			return sp.onInit(inireq, (SyncRobot) syndomx.robot);
 		} finally {
 			syndomx.incStamp(sp.trb);
 		}
@@ -394,24 +354,24 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws TransException, SQLException {
 		if (srcnv == null) return;
 		
-		String synode = syndomx.synode;
-		String domain = syndomx.domain;
-		String synconn= syndomx.synconn;
-		PeersMeta pnvm = syndomx.pnvm;
-		SynodeMeta synm = syndomx.synm;
+		String      synode = syndomx.synode;
+		String      domain = syndomx.domain;
+		String     synconn = syndomx.synconn;
+		PeersMeta     pnvm = syndomx.pnvm;
+		SynodeMeta    synm = syndomx.synm;
 		SynChangeMeta chgm = syndomx.chgm;
-		SynSubsMeta subm = syndomx.subm;
+		SynSubsMeta   subm = syndomx.subm;
 		
 		if (debug)
 			Utils.logi("Cleaning staleness at %s, peer %s ...", synode, peer);
 
-		delete(pnvm.tbl, synrobot())
+		delete(pnvm.tbl, locrobot)
 			.whereEq(pnvm.peer, peer)
 			.whereEq(pnvm.domain, domain)
 			.post(insert(pnvm.tbl)
 				.cols(pnvm.inscols)
 				.values(pnvm.insVals(srcnv, peer, domain)))
-			.d(instancontxt(synconn, synrobot()));
+			.d(instancontxt(synconn, locrobot));
 
 		SemanticObject res = (SemanticObject) ((DBSyntableBuilder)
 			// clean while accepting subscriptions
@@ -420,7 +380,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId)
 				.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(domain), pnvm.domain, constr(peer), pnvm.peer)
 				.where(op.le, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0))) // 631e138aae8e3996aeb26d2b54a61b1517b3eb3f
-			.delete(subm.tbl, synrobot())
+			.delete(subm.tbl, locrobot)
 				.where(op.exists, null, select("cl")
 				.where(op.eq, subm.changeId, chgm.pk)
 				.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee))
@@ -452,7 +412,7 @@ public class DBSyntableBuilder extends DATranscxt {
 							"ch." + chgm.domain,  "cl." + chgm.domain,
 							"ch." + chgm.entbl, "cl." + chgm.entbl,
 							subm.changeId, chgm.pk)))
-			.d(instancontxt(synconn, synrobot()));
+			.d(instancontxt(synconn, locrobot));
 			
 		if (debug) {
 			try {
@@ -580,7 +540,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		SynChangeMeta chgm = syndomx.chgm;
 		SynSubsMeta subm = syndomx.subm;
 
-		return insert(syndomx.exbm.tbl, synrobot())
+		return insert(syndomx.exbm.tbl, locrobot)
 			.cols(syndomx.exbm.insertCols())
 			.select(
 				// target is the subscriber
@@ -630,7 +590,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 			if (compareNyq(nyq, xp.synx.nv.get(n)) != 0) {
 				if (u == null)
-					u = update(synm.tbl, synrobot())
+					u = update(synm.tbl, locrobot)
 						.nv(synm.nyquence, nyq.n)
 						.whereEq(synm.domain, syndomx.domain)
 						.whereEq(synm.pk, n);
@@ -643,7 +603,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 
 		if (u != null) {
-			u.u(instancontxt(syndomx.synconn, synrobot()));
+			u.u(instancontxt(syndomx.synconn, locrobot));
 
 			xp.synx.loadNvstamp(this);
 		}
@@ -711,14 +671,14 @@ public class DBSyntableBuilder extends DATranscxt {
 		AnResultset hittings = (AnResultset) select(entm.tbl)
 					.col(entm.synuid).cols(entm.uids)
 					.whereEq(entm.synuid, synuid)
-					.rs(instancontxt(syndomx.synconn, synrobot()))
+					.rs(instancontxt(syndomx.synconn, locrobot))
 					.rs(0);
 
 		if (existsnyuid(entm, synuid)) {
 			SemanticObject res = (SemanticObject) DBSynmantics
-					.logChange(syndomContext, this, delete(entm.tbl, synrobot())
+					.logChange(syndomContext, this, delete(entm.tbl, locrobot)
 					.whereEq(entm.synuid, synuid), entm, hittings)
-					.d(instancontxt(syndomx.synconn, synrobot()));
+					.d(instancontxt(syndomx.synconn, locrobot));
 			return res.total();
 		}
 		else return 0;
@@ -728,7 +688,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws SQLException, TransException {
 		return ((AnResultset) select(entm.tbl, "t")
 			.col(Funcall.count(), "c")
-			.rs(instancontxt(syndomx.synconn, synrobot()))
+			.rs(instancontxt(syndomx.synconn, locrobot))
 			.rs(0))
 			.nxt()
 			.getInt("c") > 0;
@@ -747,12 +707,13 @@ public class DBSyntableBuilder extends DATranscxt {
 	public String[] insertEntity(SyndomContext sdx, SyntityMeta m, SynEntity e)
 			throws TransException, SQLException {
 		String conn   = syndomx.synconn;
-		SyncRobot rob = (SyncRobot) synrobot();
+		SyncRobot rob = (SyncRobot) locrobot;
 
 		Insert inst = e.insertEntity(m, insert(m.tbl, rob));
 		SemanticObject u = (SemanticObject) DBSynmantics
 				.logChange(sdx, this, inst, m, syndomx.synode, null)
-				.ins(instancontxt(conn, rob));
+				// .ins(instancontxt(conn, rob));
+				.ins(instancontxt());
 
 		String phid = u.resulve(m, -1);
 		String chid = u.resulve(syndomx.chgm, -1);
@@ -765,7 +726,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		for (int i = 0; i < nvs.length; i += 2)
 			updcols.add((String) nvs[i]);
 
-		Update u = update(entm.tbl, synrobot())
+		Update u = update(entm.tbl, locrobot)
 					.nvs((Object[])nvs);
 
 		for (int ix = 0; ix < uids.length; ix++)
@@ -774,39 +735,16 @@ public class DBSyntableBuilder extends DATranscxt {
 		AnResultset hittings = ((AnResultset) select(entm.tbl)
 				.col(entm.synuid).cols(entm.uids)
 				.where(u.where())
-				.rs(instancontxt(syndomx.synconn, synrobot()))
+				.rs(instancontxt())
 				.rs(0))
 				.beforeFirst();
 
 		return DBSynmantics
 			.logChange(sdx, this, u,
 					entm, synoder, hittings, updcols)
-			.u(instancontxt(syndomx.synconn, synrobot()))
+			.u(instancontxt(syndomx.synconn, locrobot))
 			.resulve(syndomx.chgm.tbl, syndomx.chgm.pk, -1);
 	}
-	
-	/**
-	 * Inc my n0, then reload from DB.
-	 * @param maxn 
-	 * @return this
-	 * @throws TransException
-	 * @throws SQLException
-	 */
-//	public DBSyntableBuilder incNyquence0() throws TransException, SQLException {
-//
-//		SynodeMeta synm = syndomx.synm;
-//
-//		update(synm.tbl, synrobot())
-//			.nv(synm.nyquence, Funcall.add(synm.nyquence, 1))
-//			.whereEq(synm.pk, syndomx.synode)
-//			.whereEq(synm.domain, syndomx.domain)
-//			.u(instancontxt(syndomx.synconn, synrobot()));
-//		
-//		syndomx.stamp.inc();
-//		// syndomx.persistamp(syndomx.stamp);
-//		
-//		return this;
-//	}
 
 	public void incN0(Nyquence... maxn) throws TransException, SQLException {
 		syndomx.incN0(this, maxn);
@@ -844,7 +782,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		SynSubsMeta subm = syndomx.subm;
 
 		String childId = req.srcnode;
-		IUser robot = synrobot();
+		IUser robot = locrobot;
 	
 		Synode apply = new Synode(childId, null, org, domain);
 
@@ -882,7 +820,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				.whereIn(synm.synoder, childId, synode)
 				.whereEq(synm.domain, domain)
 				.whereEq(synm.org, org)
-				.rs(instancontxt(synconn, synrobot()))
+				.rs(instancontxt(synconn, locrobot))
 				.rs(0))
 			: null);
 		return rep;
@@ -906,12 +844,12 @@ public class DBSyntableBuilder extends DATranscxt {
 
 			while (ns.next()) {
 				if (eq(synode, ns.getString(synm.pk))) {
-					update(synm.tbl, synrobot())
+					update(synm.tbl, locrobot)
 					.nv(synm.domain, ns.getString(synm.domain))
 					.whereEq(synm.pk, synode)
-					.whereEq(synm.org, synrobot().orgId())
+					.whereEq(synm.org, locrobot.orgId())
 					.whereEq(synm.domain, domain)
-					.u(instancontxt(synconn, synrobot()));
+					.u(instancontxt(synconn, locrobot));
 
 					// don't delete: all local data before joining is ignored
 					syndomx.domainitOnjoin(this, domain, mxn);
@@ -919,9 +857,9 @@ public class DBSyntableBuilder extends DATranscxt {
 				else {
 					Synode n = new Synode(ns, synm);
 					mxn = maxn(domainof.nv);
-					n.insert(synm, ns.getString(synm.synuid), mxn, insert(synm.tbl, synrobot()))
+					n.insert(synm, ns.getString(synm.synuid), mxn, insert(synm.tbl, locrobot))
 					 .nv(synm.jserv, adminserv)
-					 .ins(instancontxt(synconn, synrobot()));
+					 .ins(instancontxt(synconn, locrobot));
 
 					cp.synx.persistNyquence(this, n.synid, mxn);
 				}
@@ -951,7 +889,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			throw new ExchangeException(Exchanging.ready, cp, "domain is empty when closing domain joining?");
 
 		updateFieldByPk(this, syndomx.synconn, syndomx.synm,
-				syndomx.synode, syndomx.synm.domain, syndomx.domain, synrobot());
+				syndomx.synode, syndomx.synm.domain, syndomx.domain, locrobot);
 
 		syndomx.persistamp(this, maxn(rep.nv.get(cp.peer), syndomx.stamp, cp.n0()));
 
@@ -982,7 +920,7 @@ public class DBSyntableBuilder extends DATranscxt {
 						.cols(chgm.pk, chgm.uids, chgm.nyquence, subm.synodee)
 						.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
 						.whereEq(subm.synodee, peer)
-						.rs(instancontxt(synconn, synrobot()))
+						.rs(instancontxt(synconn, locrobot))
 						.rs(0))
 						.print();
 				} catch (Exception e) {
@@ -991,10 +929,10 @@ public class DBSyntableBuilder extends DATranscxt {
 			}
 
 			try {
-				SemanticObject res = (SemanticObject) delete(subm.tbl, synrobot())
+				SemanticObject res = (SemanticObject) delete(subm.tbl, locrobot)
 					.whereEq(subm.synodee, peer)
 					.post(del0subchange(peer))
-					.d(instancontxt(synconn, synrobot()));
+					.d(instancontxt(synconn, locrobot));
 
 				@SuppressWarnings("unchecked")
 				int cnt = ((ArrayList<Integer>)res.get("total")).get(0);
@@ -1021,11 +959,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	 */
 	protected Statement<?> del0subchange(String iffnode)
 				throws TransException {
-//		String synode = syndomx.synode;
-//		String domain = syndomx.domain;
-//		String synconn= syndomx.synconn;
-//		PeersMeta pnvm = syndomx.pnvm;
-//		SynodeMeta synm = syndomx.synm;
 		SynChangeMeta chgm = syndomx.chgm;
 		SynSubsMeta subm = syndomx.subm;
 
@@ -1072,8 +1005,12 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 
-	public DBSyntableBuilder loadContext() throws TransException, SQLException {
-		syndomx.loadNvstamp(this);
-		return this;
+	public ISemantext instancontxt() throws TransException {
+		return instancontxt(syndomx.synconn, locrobot);
 	}
+
+//	public DBSyntableBuilder loadContext() throws TransException, SQLException {
+//		syndomx.loadNvstamp(this);
+//		return this;
+//	}
 }

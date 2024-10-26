@@ -77,21 +77,9 @@ class ExchangingTest {
 	@Test
 	void testRestore() throws TransException, SQLException {
 		int no = 0;
-		/*
-		String conn = "syn.00";
-		SynodeMeta        snm = new SynodeMeta(conn);
-		SynChangeMeta     chm = new SynChangeMeta(conn);
-		SynSubsMeta       sbm = new SynSubsMeta(chm, conn);
-		SynchangeBuffMeta xbm = new SynchangeBuffMeta(chm, conn);
-		SynSessionMeta    ssm = new SynSessionMeta(conn);
-		PeersMeta         prm = new PeersMeta();
-		*/
-
 
 		String server = "server";
 		String client = "client";
-//		SyndomContext synxc = new SyndomContext(SynodeMode.peer, "zsu", client, "syn.00");
-//		SyndomContext synxs = new SyndomContext(SynodeMode.peer, "zsu", client, "syn.01");
 
 		Utils.logrst("client initate", ++no);
 		ExessionPersist cp = new ExessionPersist(null, server)
@@ -104,7 +92,7 @@ class ExchangingTest {
 		Utils.logrst("server initate", ++no);
 		ExessionPersist sp = new ExessionPersist(null, client, req)
 				.forcetest(12, 4);
-		ExchangeBlock rep = sp.onInit(req);
+		ExchangeBlock rep = sp.onInit(req, new SyncRobot());
 		int ch_s = -1;
 		rep.print(System.out);
 		

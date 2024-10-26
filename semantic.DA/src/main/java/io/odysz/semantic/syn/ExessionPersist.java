@@ -36,6 +36,7 @@ import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.syn.registry.Syntities;
 import io.odysz.semantic.util.DAHelper;
+import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
@@ -400,11 +401,12 @@ public class ExessionPersist {
 	 * insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
 	 * 
 	 * @param ini
+	 * @param locuser 
 	 * @return new message
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public ExchangeBlock onInit(ExchangeBlock ini) throws TransException, SQLException {
+	public ExchangeBlock onInit(ExchangeBlock ini, SyncRobot locuser) throws TransException, SQLException {
 		if (trb != null) {
 			// nyquvect = loadNyquvect(trb);
 			synx.loadNvstamp(trb);
@@ -412,7 +414,7 @@ public class ExessionPersist {
 			String conn = trb.basictx().connId();
 			int total = ((SemanticObject) trb
 				.insertExbuf(peer)
-				.ins(trb.instancontxt(conn, trb.synrobot()))
+				.ins(trb.instancontxt(conn, locuser))
 				).total();
 
 			if (total > 0 && debug) {

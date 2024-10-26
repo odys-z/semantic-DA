@@ -670,6 +670,8 @@ public class DBSyntableTest {
 		SyndomContext srvx = stb.syndomx;
 		String servnid = srvx.synode;
 		
+//		SyncRobot usr_cAts = new SyncRobot(??);
+		
 		Utils.logrst(new String[] {clientnid, "initiate"}, test, subno, ++no);
 		ExessionPersist cp = new ExessionPersist(ctb, servnid);
 		ExchangeBlock ini = ctb.initExchange(cp);
@@ -690,7 +692,7 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {clientnid, "closing exchange"}, test, subno, ++no);
 		ExchangeBlock req = ctb.closexchange(cp, rep);
 		if (req.nv.containsKey(clientnid))
-			assertEquals(req.nv.get(clientnid).n + 1, SyndomContext.getNyquence(ctb, cltx).n);
+			assertEquals(req.nv.get(clientnid).n + 1, SyndomContext.getNyquence(ctb).n);
 		assertEquals(ready, cp.exstate());
 
 		printChangeLines(ck);
@@ -700,7 +702,7 @@ public class DBSyntableTest {
 		// FIXME what if the server doesn't agree?
 		rep = stb.onclosexchange(sp, req);
 		if (req.nv.containsKey(clientnid))
-			assertEquals(rep.nv.get(clientnid).n + 1, SyndomContext.getNyquence(stb, srvx).n);
+			assertEquals(rep.nv.get(clientnid).n + 1, SyndomContext.getNyquence(stb).n);
 		assertEquals(ready, sp.exstate());
 
 		printChangeLines(ck);
@@ -845,14 +847,18 @@ public class DBSyntableTest {
 	String[] insertPhoto(int s) throws TransException, SQLException, IOException {
 		DBSyntableBuilder trb = ck[s].synb;
 		ExpDocTableMeta m = ck[s].docm;
-		String synoder = ck[s].synb.syndomx.synode;
-		IUser rob = trb.synrobot();
+		String synoder = trb.syndomx.synode;
+
+		// IUser rob = trb.syndomx.synrobot;
+		SyncRobot usr = new SyncRobot(synoder, synoder, "doc owner@" + synoder, "dev client of " + s);
 
 		String[] pid_chid = trb.insertEntity(ck[s].synb.syndomx, m, new T_Photo(ck[s].synb.syndomx.synconn, zsu)
 				.create(ukraine)
-				.device(rob.deviceId())
-				.folder(rob.uid()));
+				.device(usr.deviceId())
+				.folder(usr.uid()));
 		
+		ck[s].sessionUsr = usr; 
+
 		return new String[] {pid_chid[0], pid_chid[1],
 					SynChangeMeta.uids(synoder, pid_chid[0])};
 	}
@@ -896,10 +902,10 @@ public class DBSyntableTest {
 
 		AnResultset slt = ((AnResultset) t
 				.select(entm.tbl, "ch")
-				.whereEq(entm.device, t.synrobot().deviceId())
+				.whereEq(entm.device, ck[s].sessionUsr.deviceId())
 				.orderby(entm.pk, "desc")
 				.limit(1)
-				.rs(ck[s].synb.instancontxt(ck[s].connId(), ck[s].robot()))
+				.rs(ck[s].synb.instancontxt())
 				.rs(0))
 				.nxt();
 		

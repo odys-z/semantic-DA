@@ -43,6 +43,16 @@ public class SyndomContext {
 	protected final SynChangeMeta chgm;
 	protected final SynchangeBuffMeta exbm;
 
+	/**
+	 * A basic robot, without knowing domain context, for building basice DB orperations,
+	 * such as update syn_node, etc.
+	 */
+	protected IUser robot;
+	public SyndomContext synrobot(IUser r) {
+		robot = r;
+		return this;
+	}
+	
 	public final SynodeMode mode;
 	long seq;
 
@@ -50,7 +60,7 @@ public class SyndomContext {
 	Nyquence stamp;
 
 	protected SyndomContext(SynodeMode mod, String dom, String synode, String synconn)
-			throws TransException, SQLException {
+			throws Exception {
 
 		this.synode  = notBlank(synode);
 		this.domain  = dom;
@@ -63,7 +73,7 @@ public class SyndomContext {
 		this.exbm = new SynchangeBuffMeta(chgm, synconn).replace();
 		this.pnvm = new PeersMeta(synconn).replace();
 	}
-	
+
 	public Nyquence n0() { return nv.get(synode); }
 
 	Nyquence incN0(DBSyntableBuilder synb, Nyquence... maxn) throws TransException, SQLException {
@@ -108,7 +118,7 @@ public class SyndomContext {
 
 
 	public HashMap<String, Nyquence> loadNvstamp(DBSyntableBuilder synb) throws TransException, SQLException {
-		loadNvstamp(synb, synb.robot);
+		loadNvstamp(synb, synb.locrobot);
 		return nv;
 	}
 	
@@ -138,9 +148,10 @@ public class SyndomContext {
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public static Nyquence getNyquence(DBSyntableBuilder trb, SyndomContext x)
+	public static Nyquence getNyquence(DBSyntableBuilder trb)
 			throws SQLException, TransException {
-		return getNyquence(trb, x.synconn, trb.synrobot(),
+		SyndomContext x = trb.syndomx;
+		return getNyquence(trb, x.synconn, x.robot,
 				x.synm, x.synm.nyquence, x.synm.synoder, x.synode, x.synm.domain, x.domain);
 	}
 
@@ -184,7 +195,7 @@ public class SyndomContext {
 	 * @throws SQLException
 	 */
 	public SyndomContext domainitOnjoin(DBSyntableBuilder b, String dom, Nyquence n0) throws TransException, SQLException {
-		DAHelper.updateFieldWhereEqs(b, synconn, b.synrobot(), synm, synm.domain, dom,
+		DAHelper.updateFieldWhereEqs(b, synconn, robot, synm, synm.domain, dom,
 				synm.synoder, synode, synm.domain, this.domain);
 		domain = dom;
 
@@ -201,7 +212,7 @@ public class SyndomContext {
 		else if (!isNull(up2max) && Nyquence.compareNyq(up2max[0], stamp) > 0)
 				stamp.n = up2max[0].n;
 		
-		DAHelper.updateFieldWhereEqs(trb, synconn, trb.synrobot(), synm,
+		DAHelper.updateFieldWhereEqs(trb, synconn, robot, synm,
 				synm.nstamp, stamp.n,
 				synm.pk, synode,
 				synm.domain, domain);
@@ -212,7 +223,7 @@ public class SyndomContext {
 	public Nyquence persistNyquence(DBSyntableBuilder trb, String synid, Nyquence n)
 			throws TransException, SQLException {
 
-		DAHelper.updateFieldWhereEqs(trb, synconn, trb.synrobot(), synm,
+		DAHelper.updateFieldWhereEqs(trb, synconn, robot, synm,
 				synm.nyquence, n.n,
 				synm.pk, synode,
 				synm.domain, domain);
