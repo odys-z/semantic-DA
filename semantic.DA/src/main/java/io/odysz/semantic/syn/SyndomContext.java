@@ -49,7 +49,7 @@ public class SyndomContext {
 	HashMap<String, Nyquence> nv;
 	Nyquence stamp;
 
-	SyndomContext(SynodeMode mod, String dom, String synode, String synconn)
+	protected SyndomContext(SynodeMode mod, String dom, String synode, String synconn)
 			throws TransException, SQLException {
 
 		this.synode  = notBlank(synode);
@@ -108,10 +108,15 @@ public class SyndomContext {
 
 
 	public HashMap<String, Nyquence> loadNvstamp(DBSyntableBuilder synb) throws TransException, SQLException {
-		AnResultset rs = ((AnResultset) synb.select(synm.tbl)
+		loadNvstamp(synb, synb.robot);
+		return nv;
+	}
+	
+	public SyndomContext loadNvstamp(DATranscxt tb, IUser usr) throws TransException, SQLException {
+		AnResultset rs = ((AnResultset) tb.select(synm.tbl)
 				.cols(synm.pk, synm.nyquence, synm.nstamp)
 				.whereEq(synm.domain, domain)
-				.rs(synb.instancontxt(synconn, synb.synrobot()))
+				.rs(tb.instancontxt(synconn, usr))
 				.rs(0));
 		
 		nv = new HashMap<String, Nyquence>(rs.getRowCount());
@@ -121,7 +126,8 @@ public class SyndomContext {
 			if (eq(nid, synode))
 				stamp = new Nyquence(rs.getLong(synm.nstamp));
 		}
-		return nv;
+	
+		return this;
 	}
 
 	/**

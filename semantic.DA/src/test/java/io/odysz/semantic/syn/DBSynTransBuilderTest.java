@@ -91,7 +91,9 @@ class DBSynTransBuilderTest {
 			logger.incN0();
 
 		
-		DBSynTransBuilder synb= new DBSynTransBuilder(zsu, conn, synodes[0], "syntity-0.json", SynodeMode.peer, logger);
+		// DBSynTransBuilder synb= new DBSynTransBuilder(zsu, conn, synodes[0], "syntity-0.json", SynodeMode.peer, logger);
+		SyndomContext ctx = new SyndomContext(SynodeMode.peer, zsu, synodes[0], conn);
+		DBSynTransBuilder synb= new DBSynTransBuilder(ctx, "syntity-0.json", logger);
 
 		// create photo
 		SemanticObject ins = (SemanticObject) synb

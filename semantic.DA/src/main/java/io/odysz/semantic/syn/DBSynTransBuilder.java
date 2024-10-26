@@ -90,48 +90,48 @@ public class DBSynTransBuilder extends DATranscxt {
 //	public long stamp() { return stamp.n; }
 //	public Nyquence stampN() { return stamp; }
 	
-	public DBSynTransBuilder (SyndomContext syndomx, String syntity_json, DBSyntableBuilder logger)
+	public DBSynTransBuilder (SyndomContext x, String syntity_json, DBSyntableBuilder logger)
 			throws SemanticException, SQLException, SAXException, IOException, Exception {
-		this(syndomx.domain, syndomx.synconn, syndomx.synode, syntity_json, syndomx.mode, logger);
-	}
+//		this(syndomx.domain, syndomx.synconn, syndomx.synode, syntity_json, syndomx.mode, logger);
+//	}
+//
+//	DBSynTransBuilder (String domain, String conn, String mynid,
+//				String syntity_json, SynodeMode mode, DBSyntableBuilder logger)
+//			throws SemanticException, SQLException, SAXException, IOException, Exception {
 
-	DBSynTransBuilder (String domain, String conn, String mynid,
-				String syntity_json, SynodeMode mode, DBSyntableBuilder logger)
-			throws SemanticException, SQLException, SAXException, IOException, Exception {
-
-		super(conn);
+		super(x.synconn);
 		
-		debug    = Connects.getDebug(conn);
-		perdomain= domain;
-		synmode  = mode;
-		synode   = mynid;
+		debug    = Connects.getDebug(x.synconn);
+		perdomain= x.domain;
+		synmode  = x.mode;
+		synode   = x.synode;
 
 		this.changelogBuilder = logger;
 		
-		this.chgm = new SynChangeMeta(conn).replace();
-		this.subm = new SynSubsMeta(chgm, conn).replace();
-		this.synm = (SynodeMeta) new SynodeMeta(conn).autopk(false).replace();
-		this.exbm = new SynchangeBuffMeta(chgm, conn).replace();
-		this.pnvm = new PeersMeta(conn).replace();
+		this.chgm = new SynChangeMeta(x.synconn).replace();
+		this.subm = new SynSubsMeta(chgm, x.synconn).replace();
+		this.synm = (SynodeMeta) new SynodeMeta(x.synconn).autopk(false).replace();
+		this.exbm = new SynchangeBuffMeta(chgm, x.synconn).replace();
+		this.pnvm = new PeersMeta(x.synconn).replace();
 		
 		// seq = 0;
 		force_clean_subs = true;
 
-		if (mode != SynodeMode.nonsyn) {
-			if (DAHelper.count(new DATranscxt(conn), conn, synm.tbl,
-						synm.synoder, mynid, synm.domain, perdomain) <= 0) {
+		if (x.mode != SynodeMode.nonsyn) {
+			if (DAHelper.count(new DATranscxt(x.synconn), x.synconn, synm.tbl,
+						synm.synoder, x.synode, synm.domain, perdomain) <= 0) {
 				if (debug) Utils
 					.warnT(new Object() {},
 						  "\nThis syntable builder is being built for node %s which doesn't exists in domain %s." +
 						  "\nThis instence can only be useful if is used to initialize the domain for the node",
-						  mynid, perdomain);
+						  x.synode, perdomain);
 			}
 //			else
 //				stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
 //						synm.synoder, mynid, synm.domain, perdomain);
 
 			// registerEntity(conn, synm);
-			synSemantics (this, conn, synode, 
+			synSemantics (this, x.synconn, synode, 
 					Syntities.load(cfgroot, syntity_json, 
 					(synreg) -> {
 						throw new SemanticException(
@@ -141,7 +141,7 @@ public class DBSynTransBuilder extends DATranscxt {
 		}
 		else if (isblank(perdomain))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
-				this.getClass().getName(), mynid);
+				this.getClass().getName(), x.synode);
 
 		if (debug && force_clean_subs) Utils
 			.logT(new Object() {}, "Transaction builder created with forcing cleaning stale subscriptions.");
