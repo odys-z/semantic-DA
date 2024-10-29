@@ -85,15 +85,15 @@ class DBSynTransBuilderTest {
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
 			Docheck.ck[0] = new Docheck(new AssertImpl(), zsu, conn, synodes[0],
-									SynodeMode.peer, phm);
+									SynodeMode.peer, phm, Connects.getDebug(conn));
 			
 			DBSyntableBuilder logger = Docheck.ck[0].synb;
 			logger.incN0();
 
 		
 		// DBSynTransBuilder synb= new DBSynTransBuilder(zsu, conn, synodes[0], "syntity-0.json", SynodeMode.peer, logger);
-		SyndomContext ctx = new SyndomContext(SynodeMode.peer, zsu, synodes[0], conn);
-		DBSynTransBuilder synb= new DBSynTransBuilder(ctx, "syntity-0.json", logger);
+		// SyndomContext ctx = new SyndomContext(SynodeMode.peer, zsu, synodes[0], conn);
+		DBSynTransBuilder synb= new DBSynTransBuilder(logger.syndomx, "syntity-0.json", logger);
 
 		// create photo
 		SemanticObject ins = (SemanticObject) synb

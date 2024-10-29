@@ -156,6 +156,8 @@ public class ExchangeBlock extends Anson {
 	int challengeSeq;
 	int answerSeq;
 
+	public int sleeps;
+
 	/**
 	 * Set challengeId &amp; answerId
 	 * <pre>
@@ -219,5 +221,10 @@ public class ExchangeBlock extends Anson {
 			out.println("synodes:");
 			synodes.print(out);
 		}
+	}
+
+	public ExchangeBlock sleep(int seconds) {
+		sleeps = seconds;
+		return this;
 	}
 }

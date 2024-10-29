@@ -1,7 +1,5 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.common.LangExt.isNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -11,12 +9,10 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
-import io.odysz.anson.IJsonable;
 import io.odysz.common.Utils;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.SessionInf;
@@ -25,11 +21,14 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 /**
+ * TODO rename as SyncAdmin
  * A robot only used for test at DA layer, and the super class for syn-user.
  * 
  * @author odys-z@github.com
  */
-public class SyncRobot extends SemanticObject implements IUser, IJsonable {
+public class SyncUser extends SemanticObject implements IUser {
+
+	SyndomContext domx;
 
 	protected long touched;
 	protected String userId;
@@ -40,19 +39,19 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 	protected String orgId;
 	public String orgId() { return orgId; }
 
-	public SyncRobot orgId(String org) {
+	public SyncUser orgId(String org) {
 		orgId = org;
 		return this;
 	}
 
 
-	public SyncRobot domain(String dom) {
+	public SyncUser domain(String dom) {
 		return this;
 	}
 
 	protected String deviceId;
 	public String deviceId() { return deviceId; }
-	public SyncRobot deviceId(String devid) {
+	public SyncUser deviceId(String devid) {
 		deviceId = devid;
 		return this;
 	}
@@ -61,12 +60,12 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 
 	protected Set<String> tempDirs;
 	public String orgName;
-	public SyncRobot orgName (String org) {
+	public SyncUser orgName (String org) {
 		orgName = org;
 		return this;
 	}
 
-	public SyncRobot(String userid, String pswd) {
+	public SyncUser(String userid, String pswd) {
 		this.userId = userid;
 		this.pswd   = pswd;
 	}
@@ -78,7 +77,7 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 	 * @param pswd
 	 * @param userName
 	 */
-	public SyncRobot(String userid, String pswd, String userName, String device) {
+	public SyncUser(String userid, String pswd, String userName, String device) {
 		this.userId = userid;
 		this.userName = userName;
 		this.deviceId = device;
@@ -90,15 +89,15 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 	 * @param pswd
 	 * @param userName
 	 */
-	public SyncRobot(String userid, String pswd, String userName) {
+	public SyncUser(String userid, String pswd, String userName) {
 		this(userid, pswd, userName, null);
 	}
 	
-	public SyncRobot(SessionInf rob, String pswd) {
+	public SyncUser(SessionInf rob, String pswd) {
 		this(rob.uid(), rob.userName(), rob.device, pswd);
 	}
 
-	public SyncRobot() {
+	public SyncUser() {
 		this.userId = "to be init";
 	}
 
@@ -116,9 +115,7 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 
 	@Override
 	public TableMeta meta(String ... connId) throws SQLException, TransException {
-		return new RobotMeta("a_users")
-				.clone(Connects.getMeta(
-				isNull(connId) ? null : connId[0], "a_users"));
+		throw new SemanticException("This method should be overriden by DocUser.");
 	}
 
 	@Override
@@ -138,7 +135,7 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 
 	@Override public String pswd() { return pswd; }
 
-	@Override public void writeJsonRespValue(Object writer) throws IOException { }
+//	@Override public void writeJsonRespValue(Object writer) throws IOException { }
 
 	@Override public IUser logAct(String funcName, String funcId) { return this; }
 
@@ -157,7 +154,9 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 				Utils.warn("Can not delete folder: %s.\n%s", temp, e.getMessage());
 			}
 		}
-
+		if (domx != null)
+		domx.unlockx(this);
+		// return super.logout();
 		return null;
 	}
 
@@ -165,14 +164,18 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 	 * Get a temp dir, and have it deleted when logout.
 	 * 
 	 * @param conn
-	 * @param tablPhotos 
+	 * @param doctbl 
 	 * @return the dir
 	 * @throws SemanticException
 	 */
-	public String touchTempDir(String conn, String tablPhotos) throws SemanticException {
+	public String touchTempDir(String conn, String doctbl) throws SemanticException {
+		if (!DATranscxt.hasSemantics(conn, doctbl, smtype.extFilev2))
+			throw new SemanticException(
+					"Touching temp dir is failed. No smtype.extFilev handler is configured for conn %s, table %s.",
+					conn, doctbl);
 
 		String extroot = ((ShExtFilev2) DATranscxt
-						.getHandler(conn, tablPhotos, smtype.extFilev2))
+						.getHandler(conn, doctbl, smtype.extFilev2))
 						.getFileRoot();
 
 		String tempDir = IUser.tempDir(extroot, userId, "uploading-temp", ssid);
@@ -180,10 +183,6 @@ public class SyncRobot extends SemanticObject implements IUser, IJsonable {
 			tempDirs= new HashSet<String>(1);
 		tempDirs.add(tempDir);
 		return tempDir;
-	}
-
-	public String defaultAlbum() {
-		return "a-001";
 	}
 
 	public SessionInf sessionInf() {

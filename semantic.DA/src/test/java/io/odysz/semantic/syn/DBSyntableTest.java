@@ -46,7 +46,6 @@ import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.syn.registry.Syntities;
-import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
@@ -167,11 +166,14 @@ public class DBSyntableTest {
 					});
 
 			Docheck.ck[s] = new Docheck(new AssertImpl(), s != W ? zsu : null, conn, synodes[s],
-					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm);
+					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm,
+					Connects.getDebug(conn));
 			
 			if (s != W)
 				Docheck.ck[s].synb.syndomx.incN0(Docheck.ck[s].synb);
 		}
+		
+		SyndomContext.forceExceptionStamp2n0  = true;
 		
 		assertEquals("syn.00", ck[0].connId());
 	}
@@ -850,7 +852,7 @@ public class DBSyntableTest {
 		String synoder = trb.syndomx.synode;
 
 		// IUser rob = trb.syndomx.synrobot;
-		SyncRobot usr = new SyncRobot(synoder, synoder, "doc owner@" + synoder, "dev client of " + s);
+		SyncUser usr = new SyncUser(synoder, synoder, "doc owner@" + synoder, "dev client of " + s);
 
 		String[] pid_chid = trb.insertEntity(ck[s].synb.syndomx, m, new T_Photo(ck[s].synb.syndomx.synconn, zsu)
 				.create(ukraine)

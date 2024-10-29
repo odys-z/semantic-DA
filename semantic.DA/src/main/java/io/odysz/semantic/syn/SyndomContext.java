@@ -1,13 +1,17 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.f;
+import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.musteq;
 import static io.odysz.common.LangExt.notBlank;
 import static io.odysz.common.LangExt.notNull;
-import static io.odysz.common.LangExt.isNull;
 import static io.odysz.semantic.syn.Nyquence.maxn;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+
+import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.meta.PeersMeta;
@@ -30,7 +34,19 @@ import io.odysz.transact.x.TransException;
  *
  */
 public class SyndomContext {
+	/** Force throw exception if stamp >= n0 + 1 when try to increase stamp. */
+	public static boolean forceExceptionStamp2n0 = false;
+	
+	@FunctionalInterface
+	public interface OnMutexLock {
+		/**
+		 * @return sleeping seconds for a next try.
+		 */
+		public int locked();
+	}
 
+	public final boolean dbg;
+	
 	String domain;
 	public String domain() { return domain; }
 	
@@ -47,9 +63,10 @@ public class SyndomContext {
 	 * A basic robot, without knowing domain context, for building basice DB orperations,
 	 * such as update syn_node, etc.
 	 */
-	protected IUser robot;
+	public SyncUser robot;
 	public SyndomContext synrobot(IUser r) {
-		robot = r;
+		notNull(r.deviceId());
+		robot = (SyncUser) r;
 		return this;
 	}
 	
@@ -59,7 +76,7 @@ public class SyndomContext {
 	HashMap<String, Nyquence> nv;
 	Nyquence stamp;
 
-	protected SyndomContext(SynodeMode mod, String dom, String synode, String synconn)
+	protected SyndomContext(SynodeMode mod, String dom, String synode, String synconn, boolean debug)
 			throws Exception {
 
 		this.synode  = notBlank(synode);
@@ -72,6 +89,8 @@ public class SyndomContext {
 		this.synm = new SynodeMeta(synconn).replace();
 		this.exbm = new SynchangeBuffMeta(chgm, synconn).replace();
 		this.pnvm = new PeersMeta(synconn).replace();
+		
+		dbg = debug;
 	}
 
 	public Nyquence n0() { return nv.get(synode); }
@@ -85,9 +104,14 @@ public class SyndomContext {
 	public void incStamp(DBSyntableBuilder synb) throws TransException, SQLException {
 			
 		if (nv.containsKey(synode)
-			&& Nyquence.abs(stamp, nv.get(synode)) >= 1)
-			throw new SemanticException(
-				"Nyquence stamp is going to increase too much or out of range.");
+			&& Nyquence.abs(stamp, n0()) >= 1) {
+			if (forceExceptionStamp2n0)
+				throw new SemanticException(
+					"Nyquence stamp is going to increase too much or out of range."
+					+ "\n%s: stamp %s, n0: %s", synode, stamp, n0());
+				
+			return; 
+		}
 
 		stamp.inc();
 
@@ -229,4 +253,69 @@ public class SyndomContext {
 				synm.domain, domain);
 		return n;
 	}
+	
+	////////////////////////////////////////////////////////////////////////////
+	// final ReentrantLock sylock = new ReentrantLock(); 
+	// final Object sylock = new Object(); 
+	final int[] sylock = new int[1];
+	protected SyncUser synlocker;
+	
+	protected synchronized void unlockx(SyncUser usr) {
+		notNull(usr);
+		notNull(usr.deviceId());
+
+		if (synlocker != null && eq(synlocker.sessionId(), usr.sessionId())) {
+			musteq(sylock[0], 1);
+			sylock[0] = 0;
+			if (dbg) Utils.warn(
+					f("\n++++++++++   unlocked   +++++++++\n"
+					+ "lock at %s <- %s\nuser: %s\n%s",
+					synode, usr.deviceId(), synlocker.uid(), synlocker));
+			usr.domx = null;
+			synlocker.domx = null;
+			synlocker = null;
+		}
+	}
+
+	public boolean lockme(OnMutexLock onMutext) throws InterruptedException {
+		if (dbg) Utils.warn(f(
+				"\n-------- locking on self %s  ------\n",
+				synode));
+//		return lockx((SyncUser) robot);
+
+		while (!lockx(robot)) {
+			int sleep = onMutext.locked();
+			if (sleep > 0)
+				Thread.sleep(sleep * 1000);
+			else if (sleep < 0)
+				return false;
+		}
+		return true;
+	}
+
+	public void unlockme() {
+		if (dbg) Utils.warn(f(
+				"\n++++++++ unlocking self %s ++++++\n",
+				synode));
+	
+		unlockx(robot);
+	}
+
+	protected synchronized boolean lockx(SyncUser usr) {
+		notNull(usr);
+		notNull(usr.deviceId());
+
+		if (sylock[0] == 0) {
+			sylock[0] = 1;
+			synlocker = usr;
+			synlocker.domx = this;
+			if (dbg) Utils.warn(
+					f("\n--------       locked      -------\n"
+					+ "lock at %s <- %s\nuser: %s\n%s",
+					synode, usr.deviceId(), usr.uid(), synlocker));
+			return true;
+		}
+		else return false;
+	}
+
 }

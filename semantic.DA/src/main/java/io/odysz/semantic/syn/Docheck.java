@@ -29,7 +29,6 @@ import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SyntityMeta;
-import io.odysz.semantics.IUser;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.condition.Predicate;
@@ -80,9 +79,9 @@ public class Docheck {
 	String connId() { return synb.basictx().connId(); }
 
 	public Docheck(IAssert assertImpl, String domain, String conn,
-			String synid, SynodeMode mod, ExpDocTableMeta m)
+			String synid, SynodeMode mod, ExpDocTableMeta m, boolean debugx)
 			throws Exception {
-		this(assertImpl, new SyndomContext(mod, domain, synid, conn), m);
+		this(assertImpl, new SyndomContext(mod, domain, synid, conn, debugx), m);
 	}
 
 	/**
@@ -586,7 +585,7 @@ public class Docheck {
 	
 	final boolean[] tops;
 
-	public SyncRobot sessionUsr;
+	public SyncUser sessionUsr;
 	
 	/**
 	 * <p>Push connection's debug flags and return a checker instance.</p>

@@ -74,9 +74,9 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	IUser locrobot;
 
-	SyncRobot synrobot;
-	public DBSyntableBuilder synrobot(SyncRobot robt) { synrobot = robt; return this; }
-	 public SyncRobot synrobot() { return synrobot; }
+	SyncUser synrobot;
+	public DBSyntableBuilder synrobot(SyncUser robt) { synrobot = robt; return this; }
+	 public SyncUser synrobot() { return synrobot; }
 
 	private final boolean force_clean_subs;
 
@@ -95,7 +95,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		syndomx = x;
 		// FIXME: Comparing to mobile device node, a device is the equivalent to synode
 		// at Synode tier, so robot.device should be removed.
-		locrobot = (IUser) new SyncRobot(x.synode, x.synode, "rob@" + x.synode, x.synode);
+		locrobot = (IUser) new SyncUser(x.synode, x.synode, "rob@" + x.synode, x.synode);
 		
 		debug    = Connects.getDebug(x.synconn);
 		
@@ -159,7 +159,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			cleanStale(inireq.nv, sp.peer);
 
 			// insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
-			return sp.onInit(inireq, (SyncRobot) syndomx.robot);
+			return sp.onInit(inireq, (SyncUser) syndomx.robot);
 		} finally {
 			syndomx.incStamp(sp.trb);
 		}
@@ -706,13 +706,11 @@ public class DBSyntableBuilder extends DATranscxt {
 	 */
 	public String[] insertEntity(SyndomContext sdx, SyntityMeta m, SynEntity e)
 			throws TransException, SQLException {
-		String conn   = syndomx.synconn;
-		SyncRobot rob = (SyncRobot) locrobot;
+		SyncUser rob = (SyncUser) locrobot;
 
 		Insert inst = e.insertEntity(m, insert(m.tbl, rob));
 		SemanticObject u = (SemanticObject) DBSynmantics
 				.logChange(sdx, this, inst, m, syndomx.synode, null)
-				// .ins(instancontxt(conn, rob));
 				.ins(instancontxt());
 
 		String phid = u.resulve(m, -1);

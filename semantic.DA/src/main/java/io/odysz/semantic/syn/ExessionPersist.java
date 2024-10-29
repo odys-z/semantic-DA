@@ -406,7 +406,7 @@ public class ExessionPersist {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public ExchangeBlock onInit(ExchangeBlock ini, SyncRobot locuser) throws TransException, SQLException {
+	public ExchangeBlock onInit(ExchangeBlock ini, SyncUser locuser) throws TransException, SQLException {
 		if (trb != null) {
 			// nyquvect = loadNyquvect(trb);
 			synx.loadNvstamp(trb);
