@@ -36,11 +36,12 @@ public class SyncUser extends SemanticObject implements IUser {
 	protected String pswd;
 	protected String iv;
 
-	protected String orgId;
-	public String orgId() { return orgId; }
+	protected String domain;
 
+	protected String org;
+	public String orgId() { return org; }
 	public SyncUser orgId(String org) {
-		orgId = org;
+		this.org = org;
 		return this;
 	}
 
