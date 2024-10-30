@@ -281,7 +281,6 @@ public class SyndomContext {
 		if (dbg) Utils.warn(f(
 				"\n-------- locking on self %s  ------\n",
 				synode));
-//		return lockx((SyncUser) robot);
 
 		while (!lockx(robot)) {
 			int sleep = onMutext.locked();

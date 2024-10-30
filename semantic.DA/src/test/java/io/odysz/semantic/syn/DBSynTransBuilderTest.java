@@ -93,7 +93,13 @@ class DBSynTransBuilderTest {
 		
 		// DBSynTransBuilder synb= new DBSynTransBuilder(zsu, conn, synodes[0], "syntity-0.json", SynodeMode.peer, logger);
 		// SyndomContext ctx = new SyndomContext(SynodeMode.peer, zsu, synodes[0], conn);
-		DBSynTransBuilder synb= new DBSynTransBuilder(logger.syndomx, "syntity-0.json", logger);
+		DBSynTransBuilder synb= new DBSynTransBuilder(logger.syndomx,
+					Syntities.load(rtroot, "syntity-0.json", 
+					(synreg) -> {
+						throw new SemanticException(
+							"TODO syntity name: %s (Configure syntity.meta to avoid this error)",
+							synreg.table);
+					}), logger);
 
 		// create photo
 		SemanticObject ins = (SemanticObject) synb

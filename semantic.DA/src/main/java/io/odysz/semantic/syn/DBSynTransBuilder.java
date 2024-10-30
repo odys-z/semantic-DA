@@ -1,6 +1,7 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.notNull;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -82,24 +83,15 @@ public class DBSynTransBuilder extends DATranscxt {
 
 	private final boolean force_clean_subs;
 
-	/* */
-//	private Nyquence stamp;
-
 	private DBSyntableBuilder changelogBuilder;
 
-//	public long stamp() { return stamp.n; }
-//	public Nyquence stampN() { return stamp; }
-	
-	public DBSynTransBuilder (SyndomContext x, String syntity_json, DBSyntableBuilder logger)
+	public DBSynTransBuilder (SyndomContext x, Syntities syntities, DBSyntableBuilder logger)
 			throws SemanticException, SQLException, SAXException, IOException, Exception {
-//		this(syndomx.domain, syndomx.synconn, syndomx.synode, syntity_json, syndomx.mode, logger);
-//	}
-//
-//	DBSynTransBuilder (String domain, String conn, String mynid,
-//				String syntity_json, SynodeMode mode, DBSyntableBuilder logger)
-//			throws SemanticException, SQLException, SAXException, IOException, Exception {
 
 		super(x.synconn);
+		
+		notNull(x);
+		notNull(logger);
 		
 		debug    = Connects.getDebug(x.synconn);
 		perdomain= x.domain;
@@ -126,18 +118,18 @@ public class DBSynTransBuilder extends DATranscxt {
 						  "\nThis instence can only be useful if is used to initialize the domain for the node",
 						  x.synode, perdomain);
 			}
-//			else
-//				stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
-//						synm.synoder, mynid, synm.domain, perdomain);
 
-			// registerEntity(conn, synm);
-			synSemantics (this, x.synconn, synode, 
-					Syntities.load(cfgroot, syntity_json, 
-					(synreg) -> {
-						throw new SemanticException(
-							"TODO syntity name: %s (Configure syntity.meta to avoid this error)",
-							synreg.table);
-					}));
+//			if (!isblank(syntity_json))
+//				synSemantics (this, x.synconn, synode, 
+//					Syntities.load(cfgroot, syntity_json, 
+//					(synreg) -> {
+//						throw new SemanticException(
+//							"TODO syntity name: %s (Configure syntity.meta to avoid this error)",
+//							synreg.table);
+//					}));
+
+			if (syntities != null)
+				synSemantics(this, x.synconn, synode, syntities); 
 		}
 		else if (isblank(perdomain))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
@@ -146,6 +138,23 @@ public class DBSynTransBuilder extends DATranscxt {
 		if (debug && force_clean_subs) Utils
 			.logT(new Object() {}, "Transaction builder created with forcing cleaning stale subscriptions.");
 
+	}
+
+	/** 
+	 * A helper version of {@link #DBSynTransBuilder(SyndomContext, String, DBSyntableBuilder)},
+	 * ignoring loading {@link SynmanticsMap}.
+	 * 
+	 * @param domx
+	 * @throws Exception 
+	 * @throws IOException 
+	 * @throws SAXException 
+	 * @throws SQLException 
+	 * @throws SemanticException 
+	 */
+	public DBSynTransBuilder(SyndomContext domx)
+			throws SemanticException, SQLException, SAXException, IOException, Exception {
+		this(domx, null, new DBSyntableBuilder(domx));
+		notNull(synmanticMaps, "DBSynTransBuilder(SyndomContext domx) must be called only after synSemantics(...) has been called.");
 	}
 
 	protected static HashMap<String, SemanticsMap> synmanticMaps;
@@ -159,7 +168,7 @@ public class DBSynTransBuilder extends DATranscxt {
 	 * @param xcfg
 	 * @param synode2
 	 * @param syntities 
-	 * @return semantics map of connection conn
+	 * @return semantics map of connection {@code conn}
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
@@ -173,7 +182,7 @@ public class DBSynTransBuilder extends DATranscxt {
 						(c) -> new SemanticsMap(c));
 
 		if (!smtMaps.containsKey(conn))
-			throw new SemanticException("Basic semantics map for conn %s is empty.", trb);
+			throw new SemanticException("Basic semantics map for connection %s is empty.", trb.synconn());
 		else {
 			SemanticsMap m = SynmanticsMap.clone(synode, smtMaps.get(conn));
 			synmanticMaps.put(conn, m);
