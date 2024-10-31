@@ -85,7 +85,7 @@ public class DBSynTransBuilder extends DATranscxt {
 
 	private DBSyntableBuilder changelogBuilder;
 
-	public DBSynTransBuilder (SyndomContext x, Syntities syntities, DBSyntableBuilder logger)
+	public DBSynTransBuilder (SyndomContext x, DBSyntableBuilder logger)
 			throws SemanticException, SQLException, SAXException, IOException, Exception {
 
 		super(x.synconn);
@@ -128,8 +128,8 @@ public class DBSynTransBuilder extends DATranscxt {
 //							synreg.table);
 //					}));
 
-			if (syntities != null)
-				synSemantics(this, x.synconn, synode, syntities); 
+//			if (syntities != null)
+//				synSemantics(this, x.synconn, synode, syntities); 
 		}
 		else if (isblank(perdomain))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
@@ -153,7 +153,7 @@ public class DBSynTransBuilder extends DATranscxt {
 	 */
 	public DBSynTransBuilder(SyndomContext domx)
 			throws SemanticException, SQLException, SAXException, IOException, Exception {
-		this(domx, null, new DBSyntableBuilder(domx));
+		this(domx, new DBSyntableBuilder(domx));
 		notNull(synmanticMaps, "DBSynTransBuilder(SyndomContext domx) must be called only after synSemantics(...) has been called.");
 	}
 
@@ -173,16 +173,16 @@ public class DBSynTransBuilder extends DATranscxt {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <M extends SemanticsMap, S extends DASemantics> M synSemantics(
-			DBSynTransBuilder trb, String conn, String synode, Syntities syntities) throws Exception {
+			DATranscxt trb, String conn, String synode, Syntities syntities) throws Exception {
 
 		if (synmanticMaps == null)
 			synmanticMaps = new HashMap<String, SemanticsMap>(); 
 		
-		DATranscxt.initConfigs(conn, loadSemantics(conn),
+		DATranscxt.initConfigs(conn, loadSemanticsXml(conn),
 						(c) -> new SemanticsMap(c));
 
 		if (!smtMaps.containsKey(conn))
-			throw new SemanticException("Basic semantics map for connection %s is empty.", trb.synconn());
+			throw new SemanticException("Basic semantics map for connection %s is empty.", conn);
 		else {
 			SemanticsMap m = SynmanticsMap.clone(synode, smtMaps.get(conn));
 			synmanticMaps.put(conn, m);

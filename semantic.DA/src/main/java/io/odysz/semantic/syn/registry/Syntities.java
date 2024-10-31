@@ -97,4 +97,8 @@ public class Syntities extends Anson {
 		return registries.get(conn).synodeMeta;
 	}
 
+	public ArrayList<SyntityReg> syntities() {
+		return syntities;
+	}
+
 }

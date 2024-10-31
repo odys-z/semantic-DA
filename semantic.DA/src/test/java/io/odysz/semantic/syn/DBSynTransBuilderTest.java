@@ -57,49 +57,43 @@ class DBSynTransBuilderTest {
 		ssm = new SynSessionMeta();
 		prm = new PeersMeta();
 
-			String conn = conns[0];
-			snm = new SynodeMeta(conn);
+		String conn = conns[0];
 
-			Syntities regists = Syntities.load(runtimepath, "syntity-0.json", 
-				(synreg) -> {
-					if (eq(synreg.table, "h_photos"))
-						return new T_DA_PhotoMeta(conn);
-					else
-						throw new SemanticException("TODO %s", synreg.table);
-				});
+		snm = new SynodeMeta(conn);
 
-			T_DA_PhotoMeta phm = regists.meta("h_photos");
+		Syntities regists = Syntities.load(runtimepath, "syntity-0.json", 
+			(synreg) -> {
+				if (eq(synreg.table, "h_photos"))
+					return new T_DA_PhotoMeta(conn);
+				else
+					throw new SemanticException("TODO %s", synreg.table);
+			});
 
-			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
+		T_DA_PhotoMeta phm = regists.meta("h_photos");
 
-			ArrayList<String> sqls = new ArrayList<String>();
-			sqls.add("delete from oz_autoseq;");
-			sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
-			sqls.add(String.format("update oz_autoseq set seq = %d where sid = 'h_photos.pid'", 64));
+		SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
 
-			sqls.add(String.format("delete from %s", snm.tbl));
-			sqls.add(Utils.loadTxt("syn_nodes.sql"));
+		ArrayList<String> sqls = new ArrayList<String>();
+		sqls.add("delete from oz_autoseq;");
+		sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
+		sqls.add(String.format("update oz_autoseq set seq = %d where sid = 'h_photos.pid'", 64));
 
-			sqls.add(String.format("delete from %s", phm.tbl));
+		sqls.add(String.format("delete from %s", snm.tbl));
+		sqls.add(Utils.loadTxt("syn_nodes.sql"));
 
-			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
+		sqls.add(String.format("delete from %s", phm.tbl));
 
-			Docheck.ck[0] = new Docheck(new AssertImpl(), zsu, conn, synodes[0],
-									SynodeMode.peer, phm, Connects.getDebug(conn));
-			
-			DBSyntableBuilder logger = Docheck.ck[0].synb;
-			logger.incN0();
+		Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
+		Docheck.ck[0] = new Docheck(new AssertImpl(), zsu, conn, synodes[0],
+								SynodeMode.peer, phm, Connects.getDebug(conn));
 		
-		// DBSynTransBuilder synb= new DBSynTransBuilder(zsu, conn, synodes[0], "syntity-0.json", SynodeMode.peer, logger);
-		// SyndomContext ctx = new SyndomContext(SynodeMode.peer, zsu, synodes[0], conn);
-		DBSynTransBuilder synb= new DBSynTransBuilder(logger.syndomx,
-					Syntities.load(rtroot, "syntity-0.json", 
-					(synreg) -> {
-						throw new SemanticException(
-							"TODO syntity name: %s (Configure syntity.meta to avoid this error)",
-							synreg.table);
-					}), logger);
+		DBSyntableBuilder logger = Docheck.ck[0].synb;
+		logger.incN0();
+
+		DBSynTransBuilder synb = new DBSynTransBuilder(logger.syndomx, logger);
+		DBSynTransBuilder.synSemantics(new DATranscxt(conn), conn,
+							logger.syndomx.synode, regists);
 
 		// create photo
 		SemanticObject ins = (SemanticObject) synb
@@ -114,7 +108,6 @@ class DBSynTransBuilderTest {
 		String phid = ins.resulve(phm, -1);
 		String chid = ins.resulve(synb.chgm, -1);
 
-
 		printChangeLines(ck);
 		printNyquv(ck);
 		
@@ -126,5 +119,4 @@ class DBSynTransBuilderTest {
 		assertEquals(3, DAHelper.count(new DATranscxt(conn), conn, snm.tbl, snm.domain, zsu));
 		assertEquals(2, DAHelper.count(new DATranscxt(conn), conn, sbm.tbl, sbm.changeId, chid));
 	}
-
 }

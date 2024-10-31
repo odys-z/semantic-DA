@@ -49,7 +49,7 @@ import io.odysz.transact.x.TransException;
  * DASemantextTest</a>.</p>
  * 
  * This manager can handling semantics configured in xml.
- * See {@link #loadSemantics(String)}. <br>
+ * See {@link #loadSemanticsXml(String)}. <br>
  * 
  * Every sql building needing semantics handling must use a context instance
  * created by {@link DATranscxt#instancontxt(String, IUser)}.
@@ -172,7 +172,7 @@ public class DATranscxt extends Transcxt {
 	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
 		try {
 			return new DASemantext(connId,
-				initConfigs(connId, loadSemantics(connId),
+				initConfigs(connId, loadSemanticsXml(connId),
 						(c) -> new SemanticsMap(c)),
 				usr, runtimepath);
 		} catch (Exception e) {
@@ -310,7 +310,7 @@ public class DATranscxt extends Transcxt {
 	 */
 	public DATranscxt(String conn) throws Exception {
 		this(new DASemantext(conn,
-				isblank(conn) ? null : initConfigs(conn, loadSemantics(conn),
+				isblank(conn) ? null : initConfigs(conn, loadSemanticsXml(conn),
 						(c) -> new SemanticsMap(c)),
 				dummyUser(), runtimepath));
 		if (isblank(conn))
@@ -333,7 +333,7 @@ public class DATranscxt extends Transcxt {
 	 * @throws SQLException 
 	 * @throws SemanticException 
 	 */
-	public static XMLTable loadSemantics(String connId)
+	public static XMLTable loadSemanticsXml(String connId)
 			throws SAXException, IOException, SemanticException {
 
 		String fpath = Connects.getSmtcsPath(connId);
