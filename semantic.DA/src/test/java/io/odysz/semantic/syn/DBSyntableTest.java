@@ -672,8 +672,6 @@ public class DBSyntableTest {
 		SyndomContext srvx = stb.syndomx;
 		String servnid = srvx.synode;
 		
-//		SyncRobot usr_cAts = new SyncRobot(??);
-		
 		Utils.logrst(new String[] {clientnid, "initiate"}, test, subno, ++no);
 		ExessionPersist cp = new ExessionPersist(ctb, servnid);
 		ExchangeBlock ini = ctb.initExchange(cp);
