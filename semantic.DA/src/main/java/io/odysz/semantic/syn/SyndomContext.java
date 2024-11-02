@@ -47,7 +47,7 @@ public class SyndomContext {
 
 	public final boolean dbg;
 	
-	String domain;
+	protected String domain;
 	public String domain() { return domain; }
 	
 	public final String synode;

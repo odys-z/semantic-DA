@@ -36,7 +36,6 @@ import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.syn.registry.Syntities;
 import io.odysz.semantic.util.DAHelper;
-import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
@@ -727,10 +726,7 @@ public class ExessionPersist {
 	 */
 	public String[] ssinf;
 
-	/** Nyquence vector {synode: Nyquence}*/
-	// HashMap<String, Nyquence> nyquvect;
-	 public Nyquence n0() { return synx.nv.get(synx.synode); }
-//	public Nyquence n0() { return synx.nv.get(synx.synode); }
+	public Nyquence n0() { return synx.nv.get(synx.synode); }
 //
 //	protected ExessionPersist n0(Nyquence nyq) throws TransException, SQLException {
 //		synx.n0(nyq);

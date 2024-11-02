@@ -189,4 +189,15 @@ public class SyncUser extends SemanticObject implements IUser {
 	public SessionInf sessionInf() {
 		return new SessionInf().device(deviceId);
 	}
+
+	public ExessionPersist xp ;
+	/**
+	 * Server side session setter.
+	 * @param synssionServ
+	 * @return xp
+	 */
+	public ExessionPersist servPersist(ExessionPersist synssionServ) {
+		this.xp = synssionServ;
+		return synssionServ;
+	}
 }
