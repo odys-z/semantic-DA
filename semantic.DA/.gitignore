@@ -1,5 +1,5 @@
 /target/
-/.settings/
+.settings/
 main.net
 **/semantic-DA.db
 /bin/
