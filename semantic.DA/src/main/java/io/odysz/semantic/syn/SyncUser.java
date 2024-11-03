@@ -21,9 +21,8 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 /**
- * TODO rename as SyncAdmin
- * A robot only used for test at DA layer, and the super class for syn-user.
- * 
+ * Synchronizing user for robot and base class of DocUser
+ *  
  * @author odys-z@github.com
  */
 public class SyncUser extends SemanticObject implements IUser {
@@ -136,7 +135,7 @@ public class SyncUser extends SemanticObject implements IUser {
 
 	@Override public String pswd() { return pswd; }
 
-//	@Override public void writeJsonRespValue(Object writer) throws IOException { }
+	
 
 	@Override public IUser logAct(String funcName, String funcId) { return this; }
 
@@ -157,7 +156,6 @@ public class SyncUser extends SemanticObject implements IUser {
 		}
 		if (domx != null)
 		domx.unlockx(this);
-		// return super.logout();
 		return null;
 	}
 
