@@ -47,7 +47,7 @@ public class DBSynTransBuilder extends DATranscxt {
 		public static SemanticsMap clone(String synode, SemanticsMap sm) {
 			SynmanticsMap m = new SynmanticsMap(synode, sm.conn);
 			for (DASemantics s : sm.ss.values())
-				m.ss.put(s.tabl, s);
+				m.ss.put(s.tabl, s.clone());
 			
 			return m;
 		}

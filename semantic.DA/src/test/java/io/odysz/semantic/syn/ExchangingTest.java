@@ -92,7 +92,7 @@ class ExchangingTest {
 		Utils.logrst("server initate", ++no);
 		ExessionPersist sp = new ExessionPersist(null, client, req)
 				.forcetest(12, 4);
-		ExchangeBlock rep = sp.onInit(req, new SyncUser());
+		ExchangeBlock rep = sp.onInit(req);
 		int ch_s = -1;
 		rep.print(System.out);
 		

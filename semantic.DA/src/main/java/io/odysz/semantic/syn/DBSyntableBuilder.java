@@ -72,11 +72,11 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	public SyndomContext syndomx;
 
-	IUser locrobot;
+	SyncUser locrobot;
 
-	SyncUser synrobot;
-	public DBSyntableBuilder synrobot(SyncUser robt) { synrobot = robt; return this; }
-	 public SyncUser synrobot() { return synrobot; }
+//	SyncUser synrobot;
+//	public DBSyntableBuilder synrobot(SyncUser robt) { synrobot = robt; return this; }
+	public SyncUser synrobot() { return locrobot; }
 
 	private final boolean force_clean_subs;
 
@@ -95,7 +95,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		syndomx = x;
 		// FIXME: Comparing to mobile device node, a device is the equivalent to synode
 		// at Synode tier, so robot.device should be removed.
-		locrobot = (IUser) new SyncUser(x.synode, x.synode, "rob@" + x.synode, x.synode);
+		locrobot = new SyncUser(x.synode, x.synode, "rob@" + x.synode, x.synode);
 		
 		debug    = Connects.getDebug(x.synconn);
 		
@@ -159,7 +159,8 @@ public class DBSyntableBuilder extends DATranscxt {
 			cleanStale(inireq.nv, sp.peer);
 
 			// insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
-			return sp.onInit(inireq, (SyncUser) syndomx.robot);
+			// return sp.onInit(inireq, (SyncUser) syndomx.robot);
+			return sp.onInit(inireq);
 		} finally {
 			syndomx.incStamp(sp.trb);
 		}
@@ -506,7 +507,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ExchangeBlock closexchange(ExessionPersist cx, ExchangeBlock rep)
 			throws TransException, SQLException {
 
-		// cx.clear();
 		HashMap<String, Nyquence> nv = rep.nv; 
 
 		Nyquence peerme = nv.get(syndomx.synode);
@@ -520,7 +520,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		
 		HashMap<String, Nyquence> snapshot = synyquvectMax(cx, rep.nv);
 
-		// cx.n0(syndomx.persistamp(maxn(syndomx.stamp, cx.n0())));
 		syndomx.n0(this, syndomx.persistamp(this, maxn(syndomx.stamp, cx.n0())));
 
 		return cx.closexchange(rep).nv(snapshot); // cx.clear();
@@ -1007,8 +1006,4 @@ public class DBSyntableBuilder extends DATranscxt {
 		return instancontxt(syndomx.synconn, locrobot);
 	}
 
-//	public DBSyntableBuilder loadContext() throws TransException, SQLException {
-//		syndomx.loadNvstamp(this);
-//		return this;
-//	}
 }

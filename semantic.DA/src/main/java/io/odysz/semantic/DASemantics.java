@@ -513,9 +513,14 @@ public class DASemantics {
 	}
 
 	public DASemantics addHandler(SemanticHandler h) {
-		if (verbose)
-			h.logi();
-		handlers.add(h);
+		if (h == null) return this;
+
+		for (SemanticHandler hi : handlers)
+			if (hi.getClass() == h.getClass())
+				Utils.warnT(new Object() {},
+					"Adding duplicated handlers %s to table %s?",
+					h.getClass().getName(), tabl);
+		handlers.add(h); 
 		return this;
 	}
 
@@ -580,7 +585,7 @@ public class DASemantics {
 		else if (smtype.extFilev2 == semantic)
 			return new ShExtFilev2(basicTsx, tabl, recId, args);
 		else if (smtype.synChange == semantic)
-			Utils.warn("The syn-change semantics is silented as a newer design decision");
+			Utils.warn("The syn-change semantics is silenced as a newer design decision");
 		else
 			throw new SemanticException("Cannot load configured semantics of key: %s, with trans-builder: %s, on basic connection %s.\n"
 					+ "See Extending default semantics plugin at Dev Community:\n"
@@ -724,11 +729,8 @@ public class DASemantics {
 		 * @throws SemanticException
 		 * @throws SQLException 
 		 */
-		protected void onDelete(ISemantext stx,
-				// Statement<? extends Statement<?>> stmt,
-				Delete del,
-				Condit whereCondt, IUser usr)
-				throws TransException {
+		protected void onDelete(ISemantext stx, Delete del,
+				Condit whereCondt, IUser usr) throws TransException {
 		}
 
 		protected void onPost(ISemantext sm, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
@@ -2102,5 +2104,18 @@ public class DASemantics {
 					throw new SemanticException(e.getMessage());
 				}
 		}
+	}
+
+	/**
+	 * Shallow copy, with new list of handlers, with each elements referring to the original one.
+	 */
+	public DASemantics clone() {
+		DASemantics clone = new DASemantics(basicTsx, tabl, pk, verbose);
+		clone.handlers = new ArrayList<SemanticHandler>(handlers.size());
+		
+		for (SemanticHandler sh : handlers)
+			clone.handlers.add(sh);
+		
+		return clone;
 	}
 }

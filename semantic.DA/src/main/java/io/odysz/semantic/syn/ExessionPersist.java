@@ -405,15 +405,14 @@ public class ExessionPersist {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public ExchangeBlock onInit(ExchangeBlock ini, SyncUser locuser) throws TransException, SQLException {
+	public ExchangeBlock onInit(ExchangeBlock ini) throws TransException, SQLException {
 		if (trb != null) {
-			// nyquvect = loadNyquvect(trb);
 			synx.loadNvstamp(trb);
 
-			String conn = trb.basictx().connId();
+			// String conn = trb.basictx().connId();
 			int total = ((SemanticObject) trb
 				.insertExbuf(peer)
-				.ins(trb.instancontxt(conn, locuser))
+				.ins(trb.instancontxt())
 				).total();
 
 			if (total > 0 && debug) {

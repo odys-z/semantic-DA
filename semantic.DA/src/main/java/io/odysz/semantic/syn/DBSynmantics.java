@@ -51,8 +51,10 @@ public class DBSynmantics extends DASemantics {
 	public SemanticHandler parseHandler(Transcxt tsx, String tabl, smtype smtp,
 			String pk, String[] args) throws Exception {
 		if (smtype.synChange == smtp)
-			return new DBSynmantics.ShSynChange(tsx, synode, tabl, pk, args);
-		else
+			// relic for docs 
+			Utils.warn("The syn-change semantics is silenced as a newer design decision");
+			// return new DBSynmantics.ShSynChange(tsx, synode, tabl, pk, args);
+		// else
 			return super.parseHandler(tsx, tabl, smtp, pk, args);
 	}
 	
@@ -184,7 +186,9 @@ public class DBSynmantics extends DASemantics {
 		protected final DATranscxt st;
 
 		ShSynChange(Transcxt trxt, String synode, SyntityMeta m) throws TransException {
-			super(trxt, smtype.synChange, m.tbl, m.pk, null);
+			super(trxt, smtype.synChange, m.tbl, m.pk,
+				new String[] {ShSynChange.class.getName()});
+
 			insert = true;
 			update = true;
 			delete = true;
@@ -255,12 +259,13 @@ public class DBSynmantics extends DASemantics {
 			
 			try { Utils.warnT(new Object() {},
 				"\nSyn-change's handler needs a builder of type DBSyntableBuilder.\n" +
-				"Semantext: %s.\nTransaction Builder: %s\n" +
+				"Semantext: %s.\nSynTransaction Builder: %s\n" +
 				"Table: %s, Synode: %s\n" +
 				"Semantics handling is ignored.",
 					stx.getClass().getName(),
-					((ISyncontext)stx).synbuilder() instanceof DBSyntableBuilder
-					? ((ISyncontext)stx).synbuilder() : null,
+					// ((ISyncontext)stx).synbuilder() instanceof DBSyntableBuilder
+					stx instanceof ISyncontext
+					? ((ISyncontext)stx).synbuilder() : "Not an ISyncontext",
 					target, synode);
 			} catch (Exception e) { e.printStackTrace(); }
 			return false;

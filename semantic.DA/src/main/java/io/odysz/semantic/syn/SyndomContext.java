@@ -268,9 +268,8 @@ public class SyndomContext {
 			musteq(sylock[0], 1);
 			sylock[0] = 0;
 			if (dbg) Utils.warn(
-					f("\n++++++++++   unlocked   +++++++++\n"
-					+ "lock at %s <- %s\nuser: %s\n%s",
-					synode, usr.deviceId(), synlocker.uid(), synlocker));
+					f("++ ++ unlocked %s <- %s\nuser: %s, ssid: %s",
+					synode, usr.deviceId(), synlocker.uid(), synlocker.ssid));
 			usr.domx = null;
 			synlocker.domx = null;
 			synlocker = null;
@@ -309,9 +308,8 @@ public class SyndomContext {
 			synlocker = usr;
 			synlocker.domx = this;
 			if (dbg) Utils.warn(
-					f("\n--------       locked      -------\n"
-					+ "lock at %s <- %s\nuser: %s\n%s",
-					synode, usr.deviceId(), usr.uid(), synlocker));
+					f("-- -- lock at %s <- %s\nuser: %s, ssid: %s",
+					synode, usr.deviceId(), usr.uid(), synlocker.ssid));
 			return true;
 		}
 		else return false;

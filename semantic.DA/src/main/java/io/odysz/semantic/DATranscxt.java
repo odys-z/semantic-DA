@@ -357,6 +357,17 @@ public class DATranscxt extends Transcxt {
 		return xtbl;
 	}
 	
+	/**
+	 * Load {@link #smtMaps}.
+	 * 
+	 * @param <M> semantics map type
+	 * @param <S> semantics
+	 * @param conn
+	 * @param xcfg
+	 * @param smFactory
+	 * @return map per {@code conn}
+	 * @throws Exception
+	 */
 	@SuppressWarnings("unchecked")
 	public static <M extends SemanticsMap, S extends DASemantics> M initConfigs(
 			String conn, XMLTable xcfg, SmapFactory<M> smFactory)
