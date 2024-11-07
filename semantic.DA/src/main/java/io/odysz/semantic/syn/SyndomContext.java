@@ -260,7 +260,7 @@ public class SyndomContext {
 	final int[] sylock = new int[1];
 	protected SyncUser synlocker;
 	
-	protected synchronized void unlockx(SyncUser usr) {
+	public synchronized void unlockx(SyncUser usr) {
 		notNull(usr);
 		notNull(usr.deviceId());
 
@@ -299,7 +299,7 @@ public class SyndomContext {
 		unlockx(robot);
 	}
 
-	protected synchronized boolean lockx(SyncUser usr) {
+	public synchronized boolean lockx(SyncUser usr) {
 		notNull(usr);
 		notNull(usr.deviceId());
 

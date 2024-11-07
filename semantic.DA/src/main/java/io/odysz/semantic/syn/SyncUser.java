@@ -24,6 +24,7 @@ import io.odysz.transact.x.TransException;
  * Synchronizing user for robot and base class of DocUser
  *  
  * @author odys-z@github.com
+ * @param <T>
  */
 public class SyncUser extends SemanticObject implements IUser {
 
@@ -188,14 +189,24 @@ public class SyncUser extends SemanticObject implements IUser {
 		return new SessionInf().device(deviceId);
 	}
 
-	public ExessionPersist xp ;
+//	public ExessionPersist xp ;
+
+	public Object synssion;
+
 	/**
 	 * Server side session setter.
-	 * @param synssionServ
+	 * @param sp
 	 * @return xp
-	 */
-	public ExessionPersist servPersist(ExessionPersist synssionServ) {
-		this.xp = synssionServ;
-		return synssionServ;
+	public ExessionPersist servPersist(ExessionPersist sp) {
+		this.xp = sp;
+		return sp;
 	}
+	 */
+
+	public void synssion(Object synssionServ) {
+		this.synssion = synssionServ;
+	}
+
+	public <T> T synssion() { return (T) synssion; }
+
 }
