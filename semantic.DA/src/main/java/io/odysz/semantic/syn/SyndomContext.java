@@ -42,7 +42,7 @@ public class SyndomContext {
 		/**
 		 * @return sleeping seconds for a next try.
 		 */
-		public float onlocked(IUser synlocker);
+		public double onlocked(IUser synlocker);
 	}
 
 	public final boolean dbg;
@@ -282,7 +282,7 @@ public class SyndomContext {
 				synode));
 
 		while (!lockx(robot)) {
-			float sleep = onMutext.onlocked(synlocker);
+			double sleep = onMutext.onlocked(synlocker);
 			if (sleep > 0)
 				Thread.sleep((long) (sleep * 1000));
 			else if (sleep < 0)
