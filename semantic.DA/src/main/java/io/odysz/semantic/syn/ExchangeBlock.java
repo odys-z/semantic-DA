@@ -156,7 +156,7 @@ public class ExchangeBlock extends Anson {
 	int challengeSeq;
 	int answerSeq;
 
-	public int sleeps;
+	public double sleeps;
 
 	/**
 	 * Set challengeId &amp; answerId
@@ -223,8 +223,8 @@ public class ExchangeBlock extends Anson {
 		}
 	}
 
-	public ExchangeBlock sleep(int seconds) {
-		sleeps = seconds;
+	public ExchangeBlock sleep(double d) {
+		sleeps = d;
 		return this;
 	}
 }
