@@ -755,7 +755,8 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public ExchangeBlock domainSignup(ExessionPersist app, String admin) throws TransException, SQLException {
+	public ExchangeBlock domainSignup(ExessionPersist app, String admin)
+			throws TransException, SQLException {
 		try {
 			// syndomx.loadNvstamp(this);
 			return app.signup(admin);
