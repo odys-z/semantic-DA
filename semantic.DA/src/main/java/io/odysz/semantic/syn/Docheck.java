@@ -3,6 +3,7 @@ package io.odysz.semantic.syn;
 import static io.odysz.common.LangExt.compoundVal;
 import static io.odysz.common.LangExt.ifnull;
 import static io.odysz.common.LangExt.indexOf;
+import static io.odysz.common.LangExt.is;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.repeat;
@@ -67,8 +68,8 @@ public class Docheck {
 		return synb.entities(docm);
 	}
 
-	public String doclist() throws SQLException, TransException {
-		AnResultset rs = synb.entitySynuids(docm).beforeFirst();
+	public String doclist(SyntityMeta entm) throws SQLException, TransException {
+		AnResultset rs = synb.entitySynuids(entm).beforeFirst();
 		String r = "";
 		while (rs.next()) {
 			r += " " + rs.getString(1);
@@ -419,8 +420,9 @@ public class Docheck {
 			.where(new Predicate(op.eq, compound(synb.syndomx.chgm.uids), compoundVal(synoder, clientpath)))
 			;
 	}
+
 	@SuppressWarnings("unchecked")
-	public static HashMap<String, Nyquence>[] printNyquv(Docheck[] ck) throws SQLException, TransException {
+	public static HashMap<String, Nyquence>[] printNyquv(Docheck[] ck, boolean... printSynode) throws SQLException, TransException {
 		Utils.logi(Stream.of(ck)
 				.filter(c -> c != null)
 				.map(c -> { return c.synb.syndomx.synode;})
@@ -449,7 +451,9 @@ public class Docheck {
 							nyquvect.get(n).n : "");
 						})
 					.collect(Collectors.joining(", ")),
-					ck[cx].doclist());
+					is(printSynode) ?
+					ck[cx].doclist(ck[cx].synb.syndomx.synm) :
+					ck[cx].doclist(ck[cx].docm));
 			}
 			finally { Connects.setDebug(ck[cx].synb.syndomx.synconn, top); }
 		}

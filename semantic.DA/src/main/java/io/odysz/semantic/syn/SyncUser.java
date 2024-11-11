@@ -72,7 +72,7 @@ public class SyncUser extends SemanticObject implements IUser {
 	}
 
 	/**
-	 * Costructor for jserv construction
+	 * Constructor for jserv synssion instance.
 	 * 
 	 * @param userid
 	 * @param pswd
@@ -189,24 +189,13 @@ public class SyncUser extends SemanticObject implements IUser {
 		return new SessionInf().device(deviceId);
 	}
 
-//	public ExessionPersist xp ;
-
 	public Object synssion;
-
-	/**
-	 * Server side session setter.
-	 * @param sp
-	 * @return xp
-	public ExessionPersist servPersist(ExessionPersist sp) {
-		this.xp = sp;
-		return sp;
-	}
-	 */
 
 	public void synssion(Object synssionServ) {
 		this.synssion = synssionServ;
 	}
 
+	@SuppressWarnings("unchecked")
 	public <T> T synssion() { return (T) synssion; }
 
 }

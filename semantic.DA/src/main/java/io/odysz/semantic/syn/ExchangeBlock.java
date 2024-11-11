@@ -45,6 +45,10 @@ public class ExchangeBlock extends Anson {
 		this.domain = domain;
 	}
 	
+	public ExchangeBlock(String domain, String src, String peer, String sessionId, ExessionPersist exstate) {
+		this(domain, src, peer, sessionId, exstate.exstat());
+	}
+
 	public ExchangeBlock nv(HashMap<String, Nyquence> nyquvect) {
 		nv = Nyquence.clone(nyquvect);
 		return this;

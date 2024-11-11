@@ -810,7 +810,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		
 		ap.synx.nv.put(apply.synid, new Nyquence(apply.nyquence));
 	
-		ExchangeBlock rep = new ExchangeBlock(domain, synode, childId, ap.session(), ap.exstat())
+		ExchangeBlock rep = new ExchangeBlock(domain, synode, childId, ap.session(), ap.exstate(setupDom))
 			.nv(ap.synx.nv)
 			.synodes(req.act == ExessionAct.signup
 			? ((AnResultset) select(synm.tbl, "syn")
@@ -833,6 +833,10 @@ public class DBSyntableBuilder extends DATranscxt {
 		if (!isblank(syndomx.domain))
 			throw new ExchangeException(setupDom, cp, "Domain must be null for initialization %s in %s.",
 					synm.tbl, synm.domain);
+		
+//		if (!ev(setupDom, domainof.act))
+//			throw new ExchangeException(setupDom, cp, "Joining domain information indicates an action of code %s, rather than %s (setupDom).",
+//				domainof.act, setupDom);
 
 		Nyquence mxn = domainof.nv.get(admin); 
 

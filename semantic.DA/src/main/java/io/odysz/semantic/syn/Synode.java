@@ -20,7 +20,10 @@ public class Synode extends Anson {
 	public String synid;
 
 	String mac;
+
 	String domain;
+	public String domain() { return domain; }
+
 	long nyquence;
 	String syn_uid;
 
@@ -77,6 +80,7 @@ public class Synode extends Anson {
 
 	/**
 	 * Format the insert statement according to my fields.
+	 * @param domain2 
 	 * 
 	 * @param synm
 	 * @param insert
@@ -84,7 +88,7 @@ public class Synode extends Anson {
 	 * @throws TransException
 	 * @since 
 	 */
-	public Insert insertRow(SynodeMeta synm, Insert insert) throws TransException {
+	public Insert insertRow(String domain, SynodeMeta synm, Insert insert) throws TransException {
 		return insert
 		  .cols(synm.pk, synm.device, synm.nyquence, synm.domain, synm.synuid, synm.org)
 		  .value(new ArrayList<Object[]>() {
@@ -97,5 +101,6 @@ public class Synode extends Anson {
 			{add(new Object[] {synm.org, org});}
 		});
 	}
+
 
 }

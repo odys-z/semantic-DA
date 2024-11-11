@@ -347,7 +347,7 @@ public class DBSyntableTest {
 			assertEquals(ck[Z].n0().n, ck[Z].stamp());
 			return;
 		}
-		fail("W is unable to roaming with Z.");
+		fail("W is supposed unable to roaming on to Z.");
 	}
 
 	void testBranchPropagation(int section)

@@ -118,18 +118,6 @@ public class DBSynTransBuilder extends DATranscxt {
 						  "\nThis instence can only be useful if is used to initialize the domain for the node",
 						  x.synode, perdomain);
 			}
-
-//			if (!isblank(syntity_json))
-//				synSemantics (this, x.synconn, synode, 
-//					Syntities.load(cfgroot, syntity_json, 
-//					(synreg) -> {
-//						throw new SemanticException(
-//							"TODO syntity name: %s (Configure syntity.meta to avoid this error)",
-//							synreg.table);
-//					}));
-
-//			if (syntities != null)
-//				synSemantics(this, x.synconn, synode, syntities); 
 		}
 		else if (isblank(perdomain))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
