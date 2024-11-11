@@ -769,6 +769,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ExchangeBlock domainOnAdd(ExessionPersist ap, ExchangeBlock req, String org)
 			throws TransException, SQLException {
 	
+		syndomx.incStamp(ap.trb);
 		syndomx.loadNvstamp(this);
 
 		String synode = syndomx.synode;
@@ -794,7 +795,10 @@ public class DBSyntableBuilder extends DATranscxt {
 				.nv(chgm.crud, CRUD.C)
 				.nv(chgm.synoder, synode)
 				.nv(chgm.uids, syn_uids)
-				.nv(chgm.nyquence, ap.n0().n)
+
+				// .nv(chgm.nyquence, ap.n0().n)
+				.nv(chgm.nyquence, ap.stamp().n)
+
 				.nv(chgm.seq, incSeq())
 				.nv(chgm.domain, domain)
 				.post(insert(subm.tbl) // TODO the tree mode is different here

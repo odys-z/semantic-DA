@@ -110,7 +110,7 @@ public class DBSyntableTest {
 		Utils.tabwidth = 8;
 
 		for (int s = 0; s < 4; s++) {
-			conns[s] = String.format("syn.%02x", s);
+			conns[s] = f("syn.%02x", s);
 			Connects.commit(conns[s], DATranscxt.dummyUser(),
 				"CREATE TABLE if not exists a_logs (\n"
 				+ "  logId text(20),\n"
@@ -145,15 +145,15 @@ public class DBSyntableTest {
 			ArrayList<String> sqls = new ArrayList<String>();
 			sqls.add("delete from oz_autoseq;");
 			sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
-			sqls.add(String.format("update oz_autoseq set seq = %d where sid = 'h_photos.pid'", (long) Math.pow(64, s+1)));
+			sqls.add(f("update oz_autoseq set seq = %d where sid = 'h_photos.pid'", (long) Math.pow(64, s+1)));
 
-			sqls.add(String.format("delete from %s", snm.tbl));
+			sqls.add(f("delete from %s", snm.tbl));
 			if (s != W)
 				sqls.add(Utils.loadTxt("syn_nodes.sql"));
 			else
 				sqls.add(Utils.loadTxt("syn_nodes_w.sql"));
 
-			sqls.add(String.format("delete from %s", phm.tbl));
+			sqls.add(f("delete from %s", phm.tbl));
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
@@ -589,20 +589,20 @@ public class DBSyntableTest {
 
 		// sign up as a new domain
 		ExessionPersist cltp = new ExessionPersist(cltb, admin);
-		Utils.logrst(String.format("sign up by %s", syxc.synode), testix, sect, ++no);
+		Utils.logrst(f("sign up by %s", syxc.synode), testix, sect, ++no);
 
 		ExchangeBlock req  = cltb.domainSignup(cltp, admin);
 		ExessionPersist admp = new ExessionPersist(admb, syxc.synode, req);
 
 		// admin on sign up request
-		Utils.logrst(String.format("%s on sign up", admin), testix, sect, ++no);
+		Utils.logrst(f("%s on sign up", admin), testix, sect, ++no);
 		ExchangeBlock resp = admb.domainOnAdd(admp, req, Docheck.org);
-		Utils.logrst(String.format("sign up by %s : %s", syxa.synode, resp.session), testix, sect, ++no);
+		Utils.logrst(f("sign up by %s : %s", syxa.synode, resp.session), testix, sect, ++no);
 		printChangeLines(ck);
 		printNyquv(ck, true);
 
 		// applicant
-		Utils.logrst(String.format("%s initiate domain", syxc.synode), testix, sect, ++no);
+		Utils.logrst(f("%s initiate domain", syxc.synode), testix, sect, ++no);
 
 		ExchangeBlock ack  = cltb//.domain("zsu")
 				.domainitMe(cltp, admin, "jserv/not-used-in-test", zsu, resp);
@@ -612,7 +612,7 @@ public class DBSyntableTest {
 		printNyquv(ck, true);
 
 		// admin
-		Utils.logrst(String.format("%s ack initiation", syxa.synode), testix, sect, ++no);
+		Utils.logrst(f("%s ack initiation", syxa.synode), testix, sect, ++no);
 		printChangeLines(ck);
 		printNyquv(ck, true);
 
@@ -677,13 +677,13 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {clientnid, "initiate"}, test, subno, ++no);
 		ExessionPersist cp = new ExessionPersist(ctb, servnid);
 		ExchangeBlock ini = ctb.initExchange(cp);
-		Utils.logrst(String.format("%s initiate: changes: %d    entities: %d",
+		Utils.logrst(f("%s initiate: changes: %d    entities: %d",
 				clientnid, ini.totalChallenges, ini.enitities(cphm.tbl)), test, subno, no, 1);
 
 		Utils.logrst(new String[] {servnid, "on initiate"}, test, subno, ++no);
 		ExessionPersist sp = new ExessionPersist(stb, clientnid, ini);
 		ExchangeBlock rep = stb.onInit(sp, ini);
-		Utils.logrst(String.format(
+		Utils.logrst(f(
 				"%s on initiate: changes: %d",
 				servnid, rep.totalChallenges),
 				test, subno, no, 1);
@@ -728,13 +728,13 @@ public class DBSyntableTest {
 
 		ctb.abortExchange(cp, stb.synode(), null);
 		ini = ctb.initExchange(cp);
-		Utils.logrst(String.format("%s initiate changes: %d",
+		Utils.logrst(f("%s initiate changes: %d",
 				ctb.synode(), ini.totalChallenges), test, subno, ++no);
 		
 		ExessionPersist sp = new ExessionPersist(ctb, ctb.synode(), ini);
 		ExchangeBlock rep = stb.onInit(sp, ini);
 
-		Utils.logrst(String.format("%s on initiate: changes: %d    entities: %d",
+		Utils.logrst(f("%s on initiate: changes: %d    entities: %d",
 				ctb.synode(), rep.totalChallenges, rep.enitities(cphm.tbl)), test, subno, ++no);
 
 		ExchangeBlock req = null;
@@ -742,7 +742,7 @@ public class DBSyntableTest {
 		req = cp.nextExchange(rep);
 		Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
 		rep = stb.onExchange(sp, ctb.synode(), req);
-		Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
+		Utils.logrst(f("%s on exchange response    changes: %d    entities: %d    answers: %d",
 				stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, ++no);
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -765,7 +765,7 @@ public class DBSyntableTest {
 				// server reply with saved answers
 				rep = stb.requirestore(sp, ctb.synode());
 
-				Utils.logrst(String.format("%s reuires restore    changes: %d    entities: %d    answers: %d",
+				Utils.logrst(f("%s reuires restore    changes: %d    entities: %d    answers: %d",
 					stb.synode(), rep.chpage, rep.enitities(), rep.answers()), test, subno, ++no);
 				ctb.onRequires(cp, rep);
 			}
@@ -821,7 +821,7 @@ public class DBSyntableTest {
 				Utils.logrst(new String[] {cid, "exchange"}, test, subno, step, ++no);
 
 				ExchangeBlock req = cp.nextExchange(rep);
-				Utils.logrst(String.format("%s exchange challenge    changes: %d    entities: %d    answers: %d",
+				Utils.logrst(f("%s exchange challenge    changes: %d    entities: %d    answers: %d",
 						cid, req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, 1);
 				req.print(System.out);
 				printChangeLines(ck);
@@ -831,7 +831,7 @@ public class DBSyntableTest {
 				Utils.logrst(new String[] {sid, "on exchange"}, test, subno, step, ++no);
 				rep = sp.nextExchange(req);
 
-				Utils.logrst(String.format("%s on exchange response    changes: %d    entities: %d    answers: %d",
+				Utils.logrst(f("%s on exchange response    changes: %d    entities: %d    answers: %d",
 						sid, rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, no, 1);
 				rep.print(System.out);
 				printChangeLines(ck);
@@ -924,7 +924,7 @@ public class DBSyntableTest {
 		String pname  = slt.getString(entm.resname);
 
 		String chgid = t.updateEntity(ck[s].synb.syndomx, synode, new String[] { device, clientpath }, entm,
-			entm.resname, String.format("%s,%04d", (pname == null ? "" : pname), ck[s].stamp()),
+			entm.resname, f("%s,%04d", (pname == null ? "" : pname), ck[s].stamp()),
 			entm.createDate, now());
 
 		return new String[] {pid, chgid, slt.getString(entm.synuid) };

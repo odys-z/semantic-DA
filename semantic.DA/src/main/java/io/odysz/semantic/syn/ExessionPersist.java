@@ -43,6 +43,7 @@ import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.QueryPage;
 import io.odysz.transact.sql.Statement;
+import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
@@ -969,5 +970,9 @@ public class ExessionPersist {
 				.where(op.eq, chgm.pk, subm.changeId)
 				.where(op.ne, subm.synodee, constr(deliffnode)))
 			;
+	}
+
+	public Nyquence stamp() {
+		return synx.stamp;
 	}
 }
