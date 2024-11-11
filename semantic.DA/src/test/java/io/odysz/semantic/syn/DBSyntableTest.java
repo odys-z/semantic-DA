@@ -289,6 +289,8 @@ public class DBSyntableTest {
 		
 		ck[X].synodes(X, Y, Z, -1);
 
+		printChangeLines(ck);
+		printNyquv(ck, true);
 		Utils.logrst("Y on W joining", section, ++no);
 		@SuppressWarnings("unused")
 		String[] w_ack = joinSubtree(Y, W, section, no);
@@ -316,7 +318,7 @@ public class DBSyntableTest {
 		Utils.logrst("X create photos", section, ++no);
 		String[] x_uids = insertPhoto(X);
 		printChangeLines(ck);
-		printNyquv(ck);
+		printNyquv(ck, true);
 
 		ck[X].change_log(1, C, "X", x_uids[0], ck[X].docm);
 		ck[X].buf_change(0, C, x_uids[0], ck[X].docm);
@@ -342,7 +344,7 @@ public class DBSyntableTest {
 			stb.onAbort(req);
 
 			printChangeLines(ck);
-			printNyquv(ck);
+			printNyquv(ck, true);
 			assertEquals(ck[W].n0().n, ck[W].stamp());
 			assertEquals(ck[Z].n0().n, ck[Z].stamp());
 			return;
@@ -597,7 +599,7 @@ public class DBSyntableTest {
 		ExchangeBlock resp = admb.domainOnAdd(admp, req, Docheck.org);
 		Utils.logrst(String.format("sign up by %s : %s", syxa.synode, resp.session), testix, sect, ++no);
 		printChangeLines(ck);
-		printNyquv(ck);
+		printNyquv(ck, true);
 
 		// applicant
 		Utils.logrst(String.format("%s initiate domain", syxc.synode), testix, sect, ++no);
@@ -607,24 +609,24 @@ public class DBSyntableTest {
 		Utils.logi(ack.nv, syxc.synode, ".Ack.nv: ");
 
 		printChangeLines(ck);
-		printNyquv(ck);
+		printNyquv(ck, true);
 
 		// admin
 		Utils.logrst(String.format("%s ack initiation", syxa.synode), testix, sect, ++no);
 		printChangeLines(ck);
-		printNyquv(ck);
+		printNyquv(ck, true);
 
 		// applicant
 		Utils.logrst(new String[] {syxc.synode, "closing application"}, testix, sect, ++no);
 		req = cltb.domainCloseJoin(cltp, resp); // Debug Notes: resp.nv is polluted, but should be safely dropped.
 		printChangeLines(ck);
-		printNyquv(ck);
+		printNyquv(ck, true);
 
 		Utils.logrst(new String[] {syxa.synode, "on closing"}, testix, sect, ++no);
 		admb.domainCloseJoin(admp, req); // Debug Notes: req.nv is polluted, but should be safely dropped.
 
 		printChangeLines(ck);
-		printNyquv(ck);
+		printNyquv(ck, true);
 
 		return new String[] {admp.session(), cltp.session()};
 	}
@@ -697,6 +699,7 @@ public class DBSyntableTest {
 
 		printChangeLines(ck);
 		printNyquv(ck);
+		printNyquv(ck, true);
 
 		Utils.logrst(new String[] {servnid, "on closing exchange"}, test, subno, ++no);
 		// FIXME what if the server doesn't agree?
@@ -707,6 +710,7 @@ public class DBSyntableTest {
 
 		printChangeLines(ck);
 		printNyquv(ck);
+		printNyquv(ck, true);
 	}
 
 	/*

@@ -335,7 +335,6 @@ public class ExessionPersist {
 	 * @throws TransException
 	 */
 	public ExchangeBlock signup(String admin) throws SQLException, TransException {
-		// nyquvect = synx.loadNyquvect(trb);
 		synx.loadNvstamp(trb);
 		exstate.state = signup;
 	
