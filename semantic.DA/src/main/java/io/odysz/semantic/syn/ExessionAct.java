@@ -11,13 +11,15 @@ import io.odysz.common.Utils;
  *
  */
 public class ExessionAct {
-	public static final int restore = -2;
-	public static final int unexpected = -1;
-	public static final int ready = 0;
-	public static final int init  = 1;
+	public static final int restore  = -2;
+	public static final int unexpect = -1;
+	public static final int ready    = 0;
+	public static final int init     = 1;
 	public static final int exchange = 2;
-	public static final int close = 3;
-	public static final int deny  = 9;
+	public static final int close    = 3;
+	public static final int trylater = 7;
+	public static final int lockerr  = 8;
+	public static final int deny     = 9;
 
 	/** sign up */
 	public static final int signup   = 4;

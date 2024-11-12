@@ -1,11 +1,10 @@
 package io.odysz.semantic.meta;
 
+import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.eq;
 
 import java.sql.SQLException;
-import java.util.List;
-
 import io.odysz.common.Utils;
 import io.odysz.module.xtable.XMLTable.IMapValue;
 import io.odysz.semantic.DASemantics;
@@ -68,11 +67,11 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 			}
 	}
 
-	public static void setupSqlitables(String conn, boolean force_drop, List<SyntityMeta> ms)
+	public static void setupSqlitables(String conn, boolean force_drop, Iterable<SyntityMeta> ms)
 			throws SQLException, TransException {
 		if (ms != null && Connects.isqlite(conn))
 		for (TableMeta m : ms)
-			if (m.ddlSqlite != null) {
+			if (!isblank(m.ddlSqlite)) {
 				if (force_drop) Connects.commit(conn, DATranscxt.dummyUser(),
 						String.format("drop table if exists %s;", m.tbl));
 

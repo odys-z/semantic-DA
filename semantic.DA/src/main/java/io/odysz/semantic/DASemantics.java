@@ -451,8 +451,11 @@ public class DASemantics {
 			else if ("ef".equals(type) || "e-f".equals(type) || "ext-file".equals(type)
 					|| "xf".equals(type) || "x-f".equals(type))
 				return extFile;
+//			else if (eq("syn-change", type))
+//				Utils.warn("Syn-change semantics is silented as a newer design decision");
 			else
 				throw new SemanticException("semantics not known, type: " + type);
+
 		}
 	}
 
@@ -487,11 +490,9 @@ public class DASemantics {
 		return mdb;
 	}
 
-	///////////////////////////////// container class
-	///////////////////////////////// ///////////////////////////////
 	protected ArrayList<SemanticHandler> handlers;
 
-	private String tabl;
+	public final String tabl;
 	private String pk;
 
 	/**
@@ -512,9 +513,14 @@ public class DASemantics {
 	}
 
 	public DASemantics addHandler(SemanticHandler h) {
-		if (verbose)
-			h.logi();
-		handlers.add(h);
+		if (h == null) return this;
+
+		for (SemanticHandler hi : handlers)
+			if (hi.getClass() == h.getClass())
+				Utils.warnT(new Object() {},
+					"Adding duplicated handlers %s to table %s?",
+					h.getClass().getName(), tabl);
+		handlers.add(h); 
 		return this;
 	}
 
@@ -578,11 +584,15 @@ public class DASemantics {
 			return new ShExtFilev2(basicTsx, tabl, recId, args);
 		else if (smtype.extFilev2 == semantic)
 			return new ShExtFilev2(basicTsx, tabl, recId, args);
+		else if (smtype.synChange == semantic)
+			Utils.warn("The syn-change semantics is silenced as a newer design decision");
 		else
 			throw new SemanticException("Cannot load configured semantics of key: %s, with trans-builder: %s, on basic connection %s.\n"
 					+ "See Extending default semantics plugin at Dev Community:\n"
 					+ "https://odys-z.github.io/dev/topics/semantics/3plugin.html",
 				semantic, trb.getClass().getName(), trb.basictx().connId());
+		
+		return null;
 	}
 
 	/**
@@ -719,11 +729,8 @@ public class DASemantics {
 		 * @throws SemanticException
 		 * @throws SQLException 
 		 */
-		protected void onDelete(ISemantext stx,
-				// Statement<? extends Statement<?>> stmt,
-				Delete del,
-				Condit whereCondt, IUser usr)
-				throws TransException {
+		protected void onDelete(ISemantext stx, Delete del,
+				Condit whereCondt, IUser usr) throws TransException {
 		}
 
 		protected void onPost(ISemantext sm, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
@@ -2097,5 +2104,18 @@ public class DASemantics {
 					throw new SemanticException(e.getMessage());
 				}
 		}
+	}
+
+	/**
+	 * Shallow copy, with new list of handlers, with each elements referring to the original one.
+	 */
+	public DASemantics clone() {
+		DASemantics clone = new DASemantics(basicTsx, tabl, pk, verbose);
+		clone.handlers = new ArrayList<SemanticHandler>(handlers.size());
+		
+		for (SemanticHandler sh : handlers)
+			clone.handlers.add(sh);
+		
+		return clone;
 	}
 }

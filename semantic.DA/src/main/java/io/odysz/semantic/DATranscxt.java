@@ -49,7 +49,7 @@ import io.odysz.transact.x.TransException;
  * DASemantextTest</a>.</p>
  * 
  * This manager can handling semantics configured in xml.
- * See {@link #loadSemantics(String)}. <br>
+ * See {@link #loadSemanticsXml(String)}. <br>
  * 
  * Every sql building needing semantics handling must use a context instance
  * created by {@link DATranscxt#instancontxt(String, IUser)}.
@@ -79,10 +79,10 @@ public class DATranscxt extends Transcxt {
 	 */
 	public static class SemanticsMap {
 
-		String conn;
+		public String conn;
 		
 		/** {table: semantics[handlers]} */
-		protected HashMap<String, DASemantics> ss;
+		public HashMap<String, DASemantics> ss;
 		
 		public SemanticsMap(String conn) {
 			this.conn = conn;
@@ -105,10 +105,10 @@ public class DATranscxt extends Transcxt {
 			return handlers;
 		}
 
-		SemanticHandler parseHandler(Transcxt basicTrs, XMLTable x) {
-			return null;
-		}
-
+//		SemanticHandler parseHandler(Transcxt basicTrs, XMLTable x) {
+//			return null;
+//		}
+		
 		/**
 		 * Note: trb is already created per the connection, i. e. connect id is known. 
 		 * @param trb
@@ -172,7 +172,7 @@ public class DATranscxt extends Transcxt {
 	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
 		try {
 			return new DASemantext(connId,
-				initConfigs(connId, loadSemantics(connId),
+				initConfigs(connId, loadSemanticsXml(connId),
 						(c) -> new SemanticsMap(c)),
 				usr, runtimepath);
 		} catch (Exception e) {
@@ -310,7 +310,7 @@ public class DATranscxt extends Transcxt {
 	 */
 	public DATranscxt(String conn) throws Exception {
 		this(new DASemantext(conn,
-				isblank(conn) ? null : initConfigs(conn, loadSemantics(conn),
+				isblank(conn) ? null : initConfigs(conn, loadSemanticsXml(conn),
 						(c) -> new SemanticsMap(c)),
 				dummyUser(), runtimepath));
 		if (isblank(conn))
@@ -333,7 +333,7 @@ public class DATranscxt extends Transcxt {
 	 * @throws SQLException 
 	 * @throws SemanticException 
 	 */
-	public static XMLTable loadSemantics(String connId)
+	public static XMLTable loadSemanticsXml(String connId)
 			throws SAXException, IOException, SemanticException {
 
 		String fpath = Connects.getSmtcsPath(connId);
@@ -357,6 +357,17 @@ public class DATranscxt extends Transcxt {
 		return xtbl;
 	}
 	
+	/**
+	 * Load {@link #smtMaps}.
+	 * 
+	 * @param <M> semantics map type
+	 * @param <S> semantics
+	 * @param conn
+	 * @param xcfg
+	 * @param smFactory
+	 * @return map per {@code conn}
+	 * @throws Exception
+	 */
 	@SuppressWarnings("unchecked")
 	public static <M extends SemanticsMap, S extends DASemantics> M initConfigs(
 			String conn, XMLTable xcfg, SmapFactory<M> smFactory)
@@ -367,6 +378,7 @@ public class DATranscxt extends Transcxt {
 			smtMaps.put(conn, smFactory.ctor(conn));
 		else
 			return (M) smtMaps.get(conn);
+
 		Utils.logT(new Object() {}, "Loading semantics of connection %s", conn);
 		xcfg.beforeFirst();
 

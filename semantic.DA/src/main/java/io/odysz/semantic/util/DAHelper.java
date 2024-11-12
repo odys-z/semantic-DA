@@ -115,62 +115,6 @@ public class DAHelper {
 	}
 
 	/**
-	 * @deprecated replaced by {@link #getNyquence(DATranscxt, String, TableMeta, String, String...)}.
-	 * @param trb
-	 * @param conn
-	 * @param m
-	 * @param recId
-	 * @param field
-	 * @return Nyquence
-	 * @throws SQLException
-	 * @throws TransException
-	 */
-	public static Nyquence loadRecNyquence(DATranscxt trb, String conn, SynodeMeta m, String recId, String field)
-			throws SQLException, TransException {
-		return new Nyquence(loadRecLong(trb, conn, m, recId, field));
-	}
-
-	public static Nyquence getNyquence(DBSyntableBuilder trb, String... where_eqs)
-			throws SQLException, TransException {
-		return getNyquence(trb, trb.synconn(), trb.synm, trb.synm.nyquence, where_eqs);
-	}
-
-	public static Nyquence getNstamp(DBSyntableBuilder trb)
-			throws SQLException, TransException {
-		return getNyquence(trb, trb.synconn(), trb.synm, trb.synm.nstamp, trb.synm.synoder, trb.synode());
-	}
-
-	/**
-	 * Load nyquence without triggering semantics handling.
-	 * 
-	 * @param trb
-	 * @param conn
-	 * @param m
-	 * @param nyqfield
-	 * @param where_eqs
-	 * @return nyquence
-	 * @throws SQLException
-	 * @throws TransException
-	 */
-	public static Nyquence getNyquence(DATranscxt trb, String conn, SynodeMeta m, String nyqfield, String... where_eqs)
-			throws SQLException, TransException {
-		// return new Nyquence(getValong(trb, conn, m, nyqfield, where_eqs));
-		Query q = trb.select(m.tbl);
-		
-		for (int i = 0; i < where_eqs.length; i+=2)
-			q.whereEq(where_eqs[i], where_eqs[i+1]);
-		
-		AnResultset rs = (AnResultset) q 
-				.rs(trb.basictx().clone(DATranscxt.dummyUser()).connId(conn == null ? trb.basictx().connId() : conn))
-				.rs(0);
-		
-		if (rs.next())
-			return new Nyquence(rs.getLong(nyqfield));
-		else throw new SQLException(String
-			.format("Record not found: %s.%s = '%s' ... ", m.tbl, where_eqs[0], where_eqs[1]));
-	}
-	
-	/**
 	 * Commit to DB({@code conn}) as user {@code usr}, with SQL:<br>
 	 * 
 	 * update m.tbl set field = v where m.pk = recId

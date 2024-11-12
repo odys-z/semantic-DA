@@ -45,6 +45,10 @@ public class ExchangeBlock extends Anson {
 		this.domain = domain;
 	}
 	
+	public ExchangeBlock(String domain, String src, String peer, String sessionId, ExessionPersist exstate) {
+		this(domain, src, peer, sessionId, exstate.exstat());
+	}
+
 	public ExchangeBlock nv(HashMap<String, Nyquence> nyquvect) {
 		nv = Nyquence.clone(nyquvect);
 		return this;
@@ -156,6 +160,8 @@ public class ExchangeBlock extends Anson {
 	int challengeSeq;
 	int answerSeq;
 
+	public double sleeps;
+
 	/**
 	 * Set challengeId &amp; answerId
 	 * <pre>
@@ -219,5 +225,10 @@ public class ExchangeBlock extends Anson {
 			out.println("synodes:");
 			synodes.print(out);
 		}
+	}
+
+	public ExchangeBlock sleep(double d) {
+		sleeps = d;
+		return this;
 	}
 }
