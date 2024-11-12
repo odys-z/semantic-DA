@@ -95,6 +95,8 @@ public class Nyquence {
 	}
 
 	public static Nyquence maxn(HashMap<String, Nyquence> nv) {
+		if (nv == null) return null;
+		
 		Nyquence mx = null;
 		for (Nyquence nyq : nv.values()) {
 			mx = maxn(mx, nyq);

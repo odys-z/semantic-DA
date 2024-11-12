@@ -250,11 +250,14 @@ public class ExessionPersist {
 			if (iamSynodee || subscribeUC.size() > 0) {
 				stats.add(
 					eq(change, CRUD.C)
-					? trb.insert(entm.tbl, trb.synrobot())
-						.cols(ents.get(entm.tbl).getFlatColumns0())
-						.row(ents.get(entm.tbl).getColnames(),
-								ents.get(entm.tbl).getRowById(chuids))
-						.post(chlog)
+					? eq(entm.tbl, synm.tbl)
+						&& eq(ents.get(entm.tbl).getStringByIndex(synm.synoder, chuids), synx.synode)
+						? null // ignore myself
+						: trb.insert(entm.tbl, trb.synrobot())
+							.cols(ents.get(entm.tbl).getFlatColumns0())
+							.row(ents.get(entm.tbl).getColnames(),
+									ents.get(entm.tbl).getRowById(chuids))
+							.post(chlog)
 
 					: eq(change, CRUD.U)
 					? trb.update(entm.tbl, trb.synrobot())
@@ -969,5 +972,9 @@ public class ExessionPersist {
 				.where(op.eq, chgm.pk, subm.changeId)
 				.where(op.ne, subm.synodee, constr(deliffnode)))
 			;
+	}
+
+	public Nyquence stamp() {
+		return synx.stamp;
 	}
 }
