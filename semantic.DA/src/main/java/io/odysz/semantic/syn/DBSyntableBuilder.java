@@ -162,7 +162,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			// return sp.onInit(inireq, (SyncUser) syndomx.robot);
 			return sp.onInit(inireq);
 		} finally {
-			syndomx.incStamp(sp.trb);
+			syndomx.incStamp(sp.trb, inireq.nv);
 		}
 	}
 
@@ -751,6 +751,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * Set n-stamp, then create a request package.
 	 * @param app
 	 * @param admin
+	 * @param reqnv 
 	 * @return the request
 	 * @throws TransException
 	 * @throws SQLException
@@ -762,14 +763,14 @@ public class DBSyntableBuilder extends DATranscxt {
 			return app.signup(admin);
 		}
 		finally { 
-			syndomx.incStamp(app.trb);
+			syndomx.incStamp(app.trb, null);
 		}
 	}
 
 	public ExchangeBlock domainOnAdd(ExessionPersist ap, ExchangeBlock req, String org)
 			throws TransException, SQLException {
 	
-		syndomx.incStamp(ap.trb);
+		syndomx.incStamp(ap.trb, req.nv);
 		syndomx.loadNvstamp(this);
 
 		String synode = syndomx.synode;

@@ -43,7 +43,6 @@ import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.QueryPage;
 import io.odysz.transact.sql.Statement;
-import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
@@ -251,11 +250,14 @@ public class ExessionPersist {
 			if (iamSynodee || subscribeUC.size() > 0) {
 				stats.add(
 					eq(change, CRUD.C)
-					? trb.insert(entm.tbl, trb.synrobot())
-						.cols(ents.get(entm.tbl).getFlatColumns0())
-						.row(ents.get(entm.tbl).getColnames(),
-								ents.get(entm.tbl).getRowById(chuids))
-						.post(chlog)
+					? eq(entm.tbl, synm.tbl)
+						&& eq(ents.get(entm.tbl).getStringByIndex(synm.synoder, chuids), synx.synode)
+						? null // ignore myself
+						: trb.insert(entm.tbl, trb.synrobot())
+							.cols(ents.get(entm.tbl).getFlatColumns0())
+							.row(ents.get(entm.tbl).getColnames(),
+									ents.get(entm.tbl).getRowById(chuids))
+							.post(chlog)
 
 					: eq(change, CRUD.U)
 					? trb.update(entm.tbl, trb.synrobot())
