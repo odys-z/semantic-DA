@@ -74,8 +74,6 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	SyncUser locrobot;
 
-//	SyncUser synrobot;
-//	public DBSyntableBuilder synrobot(SyncUser robt) { synrobot = robt; return this; }
 	public SyncUser synrobot() { return locrobot; }
 
 	private final boolean force_clean_subs;
