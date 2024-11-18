@@ -83,12 +83,6 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 		return (T) this;
 	}
 
-//	public HashSet<String> globalIds() throws SemanticException {
-//		if (uids == null)
-//			throw new SemanticException("SyntityMeta.uids must initialized by subclasses. Uids is null.");
-//		return uids;
-//	}
-
 	/**
 	 * Generate columns for inserting challenging entities.
 	 * 
