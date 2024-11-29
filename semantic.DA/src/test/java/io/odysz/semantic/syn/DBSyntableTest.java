@@ -157,13 +157,18 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
-			Syntities.load(runtimepath, f("syntity-%s.json", s), 
+			Syntities syntities = Syntities.load(runtimepath, f("syntity-%s.json", s), 
 					(synreg) -> {
 						if (eq(synreg.table, "h_photos"))
 							return new T_DA_PhotoMeta(conn);
 						else
 							throw new SemanticException("TODO %s", synreg.table);
 					});
+
+			// See also docsync.jser/Syngleton.setupSyntables(), 2.1 inject synmantics after syn-tables have been set.
+			phm.replace();
+			for (SyntityMeta m : syntities.metas.values())
+				m.replace();
 
 			Docheck.ck[s] = new Docheck(new AssertImpl(), s != W ? zsu : null, conn, synodes[s],
 					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm,

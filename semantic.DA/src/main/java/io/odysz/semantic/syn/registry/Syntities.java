@@ -21,7 +21,7 @@ import io.odysz.transact.x.TransException;
 public class Syntities extends Anson {
 	static HashMap<String, Syntities> registries;
 
-	SynodeMeta synodeMeta;
+	public SynodeMeta synodeMeta;
 	
 	static {
 		registries = new HashMap<String, Syntities>();
@@ -33,11 +33,10 @@ public class Syntities extends Anson {
 	}
 
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
-	public
-	HashMap<String, SyntityMeta> metas;
+	public HashMap<String, SyntityMeta> metas;
 
 	String conn;
-	ArrayList<SyntityReg> syntities;
+	public ArrayList<SyntityReg> syntities;
 	
 	public boolean debug;
 	
