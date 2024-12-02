@@ -114,7 +114,8 @@ public class DASemantextTest {
 		try {
 			// Thread.sleep(3000); // wait for previous tests
 			for (String tbl : new String[] {
-					"oz_autoseq", "a_logs", "a_attaches",
+					// "oz_autoseq",
+					"a_logs", "a_attaches",
 					"a_domain", "a_functions", "a_orgs", "a_role_func", "a_roles", "a_users",
 					"b_alarms", "b_alarm_logic", "b_logic_device",
 					"crs_a", "crs_b", "h_photos", "doc_devices"}) {
@@ -266,7 +267,7 @@ public class DASemantextTest {
 			.ins(st.instancontxt(connId, usr));
 	
 		assertEquals("synode0",
-			DATranscxt.getHandler(connId, "doc_devices", smtype.autoInc).args[1],
+			DATranscxt.getHandler(connId, "doc_devices", smtype.autoInc).args[2],
 			"Check configuration: synode0");
 
 		st.insert(tbl, usr)
