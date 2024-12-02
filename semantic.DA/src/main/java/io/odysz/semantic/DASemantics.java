@@ -878,59 +878,59 @@ public class DASemantics {
 		}
 	}
 
-	/**
-	 * Auto Pk Handler.<br>
-	 * Generate a radix 64, 6 bit of string representation of integer.
-	 * @see smtype#autoInc
-	 * @deprecated replaced by {@link ShAutoKPrefix}
-	 */
-	static class ShAutoK extends SemanticHandler {
-		/**
-		 * @param trxt
-		 * @param tabl
-		 * @param pk
-		 * @param args 0: auto field
-		 * @throws SemanticException
-		 */
-		ShAutoK(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
-			super(trxt, smtype.autoInc, tabl, pk, args);
-			if (args == null || args.length == 0 || isblank(args[0]))
-				throw new SemanticException("AUTO pk semantics' configuration is not correct. tabl = %s, pk = %s, args: %s",
-						tabl, pk, LangExt.toString(args));
-			insert = true;
-		}
-
-		@Override
-		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-			Object[] nv;
-			if (cols.containsKey(args[0]) // with nv from client
-					&& cols.get(args[0]) < row.size()) // with nv must been generated from semantics
-				nv = row.get(cols.get(args[0]));
-			else {
-				nv = new Object[2];
-				cols.put(args[0], row.size());
-				row.add(nv);
-			}
-			nv[0] = args[0];
-
-			try {
-
-				Object alreadyResulved = stx.resulvedVal(target, args[0], -1);
-				if (verbose && alreadyResulved != null)
-					// 1. When cross fk referencing happened, this branch will reached by handling post inserts.
-					// 2. When multiple children inserting, this happens
-					Utils.warn(
-							"Debug Notes(verbose): Found an already resulved value (%s) while handling %s auto-key generation. Replacing ...",
-							alreadyResulved, target);
-				// side effect: generated auto key already been put into autoVals,
-				// which can be referenced later.
-				// nv[1] = stx.composeVal(stx.genId(target, args[0]), target, args[0]);
-				nv[1] = trxt.quotation(stx.genId(stx.connId(), target, args[0]), stx.connId(), target, args[0]);
-			} catch (SQLException | TransException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+//	/**
+//	 * Auto Pk Handler.<br>
+//	 * Generate a radix 64, 6 bit of string representation of integer.
+//	 * @see smtype#autoInc
+//	 * @deprecated replaced by {@link ShAutoKPrefix}
+//	 */
+//	static class ShAutoK extends SemanticHandler {
+//		/**
+//		 * @param trxt
+//		 * @param tabl
+//		 * @param pk
+//		 * @param args 0: auto field
+//		 * @throws SemanticException
+//		 */
+//		ShAutoK(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
+//			super(trxt, smtype.autoInc, tabl, pk, args);
+//			if (args == null || args.length == 0 || isblank(args[0]))
+//				throw new SemanticException("AUTO pk semantics' configuration is not correct. tabl = %s, pk = %s, args: %s",
+//						tabl, pk, LangExt.toString(args));
+//			insert = true;
+//		}
+//
+//		@Override
+//		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+//			Object[] nv;
+//			if (cols.containsKey(args[0]) // with nv from client
+//					&& cols.get(args[0]) < row.size()) // with nv must been generated from semantics
+//				nv = row.get(cols.get(args[0]));
+//			else {
+//				nv = new Object[2];
+//				cols.put(args[0], row.size());
+//				row.add(nv);
+//			}
+//			nv[0] = args[0];
+//
+//			try {
+//
+//				Object alreadyResulved = stx.resulvedVal(target, args[0], -1);
+//				if (verbose && alreadyResulved != null)
+//					// 1. When cross fk referencing happened, this branch will reached by handling post inserts.
+//					// 2. When multiple children inserting, this happens
+//					Utils.warn(
+//							"Debug Notes(verbose): Found an already resulved value (%s) while handling %s auto-key generation. Replacing ...",
+//							alreadyResulved, target);
+//				// side effect: generated auto key already been put into autoVals,
+//				// which can be referenced later.
+//				// nv[1] = stx.composeVal(stx.genId(target, args[0]), target, args[0]);
+//				nv[1] = trxt.quotation(stx.genId(stx.connId(), target, args[0]), stx.connId(), target, args[0]);
+//			} catch (SQLException | TransException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//	}
 
 	/**
 	 * Auto Pk Handler.<br>
