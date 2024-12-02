@@ -21,7 +21,7 @@
  		<smtc>autopk</smtc>
   		<tabl>h_photos</tabl>
   		<pk>pid</pk>
-  		<args>pid</args>
+  		<args>pid,0</args>
   	</s>
 
   	<s>
