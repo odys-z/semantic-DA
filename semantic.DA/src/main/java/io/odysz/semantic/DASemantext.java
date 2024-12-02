@@ -264,20 +264,6 @@ public class DASemantext implements ISemantext {
 		return newv;
 	}
 	
-//	@Override
-//	public ISemantext beginPostCommit(String parentName) {
-//		autoStacktop++;
-//		if (autostack != null && autostack.size() < autoStacktop)
-//			autostack.add(new SemanticObject());
-//		return this;
-//	}
-//
-//	@Override
-//	public ISemantext endPostCommit() {
-//		autoStacktop--;
-//		return this;
-//	}
-	
 	/**Generate new Id with the help of db function f_incSeq(varchar idName)<br>
 	 * Sql script for stored function:<br>
 	 * Mysql:<pre>
