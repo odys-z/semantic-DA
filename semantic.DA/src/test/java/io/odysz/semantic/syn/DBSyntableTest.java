@@ -17,6 +17,7 @@ import static io.odysz.semantic.syn.ExessionAct.ready;
 import static io.odysz.transact.sql.parts.condition.Funcall.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
@@ -46,6 +47,7 @@ import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.syn.registry.Syntities;
+import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
@@ -143,8 +145,9 @@ public class DBSyntableTest {
 			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
 
 			ArrayList<String> sqls = new ArrayList<String>();
-			sqls.add("delete from oz_autoseq;");
-			sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
+			// sqls.add("delete from oz_autoseq;");
+			// sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
+			assertTrue(DAHelper.count(new DATranscxt(conn), conn, "oz_autoseq", "sid", "h_photos.pid") == 0);
 			sqls.add(f("update oz_autoseq set seq = %d where sid = 'h_photos.pid'", (long) Math.pow(64, s+1)));
 
 			sqls.add(f("delete from %s", snm.tbl));
