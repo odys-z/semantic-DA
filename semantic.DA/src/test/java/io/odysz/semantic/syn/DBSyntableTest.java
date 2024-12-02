@@ -26,6 +26,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.x.AnsonException;
@@ -101,6 +102,7 @@ public class DBSyntableTest {
 		DATranscxt.key("user-pswd", rootkey);
 	}
 
+	@BeforeAll
 	public static void testInit() throws Exception {
 		// DDL
 		// Debug Notes:
@@ -145,7 +147,7 @@ public class DBSyntableTest {
 			ArrayList<String> sqls = new ArrayList<String>();
 			// sqls.add("delete from oz_autoseq;");
 			// sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
-			assertTrue(DAHelper.count(new DATranscxt(conn), conn, "oz_autoseq", "sid", "h_photos.pid") == 0);
+			assertTrue(DAHelper.count(new DATranscxt(conn), conn, "oz_autoseq", "sid", "h_photos.pid") == 1);
 			sqls.add(f("update oz_autoseq set seq = %d where sid = 'h_photos.pid'", (long) Math.pow(64, s+1)));
 
 			sqls.add(f("delete from %s", snm.tbl));

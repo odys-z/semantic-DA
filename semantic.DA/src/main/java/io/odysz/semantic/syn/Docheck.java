@@ -62,8 +62,6 @@ public class Docheck {
 
 	public final DATranscxt b0;
 
-//	public IUser robot() { return synb.synrobot(); }
-
 	public int docs() throws SQLException, TransException {
 		return synb.entities(docm);
 	}
