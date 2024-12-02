@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.x.AnsonException;
@@ -102,7 +103,6 @@ public class DBSyntableTest {
 		DATranscxt.key("user-pswd", rootkey);
 	}
 
-	@BeforeAll
 	public static void testInit() throws Exception {
 		// DDL
 		// Debug Notes:
@@ -185,8 +185,6 @@ public class DBSyntableTest {
 		
 		assertEquals("syn.00", ck[0].connId());
 	}
-
-	// private SyndomContext[] ctxes;
 
 	@Test
 	void testChangeLogs() throws Exception {

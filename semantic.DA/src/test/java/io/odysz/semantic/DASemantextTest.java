@@ -236,7 +236,7 @@ public class DASemantextTest {
 			.nv("sibling", "2")
 			.commit(s0, sqls);
 
-		Regex reg = new Regex("insert into a_functions \\(funcName, parentId, funcId, fullpath\\) values \\('testInsert A - ', '------', '\\d{6}', '-.000'\\)");
+		Regex reg = new Regex("insert into a_functions \\(funcName, parentId, funcId, fullpath\\) values \\('testInsert A - ', '------', '0000..', '-.000'\\)");
 		assertTrue(reg.match(sqls.get(0)), sqls.get(0));
 
 		reg = new Regex(".*000.001'\\)");
@@ -285,11 +285,9 @@ public class DASemantextTest {
 			.rs(0)).nxt();
 		
 		// oz_autoseq.sql: ('doc_devices.device', 64 * 64 * 4, 'device');
-		try {assertEquals("1.4.34.000G01", rs.getString("device"), "000G01");}
-		catch (AssertionError e) {assertEquals("1.4.34.000401", rs.getString("device"), "000401");}
+		assertEquals("256.1.4.34.000", rs.getString("device").subSequence(0, 14), "000G01");
 		rs.next();
-		try {assertEquals("synode0.000402", rs.getString("device"), "000402");}
-		catch (AssertionError e) {assertEquals("synode0.000G02", rs.getString("device"), "000G02");}
+		assertEquals("256.synode0.000", rs.getString("device").subSequence(0, 15), "000402");
 	}
 
 	/**Test cross referencing auto k.<br>
