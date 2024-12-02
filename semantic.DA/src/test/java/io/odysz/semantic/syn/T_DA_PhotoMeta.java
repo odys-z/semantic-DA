@@ -22,7 +22,7 @@ public class T_DA_PhotoMeta extends ExpDocTableMeta {
 		exif = "exif";
 		// synoder = "device";
 
-		ddlSqlite = loadTxt(T_DA_PhotoMeta.class, "h_photos.sqlite.ddl");
+		// ddlSqlite = loadTxt(T_DA_PhotoMeta.class, "h_photos.sqlite.ddl");
 	}
 
 	// public String device() { return synoder; }
