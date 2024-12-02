@@ -1,6 +1,7 @@
 package io.odysz.semantic;
 
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.split;
@@ -180,6 +181,7 @@ public class DASemantics {
 		 * 
 		 * Handler: {@link DASemantics.ShAutoK}
 		 * @since 1.4.35, add pk-prefix, args[1], can be a field name or string consts.
+		 * @since 1.4.45, will automatically insert sequence number to oz_autoseq.
 		 */
 		autoInc,
 		/**
@@ -451,11 +453,8 @@ public class DASemantics {
 			else if ("ef".equals(type) || "e-f".equals(type) || "ext-file".equals(type)
 					|| "xf".equals(type) || "x-f".equals(type))
 				return extFile;
-//			else if (eq("syn-change", type))
-//				Utils.warn("Syn-change semantics is silented as a newer design decision");
 			else
 				throw new SemanticException("semantics not known, type: " + type);
-
 		}
 	}
 
@@ -490,6 +489,8 @@ public class DASemantics {
 		return mdb;
 	}
 
+	///////////////////////////////// container class
+	///////////////////////////////// ///////////////////////////////
 	protected ArrayList<SemanticHandler> handlers;
 
 	public final String tabl;
@@ -513,14 +514,9 @@ public class DASemantics {
 	}
 
 	public DASemantics addHandler(SemanticHandler h) {
-		if (h == null) return this;
-
-		for (SemanticHandler hi : handlers)
-			if (hi.getClass() == h.getClass())
-				Utils.warnT(new Object() {},
-					"Adding duplicated handlers %s to table %s?",
-					h.getClass().getName(), tabl);
-		handlers.add(h); 
+		if (verbose)
+			h.logi();
+		handlers.add(h);
 		return this;
 	}
 
@@ -581,18 +577,13 @@ public class DASemantics {
 		else if (smtype.postFk == semantic)
 			return new ShPostFk(basicTsx, tabl, recId, args);
 		else if (smtype.extFile == semantic)
+			// throw new SemanticException("Since 1.5.0, smtype.extFile is replaced by extFilev2!");
 			return new ShExtFilev2(basicTsx, tabl, recId, args);
 		else if (smtype.extFilev2 == semantic)
 			return new ShExtFilev2(basicTsx, tabl, recId, args);
-		else if (smtype.synChange == semantic)
-			Utils.warn("The syn-change semantics is silenced as a newer design decision");
 		else
-			throw new SemanticException("Cannot load configured semantics of key: %s, with trans-builder: %s, on basic connection %s.\n"
-					+ "See Extending default semantics plugin at Dev Community:\n"
-					+ "https://odys-z.github.io/dev/topics/semantics/3plugin.html",
+			throw new SemanticException("Cannot load configured semantics of key: %s, with trans-builder: %s, on basic connection %s.",
 				semantic, trb.getClass().getName(), trb.basictx().connId());
-		
-		return null;
 	}
 
 	/**
@@ -661,7 +652,9 @@ public class DASemantics {
 					handler.onUpdate(semantx, satemt, row, cols, usr);
 	}
 
-	public void onDelete(ISemantext semantx, Delete stmt,
+	public void onDelete(ISemantext semantx,
+			// Statement<? extends Statement<?>> stmt,
+			Delete stmt,
 			Condit whereCondt, IUser usr) throws TransException {
 		if (handlers != null)
 			for (SemanticHandler handler : handlers)
@@ -726,11 +719,14 @@ public class DASemantics {
 		 * @param whereCondt
 		 *            delete statement's condition.
 		 * @param usr
-		 * @throws SemanticException
+		 * @throws TransException
 		 * @throws SQLException 
 		 */
-		protected void onDelete(ISemantext stx, Delete del,
-				Condit whereCondt, IUser usr) throws TransException {
+		protected void onDelete(ISemantext stx,
+				// Statement<? extends Statement<?>> stmt,
+				Delete del,
+				Condit whereCondt, IUser usr)
+				throws TransException {
 		}
 
 		protected void onPost(ISemantext sm, Statement<? extends Statement<?>> stmt, ArrayList<Object[]> row,
@@ -940,19 +936,41 @@ public class DASemantics {
 	static class ShAutoKPrefix extends SemanticHandler {
 		String[] prefixCols;
 
-		ShAutoKPrefix(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
+		ShAutoKPrefix(Transcxt trxt, String tabl, String pk, String[] args) throws SQLException, TransException {
 			super(trxt, smtype.autoInc, tabl, pk, args);
-			if (args == null || args.length == 0 || isblank(args[0]))
-				throw new SemanticException("AUTO pk with profix (autok)'s configuration is not correct. tabl = %s, pk = %s, args: %s",
+
+			long start0 = 0;
+			if (args == null || args.length < 2 || isblank(args[0]) || isblank(args[1]))
+				throw new SemanticException(
+						"Since Semantic.DA 1.4.45, AUTO pk's configuration format is <tabl>*,<start-long>*,<prefix-0>,... <prefix-i> (deprecating the oz_autoseq.sql way)."
+						+ " tabl = %s, pk = %s, args: %s",
 						tabl, pk, LangExt.toString(args));
-			else if (args.length >= 2)
+
+			// 1.4.45: insert start0 to oz_autoseq 
+			try {
+				start0 = Long.valueOf(args[args.length - 1]);
+			} catch (Exception e) {}
+
+			String sql = f("select count(sid) c from oz_autoseq where sid = '%1$s.%2$s'", target, args[0]);
+			AnResultset rs = Connects.select(trxt.basictx().connId(), sql);
+			if (!rs.next())
+				throw new SemanticException("Something wrong: " + sql); // ?
+			else if (0 == rs.getInt("c"))
+				// TODO to be tested in DB other than sqlite.
+				Connects.commit(trxt.basictx().connId(), DATranscxt.dummyUser(),
+					f("insert into oz_autoseq (sid, seq, remarks) values\r\n"
+					+ "('%1$s.%2$s', %3$s, 'by ShAutoKPrefix');", target, pk, start0));
+
+			if (args.length >= 3)
 				prefixCols = Arrays.copyOfRange(args, 1, args.length);
 
 			insert = true;
 		}
 
 		@Override
-		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+		protected void onInsert(ISemantext stx, Insert insrt,
+				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
+
 			Object[] autonv;
 			if (cols.containsKey(args[0]) // with nv from client
 					&& cols.get(args[0]) < row.size()) { // with nv must been generated from semantics
@@ -1908,7 +1926,6 @@ public class DASemantics {
 			}
 		}
 
-		@Override
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols,
 				IUser usr) throws SemanticException {
 			onInsert(stx, null, row, cols, usr);
@@ -2004,7 +2021,6 @@ public class DASemantics {
 			*/
 		}
 
-		@Override
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
 			// Design Memo: insrt is not used in onInsert
 			onInsert(stx, null, row, cols, usr);
@@ -2105,7 +2121,7 @@ public class DASemantics {
 				}
 		}
 	}
-
+	
 	/**
 	 * Shallow copy, with new list of handlers, with each elements referring to the original one.
 	 */
