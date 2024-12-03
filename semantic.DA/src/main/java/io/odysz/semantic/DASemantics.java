@@ -961,7 +961,7 @@ public class DASemantics {
 					+ "('%1$s.%2$s', %3$s, 'by ShAutoKPrefix');", target, pk, start0));
 
 			if (args.length >= 3)
-				prefixCols = Arrays.copyOfRange(args, 1, args.length);
+				prefixCols = Arrays.copyOfRange(args, 2, args.length);
 
 			insert = true;
 		}
