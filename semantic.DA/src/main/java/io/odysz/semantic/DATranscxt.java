@@ -309,6 +309,16 @@ public class DATranscxt extends Transcxt {
 				"Since v2.0.0, an empty connection ID won't trigger the semantics loading.");
 	}
 	
+	/**
+	 * Create a stub transaction helper without depending on a database connection,
+	 * typically for initialization.
+	 * @since 2.0.0
+	 * @throws Exception
+	 */
+	public DATranscxt() throws Exception {
+		this((String)null);
+	}
+
 	protected DATranscxt(DASemantext stxt) {
 		super(stxt);
 	}
