@@ -434,7 +434,8 @@ public class Docheck {
 			boolean top = Connects.getDebug(ck[cx].synb.syndomx.synconn);
 			Connects.setDebug(ck[cx].synb.syndomx.synconn, false);
 
-			try { HashMap<String, Nyquence> nyquvect = ck[cx].synb.syndomx.loadNvstamp(t); 
+			try {
+				HashMap<String, Nyquence> nyquvect = ck[cx].synb.syndomx.loadNvstamp(t); 
 
 				nv2[cx] = Nyquence.clone(nyquvect);
 
