@@ -69,7 +69,7 @@ class DBSynTransBuilderTest {
 					throw new SemanticException("TODO %s", synreg.table);
 			});
 
-		T_DA_PhotoMeta phm = regists.meta("h_photos").replace();
+		T_DA_PhotoMeta phm = regists.meta("h_photos");
 
 		SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
 

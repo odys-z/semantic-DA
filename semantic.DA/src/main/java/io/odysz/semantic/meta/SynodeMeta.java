@@ -63,8 +63,8 @@ public class SynodeMeta extends SyntityMeta {
 		return null;
 	}
 
-	@Override
-	public String[] insertSelectItems(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset changes) {
-		return null;
-	}
+//	@Override
+//	public String[] insertSelectItems(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset changes) {
+//		return null;
+//	}
 }

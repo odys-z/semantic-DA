@@ -168,7 +168,7 @@ public class DBSyntableTest {
 							throw new SemanticException("TODO %s", synreg.table);
 					});
 
-			// See also docsync.jser/Syngleton.setupSyntables(), 2.1 injecting synmantics after syn-tables have been set.
+			// MEMO // See also docsync.jser/Syngleton.setupSyntables(), 2.1 injecting synmantics after syn-tables have been set.
 			phm.replace();
 			for (SyntityMeta m : syntities.metas.values())
 				m.replace();
