@@ -177,9 +177,9 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * @param changes
 	 * @return select-items
 	 * @throws SQLException 
-	 */
 	public abstract Object[] insertSelectItems(SynChangeMeta chgm, String entid,
 			AnResultset entities, AnResultset changes) throws TransException, SQLException;
+	 */
 
 	/**
 	 * 
