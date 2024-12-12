@@ -34,7 +34,6 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
-import io.odysz.semantic.syn.registry.Syntities;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
@@ -810,8 +809,8 @@ public class ExessionPersist {
 		while (entbls.next()) {
 			String tbl = entbls.getString(chgm.entbl);
 
-			// SyntityMeta entm = trb.getSyntityMeta(tbl);
-			SyntityMeta entm = eq(tbl, synm.tbl) ? synm : Syntities.get(synx.synconn).meta(tbl);
+			// SyntityMeta entm = eq(tbl, synm.tbl) ? synm : Syntities.get(synx.synconn).meta(tbl);
+			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(synx.synconn, tbl);
 
 			AnResultset entities = ((AnResultset) entm
 				.onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))

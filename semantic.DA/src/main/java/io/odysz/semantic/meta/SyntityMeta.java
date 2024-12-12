@@ -101,7 +101,9 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 			this.entCols = new HashMap<String, Integer>(ftypes.size());
 
 		if (ftypes == null || ftypes.size() == 0)
-			throw new SemanticException("This table meta is not initialized with information from DB. Call clone() or replace() first.");
+			throw new SemanticException(
+					"The table %s's meta is not initialized with information from DB. Call clone() or replace() first.",
+					tbl);
 
 		if (!ftypes.containsKey(synuid)) 
 			throw new SemanticException(err_requires_synuid(tbl, synuid, conn));
