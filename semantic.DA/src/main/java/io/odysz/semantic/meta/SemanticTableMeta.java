@@ -4,7 +4,16 @@ import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.len;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.stream.Collectors;
+
+import io.odysz.common.Utils;
 import io.odysz.module.xtable.XMLTable.IMapValue;
 import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
@@ -13,6 +22,35 @@ import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.x.TransException;
 
 public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
+
+	protected static String loadSqlite(Class<?> clzz, String filename) {
+		try {
+			// https://stackoverflow.com/a/46468788/7362888
+			URI uri = Paths.get(clzz.getResource(filename).toURI()).toUri();
+//			if (zipfs == null)
+//				try {
+//					Map<String, String> env = new HashMap<>(); 
+//					env.put("create", "true");
+//					zipfs = FileSystems.newFileSystem(uri, env);
+//				}
+//				catch (Exception e) {
+//					Utils.warnT(new Object() {},
+//						"File %s shouldn't be load in the runtime environment.\ntarget URI: %s",
+//						filename, uri);
+//					e.printStackTrace();
+//					return null;
+//				}
+
+			return Files.readAllLines(
+				Paths.get(uri), Charset.defaultCharset())
+				.stream().collect(Collectors.joining("\n"));
+		} catch (URISyntaxException | IOException e) {
+			Utils.warnT(new Object() {},
+				"File %s can't be loaded in the runtime environment.\n%s",
+				filename, e.getMessage());
+			return null;
+		}
+	}
 
 	@Override
 	public String mapKey() {

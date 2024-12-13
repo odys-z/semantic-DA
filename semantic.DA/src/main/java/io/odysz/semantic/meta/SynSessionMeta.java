@@ -25,7 +25,7 @@ public class SynSessionMeta extends SemanticTableMeta {
 		mode    = "mode";
 		state   = "state";
 
-		ddlSqlite = Utils.loadTxt(PeersMeta.class, "syn_sessions.sqlite.ddl");
+		ddlSqlite = loadSqlite(PeersMeta.class, "syn_sessions.sqlite.ddl");
 	}
 
 	public Statement<?> insertSession(Insert ins, String peer) {

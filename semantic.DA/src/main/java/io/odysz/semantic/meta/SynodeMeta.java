@@ -53,7 +53,7 @@ public class SynodeMeta extends SyntityMeta {
 		jserv   = "jserv";
 		synoder = pk;
 
-		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
+		ddlSqlite = loadSqlite(SyntityMeta.class, "syn_node.sqlite.ddl");
 
 		autopk = DATranscxt.hasSemantics(conn, tbl, smtype.autoInc);
 	}
