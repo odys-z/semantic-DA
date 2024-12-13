@@ -44,7 +44,7 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 			return Files.readAllLines(
 				Paths.get(uri), Charset.defaultCharset())
 				.stream().collect(Collectors.joining("\n"));
-		} catch (URISyntaxException | IOException e) {
+		} catch (Exception e) {
 			Utils.warnT(new Object() {},
 				"File %s can't be loaded in the runtime environment.\n%s",
 				filename, e.getMessage());
