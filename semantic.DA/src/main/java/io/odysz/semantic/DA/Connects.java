@@ -142,7 +142,6 @@ public class Connects {
 				// columns="type,id,isdef,conn,usr,pswd,dbg"
 				dbtype type = parseDrvType(conn.getString("type"));
 				String id = conn.getString("id");
-				// boolean log = conn.getBool("log", false);
 				if (dmCp == DmConn)
 					if (srcs.get(id) != null)
 						;

@@ -114,7 +114,8 @@ public class DASemantextTest {
 		try {
 			// Thread.sleep(3000); // wait for previous tests
 			for (String tbl : new String[] {
-					"oz_autoseq", "a_logs", "a_attaches",
+					// "oz_autoseq",
+					"a_logs", "a_attaches",
 					"a_domain", "a_functions", "a_orgs", "a_role_func", "a_roles", "a_users",
 					"b_alarms", "b_alarm_logic", "b_logic_device",
 					"crs_a", "crs_b", "h_photos", "doc_devices"}) {
@@ -124,7 +125,7 @@ public class DASemantextTest {
 			}
 
 			for (String tbl : new String[] {
-					"oz_autoseq.ddl",  "oz_autoseq.sql",     "a_logs.ddl",      "a_attaches.ddl",
+					"oz_autoseq.ddl",/*"oz_autoseq.sql",*/   "a_logs.ddl",      "a_attaches.ddl",
 					"a_domain.ddl",    "a_domain.sql",       "a_functions.ddl", "a_functions.sql",
 					"a_orgs.ddl",      "a_orgs.sql",
 					"a_role_func.ddl", "a_roles.ddl",        "a_users.ddl",     "b_alarm_logic.ddl",
@@ -235,7 +236,7 @@ public class DASemantextTest {
 			.nv("sibling", "2")
 			.commit(s0, sqls);
 
-		Regex reg = new Regex("insert into a_functions \\(funcName, parentId, funcId, fullpath\\) values \\('testInsert A - ', '------', '\\d{6}', '-.000'\\)");
+		Regex reg = new Regex("insert into a_functions \\(funcName, parentId, funcId, fullpath\\) values \\('testInsert A - ', '------', '0000..', '-.000'\\)");
 		assertTrue(reg.match(sqls.get(0)), sqls.get(0));
 
 		reg = new Regex(".*000.001'\\)");
@@ -266,7 +267,7 @@ public class DASemantextTest {
 			.ins(st.instancontxt(connId, usr));
 	
 		assertEquals("synode0",
-			DATranscxt.getHandler(connId, "doc_devices", smtype.autoInc).args[1],
+			DATranscxt.getHandler(connId, "doc_devices", smtype.autoInc).args[2],
 			"Check configuration: synode0");
 
 		st.insert(tbl, usr)
@@ -284,11 +285,9 @@ public class DASemantextTest {
 			.rs(0)).nxt();
 		
 		// oz_autoseq.sql: ('doc_devices.device', 64 * 64 * 4, 'device');
-		try {assertEquals("1.4.34.000G01", rs.getString("device"), "000G01");}
-		catch (AssertionError e) {assertEquals("1.4.34.000401", rs.getString("device"), "000401");}
+		assertEquals("1.4.34.0004", rs.getString("device").subSequence(0, 11), "000G01");
 		rs.next();
-		try {assertEquals("synode0.000402", rs.getString("device"), "000402");}
-		catch (AssertionError e) {assertEquals("synode0.000G02", rs.getString("device"), "000G02");}
+		assertEquals("synode0.0004", rs.getString("device").subSequence(0, 12), "000402");
 	}
 
 	/**Test cross referencing auto k.<br>

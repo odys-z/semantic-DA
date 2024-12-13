@@ -53,7 +53,7 @@ public class SynodeMeta extends SyntityMeta {
 		jserv   = "jserv";
 		synoder = pk;
 
-		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
+		ddlSqlite = loadSqlite(SyntityMeta.class, "syn_node.sqlite.ddl");
 
 		autopk = DATranscxt.hasSemantics(conn, tbl, smtype.autoInc);
 	}
@@ -63,8 +63,8 @@ public class SynodeMeta extends SyntityMeta {
 		return null;
 	}
 
-	@Override
-	public String[] insertSelectItems(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset changes) {
-		return null;
-	}
+//	@Override
+//	public String[] insertSelectItems(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset changes) {
+//		return null;
+//	}
 }

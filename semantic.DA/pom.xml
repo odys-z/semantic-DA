@@ -65,14 +65,14 @@
 	    <version>3.44.0.0</version>
 	</dependency>
 	
-	<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->
+	<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12
 	<dependency>
 		<groupId>org.slf4j</groupId>
 		<artifactId>slf4j-log4j12</artifactId>
 		<version>2.0.13</version>
 		<type>pom</type>
 		<scope>test</scope>
-	</dependency>
+	</dependency> -->
 	
 
 	<!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
@@ -86,7 +86,12 @@
 		 -->
 	</dependency>
 
-	<!-- ojdbc7.jar
+	<!-- ojdbc14.jar
+		https://mvnrepository.com/artifact/com.oracle/ojdbc14 
+		Since oracle JDBC driver package needing license agreement, you need install ojdbc.jar like this:
+		mvn install:install-file -Dfile=lib/o-SNAPSHOTjdbc7.jar -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=12.1.0.1 -Dpackaging=jar
+		Oracle JDBC seems available at Maven Centrial since OJDBC 18, for JDK 17.
+
 		Since oracle JDBC driver package needing license agreement, you need install ojdbc.jar like this:
 		mvn install:install-file -Dfile=lib/o-SNAPSHOTjdbc7.jar -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=12.1.0.1 -Dpackaging=jar
 	-->
@@ -94,9 +99,6 @@
 	    <groupId>com.oracle</groupId>
 	    <artifactId>ojdbc14</artifactId>
 	    <version>12.1.0.1</version>
-	    <!-- This is only needed when testing, but we deployed this dependency because we don't want to skip tests when deploying.
-	    	see https://stackoverflow.com/questions/30108053/can-i-configure-maven-to-ignore-test-scoped-dependencies-if-im-skipping-runni
-		 -->
 	    <scope>provided</scope>
 	</dependency>
 

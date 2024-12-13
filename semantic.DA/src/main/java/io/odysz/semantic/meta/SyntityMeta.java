@@ -83,12 +83,6 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 		return (T) this;
 	}
 
-//	public HashSet<String> globalIds() throws SemanticException {
-//		if (uids == null)
-//			throw new SemanticException("SyntityMeta.uids must initialized by subclasses. Uids is null.");
-//		return uids;
-//	}
-
 	/**
 	 * Generate columns for inserting challenging entities.
 	 * 
@@ -107,7 +101,9 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 			this.entCols = new HashMap<String, Integer>(ftypes.size());
 
 		if (ftypes == null || ftypes.size() == 0)
-			throw new SemanticException("This table meta is not initialized with information from DB. Call clone() or replace() first.");
+			throw new SemanticException(
+					"The table %s's meta is not initialized with information from DB. Call clone() or replace() first.",
+					tbl);
 
 		if (!ftypes.containsKey(synuid)) 
 			throw new SemanticException(err_requires_synuid(tbl, synuid, conn));
@@ -183,9 +179,9 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * @param changes
 	 * @return select-items
 	 * @throws SQLException 
-	 */
 	public abstract Object[] insertSelectItems(SynChangeMeta chgm, String entid,
 			AnResultset entities, AnResultset changes) throws TransException, SQLException;
+	 */
 
 	/**
 	 * 

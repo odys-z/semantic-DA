@@ -40,7 +40,7 @@ public class SynChangeMeta extends SemanticTableMeta {
 	public SynChangeMeta(String ... conn) {
 		super("syn_change", conn);
 
-		ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
+		ddlSqlite = loadSqlite(SynChangeMeta.class, "syn_change.sqlite.ddl");
 
 		pk       = "cid";
 		domain   = "domain";

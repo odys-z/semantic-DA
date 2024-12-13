@@ -942,9 +942,10 @@ public class DASemantics {
 			long start0 = 0;
 			if (args == null || args.length < 2 || isblank(args[0]) || isblank(args[1]))
 				throw new SemanticException(
-						"Since Semantic.DA 1.4.45, AUTO pk's configuration format is <tabl>*,<start-long>*,<prefix-0>,... <prefix-i> (deprecating the oz_autoseq.sql way)."
-						+ " tabl = %s, pk = %s, args: %s",
-						tabl, pk, LangExt.toString(args));
+						"Since Semantic.DA 1.4.45, AUTO pk's configuration format is:\n"
+						+ "<tabl>*,<start-long>*,<prefix-0>,... <prefix-i>, which is deprecating the oz_autoseq.sql way.\n"
+						+ "configuration: conn = %s, tabl = %s, pk = %s, args = %s",
+						trxt.basictx().connId(), tabl, pk, LangExt.toString(args));
 
 			// 1.4.45: insert start0 to oz_autoseq 
 			try {
@@ -962,7 +963,7 @@ public class DASemantics {
 					+ "('%1$s.%2$s', %3$s, 'by ShAutoKPrefix');", target, pk, start0));
 
 			if (args.length >= 3)
-				prefixCols = Arrays.copyOfRange(args, 1, args.length);
+				prefixCols = Arrays.copyOfRange(args, 2, args.length);
 
 			insert = true;
 		}

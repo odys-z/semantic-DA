@@ -62,8 +62,6 @@ public class Docheck {
 
 	public final DATranscxt b0;
 
-//	public IUser robot() { return synb.synrobot(); }
-
 	public int docs() throws SQLException, TransException {
 		return synb.entities(docm);
 	}
@@ -436,7 +434,8 @@ public class Docheck {
 			boolean top = Connects.getDebug(ck[cx].synb.syndomx.synconn);
 			Connects.setDebug(ck[cx].synb.syndomx.synconn, false);
 
-			try { HashMap<String, Nyquence> nyquvect = ck[cx].synb.syndomx.loadNvstamp(t); 
+			try {
+				HashMap<String, Nyquence> nyquvect = ck[cx].synb.syndomx.loadNvstamp(t); 
 
 				nv2[cx] = Nyquence.clone(nyquvect);
 

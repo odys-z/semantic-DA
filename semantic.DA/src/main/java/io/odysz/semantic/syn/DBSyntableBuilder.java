@@ -74,8 +74,6 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	SyncUser locrobot;
 
-//	SyncUser synrobot;
-//	public DBSyntableBuilder synrobot(SyncUser robt) { synrobot = robt; return this; }
 	public SyncUser synrobot() { return locrobot; }
 
 	private final boolean force_clean_subs;
@@ -162,7 +160,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			// return sp.onInit(inireq, (SyncUser) syndomx.robot);
 			return sp.onInit(inireq);
 		} finally {
-			syndomx.incStamp(sp.trb);
+			syndomx.incStamp(sp.trb, inireq.nv);
 		}
 	}
 
@@ -751,23 +749,26 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * Set n-stamp, then create a request package.
 	 * @param app
 	 * @param admin
+	 * @param reqnv 
 	 * @return the request
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public ExchangeBlock domainSignup(ExessionPersist app, String admin) throws TransException, SQLException {
+	public ExchangeBlock domainSignup(ExessionPersist app, String admin)
+			throws TransException, SQLException {
 		try {
 			// syndomx.loadNvstamp(this);
 			return app.signup(admin);
 		}
 		finally { 
-			syndomx.incStamp(app.trb);
+			syndomx.incStamp(app.trb, null);
 		}
 	}
 
 	public ExchangeBlock domainOnAdd(ExessionPersist ap, ExchangeBlock req, String org)
 			throws TransException, SQLException {
 	
+		syndomx.incStamp(ap.trb, req.nv);
 		syndomx.loadNvstamp(this);
 
 		String synode = syndomx.synode;
@@ -793,7 +794,10 @@ public class DBSyntableBuilder extends DATranscxt {
 				.nv(chgm.crud, CRUD.C)
 				.nv(chgm.synoder, synode)
 				.nv(chgm.uids, syn_uids)
-				.nv(chgm.nyquence, ap.n0().n)
+
+				// .nv(chgm.nyquence, ap.n0().n)
+				.nv(chgm.nyquence, ap.stamp().n)
+
 				.nv(chgm.seq, incSeq())
 				.nv(chgm.domain, domain)
 				.post(insert(subm.tbl) // TODO the tree mode is different here

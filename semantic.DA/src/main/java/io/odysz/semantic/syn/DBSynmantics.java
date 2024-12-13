@@ -33,7 +33,8 @@ import io.odysz.transact.sql.parts.condition.Condit;
 import io.odysz.transact.x.TransException;
 
 /**
- * See the topic of <a href='https://odys-z.github.io/dev/topics/semantics/3plugin.html#extending-default-semantics-plugin'>
+ * See the topic of
+ * <a href='https://odys-z.github.io/dev/topics/semantics/3plugin.html#extending-default-semantics-plugin'>
  * Extending default handler plugin</a>.
  * 
  * @author odys-z@github.com
@@ -70,7 +71,7 @@ public class DBSynmantics extends DASemantics {
 	 * @param entm
 	 * @param synode
 	 * @param synuid the global id for synchronizing a records into local db,
-	 *  null for create new records (post updating into entity).
+	 * null for create new records (post updating into entity).
 	 * @return inst
 	 * @throws TransException
 	 */

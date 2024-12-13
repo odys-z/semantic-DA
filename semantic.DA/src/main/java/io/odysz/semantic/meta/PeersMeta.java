@@ -3,7 +3,6 @@ package io.odysz.semantic.meta;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import io.odysz.common.Utils;
 import io.odysz.semantic.syn.Nyquence;
 
 public class PeersMeta extends SemanticTableMeta {
@@ -27,7 +26,7 @@ public class PeersMeta extends SemanticTableMeta {
 		
 		inscols = new String[] {synid, peer, domain, nyq};
 
-		ddlSqlite = Utils.loadTxt(PeersMeta.class, "syn_peers.sqlite.ddl");
+		ddlSqlite = loadSqlite(PeersMeta.class, "syn_peers.sqlite.ddl");
 	}
 
 	public ArrayList<ArrayList<Object[]>> insVals(HashMap<String, Nyquence> nv, String peer, String domain) {

@@ -34,7 +34,7 @@ public class SynSubsMeta extends SemanticTableMeta {
 		synodee = "synodee";
 		this.chgm = chgm;
 
-		ddlSqlite = loadTxt(SynSubsMeta.class, "syn_subscribe.sqlite.ddl");
+		ddlSqlite = loadSqlite(SynSubsMeta.class, "syn_subscribe.sqlite.ddl");
 	}
 
 	public String[] cols() {

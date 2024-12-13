@@ -193,7 +193,8 @@ public class DBSynTransBuilder extends DATranscxt {
 		}
 	}
 	
-	public static SyntityMeta getEntityMeta(String synconn, String tbl) {
-		return Syntities.get(synconn).meta(tbl);
+	public static SyntityMeta getEntityMeta(String synconn, String tbl) throws TransException, SQLException {
+		// return Syntities.get(synconn).meta(tbl);
+		return Syntities.get(synconn).meta(tbl).replace();
 	}
 }
