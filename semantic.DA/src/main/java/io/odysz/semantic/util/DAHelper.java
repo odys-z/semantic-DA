@@ -7,9 +7,6 @@ import java.sql.SQLException;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.meta.SynodeMeta;
-import io.odysz.semantic.syn.DBSyntableBuilder;
-import io.odysz.semantic.syn.Nyquence;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;

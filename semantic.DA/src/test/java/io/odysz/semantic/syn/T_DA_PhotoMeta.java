@@ -1,14 +1,6 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.common.Utils.loadTxt;
-
-import java.sql.SQLException;
-
-import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.meta.ExpDocTableMeta;
-import io.odysz.semantic.meta.SynChangeMeta;
-import io.odysz.semantics.x.SemanticException;
-import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 public class T_DA_PhotoMeta extends ExpDocTableMeta {

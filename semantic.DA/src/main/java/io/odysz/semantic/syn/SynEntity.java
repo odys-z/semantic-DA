@@ -66,18 +66,15 @@ public abstract class SynEntity extends Anson {
 
 	public SynEntity(SyntityMeta entm) {
 		this.entMeta = entm;
-		this.chgm = new SynChangeMeta();
-		this.subMeta = new SynSubsMeta(chgm);
+		if (entm != null) { // used only for table name, no any connection
+			this.chgm = new SynChangeMeta();
+			this.subMeta = new SynSubsMeta(chgm);
+		}
 	}
 
 	public SynEntity(AnResultset rs, SyntityMeta meta) throws SQLException {
 		this(rs, meta, new SynChangeMeta());
 	}
-
-//	public SynEntity check(String conn, DBSynsactBuilder tr0, ArrayList<String[]> subs) {
-//		this.subs = subs;
-//		return this;
-//	}
 
 	/**
 	 * Format entity synchronization task

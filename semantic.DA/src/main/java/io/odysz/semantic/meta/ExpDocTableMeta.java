@@ -18,22 +18,22 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	/**
 	 * consts of share type: pub | priv 
 	 */
-	public static class Share {
-		/** public asset */
-		public static final String pub = "pub";
-		/** private asset */
-		public static final String priv = "priv";
-
-		public static boolean isPub(String s) {
-			if (pub.equals(s)) return true;
-			return false;
-		}
-
-		public static boolean isPriv(String s) {
-			if (priv.equals(s)) return true;
-			return false;
-		}
-	}
+//	public static class Share {
+//		/** public asset */
+//		public static final String pub = "pub";
+//		/** private asset */
+//		public static final String priv = "priv";
+//
+//		public static boolean isPub(String s) {
+//			if (pub.equals(s)) return true;
+//			return false;
+//		}
+//
+//		public static boolean isPriv(String s) {
+//			if (priv.equals(s)) return true;
+//			return false;
+//		}
+//	}
 
 	public final String fullpath;
 	/** aslo named as pname, clientname or filename previously */
