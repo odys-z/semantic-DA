@@ -40,7 +40,7 @@ public abstract class SynEntity extends Anson {
 	}
 
 	@AnsonField(ignoreTo=true)
-	protected SyntityMeta entMeta;
+	public final SyntityMeta entMeta;
 
 	@AnsonField(ignoreTo=true)
 	protected SynSubsMeta subMeta;
