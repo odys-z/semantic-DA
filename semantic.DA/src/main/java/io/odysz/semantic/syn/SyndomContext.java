@@ -277,6 +277,13 @@ public class SyndomContext {
 		}
 	}
 
+	/**
+	 * Request a mutex lock for synchronization, for synssion of myself.
+	 * 
+	 * @param onMutext delay provide, a random value, 0 for trying immediately, < 0 for quite.
+	 * @return whether successful or not
+	 * @throws InterruptedException
+	 */
 	public boolean lockme(OnMutexLock onMutext) throws InterruptedException {
 		if (dbg) Utils.warn(f(
 				"\n-------- locking on self %s  ------\n",
