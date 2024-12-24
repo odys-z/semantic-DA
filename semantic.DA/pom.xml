@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.odys-z</groupId>
   <artifactId>semantic.DA</artifactId>
-  <version>1.5.4</version>
+  <version>1.5.5</version>
   <packaging>jar</packaging>
 
   <name>semantic.DA</name>
@@ -143,6 +143,7 @@
 	  <plugin>
 		<groupId>org.apache.maven.plugins</groupId>
 		<artifactId>maven-surefire-plugin</artifactId>
+		<version>3.5.2</version>
 		<configuration>
 			<argLine>-Dfile.encoding=UTF-8</argLine>
 		</configuration>

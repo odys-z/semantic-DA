@@ -30,6 +30,8 @@ public class Synode extends Anson {
 	/** for update peers' jserv */
 	public String jserv;
 	
+	public boolean https;
+	
 	public Synode() {
 	}
 
