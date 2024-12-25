@@ -315,7 +315,7 @@ public class DATranscxt extends Transcxt {
 				dummyUser(), runtimepath));
 		if (isblank(conn))
 			Utils.warnT(new Object() {},
-				"Since v2.0.0, an empty connection ID won't trigger the semantics loading.");
+				"Since v1.5.0, an empty connection ID won't trigger the semantics loading.");
 	}
 	
 	/**

@@ -60,13 +60,13 @@ public class SyndomContext {
 	protected final SynchangeBuffMeta exbm;
 
 	/**
-	 * A basic robot, without knowing domain context, for building basice DB orperations,
-	 * such as update syn_node, etc.
+	 * The admin's id, first of synusers in dictionary.json, used for logging into peers.
+	 * for tasks such as update syn_node, etc.
 	 */
-	public SyncUser robot;
-	public SyndomContext synrobot(IUser r) {
+	public SyncUser admin;
+	public SyndomContext admin(IUser r) {
 		notNull(r.deviceId());
-		robot = (SyncUser) r;
+		admin = (SyncUser) r;
 		return this;
 	}
 	
@@ -176,7 +176,7 @@ public class SyndomContext {
 	public static Nyquence getNyquence(DBSyntableBuilder trb)
 			throws SQLException, TransException {
 		SyndomContext x = trb.syndomx;
-		return getNyquence(trb, x.synconn, x.robot,
+		return getNyquence(trb, x.synconn, x.admin,
 				x.synm, x.synm.nyquence, x.synm.synoder, x.synode, x.synm.domain, x.domain);
 	}
 
@@ -220,7 +220,7 @@ public class SyndomContext {
 	 * @throws SQLException
 	 */
 	public SyndomContext domainitOnjoin(DBSyntableBuilder b, String dom, Nyquence n0) throws TransException, SQLException {
-		DAHelper.updateFieldWhereEqs(b, synconn, robot, synm, synm.domain, dom,
+		DAHelper.updateFieldWhereEqs(b, synconn, admin, synm, synm.domain, dom,
 				synm.synoder, synode, synm.domain, this.domain);
 		domain = dom;
 
@@ -237,7 +237,7 @@ public class SyndomContext {
 		else if (!isNull(up2max) && Nyquence.compareNyq(up2max[0], stamp) > 0)
 				stamp.n = up2max[0].n;
 		
-		DAHelper.updateFieldWhereEqs(trb, synconn, robot, synm,
+		DAHelper.updateFieldWhereEqs(trb, synconn, admin, synm,
 				synm.nstamp, stamp.n,
 				synm.pk, synode,
 				synm.domain, domain);
@@ -248,7 +248,7 @@ public class SyndomContext {
 	public Nyquence persistNyquence(DBSyntableBuilder trb, String synid, Nyquence n)
 			throws TransException, SQLException {
 
-		DAHelper.updateFieldWhereEqs(trb, synconn, robot, synm,
+		DAHelper.updateFieldWhereEqs(trb, synconn, admin, synm,
 				synm.nyquence, n.n,
 				synm.pk, synode,
 				synm.domain, domain);
@@ -289,7 +289,7 @@ public class SyndomContext {
 				"\n-------- locking on self %s  ------\n",
 				synode));
 
-		while (!lockx(robot)) {
+		while (!lockx(admin)) {
 			double sleep = onMutext.onlocked(synlocker);
 			if (sleep > 0)
 				Thread.sleep((long) (sleep * 1000));
@@ -304,7 +304,7 @@ public class SyndomContext {
 				"\n++++++++ unlocking self %s ++++++\n",
 				synode));
 	
-		unlockx(robot);
+		unlockx(admin);
 	}
 
 	public synchronized boolean lockx(SyncUser usr) {
