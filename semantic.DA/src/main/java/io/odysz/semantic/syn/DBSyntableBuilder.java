@@ -49,14 +49,14 @@ import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 /**
- * Sql statement builder for {@link DBSyntext} for handling database synchronization. 
+ * Sql statement builder for {@link DBSynmantext} for handling database synchronization. 
  * 
  * Improved with temporary tables for broken network (and shutdown), concurrency and memory usage.
  * 
  * <h5>Issue ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c</h5>
  * <pre>
  * version: Semantic-DA 2.0.0-SNAPSHOT, jserv.docsyc 0.2.0-SNAPSHOT
- * commit:  ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c & ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c
+ * commit:  ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c &amp; ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c
  * About:
  * DBSyntableBuilder.stamp is managed not for each domain.
  * To use stamp in this way, nyquence numbers should be synchronized
@@ -127,7 +127,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * insert into exchanges select * from change_logs where n > nyquvect[target].n
 	 * 
 	 * @param cp
-	 * @param target
 	 * @return {total: change-logs to be exchanged} 
 	 * @throws TransException
 	 * @throws SQLException
@@ -142,11 +141,10 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 	
 	/**
-	 * insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
+	 * Insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n.
 	 * 
 	 * @param sp
 	 * @param inireq
-	 * @param peeruser 
 	 * @return response block
 	 * @throws TransException 
 	 * @throws SQLException 
@@ -749,7 +747,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * Set n-stamp, then create a request package.
 	 * @param app
 	 * @param admin
-	 * @param reqnv 
 	 * @return the request
 	 * @throws TransException
 	 * @throws SQLException
@@ -955,7 +952,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	/**
 	 * Delete change log if no subscribers accept.
 	 *  
-	 * @param domain
 	 * @param iffnode delete the change-log iff the node, i.e. the subscriber, exists.
 	 * For answers, it's the node himself, for challenge, it's the source node.
 	 * @return the delete statement
@@ -975,9 +971,10 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	/**
-	 * Check and extend column {@link #ChangeFlag}, which is for changing flag of change-logs.
+	 * Check and extend column {@link ExchangeBlock#ExchangeFlagCol},
+	 * which is for changing flag of change-logs.
 	 * 
-	 * @param answer
+	 * @param colnames
 	 * @return this
 	 */
 	public static HashMap<String,Object[]> checkChangeCol(HashMap<String, Object[]> colnames) {

@@ -169,8 +169,7 @@ public class SyndomContext {
 	/**
 	 * For test.
 	 * @param trb
-	 * @param x
-	 * @return
+	 * @return Nyquence
 	 * @throws SQLException
 	 * @throws TransException
 	 */
@@ -281,7 +280,7 @@ public class SyndomContext {
 	/**
 	 * Request a mutex lock for synchronization, for synssion of myself.
 	 * 
-	 * @param onMutext delay provide, a random value, 0 for trying immediately, < 0 for quite.
+	 * @param onMutext delay provide, a random value, 0 for trying immediately, &lt; 0 for quite.
 	 * @return whether successful or not
 	 * @throws InterruptedException
 	 */

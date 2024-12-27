@@ -37,7 +37,6 @@ import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.ExchangeException;
-import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.QueryPage;
@@ -48,7 +47,7 @@ import io.odysz.transact.x.TransException;
 
 /**
  * Persisting exchange session with remote node, using temporary tables.
- * This is a session context, and different from {@link DBSyntext} which
+ * This is a session context, and different from {@link DBSynmantext} which
  * is used for handling local data integration and database semantics. 
  * 
  * @author Ody
@@ -289,12 +288,7 @@ public class ExessionPersist {
 	/**
 	 * Create context at client side.
 	 * @param tb 
-	 * @param chgm
-	 * @param localtb local transaction builder
 	 * @param target
-	 * @param exbm 
-	 * @param subm 
-	 * @param builder 
 	 */
 	public ExessionPersist(DBSyntableBuilder tb, String target) {
 		this(tb, target, null);
@@ -303,10 +297,6 @@ public class ExessionPersist {
 	/**
 	 * Create context at server side.
 	 * @param tb 
-	 * @param session session id supplied by client
-	 * @param chgm
-	 * @param localtb
-	 * @param target
 	 */
 	public  ExessionPersist(DBSyntableBuilder tb, String peer, ExchangeBlock ini) {
 
@@ -357,12 +347,8 @@ public class ExessionPersist {
 	 * challengeSeq = 0;
 	 * answerSeq = 0;
 	 * </pre>
-	 * @param i 
-	 * @return 
-	 * @return 
 	 * @throws TransException 
 	 * @throws SQLException 
-	 * @throws SemanticException
 	 */
 	public ExchangeBlock init() throws TransException, SQLException {
 		if (trb != null) {
@@ -401,7 +387,6 @@ public class ExessionPersist {
 	 * insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
 	 * 
 	 * @param ini
-	 * @param locuser 
 	 * @return new message
 	 * @throws TransException
 	 * @throws SQLException

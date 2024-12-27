@@ -179,7 +179,7 @@ public class DASemantics {
 		 * args: [0]: pk-field; [1]: optional, pk-prefix (since 1.4.35)
 		 * </p>
 		 * 
-		 * Handler: {@link DASemantics.ShAutoK}
+		 * Handler: {@link DASemantics.ShAutoKPrefix}
 		 * @since 1.4.35, add pk-prefix, args[1], can be a field name or string consts.
 		 * @since 1.4.45, will automatically insert sequence number to oz_autoseq.
 		 */

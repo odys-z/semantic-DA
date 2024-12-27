@@ -39,7 +39,6 @@ public class SynodeMeta extends SyntityMeta {
 	 * Using 'mac' as device id field.
 	 * 
 	 * @param conn
-	 * @param trb 
 	 * @throws SemanticException 
 	 */
 	public SynodeMeta(String conn) throws TransException {

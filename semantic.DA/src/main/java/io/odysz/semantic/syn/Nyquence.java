@@ -15,7 +15,7 @@ public class Nyquence {
 	/**
 	 * Compare a, b within modal of max long.
 	 * <pre>
-	 * min-long<0        0            max-long
+	 * min-long &lt; 0      0            max-long
 	 *                a  b
 	 *     a             b
 	 *     b                    a             a - b &lt; 0

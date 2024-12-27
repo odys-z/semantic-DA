@@ -77,7 +77,7 @@ public class ChangeLogs extends Anson {
 	/**
 	 * Check and extend column {@link #ChangeFlag}, which is for changing flag of change-logs.
 	 * 
-	 * @param answer
+	 * @param colnames
 	 * @return this
 	 */
 	public static HashMap<String,Object[]> checkChangeCol(HashMap<String, Object[]> colnames) {

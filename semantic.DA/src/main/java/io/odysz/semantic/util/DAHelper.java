@@ -206,12 +206,7 @@ public class DAHelper {
 
 	/**
 	 * @deprecated replaced by {@link #count(DATranscxt, String, String, Object...)}
-	 * @param b
-	 * @param conn
-	 * @param t
-	 * @param field
-	 * @param v
-	 * @return
+	 * @return count
 	 * @throws SQLException
 	 * @throws TransException
 	 */

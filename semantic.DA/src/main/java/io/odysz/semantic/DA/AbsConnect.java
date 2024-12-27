@@ -171,7 +171,6 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 	/////////////////////////////// common helper /////////////////////////////
 	/** If printSql is true or if asking enable, 
 	 * then print sqls.
-	 * @param asking
 	 * @param flag
 	 * @param sqls
 	 */

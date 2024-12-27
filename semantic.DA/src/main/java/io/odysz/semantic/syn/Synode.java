@@ -82,8 +82,7 @@ public class Synode extends Anson {
 
 	/**
 	 * Format the insert statement according to my fields.
-	 * @param domain2 
-	 * 
+	 * @param domain 
 	 * @param synm
 	 * @param insert
 	 * @return

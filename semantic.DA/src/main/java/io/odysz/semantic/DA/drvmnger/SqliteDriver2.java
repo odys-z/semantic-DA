@@ -71,9 +71,7 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 		DriverManager.deregisterDriver(drv);
 	}
 
-	/**This method is only for debug and test, use
-	 * #{@link SqliteDriver2#initConnection(String, String, String, boolean, int)}
-	 * before any function call.
+	/**
 	 * MUST CLOSE CONNECTION!
 	 * @return connection
 	 * @throws SQLException

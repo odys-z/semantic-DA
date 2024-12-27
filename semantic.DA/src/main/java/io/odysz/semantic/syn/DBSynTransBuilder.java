@@ -129,7 +129,7 @@ public class DBSynTransBuilder extends DATranscxt {
 	}
 
 	/** 
-	 * A helper version of {@link #DBSynTransBuilder(SyndomContext, String, DBSyntableBuilder)},
+	 * A helper version of {@link #DBSynTransBuilder(SyndomContext, DBSyntableBuilder)},
 	 * ignoring loading {@link SynmanticsMap}.
 	 * 
 	 * @param domx
@@ -153,8 +153,7 @@ public class DBSynTransBuilder extends DATranscxt {
 	 * @param <M>
 	 * @param <S>
 	 * @param trb
-	 * @param xcfg
-	 * @param synode2
+	 * @param synode
 	 * @param syntities 
 	 * @return semantics map of connection {@code conn}
 	 * @throws Exception

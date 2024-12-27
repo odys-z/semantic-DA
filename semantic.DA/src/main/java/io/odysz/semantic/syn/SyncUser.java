@@ -24,7 +24,6 @@ import io.odysz.transact.x.TransException;
  * Synchronizing user for robot and base class of DocUser
  *  
  * @author odys-z@github.com
- * @param <T>
  */
 public class SyncUser extends SemanticObject implements IUser {
 
