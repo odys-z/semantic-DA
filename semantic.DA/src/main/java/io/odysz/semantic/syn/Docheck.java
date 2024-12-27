@@ -124,18 +124,8 @@ public class Docheck {
 		this.tops = null;
 		
 		this.b0 = new DATranscxt(x.synconn);
-		// this.synx = x;
 	}
 	
-//	private Docheck(boolean[] debugs, SyndomContext x) throws Exception {
-//		this.synb = null;
-//		this.tops = debugs;
-//		this.domain = null;
-//
-//		this.b0 = new DATranscxt(null);
-//		this.synx = x;
-//	}
-
 	/**
 	 * Check doc count. 
 	 * @param count

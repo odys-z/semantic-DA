@@ -75,6 +75,7 @@ public class SyndomContext {
 
 	HashMap<String, Nyquence> nv;
 	Nyquence stamp;
+	public long stamp() { return stamp.n; }
 
 	protected SyndomContext(SynodeMode mod, String dom, String synode, String synconn, boolean debug)
 			throws Exception {
