@@ -107,7 +107,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 
 		if (!ftypes.containsKey(synuid)) 
 			throw new SemanticException(err_requires_synuid(tbl, synuid, conn));
-					
+
 		Object[] cols = new Object[autopk() ? ftypes.size() - 1 : ftypes.size()];
 		int cx = 0;
 		for (String c : ftypes.keySet()) {

@@ -4,6 +4,7 @@ import java.sql.SQLException;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
+import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.x.TransException;
 
@@ -15,30 +16,12 @@ import io.odysz.transact.x.TransException;
  * @author odys-z@github.com
  */
 public abstract class ExpDocTableMeta extends SyntityMeta {
-	/**
-	 * consts of share type: pub | priv 
-	 */
-//	public static class Share {
-//		/** public asset */
-//		public static final String pub = "pub";
-//		/** private asset */
-//		public static final String priv = "priv";
-//
-//		public static boolean isPub(String s) {
-//			if (pub.equals(s)) return true;
-//			return false;
-//		}
-//
-//		public static boolean isPriv(String s) {
-//			if (priv.equals(s)) return true;
-//			return false;
-//		}
-//	}
 
 	public final String fullpath;
 	/** aslo named as pname, clientname or filename previously */
 	public final String resname;
 	/**
+	 * FIXME not implemented: 2dbdbdfc2adae1a56c6dca8d435d915e580758fb
 	 * Resource identity, reading with {@link io.odysz.transact.sql.parts.condition.Funcall.Func#extFile extFile}
 	 * and updating with {@link io.odysz.semantic.DASemantics.ShExtFilev2 ShExtFile}.
 	 */
@@ -107,4 +90,13 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	public Object[] getPathInfo(AnResultset rs) throws SQLException {
 		return rs.getFieldArray(device, shareflag, shareby, shareDate);
 	}
+
+	@Override
+	public Object[] entCols() throws SemanticException {
+		Object[] cols = super.entCols();
+		// return cols;
+		// FIXME but why the tests in Semantic.DA are all passed?
+		throw new SemanticException("TODO find uri column and replace it with extfile().");
+	}
+
 }
