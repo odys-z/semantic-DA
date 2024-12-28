@@ -135,17 +135,17 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 */
 	public ArrayList<Object[]> insertChallengeEnt(String uids, AnResultset challents)
 			throws SQLException, SemanticException {
-		// TODO optimize Insert to handle this values faster
-		Object[] cols = entCols();
-		ArrayList<Object[]> val = new ArrayList<Object[]> (entCols.size());
-		ArrayList<Object> row = challents.getRowAt(challents.rowIndex0(uids));
-
-		for (int cx = 0; cx < cols.length; cx++) {
-			if (autopk() && cols[cx] instanceof String && eq(this.pk, (String)cols[cx]))
-				continue;
-			val.add(new Object[] {cols[cx], row.get(cx)});
-		}
-		return val;
+		throw new SemanticException("sholdn't reach here");
+//		Object[] cols = entCols();
+//		ArrayList<Object[]> val = new ArrayList<Object[]> (entCols.size());
+//		ArrayList<Object> row = challents.getRowAt(challents.rowIndex0(uids));
+//
+//		for (int cx = 0; cx < cols.length; cx++) {
+//			if (autopk() && cols[cx] instanceof String && eq(this.pk, (String)cols[cx]))
+//				continue;
+//			val.add(new Object[] {cols[cx], row.get(cx)});
+//		}
+//		return val;
 	}
 
 	/**
