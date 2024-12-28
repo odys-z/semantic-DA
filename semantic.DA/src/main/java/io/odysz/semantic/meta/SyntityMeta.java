@@ -96,7 +96,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * @throws SemanticException this instance is not initialized from db ({@link #ftypes} is empty).
 	 * @since 1.4.40
 	 */
-	public Object[] entCols() throws SemanticException {
+	Object[] entCols() throws SemanticException {
 		if (entCols == null)
 			this.entCols = new HashMap<String, Integer>(ftypes.size());
 
@@ -186,6 +186,9 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	/**
 	 * 
 	 * <p>Entity meta's query event handler, while synchronizing.</p>
+	 * <p>{@link io.odysz.semantic.syn.ExessionPersist ExessionPersist}
+	 * (or {@link io.odysz.semantic.syn.DBSyntableBuilder DBSyntableBuilder})
+	 * use this for loading entities in a syn-exchang page.</p>
 	 * <p>Note: call select.cols(...) first.</p>
 	 * 
 	 * A typical task finished here is to add an extFile() function object to the

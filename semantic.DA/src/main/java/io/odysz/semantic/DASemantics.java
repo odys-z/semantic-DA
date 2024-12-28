@@ -1353,7 +1353,7 @@ public class DASemantics {
 	 * 
 	 * @author odys-z@github.com
 	 */
-	static public class ShExtFile extends SemanticHandler {
+	static class ShExtFile extends SemanticHandler {
 		/** Saving root.<br>
 		 * The path rooted from return of {@link ISemantext#relativpath(String...)}. */
 		public static final int ixExtRoot = 0;

@@ -124,7 +124,7 @@ public class ExessionPersist {
 				? !eq(recId, rsynuid)
 					? // TODO FIXME a branch that tests never reached?
 					  trb.insert(entm.tbl, trb.synrobot())
-						.cols((String[])entm.entCols())
+						.cols(null) // (String[])entm.entCols())
 						.value(entm.insertChallengeEnt(rsynuid, entbuf.get(entm.tbl)))
 						.post(trb.insert(chgm.tbl)
 							.nv(chgm.pk, rpchid)
@@ -798,7 +798,8 @@ public class ExessionPersist {
 			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(synx.synconn, tbl);
 
 			AnResultset entities = ((AnResultset) entm
-				.onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))
+				// .onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))
+				.onselectSyntities(trb.select(tbl, "e").cols("e.*"))
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId,
 					 constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
