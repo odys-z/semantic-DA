@@ -32,6 +32,8 @@
   		<args>oper,opertime</args>
   	</s>
 
+	<!-- See d575a4452113b3c8cc392bbb4c1d9d6d4f38f566
+	     for testing with ext-file semantics.   
 	<s>
   		<id>55</id>
   		<smtc>ef2.0</smtc>
@@ -39,7 +41,6 @@
   		<pk>pid</pk>
   		<args>uploads,uri,family,shareby,folder,pname</args>
   	</s>
-	<!-- 
 	 -->
  	
 	<!-- syn_change
