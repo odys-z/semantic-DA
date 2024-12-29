@@ -1541,12 +1541,16 @@ public class DASemantics {
 
 	/**
 	 * <h5>Note</h5>
-	 * <p>For large file, use stream asynchronous mode, otherwise it's performance problem here.</p>
-	 * <p>Whether uses or not a stream mode file up down loading is a business tier decision by semantic-jserv.
+	 * <p>For large file, use stream asynchronous mode, otherwise it's a performance problem here.</p>
+	 * <p>Whether uses or not a stream mode file up/down loading is a business tier decision by semantic-jserv.
 	 * See Anclient.jave/album test for example.</p>
+	 * 
+	 * <p>This semantics won't process reading events. To load the file content at the field,
+	 * use {@link Funcall#extfile(String...)}.</p>
 	 * 
 	 * @see smtype#extFilev2
 	 * @author odys-z@github.com
+	 * @since 1.4.40
 	 */
 	static public class ShExtFilev2 extends SemanticHandler {
 		/** Saving root.<br>
