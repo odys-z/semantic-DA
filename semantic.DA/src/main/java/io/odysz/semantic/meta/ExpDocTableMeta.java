@@ -82,7 +82,6 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	public Query selectSynPaths(DATranscxt st, String devid) throws TransException {
 		return  st.select(tbl, "t")
 				  .cols(device, shareflag, shareby, shareDate);
-
 	}
 
 	/**
@@ -96,13 +95,13 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 		return rs.getFieldArray(device, shareflag, shareby, shareDate);
 	}
 
-	@Override
-	public Object[] entCols() throws SemanticException {
-		// Object[] cols = super.entCols();
-		// return cols;
-		// FIXME but why the tests in Semantic.DA are all passed?
-		throw new SemanticException("FIXME Not reachable.");
-	}
+//	@Override
+//	public Object[] entCols() throws SemanticException {
+//		// Object[] cols = super.entCols();
+//		// return cols;
+//		// FIXME but why the tests in Semantic.DA are all passed?
+//		throw new SemanticException("FIXME Not reachable.");
+//	}
 
 	@Override
 	public Query onselectSyntities(Query select) throws TransException {
