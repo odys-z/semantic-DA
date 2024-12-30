@@ -93,10 +93,10 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 
 	@Override
 	public Object[] entCols() throws SemanticException {
-		Object[] cols = super.entCols();
+		// Object[] cols = super.entCols();
 		// return cols;
 		// FIXME but why the tests in Semantic.DA are all passed?
-		throw new SemanticException("TODO find uri column and replace it with extfile().");
+		throw new SemanticException("FIXME Not reachable.");
 	}
 
 }
