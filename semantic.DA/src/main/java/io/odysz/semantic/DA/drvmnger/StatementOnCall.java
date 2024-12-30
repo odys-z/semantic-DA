@@ -1,7 +1,6 @@
 package io.odysz.semantic.DA.drvmnger;
 
 import java.sql.Statement;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @since 1.4.45
@@ -27,17 +26,7 @@ public class StatementOnCall {
 		this.statment = stmt;
 		this.onCommit = on;
 		
-		// lock = new ReentrantLock();
 		lock = new Object();
 		finished = false;
 	}
-
-//	public StatementOnCall lock() {
-//		lock.lock();
-//		return this;
-//	}
-//
-//	public void unlock() {
-//		lock.unlock();
-//	}
 }

@@ -54,9 +54,7 @@ public class DBSynmantics extends DASemantics {
 		if (smtype.synChange == smtp)
 			// relic for docs 
 			Utils.warn("The syn-change semantics is silenced as a newer design decision");
-			// return new DBSynmantics.ShSynChange(tsx, synode, tabl, pk, args);
-		// else
-			return super.parseHandler(tsx, tabl, smtp, pk, args);
+		return super.parseHandler(tsx, tabl, smtp, pk, args);
 	}
 	
 	@Override
@@ -264,7 +262,6 @@ public class DBSynmantics extends DASemantics {
 				"Table: %s, Synode: %s\n" +
 				"Semantics handling is ignored.",
 					stx.getClass().getName(),
-					// ((ISyncontext)stx).synbuilder() instanceof DBSyntableBuilder
 					stx instanceof ISyncontext
 					? ((ISyncontext)stx).synbuilder() : "Not an ISyncontext",
 					target, synode);
