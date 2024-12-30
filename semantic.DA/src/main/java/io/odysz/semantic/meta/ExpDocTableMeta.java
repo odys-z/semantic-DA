@@ -6,10 +6,8 @@ import static io.odysz.transact.sql.parts.condition.Funcall.extfile;
 import java.sql.SQLException;
 
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.x.TransException;
 
@@ -94,14 +92,6 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	public Object[] getPathInfo(AnResultset rs) throws SQLException {
 		return rs.getFieldArray(device, shareflag, shareby, shareDate);
 	}
-
-//	@Override
-//	public Object[] entCols() throws SemanticException {
-//		// Object[] cols = super.entCols();
-//		// return cols;
-//		// FIXME but why the tests in Semantic.DA are all passed?
-//		throw new SemanticException("FIXME Not reachable.");
-//	}
 
 	@Override
 	public Query onselectSyntities(Query select) throws TransException {
