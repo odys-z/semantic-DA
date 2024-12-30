@@ -168,7 +168,8 @@ public class DBSyntableTest {
 							throw new SemanticException("TODO %s", synreg.table);
 					});
 
-			// MEMO // See also docsync.jser/Syngleton.setupSyntables(), 2.1 injecting synmantics after syn-tables have been set.
+			// MEMO
+			// See also docsync.jser/Syngleton.setupSyntables(), 2.1 injecting synmantics after syn-tables have been set.
 			phm.replace();
 			for (SyntityMeta m : syntities.metas.values())
 				m.replace();
@@ -689,8 +690,7 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {servnid, "on initiate"}, test, subno, ++no);
 		ExessionPersist sp = new ExessionPersist(stb, clientnid, ini);
 		ExchangeBlock rep = stb.onInit(sp, ini);
-		Utils.logrst(f(
-				"%s on initiate: changes: %d",
+		Utils.logrst(f("%s on initiate: changes: %d",
 				servnid, rep.totalChallenges),
 				test, subno, no, 1);
 

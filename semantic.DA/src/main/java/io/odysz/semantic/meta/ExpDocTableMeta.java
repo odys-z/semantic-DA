@@ -1,8 +1,13 @@
 package io.odysz.semantic.meta;
 
+import static io.odysz.common.LangExt.replacele;
+import static io.odysz.transact.sql.parts.condition.Funcall.extfile;
+
 import java.sql.SQLException;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DASemantics;
+import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
@@ -99,4 +104,16 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 		throw new SemanticException("FIXME Not reachable.");
 	}
 
+	@Override
+	public Query onselectSyntities(Query select) throws TransException {
+		String a = tbl; 
+		if (select.alias() != null)
+			a = select.alias().toString();
+		return select
+				.clos_clear()
+				.cols_byAlias(a,
+					DATranscxt.hasSemantics(conn, tbl, smtype.extFilev2)
+					? replacele(entCols(), uri, extfile(a + "." + uri))
+					: entCols());
+	}
 }

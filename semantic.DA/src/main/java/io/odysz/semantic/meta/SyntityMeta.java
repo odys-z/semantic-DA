@@ -96,7 +96,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * @throws SemanticException this instance is not initialized from db ({@link #ftypes} is empty).
 	 * @since 1.4.40
 	 */
-	public Object[] entCols() throws SemanticException {
+	Object[] entCols() throws SemanticException {
 		if (entCols == null)
 			this.entCols = new HashMap<String, Integer>(ftypes.size());
 
@@ -135,17 +135,17 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 */
 	public ArrayList<Object[]> insertChallengeEnt(String uids, AnResultset challents)
 			throws SQLException, SemanticException {
-		// TODO optimize Insert to handle this values faster
-		Object[] cols = entCols();
-		ArrayList<Object[]> val = new ArrayList<Object[]> (entCols.size());
-		ArrayList<Object> row = challents.getRowAt(challents.rowIndex0(uids));
-
-		for (int cx = 0; cx < cols.length; cx++) {
-			if (autopk() && cols[cx] instanceof String && eq(this.pk, (String)cols[cx]))
-				continue;
-			val.add(new Object[] {cols[cx], row.get(cx)});
-		}
-		return val;
+		throw new SemanticException("sholdn't reach here");
+//		Object[] cols = entCols();
+//		ArrayList<Object[]> val = new ArrayList<Object[]> (entCols.size());
+//		ArrayList<Object> row = challents.getRowAt(challents.rowIndex0(uids));
+//
+//		for (int cx = 0; cx < cols.length; cx++) {
+//			if (autopk() && cols[cx] instanceof String && eq(this.pk, (String)cols[cx]))
+//				continue;
+//			val.add(new Object[] {cols[cx], row.get(cx)});
+//		}
+//		return val;
 	}
 
 	/**
@@ -186,6 +186,9 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	/**
 	 * 
 	 * <p>Entity meta's query event handler, while synchronizing.</p>
+	 * <p>{@link io.odysz.semantic.syn.ExessionPersist ExessionPersist}
+	 * (or {@link io.odysz.semantic.syn.DBSyntableBuilder DBSyntableBuilder})
+	 * use this for loading entities in a syn-exchang page.</p>
 	 * <p>Note: call select.cols(...) first.</p>
 	 * 
 	 * A typical task finished here is to add an extFile() function object to the

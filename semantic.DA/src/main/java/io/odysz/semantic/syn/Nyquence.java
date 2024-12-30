@@ -56,12 +56,12 @@ public class Nyquence {
 	 */
 	Nyquence inc(long maxn) {
 		this.n = Math.max(maxn, this.n );
-		this.n++;
+		this.n++;	// FIXME
 		return this;
 	}
 
 	public Nyquence add(int inc) {
-		n += inc;
+		n += inc;	// FIXME
 		return this;
 	}
 
