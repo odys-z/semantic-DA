@@ -1,6 +1,5 @@
 package io.odysz.semantic.meta;
 
-import io.odysz.common.Utils;
 import io.odysz.semantics.meta.Semantation;
 import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.Resulving;

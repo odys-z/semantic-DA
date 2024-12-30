@@ -1,6 +1,5 @@
 package io.odysz.semantic.meta;
 
-import io.odysz.common.Utils;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Update;

@@ -4,9 +4,7 @@ import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.len;
 
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -72,12 +70,6 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 	@SuppressWarnings("unchecked")
 	public <T extends SemanticTableMeta> T replace() throws TransException, SQLException {
 		TableMeta mdb = Connects.getMeta(conn, tbl);
-		/** 2024.12.12 Tolerating multiple calling is the correct design?
-		if (debug && mdb instanceof SemanticTableMeta
-			&& (Connects.getDebug(conn) || !eq(mdb.getClass().getName(), getClass().getName())))
-			Utils.warn( "[TableMeta.debug true] Replacing existing Semantic table meta with new meta. Old: %s, new %s",
-						mdb.getClass().getName(), getClass().getName());
-		*/
 
 		if (len(this.ftypes) == 0)
 			DASemantics.replaceMeta(tbl, this, conn);

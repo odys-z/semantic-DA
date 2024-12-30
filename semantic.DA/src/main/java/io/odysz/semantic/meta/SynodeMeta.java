@@ -1,7 +1,5 @@
 package io.odysz.semantic.meta;
 
-import static io.odysz.common.Utils.loadTxt;
-
 import java.util.ArrayList;
 
 import io.odysz.module.rs.AnResultset;

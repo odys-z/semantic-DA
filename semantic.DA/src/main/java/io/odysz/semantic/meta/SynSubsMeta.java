@@ -1,8 +1,6 @@
 package io.odysz.semantic.meta;
 
 import static io.odysz.common.LangExt.len;
-import static io.odysz.common.Utils.loadTxt;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Set;
