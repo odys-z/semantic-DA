@@ -35,7 +35,6 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 */
 	public final String synuid;
 	
-	/** Entity creator's id used for identify originators in domain (globally?) */
 	public String device;
 
 	/** Entity's columns for generation global uid */
