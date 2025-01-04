@@ -106,6 +106,11 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 
 	public static void setupSqlitables(String conn, boolean force_drop, Iterable<SyntityMeta> ms)
 			throws SQLException, TransException {
+		if (Connects.driverType(conn) == dbtype.sqlite
+		 || Connects.driverType(conn) == dbtype.sqlite_queue)
+			Utils.warnT(new Object(){},
+				"This method is only used for sqlite DB. [%s]", conn);
+
 		if (ms != null && Connects.isqlite(conn))
 		for (TableMeta m : ms)
 			if (!isblank(m.ddlSqlite)) {
@@ -119,6 +124,7 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 				|| Connects.driverType(conn) != dbtype.sqlite_queue)
 				Utils.warn("Table meta's ddl is null. The table needs to be created manually. %s [%s]",
 						m.tbl, conn);;
+
 	}
 
 }
