@@ -1,0 +1,506 @@
+      X    Y    Z
+X [   1,   0,   0 ] {  }
+Y [   0,   1,   0 ] {  }
+Z [   0,   0,   1 ] {  }
+
+1.1 insert X
+------------
+
+
+1.2 insert Y
+------------
+
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+                                    | I    000042  Y,000401  1  X [    ] |                                    |                                    
+                                    | I    000042  Y,000401  1  Z [    ] |                                    |                                    
+ I    000003   X,dev-0  1  Z [    ] |                                    |                                    |                                    
+ I    000002  X,000021  1  Z [    ] |                                    |                                    |                                    
+ I    000003   X,dev-0  1  Y [    ] |                                    |                                    |                                    
+ I    000002  X,000021  1  Y [    ] |                                    |                                    |                                    
+      X    Y    Z
+X [   1,   0,   0 ] { X,000021 }
+Y [   0,   1,   0 ] { Y,000401 }
+Z [   0,   0,   1 ] {  }
+
+1.3 X <= Y
+----------
+
+
+1.3.1 Y initiate
+________________
+
+
+1.3.1.1 Y initiate: changes: 0    entities: 0
++++++++++++++++++++++++++++++++++++++++++++++
+
+
+1.3.2 X on initiate
+___________________
+
+
+1.3.2.1 X on initiate: changes: 2
++++++++++++++++++++++++++++++++++
+
+
+1.3.3 exchange loops X <=> Y
+____________________________
+
+
+1.3.3.1 Y exchange
+++++++++++++++++++
+
+
+1.3.3.1.1 Y exchange challenge    changes: 1    entities: 1    answers: 0
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Exchange Package: Y -> X : null
+challenge seq: 0	answer-seq -1
+challenge page:
+1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
+row count: 2
+1 : 0  2 : 000042  3 : zsu  4 : h_photos  5 : I  6 : Y  7 : Y,000401  8 : 1  9 : null  10 : 1  11 : X  
+1 : 0  2 : 000042  3 : zsu  4 : h_photos  5 : I  6 : Y  7 : Y,000401  8 : 1  9 : null  10 : 1  11 : Z  
+entities:
+	name: h_photos
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
+row count: 1
+1 : ody@kyiv  2 : null  3 : null  4 : 2025-01-04 15:02:58  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2025-01-04  11 : pub  12 : Y  13 : ura  14 : Ukraine.png  15 : dev client of 1  16 : null  
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+                                    | I    000042  Y,000401  1  X [ X:0] |                                    |                                    
+                                    | I    000042  Y,000401  1  Z [ X:0] |                                    |                                    
+ I    000003   X,dev-0  1  Z [Y:-1] |                                    |                                    |                                    
+ I    000002  X,000021  1  Z [Y:-1] |                                    |                                    |                                    
+ I    000003   X,dev-0  1  Y [Y:-1] |                                    |                                    |                                    
+ I    000002  X,000021  1  Y [Y:-1] |                                    |                                    |                                    
+      X    Y    Z
+X [   1,   0,   0 ] { X,000021 }
+Y [   0,   1,   0 ] { Y,000401 }
+Z [   0,   0,   1 ] {  }
+
+1.3.3.2 X on exchange
++++++++++++++++++++++
+
+
+1.3.3.2.1 X on exchange response    changes: 2    entities: 2    answers: 1
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Exchange Package: X -> Y : null
+challenge seq: 0	answer-seq 0
+challenge page:
+1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
+row count: 4
+1 : 0  2 : 000003  3 : zsu  4 : doc_devices  5 : I  6 : X  7 : X,dev-0  8 : 1  9 : null  10 : 2  11 : Y  
+1 : 0  2 : 000003  3 : zsu  4 : doc_devices  5 : I  6 : X  7 : X,dev-0  8 : 1  9 : null  10 : 2  11 : Z  
+1 : 0  2 : 000002  3 : zsu  4 : h_photos  5 : I  6 : X  7 : X,000021  8 : 1  9 : null  10 : 1  11 : Y  
+1 : 0  2 : 000002  3 : zsu  4 : h_photos  5 : I  6 : X  7 : X,000021  8 : 1  9 : null  10 : 1  11 : Z  
+entities:
+	name: doc_devices
+1 : synode0	2 : device	3 : devname	4 : mac	5 : org	6 : owner	7 : cdate	8 : io_oz_synuid	
+row count: 1
+1 : dev-0  2 : dev-0  3 : test-dev-0  4 : null  5 : ura  6 : Semantid.DA Junit  7 : 2025-01-04  8 : X,dev-0  
+	name: h_photos
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
+row count: 1
+1 : ody@kyiv  2 : null  3 : null  4 : 2025-01-04 15:02:58  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2025-01-04  11 : pub  12 : X  13 : ura  14 : Ukraine.png  15 : dev client of 0  16 : null  
+answer page:
+1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	12 : change	
+row count: 1
+
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+                                    | I    000042  Y,000401  1  X [ X:0] |                                    |                                    
+ I    000042  Y,000401  1  Z [    ] | I    000042  Y,000401  1  Z [ X:0] |                                    |                                    
+ I    000003   X,dev-0  1  Z [ Y:0] |                                    |                                    |                                    
+ I    000002  X,000021  1  Z [ Y:0] |                                    |                                    |                                    
+ I    000003   X,dev-0  1  Y [ Y:0] |                                    |                                    |                                    
+ I    000002  X,000021  1  Y [ Y:0] |                                    |                                    |                                    
+      X    Y    Z
+X [   1,   0,   0 ] { X,000021 Y,000401 }
+Y [   0,   1,   0 ] { Y,000401 }
+Z [   0,   0,   1 ] {  }
+
+1.3.3.3 Y exchange
+++++++++++++++++++
+
+[io.odysz.semantic.syn.ExessionPersist#commitAnswers()] Locally committing answers to X ...
+
+1.3.3.3.1 Y exchange challenge    changes: 1    entities: 1    answers: 2
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Exchange Package: Y -> X : null
+challenge seq: -1	answer-seq 0
+challenge page:
+1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
+row count: 0
+entities:
+	name: h_photos
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
+row count: 1
+1 : ody@kyiv  2 : null  3 : null  4 : 2025-01-04 15:02:58  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2025-01-04  11 : pub  12 : Y  13 : ura  14 : Ukraine.png  15 : dev client of 1  16 : null  
+answer page:
+1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	12 : change	
+row count: 2
+
+
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+ I    000042  Y,000401  1  Z [    ] | I    000042  Y,000401  1  Z [ X:0] |                                    |                                    
+ I    000003   X,dev-0  1  Z [ Y:0] | I    000003   X,dev-0  1  Z [    ] |                                    |                                    
+ I    000002  X,000021  1  Z [ Y:0] | I    000002  X,000021  1  Z [    ] |                                    |                                    
+ I    000003   X,dev-0  1  Y [ Y:0] |                                    |                                    |                                    
+ I    000002  X,000021  1  Y [ Y:0] |                                    |                                    |                                    
+      X    Y    Z
+X [   1,   0,   0 ] { X,000021 Y,000401 }
+Y [   0,   1,   0 ] { X,000021 Y,000401 }
+Z [   0,   0,   1 ] {  }
+
+1.3.3.4 X on exchange
++++++++++++++++++++++
+
+[io.odysz.semantic.syn.ExessionPersist#commitAnswers()] Locally committing answers to Y ...
+
+1.3.3.4.1 X on exchange response    changes: 2    entities: 2    answers: 0
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Exchange Package: X -> Y : null
+challenge seq: -1	answer-seq -1
+challenge page:
+1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
+row count: 0
+entities:
+	name: doc_devices
+1 : synode0	2 : device	3 : devname	4 : mac	5 : org	6 : owner	7 : cdate	8 : io_oz_synuid	
+row count: 1
+1 : dev-0  2 : dev-0  3 : test-dev-0  4 : null  5 : ura  6 : Semantid.DA Junit  7 : 2025-01-04  8 : X,dev-0  
+	name: h_photos
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
+row count: 1
+1 : ody@kyiv  2 : null  3 : null  4 : 2025-01-04 15:02:58  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2025-01-04  11 : pub  12 : X  13 : ura  14 : Ukraine.png  15 : dev client of 0  16 : null  
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+ I    000042  Y,000401  1  Z [    ] | I    000042  Y,000401  1  Z [ X:0] |                                    |                                    
+ I    000003   X,dev-0  1  Z [ Y:0] | I    000003   X,dev-0  1  Z [    ] |                                    |                                    
+ I    000002  X,000021  1  Z [ Y:0] | I    000002  X,000021  1  Z [    ] |                                    |                                    
+      X    Y    Z
+X [   1,   0,   0 ] { X,000021 Y,000401 }
+Y [   0,   1,   0 ] { X,000021 Y,000401 }
+Z [   0,   0,   1 ] {  }
+
+1.3.4 Y closing exchange
+________________________
+
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+ I    000042  Y,000401  1  Z [    ] | I    000042  Y,000401  1  Z [    ] |                                    |                                    
+ I    000003   X,dev-0  1  Z [ Y:0] | I    000003   X,dev-0  1  Z [    ] |                                    |                                    
+ I    000002  X,000021  1  Z [ Y:0] | I    000002  X,000021  1  Z [    ] |                                    |                                    
+      X    Y    Z
+X [   1,   0,   0 ] { X,000021 Y,000401 }
+Y [   1,   2,   0 ] { X,000021 Y,000401 }
+Z [   0,   0,   1 ] {  }
+      X    Y    Z
+X [   1,   0,   0 ] { X,X Y,Y Z,Z }
+Y [   1,   2,   0 ] { X,X Y,Y Z,Z }
+Z [   0,   0,   1 ] { X,X Y,Y Z,Z }
+
+1.3.5 X on closing exchange
+___________________________
+
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+ I    000042  Y,000401  1  Z [    ] | I    000042  Y,000401  1  Z [    ] |                                    |                                    
+ I    000003   X,dev-0  1  Z [    ] | I    000003   X,dev-0  1  Z [    ] |                                    |                                    
+ I    000002  X,000021  1  Z [    ] | I    000002  X,000021  1  Z [    ] |                                    |                                    
+      X    Y    Z
+X [   2,   1,   0 ] { X,000021 Y,000401 }
+Y [   1,   2,   0 ] { X,000021 Y,000401 }
+Z [   0,   0,   1 ] {  }
+      X    Y    Z
+X [   2,   1,   0 ] { X,X Y,Y Z,Z }
+Y [   1,   2,   0 ] { X,X Y,Y Z,Z }
+Z [   0,   0,   1 ] { X,X Y,Y Z,Z }
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+ I    000042  Y,000401  1  Z [    ] | I    000042  Y,000401  1  Z [    ] |                                    |                                    
+ I    000003   X,dev-0  1  Z [    ] | I    000003   X,dev-0  1  Z [    ] |                                    |                                    
+ I    000002  X,000021  1  Z [    ] | I    000002  X,000021  1  Z [    ] |                                    |                                    
+      X    Y    Z
+X [   2,   1,   0 ] { X,000021 Y,000401 }
+Y [   1,   2,   0 ] { X,000021 Y,000401 }
+Z [   0,   0,   1 ] {  }
+
+1.4 Y <= Z
+----------
+
+
+1.4.1 Z initiate
+________________
+
+
+1.4.1.1 Z initiate: changes: 0    entities: 0
++++++++++++++++++++++++++++++++++++++++++++++
+
+
+1.4.2 Y on initiate
+___________________
+
+
+1.4.2.1 Y on initiate: changes: 3
++++++++++++++++++++++++++++++++++
+
+
+1.4.3 exchange loops Y <=> Z
+____________________________
+
+
+1.4.3.1 Z exchange
+++++++++++++++++++
+
+
+1.4.3.1.1 Z exchange challenge    changes: 0    entities: 0    answers: 0
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Exchange Package: Z -> Y : null
+challenge seq: -1	answer-seq -1
+challenge page:
+1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
+row count: 0
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+ I    000042  Y,000401  1  Z [    ] | I    000042  Y,000401  1  Z [Z:-1] |                                    |                                    
+ I    000003   X,dev-0  1  Z [    ] | I    000003   X,dev-0  1  Z [Z:-1] |                                    |                                    
+ I    000002  X,000021  1  Z [    ] | I    000002  X,000021  1  Z [Z:-1] |                                    |                                    
+      X    Y    Z
+X [   2,   1,   0 ] { X,000021 Y,000401 }
+Y [   1,   2,   0 ] { X,000021 Y,000401 }
+Z [   0,   0,   1 ] {  }
+
+1.4.3.2 Y on exchange
++++++++++++++++++++++
+
+
+1.4.3.2.1 Y on exchange response    changes: 3    entities: 3    answers: 0
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Exchange Package: Y -> Z : null
+challenge seq: 0	answer-seq -1
+challenge page:
+1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
+row count: 3
+1 : 0  2 : 000003  3 : zsu  4 : doc_devices  5 : I  6 : X  7 : X,dev-0  8 : 1  9 : null  10 : 2  11 : Z  
+1 : 0  2 : 000002  3 : zsu  4 : h_photos  5 : I  6 : X  7 : X,000021  8 : 1  9 : null  10 : 3  11 : Z  
+1 : 0  2 : 000042  3 : zsu  4 : h_photos  5 : I  6 : Y  7 : Y,000401  8 : 1  9 : null  10 : 1  11 : Z  
+entities:
+	name: doc_devices
+1 : synode0	2 : device	3 : devname	4 : mac	5 : org	6 : owner	7 : cdate	8 : io_oz_synuid	
+row count: 1
+1 : dev-0  2 : dev-0  3 : test-dev-0  4 : null  5 : ura  6 : Semantid.DA Junit  7 : 2025-01-04  8 : X,dev-0  
+	name: h_photos
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
+row count: 2
+1 : ody@kyiv  2 : null  3 : null  4 : 2025-01-04 15:02:59  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2025-01-04  11 : pub  12 : Y  13 : ura  14 : Ukraine.png  15 : dev client of 0  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2025-01-04 15:02:58  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2025-01-04  11 : pub  12 : Y  13 : ura  14 : Ukraine.png  15 : dev client of 1  16 : null  
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+ I    000042  Y,000401  1  Z [    ] | I    000042  Y,000401  1  Z [ Z:0] |                                    |                                    
+ I    000003   X,dev-0  1  Z [    ] | I    000003   X,dev-0  1  Z [ Z:0] |                                    |                                    
+ I    000002  X,000021  1  Z [    ] | I    000002  X,000021  1  Z [ Z:0] |                                    |                                    
+      X    Y    Z
+X [   2,   1,   0 ] { X,000021 Y,000401 }
+Y [   1,   2,   0 ] { X,000021 Y,000401 }
+Z [   0,   0,   1 ] {  }
+
+1.4.3.3 Z exchange
+++++++++++++++++++
+
+
+1.4.3.3.1 Z exchange challenge    changes: 0    entities: 0    answers: 3
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Exchange Package: Z -> Y : null
+challenge seq: -1	answer-seq 0
+challenge page:
+1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
+row count: 0
+answer page:
+1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	12 : change	
+row count: 3
+
+
+
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+ I    000042  Y,000401  1  Z [    ] | I    000042  Y,000401  1  Z [ Z:0] |                                    |                                    
+ I    000003   X,dev-0  1  Z [    ] | I    000003   X,dev-0  1  Z [ Z:0] |                                    |                                    
+ I    000002  X,000021  1  Z [    ] | I    000002  X,000021  1  Z [ Z:0] |                                    |                                    
+      X    Y    Z
+X [   2,   1,   0 ] { X,000021 Y,000401 }
+Y [   1,   2,   0 ] { X,000021 Y,000401 }
+Z [   0,   0,   1 ] { X,000021 Y,000401 }
+
+1.4.3.4 Y on exchange
++++++++++++++++++++++
+
+[io.odysz.semantic.syn.ExessionPersist#commitAnswers()] Locally committing answers to Z ...
+
+1.4.3.4.1 Y on exchange response    changes: 3    entities: 3    answers: 0
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Exchange Package: Y -> Z : null
+challenge seq: -1	answer-seq -1
+challenge page:
+1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
+row count: 0
+entities:
+	name: doc_devices
+1 : synode0	2 : device	3 : devname	4 : mac	5 : org	6 : owner	7 : cdate	8 : io_oz_synuid	
+row count: 1
+1 : dev-0  2 : dev-0  3 : test-dev-0  4 : null  5 : ura  6 : Semantid.DA Junit  7 : 2025-01-04  8 : X,dev-0  
+	name: h_photos
+1 : shareby	2 : pdate	3 : mime	4 : opertime	5 : filesize	6 : uri	7 : io_oz_synuid	8 : clientpath	9 : folder	10 : sharedate	11 : shareflag	12 : oper	13 : family	14 : docname	15 : device	16 : exif	
+row count: 2
+1 : ody@kyiv  2 : null  3 : null  4 : 2025-01-04 15:02:59  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : X,000021  8 : src/test/res/Ukraine.png  9 : X  10 : 2025-01-04  11 : pub  12 : Y  13 : ura  14 : Ukraine.png  15 : dev client of 0  16 : null  
+1 : ody@kyiv  2 : null  3 : null  4 : 2025-01-04 15:02:58  5 : 0  6 : iVBORw0KGgoAAAANSUhEUgAAADwAAAAoCAIAAAAt2Q6oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYSCBkDT4nw4QAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABjSURBVFjD7dXBCYAwEATAO7FE27QNu7GFxA424EN8zH6XwHAEtus4K2SO2M7Udsd2e93Gl38NNDQ0NPS/sy82LydvXs5ia4fvAQ0NDQ39Zfq+XBoaGhoaGhoaGhoaGhq6qqoeVmUNAc7sDO0AAAAASUVORK5CYII=  7 : Y,000401  8 : src/test/res/Ukraine.png  9 : Y  10 : 2025-01-04  11 : pub  12 : Y  13 : ura  14 : Ukraine.png  15 : dev client of 1  16 : null  
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+ I    000042  Y,000401  1  Z [    ] |                                    |                                    |                                    
+ I    000003   X,dev-0  1  Z [    ] |                                    |                                    |                                    
+ I    000002  X,000021  1  Z [    ] |                                    |                                    |                                    
+      X    Y    Z
+X [   2,   1,   0 ] { X,000021 Y,000401 }
+Y [   1,   2,   0 ] { X,000021 Y,000401 }
+Z [   0,   0,   1 ] { X,000021 Y,000401 }
+
+1.4.4 Z closing exchange
+________________________
+
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+ I    000042  Y,000401  1  Z [    ] |                                    |                                    |                                    
+ I    000003   X,dev-0  1  Z [    ] |                                    |                                    |                                    
+ I    000002  X,000021  1  Z [    ] |                                    |                                    |                                    
+      X    Y    Z
+X [   2,   1,   0 ] { X,000021 Y,000401 }
+Y [   1,   2,   0 ] { X,000021 Y,000401 }
+Z [   1,   2,   3 ] { X,000021 Y,000401 }
+      X    Y    Z
+X [   2,   1,   0 ] { X,X Y,Y Z,Z }
+Y [   1,   2,   0 ] { X,X Y,Y Z,Z }
+Z [   1,   2,   3 ] { X,X Y,Y Z,Z }
+
+1.4.5 Y on closing exchange
+___________________________
+
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+ I    000042  Y,000401  1  Z [    ] |                                    |                                    |                                    
+ I    000003   X,dev-0  1  Z [    ] |                                    |                                    |                                    
+ I    000002  X,000021  1  Z [    ] |                                    |                                    |                                    
+      X    Y    Z
+X [   2,   1,   0 ] { X,000021 Y,000401 }
+Y [   1,   3,   2 ] { X,000021 Y,000401 }
+Z [   1,   2,   3 ] { X,000021 Y,000401 }
+      X    Y    Z
+X [   2,   1,   0 ] { X,X Y,Y Z,Z }
+Y [   1,   3,   2 ] { X,X Y,Y Z,Z }
+Z [   1,   2,   3 ] { X,X Y,Y Z,Z }
+      X    Y    Z
+X [   2,   1,   0 ] { X,000021 Y,000401 }
+Y [   1,   3,   2 ] { X,000021 Y,000401 }
+Z [   1,   2,   3 ] { X,000021 Y,000401 }
+
+1.5 X <= Y
+----------
+
+
+1.5.1 Y initiate
+________________
+
+
+1.5.1.1 Y initiate: changes: 0    entities: 0
++++++++++++++++++++++++++++++++++++++++++++++
+
+
+1.5.2 X on initiate
+___________________
+
+
+1.5.2.1 X on initiate: changes: 0
++++++++++++++++++++++++++++++++++
+
+
+1.5.3 exchange loops X <=> Y
+____________________________
+
+
+1.5.3.1 Y exchange
+++++++++++++++++++
+
+
+1.5.3.1.1 Y exchange challenge    changes: 0    entities: 0    answers: 0
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Exchange Package: Y -> X : null
+challenge seq: -1	answer-seq -1
+challenge page:
+1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
+row count: 0
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+
+      X    Y    Z
+X [   2,   1,   0 ] { X,000021 Y,000401 }
+Y [   1,   3,   2 ] { X,000021 Y,000401 }
+Z [   1,   2,   3 ] { X,000021 Y,000401 }
+
+1.5.3.2 X on exchange
++++++++++++++++++++++
+
+
+1.5.3.2.1 X on exchange response    changes: 0    entities: 0    answers: 0
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Exchange Package: X -> Y : null
+challenge seq: -1	answer-seq -1
+challenge page:
+1 : pagex	2 : cid	3 : domain	4 : tabl	5 : crud	6 : synoder	7 : uids	8 : nyquence	9 : updcols	10 : seq	11 : synodee	
+row count: 0
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+
+      X    Y    Z
+X [   2,   1,   0 ] { X,000021 Y,000401 }
+Y [   1,   3,   2 ] { X,000021 Y,000401 }
+Z [   1,   2,   3 ] { X,000021 Y,000401 }
+
+1.5.4 Y closing exchange
+________________________
+
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+
+      X    Y    Z
+X [   2,   1,   0 ] { X,000021 Y,000401 }
+Y [   2,   4,   2 ] { X,000021 Y,000401 }
+Z [   1,   2,   3 ] { X,000021 Y,000401 }
+      X    Y    Z
+X [   2,   1,   0 ] { X,X Y,Y Z,Z }
+Y [   2,   4,   2 ] { X,X Y,Y Z,Z }
+Z [   1,   2,   3 ] { X,X Y,Y Z,Z }
+
+1.5.5 X on closing exchange
+___________________________
+
+                  X                 |                  Y                 |                  Z                 
+------------------------------------+------------------------------------+------------------------------------
+
+      X    Y    Z
+X [   4,   3,   2 ] { X,000021 Y,000401 }
+Y [   2,   4,   2 ] { X,000021 Y,000401 }
+Z [   1,   2,   3 ] { X,000021 Y,000401 }
+      X    Y    Z
+X [   4,   3,   2 ] { X,X Y,Y Z,Z }
+Y [   2,   4,   2 ] { X,X Y,Y Z,Z }
+Z [   1,   2,   3 ] { X,X Y,Y Z,Z }
