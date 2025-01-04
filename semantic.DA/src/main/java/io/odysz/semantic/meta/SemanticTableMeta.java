@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.stream.Collectors;
 
 import io.odysz.common.Utils;
+import io.odysz.common.dbtype;
 import io.odysz.module.xtable.XMLTable.IMapValue;
 import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
@@ -113,6 +114,11 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 
 				Connects.commit(conn, DATranscxt.dummyUser(), m.ddlSqlite);
 			}
+			else if (debug
+				&& Connects.driverType(conn) != dbtype.sqlite
+				|| Connects.driverType(conn) != dbtype.sqlite_queue)
+				Utils.warn("Table meta's ddl is null. The table needs to be created manually. %s [%s]",
+						m.tbl, conn);;
 	}
 
 }
