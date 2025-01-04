@@ -31,9 +31,9 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	/**
 	 * Global syn-uid. Must be transparent to users.
 	 * 
-	 * (using this field in transactions will supress semantics handling of smtyp.synchange)
+	 * (using this field in transactions will suppress semantics handling of smtyp.synchange)
 	 */
-	public final String synuid;
+	public final String io_oz_synuid;
 	
 	public String device;
 
@@ -68,7 +68,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 		this.pk = pk;
 		// synoder = synodr;
 		device = devid;
-		synuid = "io_oz_synuid";
+		io_oz_synuid = "io_oz_synuid";
 		
 		uids = new ArrayList<String>();
 	}
@@ -77,8 +77,8 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	@Override
 	public <T extends SemanticTableMeta> T replace() throws TransException, SQLException {
 		super.replace();
-		if (isNull(ftypes) || !ftypes.containsKey(synuid))
-			throw new TransException(err_requires_synuid(tbl, synuid, conn));
+		if (isNull(ftypes) || !ftypes.containsKey(io_oz_synuid))
+			throw new TransException(err_requires_synuid(tbl, io_oz_synuid, conn));
 		return (T) this;
 	}
 
@@ -104,8 +104,8 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 					"The table %s's meta is not initialized with information from DB. Call clone() or replace() first.",
 					tbl);
 
-		if (!ftypes.containsKey(synuid)) 
-			throw new SemanticException(err_requires_synuid(tbl, synuid, conn));
+		if (!ftypes.containsKey(io_oz_synuid)) 
+			throw new SemanticException(err_requires_synuid(tbl, io_oz_synuid, conn));
 
 		Object[] cols = new Object[autopk() ? ftypes.size() - 1 : ftypes.size()];
 		int cx = 0;

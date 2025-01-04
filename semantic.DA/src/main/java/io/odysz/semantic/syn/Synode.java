@@ -56,7 +56,7 @@ public class Synode extends Anson {
 		this.mac = r.getString(synm.device);
 		this.domain = r.getString(synm.domain);
 		this.nyquence = r.getLong(synm.nyquence);
-		this.syn_uid = r.getString(synm.synuid);
+		this.syn_uid = r.getString(synm.io_oz_synuid);
 	}
 
 	/**
@@ -76,7 +76,7 @@ public class Synode extends Anson {
 			.nv(synm.nyquence, n0.n)
 			.nv(synm.domain, domain)
 			// .nv(synm.synuid, SynChangeMeta.uids(creator, synodeId))
-			.nv(synm.synuid, syn_uid)
+			.nv(synm.io_oz_synuid, syn_uid)
 			.nv(synm.org, org);
 	}
 
@@ -91,14 +91,14 @@ public class Synode extends Anson {
 	 */
 	public Insert insertRow(String domain, SynodeMeta synm, Insert insert) throws TransException {
 		return insert
-		  .cols(synm.pk, synm.device, synm.nyquence, synm.domain, synm.synuid, synm.org)
+		  .cols(synm.pk, synm.device, synm.nyquence, synm.domain, synm.io_oz_synuid, synm.org)
 		  .value(new ArrayList<Object[]>() {
 			private static final long serialVersionUID = 1L;
 			{add(new Object[] {synm.pk, synid});}
 			{add(new Object[] {synm.device, "#" + synid});}
 			{add(new Object[] {synm.nyquence, nyquence});}
 			{add(new Object[] {synm.domain, domain});}
-			{add(new Object[] {synm.synuid, syn_uid});}
+			{add(new Object[] {synm.io_oz_synuid, syn_uid});}
 			{add(new Object[] {synm.org, org});}
 		});
 	}

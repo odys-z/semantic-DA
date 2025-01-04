@@ -1,6 +1,8 @@
 package io.odysz.semantic.syn;
 
+import static io.odysz.common.LangExt._0;
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.isNull;
 import static io.odysz.transact.sql.parts.condition.ExprPart.constr;
 
 import java.lang.reflect.Constructor;
@@ -13,6 +15,7 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
+import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -30,6 +33,7 @@ import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Condit;
+import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -68,14 +72,14 @@ public class DBSynmantics extends DASemantics {
 	 * @param inst
 	 * @param entm
 	 * @param synode
-	 * @param synuid the global id for synchronizing a records into local db,
-	 * null for create new records (post updating into entity).
+	 * @param entitypk, required if the entity's id is not {@link smptyp.autoInc}
+	 * and resolvable with {@link Resulving}
 	 * @return inst
 	 * @throws TransException
 	 */
 	public static Insert logChange(SyndomContext x, DBSyntableBuilder b, Insert inst,
-			SyntityMeta entm, String synode, Object synuid) throws TransException {
-		if (synuid == null) {
+			SyntityMeta entm, String synode, String... entitypk) throws TransException {
+//		if (synuid == null) {
 
 			Insert insc = b.insert(x.chgm.tbl)
 				.nv(x.chgm.entbl, entm.tbl)
@@ -92,16 +96,24 @@ public class DBSynmantics extends DASemantics {
 						.where(op.ne, x.synm.synoder, constr(x.synode))
 						.whereEq(x.synm.domain, x.domain)));
 
-			Resulving pid = new Resulving(entm.tbl, entm.pk);
+			boolean hasAutok = DATranscxt.hasSemantics(x.synconn, entm.tbl, smtype.autoInc);
+
+			if (Connects.getDebug(x.synconn) && !hasAutok && isNull(entitypk))
+					throw new SemanticException("Inserting empty pk without smtype.autoInc for table %s, %s",
+							entm.tbl, x.synconn);
+
+			ExprPart pid = hasAutok
+						? new Resulving(entm.tbl, entm.pk)
+						: ExprPart.constr(_0(entitypk));
 
 			Update upe =  b.update(entm.tbl);
 
-			upe.nv(entm.synuid, SynChangeMeta.uids(synode, (Resulving)pid));
-			insc.nv(x.chgm.uids, SynChangeMeta.uids(synode, (Resulving)pid));
+			upe.nv(entm.io_oz_synuid, SynChangeMeta.uids(synode, pid));
+			insc.nv(x.chgm.uids, SynChangeMeta.uids(synode, pid));
 
 			inst.post(upe.whereEq(entm.pk, pid))
 				.post(insc);
-		}
+//		}
 
 		return inst;
 	}
@@ -118,7 +130,7 @@ public class DBSynmantics extends DASemantics {
 					.nv(x.chgm.entbl, entm.tbl)
 					.nv(x.chgm.crud, CRUD.U)
 					.nv(x.chgm.synoder, synoder)
-					.nv(x.chgm.uids, hittings.getString(entm.synuid))
+					.nv(x.chgm.uids, hittings.getString(entm.io_oz_synuid))
 					.nv(x.chgm.nyquence, x.stamp.n)
 					.nv(x.chgm.seq, b.incSeq())
 					.nv(x.chgm.domain, x.domain)
@@ -143,7 +155,7 @@ public class DBSynmantics extends DASemantics {
 			hittings.beforeFirst();
 
 			while (hittings.next()) {
-				String synuid = hittings.getString(entm.synuid);
+				String synuid = hittings.getString(entm.io_oz_synuid);
 
 				return delt.post(b
 					.insert(x.chgm.tbl)
@@ -169,6 +181,11 @@ public class DBSynmantics extends DASemantics {
 		return delt;
 	}	
 
+	/**
+	 * Semantics handler of syn-change logs.
+	 * 
+	 * This handler should not be configured via semantics.xml, but via dictionary.json's syntities field.
+	 */
 	public static class ShSynChange extends SemanticHandler {
 
 		// static String apidoc = "TODO ...";
@@ -240,15 +257,19 @@ public class DBSynmantics extends DASemantics {
 
 			DBSyntableBuilder synb = ((ISyncontext)stx).synbuilder();
 			
-			Object synuid = null;
+			// Object synuid = null;
+			String pk = null;
 			try {
-				if (cols.containsKey(entm.synuid))
-					synuid = row.get(cols.get(entm.synuid))[1];
+//				if (cols.containsKey(entm.io_oz_synuid))
+//					synuid = row.get(cols.get(entm.io_oz_synuid))[1];
+				if (cols.containsKey(entm.pk))
+					pk = (String) row.get(cols.get(entm.pk))[1];
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			
-			logChange(((ISyncontext) stx).syndomContext(), synb, insrt, entm, synode, synuid);
+			// logChange(((ISyncontext) stx).syndomContext(), synb, insrt, entm, synode, synuid);
+			logChange(((ISyncontext) stx).syndomContext(), synb, insrt, entm, synode, pk);
 		}
 		
 		protected boolean checkBuilder(ISemantext stx) {
@@ -288,7 +309,7 @@ public class DBSynmantics extends DASemantics {
 		private AnResultset hits(ISemantext stx, Statement<?> updt)
 				throws TransException, SQLException {
 			return ((AnResultset) trxt.select(target)
-				.col(entm.synuid)
+				.col(entm.io_oz_synuid)
 				.where(updt.where())
 				.rs(stx)
 				.rs(0))

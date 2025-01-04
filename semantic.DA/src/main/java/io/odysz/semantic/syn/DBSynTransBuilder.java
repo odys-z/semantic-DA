@@ -148,6 +148,9 @@ public class DBSynTransBuilder extends DATranscxt {
 	protected static HashMap<String, SemanticsMap> synmanticMaps;
 
 	/**
+	 * Registering syntities, adding semantics handler, {@link ShSynChange},
+	 * to the Semantics map.
+	 *  
 	 * Equivalent to {@link DATranscxt#initConfigs(String, XMLTable, SmapFactory)}.
 	 * 
 	 * @param <M>

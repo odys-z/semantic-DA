@@ -24,12 +24,10 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	/** aslo named as pname, clientname or filename previously */
 	public final String resname;
 	/**
-	 * FIXME not implemented: 2dbdbdfc2adae1a56c6dca8d435d915e580758fb
-	 * Resource identity, reading with {@link io.odysz.transact.sql.parts.condition.Funcall.Func#extFile extFile}
-	 * and updating with {@link io.odysz.semantic.DASemantics.ShExtFilev2 ShExtFile}.
+	 * @see io.odysz.semantic.DASemantics.ShExtFilev2 ShExtFile.
 	 */
 	public final String uri;
-	public final String device;
+	// public final String device;
 	public final String org;
 	public final String createDate;
 	public final String shareDate;

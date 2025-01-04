@@ -62,8 +62,14 @@ public class Docheck {
 
 	public final DATranscxt b0;
 
+	/** Count {@link #docm}'s table records. */
 	public int docs() throws SQLException, TransException {
 		return synb.entities(docm);
+	}
+
+	/** Count {@link #devm}'s table records. */
+	public int devs() throws SQLException, TransException {
+		return synb.entities(devm);
 	}
 
 	public String doclist(SyntityMeta entm) throws SQLException, TransException {
@@ -78,9 +84,9 @@ public class Docheck {
 	String connId() { return synb.basictx().connId(); }
 
 	public Docheck(IAssert assertImpl, String domain, String conn,
-			String synid, SynodeMode mod, ExpDocTableMeta m, boolean debugx)
+			String synid, SynodeMode mod, ExpDocTableMeta m, SyntityMeta devm, boolean debugx)
 			throws Exception {
-		this(assertImpl, new SyndomContext(mod, domain, synid, conn, debugx), m);
+		this(assertImpl, new SyndomContext(mod, domain, synid, conn, debugx), m, devm);
 	}
 
 	/**
@@ -112,7 +118,7 @@ public class Docheck {
 		azert.equali(cnt, rs.getRowCount());
 	}
 
-	public Docheck(IAssert assertImpl, SyndomContext x, ExpDocTableMeta docm) throws Exception {
+	public Docheck(IAssert assertImpl, SyndomContext x, ExpDocTableMeta docm, SyntityMeta devm) throws Exception {
 		synb = new DBSyntableBuilder(x); // .loadContext();
 
 		x.loadNvstamp(synb);
@@ -120,6 +126,7 @@ public class Docheck {
 		azert = assertImpl == null ? azert : assertImpl;
 
 		this.docm = docm;
+		this.devm = devm;
 		this.domain = x.domain;
 		this.tops = null;
 		
@@ -136,7 +143,7 @@ public class Docheck {
 	public void doc(int count, String... synids) throws TransException, SQLException {
 		Query q = synb.select(docm.tbl).col(count(), "c");
 		if (!isNull(synids))
-			q.whereIn(docm.synuid, synids);
+			q.whereIn(docm.io_oz_synuid, synids);
 
 		azert.equali(count, ((AnResultset) q
 				.rs(synb.instancontxt(synb.syndomx.synconn, synb.synrobot()))
@@ -579,6 +586,9 @@ public class Docheck {
 	final boolean[] tops;
 
 	public SyncUser sessionUsr;
+
+	/** device meta */
+	public final SyntityMeta devm;
 	
 	/**
 	 * <p>Push connection's debug flags and return a checker instance.</p>

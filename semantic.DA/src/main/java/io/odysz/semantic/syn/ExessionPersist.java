@@ -260,12 +260,12 @@ public class ExessionPersist {
 					: eq(change, CRUD.U)
 					? trb.update(entm.tbl, trb.synrobot())
 						.nvs(entm.updateEntNvs(chgm, chuids, ents.get(entm.tbl), changes))
-						.whereEq(entm.synuid, chuids)
+						.whereEq(entm.io_oz_synuid, chuids)
 						.post(chlog)
 
 					: eq(change, CRUD.D)
 					? trb.delete(entm.tbl, trb.synrobot())
-						.whereEq(entm.synuid, chuids)
+						.whereEq(entm.io_oz_synuid, chuids)
 						.post(chlog)
 
 					: null);
@@ -800,12 +800,12 @@ public class ExessionPersist {
 			AnResultset entities = ((AnResultset) entm
 				// .onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))
 				.onselectSyntities(trb.select(tbl, "e").cols("e.*"))
-				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.synuid, chgm.uids)
+				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.io_oz_synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId,
 					 constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
 				.rs(trb.instancontxt(synx.synconn, trb.synrobot()))
 				.rs(0))
-				.index0(entm.synuid);
+				.index0(entm.io_oz_synuid);
 			
 			entities(tbl, entities);
 		}

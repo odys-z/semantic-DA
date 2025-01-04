@@ -86,7 +86,7 @@ class DBSynTransBuilderTest {
 		Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
 		Docheck.ck[0] = new Docheck(new AssertImpl(), zsu, conn, synodes[0],
-								SynodeMode.peer, phm, Connects.getDebug(conn));
+								SynodeMode.peer, phm, null, Connects.getDebug(conn));
 		
 		DBSyntableBuilder logger = Docheck.ck[0].synb;
 		logger.incN0();

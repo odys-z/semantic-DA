@@ -17,6 +17,7 @@ import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.meta.TableMeta;
+import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
@@ -92,12 +93,14 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 			throws SQLException, TransException {
 		if (ms != null && Connects.isqlite(conn))
 		for (TableMeta m : ms)
-			if (m.ddlSqlite != null) {
+			if (!isblank(m.ddlSqlite)) {
 				if (force_drop) Connects.commit(conn, DATranscxt.dummyUser(),
 						String.format("drop table if exists %s;", m.tbl));
 
 				Connects.commit(conn, DATranscxt.dummyUser(), m.ddlSqlite);
 			}
+			else if (force_drop)
+				throw new SemanticException("Forcing drop table %s without DDL provided.", m.tbl);
 	}
 
 	public static void setupSqlitables(String conn, boolean force_drop, Iterable<SyntityMeta> ms)

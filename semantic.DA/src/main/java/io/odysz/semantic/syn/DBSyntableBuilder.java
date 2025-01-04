@@ -31,6 +31,7 @@ import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.syn.registry.Syntities;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -664,15 +665,15 @@ public class DBSyntableBuilder extends DATranscxt {
 	public int deleteEntityBySynuid(SyndomContext syndomContext, SyntityMeta entm, String synuid)
 			throws TransException, SQLException {
 		AnResultset hittings = (AnResultset) select(entm.tbl)
-					.col(entm.synuid).cols(entm.uids)
-					.whereEq(entm.synuid, synuid)
+					.col(entm.io_oz_synuid).cols(entm.uids)
+					.whereEq(entm.io_oz_synuid, synuid)
 					.rs(instancontxt(syndomx.synconn, locrobot))
 					.rs(0);
 
 		if (existsnyuid(entm, synuid)) {
 			SemanticObject res = (SemanticObject) DBSynmantics
 					.logChange(syndomContext, this, delete(entm.tbl, locrobot)
-					.whereEq(entm.synuid, synuid), entm, hittings)
+					.whereEq(entm.io_oz_synuid, synuid), entm, hittings)
 					.d(instancontxt(syndomx.synconn, locrobot));
 			return res.total();
 		}
@@ -696,17 +697,20 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * 
 	 * @param m
 	 * @param e
+	 * @param entitypk must be ignored if is inserting an entity of {@link smtype.autoInc}
 	 * @return [entity-id, change-id]
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public String[] insertEntity(SyndomContext sdx, SyntityMeta m, SynEntity e)
+	public String[] insertEntity(SyndomContext sdx, SyntityMeta m, SynEntity e, String... entitypk)
 			throws TransException, SQLException {
+		checkEntityRegistration(m, sdx.synconn);
+
 		SyncUser rob = (SyncUser) locrobot;
 
 		Insert inst = e.insertEntity(m, insert(m.tbl, rob));
 		SemanticObject u = (SemanticObject) DBSynmantics
-				.logChange(sdx, this, inst, m, syndomx.synode, null)
+				.logChange(sdx, this, inst, m, syndomx.synode, entitypk)
 				.ins(instancontxt());
 
 		String phid = u.resulve(m, -1);
@@ -714,8 +718,25 @@ public class DBSyntableBuilder extends DATranscxt {
 		return new String[] {phid, chid};
 	}
 	
+	/**
+	 * NOTE: This method sholdn't be used other than tests.
+	 * <p>FYI: There is no syn-change semantics, and don't
+	 * configure syn-change semantics for the table.</p>
+	 * 
+	 * @param sdx
+	 * @param synoder
+	 * @param uids
+	 * @param entm
+	 * @param nvs
+	 * @return
+	 * @throws TransException
+	 * @throws SQLException
+	 * @throws IOException
+	 */
 	public String updateEntity(SyndomContext sdx, String synoder, String[] uids, SyntityMeta entm, Object ... nvs)
 			throws TransException, SQLException, IOException {
+		checkEntityRegistration(entm, sdx.synconn);
+
 		List<String> updcols = new ArrayList<String>(nvs.length/2);
 		for (int i = 0; i < nvs.length; i += 2)
 			updcols.add((String) nvs[i]);
@@ -727,7 +748,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			u.whereEq(entm.uids.get(ix), uids[ix]);
 
 		AnResultset hittings = ((AnResultset) select(entm.tbl)
-				.col(entm.synuid).cols(entm.uids)
+				.col(entm.io_oz_synuid).cols(entm.uids)
 				.where(u.where())
 				.rs(instancontxt())
 				.rs(0))
@@ -738,6 +759,17 @@ public class DBSyntableBuilder extends DATranscxt {
 					entm, synoder, hittings, updcols)
 			.u(instancontxt(syndomx.synconn, locrobot))
 			.resulve(syndomx.chgm.tbl, syndomx.chgm.pk, -1);
+	}
+
+	/**
+	 * Should only reach here while testing
+	 * @param entm
+	 * @param synconn 
+	 * @throws SemanticException no registered entity can be found
+	 */
+	static void checkEntityRegistration(SyntityMeta entm, String synconn) throws SemanticException {
+		if (Syntities.get(synconn).meta(entm.tbl) == null)
+			throw new SemanticException("No syntity registration is found for: %s [%s]", entm.tbl, synconn);
 	}
 
 	public void incN0(Nyquence... maxn) throws TransException, SQLException {
@@ -783,7 +815,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		req.synodes.beforeFirst().next();
 		
-		String syn_uids = req.synodes.getString(synm.synuid);
+		String syn_uids = req.synodes.getString(synm.io_oz_synuid);
 
 		((SemanticObject) apply
 			.insert(synm, syn_uids, ap.n0(), insert(synm.tbl, robot))
@@ -859,7 +891,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				else {
 					Synode n = new Synode(ns, synm);
 					mxn = maxn(domainof.nv);
-					n.insert(synm, ns.getString(synm.synuid), mxn, insert(synm.tbl, locrobot))
+					n.insert(synm, ns.getString(synm.io_oz_synuid), mxn, insert(synm.tbl, locrobot))
 					 .nv(synm.jserv, adminserv)
 					 .ins(instancontxt(synconn, locrobot));
 
@@ -998,7 +1030,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	public AnResultset entitySynuids(SyntityMeta m) throws SQLException, TransException {
-		return (AnResultset) select(m.tbl).col(m.synuid).orderby(m.synuid).rs(basictx).rs(0);
+		return (AnResultset) select(m.tbl).col(m.io_oz_synuid).orderby(m.io_oz_synuid).rs(basictx).rs(0);
 	}
 
 	ExessionPersist xp;

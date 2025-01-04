@@ -68,6 +68,7 @@ public class DBSyntableTest {
 	public static final String ukraine = "src/test/res/Ukraine.png";
 	
 	static final String zsu = "zsu";
+	static final String ura = "ura";
 
 	public static final int X = 0;
 	public static final int Y = 1;
@@ -114,16 +115,17 @@ public class DBSyntableTest {
 		for (int s = 0; s < 4; s++) {
 			conns[s] = f("syn.%02x", s);
 			Connects.commit(conns[s], DATranscxt.dummyUser(),
-				"CREATE TABLE if not exists a_logs (\n"
-				+ "  logId text(20),\n"
-				+ "  funcId text(20),\n"
-				+ "  funcName text(50),\n"
-				+ "  oper text(20),\n"
-				+ "  logTime text(20),\n"
-				+ "  cnt int,\n"
-				+ "  txt text(4000),\n"
-				+ "  CONSTRAINT oz_logs_pk PRIMARY KEY (logId)\n"
-				+ ");" );
+					"drop table if exists a_logs");
+//				"CREATE TABLE if not exists a_logs (\n"
+//				+ "  logId text(20),\n"
+//				+ "  funcId text(20),\n"
+//				+ "  funcName text(50),\n"
+//				+ "  oper text(20),\n"
+//				+ "  logTime text(20),\n"
+//				+ "  cnt int,\n"
+//				+ "  txt text(4000),\n"
+//				+ "  CONSTRAINT oz_logs_pk PRIMARY KEY (logId)\n"
+//				+ ");" );
 			
 			AutoSeqMeta autom = new AutoSeqMeta(conns[s]);
 			Connects.commit(conns[s], DATranscxt.dummyUser(), autom.ddlSqlite);
@@ -140,9 +142,10 @@ public class DBSyntableTest {
 		for (int s = 0; s < 4; s++) {
 			String conn = conns[s];
 			snm = new SynodeMeta(conn);
-			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn).replace();
+			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn); //.replace();
+			T_DA_DevMeta   dvm = new T_DA_DevMeta(conn);  // .replace();
 
-			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
+			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm, dvm);
 
 			ArrayList<String> sqls = new ArrayList<String>();
 			// sqls.add("delete from oz_autoseq;");
@@ -170,12 +173,12 @@ public class DBSyntableTest {
 
 			// MEMO
 			// See also docsync.jser/Syngleton.setupSyntables(), 2.1 injecting synmantics after syn-tables have been set.
-			phm.replace();
+			// phm.replace();
 			for (SyntityMeta m : syntities.metas.values())
 				m.replace();
 
 			Docheck.ck[s] = new Docheck(new AssertImpl(), s != W ? zsu : null, conn, synodes[s],
-					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm,
+					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm, null,
 					Connects.getDebug(conn));
 			
 			if (s != W)
@@ -862,7 +865,9 @@ public class DBSyntableTest {
 		// IUser rob = trb.syndomx.synrobot;
 		SyncUser usr = new SyncUser(synoder, synoder, "doc owner@" + synoder, "dev client of " + s);
 
-		String[] pid_chid = trb.insertEntity(ck[s].synb.syndomx, m, new T_Photo(ck[s].synb.syndomx.synconn, zsu)
+		String[] pid_chid = trb.insertEntity(ck[s].synb.syndomx, m,
+								// new T_Photo(ck[s].synb.syndomx.synconn, zsu)
+								new T_Photo(ck[s].synb.syndomx.synconn, ura) // FIXME to be tested
 				.create(ukraine)
 				.device(usr.deviceId())
 				.folder(usr.uid()));
@@ -890,7 +895,7 @@ public class DBSyntableTest {
 				.rs(0))
 				.nxt();
 
-		String suid = slt.getString(entm.synuid);
+		String suid = slt.getString(entm.io_oz_synuid);
 
 		return new Object[] {suid, t.deleteEntityBySynuid(ck[s].synb.syndomx, entm, suid)};
 	}
@@ -933,6 +938,6 @@ public class DBSyntableTest {
 			entm.resname, f("%s,%04d", (pname == null ? "" : pname), ck[s].stamp()),
 			entm.createDate, now());
 
-		return new String[] {pid, chgid, slt.getString(entm.synuid) };
+		return new String[] {pid, chgid, slt.getString(entm.io_oz_synuid) };
 	}
 }

@@ -89,7 +89,10 @@ public abstract class SynEntity extends Anson {
 	
 	/**
 	 * Setup {@code ins}'s nvs, e.g. nv(domain, v0) ....
-	 * 
+	 * Any entities to be inserted into table via
+	 * {@link DBSyntableBuilder#insertEntity(SyndomContext, SyntityMeta, SynEntity, String...)}
+	 * for testing should implement this method.
+	 *  
 	 * @param ins
 	 * @return {@code ins}
 	 */
