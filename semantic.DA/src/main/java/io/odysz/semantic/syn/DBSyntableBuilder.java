@@ -702,7 +702,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public String[] insertEntity(SyndomContext sdx, SyntityMeta m, SynEntity e, String... entitypk)
+	public String[] insertEntity(SyndomContext sdx, SyntityMeta m, SynEntity e, Object... entitypk)
 			throws TransException, SQLException {
 		checkEntityRegistration(m, sdx.synconn);
 
