@@ -15,7 +15,6 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -72,13 +71,13 @@ public class DBSynmantics extends DASemantics {
 	 * @param inst
 	 * @param entm
 	 * @param synode
-	 * @param entitypk, required if the entity's id is not {@link smptyp.autoInc}
-	 * and resolvable with {@link Resulving}
+	 * @param entitypk, required if the entity's id is a not {@link smptyp.autoInc}.
+	 * This is resolved with {@link Resulving}, and overriden by a {@link Resulving} argument.
 	 * @return inst
 	 * @throws TransException
 	 */
 	public static Insert logChange(SyndomContext x, DBSyntableBuilder b, Insert inst,
-			SyntityMeta entm, String synode, String... entitypk) throws TransException {
+			SyntityMeta entm, String synode, Object... entitypk) throws TransException {
 //		if (synuid == null) {
 
 			Insert insc = b.insert(x.chgm.tbl)
@@ -96,15 +95,19 @@ public class DBSynmantics extends DASemantics {
 						.where(op.ne, x.synm.synoder, constr(x.synode))
 						.whereEq(x.synm.domain, x.domain)));
 
-			boolean hasAutok = DATranscxt.hasSemantics(x.synconn, entm.tbl, smtype.autoInc);
+			boolean resulveAutokey = DATranscxt.hasSemantics(x.synconn, entm.tbl, smtype.autoInc)
+								&& isNull(entitypk);
 
-			if (Connects.getDebug(x.synconn) && !hasAutok && isNull(entitypk))
-					throw new SemanticException("Inserting empty pk without smtype.autoInc for table %s, %s",
-							entm.tbl, x.synconn);
+//			if (Connects.getDebug(x.synconn) && !resulveAutokey && isNull(entitypk))
+//					throw new SemanticException("Inserting empty pk without smtype.autoInc for table %s, %s",
+//							entm.tbl, x.synconn);
 
-			ExprPart pid = hasAutok
+			Object epk = _0(entitypk);
+			ExprPart pid = resulveAutokey
 						? new Resulving(entm.tbl, entm.pk)
-						: ExprPart.constr(_0(entitypk));
+						: epk instanceof String
+						? ExprPart.constr((String)epk)
+						: (ExprPart)epk;
 
 			Update upe =  b.update(entm.tbl);
 
@@ -258,17 +261,14 @@ public class DBSynmantics extends DASemantics {
 			DBSyntableBuilder synb = ((ISyncontext)stx).synbuilder();
 			
 			// Object synuid = null;
-			String pk = null;
+			Object pk = null;
 			try {
-//				if (cols.containsKey(entm.io_oz_synuid))
-//					synuid = row.get(cols.get(entm.io_oz_synuid))[1];
 				if (cols.containsKey(entm.pk))
-					pk = (String) row.get(cols.get(entm.pk))[1];
+					pk = row.get(cols.get(entm.pk))[1];
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			
-			// logChange(((ISyncontext) stx).syndomContext(), synb, insrt, entm, synode, synuid);
 			logChange(((ISyncontext) stx).syndomContext(), synb, insrt, entm, synode, pk);
 		}
 		

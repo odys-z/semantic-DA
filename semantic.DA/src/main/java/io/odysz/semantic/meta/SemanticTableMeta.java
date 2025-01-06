@@ -1,14 +1,19 @@
 package io.odysz.semantic.meta;
 
+import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.len;
 
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import io.odysz.common.Utils;
@@ -23,23 +28,28 @@ import io.odysz.transact.x.TransException;
 
 public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 
+	private static FileSystem zipfs;
+
 	protected static String loadSqlite(Class<?> clzz, String filename) {
 		try {
 			// https://stackoverflow.com/a/46468788/7362888
-			URI uri = Paths.get(clzz.getResource(filename).toURI()).toUri();
-//			if (zipfs == null)
-//				try {
-//					Map<String, String> env = new HashMap<>(); 
-//					env.put("create", "true");
-//					zipfs = FileSystems.newFileSystem(uri, env);
-//				}
-//				catch (Exception e) {
-//					Utils.warnT(new Object() {},
-//						"File %s shouldn't be load in the runtime environment.\ntarget URI: %s",
-//						filename, uri);
-//					e.printStackTrace();
-//					return null;
-//				}
+			// URI uri = Paths.get(clzz.getResource(filename).toURI()).toUri();
+			URI uri = clzz.getResource(filename).toURI();
+			if (!eq(uri.getScheme(), "file") && zipfs == null)
+				try {
+					Map<String, String> env = new HashMap<>(); 
+					env.put("create", "true");
+					zipfs = FileSystems.newFileSystem(uri, env);
+				}
+				catch (Exception e) {
+					Utils.warnT(new Object() {},
+						"File %s shouldn't be load in the runtime environment.\ntarget URI: %s",
+						filename, uri);
+					e.printStackTrace();
+					return null;
+				}
+
+			uri = Paths.get(uri).toUri();
 
 			return Files.readAllLines(
 				Paths.get(uri), Charset.defaultCharset())
