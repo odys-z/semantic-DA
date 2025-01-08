@@ -52,7 +52,7 @@ public class DBSynTransBuilder extends DATranscxt {
 			return m;
 		}
 
-		public void appendMetas(HashMap<String, SyntityMeta> metas, Transcxt trb) throws TransException {
+		public void addSynchangeHandlers(HashMap<String, SyntityMeta> metas, Transcxt trb) throws TransException {
 			if (metas != null)
 			for (SyntityMeta m : metas.values()) {
 				if (!ss.containsKey(m.tbl))
@@ -177,7 +177,7 @@ public class DBSynTransBuilder extends DATranscxt {
 			SemanticsMap m = SynmanticsMap.clone(synode, smtMaps.get(conn));
 			synmanticMaps.put(conn, m);
 			
-			((SynmanticsMap)m).appendMetas(syntities.metas, trb);
+			((SynmanticsMap)m).addSynchangeHandlers(syntities.metas, trb);
 
 			return (M) synmanticMaps.get(conn);
 		}
@@ -200,6 +200,6 @@ public class DBSynTransBuilder extends DATranscxt {
 	}
 
 	public ISemantext instancontxt() throws TransException {
-		return super.instancontxt(basictx.connId(), dummy);
+		return instancontxt(basictx.connId(), dummy);
 	}
 }
