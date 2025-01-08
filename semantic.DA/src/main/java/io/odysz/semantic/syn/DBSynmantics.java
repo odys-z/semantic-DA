@@ -191,7 +191,6 @@ public class DBSynmantics extends DASemantics {
 	 */
 	public static class ShSynChange extends SemanticHandler {
 
-		// static String apidoc = "TODO ...";
 		protected final SynChangeMeta chm;
 		protected final SynodeMeta snm;
 		protected final SynSubsMeta sbm;
