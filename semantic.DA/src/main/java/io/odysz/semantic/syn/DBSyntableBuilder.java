@@ -395,7 +395,8 @@ public class DBSyntableBuilder extends DATranscxt {
 					.where(op.le, sqlCompare("cl", chgm.nyquence, "nver", pnvm.nyq), 0)
 					.where(op.le, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0))
 				.delete(subm.tbl)
-					.where(op.exists, null, select("cl")
+				.where(op.exists, null,
+					select("cl")
 					.where(op.eq, subm.changeId, chgm.pk)
 					.whereEq(subm.tbl, subm.synodee,  "cl", subm.synodee)))
 
@@ -943,6 +944,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			String synconn= syndomx.synconn;
 			SynChangeMeta chgm = syndomx.chgm;
 			SynSubsMeta subm = syndomx.subm;
+			PeersMeta pnvm = syndomx.pnvm;
 
 
 			if (debug) {
@@ -953,6 +955,11 @@ public class DBSyntableBuilder extends DATranscxt {
 					((AnResultset) select(chgm.tbl, "ch")
 						.cols(chgm.pk, chgm.uids, chgm.nyquence, subm.synodee)
 						.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
+						
+//						// 2025-01-08
+//						.je_(pnvm.tbl, "nv", pnvm.peer, constr(peer), subm.synodee, pnvm.synid)
+//						.where(op.le, Nyquence.sqlCompare("ch", chgm.nyquence, "nv", pnvm.nyq), 0)
+
 						.whereEq(subm.synodee, peer)
 						.rs(instancontxt(synconn, locrobot))
 						.rs(0))
@@ -964,6 +971,11 @@ public class DBSyntableBuilder extends DATranscxt {
 
 			try {
 				SemanticObject res = (SemanticObject) delete(subm.tbl, locrobot)
+						
+//						// 2025-01-08
+//						.je_(pnvm.tbl, "nv", pnvm.peer, constr(peer), subm.synodee, pnvm.synid)
+//						.where(op.le, Nyquence.sqlCompare("ch", chgm.nyquence, "nv", pnvm.nyq), 0)
+
 					.whereEq(subm.synodee, peer)
 					.post(del0subchange(peer))
 					.d(instancontxt(synconn, locrobot));
