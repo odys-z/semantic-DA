@@ -633,7 +633,7 @@ public class ExessionPersist {
 			}
 			finally {
 				// TODO cleared too many here
-				// trb.cleanStaleSubs(peer);
+				trb.cleanStaleSubs(peer);
 			}
 		}
 	}
