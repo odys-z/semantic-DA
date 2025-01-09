@@ -136,14 +136,14 @@ public class Docheck {
 	/**
 	 * Check doc count. 
 	 * @param count
-	 * @param synids
+	 * @param uids
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public void doc(int count, String... synids) throws TransException, SQLException {
+	public void doc(int count, String... uids) throws TransException, SQLException {
 		Query q = synb.select(docm.tbl).col(count(), "c");
-		if (!isNull(synids))
-			q.whereIn(docm.io_oz_synuid, synids);
+		if (!isNull(uids))
+			q.whereIn(docm.io_oz_synuid, uids);
 
 		azert.equali(count, ((AnResultset) q
 				.rs(synb.instancontxt(synb.syndomx.synconn, synb.synrobot()))
@@ -163,26 +163,37 @@ public class Docheck {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public long buf_change(int count, String crud, String eid, SyntityMeta entm)
+	public void buf_change(int count, String crud, String eid, SyntityMeta entm)
 			throws TransException, SQLException {
-		return buf_change(count, crud, synb.syndomx.synode, eid, entm);
+		buf_change(count, crud, synb.syndomx.synode, eid, entm);
 	}
 
-	public long buf_change_p(int count, String crud, String eid)
+	public void buf_change_p(int count, String crud, String eid)
 			throws TransException, SQLException {
-		return buf_change(count, crud, synb.syndomx.synode, eid, docm);
+		buf_change(count, crud, synb.syndomx.synode, eid, docm);
 	}
 
-	public long change_doclog(int count, String crud, String eid) throws TransException, SQLException {
-		return change_log(count, crud, synb.syndomx.synode, eid, docm);
+	public void change_doclog(int count, String crud, String eid) throws TransException, SQLException {
+		change_log(count, crud, synb.syndomx.synode, eid, docm);
 	}
 
-	public long change_doclog(int count, String crud, String synoder, String eid) throws TransException, SQLException {
-		return change_log(count, crud, synoder, eid, docm);
+	public void change_doclog(int count, String crud, String synoder, String eid) throws TransException, SQLException {
+		change_log(count, crud, synoder, eid, docm);
 	}
 
-	// public long change_log(int count, String crud, String synoder, String eid, SyntityMeta entm)
-	public long change_log(int count, String crud, String synoder, String eid, SyntityMeta entm)
+	/**
+	 * Verify change log's count. {@code origin_eid} can only domain wide,
+	 * composed with {@code synoder} for syn-uids.
+	 * 
+	 * @param count
+	 * @param crud
+	 * @param synoder
+	 * @param origin_eid
+	 * @param entm
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public void change_log(int count, String crud, String synoder, String origin_eid, SyntityMeta entm)
 			throws TransException, SQLException {
 		Query q = synb
 				.select(synb.syndomx.chgm.tbl, "ch")
@@ -193,8 +204,8 @@ public class Docheck {
 				q.whereEq(synb.syndomx.chgm.synoder, synoder);
 
 			//
-			if (eid != null)
-				q.whereEq(synb.syndomx.chgm.uids, SynChangeMeta.uids(synoder, eid));
+			if (origin_eid != null)
+				q.whereEq(synb.syndomx.chgm.uids, SynChangeMeta.uids(synoder, origin_eid));
 
 			AnResultset chg = (AnResultset) q
 					.rs(synb.instancontxt())
@@ -208,9 +219,10 @@ public class Docheck {
 				azert.equals(crud, chg.getString(synb.syndomx.chgm.crud));
 				azert.equals(entm.tbl, chg.getString(synb.syndomx.chgm.entbl));
 				azert.equals(synoder, chg.getString(synb.syndomx.chgm.synoder));
-				return chg.getLong(synb.syndomx.chgm.nyquence);
+
+				// return chg.getLong(synb.syndomx.chgm.nyquence);
 			}
-			return 0;
+			// return 0;
 	}
 
 	public long change_log_uids(int count, String crud, String synoder, String uids, SyntityMeta entm)
@@ -247,7 +259,17 @@ public class Docheck {
 	}
 
 
-	public long buf_change(int count, String crud, String synoder, String eid, SyntityMeta entm)
+	/**
+	 * Verify
+	 * @param count
+	 * @param crud
+	 * @param synoder
+	 * @param eid
+	 * @param entm
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public void buf_change(int count, String crud, String synoder, String eid, SyntityMeta entm)
 			throws TransException, SQLException {
 		SynChangeMeta chgm = synb.syndomx.chgm;
 		SynchangeBuffMeta exbm = synb.syndomx.exbm;
@@ -275,9 +297,9 @@ public class Docheck {
 			azert.equals(crud, chg.getString(chgm.crud));
 			azert.equals(entm.tbl, chg.getString(chgm.entbl));
 			azert.equals(synoder, chg.getString(chgm.synoder));
-			return chg.getLong(chgm.nyquence);
+			// return chg.getLong(chgm.nyquence);
 		}
-		return 0;
+		// return 0;
 	}
 
 	public long changelog(int count, String crud, String eid, SyntityMeta entm)

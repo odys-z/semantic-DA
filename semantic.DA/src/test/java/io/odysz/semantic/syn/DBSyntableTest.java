@@ -380,29 +380,31 @@ public class DBSyntableTest {
 		printNyquv(ck);
 
 		String[] z_uids = insertPhoto(Z);
+		String eid = z_uids[0];
+		String chg_z = z_uids[1];
 
 		printChangeLines(ck);
 		printNyquv(ck);
 
-		ck[Z].buf_change(0, C, z_uids[0], ck[Y].docm);
-		ck[Z].change_log(1, C, "Z", z_uids[0], ck[Y].docm);
-		ck[Z].psubs(3, z_uids[1], X, Y, -1, W);
+		ck[Z].buf_change(0, C, eid, ck[Y].docm);
+		ck[Z].change_log(1, C, "Z", eid, ck[Y].docm);
+		ck[Z].psubs(3, chg_z, X, Y, -1, W);
 		
 		Utils.logrst("Y vs Z", section, ++no);
 		exchangeDocs(Y, Z, section, 2);
 		assertEquals(ck[Z].n0().n, ck[Z].stamp());
-		ck[Y].buf_change(0, C, z, z_uids[0], ck[Y].docm);
-		ck[Y].change_log(1, C, z, z_uids[0], ck[Y].docm);
-		ck[Y].psubs(2, z_uids[1], X, -1, -1, W);
-		ck[Z].psubs(2, z_uids[1], X, -1, -1, W);
+		ck[Y].buf_change(0, C, z, eid, ck[Y].docm);
+		ck[Y].change_log(1, C, z, eid, ck[Y].docm);
+		ck[Y].psubs(2, chg_z, X, -1, -1, W);
+		ck[Z].psubs(2, chg_z, X, -1, -1, W);
 
 		Utils.logrst("Y vs W", section, ++no);
 		exchangeDocs(Y, W, section, 3);
-		ck[Y].buf_change(0, C, z, z_uids[0], ck[X].docm);
-		ck[Y].change_log(1, C, z, z_uids[0], ck[X].docm);
-		ck[Y].psubs(1, z_uids[1], X, -1, -1, -1);
-		ck[W].buf_change(0, C, z, z_uids[0], ck[X].docm);
-		ck[W].psubs(0, z_uids[1], -1, -1, -1, -1);
+		ck[Y].buf_change(0, C, z, eid, ck[X].docm);
+		ck[Y].change_log(1, C, z, eid, ck[X].docm);
+		ck[Y].psubs(1, chg_z, X, -1, -1, -1);
+		ck[W].buf_change(0, C, z, eid, ck[X].docm);
+		ck[W].psubs(0, chg_z, -1, -1, -1, -1);
 
 		Utils.logrst("X vs Y", section, ++no);
 		exchangeDocs(X, Y, section, 4);
