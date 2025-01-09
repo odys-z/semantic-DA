@@ -382,6 +382,7 @@ public class DBSyntableTest {
 		String[] z_uids = insertPhoto(Z);
 		String eid = z_uids[0];
 		String chg_z = z_uids[1];
+		String uid = z_uids[2];
 
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -402,23 +403,24 @@ public class DBSyntableTest {
 		exchangeDocs(Y, W, section, 3);
 		ck[Y].buf_change(0, C, z, eid, ck[X].docm);
 		ck[Y].change_log(1, C, z, eid, ck[X].docm);
-		ck[Y].psubs(1, chg_z, X, -1, -1, -1);
+		ck[Y].synsubs(1, uid, X, -1, -1, -1);
 		ck[W].buf_change(0, C, z, eid, ck[X].docm);
-		ck[W].psubs(0, chg_z, -1, -1, -1, -1);
+		ck[W].synsubs(0, uid, -1, -1, -1, -1);
 
 		Utils.logrst("X vs Y", section, ++no);
 		exchangeDocs(X, Y, section, 4);
 		ck[X].buf_change(0, C, null, null, ck[X].docm);
-		ck[X].psubs(0, null, X, -1, -1, -1);
+		ck[X].synsubs(0, null, X, -1, -1, -1);
 		ck[Y].buf_change(0, C, null, null, ck[X].docm);
-		ck[Y].psubs(0, null, -1, -1, -1, -1);
+		ck[Y].synsubs(0, null, -1, -1, -1, -1);
 
 		Utils.logrst("Y vs Z", section, ++no);
 		exchangeDocs(Y, Z, section, 4);
 		ck[Y].buf_change(0, C, null, null, ck[X].docm);
-		ck[Y].psubs(0, null, X, -1, -1, -1);
+		ck[Y].synsubs(0, null, X, -1, -1, -1);
 		ck[Z].buf_change(0, C, null, null, ck[X].docm);
 		ck[Z].psubs(0, null, -1, -1, -1, -1);
+		ck[Z].synsubs(0, null, -1, -1, -1, -1);
 	}
 
 	void test02Update(int section) throws Exception {

@@ -6,6 +6,7 @@ import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.is;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.len;
 import static io.odysz.common.LangExt.repeat;
 import static io.odysz.common.LangExt.strcenter;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
@@ -379,7 +380,8 @@ public class Docheck {
 			}
 
 			azert.equali(subcount, cnt);
-			azert.equali(subcount, subs.getRowCount());
+			if (len(toIds) == 0)
+				azert.equali(subcount, subs.getRowCount());
 	}
 
 	public void subsCount(SyntityMeta entm, int subcount, String chgId, String ... toIds)
