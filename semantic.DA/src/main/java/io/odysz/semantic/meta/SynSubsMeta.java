@@ -70,11 +70,12 @@ public class SynSubsMeta extends SemanticTableMeta {
 	 * @return val list, the row
 	 * @throws SQLException
 	 */
-	public ArrayList<Object[]> insertSubVal(AnResultset chlogs) throws SQLException {
+	public ArrayList<Object[]> insertSubVal(AnResultset chlogs, Resulving chgId) throws SQLException {
 		String[] cols = insertCols();
 		ArrayList<Object[]> val = new ArrayList<Object[]> (cols.length);
 
-		val.add(new Object[] {cols[0], chlogs.getString(chgm.pk)});
+		// val.add(new Object[] {cols[0], chlogs.getString(chgm.pk)});
+		val.add(new Object[] {cols[0], chgId});
 		val.add(new Object[] {cols[1], chlogs.getString(synodee)});
 
 		return val;

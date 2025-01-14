@@ -12,6 +12,7 @@ import static io.odysz.common.LangExt.strcenter;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concat;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
+import static io.odysz.transact.sql.parts.condition.Funcall.constr;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.util.DAHelper;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.condition.Predicate;
@@ -353,6 +355,20 @@ public class Docheck {
 				toIds.add(ck[n].synb.syndomx.synode);
 		subsCount(docm, subcount, chgid, toIds.toArray(new String[0]));
 	}
+	
+	
+	public void psubs_uid(int subcount, String synuid, int ... sub) throws SQLException, TransException {
+		ArrayList<String> toIds = new ArrayList<String>();
+		for (int n : sub)
+			if (n >= 0)
+				toIds.add(ck[n].synb.syndomx.synode);
+
+		String chgid = DAHelper.getValstr(synb, synb.syndomx.synconn, chm, chm.pk,
+				chm.domain, constr(synb.syndomx.domain), chm.entbl, constr(this.docm.tbl),
+				chm.uids, synuid);
+
+		subsCount(docm, subcount, chgid, toIds.toArray(new String[0]));
+	}
 
 	public void synsubs(int subcount, String uids, int ... sub) throws SQLException, TransException {
 		ArrayList<String> toIds = new ArrayList<String>();
@@ -386,6 +402,32 @@ public class Docheck {
 
 	public void subsCount(SyntityMeta entm, int subcount, String chgId, String ... toIds)
 			throws SQLException, TransException {
+		if (isNull(toIds)) {
+			AnResultset subs = subscribes(connId(), chgId, entm);
+			azert.equali(subcount, subs.getRowCount());
+		}
+		else {
+			int cnt = 0;
+			AnResultset subs = subscribes(connId(), chgId, entm);
+			subs.beforeFirst();
+			while (subs.next()) {
+				if (indexOf(toIds, subs.getString(synb.syndomx.subm.synodee)) >= 0)
+					cnt++;
+			}
+
+			azert.equali(subcount, cnt);
+			azert.equali(subcount, subs.getRowCount());
+		}
+	}
+
+	public void subsCount_uid(SyntityMeta entm, int subcount, String synuid, String ... toIds)
+			throws SQLException, TransException {
+
+		String chgId = DAHelper.getValstr(synb, synb.syndomx.synconn, chm, chm.pk,
+				chm.domain, constr(synb.syndomx.domain), chm.entbl, constr(this.docm.tbl),
+				chm.uids, synuid);
+
+
 		if (isNull(toIds)) {
 			AnResultset subs = subscribes(connId(), chgId, entm);
 			azert.equali(subcount, subs.getRowCount());

@@ -42,6 +42,7 @@ import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.QueryPage;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.parts.Logic.op;
+import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
@@ -135,10 +136,12 @@ public class ExessionPersist {
 							.nv(chgm.uids, rsynuid)
 							.post(trb.insert(subm.tbl)
 								.cols(subm.insertCols())
-								.value(subm.insertSubVal(rply))))
+								// .value(subm.insertSubVal(rply))))
+								.value(subm.insertSubVal(rply, new Resulving(chgm.tbl, chgm.pk)))))
 					: trb.insert(subm.tbl)
 						.cols(subm.insertCols())
-						.value(subm.insertSubVal(rply))
+						// .value(subm.insertSubVal(rply))
+						.value(subm.insertSubVal(rply, new Resulving(chgm.tbl, chgm.pk)))
 
 				// : eq(change, CRUD.U) ? WHAT()
 	
@@ -192,7 +195,7 @@ public class ExessionPersist {
 
 			String synodr = changes.getString(chgm.synoder);
 			String chuids = changes.getString(chgm.uids);
-			String chgid  = changes.getString(chgm.pk);
+			// String chgid  = changes.getString(chgm.pk);
 
 			// HashMap<String, AnResultset> entbuf = entites; // x.onchanges.entities;
 			if (!eq(change, CRUD.D)
@@ -226,7 +229,8 @@ public class ExessionPersist {
 					&& !eq(subsrb, synx.synode))
 					subscribeUC.add(trb.insert(subm.tbl)
 						.cols(subm.insertCols())
-						.value(subm.insertSubVal(changes))); 
+						// .value(subm.insertSubVal(changes))); 
+						.value(subm.insertSubVal(changes, new Resulving(chgm.tbl, chgm.pk)))); 
 				
 				if (ofLastEntity(changes, chuids, chentbl, domain))
 					break;
@@ -237,13 +241,15 @@ public class ExessionPersist {
 			
 			Insert chlog = subscribeUC.size() <= 0 ? null : trb
 					.insert(chgm.tbl)
-					.nv(chgm.pk, chgid).nv(chgm.domain, domain)
+					// .nv(chgm.pk, chgid)
+					.nv(chgm.domain, domain)
 					.nv(chgm.crud, change).nv(chgm.updcols, changes.getString(chgm.updcols))
 					.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr)
 					.nv(chgm.nyquence, changes.getLong(chgm.nyquence))
 					.nv(chgm.seq, trb.incSeq()).nv(chgm.uids, chuids)
 					.post(subscribeUC)
-					.post(del0subchange(entm, domain, synodr, chuids, chgid, synx.synode));
+					// .post(del0subchange(entm, domain, synodr, chuids, chgid, synx.synode))
+					;
 
 			if (iamSynodee || subscribeUC.size() > 0) {
 				stats.add(
@@ -352,7 +358,6 @@ public class ExessionPersist {
 	 */
 	public ExchangeBlock init() throws TransException, SQLException {
 		if (trb != null) {
-			// nyquvect = loadNyquvect(trb);
 			synx.loadNvstamp(trb);
 			Nyquence dn = synx.nv.get(peer);
 
@@ -395,7 +400,6 @@ public class ExessionPersist {
 		if (trb != null) {
 			synx.loadNvstamp(trb);
 
-			// String conn = trb.basictx().connId();
 			int total = ((SemanticObject) trb
 				.insertExbuf(peer)
 				.ins(trb.instancontxt())
@@ -627,13 +631,13 @@ public class ExessionPersist {
 			try {
 				trb.delete(exbm.tbl, trb.synrobot())
 					.whereEq(exbm.peer, peer)
-					.d(trb.instancontxt(synx.synconn, trb.synrobot()));
+					.d(trb.instancontxt());
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
 			}
 			finally {
 				// TODO cleared too many here
-				// trb.cleanStaleSubs(peer);
+				trb.cleanStaleSubs(peer);
 			}
 		}
 	}

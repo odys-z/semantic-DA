@@ -50,7 +50,7 @@ import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 /**
- * Sql statement builder for {@link DBSynmantext} for handling database synchronization. 
+ * SQL statement builder for {@link DBSynmantext} for handling database synchronization. 
  * 
  * Improved with temporary tables for broken network (and shutdown), concurrency and memory usage.
  * 
@@ -147,7 +147,8 @@ public class DBSyntableBuilder extends DATranscxt {
 			// return sp.onInit(inireq, (SyncUser) syndomx.robot);
 			return sp.onInit(inireq);
 		} finally {
-			syndomx.incStamp(sp.trb, inireq.nv);
+			// syndomx.incStamp(sp.trb, inireq.nv);
+			syndomx.incStamp(sp.trb);
 		}
 	}
 
@@ -187,8 +188,8 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	/**
-	 * clean: change[z].n < y.z when X &lt;= Y<br> 
-	 * or change[z].n <= z.synoder when Y &lt;= Z ,
+	 * clean: change[z].n < y.z when X ← Y<br> 
+	 * or change[z].n <= z.synoder when Y ← Z ,
 	 * i.e.<pre>
 	 * my-change[him].n < your-nv[him]
 	 * or
@@ -335,6 +336,16 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @param srcn
 	 * @throws TransException
 	 * @throws SQLException
+	 */
+
+	/**
+	 * Clean N.change[.].nyq <= NVp.[.], where,
+	 * N is synoder;
+	 * P is the intiator, NVp is P's nv;
+	 * "." is the subsrciber.
+	 * 
+	 * @param srcnv
+	 * @param srcn
 	 */
 	void cleanStale(HashMap<String, Nyquence> srcnv, String peer)
 			throws TransException, SQLException {
@@ -504,7 +515,8 @@ public class DBSyntableBuilder extends DATranscxt {
 			throw new SemanticException("Synchronizing Nyquence exception: %s.stamp = %d < n0 = %d.",
 					syndomx.synode, syndomx.stamp.n, cx.n0().n);
 		
-		HashMap<String, Nyquence> snapshot = synyquvectMax(cx, rep.nv);
+		// HashMap<String, Nyquence> snapshot = synyquvectMax(cx, rep.nv);
+		HashMap<String, Nyquence> snapshot = synXnv(cx, rep.nv);
 
 		syndomx.n0(this, syndomx.persistamp(this, maxn(syndomx.stamp, cx.n0())));
 
@@ -521,34 +533,135 @@ public class DBSyntableBuilder extends DATranscxt {
 	 */
 	Insert insertExbuf(String peer) throws TransException {
 		PeersMeta pnvm = syndomx.pnvm;
+
+		// 2025-01-14: Shouldn't caring Syntities here. Bug?
+		@SuppressWarnings("unused")
 		SynodeMeta synm = syndomx.synm;
+
 		SynChangeMeta chgm = syndomx.chgm;
 		SynSubsMeta subm = syndomx.subm;
+		
+		Query q_exchgs = select(chgm.tbl, "cl")
+				.distinct(true)
+				.cols(constr(peer), chgm.pk, new ExprPart(-1))
+				.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
+										.and(Sql.condt(op.eq, constr(syndomx.domain), "cl." + chgm.domain))
+										.and(Sql.condt(op.ne, constr(syndomx.synode), subm.synodee)))
+				.je_(pnvm.tbl, "nvee", "cl." + chgm.synoder, pnvm.synid,
+										constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
+				.where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0);
+		
+		if (debug)
+			try {
+				Utils.logT(new Object() {},
+						"%s is inserting exchange buffers (domain %s, peer %s)::",
+						syndomx.synode, syndomx.domain, peer);
+				((AnResultset) q_exchgs.rs(instancontxt()).rs(0)).print();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 		return insert(syndomx.exbm.tbl, locrobot)
 			.cols(syndomx.exbm.insertCols())
 			.select(
-				// target is the subscriber
-				select(chgm.tbl, "cl")
-					.cols(constr(peer), chgm.pk, new ExprPart(-1))
-					.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId, chgm.synoder, constr(syndomx.synode))
-					.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
-					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0)
-
-				// propagating 3rd parties' subscriptions
-				.union(select(chgm.tbl, "cl")
-					.cols(constr(peer), chgm.pk, new ExprPart(-1))
-					.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
-											.and(Sql.condt(op.ne, constr(syndomx.synode), subm.synodee)))
-					// fixed: orthogonal data handling
-					// .je_(pnvm.tbl, "nvee", "sb." + subm.synodee, pnvm.synid,
-					.je_(pnvm.tbl, "nvee", "cl." + chgm.synoder, pnvm.synid,
-											constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
-					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0)
-				)
+				// 2025-01-14
+//				// target is the subscriber, synoder = this
+//				select(chgm.tbl, "cl")
+//					.cols(constr(peer), chgm.pk, new ExprPart(-1))
+//					.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId, chgm.synoder, constr(syndomx.synode))
+//					.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
+//					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0)
+//
+//				// propagating 3rd parties' subscriptions
+//				.union(select(chgm.tbl, "cl")
+//					.cols(constr(peer), chgm.pk, new ExprPart(-1))
+//					.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
+//											.and(Sql.condt(op.ne, constr(syndomx.synode), subm.synodee)))
+//					// fixed: orthogonal data handling
+//					// .je_(pnvm.tbl, "nvee", "sb." + subm.synodee, pnvm.synid,
+//					.je_(pnvm.tbl, "nvee", "cl." + chgm.synoder, pnvm.synid,
+//											constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
+//					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0)
+//				)
+					
+				q_exchgs
 			);
 	}
 	
+	/**
+	 * Orthogonally synchronize n-vectors.
+	 * 
+	 * @param xp
+	 * @param xnv
+	 * @return the snapshot before stepping the stamp, for exchanging to the peer.
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public HashMap<String, Nyquence> synXnv(ExessionPersist xp, // String peer,
+			HashMap<String, Nyquence> xnv) throws TransException, SQLException {
+
+		Update u = null;
+
+		HashMap<String, Nyquence> snapshot =  new HashMap<String, Nyquence>();
+
+		
+		for (String n : xnv.keySet()) {
+			if (!xp.synx.nv.containsKey(n))
+				continue;
+			
+			Nyquence mxn = xp.synx.nv.get(n);
+			mxn = maxn(xnv.get(n), mxn);
+
+			snapshot.put(n, new Nyquence(mxn.n));
+			
+			if (eq(n, xp.synx.synode))
+				mxn = maxn(xp.synx.stamp, mxn); 
+
+			if (compareNyq(mxn, xp.synx.nv.get(n)) < 0) 
+				throw new ExchangeException(xp.exstat().state, xp, "Something Wrong!");
+			else if (compareNyq(mxn, xp.synx.nv.get(n))  > 0)
+				u = persistNyq(u, n, mxn);
+		}
+
+		if (u != null) {
+			try {
+				// TODO FIXME move, merge, with ExessionPerist
+				xp.synx.lockx(locrobot);
+				u.u(instancontxt());
+				xp.synx.loadNvstamp(this);
+			}finally {
+				xp.synx.unlockx(locrobot);
+			}
+		}
+	
+		return snapshot;
+	}
+	
+	private Update persistNyq(Update u, String nodeId, Nyquence nyq) {
+		SynodeMeta synm = syndomx.synm;
+		if (u == null)
+			u = update(synm.tbl, locrobot)
+				.nv(synm.nyquence, nyq.n)
+				.whereEq(synm.domain, syndomx.domain)
+				.whereEq(synm.pk, nodeId);
+		else
+			u.post(update(synm.tbl)
+				.nv(synm.nyquence, nyq.n)
+				.whereEq(synm.domain, syndomx.domain)
+				.whereEq(synm.pk, nodeId));
+		
+		return u;
+	}
+
+	/**
+	 * Find max nv element, persist syn_synode.nyq[.] if change,
+	 * then return the mx-nv snapshot.
+	 * 
+	 * @param xp
+	 * @param xnv
+	 * @return max-nv snapshot
+	 * @throws TransException
+	 * @throws SQLException
 	public HashMap<String, Nyquence> synyquvectMax(ExessionPersist xp, // String peer,
 			HashMap<String, Nyquence> xnv) throws TransException, SQLException {
 
@@ -595,6 +708,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		return snapshot;
 	}
+	 */
 
 	public ExchangeBlock abortExchange(ExessionPersist cx)
 			throws TransException, SQLException {
@@ -780,14 +894,16 @@ public class DBSyntableBuilder extends DATranscxt {
 			return app.signup(admin);
 		}
 		finally { 
-			syndomx.incStamp(app.trb, null);
+			// syndomx.incStamp(app.trb, null);
+			syndomx.incStamp(app.trb);
 		}
 	}
 
 	public ExchangeBlock domainOnAdd(ExessionPersist ap, ExchangeBlock req, String org)
 			throws TransException, SQLException {
 	
-		syndomx.incStamp(ap.trb, req.nv);
+		// syndomx.incStamp(ap.trb, req.nv);
+		syndomx.incStamp(ap.trb);
 		syndomx.loadNvstamp(this);
 
 		String synode = syndomx.synode;
@@ -935,23 +1051,28 @@ public class DBSyntableBuilder extends DATranscxt {
 			PeersMeta pnvm = syndomx.pnvm;
 
 
+			Query qstales = null;
 			if (debug) {
 				Utils.logT(new Object() {},
-						"Cleaning changes that's not accepted in session %s -> %s.",
+						"Cleaning changes' subscriptions that won't be accepted in session %s -> %s::",
 						synode, peer);
+				
 				try {
-					((AnResultset) select(chgm.tbl, "ch")
-						.cols(chgm.pk, chgm.uids, chgm.nyquence, subm.synodee)
-						.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
-						
-//						// 2025-01-08
-//						.je_(pnvm.tbl, "nv", pnvm.peer, constr(peer), subm.synodee, pnvm.synid)
-//						.where(op.le, Nyquence.sqlCompare("ch", chgm.nyquence, "nv", pnvm.nyq), 0)
+					// 2025-01-14
+					qstales = select(chgm.tbl, "ch")
+							.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
+							.je_(pnvm.tbl, "nv", "nv." + pnvm.peer, constr(peer), "sb." + subm.synodee, pnvm.synid)
+							.where(op.le, Nyquence.sqlCompare("ch", chgm.nyquence, "nv", pnvm.nyq), 0);
+				
+					((AnResultset) qstales.rs(instancontxt()).rs(0)).print();
 
-						.whereEq(subm.synodee, peer)
-						.rs(instancontxt(synconn, locrobot))
-						.rs(0))
-						.print();
+//					((AnResultset) select(chgm.tbl, "ch")
+//						.cols(chgm.pk, chgm.uids, chgm.nyquence, subm.synodee)
+//						.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
+//						.whereEq(subm.synodee, peer)
+//						.rs(instancontxt(synconn, locrobot))
+//						.rs(0)).print();
+
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -960,9 +1081,8 @@ public class DBSyntableBuilder extends DATranscxt {
 			try {
 				SemanticObject res = (SemanticObject) delete(subm.tbl, locrobot)
 						
-//						// 2025-01-08
-//						.je_(pnvm.tbl, "nv", pnvm.peer, constr(peer), subm.synodee, pnvm.synid)
-//						.where(op.le, Nyquence.sqlCompare("ch", chgm.nyquence, "nv", pnvm.nyq), 0)
+					// 2025-01-14
+					.where(op.in, subm.changeId, qstales.col(chgm.pk))
 
 					.whereEq(subm.synodee, peer)
 					.post(del0subchange(peer))
