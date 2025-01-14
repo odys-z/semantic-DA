@@ -1,9 +1,9 @@
 package io.odysz.semantic.meta;
 
-import io.odysz.common.Utils;
 import io.odysz.semantics.meta.Semantation;
 import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.Resulving;
+import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
 
 /**
@@ -40,7 +40,7 @@ public class SynChangeMeta extends SemanticTableMeta {
 	public SynChangeMeta(String ... conn) {
 		super("syn_change", conn);
 
-		ddlSqlite = Utils.loadTxt(SynChangeMeta.class, "syn_change.sqlite.ddl");
+		ddlSqlite = loadSqlite(SynChangeMeta.class, "syn_change.sqlite.ddl");
 
 		pk       = "cid";
 		domain   = "domain";
@@ -69,7 +69,13 @@ public class SynChangeMeta extends SemanticTableMeta {
 		return synoder + UIDsep + entityId; // Funcall.concatstr(synode, UIDsep, entityId);
 	}
 
-	public static AbsPart uids(String synode, Resulving eid) {
+	/**
+	 * 
+	 * @param synode
+	 * @param eid {@link Resulving} object or the return of {@link ExprPart#constr(String)}.
+	 * @return
+	 */
+	public static AbsPart uids(String synode, ExprPart eid) {
 		return Funcall.concatstr(synode, UIDsep, eid);
 	}
 }

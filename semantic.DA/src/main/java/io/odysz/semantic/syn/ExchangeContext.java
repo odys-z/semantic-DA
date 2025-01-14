@@ -13,7 +13,7 @@ import io.odysz.semantics.x.SemanticException;
 
 /**
  * Handling exchange session with remote node.
- * This is different from {@link DBSyntext} which is used for
+ * This is different from {@link DBSynmantext} which is used for
  * handling local data integration and database semantics. 
  * 
  * @author Ody
@@ -39,14 +39,8 @@ public class ExchangeContext {
 	Exchanging exstate;
 	
 	/**
-	 * {entity-name: Nyquvect}
-	 */
-	// HashMap<String,HashMap<String,Long>> exessionKnowledge;
-
-	/**
 	 * Create context at client side.
 	 * @param chgm
-	 * @param localtb local transaction builder
 	 * @param target
 	 */
 	public ExchangeContext(SynChangeMeta chgm, String target) {
@@ -60,7 +54,6 @@ public class ExchangeContext {
 	 * Create context at server side.
 	 * @param session session id supplied by client
 	 * @param chgm
-	 * @param localtb
 	 * @param target
 	 */
 	public ExchangeContext(String session, SynChangeMeta chgm, String target) {

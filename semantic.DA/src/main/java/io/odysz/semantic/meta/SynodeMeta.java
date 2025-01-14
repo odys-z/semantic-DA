@@ -1,7 +1,5 @@
 package io.odysz.semantic.meta;
 
-import static io.odysz.common.Utils.loadTxt;
-
 import java.util.ArrayList;
 
 import io.odysz.module.rs.AnResultset;
@@ -39,7 +37,6 @@ public class SynodeMeta extends SyntityMeta {
 	 * Using 'mac' as device id field.
 	 * 
 	 * @param conn
-	 * @param trb 
 	 * @throws SemanticException 
 	 */
 	public SynodeMeta(String conn) throws TransException {
@@ -53,7 +50,7 @@ public class SynodeMeta extends SyntityMeta {
 		jserv   = "jserv";
 		synoder = pk;
 
-		ddlSqlite = loadTxt(SyntityMeta.class, "syn_node.sqlite.ddl");
+		ddlSqlite = loadSqlite(SyntityMeta.class, "syn_node.sqlite.ddl");
 
 		autopk = DATranscxt.hasSemantics(conn, tbl, smtype.autoInc);
 	}
@@ -63,8 +60,8 @@ public class SynodeMeta extends SyntityMeta {
 		return null;
 	}
 
-	@Override
-	public String[] insertSelectItems(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset changes) {
-		return null;
-	}
+//	@Override
+//	public String[] insertSelectItems(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset changes) {
+//		return null;
+//	}
 }

@@ -7,9 +7,6 @@ import java.sql.SQLException;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.meta.SynodeMeta;
-import io.odysz.semantic.syn.DBSyntableBuilder;
-import io.odysz.semantic.syn.Nyquence;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
@@ -115,62 +112,6 @@ public class DAHelper {
 	}
 
 	/**
-	 * @deprecated replaced by {@link #getNyquence(DATranscxt, String, TableMeta, String, String...)}.
-	 * @param trb
-	 * @param conn
-	 * @param m
-	 * @param recId
-	 * @param field
-	 * @return Nyquence
-	 * @throws SQLException
-	 * @throws TransException
-	 */
-	public static Nyquence loadRecNyquence(DATranscxt trb, String conn, SynodeMeta m, String recId, String field)
-			throws SQLException, TransException {
-		return new Nyquence(loadRecLong(trb, conn, m, recId, field));
-	}
-
-	public static Nyquence getNyquence(DBSyntableBuilder trb, String... where_eqs)
-			throws SQLException, TransException {
-		return getNyquence(trb, trb.synconn(), trb.synm, trb.synm.nyquence, where_eqs);
-	}
-
-	public static Nyquence getNstamp(DBSyntableBuilder trb)
-			throws SQLException, TransException {
-		return getNyquence(trb, trb.synconn(), trb.synm, trb.synm.nstamp, trb.synm.synoder, trb.synode());
-	}
-
-	/**
-	 * Load nyquence without triggering semantics handling.
-	 * 
-	 * @param trb
-	 * @param conn
-	 * @param m
-	 * @param nyqfield
-	 * @param where_eqs
-	 * @return nyquence
-	 * @throws SQLException
-	 * @throws TransException
-	 */
-	public static Nyquence getNyquence(DATranscxt trb, String conn, SynodeMeta m, String nyqfield, String... where_eqs)
-			throws SQLException, TransException {
-		// return new Nyquence(getValong(trb, conn, m, nyqfield, where_eqs));
-		Query q = trb.select(m.tbl);
-		
-		for (int i = 0; i < where_eqs.length; i+=2)
-			q.whereEq(where_eqs[i], where_eqs[i+1]);
-		
-		AnResultset rs = (AnResultset) q 
-				.rs(trb.basictx().clone(DATranscxt.dummyUser()).connId(conn == null ? trb.basictx().connId() : conn))
-				.rs(0);
-		
-		if (rs.next())
-			return new Nyquence(rs.getLong(nyqfield));
-		else throw new SQLException(String
-			.format("Record not found: %s.%s = '%s' ... ", m.tbl, where_eqs[0], where_eqs[1]));
-	}
-	
-	/**
 	 * Commit to DB({@code conn}) as user {@code usr}, with SQL:<br>
 	 * 
 	 * update m.tbl set field = v where m.pk = recId
@@ -265,12 +206,7 @@ public class DAHelper {
 
 	/**
 	 * @deprecated replaced by {@link #count(DATranscxt, String, String, Object...)}
-	 * @param b
-	 * @param conn
-	 * @param t
-	 * @param field
-	 * @param v
-	 * @return
+	 * @return count
 	 * @throws SQLException
 	 * @throws TransException
 	 */

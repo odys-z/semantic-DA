@@ -1,8 +1,12 @@
 package io.odysz.semantic.meta;
 
+import static io.odysz.common.LangExt.replacele;
+import static io.odysz.transact.sql.parts.condition.Funcall.extfile;
+
 import java.sql.SQLException;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.x.TransException;
@@ -15,35 +19,15 @@ import io.odysz.transact.x.TransException;
  * @author odys-z@github.com
  */
 public abstract class ExpDocTableMeta extends SyntityMeta {
-	/**
-	 * consts of share type: pub | priv 
-	 */
-	public static class Share {
-		/** public asset */
-		public static final String pub = "pub";
-		/** private asset */
-		public static final String priv = "priv";
-
-		public static boolean isPub(String s) {
-			if (pub.equals(s)) return true;
-			return false;
-		}
-
-		public static boolean isPriv(String s) {
-			if (priv.equals(s)) return true;
-			return false;
-		}
-	}
 
 	public final String fullpath;
 	/** aslo named as pname, clientname or filename previously */
 	public final String resname;
 	/**
-	 * Resource identity, reading with {@link io.odysz.transact.sql.parts.condition.Funcall.Func#extFile extFile}
-	 * and updating with {@link io.odysz.semantic.DASemantics.ShExtFilev2 ShExtFile}.
+	 * @see io.odysz.semantic.DASemantics.ShExtFilev2 ShExtFile.
 	 */
 	public final String uri;
-	public final String device;
+	// public final String device;
 	public final String org;
 	public final String createDate;
 	public final String shareDate;
@@ -94,7 +78,6 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	public Query selectSynPaths(DATranscxt st, String devid) throws TransException {
 		return  st.select(tbl, "t")
 				  .cols(device, shareflag, shareby, shareDate);
-
 	}
 
 	/**
@@ -106,5 +89,18 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	 */
 	public Object[] getPathInfo(AnResultset rs) throws SQLException {
 		return rs.getFieldArray(device, shareflag, shareby, shareDate);
+	}
+
+	@Override
+	public Query onselectSyntities(Query select) throws TransException {
+		String a = tbl; 
+		if (select.alias() != null)
+			a = select.alias().toString();
+		return select
+				.clos_clear()
+				.cols_byAlias(a,
+					DATranscxt.hasSemantics(conn, tbl, smtype.extFilev2)
+					? replacele(entCols(), uri, extfile(a + "." + uri))
+					: entCols());
 	}
 }

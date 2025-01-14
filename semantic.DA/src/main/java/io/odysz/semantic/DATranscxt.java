@@ -49,7 +49,7 @@ import io.odysz.transact.x.TransException;
  * DASemantextTest</a>.</p>
  * 
  * This manager can handling semantics configured in xml.
- * See {@link #loadSemantics(String)}. <br>
+ * See {@link #loadSemanticsXml(String)}. <br>
  * 
  * Every sql building needing semantics handling must use a context instance
  * created by {@link DATranscxt#instancontxt(String, IUser)}.
@@ -172,7 +172,7 @@ public class DATranscxt extends Transcxt {
 	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
 		try {
 			return new DASemantext(connId,
-				initConfigs(connId, loadSemantics(connId),
+				initConfigs(connId, loadSemanticsXml(connId),
 						(c) -> new SemanticsMap(c)),
 				usr, runtimepath);
 		} catch (Exception e) {
@@ -310,14 +310,24 @@ public class DATranscxt extends Transcxt {
 	 */
 	public DATranscxt(String conn) throws Exception {
 		this(new DASemantext(conn,
-				isblank(conn) ? null : initConfigs(conn, loadSemantics(conn),
+				isblank(conn) ? null : initConfigs(conn, loadSemanticsXml(conn),
 						(c) -> new SemanticsMap(c)),
 				dummyUser(), runtimepath));
 		if (isblank(conn))
 			Utils.warnT(new Object() {},
-				"Since v2.0.0, an empty connection ID won't trigger the semantics loading.");
+				"Since v1.5.0, an empty connection ID won't trigger the semantics loading.");
 	}
 	
+	/**
+	 * Create a stub transaction helper without depending on a database connection,
+	 * typically for initialization.
+	 * @since 2.0.0
+	 * @throws Exception
+	 */
+	public DATranscxt() throws Exception {
+		this((String)null);
+	}
+
 	protected DATranscxt(DASemantext stxt) {
 		super(stxt);
 	}
@@ -333,7 +343,7 @@ public class DATranscxt extends Transcxt {
 	 * @throws SQLException 
 	 * @throws SemanticException 
 	 */
-	public static XMLTable loadSemantics(String connId)
+	public static XMLTable loadSemanticsXml(String connId)
 			throws SAXException, IOException, SemanticException {
 
 		String fpath = Connects.getSmtcsPath(connId);
@@ -357,6 +367,17 @@ public class DATranscxt extends Transcxt {
 		return xtbl;
 	}
 	
+	/**
+	 * Load {@link #smtMaps}.
+	 * 
+	 * @param <M> semantics map type
+	 * @param <S> semantics
+	 * @param conn
+	 * @param xcfg
+	 * @param smFactory
+	 * @return map per {@code conn}
+	 * @throws Exception
+	 */
 	@SuppressWarnings("unchecked")
 	public static <M extends SemanticsMap, S extends DASemantics> M initConfigs(
 			String conn, XMLTable xcfg, SmapFactory<M> smFactory)

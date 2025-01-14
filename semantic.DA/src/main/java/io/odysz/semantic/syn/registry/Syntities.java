@@ -21,7 +21,7 @@ import io.odysz.transact.x.TransException;
 public class Syntities extends Anson {
 	static HashMap<String, Syntities> registries;
 
-	SynodeMeta synodeMeta;
+	public SynodeMeta synodeMeta;
 	
 	static {
 		registries = new HashMap<String, Syntities>();
@@ -33,11 +33,10 @@ public class Syntities extends Anson {
 	}
 
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
-	public
-	HashMap<String, SyntityMeta> metas;
+	public HashMap<String, SyntityMeta> metas;
 
 	String conn;
-	ArrayList<SyntityReg> syntities;
+	public ArrayList<SyntityReg> syntities;
 	
 	public boolean debug;
 	
@@ -45,6 +44,15 @@ public class Syntities extends Anson {
 		metas = new HashMap<String, SyntityMeta>();
 	}
 
+	/**
+	 * Load registry, and syntities' metas, without impact on connection's information,
+	 * e. g. the meta pool. Metas registered must be replaced into connection's pool. 
+	 * @param runtimepath
+	 * @param json
+	 * @param mf
+	 * @return syntities
+	 * @throws Exception
+	 */
 	public static Syntities load(String runtimepath, String json, MetaFactory mf) throws Exception {
 		String p = FilenameUtils.concat(
 				EnvPath.replaceEnv(runtimepath),
@@ -73,6 +81,13 @@ public class Syntities extends Anson {
 		return reg;
 	}
 
+	/**
+	 * Create meta, without replacing connection's meta pool - must replaced into it later. 
+	 * @param conn
+	 * @param synt
+	 * @return
+	 * @throws Exception
+	 */
 	private static SyntityMeta instance4name(String conn, SyntityReg synt) throws Exception {
 
 		@SuppressWarnings("unchecked")
@@ -81,7 +96,7 @@ public class Syntities extends Anson {
 
 		constructor = cls.getConstructor(String.class);
 
-		return (SyntityMeta) constructor.newInstance(conn).replace();
+		return (SyntityMeta) constructor.newInstance(conn); // .replace();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -95,6 +110,10 @@ public class Syntities extends Anson {
 
 	public static SynodeMeta getSynodeMeta(String conn) {
 		return registries.get(conn).synodeMeta;
+	}
+
+	public ArrayList<SyntityReg> syntities() {
+		return syntities;
 	}
 
 }

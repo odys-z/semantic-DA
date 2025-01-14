@@ -1,6 +1,7 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.notNull;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -46,12 +47,12 @@ public class DBSynTransBuilder extends DATranscxt {
 		public static SemanticsMap clone(String synode, SemanticsMap sm) {
 			SynmanticsMap m = new SynmanticsMap(synode, sm.conn);
 			for (DASemantics s : sm.ss.values())
-				m.ss.put(s.tabl, s);
+				m.ss.put(s.tabl, s.clone());
 			
 			return m;
 		}
 
-		public void appendMetas(HashMap<String, SyntityMeta> metas, Transcxt trb) throws TransException {
+		public void addSynchangeHandlers(HashMap<String, SyntityMeta> metas, Transcxt trb) throws TransException {
 			if (metas != null)
 			for (SyntityMeta m : metas.values()) {
 				if (!ss.containsKey(m.tbl))
@@ -82,98 +83,101 @@ public class DBSynTransBuilder extends DATranscxt {
 
 	private final boolean force_clean_subs;
 
-	/* */
-	private Nyquence stamp;
-
 	private DBSyntableBuilder changelogBuilder;
 
-	public long stamp() { return stamp.n; }
-	public Nyquence stampN() { return stamp; }
-	
-	public DBSynTransBuilder (String domain, String conn, String mynid,
-				String syntity_json, SynodeMode mode, DBSyntableBuilder logger)
-				throws SemanticException, SQLException, SAXException, IOException, Exception {
+	public DBSynTransBuilder (SyndomContext x, DBSyntableBuilder logger)
+			throws SemanticException, SQLException, SAXException, IOException, Exception {
 
-		super(conn);
+		super(x.synconn);
 		
-		debug    = Connects.getDebug(conn);
-		perdomain= domain;
-		synmode  = mode;
-		synode   = mynid;
+		notNull(x);
+		notNull(logger);
+		
+		debug    = Connects.getDebug(x.synconn);
+		perdomain= x.domain;
+		synmode  = x.mode;
+		synode   = x.synode;
 
 		this.changelogBuilder = logger;
 		
-		this.chgm = new SynChangeMeta(conn).replace();
-		this.subm = new SynSubsMeta(chgm, conn).replace();
-		this.synm = (SynodeMeta) new SynodeMeta(conn).autopk(false).replace();
-		this.exbm = new SynchangeBuffMeta(chgm, conn).replace();
-		this.pnvm = new PeersMeta(conn).replace();
+		this.chgm = new SynChangeMeta(x.synconn).replace();
+		this.subm = new SynSubsMeta(chgm, x.synconn).replace();
+		this.synm = (SynodeMeta) new SynodeMeta(x.synconn).autopk(false).replace();
+		this.exbm = new SynchangeBuffMeta(chgm, x.synconn).replace();
+		this.pnvm = new PeersMeta(x.synconn).replace();
 		
 		// seq = 0;
 		force_clean_subs = true;
 
-		if (mode != SynodeMode.nonsyn) {
-			if (DAHelper.count(new DATranscxt(conn), conn, synm.tbl,
-						synm.synoder, mynid, synm.domain, perdomain) <= 0) {
+		if (x.mode != SynodeMode.nonsyn) {
+			if (DAHelper.count(new DATranscxt(x.synconn), x.synconn, synm.tbl,
+						synm.synoder, x.synode, synm.domain, perdomain) <= 0) {
 				if (debug) Utils
 					.warnT(new Object() {},
 						  "\nThis syntable builder is being built for node %s which doesn't exists in domain %s." +
 						  "\nThis instence can only be useful if is used to initialize the domain for the node",
-						  mynid, perdomain);
+						  x.synode, perdomain);
 			}
-			else
-				stamp = DAHelper.getNyquence(this, conn, synm, synm.nyquence,
-						synm.synoder, mynid, synm.domain, perdomain);
-
-			// registerEntity(conn, synm);
-			synSemantics (this, conn, synode, 
-					Syntities.load(cfgroot, syntity_json, 
-					(synreg) -> {
-						throw new SemanticException(
-							"TODO syntity name: %s (Configure syntity.meta to avoid this error)",
-							synreg.table);
-					}));
 		}
 		else if (isblank(perdomain))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
-				this.getClass().getName(), mynid);
+				this.getClass().getName(), x.synode);
 
 		if (debug && force_clean_subs) Utils
 			.logT(new Object() {}, "Transaction builder created with forcing cleaning stale subscriptions.");
 
 	}
 
+	/** 
+	 * A helper version of {@link #DBSynTransBuilder(SyndomContext, DBSyntableBuilder)},
+	 * ignoring loading {@link SynmanticsMap}.
+	 * 
+	 * @param domx
+	 * @throws Exception 
+	 * @throws IOException 
+	 * @throws SAXException 
+	 * @throws SQLException 
+	 * @throws SemanticException 
+	 */
+	public DBSynTransBuilder(SyndomContext domx)
+			throws SemanticException, SQLException, SAXException, IOException, Exception {
+		this(domx, new DBSyntableBuilder(domx));
+		notNull(synmanticMaps, "DBSynTransBuilder(SyndomContext domx) must be called only after synSemantics(...) has been called.");
+	}
+
 	protected static HashMap<String, SemanticsMap> synmanticMaps;
 
 	/**
+	 * Registering syntities, adding semantics handler, {@link ShSynChange},
+	 * to the Semantics map.
+	 *  
 	 * Equivalent to {@link DATranscxt#initConfigs(String, XMLTable, SmapFactory)}.
 	 * 
 	 * @param <M>
 	 * @param <S>
 	 * @param trb
-	 * @param xcfg
-	 * @param synode2
+	 * @param synode
 	 * @param syntities 
-	 * @return
+	 * @return semantics map of connection {@code conn}
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
 	public static <M extends SemanticsMap, S extends DASemantics> M synSemantics(
-			DBSynTransBuilder trb, String conn, String synode, Syntities syntities) throws Exception {
+			DATranscxt trb, String conn, String synode, Syntities syntities) throws Exception {
 
 		if (synmanticMaps == null)
 			synmanticMaps = new HashMap<String, SemanticsMap>(); 
 		
-		DATranscxt.initConfigs(conn, loadSemantics(conn),
+		DATranscxt.initConfigs(conn, loadSemanticsXml(conn),
 						(c) -> new SemanticsMap(c));
 
 		if (!smtMaps.containsKey(conn))
-			throw new SemanticException("Basic semantics map for conn %s is empty.", trb);
+			throw new SemanticException("Basic semantics map for connection %s is empty.", conn);
 		else {
 			SemanticsMap m = SynmanticsMap.clone(synode, smtMaps.get(conn));
 			synmanticMaps.put(conn, m);
 			
-			((SynmanticsMap)m).appendMetas(syntities.metas, trb);
+			((SynmanticsMap)m).addSynchangeHandlers(syntities.metas, trb);
 
 			return (M) synmanticMaps.get(conn);
 		}
@@ -191,7 +195,11 @@ public class DBSynTransBuilder extends DATranscxt {
 		}
 	}
 	
-	public static SyntityMeta getEntityMeta(String synconn, String tbl) {
-		return Syntities.get(synconn).meta(tbl);
+	public static SyntityMeta getEntityMeta(String synconn, String tbl) throws TransException, SQLException {
+		return Syntities.get(synconn).meta(tbl).replace();
+	}
+
+	public ISemantext instancontxt() throws TransException {
+		return instancontxt(basictx.connId(), dummy);
 	}
 }

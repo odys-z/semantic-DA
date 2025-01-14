@@ -85,19 +85,6 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 			return SqliteDriverQueued.initConnection(id, String.format("jdbc:sqlite:%s", dbpath),
 					usr, pswd, log, printSql ? flag_printSql : flag_nothing);
 		}
-//		else if (type == dbtype.sqlite_queue) {
-//			Utils.logi("[%s]\nResolving sqlite db (queued), xmlDir: %s,\n\tjdbcUrl: %s", id, xmlDir, jdbcUrl);
-//
-//			String dbpath = FilenameUtils.concat(xmlDir, EnvPath.replaceEnv(jdbcUrl));
-//			Utils.logi("\tUsing sqlite db (pooled): %s", dbpath);
-//			
-//			File f = new File(dbpath);
-//			if (!f.exists())
-//				throw new SemanticException("Can't find DB file: %s", f.getAbsolutePath());
-//
-//			return SqliteDriverQueued.initConnection(id, String.format("jdbc:sqlite:%s", dbpath),
-//					usr, pswd, log, printSql ? flag_printSql : flag_nothing);
-//		}
 		else if (type == dbtype.ms2k) {
 			return Msql2kDriver.initConnection(jdbcUrl,
 				usr, pswd, log, printSql ? flag_printSql : flag_nothing);
@@ -184,7 +171,6 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 	/////////////////////////////// common helper /////////////////////////////
 	/** If printSql is true or if asking enable, 
 	 * then print sqls.
-	 * @param asking
 	 * @param flag
 	 * @param sqls
 	 */

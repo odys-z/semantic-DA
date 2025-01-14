@@ -15,7 +15,7 @@
   		<usr>test</usr>
   		<pswd>test</pswd>
   		<!-- enable sql printing -->
-  		<dbg>true</dbg>
+  		<dbg></dbg>
   		<smtcs>semantics.xml</smtcs>
   	</c>
 
@@ -62,7 +62,7 @@
   		<src>syn.01</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg></dbg>
+  		<dbg>1</dbg>
   		<smtcs>synmantics-syntabuilder.xml</smtcs>
 	</c>
 	<c>
@@ -72,7 +72,7 @@
   		<src>syn.02</src>
   		<usr></usr>
   		<pswd></pswd>
-  		<dbg></dbg>
+  		<dbg>1</dbg>
   		<smtcs>synmantics-syntabuilder.xml</smtcs>
 	</c>
 	<c>

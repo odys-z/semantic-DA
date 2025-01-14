@@ -52,7 +52,7 @@ public class AnResultset extends Anson {
 	public interface ObjCreator<T> {
 		/**
 		 * @param rs resultset at current row, iteration is driven by AnResultset, 
-		 * by calling {@link AnResultset#map(String, ObjCreator).
+		 * by calling {@link AnResultset#map(String, ObjCreator)}.
 		 * @return
 		 * @throws SQLException
 		 */
@@ -693,8 +693,8 @@ for (String coln : colnames.keySet())
 	 * @throws NumberFormatException
 	 * @throws SQLException
 	 */
-	public long getLongAt(String colName, int row) throws NumberFormatException, SQLException {
-		return getLongAtRow(getColumex(colName) - 1, row);
+	public long getLongAt(String colName, int row0) throws NumberFormatException, SQLException {
+		return getLongAtRow(getColumex(colName) - 1, row0);
 	}
 
 	/**

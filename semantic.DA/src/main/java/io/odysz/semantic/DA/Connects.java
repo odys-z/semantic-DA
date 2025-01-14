@@ -45,11 +45,6 @@ import io.odysz.transact.x.TransException;
  * @author odys-z@github.com
  */
 public class Connects {
-	/** nothing special for commit */
-//	public static final int flag_nothing = 0;
-//	public static final int flag_printSql = 1;
-//	public static final int flag_disableSql = 2;
-
 	/**Convert names like "sqlit" to {@link dbtype}.
 	 * @param type
 	 * @return db type
@@ -142,7 +137,6 @@ public class Connects {
 				// columns="type,id,isdef,conn,usr,pswd,dbg"
 				dbtype type = parseDrvType(conn.getString("type"));
 				String id = conn.getString("id");
-				// boolean log = conn.getBool("log", false);
 				if (dmCp == DmConn)
 					if (srcs.get(id) != null)
 						;
@@ -216,25 +210,6 @@ public class Connects {
 				}
 	}
 	
-	/////////////////////////////// common helper /////////////////////////////
-	/** If printSql is true or if asking enable, 
-	 * then print sqls.
-	 * @param asking
-	 * @param flag
-	 * @param sqls
-	 */
-//	public static void printSql(boolean asking, int flag, ArrayList<String> sqls) {
-//		if ((flag & flag_printSql) == flag_printSql
-//			|| asking && (flag & flag_disableSql) != flag_disableSql)
-//			Utils.logi(sqls);
-//	}
-//
-//	public static void printSql(boolean asking, int flag, String sql) {
-//		if ((flag & flag_printSql) == flag_printSql
-//			|| asking && (flag & flag_disableSql) != flag_disableSql)
-//			Utils.logi(sql);
-//	}
-
 	///////////////////////////////////// select ///////////////////////////////
 	public static AnResultset select(String conn, String sql, int... flags) throws SQLException {
 		// This is probably because of wrong configuration in connects.xml. 
@@ -541,7 +516,7 @@ public class Connects {
 	 */
 	public static String uri2conn(String uri) throws SemanticException {
 		if (LangExt.isblank(uri))
-			throw new SemanticException("Function's uri cannot be null! Which is used for connecting datasource.");
+			throw new SemanticException("[uri -> conn] Function's uri cannot be null! Which is used for connecting datasource.");
 		for (Regex reg : conn_uri.keySet())
 			if (reg.match(uri))
 				return conn_uri.get(reg);

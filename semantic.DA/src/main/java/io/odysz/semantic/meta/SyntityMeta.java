@@ -31,11 +31,10 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	/**
 	 * Global syn-uid. Must be transparent to users.
 	 * 
-	 * (using this field in transactions will supress semantics handling of smtyp.synchange)
+	 * (using this field in transactions will suppress semantics handling of smtyp.synchange)
 	 */
-	public final String synuid;
+	public final String io_oz_synuid;
 	
-	/** Entity creator's id used for identify originators in domain (globally?) */
 	public String device;
 
 	/** Entity's columns for generation global uid */
@@ -69,7 +68,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 		this.pk = pk;
 		// synoder = synodr;
 		device = devid;
-		synuid = "io_oz_synuid";
+		io_oz_synuid = "io_oz_synuid";
 		
 		uids = new ArrayList<String>();
 	}
@@ -78,16 +77,10 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	@Override
 	public <T extends SemanticTableMeta> T replace() throws TransException, SQLException {
 		super.replace();
-		if (isNull(ftypes) || !ftypes.containsKey(synuid))
-			throw new TransException(err_requires_synuid(tbl, synuid, conn));
+		if (isNull(ftypes) || !ftypes.containsKey(io_oz_synuid))
+			throw new TransException(err_requires_synuid(tbl, io_oz_synuid, conn));
 		return (T) this;
 	}
-
-//	public HashSet<String> globalIds() throws SemanticException {
-//		if (uids == null)
-//			throw new SemanticException("SyntityMeta.uids must initialized by subclasses. Uids is null.");
-//		return uids;
-//	}
 
 	/**
 	 * Generate columns for inserting challenging entities.
@@ -102,16 +95,18 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * @throws SemanticException this instance is not initialized from db ({@link #ftypes} is empty).
 	 * @since 1.4.40
 	 */
-	public Object[] entCols() throws SemanticException {
+	Object[] entCols() throws SemanticException {
 		if (entCols == null)
 			this.entCols = new HashMap<String, Integer>(ftypes.size());
 
 		if (ftypes == null || ftypes.size() == 0)
-			throw new SemanticException("This table meta is not initialized with information from DB. Call clone() or replace() first.");
+			throw new SemanticException(
+					"The table %s's meta is not initialized with information from DB. Call clone() or replace() first.",
+					tbl);
 
-		if (!ftypes.containsKey(synuid)) 
-			throw new SemanticException(err_requires_synuid(tbl, synuid, conn));
-					
+		if (!ftypes.containsKey(io_oz_synuid)) 
+			throw new SemanticException(err_requires_synuid(tbl, io_oz_synuid, conn));
+
 		Object[] cols = new Object[autopk() ? ftypes.size() - 1 : ftypes.size()];
 		int cx = 0;
 		for (String c : ftypes.keySet()) {
@@ -139,17 +134,17 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 */
 	public ArrayList<Object[]> insertChallengeEnt(String uids, AnResultset challents)
 			throws SQLException, SemanticException {
-		// TODO optimize Insert to handle this values faster
-		Object[] cols = entCols();
-		ArrayList<Object[]> val = new ArrayList<Object[]> (entCols.size());
-		ArrayList<Object> row = challents.getRowAt(challents.rowIndex0(uids));
-
-		for (int cx = 0; cx < cols.length; cx++) {
-			if (autopk() && cols[cx] instanceof String && eq(this.pk, (String)cols[cx]))
-				continue;
-			val.add(new Object[] {cols[cx], row.get(cx)});
-		}
-		return val;
+		throw new SemanticException("sholdn't reach here");
+//		Object[] cols = entCols();
+//		ArrayList<Object[]> val = new ArrayList<Object[]> (entCols.size());
+//		ArrayList<Object> row = challents.getRowAt(challents.rowIndex0(uids));
+//
+//		for (int cx = 0; cx < cols.length; cx++) {
+//			if (autopk() && cols[cx] instanceof String && eq(this.pk, (String)cols[cx]))
+//				continue;
+//			val.add(new Object[] {cols[cx], row.get(cx)});
+//		}
+//		return val;
 	}
 
 	/**
@@ -183,13 +178,16 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * @param changes
 	 * @return select-items
 	 * @throws SQLException 
-	 */
 	public abstract Object[] insertSelectItems(SynChangeMeta chgm, String entid,
 			AnResultset entities, AnResultset changes) throws TransException, SQLException;
+	 */
 
 	/**
 	 * 
 	 * <p>Entity meta's query event handler, while synchronizing.</p>
+	 * <p>{@link io.odysz.semantic.syn.ExessionPersist ExessionPersist}
+	 * (or {@link io.odysz.semantic.syn.DBSyntableBuilder DBSyntableBuilder})
+	 * use this for loading entities in a syn-exchang page.</p>
 	 * <p>Note: call select.cols(...) first.</p>
 	 * 
 	 * A typical task finished here is to add an extFile() function object to the

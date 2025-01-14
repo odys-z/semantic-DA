@@ -1,6 +1,5 @@
 package io.odysz.semantic.meta;
 
-import io.odysz.common.Utils;
 import io.odysz.semantics.meta.Semantation;
 import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
@@ -26,7 +25,7 @@ public class SynchangeBuffMeta extends SemanticTableMeta {
 	public SynchangeBuffMeta(SynChangeMeta chm, String ... conn) {
 		super("syn_exchange_buf", conn);
 		UIDsep = ",";
-		ddlSqlite = Utils.loadTxt(SynchangeBuffMeta.class, "syn_exchange_buf.sqlite.ddl");
+		ddlSqlite = loadSqlite(SynchangeBuffMeta.class, "syn_exchange_buf.sqlite.ddl");
 		this.chm = chm;
 
 		changeId = "changeId";

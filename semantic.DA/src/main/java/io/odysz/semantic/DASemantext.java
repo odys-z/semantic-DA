@@ -91,7 +91,7 @@ public class DASemantext implements ISemantext {
 	 * @throws SemanticException metas is null
 	 * @throws SQLException 
 	 */
-	public DASemantext(String connId, SemanticsMap semanticsMap,
+	protected DASemantext(String connId, SemanticsMap semanticsMap,
 			IUser usr, String rtPath) throws SemanticException, SQLException {
 		basePath = rtPath;
 		this.connId = connId;
@@ -228,6 +228,15 @@ public class DASemantext implements ISemantext {
 		return autoVals;
 	}
 
+	
+	/*
+	public ISemantext reset() {
+		if (autoVals != null)
+			autoVals.clear();
+		return this;
+	}
+	 */
+
 	///////////////////////////////////////////////////////////////////////////
 	// auto ID
 	///////////////////////////////////////////////////////////////////////////
@@ -329,8 +338,13 @@ end;
 			sql = String.format("select oz_fIncSeq('%s.%s', '%s') newId", target, idField, subCate);
 
 		AnResultset rs = null;
+
 		// v1.3.0: user sys default conn to generate log-id
-		rs = Connects.select(Connects.defltConn(), sql);
+		// FIXME
+		// v1.4.45: why Connects.defltConn() instead of arg conn? 
+		// rs = Connects.select(Connects.defltConn(), sql);
+		rs = Connects.select(conn, sql);
+
 		if (rs.getRowCount() <= 0)
 			throw new TransException("Can't find auot seq of %1$s.\n" +
 					"For performantc reason, DASemantext assumes a record in oz_autoseq.seq (id='%1$s.%2$s') exists.\n" +
@@ -417,8 +431,8 @@ end;
 		if (rs.getRowCount() <= 0)
 			throw new TransException("Can't find auot seq of %1$s.\n" +
 					"For performance reason and difficulty of implementing sqlite stored process, DASemantext assumes a record in oz_autoseq.seq (id='%1$s.%2$s') exists.\n" +
-					"May be you would check where oz_autoseq.seq and table %2$s are existing?",
-					idF, target);
+					"May be you would check where is oz_autoseq.seq and table %1$s existing?",
+					target, idF);
 		rs.beforeFirst().next();
 
 		return radix64_32(rs.getLong("seq"));

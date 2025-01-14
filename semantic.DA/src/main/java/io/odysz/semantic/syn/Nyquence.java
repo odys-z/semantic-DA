@@ -15,7 +15,7 @@ public class Nyquence {
 	/**
 	 * Compare a, b within modal of max long.
 	 * <pre>
-	 * min-long<0        0            max-long
+	 * min-long &lt; 0      0            max-long
 	 *                a  b
 	 *     a             b
 	 *     b                    a             a - b &lt; 0
@@ -56,7 +56,12 @@ public class Nyquence {
 	 */
 	Nyquence inc(long maxn) {
 		this.n = Math.max(maxn, this.n );
-		this.n++;
+		this.n++;	// FIXME
+		return this;
+	}
+
+	public Nyquence add(int inc) {
+		n += inc;	// FIXME
 		return this;
 	}
 
@@ -90,6 +95,8 @@ public class Nyquence {
 	}
 
 	public static Nyquence maxn(HashMap<String, Nyquence> nv) {
+		if (nv == null) return null;
+		
 		Nyquence mx = null;
 		for (Nyquence nyq : nv.values()) {
 			mx = maxn(mx, nyq);

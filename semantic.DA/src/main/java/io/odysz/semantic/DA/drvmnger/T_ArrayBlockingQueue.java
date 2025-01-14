@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
- * {@link ArrayBlockingQueue>'s test version.
+ * An {@link ArrayBlockingQueue}'s test version.
  * 
  * @since 1.4.45
  * @param <S>

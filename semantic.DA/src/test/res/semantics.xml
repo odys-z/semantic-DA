@@ -13,7 +13,7 @@
   		<smtc>pk</smtc>
   		<tabl>a_functions</tabl>
   		<pk>funcId</pk>
-  		<args>funcId</args>
+  		<args>funcId,0</args>
   	</s>
   	<s>
   		<id>02</id>
@@ -27,7 +27,7 @@
   		<smtc>pk</smtc>
   		<tabl>a_roles</tabl>
   		<pk>roleId</pk>
-  		<args>roleId</args>
+  		<args>roleId,0</args>
   	</s>
   	<s>
   		<id>12</id>
@@ -50,14 +50,14 @@
   		<smtc>autopk</smtc>
   		<tabl>crs_a</tabl>
   		<pk>aid</pk>
-  		<args>aid</args>
+  		<args>aid,64</args>
   	</s>
   	<s>
   		<id>t-crs-bid</id>
   		<smtc>autopk</smtc>
   		<tabl>crs_b</tabl>
   		<pk>bid</pk>
-  		<args>bid</args>
+  		<args>bid,4096</args>
   	</s>
   	<s>
   		<id>t-crs-child-fk</id>
@@ -83,7 +83,7 @@
   		<smtc>autopk</smtc>
   		<tabl>a_users</tabl>
   		<pk>userId</pk>
-  		<args>userId</args>
+  		<args>userId,128</args>
   	</s>
   	<!-- a_user.pswd default value -->
   	<s>
@@ -107,7 +107,7 @@
   		<smtc>autopk</smtc>
   		<tabl>a_attaches</tabl>
   		<pk>attId</pk>
-  		<args>attId</args>
+  		<args>attId,262144</args>
   	</s>
 
   	<!-- image attachments to a_user: save as file -->
@@ -131,7 +131,7 @@
   		<smtc>autopk</smtc>
   		<tabl>h_photos</tabl>
   		<pk>pid</pk>
-  		<args>pid</args>
+  		<args>pid,16384</args>
   	</s>
 
 	<s>
@@ -233,14 +233,14 @@
   		<smtc>auto</smtc>
   		<tabl>b_alarms</tabl>
   		<pk>alarmId</pk>
-  		<args>alarmId</args>
+  		<args>alarmId,1024</args>
   	</s>
   	<s>
   		<id>6b</id>
   		<smtc>auto</smtc>
   		<tabl>b_alarm_logic</tabl>
   		<pk>logicId</pk>
-  		<args>logicId</args>
+  		<args>logicId,16777216</args>
   	</s>
   	<s>
   		<id>6c</id>
@@ -254,7 +254,7 @@
   		<smtc>auto</smtc>
   		<tabl>b_logic_device</tabl>
   		<pk>deviceLogId</pk>
-  		<args>deviceLogId</args>
+  		<args>deviceLogId,16777216</args>
   	</s>
 	<s>
   		<id>6f</id>
@@ -276,7 +276,7 @@
   		<smtc>auto</smtc>
   		<tabl>doc_devices</tabl>
   		<pk>device</pk>
-  		<args>device,synode0</args>
+  		<args>device,256,synode0</args>
   	</s>
   </t>
 </semantics>

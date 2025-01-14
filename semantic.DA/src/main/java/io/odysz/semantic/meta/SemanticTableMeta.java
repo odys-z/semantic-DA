@@ -1,20 +1,67 @@
 package io.odysz.semantic.meta;
 
-import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.isblank;
+import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.len;
 
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import io.odysz.common.Utils;
+import io.odysz.common.dbtype;
 import io.odysz.module.xtable.XMLTable.IMapValue;
 import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.meta.TableMeta;
+import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
+
+	private static FileSystem zipfs;
+
+	protected static String loadSqlite(Class<?> clzz, String filename) {
+		try {
+			// https://stackoverflow.com/a/46468788/7362888
+			// URI uri = Paths.get(clzz.getResource(filename).toURI()).toUri();
+			URI uri = clzz.getResource(filename).toURI();
+			if (!eq(uri.getScheme(), "file") && zipfs == null)
+				try {
+					Map<String, String> env = new HashMap<>(); 
+					env.put("create", "true");
+					zipfs = FileSystems.newFileSystem(uri, env);
+				}
+				catch (Exception e) {
+					Utils.warnT(new Object() {},
+						"File %s shouldn't be load in the runtime environment.\ntarget URI: %s",
+						filename, uri);
+					e.printStackTrace();
+					return null;
+				}
+
+			uri = Paths.get(uri).toUri();
+
+			return Files.readAllLines(
+				Paths.get(uri), Charset.defaultCharset())
+				.stream().collect(Collectors.joining("\n"));
+		} catch (Exception e) {
+			Utils.warnT(new Object() {},
+				"File %s can't be loaded in the runtime environment.\n%s",
+				filename, e.getMessage());
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	@Override
 	public String mapKey() {
@@ -36,12 +83,10 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 	@SuppressWarnings("unchecked")
 	public <T extends SemanticTableMeta> T replace() throws TransException, SQLException {
 		TableMeta mdb = Connects.getMeta(conn, tbl);
-		if (debug && mdb instanceof SemanticTableMeta
-			&& (Connects.getDebug(conn) || !eq(mdb.getClass().getName(), getClass().getName())))
-			Utils.warn( "[TableMeta.debug true] Replacing existing Semantic table meta with new meta. Old: %s, new %s",
-						mdb.getClass().getName(), getClass().getName());
 
-		DASemantics.replaceMeta(tbl, this, conn);
+		if (len(this.ftypes) == 0)
+			DASemantics.replaceMeta(tbl, this, conn);
+
 		if (isNull(this.ftypes) && mdb.ftypes() != null)
 			this.ftypes = mdb.ftypes();
 		return (T) this;
@@ -60,24 +105,35 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 			throws SQLException, TransException {
 		if (ms != null && Connects.isqlite(conn))
 		for (TableMeta m : ms)
-			if (m.ddlSqlite != null) {
+			if (!isblank(m.ddlSqlite)) {
 				if (force_drop) Connects.commit(conn, DATranscxt.dummyUser(),
 						String.format("drop table if exists %s;", m.tbl));
 
 				Connects.commit(conn, DATranscxt.dummyUser(), m.ddlSqlite);
 			}
+			else if (force_drop)
+				throw new SemanticException("Forcing drop table %s without DDL provided.", m.tbl);
 	}
 
 	public static void setupSqlitables(String conn, boolean force_drop, Iterable<SyntityMeta> ms)
 			throws SQLException, TransException {
+		dbtype dt = Connects.driverType(conn);
+		if (dt != dbtype.sqlite && dt != dbtype.sqlite_queue)
+			Utils.warnT(new Object(){},
+				"This method is only used for sqlite DB. [%s]", conn);
+
 		if (ms != null && Connects.isqlite(conn))
 		for (TableMeta m : ms)
-			if (m.ddlSqlite != null) {
+			if (!isblank(m.ddlSqlite)) {
 				if (force_drop) Connects.commit(conn, DATranscxt.dummyUser(),
 						String.format("drop table if exists %s;", m.tbl));
 
 				Connects.commit(conn, DATranscxt.dummyUser(), m.ddlSqlite);
 			}
+			else if (debug && (dt == dbtype.sqlite || dt == dbtype.sqlite_queue))
+				Utils.warn("Table meta's ddl is null. The table needs to be created manually. %s [%s]",
+						m.tbl, conn);
+
 	}
 
 }

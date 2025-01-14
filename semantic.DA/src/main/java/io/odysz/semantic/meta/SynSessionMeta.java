@@ -1,6 +1,5 @@
 package io.odysz.semantic.meta;
 
-import io.odysz.common.Utils;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Update;
@@ -25,7 +24,7 @@ public class SynSessionMeta extends SemanticTableMeta {
 		mode    = "mode";
 		state   = "state";
 
-		ddlSqlite = Utils.loadTxt(PeersMeta.class, "syn_sessions.sqlite.ddl");
+		ddlSqlite = loadSqlite(PeersMeta.class, "syn_sessions.sqlite.ddl");
 	}
 
 	public Statement<?> insertSession(Insert ins, String peer) {

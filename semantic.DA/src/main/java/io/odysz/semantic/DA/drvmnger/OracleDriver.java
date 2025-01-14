@@ -15,7 +15,6 @@ import javax.sql.DataSource;
 import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DA.AbsConnect;
-import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.DA.OracleLob;
 import io.odysz.semantics.IUser;
 import oracle.sql.BLOB;

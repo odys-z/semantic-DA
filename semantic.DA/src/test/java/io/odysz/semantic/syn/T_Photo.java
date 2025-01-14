@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import io.odysz.common.AESHelper;
 import io.odysz.common.DateFormat;
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.meta.ExpDocTableMeta.Share;
 import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.condition.ExprPart;
 import io.odysz.transact.sql.parts.condition.Funcall;
@@ -179,7 +178,7 @@ public class T_Photo extends T_ExpSyncDoc {
 		exif = new ArrayList<String>() {
 			{add("location:вулиця Лаврська' 27' Київ");};
 			{add("camera:Bayraktar TB2");}};
-		share("ody@kyiv", Share.pub, new Date());
+		share("ody@kyiv", "pub", new Date());
 
 		return this;
 	}

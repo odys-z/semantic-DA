@@ -9,7 +9,6 @@
   		args: arguments for sementics handlers. For args for different handlers, see above javadoc link.
    -->
   	<s>
-  		<!-- Issue: this configuration should be removed as this is a forced semantics iff the DB synchronization is supported -->
   		<id>00</id>
  		<smtc>autopk</smtc>
   		<tabl>syn_change</tabl>
@@ -22,7 +21,7 @@
  		<smtc>autopk</smtc>
   		<tabl>h_photos</tabl>
   		<pk>pid</pk>
-  		<args>pid</args>
+  		<args>pid,0</args>
   	</s>
 
   	<s>
@@ -33,7 +32,8 @@
   		<args>oper,opertime</args>
   	</s>
 
-	<!-- 
+	<!-- See d575a4452113b3c8cc392bbb4c1d9d6d4f38f566
+	     for testing with ext-file semantics.   
 	<s>
   		<id>55</id>
   		<smtc>ef2.0</smtc>
