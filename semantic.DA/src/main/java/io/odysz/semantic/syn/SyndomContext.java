@@ -102,7 +102,7 @@ public class SyndomContext {
 		return persistNyquence(synb, domain, nv.get(synode));
 	}
 
-	public void incStamp(DBSyntableBuilder synb, HashMap<String, Nyquence>peernv)
+	public void incStamp(DBSyntableBuilder synb)//, HashMap<String, Nyquence>peernv)
 			throws TransException, SQLException {
 			
 		if (nv.containsKey(synode)
@@ -115,7 +115,8 @@ public class SyndomContext {
 			return; 
 		}
 
-		stamp.inc(maxn(peernv));
+		// stamp.inc(maxn(peernv));
+		stamp.inc();
 
 		stamp = persistamp(synb);
 		seq = 0;
