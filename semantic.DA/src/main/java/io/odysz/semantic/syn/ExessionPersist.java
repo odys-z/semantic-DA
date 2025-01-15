@@ -83,7 +83,7 @@ public class ExessionPersist {
 		return this;
 	}
 
-	ExessionPersist commitAnswers(ExchangeBlock conf, String srcnode, long tillN0)
+	ExessionPersist commitAnswers(ExchangeBlock conf, String srcnode, long tillN0_delete)
 			throws SQLException, TransException {
 		
 		if (conf == null || conf.anspage == null || conf.anspage.getRowCount() <= 0)
@@ -95,8 +95,8 @@ public class ExessionPersist {
 		rply.beforeFirst();
 		String recId = null;
 		while (rply.next()) {
-			if (compareNyq(rply.getLong(chgm.nyquence), tillN0) > 0)
-				break; // FIXME continue? Or throw?
+//			if (compareNyq(rply.getLong(chgm.nyquence), tillN0) > 0)
+//				break; // FIXME continue? Or throw?
 	
 			// SyntityMeta entm = trb.getEntityMeta(rply.getString(chgm.entbl));
 			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(synx.synconn, rply.getString(chgm.entbl));

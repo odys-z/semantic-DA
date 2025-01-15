@@ -550,14 +550,13 @@ public class Docheck {
 				HashMap<String,String> idmap = ((AnResultset) b
 					.select(chm.tbl, "ch")
 					.cols("ch.*", sbm.synodee).col(concat(ifnull(xbm.peer, " "), "':'", xbm.pagex), xbm.pagex)
-					// .je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
 					.je_(sbm.tbl, "sub", chm.pk, sbm.changeId)
 					.l_(xbm.tbl, "xb", chm.pk, xbm.changeId)
 					.orderby(xbm.pagex, chm.entbl, chm.uids)
-					// .rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
-					.rs(b.instancontxt(x.synconn, b.synrobot()))
+					// .rs(b.instancontxt(x.synconn, b.synrobot()))
+					.rs(b.instancontxt())
 					.rs(0))
-					.<String>map(new String[] {chm.pk, sbm.synodee}, (r) -> changeLine(r));
+					.<String>map(new String[] {chm.uids, sbm.synodee}, (r) -> changeLine(r));
 
 				for(String cid : idmap.keySet()) {
 					if (!uidss.containsKey(cid))
@@ -621,8 +620,7 @@ public class Docheck {
 		}
 	}
 	
-	public Nyquence n0() throws SQLException, TransException {
-		// return synx.getNyquence(synb, synx.synconn, synx.synm, synx.synm.nyquence, synx.synm.synoder, synx.synode);
+	public Nyquence n0() {
 		return synb.syndomx.n0();
 	}
 
@@ -643,7 +641,6 @@ public class Docheck {
 	public long stamp() throws SQLException, TransException {
 		boolean dbg = Connects.getDebug(synb.syndomx.synconn);
 		try {
-			// return DAHelper.getNstamp(synb).n;
 			return synb.syndomx.stamp.n;
 		}
 		finally { Connects.setDebug(synb.syndomx.synconn, dbg); }
@@ -676,10 +673,7 @@ public class Docheck {
 					Connects.setDebug(ck[cx].connId(), tops[cx]);
 				}
 			}
-		
-			// return new Docheck(tops);
 		}
-		// return new Docheck(new boolean[0]);
 	}
 
 	public Docheck assertl(long ... n) {

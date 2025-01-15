@@ -360,7 +360,7 @@ public class DBSyntableTest {
 			assertEquals(ck[Z].n0().n, ck[Z].stamp());
 			return;
 		}
-		fail("W is supposed unable to roaming on to Z.");
+		fail("Not knowing Z, W is supposed unable to roaming on to Z.");
 	}
 
 	void testBranchPropagation(int section)
@@ -453,7 +453,6 @@ public class DBSyntableTest {
 
 		ck[X].change_doclog(2, U, null);
 		ck[X].buf_change(0, U, null, ck[X].docm);
-		to be continued
 		ck[X].psubs(6, null, X, Y, Z, W);
 		ck[X].psubs(6, null, -1, -1, Z, W);
 
@@ -471,7 +470,7 @@ public class DBSyntableTest {
 		ck[Y].psubs(3, null, X, Y, Z, W);
 		ck[Y].psubs(3, null, -1, -1, -1, W);
 		ck[Y].psubs(1, yu[1], -1, -1, -1, W);
-		ck[Y].psubs(1, xu[1], -1, -1, -1, W);
+		ck[Y].psubs_uid(1, xu[2], -1, -1, -1, W);
 	}
 
 	void test03delete(int test) throws Exception {
