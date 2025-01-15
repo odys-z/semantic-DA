@@ -902,18 +902,18 @@ public class DBSyntableBuilder extends DATranscxt {
 
 
 			Query qstales = null;
-			if (debug) {
+			try {
+				// 2025-01-14
+				qstales = select(chgm.tbl, "ch")
+						.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
+						.je_(pnvm.tbl, "nv", "nv." + pnvm.peer, constr(peer), "sb." + subm.synodee, pnvm.synid)
+						.where(op.le, Nyquence.sqlCompare("ch", chgm.nyquence, "nv", pnvm.nyq), 0);
+				if (debug) {
 				Utils.logT(new Object() {},
 						"Cleaning changes' subscriptions that won't be accepted in session %s -> %s::",
 						synode, peer);
 				
-				try {
-					// 2025-01-14
-					qstales = select(chgm.tbl, "ch")
-							.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
-							.je_(pnvm.tbl, "nv", "nv." + pnvm.peer, constr(peer), "sb." + subm.synodee, pnvm.synid)
-							.where(op.le, Nyquence.sqlCompare("ch", chgm.nyquence, "nv", pnvm.nyq), 0);
-				
+			
 					((AnResultset) qstales.rs(instancontxt()).rs(0)).print();
 
 //					((AnResultset) select(chgm.tbl, "ch")
@@ -922,10 +922,9 @@ public class DBSyntableBuilder extends DATranscxt {
 //						.whereEq(subm.synodee, peer)
 //						.rs(instancontxt(synconn, locrobot))
 //						.rs(0)).print();
-
-				} catch (Exception e) {
-					e.printStackTrace();
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 
 			try {
