@@ -278,10 +278,10 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws SQLException, TransException {
 		if (req == null || req.chpage == null) return xp;
 
-		String synode = syndomx.synode;
-		SynodeMeta synm = syndomx.synm;
+		String      synode = syndomx.synode;
+		SynodeMeta    synm = syndomx.synm;
 		SynChangeMeta chgm = syndomx.chgm;
-		SynSubsMeta subm = syndomx.subm;
+		SynSubsMeta   subm = syndomx.subm;
 		SynodeMode synmode = syndomx.mode;
 		
 
@@ -301,7 +301,8 @@ public class DBSyntableBuilder extends DATranscxt {
 			if (!xp.synx.nv.containsKey(synoder)) {
 				if (!warnsynoder.contains(synoder)) {
 					warnsynoder.add(synoder);
-					Utils.warn("%s has no idea about %s. The changes %s -> %s are ignored.",
+					Utils.warnT(new Object() {},
+							"%s has no idea about %s. The changes %s -> %s are ignored.",
 							synode, synoder, reqChgs.getString(chgm.uids), synodee);
 				}
 				continue;
@@ -320,7 +321,8 @@ public class DBSyntableBuilder extends DATranscxt {
 					if (synmode != SynodeMode.leaf) {
 						if (!warnsynodee.contains(synodee)) {
 							warnsynodee.add(synodee);
-							Utils.warn("%s has no idea about %s. The change is committed at this node. This can either be automatically fixed or causing data lost later.",
+							Utils.warnT(new Object() {},
+									"%s has no idea about %s. The change is committed at this node. This can either be automatically fixed or causing data lost later.",
 									synode, synodee);
 						}
 						changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
@@ -328,7 +330,8 @@ public class DBSyntableBuilder extends DATranscxt {
 					else // leaf
 						if (!warnsynodee.contains(synodee)) {
 							warnsynodee.add(synodee);
-							Utils.warn("%s has no idea about %s. Ignoring as is working in leaf mode. (Will filter data at server side in the near future)",
+							Utils.warnT(new Object(){},
+									"%s has no idea about %s. Ignoring as is working in leaf mode. (Will filter data at server side in the near future)",
 									synode, synodee);
 						}	
 				}
@@ -339,8 +342,8 @@ public class DBSyntableBuilder extends DATranscxt {
 				}
 				else if (compareNyq(subnyq, xp.synx.nv.get(peer)) <= 0) {
 					// 2024.6.5 client shouldn't have older knowledge than me now,
-					// which is cleanded when initiating.
-					if (debug) Utils.warn("Ignore this?");
+					// which is cleaned when initiating.
+					if (debug) Utils.warnT(new Object(){}, "Ignore this?");
 				}
 				else
 					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));

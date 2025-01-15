@@ -98,11 +98,10 @@ public class ExessionPersist {
 //			if (compareNyq(rply.getLong(chgm.nyquence), tillN0) > 0)
 //				break; // FIXME continue? Or throw?
 	
-			// SyntityMeta entm = trb.getEntityMeta(rply.getString(chgm.entbl));
 			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(synx.synconn, rply.getString(chgm.entbl));
 
 			String change = rply.getString(ChangeLogs.ChangeFlag);
-			HashMap<String, AnResultset> entbuf = entities;
+			HashMap<String, AnResultset> entbuf = chEntities;
 			
 			String rporg  = rply.getString(chgm.domain);
 			String rpent  = rply.getString(chgm.entbl);
@@ -136,14 +135,11 @@ public class ExessionPersist {
 							.nv(chgm.uids, rsynuid)
 							.post(trb.insert(subm.tbl)
 								.cols(subm.insertCols())
-								// .value(subm.insertSubVal(rply))))
 								.value(subm.insertSubVal(rply, new Resulving(chgm.tbl, chgm.pk)))))
 					: trb.insert(subm.tbl)
 						.cols(subm.insertCols())
-						// .value(subm.insertSubVal(rply))
 						.value(subm.insertSubVal(rply, new Resulving(chgm.tbl, chgm.pk)))
 
-				// : eq(change, CRUD.U) ? WHAT()
 	
 				// remove subscribers & backward change logs's deletion propagation
 				: trb.delete(subm.tbl, trb.synrobot())
@@ -578,7 +574,7 @@ public class ExessionPersist {
 		return new ExchangeBlock(synx.domain,
 					trb == null ? rep.peer : synx.synode,
 					peer, session, exstate)
-				.chpage(rs, entities)
+				.chpage(rs, chEntities)
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
 				.seq(this)
@@ -597,7 +593,7 @@ public class ExessionPersist {
 		return new ExchangeBlock(synx.domain,
 					trb == null ? req.peer
 					: synx.synode, peer, session, exstate)
-				.chpage(chpage(), entities)
+				.chpage(chpage(), chEntities)
 				.totalChallenges(totalChallenges)
 				.chpagesize(this.chsize)
 				.seq(this)
@@ -680,7 +676,6 @@ public class ExessionPersist {
 		pageback();
 		nextChpage();
 		exstate.state = restore;
-		// expAnswerSeq = challengeSeq; // see nextChpage()
 
 		return new ExchangeBlock(synx.domain,
 					trb == null ? null : synx.synode,
@@ -691,25 +686,8 @@ public class ExessionPersist {
 				.seq(this);
 	}
 
-//	public ExchangeBlock onRetryLast(String peer, ExchangeBlock req) throws TransException, SQLException {
-//		if (!eq(session, req.session))
-//			throw new ExchangeException(ExessionAct.unexpected, this,
-//				"[local-session, peer, req-session]:%s,%s,%s", session, peer, req.session);
-//
-//		exstate.state = restore;
-//		
-//		if (req.challengeSeq > answerSeq)
-//			// previous request has been lost
-//			onExchange(peer, req);
-//		
-//		return new ExchangeBlock(trb == null ? req.peer : synx.synode, peer, session, exstate)
-//			.requirestore()
-//			.totalChallenges(totalChallenges)
-//			.chpagesize(this.chsize)
-//			.seq(this);
-//	}
-
-	HashMap<String, AnResultset> entities;
+	/**Challenging Entities */
+	HashMap<String, AnResultset> chEntities;
 
 	/**
 	 * Information used by upper level, such as semantic.jser.
@@ -717,63 +695,6 @@ public class ExessionPersist {
 	public String[] ssinf;
 
 	public Nyquence n0() { return synx.nv.get(synx.synode); }
-//
-//	protected ExessionPersist n0(Nyquence nyq) throws TransException, SQLException {
-//		synx.n0(nyq);
-//		return this;
-//	}
-
-//	protected ExessionPersist n0(Nyquence nyq) throws TransException, SQLException {
-//		if (Nyquence.compareNyq(nyquvect.get(synx.synode), nyq) != 0) {
-//			nyquvect.put(synx.synode, new Nyquence(nyq.n));
-//			DAHelper.updateFieldWhereEqs(trb, synx.synconn, trb.synrobot(), synm,
-//				synm.nyquence, nyq.n,
-//				synm.pk, synx.synode,
-//				synm.domain, synx.domain);
-//		}
-//		return this;
-//	}
-	
-	/**
-	 * this.n0++, this.n0 = max(n0, maxn)
-	 * @param maxn
-	 * @return n0
-	 * @throws SQLException 
-	 * @throws TransException 
-	public Nyquence incN0(Nyquence... nomoreThan) throws TransException, SQLException {
-		n0().inc(isNull(nomoreThan) ? synx.nv.get(synx.synode).n : nomoreThan[0].n);
-		DAHelper.updateFieldByPk(trb, synx.synconn, synm, synx.synode,
-				synm.nyquence, new ExprPart(n0().n), trb.synrobot());
-		return n0();
-	}
-	 */
-	
-	/*
-	public ExessionPersist loadNyquvect(String conn) throws SQLException, TransException {
-		nyquvect = loadNyquvect(trb);
-		return this;
-	}
-	
-	public static HashMap<String, Nyquence> loadNyquvect(DBSyntableBuilder t)
-			throws SQLException, TransException {
-
-		AnResultset rs = ((AnResultset) t.select(t.synm.tbl)
-				.cols(t.synm.pk, t.synm.nyquence, t.synm.nstamp)
-
-				// FIXME no domain?
-				.whereEq(t.synm.domain, t.domain()) // ???
-				
-				.rs(t.instancontxt(t.synconn(), t.synrobot()))
-				.rs(0));
-		
-		HashMap<String, Nyquence> nyquvect = new HashMap<String, Nyquence>(rs.getRowCount());
-		while (rs.next()) {
-			nyquvect.put(rs.getString(t.synm.synoder), new Nyquence(rs.getLong(t.synm.nyquence)));
-		}
-		return nyquvect;
-	}
-	*/
-	
 
 	/**
 	 * <p>Get a challenging page.</p>
@@ -781,7 +702,7 @@ public class ExessionPersist {
 	 * Entities affected are also be loaded, and the entity metas get a chance to handling
 	 * the loaded records by calling {@link SyntityMeta#onselectSyntities(Query)}.
 	 * 
-	 * @return a change log page
+	 * @return a change log page, with entities saved in {@link #chEntities}.
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
@@ -795,6 +716,9 @@ public class ExessionPersist {
 				.groupby(chgm.entbl)
 				.rs(trb.instancontxt(synx.synconn, trb.synrobot()))
 				.rs(0);
+
+		if (chEntities != null)
+			chEntities.clear();
 
 		while (entbls.next()) {
 			String tbl = entbls.getString(chgm.entbl);
@@ -824,14 +748,15 @@ public class ExessionPersist {
 			.orderby(chgm.synoder)
 			.orderby(chgm.entbl)
 			.orderby(chgm.seq)
-			.rs(trb.instancontxt(synx.synconn, trb.synrobot()))
+			// .rs(trb.instancontxt(synx.synconn, trb.synrobot()))
+			.rs(trb.instancontxt())
 			.rs(0);
 	}
 
 	public ExessionPersist entities(String tbl, AnResultset ents) {
-		if (entities == null)
-			entities = new HashMap<String, AnResultset>();
-		entities.put(tbl, ents);
+		if (chEntities == null)
+			chEntities = new HashMap<String, AnResultset>();
+		chEntities.put(tbl, ents);
 		return this;
 	}
 
