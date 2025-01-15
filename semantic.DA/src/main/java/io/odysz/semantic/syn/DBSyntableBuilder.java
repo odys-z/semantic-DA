@@ -50,22 +50,10 @@ import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 /**
- * Sql statement builder for {@link DBSynmantext} for handling database synchronization. 
+ * SQL statement builder for {@link DBSynmantext} for handling database synchronization. 
  * 
  * Improved with temporary tables for broken network (and shutdown), concurrency and memory usage.
  * 
- * <h5>Issue ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c</h5>
- * <pre>
- * version: Semantic-DA 2.0.0-SNAPSHOT, jserv.docsyc 0.2.0-SNAPSHOT
- * commit:  ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c &amp; ee153bcb30c3f3b868413beace8cc1f3cb5c3f7c
- * About:
- * DBSyntableBuilder.stamp is managed not for each domain.
- * To use stamp in this way, nyquence numbers should be synchronized
- * in a cross-domain style;
- * To use stamps for each domain, multiple change-logs for each
- * domain of an entity changing operation must be generated.
- * </pre>
- *
  * @author Ody
  */
 public class DBSyntableBuilder extends DATranscxt {
@@ -159,7 +147,8 @@ public class DBSyntableBuilder extends DATranscxt {
 			// return sp.onInit(inireq, (SyncUser) syndomx.robot);
 			return sp.onInit(inireq);
 		} finally {
-			syndomx.incStamp(sp.trb, inireq.nv);
+			// syndomx.incStamp(sp.trb, inireq.nv);
+			syndomx.incStamp(sp.trb);
 		}
 	}
 
@@ -199,154 +188,13 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	/**
-	 * clean: change[z].n < y.z when X &lt;= Y<br> 
-	 * or change[z].n <= z.synoder when Y &lt;= Z ,
-	 * i.e.<pre>
-	 * my-change[him].n < your-nv[him]
-	 * or
-	 * my-change[by him][you].n < your-nv[him]</pre>
+	 * Clean N.change[.].nyq <= NVp.[.], where,
+	 * N is synoder;
+	 * P is the intiator, NVp is P's nv;
+	 * "." is the subsrciber.
 	 * 
-	 * <p>Clean staleness. (Your knowledge about Z is newer than what I am presenting to you)</p>
-	 * 
-	 * <ul>
-	 * <li>When propagating 3rd node's information, clean the older one
-	 * <pre>
-	 *    X         Y
-	 * [n.z=1] → [n.z=2]
-	 * clean late   ↓
-	 *     →x       Z
-	 *            [n=2]
-	 *            [n=1]
-	 * </pre></li>
-	 * <li>When accepting subscriptions, clean the older one than got from the other route
-	 * <pre>
-	 * synoder     X
-	 *  n=2   →  [n=1]
-	 *   ↓         ↓
-	 *   Y         Z
-	 * [n=1]  → way 1: n.synoder=1 + 1
-	 *          (can't be concurrently working with multiple peers in the same domain)
-	 * </pre></li> 
-	 * </ul>
-	 * 
-	 * <h5>Case 1. X vs. Y</h5>
-	 * <pre>
-	 * X cleaned X,000021[Z] for X,000021[Z].n &lt; Y.z
-	 * X cleaned Y,000401[Z] for Y,000401[Z].n &lt; Y.z
-	 * 
-	 * I  X  X,000021    1  Z    |                           |                           |                          
-	 * I  Y  Y,000401    1  Z    |                           |                           |                          
-     *       X    Y    Z    W
-	 * X [   2,   1,   0,     ]
-	 * Y [   2,   3,   2,     ]
-	 * Z [   1,   2,   3,     ]
-	 * W [    ,    ,    ,     ]</pre>
-	 * 
-	 * <h5>Case 2. X vs. Y</h5>
-	 * <pre>
-	 * X keeps change[z] for change[Z].n &ge; Y.z
-	 * 
-	 *              X                          Y                          Z                          W             
-	 * U  X  X,000023   10  Y    |                           |                           |                          
-	 * U  X  X,000023   10  Z    |                           |                           |                          
-	 *                           | U  Y  Y,000401   11  W    |                           |                          
-	 * U  X  X,000023   10  W    |                           |                           |                          
-	 *                           | U  Y  Y,000401   11  Z    |                           |                          
-	 *                           | U  Y  Y,000401   11  X    |                           |                          
-	 *       X    Y    Z    W
-	 * X [  10,   9,   7,   8 ]
-	 * Y [   9,  11,  10,   8 ]
-	 * Z [   9,  10,  11,   8 ]
-	 * W [   6,   8,   7,   9 ]</pre>
-	 * 
-	 * <h5>Case 3. X &lt;= Y</h5>
-	 * For a change log where synodee is the target / peer node, it is stale {@code iff} X.change[Y] < Y.X,
-	 * <pre>e.g. in
-	 * 2 testBranchPropagation - must call testJoinChild() first
-	 * 2.4 X vs Y
-	 * 2.4.1 Y initiate
-	 * 2.4.2 X on initiate,
-	 * 
-	 *                X                    |                  Y                 |                  Z                 |                  W                 
-	 * ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-	 *  I  X.000001  X,000021  2  W [    ] |                                    |                                    |                                    
-	 *                                     |                                    | I  Z.000001  Z,008002  3  W [ Y:0] |                                    
-	 *  I  X.000001  X,000021  2  Y [    ] |                                    | I  X.000001  X,000021  2  Y [ Y:0] |                                    
-	 *       X    Y    Z    W
-	 * X [   3,   1,   2,   0 ]
-	 * Y [   1,   2,   0,   0 ]
-	 * Z [   2,   1,   3,   0 ]
-	 * W [    ,   1,    ,   2 ]</pre>
-	 * 
-	 * where y.x = 1 < X.00001[Y] = 2, so the subscribes can not be cleared,
-	 * while Y,W should be cleared in the following when Y &lt;= Z, in which it has already been synchronized via X.
-	 * 
-	 * <pre>
-	 * 
-	 *                   X                 |                  Y                 |                  Z                 |                  W                 
-	 * ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-	 *                                     | I  Y.000001       Y,W  1  X [    ] |                                    |                                    
-	 *                                     | I  Y.000001       Y,W  1  Z [    ] |                                    |                                    
-	 *       X    Y    Z    W
-	 * X [   1,   0,   0,     ]
-	 * Y [   0,   1,   0,   0 ]
-	 * Z [   0,   0,   1,     ]
-	 * W [    ,   1,    ,   1 ]
-	 * 
-	 * 1.2 X vs Y
-	 *                   X                 |                  Y                 |                  Z                 |                  W                 
-	 * ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-	 *  I  Y.000001       Y,W  1  Z [    ] | I  Y.000001       Y,W  1  Z [    ] |                                    |                                    
-	 *  
-	 * 1.3 X create photos
-	 * 
-	 * ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-	 *  I  X.000001  X,000021  2  W [    ] |                                    |                                    |                                    
-	 *  I  X.000001  X,000021  2  Z [    ] |                                    |                                    |                                    
-	 *  I  X.000001  X,000021  2  Y [    ] |                                    |                                    |                                    
-	 *  I  Y.000001       Y,W  1  Z [    ] | I  Y.000001       Y,W  1  Z [    ] |                                    |                                    
-	 *
-	 * 1.4 X vs Z
-	 * 
-	 * ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-	 * I  X.000001  X,000021  2  W [    ] |                                    |                                    |                                    
-	 * I  X.000001  X,000021  2  Y [    ] |                                    | I  X.000001  X,000021  2  Y [    ] |                                    
-	 *                                    | I  Y.000001       Y,W  1  Z [    ] |                                    |                                    
-	 *
-	 * 1.5 Z vs W
-	 * 2 testBranchPropagation - must call testJoinChild() first
-	 * 
-	 * ------------------------------------+------------------------------------+------------------------------------+------------------------------------
-	 *  I  X.000001  X,000021  2  W [    ] |                                    |                                    |                                    
-	 *                                     |                                    | I  Z.000001  Z,008002  3  W [    ] |                                    
-	 *  I  X.000001  X,000021  2  Y [    ] |                                    | I  X.000001  X,000021  2  Y [    ] |                                    
-	 *                                     |                                    | I  Z.000001  Z,008002  3  X [    ] |                                    
-	 *                                     |                                    | I  Z.000001  Z,008002  3  Y [    ] |                                    
-	 *                                     | I  Y.000001       Y,W  1  Z [    ] |                                    |                                    
-	 *                                     
-	 *       X    Y    Z    W
-	 * X [   3,   1,   2,   0 ]
-	 * Y [   1,   2,   0,   0 ]
-	 * Z [   2,   1,   3,   0 ]
-	 * W [    ,   1,    ,   2 ]                                    
-	 * 
-	 * 2.2 Y vs Z
-	 * 2.2.1 Z initiate
-	 * 2.2.2 Y on initiate
-	 * 
-	 * NOW THE TIME TO REMOVE REDUNDENT RECORD ON Y. That is
-	 * at Y, y.z = 0 < Z.z
-	 * </pre>
-	 * 
-	 * <ol>
-	 * <li>Y has later knowledge about Z. X should clean staleness</li>
-	 * <li>X has later knowledge about Z. X has no staleness, and Y will update with it</li>
-	 * <li>Z has later knowledge from Y via X. Y can ignore it (clean staleness)</li>
-	 * </ol>
 	 * @param srcnv
 	 * @param srcn
-	 * @throws TransException
-	 * @throws SQLException
 	 */
 	void cleanStale(HashMap<String, Nyquence> srcnv, String peer)
 			throws TransException, SQLException {
@@ -371,6 +219,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				.values(pnvm.insVals(srcnv, peer, domain)))
 			.d(instancontxt(synconn, locrobot));
 
+		// FIXME 1.5.14 This should can be simplified now.
 		SemanticObject res = (SemanticObject) ((DBSyntableBuilder)
 			// clean while accepting subscriptions
 			with(select(chgm.tbl, "cl")
@@ -429,10 +278,10 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws SQLException, TransException {
 		if (req == null || req.chpage == null) return xp;
 
-		String synode = syndomx.synode;
-		SynodeMeta synm = syndomx.synm;
+		String      synode = syndomx.synode;
+		SynodeMeta    synm = syndomx.synm;
 		SynChangeMeta chgm = syndomx.chgm;
-		SynSubsMeta subm = syndomx.subm;
+		SynSubsMeta   subm = syndomx.subm;
 		SynodeMode synmode = syndomx.mode;
 		
 
@@ -452,7 +301,8 @@ public class DBSyntableBuilder extends DATranscxt {
 			if (!xp.synx.nv.containsKey(synoder)) {
 				if (!warnsynoder.contains(synoder)) {
 					warnsynoder.add(synoder);
-					Utils.warn("%s has no idea about %s. The changes %s -> %s are ignored.",
+					Utils.warnT(new Object() {},
+							"%s has no idea about %s. The changes %s -> %s are ignored.",
 							synode, synoder, reqChgs.getString(chgm.uids), synodee);
 				}
 				continue;
@@ -471,7 +321,8 @@ public class DBSyntableBuilder extends DATranscxt {
 					if (synmode != SynodeMode.leaf) {
 						if (!warnsynodee.contains(synodee)) {
 							warnsynodee.add(synodee);
-							Utils.warn("%s has no idea about %s. The change is committed at this node. This can either be automatically fixed or causing data lost later.",
+							Utils.warnT(new Object() {},
+									"%s has no idea about %s. The change is committed at this node. This can either be automatically fixed or causing data lost later.",
 									synode, synodee);
 						}
 						changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
@@ -479,7 +330,8 @@ public class DBSyntableBuilder extends DATranscxt {
 					else // leaf
 						if (!warnsynodee.contains(synodee)) {
 							warnsynodee.add(synodee);
-							Utils.warn("%s has no idea about %s. Ignoring as is working in leaf mode. (Will filter data at server side in the near future)",
+							Utils.warnT(new Object(){},
+									"%s has no idea about %s. Ignoring as is working in leaf mode. (Will filter data at server side in the near future)",
 									synode, synodee);
 						}	
 				}
@@ -490,8 +342,8 @@ public class DBSyntableBuilder extends DATranscxt {
 				}
 				else if (compareNyq(subnyq, xp.synx.nv.get(peer)) <= 0) {
 					// 2024.6.5 client shouldn't have older knowledge than me now,
-					// which is cleanded when initiating.
-					if (debug) Utils.warn("Ignore this?");
+					// which is cleaned when initiating.
+					if (debug) Utils.warnT(new Object(){}, "Ignore this?");
 				}
 				else
 					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
@@ -516,7 +368,8 @@ public class DBSyntableBuilder extends DATranscxt {
 			throw new SemanticException("Synchronizing Nyquence exception: %s.stamp = %d < n0 = %d.",
 					syndomx.synode, syndomx.stamp.n, cx.n0().n);
 		
-		HashMap<String, Nyquence> snapshot = synyquvectMax(cx, rep.nv);
+		// HashMap<String, Nyquence> snapshot = synyquvectMax(cx, rep.nv);
+		HashMap<String, Nyquence> snapshot = synXnv(cx, rep.nv);
 
 		syndomx.n0(this, syndomx.persistamp(this, maxn(syndomx.stamp, cx.n0())));
 
@@ -533,34 +386,135 @@ public class DBSyntableBuilder extends DATranscxt {
 	 */
 	Insert insertExbuf(String peer) throws TransException {
 		PeersMeta pnvm = syndomx.pnvm;
+
+		// 2025-01-14: Shouldn't caring Syntities here. Bug?
+		@SuppressWarnings("unused")
 		SynodeMeta synm = syndomx.synm;
+
 		SynChangeMeta chgm = syndomx.chgm;
 		SynSubsMeta subm = syndomx.subm;
+		
+		Query q_exchgs = select(chgm.tbl, "cl")
+				.distinct(true)
+				.cols(constr(peer), chgm.pk, new ExprPart(-1))
+				.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
+										.and(Sql.condt(op.eq, constr(syndomx.domain), "cl." + chgm.domain))
+										.and(Sql.condt(op.ne, constr(syndomx.synode), subm.synodee)))
+				.je_(pnvm.tbl, "nvee", "cl." + chgm.synoder, pnvm.synid,
+										constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
+				.where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0);
+		
+		if (debug)
+			try {
+				Utils.logT(new Object() {},
+						"%s is inserting exchange buffers (domain %s, peer %s)::",
+						syndomx.synode, syndomx.domain, peer);
+				((AnResultset) q_exchgs.rs(instancontxt()).rs(0)).print();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 		return insert(syndomx.exbm.tbl, locrobot)
 			.cols(syndomx.exbm.insertCols())
 			.select(
-				// target is the subscriber
-				select(chgm.tbl, "cl")
-					.cols(constr(peer), chgm.pk, new ExprPart(-1))
-					.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId, chgm.synoder, constr(syndomx.synode))
-					.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
-					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0)
-
-				// propagating 3rd parties' subscriptions
-				.union(select(chgm.tbl, "cl")
-					.cols(constr(peer), chgm.pk, new ExprPart(-1))
-					.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
-											.and(Sql.condt(op.ne, constr(syndomx.synode), subm.synodee)))
-					// fixed: orthogonal data handling
-					// .je_(pnvm.tbl, "nvee", "sb." + subm.synodee, pnvm.synid,
-					.je_(pnvm.tbl, "nvee", "cl." + chgm.synoder, pnvm.synid,
-											constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
-					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0)
-				)
+				// 2025-01-14
+//				// target is the subscriber, synoder = this
+//				select(chgm.tbl, "cl")
+//					.cols(constr(peer), chgm.pk, new ExprPart(-1))
+//					.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId, chgm.synoder, constr(syndomx.synode))
+//					.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
+//					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0)
+//
+//				// propagating 3rd parties' subscriptions
+//				.union(select(chgm.tbl, "cl")
+//					.cols(constr(peer), chgm.pk, new ExprPart(-1))
+//					.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
+//											.and(Sql.condt(op.ne, constr(syndomx.synode), subm.synodee)))
+//					// fixed: orthogonal data handling
+//					// .je_(pnvm.tbl, "nvee", "sb." + subm.synodee, pnvm.synid,
+//					.je_(pnvm.tbl, "nvee", "cl." + chgm.synoder, pnvm.synid,
+//											constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
+//					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0)
+//				)
+					
+				q_exchgs
 			);
 	}
 	
+	/**
+	 * Orthogonally synchronize n-vectors.
+	 * 
+	 * @param xp
+	 * @param xnv
+	 * @return the snapshot before stepping the stamp, for exchanging to the peer.
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public HashMap<String, Nyquence> synXnv(ExessionPersist xp, // String peer,
+			HashMap<String, Nyquence> xnv) throws TransException, SQLException {
+
+		Update u = null;
+
+		HashMap<String, Nyquence> snapshot =  new HashMap<String, Nyquence>();
+
+		
+		for (String n : xnv.keySet()) {
+			if (!xp.synx.nv.containsKey(n))
+				continue;
+			
+			Nyquence mxn = xp.synx.nv.get(n);
+			mxn = maxn(xnv.get(n), mxn);
+
+			snapshot.put(n, new Nyquence(mxn.n));
+			
+			if (eq(n, xp.synx.synode))
+				mxn = maxn(xp.synx.stamp, mxn); 
+
+			if (compareNyq(mxn, xp.synx.nv.get(n)) < 0) 
+				throw new ExchangeException(xp.exstat().state, xp, "Something Wrong!");
+			else if (compareNyq(mxn, xp.synx.nv.get(n))  > 0)
+				u = persistNyq(u, n, mxn);
+		}
+
+		if (u != null) {
+			try {
+				// TODO FIXME move, merge, with ExessionPerist
+				xp.synx.lockx(locrobot);
+				u.u(instancontxt());
+				xp.synx.loadNvstamp(this);
+			}finally {
+				xp.synx.unlockx(locrobot);
+			}
+		}
+	
+		return snapshot;
+	}
+	
+	private Update persistNyq(Update u, String nodeId, Nyquence nyq) {
+		SynodeMeta synm = syndomx.synm;
+		if (u == null)
+			u = update(synm.tbl, locrobot)
+				.nv(synm.nyquence, nyq.n)
+				.whereEq(synm.domain, syndomx.domain)
+				.whereEq(synm.pk, nodeId);
+		else
+			u.post(update(synm.tbl)
+				.nv(synm.nyquence, nyq.n)
+				.whereEq(synm.domain, syndomx.domain)
+				.whereEq(synm.pk, nodeId));
+		
+		return u;
+	}
+
+	/**
+	 * Find max nv element, persist syn_synode.nyq[.] if change,
+	 * then return the mx-nv snapshot.
+	 * 
+	 * @param xp
+	 * @param xnv
+	 * @return max-nv snapshot
+	 * @throws TransException
+	 * @throws SQLException
 	public HashMap<String, Nyquence> synyquvectMax(ExessionPersist xp, // String peer,
 			HashMap<String, Nyquence> xnv) throws TransException, SQLException {
 
@@ -607,6 +561,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		return snapshot;
 	}
+	 */
 
 	public ExchangeBlock abortExchange(ExessionPersist cx)
 			throws TransException, SQLException {
@@ -792,14 +747,16 @@ public class DBSyntableBuilder extends DATranscxt {
 			return app.signup(admin);
 		}
 		finally { 
-			syndomx.incStamp(app.trb, null);
+			// syndomx.incStamp(app.trb, null);
+			syndomx.incStamp(app.trb);
 		}
 	}
 
 	public ExchangeBlock domainOnAdd(ExessionPersist ap, ExchangeBlock req, String org)
 			throws TransException, SQLException {
 	
-		syndomx.incStamp(ap.trb, req.nv);
+		// syndomx.incStamp(ap.trb, req.nv);
+		syndomx.incStamp(ap.trb);
 		syndomx.loadNvstamp(this);
 
 		String synode = syndomx.synode;
@@ -947,34 +904,37 @@ public class DBSyntableBuilder extends DATranscxt {
 			PeersMeta pnvm = syndomx.pnvm;
 
 
-			if (debug) {
-				Utils.logT(new Object() {},
-						"Cleaning changes that's not accepted in session %s -> %s.",
-						synode, peer);
-				try {
-					((AnResultset) select(chgm.tbl, "ch")
-						.cols(chgm.pk, chgm.uids, chgm.nyquence, subm.synodee)
+			Query qstales = null;
+			try {
+				// 2025-01-14
+				qstales = select(chgm.tbl, "ch")
 						.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
-						
-//						// 2025-01-08
-//						.je_(pnvm.tbl, "nv", pnvm.peer, constr(peer), subm.synodee, pnvm.synid)
-//						.where(op.le, Nyquence.sqlCompare("ch", chgm.nyquence, "nv", pnvm.nyq), 0)
+						.je_(pnvm.tbl, "nv", "nv." + pnvm.peer, constr(peer), "sb." + subm.synodee, pnvm.synid)
+						.where(op.le, Nyquence.sqlCompare("ch", chgm.nyquence, "nv", pnvm.nyq), 0);
+				if (debug) {
+				Utils.logT(new Object() {},
+						"Cleaning changes' subscriptions that won't be accepted in session %s -> %s::",
+						synode, peer);
+				
+			
+					((AnResultset) qstales.rs(instancontxt()).rs(0)).print();
 
-						.whereEq(subm.synodee, peer)
-						.rs(instancontxt(synconn, locrobot))
-						.rs(0))
-						.print();
-				} catch (Exception e) {
-					e.printStackTrace();
+//					((AnResultset) select(chgm.tbl, "ch")
+//						.cols(chgm.pk, chgm.uids, chgm.nyquence, subm.synodee)
+//						.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
+//						.whereEq(subm.synodee, peer)
+//						.rs(instancontxt(synconn, locrobot))
+//						.rs(0)).print();
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 
 			try {
 				SemanticObject res = (SemanticObject) delete(subm.tbl, locrobot)
 						
-//						// 2025-01-08
-//						.je_(pnvm.tbl, "nv", pnvm.peer, constr(peer), subm.synodee, pnvm.synid)
-//						.where(op.le, Nyquence.sqlCompare("ch", chgm.nyquence, "nv", pnvm.nyq), 0)
+					// 2025-01-14
+					.where(op.in, subm.changeId, qstales.col(chgm.pk))
 
 					.whereEq(subm.synodee, peer)
 					.post(del0subchange(peer))

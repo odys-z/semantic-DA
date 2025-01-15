@@ -6,11 +6,13 @@ import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.is;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.len;
 import static io.odysz.common.LangExt.repeat;
 import static io.odysz.common.LangExt.strcenter;
 import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concat;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
+import static io.odysz.transact.sql.parts.condition.Funcall.constr;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SyntityMeta;
+import io.odysz.semantic.util.DAHelper;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.condition.Predicate;
@@ -136,14 +139,14 @@ public class Docheck {
 	/**
 	 * Check doc count. 
 	 * @param count
-	 * @param synids
+	 * @param uids
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public void doc(int count, String... synids) throws TransException, SQLException {
+	public void doc(int count, String... uids) throws TransException, SQLException {
 		Query q = synb.select(docm.tbl).col(count(), "c");
-		if (!isNull(synids))
-			q.whereIn(docm.io_oz_synuid, synids);
+		if (!isNull(uids))
+			q.whereIn(docm.io_oz_synuid, uids);
 
 		azert.equali(count, ((AnResultset) q
 				.rs(synb.instancontxt(synb.syndomx.synconn, synb.synrobot()))
@@ -163,26 +166,37 @@ public class Docheck {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public long buf_change(int count, String crud, String eid, SyntityMeta entm)
+	public void buf_change(int count, String crud, String eid, SyntityMeta entm)
 			throws TransException, SQLException {
-		return buf_change(count, crud, synb.syndomx.synode, eid, entm);
+		buf_change(count, crud, synb.syndomx.synode, eid, entm);
 	}
 
-	public long buf_change_p(int count, String crud, String eid)
+	public void buf_change_p(int count, String crud, String eid)
 			throws TransException, SQLException {
-		return buf_change(count, crud, synb.syndomx.synode, eid, docm);
+		buf_change(count, crud, synb.syndomx.synode, eid, docm);
 	}
 
-	public long change_doclog(int count, String crud, String eid) throws TransException, SQLException {
-		return change_log(count, crud, synb.syndomx.synode, eid, docm);
+	public void change_doclog(int count, String crud, String eid) throws TransException, SQLException {
+		change_log(count, crud, synb.syndomx.synode, eid, docm);
 	}
 
-	public long change_doclog(int count, String crud, String synoder, String eid) throws TransException, SQLException {
-		return change_log(count, crud, synoder, eid, docm);
+	public void change_doclog(int count, String crud, String synoder, String eid) throws TransException, SQLException {
+		change_log(count, crud, synoder, eid, docm);
 	}
 
-	// public long change_log(int count, String crud, String synoder, String eid, SyntityMeta entm)
-	public long change_log(int count, String crud, String synoder, String eid, SyntityMeta entm)
+	/**
+	 * Verify change log's count. {@code origin_eid} can only domain wide,
+	 * composed with {@code synoder} for syn-uids.
+	 * 
+	 * @param count
+	 * @param crud
+	 * @param synoder
+	 * @param origin_eid
+	 * @param entm
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public void change_log(int count, String crud, String synoder, String origin_eid, SyntityMeta entm)
 			throws TransException, SQLException {
 		Query q = synb
 				.select(synb.syndomx.chgm.tbl, "ch")
@@ -193,8 +207,8 @@ public class Docheck {
 				q.whereEq(synb.syndomx.chgm.synoder, synoder);
 
 			//
-			if (eid != null)
-				q.whereEq(synb.syndomx.chgm.uids, SynChangeMeta.uids(synoder, eid));
+			if (origin_eid != null)
+				q.whereEq(synb.syndomx.chgm.uids, SynChangeMeta.uids(synoder, origin_eid));
 
 			AnResultset chg = (AnResultset) q
 					.rs(synb.instancontxt())
@@ -208,9 +222,10 @@ public class Docheck {
 				azert.equals(crud, chg.getString(synb.syndomx.chgm.crud));
 				azert.equals(entm.tbl, chg.getString(synb.syndomx.chgm.entbl));
 				azert.equals(synoder, chg.getString(synb.syndomx.chgm.synoder));
-				return chg.getLong(synb.syndomx.chgm.nyquence);
+
+				// return chg.getLong(synb.syndomx.chgm.nyquence);
 			}
-			return 0;
+			// return 0;
 	}
 
 	public long change_log_uids(int count, String crud, String synoder, String uids, SyntityMeta entm)
@@ -247,7 +262,17 @@ public class Docheck {
 	}
 
 
-	public long buf_change(int count, String crud, String synoder, String eid, SyntityMeta entm)
+	/**
+	 * Verify
+	 * @param count
+	 * @param crud
+	 * @param synoder
+	 * @param eid
+	 * @param entm
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public void buf_change(int count, String crud, String synoder, String eid, SyntityMeta entm)
 			throws TransException, SQLException {
 		SynChangeMeta chgm = synb.syndomx.chgm;
 		SynchangeBuffMeta exbm = synb.syndomx.exbm;
@@ -275,9 +300,9 @@ public class Docheck {
 			azert.equals(crud, chg.getString(chgm.crud));
 			azert.equals(entm.tbl, chg.getString(chgm.entbl));
 			azert.equals(synoder, chg.getString(chgm.synoder));
-			return chg.getLong(chgm.nyquence);
+			// return chg.getLong(chgm.nyquence);
 		}
-		return 0;
+		// return 0;
 	}
 
 	public long changelog(int count, String crud, String eid, SyntityMeta entm)
@@ -330,6 +355,20 @@ public class Docheck {
 				toIds.add(ck[n].synb.syndomx.synode);
 		subsCount(docm, subcount, chgid, toIds.toArray(new String[0]));
 	}
+	
+	
+	public void psubs_uid(int subcount, String synuid, int ... sub) throws SQLException, TransException {
+		ArrayList<String> toIds = new ArrayList<String>();
+		for (int n : sub)
+			if (n >= 0)
+				toIds.add(ck[n].synb.syndomx.synode);
+
+		String chgid = DAHelper.getValstr(synb, synb.syndomx.synconn, chm, chm.pk,
+				chm.domain, constr(synb.syndomx.domain), chm.entbl, constr(this.docm.tbl),
+				chm.uids, synuid);
+
+		subsCount(docm, subcount, chgid, toIds.toArray(new String[0]));
+	}
 
 	public void synsubs(int subcount, String uids, int ... sub) throws SQLException, TransException {
 		ArrayList<String> toIds = new ArrayList<String>();
@@ -357,11 +396,38 @@ public class Docheck {
 			}
 
 			azert.equali(subcount, cnt);
-			azert.equali(subcount, subs.getRowCount());
+			if (len(toIds) == 0)
+				azert.equali(subcount, subs.getRowCount());
 	}
 
 	public void subsCount(SyntityMeta entm, int subcount, String chgId, String ... toIds)
 			throws SQLException, TransException {
+		if (isNull(toIds)) {
+			AnResultset subs = subscribes(connId(), chgId, entm);
+			azert.equali(subcount, subs.getRowCount());
+		}
+		else {
+			int cnt = 0;
+			AnResultset subs = subscribes(connId(), chgId, entm);
+			subs.beforeFirst();
+			while (subs.next()) {
+				if (indexOf(toIds, subs.getString(synb.syndomx.subm.synodee)) >= 0)
+					cnt++;
+			}
+
+			azert.equali(subcount, cnt);
+			azert.equali(subcount, subs.getRowCount());
+		}
+	}
+
+	public void subsCount_uid(SyntityMeta entm, int subcount, String synuid, String ... toIds)
+			throws SQLException, TransException {
+
+		String chgId = DAHelper.getValstr(synb, synb.syndomx.synconn, chm, chm.pk,
+				chm.domain, constr(synb.syndomx.domain), chm.entbl, constr(this.docm.tbl),
+				chm.uids, synuid);
+
+
 		if (isNull(toIds)) {
 			AnResultset subs = subscribes(connId(), chgId, entm);
 			azert.equali(subcount, subs.getRowCount());
@@ -484,14 +550,13 @@ public class Docheck {
 				HashMap<String,String> idmap = ((AnResultset) b
 					.select(chm.tbl, "ch")
 					.cols("ch.*", sbm.synodee).col(concat(ifnull(xbm.peer, " "), "':'", xbm.pagex), xbm.pagex)
-					// .je("ch", sbm.tbl, "sub", chm.entbl, sbm.entbl, chm.domain, sbm.domain, chm.uids, sbm.uids)
 					.je_(sbm.tbl, "sub", chm.pk, sbm.changeId)
 					.l_(xbm.tbl, "xb", chm.pk, xbm.changeId)
 					.orderby(xbm.pagex, chm.entbl, chm.uids)
-					// .rs(b.instancontxt(b.basictx().connId(), b.synrobot()))
-					.rs(b.instancontxt(x.synconn, b.synrobot()))
+					// .rs(b.instancontxt(x.synconn, b.synrobot()))
+					.rs(b.instancontxt())
 					.rs(0))
-					.<String>map(new String[] {chm.pk, sbm.synodee}, (r) -> changeLine(r));
+					.<String>map(new String[] {chm.uids, sbm.synodee}, (r) -> changeLine(r));
 
 				for(String cid : idmap.keySet()) {
 					if (!uidss.containsKey(cid))
@@ -555,8 +620,7 @@ public class Docheck {
 		}
 	}
 	
-	public Nyquence n0() throws SQLException, TransException {
-		// return synx.getNyquence(synb, synx.synconn, synx.synm, synx.synm.nyquence, synx.synm.synoder, synx.synode);
+	public Nyquence n0() {
 		return synb.syndomx.n0();
 	}
 
@@ -577,7 +641,6 @@ public class Docheck {
 	public long stamp() throws SQLException, TransException {
 		boolean dbg = Connects.getDebug(synb.syndomx.synconn);
 		try {
-			// return DAHelper.getNstamp(synb).n;
 			return synb.syndomx.stamp.n;
 		}
 		finally { Connects.setDebug(synb.syndomx.synconn, dbg); }
@@ -610,10 +673,7 @@ public class Docheck {
 					Connects.setDebug(ck[cx].connId(), tops[cx]);
 				}
 			}
-		
-			// return new Docheck(tops);
 		}
-		// return new Docheck(new boolean[0]);
 	}
 
 	public Docheck assertl(long ... n) {
