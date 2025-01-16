@@ -422,7 +422,7 @@ public class DATranscxt extends Transcxt {
 	 * Call this only in case Semantics needing re-initialized, e. g. an Auto-key
 	 * handler is loaded by previous tests and the seq number needs to be reset. 
 	 */
-	public static void clearSemanticsMap() {
+	public static void clearSemanticsMaps() {
 		smtMaps = null;
 	}
 
