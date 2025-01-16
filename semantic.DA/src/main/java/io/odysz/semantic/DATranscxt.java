@@ -418,6 +418,14 @@ public class DATranscxt extends Transcxt {
 		return (M) smtMaps.get(conn);
 	}
 
+	/**
+	 * Call this only in case Semantics needing re-initialized, e. g. an Auto-key
+	 * handler is loaded by previous tests and the seq number needs to be reset. 
+	 */
+	public static void clearSemanticsMap() {
+		smtMaps = null;
+	}
+
 	public static boolean hasSemantics(String conn, String tabl, smtype sm) {
 		if (smtMaps == null || !smtMaps.containsKey(conn)
 				|| !smtMaps.get(conn).ss.containsKey(tabl))
