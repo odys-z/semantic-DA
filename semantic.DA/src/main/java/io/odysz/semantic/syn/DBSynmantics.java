@@ -298,7 +298,7 @@ public class DBSynmantics extends DASemantics {
 				if (hittings.getRowCount() > 0)
 					updt = logChange(((ISyncontext)stx).syndomContext(),
 								((ISyncontext)stx).synbuilder(), updt, entm, synode,
-								null, cols.keySet());
+								hittings, cols.keySet());
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
 				throw new TransException(e.getMessage());
