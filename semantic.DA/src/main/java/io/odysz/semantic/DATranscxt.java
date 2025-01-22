@@ -477,6 +477,15 @@ public class DATranscxt extends Transcxt {
 			keys = new HashMap<String, String>();
 		keys.put(name, value);
 	}
+
+	/**
+	 * Set root key.
+	 * @param k
+	 * @since 1.5.14
+	 */
+	public static void rootkey(String k) {
+		key("user-pswd", k);
+	}
 	
 	/** Load a configuration item. 
 	 * @param name configuration key, e.g. "user-pswd"
