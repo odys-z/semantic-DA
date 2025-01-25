@@ -14,8 +14,12 @@ import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactory;
 import io.odysz.module.xtable.XMLTable;
 
-/**Load path/config.xml, use {@link #getCfg(String)} to access the configured value (String).<br>
- * A servlet constext must been registed by LeisureFactory before Messages is inited */
+/**
+ * Load path/config.xml, use {@link #getCfg(String)} to access the configured value (String).<br>
+ * A servlet constext must been registed by LeisureFactory before Messages is initiated.
+ * 
+ * @since 0.1
+ * */
 public class Configs {
 	protected static ILogger log;
 	private static String cfgFilename = "config.xml";
@@ -27,7 +31,6 @@ public class Configs {
 		public static final String deftXTableId = "default";
 		public static final String fileSys = "file-sys";
 
-		// public static final String irUser = "IrUser";
 		/** key of JUser class name, "class-IUser" used in config.xml */
 		public static final String usrClzz = "class-IUser";
 
@@ -64,18 +67,22 @@ public class Configs {
 	protected static HashMap<String, HashMap<String, String>> cfgs;
 
 	static {
-		Utils.logi("============= Semantic.DA 2.0.0 built on 2024-08-08 =============");
+		Utils.logi("============= Semantic.DA 1.5 built on 2025-01-25 =============");
 
 		log = new Log4jWrapper("Configs");
 
 		cfgs = new HashMap<String, HashMap<String, String>>();
 	}
 
-	/**For redirect path of config.xml
+	/**
+	 * For redirect path of config.xml
 	 * @param xmlDir
+	 * @since 1.4.0
 	 */
 	public static void init(String xmlDir) {
 		cfgFullpath = FilenameUtils.concat(xmlDir, cfgFilename);
+		Utils.logi("Initializing Configs. filename: %s, xml-dir: %s\nfullpath: %s",
+				xmlDir, cfgFilename, cfgFullpath);
 		load(cfgs, keys.deftXTableId);
 	}
 
@@ -85,10 +92,12 @@ public class Configs {
 	 * @param cfgxml e. g. config.xml
 	 * @param tid optional [table-name]
 	 * @return absolute configure file path
-	 * @since 2.0.0
+	 * @since 1.5.15
 	 */
 	public static String init(String xmlDir, String cfgxml, String... tid) {
 		cfgFullpath = FilenameUtils.concat(xmlDir, cfgxml);
+		Utils.logi("Initializing Configs. filename: %s, xml-dir: %s\nfullpath: %s",
+				xmlDir, cfgFilename, cfgFullpath);
 		return load(cfgs, cfgFullpath, isNull(tid) ? keys.deftXTableId : tid[0]);
 	}
 	
@@ -96,6 +105,7 @@ public class Configs {
 	 * @param cfgs
 	 * @param tid
 	 * @return absolute configure file path
+	 * @since 1.4.0
 	 */
 	protected static String load(HashMap<String, HashMap<String, String>> cfgs, String tid) {
 		return load(cfgs, cfgFullpath, tid);
@@ -106,6 +116,7 @@ public class Configs {
 	 * @param xml
 	 * @param tid
 	 * @return absolute configure file path
+	 * @since 1.4.0
 	 */
 	public static String load(HashMap<String, HashMap<String, String>> cfgs, String xml, String tid) {
 		String absPath = FilenameUtils.concat(xml);

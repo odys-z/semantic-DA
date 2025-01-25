@@ -59,7 +59,9 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 					usr, pswd, log, printSql ? flag_printSql : flag_nothing);
 		}
 		else if (type == dbtype.sqlite) {
-			// Since docker volume can not be mounted in tomcat webapps' sub-folder, file path handling can be replaced with environment variables now.
+			// Debug Notes:
+			// Since Docker volume can not be mounted in tomcat webapps' sub-folder,
+			// file path handling can be replaced with environment variables now.
 			Utils.logi("[%s]\nResolving sqlite db, xmlDir: %s,\n\tjdbcUrl: %s", id, xmlDir, jdbcUrl);
 
 			String dbpath = FilenameUtils.concat(xmlDir, EnvPath.replaceEnv(jdbcUrl));
