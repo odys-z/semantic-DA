@@ -1,11 +1,11 @@
 -- drop table if exists syn_node;
 CREATE TABLE if not exists syn_node (
 	org       varchar2(12) NOT NULL,
-	synid     varchar2(64) NOT NULL,   -- user input
+	synid     varchar2(64) NOT NULL,   -- 
 	nyq       long NOT NULL DEFAULT 0, -- for synchronizing
 	nstamp    long NOT NULL DEFAULT 0, -- for stamping new change logs
 	domain    varchar2(12),            -- usually org id, null only for new nodes befor joining
-	jserv     varchar2(512),           -- long enough as URL with many arguemtns should be a new infrastructure 
+	jserv     varchar2(512),           -- 
 	remarks   varchar2(256),
 	mac       varchar2(64),
 	oper      varchar2(12),

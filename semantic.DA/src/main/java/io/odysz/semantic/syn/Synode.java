@@ -28,9 +28,8 @@ public class Synode extends Anson {
 	String syn_uid;
 
 	/** for update peers' jserv */
-	public String jserv;
-	
-	public boolean https;
+	// public String jserv;
+	// public boolean https;
 	
 	public Synode() {
 	}

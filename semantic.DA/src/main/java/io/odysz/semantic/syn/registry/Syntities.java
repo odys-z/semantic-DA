@@ -36,6 +36,8 @@ public class Syntities extends Anson {
 	public HashMap<String, SyntityMeta> metas;
 
 	String conn;
+	public String conn() { return conn; }
+	
 	public ArrayList<SyntityReg> syntities;
 	
 	public boolean debug;
