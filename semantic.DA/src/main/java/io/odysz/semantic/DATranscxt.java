@@ -303,7 +303,8 @@ public class DATranscxt extends Transcxt {
 	 * <p>If it's a null configuration, the semantics can not be used to resulving semantics between records,
 	 * but can be used to do basic sql operation. (resulving is a special concept of semantic-*, see docs)</p>
 	 * 
-	 * When creating DATranscxt, db metas can not be null.
+	 * When creating DATranscxt, db metas can not be null, and the first time creating globally
+	 * will trigger the semantics loading.
 	 * 
 	 * @param conn connection Id
 	 * @throws Exception 
