@@ -348,7 +348,7 @@ public class Connects {
 			metas = MetaBuilder.buildMs2k(conn);
 		else if (dt == dbtype.oracle)
 			metas = MetaBuilder.buildOrcl(conn);
-		else if (dt == dbtype.sqlite)
+		else if (dt == dbtype.sqlite || dt == dbtype.sqlite_queue)
 			metas = MetaBuilder.buildSqlite(conn);
 		else
 			throw new SemanticException("Drived type not suppored: %s", dt.name());
@@ -431,6 +431,18 @@ public class Connects {
 	}
 
 	protected static HashMap<String, HashMap<String, TableMeta>> metas;
+
+	/**
+	 * @since 1.5.17
+	 * @param conn
+	 * @return removed metas
+	 */
+	public static HashMap<String,TableMeta> clearMeta(String conn) {
+		if (metas != null)
+			return metas.remove(conn);
+		else return null;
+	}
+	
 	public static HashMap<String, TableMeta> getMeta(String connId)
 			throws SemanticException, SQLException {
 		if (metas == null)
@@ -438,10 +450,14 @@ public class Connects {
 
 		if (connId == null)
 			connId = defltConn;
+
 		if (!metas.containsKey(connId))
 			metas.put(connId, loadMeta(connId));
-		if (!metas.containsKey(connId))
+
+		if (!metas.containsKey(connId)) {
 			metas.put(connId, new HashMap<String, TableMeta>(0));
+			throw new SemanticException("reached here?");
+		}
 		
 		return metas.get(connId);
 	}
@@ -527,4 +543,5 @@ public class Connects {
 		return Connects.driverType(conn) == dbtype.sqlite
 			|| Connects.driverType(conn) == dbtype.sqlite_queue;
 	}
+
 }
