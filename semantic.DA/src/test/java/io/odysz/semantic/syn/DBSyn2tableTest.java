@@ -30,6 +30,7 @@ import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.AutoSeqMeta;
 import io.odysz.semantic.meta.ExpDocTableMeta;
+import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SemanticTableMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSessionMeta;
@@ -43,12 +44,12 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 /**
-* Full-duplex mode for exchanging logs are running.
-* 
-* See test/res/console-print.txt
-* 
-* @author Ody
-*/
+ * Test 2 syntity tables.
+ * 
+ * See test/res/console-print.txt
+ * 
+ * @author Ody
+ */
 public class DBSyn2tableTest {
 	public static final String[] conns;
 	public static final String[] testers;
@@ -72,7 +73,7 @@ public class DBSyn2tableTest {
 	static SynSubsMeta sbm;
 	static SynchangeBuffMeta xbm;
 	static SynSessionMeta ssm;
-	// static PeersMeta prm;
+	static PeersMeta prm;
 
 	static String[] synodes;
 
@@ -126,7 +127,7 @@ public class DBSyn2tableTest {
 		sbm = new SynSubsMeta(chm);
 		xbm = new SynchangeBuffMeta(chm);
 		ssm = new SynSessionMeta();
-		// prm = new PeersMeta();
+		prm = new PeersMeta();
 
 		for (int s = 0; s < 3; s++) {
 			String conn = conns[s];
@@ -134,8 +135,7 @@ public class DBSyn2tableTest {
 			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn);//.replace();
 			T_DA_DevMeta   dvm = new T_DA_DevMeta(conn);  // .replace();
 
-			// SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm, dvm);
-			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, ssm, phm, dvm);
+			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm, dvm);
 			phm.replace();
 			dvm.replace();
 
