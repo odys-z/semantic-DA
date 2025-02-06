@@ -55,7 +55,7 @@ class DBSynTransBuilderTest {
 		sbm = new SynSubsMeta(chm);
 		xbm = new SynchangeBuffMeta(chm);
 		ssm = new SynSessionMeta();
-		prm = new PeersMeta();
+		// prm = new PeersMeta();
 
 		String conn = conns[0];
 
@@ -71,7 +71,8 @@ class DBSynTransBuilderTest {
 
 		T_DA_PhotoMeta phm = regists.meta("h_photos");
 
-		SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
+		// SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
+		SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, ssm, phm);
 
 		ArrayList<String> sqls = new ArrayList<String>();
 		sqls.add("delete from oz_autoseq;");
