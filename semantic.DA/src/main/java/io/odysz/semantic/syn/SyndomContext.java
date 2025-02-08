@@ -14,6 +14,7 @@ import java.util.HashMap;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
+import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
@@ -122,14 +123,26 @@ public class SyndomContext {
 		seq = 0;
 	}
 
-	public Nyquence incN0(DBSyntableBuilder b) throws TransException, SQLException {
-		persistNyquence(b, synode, nv.get(synode).inc());
-
-		stamp.inc();
-
-		persistamp(b);
-
-		return nv.get(synode);
+//	public Nyquence incN0Stamp(DBSyntableBuilder b) throws TransException, SQLException {
+//		persistNyquence(b, synode, nv.get(synode).inc());
+//
+//		stamp.inc();
+//
+//		persistamp(b);
+//
+//		return nv.get(synode);
+//	}
+	
+	/**
+	 * Inc n0 &amp; n-stamp, avoiding synmantics triggering by using lower transaction API.
+	 * @param synodes 
+	 * @throws TransException 
+	 * @throws SQLException 
+	 */
+	public static void incN0Stamp(String conn, SynodeMeta m, String synodeId) throws SQLException, TransException {
+		Connects.commit(conn, DATranscxt.dummyUser(),
+				f("update %1$s set %2$s = %3$s + 1, %3$s = %3$s + 1 where %4$s = '%5$s';",
+					m.tbl, m.nstamp, m.nyquence, m.pk, synodeId));
 	}
 	
 	public Nyquence n0(DBSyntableBuilder synb, Nyquence maxn)

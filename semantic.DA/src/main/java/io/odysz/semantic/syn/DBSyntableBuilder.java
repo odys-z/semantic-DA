@@ -267,8 +267,9 @@ public class DBSyntableBuilder extends DATranscxt {
 				@SuppressWarnings("unchecked")
 				ArrayList<Integer> chgsubs = ((ArrayList<Integer>)res.get("total"));
 				if (chgsubs != null && chgsubs.size() > 1 && hasGt(chgsubs, 0)) {
-					Utils.logi("Subscribe record(s) be affected:");
-					Utils.logi(str(chgsubs, new String[] {"subscribes", "propagations", "change-logs"}));
+					Utils.warn("[%s : %s (n0: %s, n-stamp: %s, peer: %s)] Subscribe record(s) has been affected:",
+								synode, domain, syndomx.n0(), syndomx.stamp(), peer);
+					Utils.warn(str(chgsubs, new String[] {"subscribes", "propagations", "change-logs"}));
 				}
 			} catch (Exception e) { e.printStackTrace(); }
 		}

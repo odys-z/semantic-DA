@@ -163,6 +163,9 @@ public class DBSyntableTest {
 
 			Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
+			// Docheck.ck[s].synb.syndomx.incN0Stamp(Docheck.ck[s].synb);
+			SyndomContext.incN0Stamp(conn, snm, synodes[s]);
+
 			Syntities syntities = Syntities.load(runtimepath, f("syntity-%s.json", s), 
 					(synreg) -> {
 						if (eq(synreg.table, "h_photos"))
@@ -181,8 +184,11 @@ public class DBSyntableTest {
 					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm, null,
 					Connects.getDebug(conn));
 			
-			if (s != W)
-				Docheck.ck[s].synb.syndomx.incN0(Docheck.ck[s].synb);
+//			if (s != W)
+//				// Note 2025-02-08
+//				// This is necessary as the initial state is unspecified about last synchronization's results,
+//				// and increasing n-stamp only will lead to confusion later when initiating exchanges. 
+//				Docheck.ck[s].synb.syndomx.incN0Stamp(Docheck.ck[s].synb);
 		}
 		
 		SyndomContext.forceExceptionStamp2n0  = true;
