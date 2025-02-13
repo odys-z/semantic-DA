@@ -13,6 +13,7 @@ import java.util.HashMap;
  * Is this not necessary? Or a generic flat xml data factory is needed?
  * @author Odys
  */
+@SuppressWarnings("deprecation")
 public class XMLDataFactory {
 	/** Take as data source ID. Set here for the future expansion. */
 	private static String XMLSrcDefault = "com.infochage.frame.xtable.default";

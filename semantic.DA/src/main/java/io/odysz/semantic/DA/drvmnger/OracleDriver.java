@@ -24,6 +24,7 @@ import static io.odysz.common.LangExt.isblank;
 /**
  * @author odys-z@github.com
  */
+@SuppressWarnings("deprecation")
 public class OracleDriver extends AbsConnect<OracleDriver> {
 
 	static DataSource ds;

@@ -14,6 +14,7 @@ import org.xml.sax.SAXException;
  * All tables are not managed - release memory for performance.
  * @author Odys
  */
+@SuppressWarnings("deprecation")
 public class XMLDataFactoryEx {
 	/**
 	 * Construct a new table.<br/>

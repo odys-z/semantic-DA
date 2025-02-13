@@ -56,6 +56,7 @@ import io.odysz.transact.x.TransException;
  * 
  * @author odys-z@github.com
  */
+@SuppressWarnings("deprecation")
 public class DATranscxt extends Transcxt {
 	/**
 	 * <p>Callback for buiding a connection's semantics map, with map-key = table.</p>

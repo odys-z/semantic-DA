@@ -3,6 +3,7 @@ package io.odysz.module.xtable;
 /**FIXME this class must been removed.
  * @author ody
  *
+ * @deprecated
  */
 public class Log4jWrapper implements ILogger {
 	protected boolean debug;

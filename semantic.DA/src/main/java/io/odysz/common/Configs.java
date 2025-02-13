@@ -20,6 +20,7 @@ import io.odysz.module.xtable.XMLTable;
  * 
  * @since 0.1
  * */
+@SuppressWarnings("deprecation")
 public class Configs {
 	protected static ILogger log;
 	private static String cfgFilename = "config.xml";

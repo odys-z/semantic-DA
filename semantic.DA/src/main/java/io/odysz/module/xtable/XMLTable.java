@@ -8,6 +8,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+@SuppressWarnings("deprecation")
 public class XMLTable {
 	public interface IMapValue {
 		String mapKey();

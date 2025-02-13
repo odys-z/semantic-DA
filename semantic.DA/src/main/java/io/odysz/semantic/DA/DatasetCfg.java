@@ -38,6 +38,7 @@ import io.odysz.transact.x.TransException;
  * 
  * @author odys-z@github.com
  */
+@SuppressWarnings("deprecation")
 public class DatasetCfg {
 	/**Data structure of s-tree configuration.
 	 * @author odys-z@github.com

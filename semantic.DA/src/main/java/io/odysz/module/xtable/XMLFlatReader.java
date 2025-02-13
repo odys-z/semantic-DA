@@ -10,6 +10,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * Flat XML data structure handler. 
  * @author Odysseus Zhou
  */
+@SuppressWarnings("deprecation")
 public class XMLFlatReader extends DefaultHandler {
 	public static final String Tag = "XMLFlatReader";
 	private ILogger logger;

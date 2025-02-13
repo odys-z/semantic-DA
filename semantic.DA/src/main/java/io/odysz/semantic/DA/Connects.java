@@ -44,6 +44,7 @@ import io.odysz.transact.x.TransException;
  * 
  * @author odys-z@github.com
  */
+@SuppressWarnings("deprecation")
 public class Connects {
 	/**Convert names like "sqlit" to {@link dbtype}.
 	 * @param type

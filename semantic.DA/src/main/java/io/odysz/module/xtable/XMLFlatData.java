@@ -14,6 +14,7 @@ import org.xml.sax.InputSource;
  * Value can be fieldized by XMLDataFactory.getFLResultset().
  * @author Odys
  */
+@SuppressWarnings("deprecation")
 public class XMLFlatData implements IXMLData {
 	private static final String TAG = "XMLFlatData";
 
