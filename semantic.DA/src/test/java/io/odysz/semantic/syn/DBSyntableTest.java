@@ -139,7 +139,7 @@ public class DBSyntableTest {
 		ssm = new SynSessionMeta();
 		prm = new PeersMeta();
 
-		for (int s = 0; s < 4; s++) {
+		for (int s = 0; s < synodes.length; s++) {
 			String conn = conns[s];
 			snm = new SynodeMeta(conn);
 			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn); //.replace();
