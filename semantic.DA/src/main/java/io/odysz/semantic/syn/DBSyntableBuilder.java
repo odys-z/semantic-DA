@@ -822,14 +822,14 @@ public class DBSyntableBuilder extends DATranscxt {
 		String synconn= syndomx.synconn;
 		SynodeMeta synm = syndomx.synm;
 
-		if (!isblank(syndomx.domain))
-			throw new ExchangeException(setupDom, cp, "Domain must be null for initialization %s in %s.",
-					synm.tbl, synm.domain);
-		
-//		if (!ev(setupDom, domainof.act))
-//			throw new ExchangeException(setupDom, cp, "Joining domain information indicates an action of code %s, rather than %s (setupDom).",
-//				domainof.act, setupDom);
+		if (!eq(syndomx.domain, domain))
+			throw new ExchangeException(setupDom, cp,
+					"Unexpected domain. me: %s, peer: %s", syndomx.domain, domain);
 
+//		if (!isblank(syndomx.domain))
+//			throw new ExchangeException(setupDom, cp, "Domain must be null for initialization %s in %s.",
+//					synm.tbl, synm.domain);
+		
 		Nyquence mxn = domainof.nv.get(admin); 
 
 		if (domainof.synodes != null) {

@@ -139,7 +139,7 @@ public class DBSyntableTest {
 		ssm = new SynSessionMeta();
 		prm = new PeersMeta();
 
-		for (int s = 0; s < 4; s++) {
+		for (int s = 0; s < synodes.length; s++) {
 			String conn = conns[s];
 			snm = new SynodeMeta(conn);
 			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn); //.replace();
@@ -182,7 +182,10 @@ public class DBSyntableTest {
 			for (SyntityMeta m : syntities.metas.values())
 				m.replace();
 
-			Docheck.ck[s] = new Docheck(new AssertImpl(), s != W ? zsu : null, conn, synodes[s],
+			Docheck.ck[s] = new Docheck(new AssertImpl(),
+					// s != W ? zsu : null,
+					zsu,
+					conn, synodes[s],
 					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm, null,
 					Connects.getDebug(conn));
 		}
@@ -305,6 +308,11 @@ public class DBSyntableTest {
 		printChangeLines(ck);
 		printNyquv(ck, true);
 		Utils.logrst("Y on W joining", section, ++no);
+		
+		SyndomContext wx = ck[W].synb.syndomx;
+		@SuppressWarnings("unused")
+		HashMap<String, Nyquence> wnv = wx.loadNvstamp(ck[W].synb);
+
 		@SuppressWarnings("unused")
 		String[] w_ack = joinSubtree(Y, W, section, no);
 
