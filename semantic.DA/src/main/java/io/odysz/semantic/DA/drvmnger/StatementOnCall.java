@@ -18,7 +18,7 @@ public class StatementOnCall {
 	Statement statment;
 	OnCommit onCommit;
 
-	// ReentrantLock lock;
+	/** ReentrantLock lock. */
 	Object lock;
 	public boolean finished;
 

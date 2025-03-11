@@ -26,8 +26,8 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 	
 	Object lock;
 	
-	SqliteDriverQueued(String id, boolean log) {
-		super(id, log);
+	SqliteDriverQueued(String connid, boolean log) {
+		super(connid, log);
 		
 		qu = test ? new T_ArrayBlockingQueue<StatementOnCall>(qulen)
 				  : new ArrayBlockingQueue<StatementOnCall>(qulen);
@@ -60,7 +60,7 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 				stmt = null;
 			}
 			}
-		}, f("sqlite queue dirver %s[%s/%s]",
+		}, f("sqlite queued dirver %s[%s/%s]",
 			test ? "T_ArrayBlockingQueue" : "ArrayBlockingQueue",
 			qu.size(), qulen));
 		this.worker.start();
@@ -69,17 +69,12 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 	/**
 	 * Get {@link SqliteDriver2} instance, with database connection got via {@link DriverManager}.
 	 * 
-	 * @param jdbc
-	 * @param user
-	 * @param psword
-	 * @param log
-	 * @param flags
 	 * @return SqliteDriver2 instance
 	 * @throws SQLException
 	 */
-	public static SqliteDriverQueued initConnection(String id, String jdbc,
+	public static SqliteDriverQueued initConnection(String connId, String jdbc,
 			String user, String psword, boolean log, int flags) throws SQLException {
-		SqliteDriverQueued inst = new SqliteDriverQueued(id, log);
+		SqliteDriverQueued inst = new SqliteDriverQueued(connId, log);
 
 		inst.enableSystemout = (flags & AbsConnect.flag_printSql) > 0;
 		inst.jdbcUrl = jdbc;
