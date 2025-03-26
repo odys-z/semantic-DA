@@ -194,43 +194,6 @@ public class T_ExpSyncDoc extends SynEntity {
 		this.mime = rs.getString(meta.mime);
 	}
 
-	/**
-	 * Load local file, take current time as sharing date.
-	 * @param meta 
-	 * @param fullpath
-	 * @param owner
-	 * @param shareflag
-	 * @return this
-	 * @throws IOException
-	public SyncDoc loadFile(String fullpath, IUser owner, String shareflag) throws IOException {
-		Path p = Paths.get(fullpath);
-		byte[] f = Files.readAllBytes(p);
-		String b64 = AESHelper.encode64(f);
-		this.uri = b64;
-
-		fullpath(fullpath);
-		this.pname = p.getFileName().toString();
-		
-		this.shareby = owner.uid();
-		this.shareflag = shareflag;
-		sharedate(new Date());
-
-		return this;
-	}
-	 */
-
-//	public SyncDoc(IFileDescriptor d, String fullpath, DocTableMeta meta) throws IOException, SemanticException {
-//		this.device = d.device();
-//
-//		this.docMeta = meta;
-//		this.recId = d.recId();
-//		this.pname = d.clientname();
-//		this.uri = d.uri();
-//		this.createDate = d.cdate();
-//		this.mime = d.mime();
-//		this.fullpath(fullpath);
-//	}
-
 	public T_ExpSyncDoc fullpath(String clientpath) throws IOException {
 		this.clientpath = clientpath;
 
@@ -248,19 +211,6 @@ public class T_ExpSyncDoc extends SynEntity {
 		return this;
 	}
 
-	/**Set (private) jserv node file full path (path replaced with %VOLUME_HOME)
-	 * @param path
-	 * @return
-	 * @throws SemanticException 
-	 * @throws IOException 
-	public IFileDescriptor uri(String path) throws SemanticException, IOException {
-		fullpath(path);
-		pname = FilenameUtils.getName(path);
-		// throw new SemanticException("TODO");
-		this.uri = null;
-		return this;
-	}
-	 */
 
 	protected String folder;
 	public String folder() { return folder; }
@@ -268,31 +218,6 @@ public class T_ExpSyncDoc extends SynEntity {
 		this.folder = v;
 		return this;
 	}
-
-//	public SyncDoc parseMimeSize(String abspath) throws IOException {
-//		mime = isblank(mime)
-//				? Files.probeContentType(Paths.get(abspath))
-//				: mime;
-//
-//		File f = new File(abspath);
-//		size = f.length();
-//		return this;
-//	}
-
-//	public SyncDoc parseChain(BlockChain chain) throws IOException {
-//		createDate = chain.cdate;
-//
-//		device = chain.device;
-//		clientpath = chain.clientpath;
-//		pname = chain.clientname;
-//		folder(chain.saveFolder);
-//
-//		shareby = chain.shareby;
-//		sharedate = chain.shareDate;
-//		shareflag = chain.shareflag;
-//
-//		return parseMimeSize(chain.outputPath);
-//	}
 
 	/**
 	 * Parse {@link PathsPage#clientPaths}.
