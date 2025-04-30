@@ -139,7 +139,8 @@ public class SyndomContext {
 	 * @throws TransException 
 	 * @throws SQLException 
 	 */
-	public static void incN0Stamp(String conn, SynodeMeta m, String synodeId) throws SQLException, TransException {
+	public static void incN0Stamp(String conn, SynodeMeta m, String synodeId)
+			throws SQLException, TransException {
 		Connects.commit(conn, DATranscxt.dummyUser(),
 				f("update %1$s set %2$s = %3$s + 1, %3$s = %3$s + 1 where %4$s = '%5$s';",
 					m.tbl, m.nstamp, m.nyquence, m.pk, synodeId));
@@ -157,12 +158,16 @@ public class SyndomContext {
 	}
 
 
-	public HashMap<String, Nyquence> loadNvstamp(DBSyntableBuilder synb) throws TransException, SQLException {
+	public HashMap<String, Nyquence> loadNvstamp(DBSyntableBuilder synb)
+			throws TransException, SQLException {
+
 		loadNvstamp(synb, synb.locrobot);
 		return nv;
 	}
 	
-	public SyndomContext loadNvstamp(DATranscxt tb, IUser usr) throws TransException, SQLException {
+	public SyndomContext loadNvstamp(DATranscxt tb, IUser usr)
+			throws TransException, SQLException {
+
 		AnResultset rs = ((AnResultset) tb.select(synm.tbl)
 				.cols(synm.pk, synm.nyquence, synm.nstamp)
 				.whereEq(synm.domain, domain)
@@ -206,8 +211,8 @@ public class SyndomContext {
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public static Nyquence getNyquence(DATranscxt trb, String conn, IUser usr, SynodeMeta m, String nyqfield, String... where_eqs)
-			throws SQLException, TransException {
+	public static Nyquence getNyquence(DATranscxt trb, String conn, IUser usr, SynodeMeta m,
+			String nyqfield, String... where_eqs) throws SQLException, TransException {
 		Query q = trb.select(m.tbl);
 		
 		for (int i = 0; i < where_eqs.length; i+=2)
@@ -233,7 +238,8 @@ public class SyndomContext {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public SyndomContext domainitOnjoin(DBSyntableBuilder b, String dom, Nyquence n0) throws TransException, SQLException {
+	public SyndomContext domainitOnjoin(DBSyntableBuilder b, String dom, Nyquence n0)
+			throws TransException, SQLException {
 		DAHelper.updateFieldWhereEqs(b, synconn, admin, synm, synm.domain, dom,
 				synm.synoder, synode, synm.domain, this.domain);
 		domain = dom;
@@ -335,6 +341,29 @@ public class SyndomContext {
 			return true;
 		}
 		else return false;
+	}
+
+	/**
+	 * @since 1.5.18
+	 * @param st
+	 * @param webroot
+	 * @param usr
+	 * @return webroot or mapped jserv, from syn_node.
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public String findJserv(DATranscxt st, String webroot, IUser usr) throws TransException, SQLException {
+
+		AnResultset rs = (AnResultset) st
+				.select(synm.tbl)
+				.whereEq(synm.pk, webroot)
+				.rs(st.instancontxt(this.synconn, usr))
+				.rs(0);
+		
+		if (rs.beforeFirst().next())
+			return rs.getString(synm.jserv);
+		else return webroot;
+
 	}
 
 }
