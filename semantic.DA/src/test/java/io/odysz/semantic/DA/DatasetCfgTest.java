@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import io.odysz.anson.x.AnsonException;
+import io.odysz.anson.AnsonException;
 import io.odysz.common.Utils;
 import io.odysz.semantic.DA.DatasetCfg.AnTreeNode;
 import io.odysz.transact.x.TransException;

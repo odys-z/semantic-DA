@@ -29,7 +29,7 @@ import java.util.HashMap;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import io.odysz.anson.x.AnsonException;
+import io.odysz.anson.AnsonException;
 import io.odysz.common.AssertImpl;
 import io.odysz.common.Configs;
 import io.odysz.common.Utils;
