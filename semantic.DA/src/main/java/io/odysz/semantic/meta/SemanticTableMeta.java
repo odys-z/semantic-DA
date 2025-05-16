@@ -80,7 +80,7 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 	 * @throws TransException
 	 * @throws SQLException 
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	public <T extends SemanticTableMeta> T replace() throws TransException, SQLException {
 		TableMeta mdb = Connects.getMeta(conn, tbl);
 
@@ -106,6 +106,8 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 		if (ms != null && Connects.isqlite(conn))
 		for (TableMeta m : ms)
 			if (!isblank(m.ddlSqlite)) {
+				Utils.logi("[%s] DDL by TableMeta.ddlSqlite: %s, table: %s", conn, m.getClass().getName(), m.tbl);
+
 				if (force_drop) Connects.commit(conn, DATranscxt.dummyUser(),
 						String.format("drop table if exists %s;", m.tbl));
 
