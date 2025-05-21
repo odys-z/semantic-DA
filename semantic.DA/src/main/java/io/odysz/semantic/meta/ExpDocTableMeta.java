@@ -21,7 +21,7 @@ import io.odysz.transact.x.TransException;
 public abstract class ExpDocTableMeta extends SyntityMeta {
 
 	public final String fullpath;
-	/** aslo named as pname, clientname or filename previously */
+	/** Also named as pname, clientname or filename previously. */
 	public final String resname;
 	/**
 	 * @see io.odysz.semantic.DASemantics.ShExtFilev2 ShExtFile.
