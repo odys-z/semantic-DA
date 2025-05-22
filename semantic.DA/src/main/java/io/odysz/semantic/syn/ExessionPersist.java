@@ -726,6 +726,7 @@ public class ExessionPersist {
 			// SyntityMeta entm = eq(tbl, synm.tbl) ? synm : Syntities.get(synx.synconn).meta(tbl);
 			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(synx.synconn, tbl);
 
+			// FIXME duplicates of entity records here
 			AnResultset entities = ((AnResultset) entm
 				// .onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))
 				.onselectSyntities(trb.select(tbl, "e").cols("e.*"))
@@ -748,7 +749,6 @@ public class ExessionPersist {
 			.orderby(chgm.synoder)
 			.orderby(chgm.entbl)
 			.orderby(chgm.seq)
-			// .rs(trb.instancontxt(synx.synconn, trb.synrobot()))
 			.rs(trb.instancontxt())
 			.rs(0);
 	}

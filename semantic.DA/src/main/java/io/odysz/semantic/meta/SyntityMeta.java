@@ -197,6 +197,11 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 *    .onselectSyntities(trb.select(tbl, "e").col("e.*"))
 	 * </pre>
 	 * 
+	 * <h5> TO BE FIXED Notes 2025.5.22:</h5>
+	 * No. The file content should be resolved / synchronized later for performance.
+	 * No file should be load multiple times, as this is called while loading exchange
+	 * pages, which is based upon semantics of change-log pages, not entities' page. 
+	 * 
 	 * @see io.odysz.semantic.syn.ExessionPersist#chpage()
 	 * @param select typically should already called {@link Query#cols(String...)}, etc. alrady.
 	 * @return select
