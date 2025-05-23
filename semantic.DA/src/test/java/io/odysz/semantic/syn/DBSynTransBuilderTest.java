@@ -8,6 +8,10 @@ import static io.odysz.semantic.syn.Docheck.printChangeLines;
 import static io.odysz.semantic.syn.Docheck.printNyquv;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static io.odysz.semantic.syn.DBSyntableTest.*;
+
+import static io.odysz.semantic.syn.DBSyn2tableTest.zsu;
+import static io.odysz.semantic.syn.DBSyn2tableTest.chpageSize;
+
 import java.io.File;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
@@ -86,7 +90,7 @@ class DBSynTransBuilderTest {
 		Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
 		Docheck.ck[0] = new Docheck(new AssertImpl(), zsu, conn, synodes[0],
-								SynodeMode.peer, phm, null, Connects.getDebug(conn));
+					SynodeMode.peer, chpageSize, phm, null, Connects.getDebug(conn));
 		
 		DBSyntableBuilder logger = Docheck.ck[0].synb;
 		logger.incN0();
