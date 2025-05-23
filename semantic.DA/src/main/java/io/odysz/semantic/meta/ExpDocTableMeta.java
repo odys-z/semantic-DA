@@ -100,7 +100,7 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 				.clos_clear()
 				.cols_byAlias(a,
 					DATranscxt.hasSemantics(conn, tbl, smtype.extFilev2)
-					? replacele(entCols(), uri, extfile(a + "." + uri))
+					? replacele(entCols(), uri, extfile(a + "." + uri)) // 2025-05-23: Root of OutOfMemoryError.
 					: entCols());
 	}
 }

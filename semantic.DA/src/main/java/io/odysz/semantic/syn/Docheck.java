@@ -87,9 +87,9 @@ public class Docheck {
 	String connId() { return synb.basictx().connId(); }
 
 	public Docheck(IAssert assertImpl, String domain, String conn,
-			String synid, SynodeMode mod, ExpDocTableMeta m, SyntityMeta devm, boolean debugx)
+			String synid, SynodeMode mod, int chpageSize, ExpDocTableMeta m, SyntityMeta devm, boolean debugx)
 			throws Exception {
-		this(assertImpl, new SyndomContext(mod, domain, synid, conn, debugx), m, devm);
+		this(assertImpl, new SyndomContext(mod, chpageSize, domain, synid, conn, debugx), m, devm);
 	}
 
 	/**

@@ -4,6 +4,7 @@ import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.musteq;
+import static io.odysz.common.LangExt.mustGe;
 import static io.odysz.common.LangExt.notBlank;
 import static io.odysz.common.LangExt.notNull;
 import static io.odysz.semantic.syn.Nyquence.maxn;
@@ -71,20 +72,23 @@ public class SyndomContext {
 		return this;
 	}
 	
+	public final int pageSize;
 	public final SynodeMode mode;
+
 	long seq;
 
 	HashMap<String, Nyquence> nv;
 	Nyquence stamp;
 	public long stamp() { return stamp.n; }
 
-	protected SyndomContext(SynodeMode mod, String dom, String synode, String synconn, boolean debug)
+	protected SyndomContext(SynodeMode mod, int pagesize, String dom, String synode, String synconn, boolean debug)
 			throws Exception {
 
 		this.synode  = notBlank(synode);
 		this.domain  = dom;
 		this.synconn = notBlank(synconn);
 		this.mode    = notNull(mod);
+		this.pageSize= mustGe(pagesize, 1);
 		
 		this.chgm = new SynChangeMeta(synconn).replace();
 		this.subm = new SynSubsMeta(chgm, synconn).replace();

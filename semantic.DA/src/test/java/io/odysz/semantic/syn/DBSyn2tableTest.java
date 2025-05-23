@@ -60,6 +60,7 @@ public class DBSyn2tableTest {
 	
 	static final String zsu = "zsu";
 	static final String ura = "ura";
+	static final int chpageSize = 480;
 
 	public static final int X = 0;
 	public static final int Y = 1;
@@ -175,7 +176,7 @@ public class DBSyn2tableTest {
 				m.replace();
 
 			Docheck.ck[s] = new Docheck(new AssertImpl(), s != W ? zsu : null, conn, synodes[s],
-					s != DBSyn2tableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm,
+					s != DBSyn2tableTest.W ? SynodeMode.peer : SynodeMode.leaf, chpageSize, phm,
 					new T_DA_DevMeta(conn),
 					Connects.getDebug(conn));
 			

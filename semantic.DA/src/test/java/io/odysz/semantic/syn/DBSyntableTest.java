@@ -20,6 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import static io.odysz.semantic.syn.DBSyn2tableTest.zsu;
+import static io.odysz.semantic.syn.DBSyn2tableTest.ura;
+import static io.odysz.semantic.syn.DBSyn2tableTest.chpageSize;
+
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -67,8 +71,8 @@ public class DBSyntableTest {
 	public static final String father  = "src/test/res/Sun Yet-sen.jpg";
 	public static final String ukraine = "src/test/res/Ukraine.png";
 	
-	static final String zsu = "zsu";
-	static final String ura = "ura";
+//	static final String zsu = "zsu";
+//	static final String ura = "ura";
 
 	public static final int X = 0;
 	public static final int Y = 1;
@@ -186,7 +190,7 @@ public class DBSyntableTest {
 					// s != W ? zsu : null,
 					zsu,
 					conn, synodes[s],
-					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, phm, null,
+					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, chpageSize, phm, null,
 					Connects.getDebug(conn));
 		}
 		

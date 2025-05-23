@@ -316,7 +316,8 @@ public class ExessionPersist {
 		this.sysm = new SynSessionMeta(synx.synconn);
 		this.pnvm = synx.pnvm;
 		this.exstate = new ExessionAct(mode_server, ready);
-		this.chsize = 480;
+		// this.chsize = 480;
+		this.chsize = tb.syndomx.pageSize;
 
 		debug = trb == null ? true : Connects.getDebug(synx.synconn);
 	}
@@ -743,7 +744,7 @@ public class ExessionPersist {
 
 			AnResultset entities = ((AnResultset) entm
 				// .onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))
-				.onselectSyntities(trb.select(tbl, "e").cols("e.*"))
+				.onselectSyntities(trb.select(tbl, "e").distinct(true).cols("e.*"))
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.io_oz_synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId,
 					 constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
