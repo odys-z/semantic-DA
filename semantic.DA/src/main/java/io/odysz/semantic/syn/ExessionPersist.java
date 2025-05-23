@@ -335,9 +335,10 @@ public class ExessionPersist {
 		return new ExchangeBlock(synx.domain,
 					trb == null ? null : synx.synode,
 					peer, session, exstate)
-				.totalChallenges(1)
+//				.totalChallenges(1)
+//				.chpagesize(this.chsize)
+				.totalChallenges(1, this.chsize)
 				.synodes(DAHelper.getEntityById(trb, synm, synx.synode))
-				.chpagesize(this.chsize)
 				.seq(this);
 	}
 
@@ -378,8 +379,8 @@ public class ExessionPersist {
 		return new ExchangeBlock(synx.domain,
 				trb == null ? null : synx.synode,
 				peer, session, exstate)
-			.totalChallenges(totalChallenges)
-			.chpagesize(this.chsize)
+			.totalChallenges(totalChallenges, this.chsize)
+			// .chpagesize(this.chsize)
 			.seq(persistarting(peer))
 			.nv(synx.nv);
 	}
@@ -396,10 +397,12 @@ public class ExessionPersist {
 		if (trb != null) {
 			synx.loadNvstamp(trb);
 
+			trb.pushDebug(true);
 			int total = ((SemanticObject) trb
 				.insertExbuf(peer)
 				.ins(trb.instancontxt())
 				).total();
+			trb.popDebug();
 
 			if (total > 0 && debug) {
 				Utils.logi("Changes in buffer for %s -> %s: %s",
@@ -422,8 +425,9 @@ public class ExessionPersist {
 		return new ExchangeBlock(synx.domain,
 					trb == null ? ini.peer : synx.synode,
 					peer, session, exstate)
-				.totalChallenges(totalChallenges)
-				.chpagesize(ini.chpagesize)
+				// .totalChallenges(totalChallenges)
+				// .chpagesize(ini.chpagesize)
+				.totalChallenges(totalChallenges, ini.chpagesize)
 				.seq(persistarting(peer))
 				.nv(synx.nv);
 	}
@@ -527,11 +531,13 @@ public class ExessionPersist {
 					.page(challengeSeq, chsize)
 					.col(exbm.changeId);
 
+				trb.pushDebug(true);
 				trb.update(exbm.tbl, trb.synrobot())
 					.nv(exbm.pagex, challengeSeq)
 					.whereIn(exbm.changeId, page)
 					.u(trb.instancontxt(synx.synconn, trb.synrobot()))
 					;
+				trb.popDebug();
 			}
 		}
 
@@ -575,8 +581,9 @@ public class ExessionPersist {
 					trb == null ? rep.peer : synx.synode,
 					peer, session, exstate)
 				.chpage(rs, chEntities)
-				.totalChallenges(totalChallenges)
-				.chpagesize(this.chsize)
+				// .totalChallenges(totalChallenges)
+				// .chpagesize(this.chsize)
+				.totalChallenges(totalChallenges, this.chsize)
 				.seq(this)
 				.nv(synx.nv);
 	}
@@ -594,8 +601,9 @@ public class ExessionPersist {
 					trb == null ? req.peer
 					: synx.synode, peer, session, exstate)
 				.chpage(chpage(), chEntities)
-				.totalChallenges(totalChallenges)
-				.chpagesize(this.chsize)
+				// .totalChallenges(totalChallenges)
+				// .chpagesize(this.chsize)
+				.totalChallenges(totalChallenges, this.chsize)
 				.seq(this)
 				.nv(synx.nv);
 	}
@@ -619,8 +627,9 @@ public class ExessionPersist {
 			return new ExchangeBlock(synx.domain, 
 						trb == null ? rep.peer
 						: synx.synode, peer, session, new ExessionAct(exstate.exmode, close))
-					.totalChallenges(totalChallenges)
-					.chpagesize(this.chsize)
+					// .totalChallenges(totalChallenges)
+					// .chpagesize(this.chsize)
+					.totalChallenges(totalChallenges, this.chsize)
 					.seq(this);
 		} finally {
 			if (trb != null)
@@ -650,8 +659,9 @@ public class ExessionPersist {
 			return new ExchangeBlock(synx.domain,
 						trb == null ? null : synx.synode,
 						peer, session, new ExessionAct(exstate.exmode, close))
-					.totalChallenges(totalChallenges)
-					.chpagesize(this.chsize)
+//					.totalChallenges(totalChallenges)
+//					.chpagesize(this.chsize)
+					.totalChallenges(totalChallenges, this.chsize)
 					.seq(this);
 		} finally {
 			try {
@@ -681,8 +691,9 @@ public class ExessionPersist {
 					trb == null ? null : synx.synode,
 					peer, session, exstate)
 				.requirestore()
-				.totalChallenges(totalChallenges)
-				.chpagesize(this.chsize)
+//				.totalChallenges(totalChallenges)
+//				.chpagesize(this.chsize)
+				.totalChallenges(totalChallenges, this.chsize)
 				.seq(this);
 	}
 
@@ -727,6 +738,9 @@ public class ExessionPersist {
 			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(synx.synconn, tbl);
 
 			// FIXME duplicates of entity records here
+			boolean dbg = Connects.getDebug(synx.synconn);
+			Connects.setDebug(synx.synconn, true);
+
 			AnResultset entities = ((AnResultset) entm
 				// .onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))
 				.onselectSyntities(trb.select(tbl, "e").cols("e.*"))
@@ -736,6 +750,7 @@ public class ExessionPersist {
 				.rs(trb.instancontxt(synx.synconn, trb.synrobot()))
 				.rs(0))
 				.index0(entm.io_oz_synuid);
+			Connects.setDebug(synx.synconn, dbg);
 			
 			entities(tbl, entities);
 		}

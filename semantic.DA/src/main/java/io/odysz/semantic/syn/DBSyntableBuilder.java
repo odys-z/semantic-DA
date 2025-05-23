@@ -57,7 +57,7 @@ import io.odysz.transact.x.TransException;
  * @author Ody
  */
 public class DBSyntableBuilder extends DATranscxt {
-	final boolean debug;
+	boolean debug;
 
 	public SyndomContext syndomx;
 
@@ -85,6 +85,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		locrobot = new SyncUser(x.synode, x.synode, "rob@" + x.synode, x.synode);
 		
 		debug    = Connects.getDebug(x.synconn);
+		dbgStack = debug;
 		
 		// seq = 0;
 		force_clean_subs = true;
@@ -141,13 +142,11 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ExchangeBlock onInit(ExessionPersist sp, ExchangeBlock inireq)
 			throws SQLException, TransException {
 		try {
-			cleanStale(inireq.nv, sp.peer);
+			cleanStale_initPeers(inireq.nv, sp.peer);
 
-			// insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
-			// return sp.onInit(inireq, (SyncUser) syndomx.robot);
+			// insert into exchanges_buff select * from change_logs where n > nyquvect[sx.peer].n
 			return sp.onInit(inireq);
 		} finally {
-			// syndomx.incStamp(sp.trb, inireq.nv);
 			syndomx.incStamp(sp.trb);
 		}
 	}
@@ -193,10 +192,12 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * P is the intiator, NVp is P's nv;
 	 * "." is the subsrciber.
 	 * 
+	 * Side effects: also insert synssion peers into syndomx.pnvm.
+	 * 
 	 * @param srcnv
 	 * @param srcn
 	 */
-	void cleanStale(HashMap<String, Nyquence> srcnv, String peer)
+	void cleanStale_initPeers(HashMap<String, Nyquence> srcnv, String peer)
 			throws TransException, SQLException {
 		if (srcnv == null) return;
 		
@@ -211,6 +212,7 @@ public class DBSyntableBuilder extends DATranscxt {
 		if (debug)
 			Utils.logi("Cleaning staleness at %s, peer %s ...", synode, peer);
 
+		pushDebug(true);
 		delete(pnvm.tbl, locrobot)
 			.whereEq(pnvm.peer, peer)
 			.whereEq(pnvm.domain, domain)
@@ -218,6 +220,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				.cols(pnvm.inscols)
 				.values(pnvm.insVals(srcnv, peer, domain)))
 			.d(instancontxt(synconn, locrobot));
+		popDebug();
 
 		// FIXME 1.5.14 This should can be simplified now.
 		SemanticObject res = (SemanticObject) ((DBSyntableBuilder)
@@ -1016,4 +1019,17 @@ public class DBSyntableBuilder extends DATranscxt {
 		return instancontxt(syndomx.synconn, locrobot);
 	}
 
+	boolean dbgStack;
+	public DBSyntableBuilder pushDebug(boolean dbg) {
+		this.dbgStack = debug;
+		debug = dbg;
+		Connects.setDebug(syndomx.synconn, dbg);
+		return this;
+	}
+
+	public DBSyntableBuilder popDebug() {
+		Connects.setDebug(syndomx.synconn, dbgStack);
+		debug = dbgStack;
+		return this;
+	}
 }
