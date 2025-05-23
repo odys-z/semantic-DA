@@ -27,7 +27,7 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	 * @see io.odysz.semantic.DASemantics.ShExtFilev2 ShExtFile.
 	 */
 	public final String uri;
-	// public final String device;
+	
 	public final String org;
 	public final String createDate;
 	public final String shareDate;
