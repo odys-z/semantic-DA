@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
+import io.odysz.anson.Anson;
 import io.odysz.common.AESHelper;
 import io.odysz.common.Configs;
 import io.odysz.common.DateFormat;
@@ -1066,6 +1067,17 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				DAHelper.getExprstr(st, connId, phm,
 					Funcall.extfile(phm.uri), phm.uri,
 					phm.pk, pid));
+		
+		String refstr = (String) DAHelper.getExprstr(st, connId, phm,
+					Funcall.refile(new T_SyndocRef("X29", phm)), phm.uri,
+					phm.pk, pid);
+
+		// 1.5.18, semantic-transact 1.5.60
+		// test syndoc reference object
+		T_SyndocRef ref = (T_SyndocRef) Anson.fromJson(refstr);
+		assertEquals("X29", ref.synode);
+		assertEquals("h_photos", ref.tbl);
+		assertEquals(pid, ref.docId);
 
 		// 3 move
 		st.update(phm.tbl, usr)

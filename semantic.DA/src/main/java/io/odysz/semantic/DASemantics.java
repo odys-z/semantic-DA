@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.odysz.anson.Anson;
 import io.odysz.common.AESHelper;
 import io.odysz.common.EnvPath;
 import io.odysz.common.FilenameUtils;
@@ -374,6 +375,7 @@ public class DASemantics {
 		 *-1: client-name for saving readable file name<br></p>
 		 * At least one level of subfolder is recommended.
 		 * @since 1.4.25
+		 * @since 1.5.18 This handler won't replace an Anson Envelope. see {@link Anson#startEnvelope(String)}
 		 */
 		extFilev2,
 		
@@ -1584,7 +1586,8 @@ public class DASemantics {
 					// save file, replace v
 					nv = row.get(cols.get(args[ixUri]));
 					if (nv != null && nv[1] != null
-						&& (nv[1] instanceof String && !isblank(nv[1]) || nv[1] instanceof AbsPart)) {
+						&& (nv[1] instanceof String && !isblank(nv[1]) && !Anson.startEnvelope((String)nv[1])
+							|| nv[1] instanceof AbsPart && !startEnvelope((AbsPart)nv[1]))) {
 
 						// can be a string or an auto resulving (fk is handled before extfile)
 						Object fn = row.get(cols.get(pkField))[1];
@@ -1626,6 +1629,10 @@ public class DASemantics {
 					}
 				}
 			}
+		}
+
+		public static boolean startEnvelope(AbsPart expr) {
+			return expr instanceof ExprPart && ((ExprPart)expr).isEvelope();
 		}
 
 		/**

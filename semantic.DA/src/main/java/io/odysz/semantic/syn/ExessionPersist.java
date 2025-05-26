@@ -744,7 +744,7 @@ public class ExessionPersist {
 
 			AnResultset entities = ((AnResultset) entm
 				// .onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))
-				.onselectSyntities(trb.select(tbl, "e").distinct(true).cols("e.*"))
+				.onselectSyntities(synx, trb.select(tbl, "e").distinct(true).cols("e.*"))
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.io_oz_synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId,
 					 constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)

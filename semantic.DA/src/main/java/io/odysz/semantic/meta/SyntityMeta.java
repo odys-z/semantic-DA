@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.syn.SyndomContext;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.x.TransException;
@@ -201,13 +202,14 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * No. The file content should be resolved / synchronized later for performance.
 	 * No file should be load multiple times, as this is called while loading exchange
 	 * pages, which is based upon semantics of change-log pages, not entities' page. 
+	 * @param syndomx 
 	 * 
 	 * @see io.odysz.semantic.syn.ExessionPersist#chpage()
 	 * @param select typically should already called {@link Query#cols(String...)}, etc. alrady.
 	 * @return select
 	 * @throws TransException, SQLException 
 	 */
-	public Query onselectSyntities(Query select) throws TransException, SQLException { return select; }
+	public Query onselectSyntities(SyndomContext syndomx, Query select) throws TransException, SQLException { return select; }
 
 	public String synuid(AnResultset rs) {
 		if (rs != null) {
