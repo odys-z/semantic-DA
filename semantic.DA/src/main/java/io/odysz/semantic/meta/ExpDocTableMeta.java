@@ -129,7 +129,7 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	}
 
 	/**
-	 * Get fields from rs where cols is selcted with stamement generated
+	 * Get fields from rs where cols is selected with statement generated
 	 * by {@link #selectSynPaths(DATranscxt, String)}.
 	 * @param rs
 	 * @return strings

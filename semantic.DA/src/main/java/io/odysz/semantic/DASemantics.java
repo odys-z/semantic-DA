@@ -375,7 +375,11 @@ public class DASemantics {
 		 *-1: client-name for saving readable file name<br></p>
 		 * At least one level of subfolder is recommended.
 		 * @since 1.4.25
-		 * @since 1.5.18 This handler won't replace an Anson Envelope. see {@link Anson#startEnvelope(String)}
+		 * @since 1.5.18 This handler won't replace an Anson Envelope,
+		 * see {@link Anson#startEnvelope(String)},
+		 * and can be read by both {@link Funcall#extfile(String...)}
+		 * and {@link Funcall#refile(io.odysz.transact.sql.parts.AnDbField)}.
+		 * 
 		 */
 		extFilev2,
 		
