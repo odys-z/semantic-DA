@@ -35,6 +35,7 @@ import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.syn.T_DA_PhotoMeta;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.ISemantext;
@@ -1031,6 +1032,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.commit(s0, sqls);
 
 		String pid = (String) s0.resulvedVal(phm.tbl, phm.pk, -1);
+
 		assertEquals(String.format(
 				"insert into h_photos (family, shareby, folder, docname, uri, pid) " +
 				"values ('zsu.ua', 'ody', '2022-10', 'Sun Yet-sen.jpg', " +
@@ -1061,6 +1063,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		
 		// 2 read
 		// uploads/zsu.ua/ody/2022-10/000001 Sun Yet-sen.jpg
+		// 2.1 extfile()
 		assertEquals(String.format("uploads/zsu.ua/ody/2022-10/%s Sun Yet-sen.jpg", pid),
 				DAHelper.getValstr(st, connId, phm, phm.uri, phm.pk, pid));
 		assertEquals(content64,
@@ -1068,6 +1071,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 					Funcall.extfile(phm.uri), phm.uri,
 					phm.pk, pid));
 		
+		// 2.2 refile()
 		String refstr = (String) DAHelper.getExprstr(st, connId, phm,
 					Funcall.refile(new T_SyndocRef("X29", phm)), phm.uri,
 					phm.pk, pid);
@@ -1078,6 +1082,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		assertEquals("X29", ref.synode);
 		assertEquals("h_photos", ref.tbl);
 		assertEquals(pid, ref.docId);
+		assertEquals(null, ref.uids); // Tested in DBSyn2tableTest
 
 		// 3 move
 		st.update(phm.tbl, usr)

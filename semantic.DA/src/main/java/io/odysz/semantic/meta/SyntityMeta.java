@@ -7,7 +7,6 @@ import static io.odysz.common.LangExt.isNull;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.stream.Collectors;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.syn.SyndomContext;
@@ -211,17 +210,18 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 */
 	public Query onselectSyntities(SyndomContext syndomx, Query select) throws TransException, SQLException { return select; }
 
-	public String synuid(AnResultset rs) {
-		if (rs != null) {
-			return uids.stream().map(f -> {
-				try {
-					return rs.getString(f);
-				} catch (SQLException e) {
-					e.printStackTrace();
-					return f;
-				}
-			}).collect(Collectors.joining(","));
-		}
-		return null;
-	}
+// Replaced by synChangeMeta.uids(synode, sep, docId)
+//	public String synuid(AnResultset rs) {
+//		if (rs != null) {
+//			return uids.stream().map(f -> {
+//				try {
+//					return rs.getString(f);
+//				} catch (SQLException e) {
+//					e.printStackTrace();
+//					return f;
+//				}
+//			}).collect(Collectors.joining(","));
+//		}
+//		return null;
+//	}
 }

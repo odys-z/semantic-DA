@@ -1,19 +1,14 @@
 package io.odysz.semantic.meta;
 
-import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.replacele;
 import static io.odysz.transact.sql.parts.condition.Funcall.refile;
 import java.sql.SQLException;
 
-import io.odysz.anson.AnsonField;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.syn.SyndomContext;
-import io.odysz.semantics.ISemantext;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.transact.sql.Query;
-import io.odysz.transact.sql.parts.AnDbField;
-import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -24,49 +19,6 @@ import io.odysz.transact.x.TransException;
  * @author odys-z@github.com
  */
 public abstract class ExpDocTableMeta extends SyntityMeta {
-
-	public class DocRef extends AnDbField {
-		String synode;
-		String tbl;
-		String uri64;
-
-		@AnsonField(ignoreTo=true)
-		String docId;
-		
-		@AnsonField(ignoreTo=true)
-		ExpDocTableMeta met;
-		
-		@AnsonField(ignoreTo=true, ignoreFrom=true)
-		final String clsname;
-
-		@AnsonField(ignoreTo=true, ignoreFrom=true)
-		Funcall concats;
-
-		public DocRef() {
-			clsname = getClass().getName();
-		}
-
-
-		public DocRef(String synode, ExpDocTableMeta m) {
-			this();
-			this.synode = synode;
-			this.tbl = m.tbl;
-			this.met = m;
-
-			concats = Funcall.concat(
-				f("'{\"type\": \"%s\", \"synode\": \"%s\", \"docId\": \"'", clsname, synode),
-				met.pk,
-				f("'\", \"tbl\": \"%s\", \"uri64\": \"'", tbl),
-				m.uri,
-				"'\"}'");
-		}
-
-		@Override
-		public String sql(ISemantext context) throws TransException {
-			return concats.sql(context);
-		}
-
-	}
 
 	public final String fullpath;
 	/** Also named as pname, clientname or filename previously. */

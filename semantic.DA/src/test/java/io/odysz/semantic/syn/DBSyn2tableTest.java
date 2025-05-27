@@ -2,6 +2,7 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.f;
+import static io.odysz.common.LangExt.gt;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
@@ -13,6 +14,7 @@ import static io.odysz.semantic.syn.Docheck.printNyquv;
 import static io.odysz.semantic.syn.ExessionAct.init;
 import static io.odysz.semantic.syn.ExessionAct.ready;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.IOException;
@@ -23,12 +25,14 @@ import java.util.HashMap;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import io.odysz.anson.Anson;
 import io.odysz.common.AssertImpl;
 import io.odysz.common.Configs;
 import io.odysz.common.Utils;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.AutoSeqMeta;
+import io.odysz.semantic.meta.DocRef;
 import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SemanticTableMeta;
@@ -41,6 +45,7 @@ import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.syn.registry.Syntities;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.x.SemanticException;
+import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -289,6 +294,21 @@ public class DBSyn2tableTest {
 
 		assertEquals(ck[X].docs(), ck[Y].docs());
 		assertEquals(ck[X].devs(), ck[Y].devs());
+		
+		String x_b64x0 = (String) DAHelper.getValstr(ck[X].b0, ck[X].connId(),
+				ck[X].docm, ck[X].docm.uri, ck[X].docm.io_oz_synuid, X_0_uids[2]);
+		logi(x_b64x0);
+		assertTrue(x_b64x0.startsWith("iVBORw0K"));
+
+		DocRef y_refx0 = (DocRef) Anson.fromJson((String) DAHelper
+				.getExprstr(ck[Y].b0, ck[Y].connId(), ck[Y].docm,
+					Funcall.refile(new DocRef(ck[X].synb.syndomx.synode, ck[Y].docm)), "docref",
+					ck[Y].docm.io_oz_synuid, X_0_uids[2]));
+		assertNotNull(y_refx0);
+		assertEquals("X", y_refx0.synode);
+		assertEquals(X_0_uids[2], y_refx0.uids);
+		assertEquals("h_photos", y_refx0.tbl);
+		assertTrue(gt(y_refx0.docId, B_0_uids[0]));
 	}
 
 	/**

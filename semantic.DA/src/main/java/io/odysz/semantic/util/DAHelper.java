@@ -27,17 +27,17 @@ public class DAHelper {
 	 * @param conn
 	 * @param m the table must have a pk.
 	 * @param valfield
-	 * @param kvs
+	 * @param col_vs
 	 * @return field's value in row[kvs[0] = kvs[1], kvs[1] = kvs[2], ...]
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	public static String getValstr(Transcxt trb, String conn, TableMeta m, String valfield, Object ... kvs)
-			throws SQLException, TransException {
+	public static String getValstr(Transcxt trb, String conn, TableMeta m, String valfield,
+			Object ... col_vs) throws SQLException, TransException {
 		Query q = trb.select(m.tbl);
 
-		for (int i = 0; i < kvs.length; i+=2) {
-			q.whereEq((String)kvs[i], kvs[i+1]);
+		for (int i = 0; i < col_vs.length; i+=2) {
+			q.whereEq((String)col_vs[i], col_vs[i+1]);
 		}
 
 		AnResultset rs = (AnResultset) q
@@ -50,6 +50,18 @@ public class DAHelper {
 		else return null;
 	}
 	
+	/**
+	 * select valexpr.sql() as as from [connid].m.tbl where (k=v)s.
+	 * @param trb
+	 * @param connid
+	 * @param m
+	 * @param valexpr
+	 * @param as
+	 * @param kvs
+	 * @return
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public static Object getExprstr(DATranscxt trb, String connid, TableMeta m,
 			Funcall valexpr, String as, Object...kvs) throws TransException, SQLException {
 		Query q = trb.select(m.tbl);

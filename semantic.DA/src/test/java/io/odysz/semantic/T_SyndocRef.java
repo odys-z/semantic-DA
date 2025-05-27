@@ -18,6 +18,7 @@ public class T_SyndocRef extends AnDbField {
 	String synode;
 	String tbl;
 	String uri64;
+	String uids;
 
 	@AnsonField(ignoreTo=true)
 	String docId;
@@ -46,6 +47,8 @@ public class T_SyndocRef extends AnDbField {
 			met.pk,
 			f("'\", \"tbl\": \"%s\", \"uri64\": \"'", tbl),
 			m.uri,
+			"'\"uids\": '",
+			m.io_oz_synuid,
 			"'\"}'");
 	}
 
