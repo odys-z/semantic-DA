@@ -150,7 +150,7 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 				DATranscxt.hasSemantics(conn, tbl, smtype.extFilev2)
 				// 2025-05-23: Root of OutOfMemoryError.
 				// ? replacele(entCols(), uri, extfile(a + "." + uri))
-				? replacele(entCols(), uri, refile(new DocRef(syndomx.synode, this)))
+				? replacele(entCols(), uri, refile(new DocRef(syndomx.synode, this), uri))
 				: entCols());
 	}
 }
