@@ -14,6 +14,7 @@ import static io.odysz.semantic.syn.Docheck.printNyquv;
 import static io.odysz.semantic.syn.ExessionAct.init;
 import static io.odysz.semantic.syn.ExessionAct.ready;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
@@ -29,6 +30,7 @@ import io.odysz.anson.Anson;
 import io.odysz.common.AssertImpl;
 import io.odysz.common.Configs;
 import io.odysz.common.Utils;
+import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.AutoSeqMeta;
@@ -295,9 +297,14 @@ public class DBSyn2tableTest {
 		assertEquals(ck[X].docs(), ck[Y].docs());
 		assertEquals(ck[X].devs(), ck[Y].devs());
 		
+		// The following assertions are based on this, no extFilev2 replacing uri into external.
+		// And refile() bypassed uri content at Y.
+		assertFalse(DATranscxt.hasSemantics(ck[X].connId(), ck[X].docm.tbl, smtype.extFilev2));
+		assertFalse(DATranscxt.hasSemantics(ck[Y].connId(), ck[Y].docm.tbl, smtype.extFilev2));
+
 		String x_b64x0 = (String) DAHelper.getValstr(ck[X].b0, ck[X].connId(),
 				ck[X].docm, ck[X].docm.uri, ck[X].docm.io_oz_synuid, X_0_uids[2]);
-		logi(x_b64x0);
+		logi(x_b64x0); // no extFilev2
 		assertTrue(x_b64x0.startsWith("iVBORw0K"));
 
 		DocRef y_refx0 = (DocRef) Anson.fromJson((String) DAHelper

@@ -55,6 +55,11 @@ import io.odysz.transact.x.TransException;
  */
 public class ExessionPersist {
 	final SyndomContext synx;
+	public SyndomContext syndomx() {
+		// FIXME remove this if SynssionPeer.resolveDocrefs() if refactored.
+		return synx;
+	} 
+
 	final SynChangeMeta chgm;
 	final SynSubsMeta subm;
 	final SynchangeBuffMeta exbm;

@@ -446,7 +446,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 	
 	/**
-	 * Orthogonally synchronize n-vectors.
+	 * Orthogonally synchronize n-vectors locally.
 	 * 
 	 * @param xp
 	 * @param xnv

@@ -1,6 +1,5 @@
 package io.odysz.semantic.syn;
 
-import static io.odysz.common.LangExt.compoundVal;
 import static io.odysz.common.LangExt.ifnull;
 import static io.odysz.common.LangExt.indexOf;
 import static io.odysz.common.LangExt.is;
@@ -9,22 +8,24 @@ import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.len;
 import static io.odysz.common.LangExt.repeat;
 import static io.odysz.common.LangExt.strcenter;
-import static io.odysz.transact.sql.parts.condition.Funcall.compound;
 import static io.odysz.transact.sql.parts.condition.Funcall.concat;
 import static io.odysz.transact.sql.parts.condition.Funcall.count;
 import static io.odysz.transact.sql.parts.condition.Funcall.constr;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.odysz.anson.Anson;
 import io.odysz.common.IAssert;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.DocRef;
 import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
@@ -33,9 +34,8 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.util.DAHelper;
+import io.odysz.semantics.SessionInf;
 import io.odysz.transact.sql.Query;
-import io.odysz.transact.sql.parts.Logic.op;
-import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -67,12 +67,15 @@ public class Docheck {
 
 	/** Count {@link #docm}'s table records. */
 	public int docs() throws SQLException, TransException {
-		return synb.entities(docm);
+		try {
+			return synb.pushDebug(false).entities(docm);
+		}finally { synb.popDebug(); }
 	}
 
 	/** Count {@link #devm}'s table records. */
 	public int devs() throws SQLException, TransException {
-		return synb.entities(devm);
+		try { return synb.pushDebug(false).entities(devm);
+		} finally { synb.popDebug(); }
 	}
 
 	public String doclist(SyntityMeta entm) throws SQLException, TransException {
@@ -111,12 +114,14 @@ public class Docheck {
 		
 		SyndomContext synx = synb.syndomx;
 
+		synb.pushDebug(false);
 		AnResultset rs = (AnResultset) synb.select(synx.synm.tbl)
 			.col(synx.synm.synoder)
 			.distinct(true)
 			.whereIn(synx.synm.synoder, nodes)
 			.rs(synb.instancontxt(synb.basictx().connId(), synb.synrobot()))
 			.rs(0);
+		synb.popDebug();
 
 		azert.equali(cnt, rs.getRowCount());
 	}
@@ -148,11 +153,14 @@ public class Docheck {
 		if (!isNull(uids))
 			q.whereIn(docm.io_oz_synuid, uids);
 
-		azert.equali(count, ((AnResultset) q
+		synb.pushDebug(false);
+		try {
+			azert.equali(count, ((AnResultset) q
 				.rs(synb.instancontxt(synb.syndomx.synconn, synb.synrobot()))
 				.rs(0))
 				.nxt()
 				.getInt("c"));
+		} finally { synb.popDebug(); }
 	}
 
 	/**
@@ -203,29 +211,28 @@ public class Docheck {
 				.cols((Object[])synb.syndomx.chgm.insertCols())
 				.whereEq(synb.syndomx.chgm.domain, domain)
 				.whereEq(synb.syndomx.chgm.entbl, entm.tbl);
-			if (synoder != null)
-				q.whereEq(synb.syndomx.chgm.synoder, synoder);
+		if (synoder != null)
+			q.whereEq(synb.syndomx.chgm.synoder, synoder);
 
-			//
-			if (origin_eid != null)
-				q.whereEq(synb.syndomx.chgm.uids, SynChangeMeta.uids(synoder, origin_eid));
+		//
+		if (origin_eid != null)
+			q.whereEq(synb.syndomx.chgm.uids, SynChangeMeta.uids(synoder, origin_eid));
 
-			AnResultset chg = (AnResultset) q
-					.rs(synb.instancontxt())
-					.rs(0);
-			
-			if (!chg.next() && count > 0)
-				azert.fail(String.format("Expecting count == %d, but is actual 0", count));
+		synb.pushDebug(false);
+		AnResultset chg = (AnResultset) q
+				.rs(synb.instancontxt())
+				.rs(0);
+		synb.popDebug();
+		
+		if (!chg.next() && count > 0)
+			azert.fail(String.format("Expecting count == %d, but is actual 0", count));
 
-			azert.equali(count, chg.getRowCount());
-			if (count > 0) {
-				azert.equals(crud, chg.getString(synb.syndomx.chgm.crud));
-				azert.equals(entm.tbl, chg.getString(synb.syndomx.chgm.entbl));
-				azert.equals(synoder, chg.getString(synb.syndomx.chgm.synoder));
-
-				// return chg.getLong(synb.syndomx.chgm.nyquence);
-			}
-			// return 0;
+		azert.equali(count, chg.getRowCount());
+		if (count > 0) {
+			azert.equals(crud, chg.getString(synb.syndomx.chgm.crud));
+			azert.equals(entm.tbl, chg.getString(synb.syndomx.chgm.entbl));
+			azert.equals(synoder, chg.getString(synb.syndomx.chgm.synoder));
+		}
 	}
 
 	public long change_log_uids(int count, String crud, String synoder, String uids, SyntityMeta entm)
@@ -244,9 +251,11 @@ public class Docheck {
 			if (uids != null)
 				q.whereEq(chgm.uids, uids);
 
+			synb.pushDebug(false);
 			AnResultset chg = (AnResultset) q
 					.rs(synb.instancontxt())
 					.rs(0);
+			synb.popDebug();
 			
 			if (!chg.next() && count > 0)
 				azert.fail(String.format("Expecting count == %d, but is actual 0", count));
@@ -288,9 +297,11 @@ public class Docheck {
 		if (eid != null)
 			q.whereEq(chgm.uids, SynChangeMeta.uids(synoder, eid));
 
+		synb.pushDebug(false);
 		AnResultset chg = (AnResultset) q
 				.rs(synb.instancontxt())
 				.rs(0);
+		synb.popDebug();
 		
 		if (!chg.next() && count > 0)
 			azert.fail(String.format("Expecting count == %d, but is actual 0", count));
@@ -300,9 +311,7 @@ public class Docheck {
 			azert.equals(crud, chg.getString(chgm.crud));
 			azert.equals(entm.tbl, chg.getString(chgm.entbl));
 			azert.equals(synoder, chg.getString(chgm.synoder));
-			// return chg.getLong(chgm.nyquence);
 		}
-		// return 0;
 	}
 
 	public long changelog(int count, String crud, String eid, SyntityMeta entm)
@@ -324,9 +333,11 @@ public class Docheck {
 		if (eid != null)
 			q.whereEq(chgm.uids, SynChangeMeta.uids(synoder, eid));
 
+		synb.pushDebug(false);
 		AnResultset chg = (AnResultset) q
 				.rs(synb.instancontxt())
 				.rs(0);
+		synb.popDebug();
 		
 		if (!chg.next() && count > 0)
 			azert.fail(String.format("Expecting count == %d, but is actual 0", count));
@@ -463,10 +474,14 @@ public class Docheck {
 				;
 		if (!isblank(chgId))
 			q.whereEq(subm.changeId, chgId) ;
+		
 
+		synb.pushDebug(false);
+		try {
 		return (AnResultset) q
 				.rs(synb.instancontxt())
 				.rs(0);
+		} finally { synb.popDebug();}
 	}
 	
 	/**
@@ -474,13 +489,13 @@ public class Docheck {
 	 * 
 	 * @param synoder
 	 * @param clientpath
-	 */
 	public void verifile(String synoder, String clientpath, ExpDocTableMeta docm) {
 		synb.select(docm.tbl)
 			.col(count(docm.pk), "c")
 			.where(new Predicate(op.eq, compound(synb.syndomx.chgm.uids), compoundVal(synoder, clientpath)))
 			;
 	}
+	 */
 
 	@SuppressWarnings("unchecked")
 	public static HashMap<String, Nyquence>[] printNyquv(Docheck[] ck, boolean... printSynode) throws SQLException, TransException {
@@ -588,7 +603,7 @@ public class Docheck {
 			.collect(Collectors.joining("\n")));
 	}
 	
-	static String buffChangeLine(AnResultset r) throws SQLException {
+	static String fomatChangeLine(AnResultset r) throws SQLException {
 		return String.format("%1$1s %2$9s %3$9s %4$4s %5$2s",
 				r.getString(chm.crud),
 				r.getString(chm.pk),
@@ -663,7 +678,6 @@ public class Docheck {
 	 *  ...)
 	 * .popDebug();                     // logging restored</pre>
 	 * @throws Exception 
-	*/
 	public static void pushDebug() throws Exception {
 		if (ck != null) {
 			final boolean[] tops = new boolean[ck.length];
@@ -675,6 +689,7 @@ public class Docheck {
 			}
 		}
 	}
+	*/
 
 	public Docheck assertl(long ... n) {
 		if (!isNull(n))
@@ -682,11 +697,34 @@ public class Docheck {
 				azert.equall(n[x], n[x+1]);
 		return this;
 	}
-
+	
+	/*
+	 * 
 	public void popDebug() {
 		if (tops != null) 
 			for (int cx = 0; cx < ck.length; cx++) 
 				if (ck[cx] != null)
 				Connects.setDebug(ck[cx].connId(), tops[cx]);
+	}
+	 */
+
+	public Collection<DocRef> docRef() throws SQLException, TransException {
+		try {
+			return ((AnResultset)synb.pushDebug(false).select(docm.tbl)
+				.col(docm.pk).col(docm.uri)
+				.rs(synb.instancontxt())
+				.rs(0))
+				// .map(docm.uri, (rs) -> new DocRef(this.synb.syndomx.synode, rs, docm))
+				.map(docm.pk, (rs) -> {
+					try {
+						return (DocRef)Anson.fromJson(rs.getString(docm.uri)); 
+					} catch (Exception e) { return null;} 
+				})
+				.values();
+		} finally { synb.popDebug(); }
+	}
+
+	public Thread createRefstreamer(String peer) {
+		return synb.syndomx.createResolver(peer);
 	}
 }
