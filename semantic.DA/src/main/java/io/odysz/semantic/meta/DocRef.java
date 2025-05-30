@@ -3,9 +3,11 @@ package io.odysz.semantic.meta;
 import static io.odysz.common.LangExt.f;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import io.odysz.anson.AnsonField;
 import io.odysz.semantics.ISemantext;
+import io.odysz.semantics.IUser;
 import io.odysz.semantics.SessionInf;
 import io.odysz.transact.sql.parts.AnDbField;
 import io.odysz.transact.sql.parts.condition.Funcall;
@@ -20,10 +22,15 @@ public class DocRef extends AnDbField {
 	public String uri64;
 	public String uids;
 	public String docId;
+
 	public long breakpoint;
+	public DocRef breakpoint(int b) {
+		breakpoint = b;
+		return this;
+	}
 	
 	@AnsonField(ignoreTo=true)
-	ExpDocTableMeta met;
+	public ExpDocTableMeta meta;
 	
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	final String clsname;
@@ -41,11 +48,11 @@ public class DocRef extends AnDbField {
 		this();
 		this.synode = synode;
 		this.tbl = m.tbl;
-		this.met = m;
+		this.meta = m;
 
 		concats = Funcall.concat(
 			f("'{\"type\": \"%s\", \"synode\": \"%s\", \"docId\": \"'", clsname, synode),
-			met.pk,
+			meta.pk,
 			f("'\", \"tbl\": \"%s\", \"uri64\": \"%s\", \"breakpoint\": %s, \"uids\": \"'", tbl, m.uri, breakpoint),
 			m.io_oz_synuid,
 			"'\"}'");
@@ -67,8 +74,7 @@ public class DocRef extends AnDbField {
 
 
 	public Path downloadPath(SessionInf ssinf) {
-		// TODO Auto-generated method stub
-		return null;
+		return Paths.get(IUser.tempDir(synode, uids, docId, ssinf.ssid()));
 	}
 
 }

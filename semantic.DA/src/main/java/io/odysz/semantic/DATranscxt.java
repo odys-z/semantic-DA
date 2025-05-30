@@ -125,6 +125,7 @@ public class DATranscxt extends Transcxt {
 
 	protected static String cfgroot = ""; 
 	protected static String runtimepath = "";
+	public static String runtimeRoot() { return runtimepath; }
 
 	/**
 	 * Configuration's root

@@ -724,7 +724,7 @@ public class Docheck {
 		} finally { synb.popDebug(); }
 	}
 
-	public Thread createRefstreamer(String peer) {
-		return synb.syndomx.createResolver(peer);
-	}
+//	public Thread createRefstreamer(String peer) {
+//		return synb.syndomx.createResolver(peer);
+//	}
 }

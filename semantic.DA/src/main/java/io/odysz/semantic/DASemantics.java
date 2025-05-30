@@ -1594,13 +1594,13 @@ public class DASemantics {
 							|| nv[1] instanceof AbsPart && !startEnvelope((AbsPart)nv[1]))) {
 
 						// can be a string or an auto resulving (fk is handled before extfile)
-						Object fn = row.get(cols.get(pkField))[1];
+						Object fid = row.get(cols.get(pkField))[1];
 
 						ExtFileInsert f;
-						if (fn instanceof Resulving)
-							f = new ExtFileInsert((Resulving) fn, getFileRoot(), stx);
+						if (fid instanceof Resulving)
+							f = new ExtFileInsert((Resulving) fid, getFileRoot(), stx);
 						else
-							f = new ExtFileInsert(new ExprPart(fn.toString()), getFileRoot(), stx);
+							f = new ExtFileInsert(new ExprPart(fid.toString()), getFileRoot(), stx);
 						
 						String clientname = args[args.length - 1];
 						if (cols.containsKey(clientname)) {

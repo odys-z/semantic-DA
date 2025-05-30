@@ -9,6 +9,7 @@ import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.syn.SyndomContext;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.transact.sql.Query;
+import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -77,7 +78,8 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	 */
 	public Query selectSynPaths(DATranscxt st, String devid) throws TransException {
 		return  st.select(tbl, "t")
-				  .cols(device, shareflag, shareby, shareDate);
+				  .cols(device, shareflag, shareby, shareDate)
+				  .col(Funcall.isEnvelope(uri), "isEnve");
 	}
 
 	/**
@@ -88,7 +90,7 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	 * @throws SQLException
 	 */
 	public Object[] getPathInfo(AnResultset rs) throws SQLException {
-		return rs.getFieldArray(device, shareflag, shareby, shareDate);
+		return rs.getFieldArray(device, shareflag, shareby, shareDate, "isEnve");
 	}
 
 	@Override
