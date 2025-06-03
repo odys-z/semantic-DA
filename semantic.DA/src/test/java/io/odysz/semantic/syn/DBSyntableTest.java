@@ -45,6 +45,7 @@ import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SemanticTableMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynDocRefMeta;
 import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
@@ -85,6 +86,7 @@ public class DBSyntableTest {
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
 	static SynchangeBuffMeta xbm;
+	static SynDocRefMeta rfm;
 	static SynSessionMeta ssm;
 	static PeersMeta prm;
 
@@ -140,6 +142,7 @@ public class DBSyntableTest {
 		chm = new SynChangeMeta();
 		sbm = new SynSubsMeta(chm);
 		xbm = new SynchangeBuffMeta(chm);
+		rfm = new SynDocRefMeta();
 		ssm = new SynSessionMeta();
 		prm = new PeersMeta();
 
@@ -149,7 +152,7 @@ public class DBSyntableTest {
 			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn); //.replace();
 			T_DA_DevMeta   dvm = new T_DA_DevMeta(conn);  // .replace();
 
-			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm, dvm);
+			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, rfm, prm, ssm, phm, dvm);
 
 			ArrayList<String> sqls = new ArrayList<String>();
 			// sqls.add("delete from oz_autoseq;");
