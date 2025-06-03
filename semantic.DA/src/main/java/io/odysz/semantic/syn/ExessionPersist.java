@@ -27,8 +27,10 @@ import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynDocRefMeta;
 import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
@@ -63,6 +65,7 @@ public class ExessionPersist {
 	final SynChangeMeta chgm;
 	final SynSubsMeta subm;
 	final SynchangeBuffMeta exbm;
+	final SynDocRefMeta refm;
 	final SynodeMeta synm;
 	final SynSessionMeta sysm;
 	final PeersMeta pnvm;
@@ -88,6 +91,9 @@ public class ExessionPersist {
 		return this;
 	}
 
+	/**
+	 * Delete peers from my syn_subscribes.
+	 */
 	ExessionPersist commitAnswers(ExchangeBlock conf, String srcnode, long tillN0_delete)
 			throws SQLException, TransException {
 		
@@ -262,17 +268,20 @@ public class ExessionPersist {
 							.cols(ents.get(entm.tbl).getFlatColumns0())
 							.row(ents.get(entm.tbl).getColnames(),
 									ents.get(entm.tbl).getRowById(chuids))
+							.post(insertDocref(trb, entm, chuids))
 							.post(chlog)
 
 					: eq(change, CRUD.U)
 					? trb.update(entm.tbl, trb.synrobot())
 						.nvs(entm.updateEntNvs(chgm, chuids, ents.get(entm.tbl), changes))
 						.whereEq(entm.io_oz_synuid, chuids)
+						// No docref insertion as an extfile record is a new insertion if the file is updated?
 						.post(chlog)
 
 					: eq(change, CRUD.D)
 					? trb.delete(entm.tbl, trb.synrobot())
 						.whereEq(entm.io_oz_synuid, chuids)
+						.post(deleteDocref(trb, entm, chuids))
 						.post(chlog)
 
 					: null);
@@ -290,6 +299,24 @@ public class ExessionPersist {
 		Connects.commit(synx.synconn, trb.synrobot(), sqls);
 		
 		return this;
+	}
+
+	private Statement<?> insertDocref(DBSyntableBuilder t, SyntityMeta entm, String uids) {
+		return entm instanceof ExpDocTableMeta ?
+			t.insert(refm.tbl)
+				.nv(refm.syntabl,  entm.tbl)
+				.nv(refm.fromPeer, peer)
+				.nv(refm.io_oz_synuid, uids)
+			: null;
+	}
+
+	private Statement<?> deleteDocref(DBSyntableBuilder t, SyntityMeta entm, String uids) {
+		return entm instanceof ExpDocTableMeta ?
+			t.delete(refm.tbl)
+				.whereEq(refm.syntabl,  entm.tbl)
+				.whereEq(refm.fromPeer, peer)
+				.whereEq(refm.io_oz_synuid, uids)
+			: null;
 	}
 
 	/**
@@ -313,6 +340,7 @@ public class ExessionPersist {
 		this.synx = tb.syndomx;
 		this.trb = tb.xp(this);
 		this.exbm = synx.exbm;
+		this.refm = synx.refm;
 		this.session = ini == null ? null : ini.session;
 		this.peer = peer;
 		this.chgm = synx.chgm;
@@ -349,7 +377,7 @@ public class ExessionPersist {
 	}
 
 	/**
-	 * Setup exchange buffer table.
+	 * Collect the task infor, and setup exchange buffer table.
 	 * <pre>
 	 * exstate.state = init;
 	 * expAnswerSeq = 0;
