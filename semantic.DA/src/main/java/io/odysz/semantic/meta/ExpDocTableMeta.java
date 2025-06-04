@@ -20,6 +20,8 @@ import io.odysz.transact.x.TransException;
  * @author odys-z@github.com
  */
 public abstract class ExpDocTableMeta extends SyntityMeta {
+	/** flag field name, isEnvelope(uri) as isDocRef */
+	public static final String isDocRef = "isDocRef";
 
 	public final String fullpath;
 	/** Also named as pname, clientname or filename previously. */
@@ -79,7 +81,7 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	public Query selectSynPaths(DATranscxt st, String devid) throws TransException {
 		return  st.select(tbl, "t")
 				  .cols(device, shareflag, shareby, shareDate)
-				  .col(Funcall.isEnvelope(uri), "isEnve");
+				  .col(Funcall.isEnvelope(uri), isDocRef);
 	}
 
 	/**
@@ -90,7 +92,7 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	 * @throws SQLException
 	 */
 	public Object[] getPathInfo(AnResultset rs) throws SQLException {
-		return rs.getFieldArray(device, shareflag, shareby, shareDate, "isEnve");
+		return rs.getFieldArray(device, shareflag, shareby, shareDate, isDocRef);
 	}
 
 	@Override
