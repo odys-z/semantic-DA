@@ -23,12 +23,15 @@ import java.util.HashSet;
 import java.util.List;
 
 import io.odysz.common.CheapMath;
+import io.odysz.common.Regex;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynDocRefMeta;
 import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
@@ -36,6 +39,7 @@ import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.SemanticObject;
+import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
@@ -63,6 +67,7 @@ public class ExessionPersist {
 	final SynChangeMeta chgm;
 	final SynSubsMeta subm;
 	final SynchangeBuffMeta exbm;
+	final SynDocRefMeta refm;
 	final SynodeMeta synm;
 	final SynSessionMeta sysm;
 	final PeersMeta pnvm;
@@ -88,6 +93,9 @@ public class ExessionPersist {
 		return this;
 	}
 
+	/**
+	 * Delete peers from my syn_subscribes.
+	 */
 	ExessionPersist commitAnswers(ExchangeBlock conf, String srcnode, long tillN0_delete)
 			throws SQLException, TransException {
 		
@@ -260,19 +268,22 @@ public class ExessionPersist {
 						? null // ignore myself
 						: trb.insert(entm.tbl, trb.synrobot())
 							.cols(ents.get(entm.tbl).getFlatColumns0())
-							.row(ents.get(entm.tbl).getColnames(),
-									ents.get(entm.tbl).getRowById(chuids))
+							.row(ents.get(entm.tbl).getColnames(), ents.get(entm.tbl).getRowById(chuids))
+							.post(insertDocref(trb, entm, chuids,
+								 ents.get(entm.tbl).getColnames(), ents.get(entm.tbl).getRowById(chuids)))
 							.post(chlog)
 
 					: eq(change, CRUD.U)
 					? trb.update(entm.tbl, trb.synrobot())
 						.nvs(entm.updateEntNvs(chgm, chuids, ents.get(entm.tbl), changes))
 						.whereEq(entm.io_oz_synuid, chuids)
+						// No docref insertion as an extfile record is a new insertion if the file is updated?
 						.post(chlog)
 
 					: eq(change, CRUD.D)
 					? trb.delete(entm.tbl, trb.synrobot())
 						.whereEq(entm.io_oz_synuid, chuids)
+						.post(deleteDocref(trb, entm, chuids))
 						.post(chlog)
 
 					: null);
@@ -290,6 +301,41 @@ public class ExessionPersist {
 		Connects.commit(synx.synconn, trb.synrobot(), sqls);
 		
 		return this;
+	}
+	
+	/**
+	 * Create insert into syn_docref, if row has an envelope in (ExpDocTableMeta)entm.uri
+	 * @param t
+	 * @param entm
+	 * @param uids
+	 * @param cols 
+	 * @param row
+	 * @return the insert statement or null
+	 */
+	private Statement<?> insertDocref(DBSyntableBuilder t, SyntityMeta entm, String uids, HashMap<String,Object[]> cols, ArrayList<Object> row) {
+		try {
+		return entm instanceof ExpDocTableMeta
+			// && Regex.startsEvelope((String) row.get(TableMeta.colx(cols, ((ExpDocTableMeta) entm).uri) - 1))
+			&& Regex.startsEvelope(TableMeta.cellstr(cols, row, ((ExpDocTableMeta) entm).uri))
+			? t.insert(refm.tbl)
+				.nv(refm.syntabl,  entm.tbl)
+				.nv(refm.fromPeer, peer)
+				.nv(refm.io_oz_synuid, uids)
+			: null;
+		}
+		catch (Exception e) { 
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private Statement<?> deleteDocref(DBSyntableBuilder t, SyntityMeta entm, String uids) {
+		return entm instanceof ExpDocTableMeta ?
+			t.delete(refm.tbl)
+				.whereEq(refm.syntabl,  entm.tbl)
+				.whereEq(refm.fromPeer, peer)
+				.whereEq(refm.io_oz_synuid, uids)
+			: null;
 	}
 
 	/**
@@ -313,6 +359,7 @@ public class ExessionPersist {
 		this.synx = tb.syndomx;
 		this.trb = tb.xp(this);
 		this.exbm = synx.exbm;
+		this.refm = synx.refm;
 		this.session = ini == null ? null : ini.session;
 		this.peer = peer;
 		this.chgm = synx.chgm;
@@ -341,15 +388,13 @@ public class ExessionPersist {
 		return new ExchangeBlock(synx.domain,
 					trb == null ? null : synx.synode,
 					peer, session, exstate)
-//				.totalChallenges(1)
-//				.chpagesize(this.chsize)
 				.totalChallenges(1, this.chsize)
 				.synodes(DAHelper.getEntityById(trb, synm, synx.synode))
 				.seq(this);
 	}
 
 	/**
-	 * Setup exchange buffer table.
+	 * Collect the task infor, and setup exchange buffer table.
 	 * <pre>
 	 * exstate.state = init;
 	 * expAnswerSeq = 0;
@@ -386,7 +431,6 @@ public class ExessionPersist {
 				trb == null ? null : synx.synode,
 				peer, session, exstate)
 			.totalChallenges(totalChallenges, this.chsize)
-			// .chpagesize(this.chsize)
 			.seq(persistarting(peer))
 			.nv(synx.nv);
 	}
@@ -431,8 +475,6 @@ public class ExessionPersist {
 		return new ExchangeBlock(synx.domain,
 					trb == null ? ini.peer : synx.synode,
 					peer, session, exstate)
-				// .totalChallenges(totalChallenges)
-				// .chpagesize(ini.chpagesize)
 				.totalChallenges(totalChallenges, ini.chpagesize)
 				.seq(persistarting(peer))
 				.nv(synx.nv);
@@ -541,7 +583,7 @@ public class ExessionPersist {
 				trb.update(exbm.tbl, trb.synrobot())
 					.nv(exbm.pagex, challengeSeq)
 					.whereIn(exbm.changeId, page)
-					.u(trb.instancontxt(synx.synconn, trb.synrobot()))
+					.u(trb.instancontxt())
 					;
 				trb.popDebug();
 			}
@@ -587,8 +629,6 @@ public class ExessionPersist {
 					trb == null ? rep.peer : synx.synode,
 					peer, session, exstate)
 				.chpage(rs, chEntities)
-				// .totalChallenges(totalChallenges)
-				// .chpagesize(this.chsize)
 				.totalChallenges(totalChallenges, this.chsize)
 				.seq(this)
 				.nv(synx.nv);
@@ -607,8 +647,6 @@ public class ExessionPersist {
 					trb == null ? req.peer
 					: synx.synode, peer, session, exstate)
 				.chpage(chpage(), chEntities)
-				// .totalChallenges(totalChallenges)
-				// .chpagesize(this.chsize)
 				.totalChallenges(totalChallenges, this.chsize)
 				.seq(this)
 				.nv(synx.nv);
@@ -633,8 +671,6 @@ public class ExessionPersist {
 			return new ExchangeBlock(synx.domain, 
 						trb == null ? rep.peer
 						: synx.synode, peer, session, new ExessionAct(exstate.exmode, close))
-					// .totalChallenges(totalChallenges)
-					// .chpagesize(this.chsize)
 					.totalChallenges(totalChallenges, this.chsize)
 					.seq(this);
 		} finally {
@@ -665,15 +701,13 @@ public class ExessionPersist {
 			return new ExchangeBlock(synx.domain,
 						trb == null ? null : synx.synode,
 						peer, session, new ExessionAct(exstate.exmode, close))
-//					.totalChallenges(totalChallenges)
-//					.chpagesize(this.chsize)
 					.totalChallenges(totalChallenges, this.chsize)
 					.seq(this);
 		} finally {
 			try {
 				trb.delete(exbm.tbl, trb.synrobot())
 					.whereEq(exbm.peer, peer)
-					.d(trb.instancontxt(synx.synconn, trb.synrobot()));
+					.d(trb.instancontxt());
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
 			}
@@ -697,8 +731,6 @@ public class ExessionPersist {
 					trb == null ? null : synx.synode,
 					peer, session, exstate)
 				.requirestore()
-//				.totalChallenges(totalChallenges)
-//				.chpagesize(this.chsize)
 				.totalChallenges(totalChallenges, this.chsize)
 				.seq(this);
 	}
@@ -731,7 +763,7 @@ public class ExessionPersist {
 				.je_(exbm.tbl, "bf", chgm.pk, exbm.changeId, "bf." + exbm.peer, constr(peer), constVal(challengeSeq), exbm.pagex)
 				.col(chgm.entbl)
 				.groupby(chgm.entbl)
-				.rs(trb.instancontxt(synx.synconn, trb.synrobot()))
+				.rs(trb.instancontxt())
 				.rs(0);
 
 		if (chEntities != null)
@@ -743,20 +775,16 @@ public class ExessionPersist {
 			// SyntityMeta entm = eq(tbl, synm.tbl) ? synm : Syntities.get(synx.synconn).meta(tbl);
 			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(synx.synconn, tbl);
 
-			// FIXME duplicates of entity records here
-			boolean dbg = Connects.getDebug(synx.synconn);
-			Connects.setDebug(synx.synconn, true);
-
+			trb.pushDebug(true);
 			AnResultset entities = ((AnResultset) entm
-				// .onselectSyntities(trb.select(tbl, "e").cols_byAlias("e", entm.entCols()))
 				.onselectSyntities(synx, trb.select(tbl, "e").distinct(true).cols("e.*"))
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.io_oz_synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId,
 					 constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)
-				.rs(trb.instancontxt(synx.synconn, trb.synrobot()))
+				.rs(trb.instancontxt())
 				.rs(0))
 				.index0(entm.io_oz_synuid);
-			Connects.setDebug(synx.synconn, dbg);
+			trb.popDebug();
 			
 			entities(tbl, entities);
 		}
@@ -800,7 +828,7 @@ public class ExessionPersist {
 				.nv(sysm.mode,  exstate.exmode)
 				.nv(sysm.state, exstate.state)
 				.whereEq(sysm.peer, peer)
-				.u(trb.instancontxt(synx.synconn, trb.synrobot()));
+				.u(trb.instancontxt());
 		}
 		return this;
 	}
@@ -817,7 +845,7 @@ public class ExessionPersist {
 			trb.delete(sysm.tbl, trb.synrobot())
 				.whereEq(sysm.peer, peer)
 				.post(sysm.insertSession(trb.insert(sysm.tbl), peer))
-				.d(trb.instancontxt(synx.synconn, trb.synrobot()));
+				.d(trb.instancontxt());
 		}
 		return this;
 	}

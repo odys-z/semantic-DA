@@ -18,6 +18,7 @@ import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynDocRefMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SynodeMeta;
@@ -60,6 +61,7 @@ public class SyndomContext {
 	protected final SynSubsMeta subm;
 	protected final SynChangeMeta chgm;
 	protected final SynchangeBuffMeta exbm;
+	public final SynDocRefMeta refm;
 
 	/**
 	 * The admin's id, first of synusers in dictionary.json, used for logging into peers.
@@ -95,6 +97,7 @@ public class SyndomContext {
 		this.synm = new SynodeMeta(synconn).replace();
 		this.exbm = new SynchangeBuffMeta(chgm, synconn).replace();
 		this.pnvm = new PeersMeta(synconn).replace();
+		this.refm = new SynDocRefMeta(synconn).replace();
 		
 		dbg = debug;
 	}

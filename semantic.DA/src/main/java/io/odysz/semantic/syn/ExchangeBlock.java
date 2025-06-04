@@ -82,7 +82,12 @@ public class ExchangeBlock extends Anson {
 		return this;
 	}
 
-	public void removeChgsub(AnResultset challenpage, String synode) throws SQLException {
+	/**
+	 * set current row in challenpage as CRUD.U, and add to my {@link #anspage}.
+	 * @param challenpage
+	 * @throws SQLException
+	 */
+	public void removeChgsub(AnResultset challenpage) throws SQLException {
 		if (challenpage == null)
 			return;
 		

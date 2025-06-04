@@ -168,7 +168,7 @@ public class DBSynTransBuilder extends DATranscxt {
 		if (synmanticMaps == null)
 			synmanticMaps = new HashMap<String, SemanticsMap>(); 
 		
-		DATranscxt.initConfigs(conn, loadSemanticsXml(conn),
+		DATranscxt.initConfigs(conn,// loadSemanticsXml(conn),
 						(c) -> new SemanticsMap(c));
 
 		if (!smtMaps.containsKey(conn))
@@ -195,7 +195,8 @@ public class DBSynTransBuilder extends DATranscxt {
 		}
 	}
 	
-	public static SyntityMeta getEntityMeta(String synconn, String tbl) throws TransException, SQLException {
+	public static SyntityMeta getEntityMeta(String synconn, String tbl)
+			throws TransException, SQLException {
 		return Syntities.get(synconn).meta(tbl).replace();
 	}
 
