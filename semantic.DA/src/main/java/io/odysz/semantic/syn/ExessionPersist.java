@@ -387,8 +387,6 @@ public class ExessionPersist {
 		return new ExchangeBlock(synx.domain,
 					trb == null ? null : synx.synode,
 					peer, session, exstate)
-//				.totalChallenges(1)
-//				.chpagesize(this.chsize)
 				.totalChallenges(1, this.chsize)
 				.synodes(DAHelper.getEntityById(trb, synm, synx.synode))
 				.seq(this);
@@ -432,7 +430,6 @@ public class ExessionPersist {
 				trb == null ? null : synx.synode,
 				peer, session, exstate)
 			.totalChallenges(totalChallenges, this.chsize)
-			// .chpagesize(this.chsize)
 			.seq(persistarting(peer))
 			.nv(synx.nv);
 	}
@@ -477,8 +474,6 @@ public class ExessionPersist {
 		return new ExchangeBlock(synx.domain,
 					trb == null ? ini.peer : synx.synode,
 					peer, session, exstate)
-				// .totalChallenges(totalChallenges)
-				// .chpagesize(ini.chpagesize)
 				.totalChallenges(totalChallenges, ini.chpagesize)
 				.seq(persistarting(peer))
 				.nv(synx.nv);
@@ -633,8 +628,6 @@ public class ExessionPersist {
 					trb == null ? rep.peer : synx.synode,
 					peer, session, exstate)
 				.chpage(rs, chEntities)
-				// .totalChallenges(totalChallenges)
-				// .chpagesize(this.chsize)
 				.totalChallenges(totalChallenges, this.chsize)
 				.seq(this)
 				.nv(synx.nv);
@@ -653,8 +646,6 @@ public class ExessionPersist {
 					trb == null ? req.peer
 					: synx.synode, peer, session, exstate)
 				.chpage(chpage(), chEntities)
-				// .totalChallenges(totalChallenges)
-				// .chpagesize(this.chsize)
 				.totalChallenges(totalChallenges, this.chsize)
 				.seq(this)
 				.nv(synx.nv);
@@ -679,8 +670,6 @@ public class ExessionPersist {
 			return new ExchangeBlock(synx.domain, 
 						trb == null ? rep.peer
 						: synx.synode, peer, session, new ExessionAct(exstate.exmode, close))
-					// .totalChallenges(totalChallenges)
-					// .chpagesize(this.chsize)
 					.totalChallenges(totalChallenges, this.chsize)
 					.seq(this);
 		} finally {
@@ -711,8 +700,6 @@ public class ExessionPersist {
 			return new ExchangeBlock(synx.domain,
 						trb == null ? null : synx.synode,
 						peer, session, new ExessionAct(exstate.exmode, close))
-//					.totalChallenges(totalChallenges)
-//					.chpagesize(this.chsize)
 					.totalChallenges(totalChallenges, this.chsize)
 					.seq(this);
 		} finally {
@@ -743,8 +730,6 @@ public class ExessionPersist {
 					trb == null ? null : synx.synode,
 					peer, session, exstate)
 				.requirestore()
-//				.totalChallenges(totalChallenges)
-//				.chpagesize(this.chsize)
 				.totalChallenges(totalChallenges, this.chsize)
 				.seq(this);
 	}
