@@ -34,7 +34,6 @@ import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.util.DAHelper;
-import io.odysz.semantics.SessionInf;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.x.TransException;
 
@@ -115,15 +114,16 @@ public class Docheck {
 		SyndomContext synx = synb.syndomx;
 
 		synb.pushDebug(false);
-		AnResultset rs = (AnResultset) synb.select(synx.synm.tbl)
-			.col(synx.synm.synoder)
-			.distinct(true)
-			.whereIn(synx.synm.synoder, nodes)
-			.rs(synb.instancontxt(synb.basictx().connId(), synb.synrobot()))
-			.rs(0);
-		synb.popDebug();
+		try {
+			AnResultset rs = (AnResultset) synb.select(synx.synm.tbl)
+				.col(synx.synm.synoder)
+				.distinct(true)
+				.whereIn(synx.synm.synoder, nodes)
+				.rs(synb.instancontxt(synb.basictx().connId(), synb.synrobot()))
+				.rs(0);
 
-		azert.equali(cnt, rs.getRowCount());
+			azert.equali(cnt, rs.getRowCount());
+		} finally { synb.popDebug(); }
 	}
 
 	public Docheck(IAssert assertImpl, SyndomContext x, ExpDocTableMeta docm, SyntityMeta devm) throws Exception {
@@ -708,6 +708,12 @@ public class Docheck {
 	}
 	 */
 
+	/**
+	 * Try load doc-ref envelope from docm.tbl, not syn_docref.
+	 * @return refernces if it's envelope, other wise a null value in the list.
+	 * @throws SQLException
+	 * @throws TransException
+	 */
 	public Collection<DocRef> docRef() throws SQLException, TransException {
 		try {
 			return ((AnResultset)synb.pushDebug(false).select(docm.tbl)
@@ -716,9 +722,13 @@ public class Docheck {
 				.rs(0))
 				// .map(docm.uri, (rs) -> new DocRef(this.synb.syndomx.synode, rs, docm))
 				.map(docm.pk, (rs) -> {
+					String s = rs.getString(docm.uri);
 					try {
 						return (DocRef)Anson.fromJson(rs.getString(docm.uri)); 
-					} catch (Exception e) { return null;} 
+					} catch (Exception e) {
+						Utils.warn("Deserializing docref failed: %s", s);
+						return null;
+					} 
 				})
 				.values();
 		} finally { synb.popDebug(); }

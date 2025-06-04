@@ -27,6 +27,7 @@ import io.odysz.common.DateFormat;
 import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
 import io.odysz.common.Utils;
+import io.odysz.semantics.meta.TableMeta;
 import io.odysz.transact.sql.parts.AnDbField;
 
 /**
@@ -446,7 +447,8 @@ for (String coln : colnames.keySet())
 	
 	public String getString(String colName) throws SQLException {
 		if (colName == null) return null;
-		return getString((Integer) (colnames.get(colName.toUpperCase())[0]));
+		// return getString((Integer) (colnames.get(colName.toUpperCase())[0]));
+		return getString(TableMeta.colx(colnames, colName));
 	}
 	
 	/**If field is a date value, return string formatted by sdf.
@@ -1206,7 +1208,7 @@ for (String coln : colnames.keySet())
 	 * .getInt("c") &gt; 0;
 	 * </pre>
 	 * @since 1.4.25
-	 * @return this or null
+	 * @return this or null if no next row
 	 * @throws SQLException
 	 */
 	public AnResultset nxt() throws SQLException {
