@@ -30,7 +30,7 @@ public class DocRef extends AnDbField {
 	}
 	
 	@AnsonField(ignoreTo=true)
-	public ExpDocTableMeta meta;
+	public ExpDocTableMeta docm;
 	
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	final String clsname;
@@ -48,11 +48,11 @@ public class DocRef extends AnDbField {
 		this();
 		this.synode = synode;
 		this.tbl = m.tbl;
-		this.meta = m;
+		this.docm = m;
 
 		concats = Funcall.concat(
 			f("'{\"type\": \"%s\", \"synode\": \"%s\", \"docId\": \"'", clsname, synode),
-			meta.pk,
+			docm.pk,
 			f("'\", \"tbl\": \"%s\", \"uri64\": \"%s\", \"breakpoint\": %s, \"uids\": \"'", tbl, m.uri, breakpoint),
 			m.io_oz_synuid,
 			"'\"}'");

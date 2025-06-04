@@ -174,17 +174,17 @@ public class DBSyntableBuilder extends DATranscxt {
 			.seq(cp.persisession());
 	}
 	
-	ExchangeBlock onExchange(ExessionPersist sp, String peer, ExchangeBlock req)
-			throws SQLException, TransException {
-		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
-		sp.expect(req).exstate(ExessionAct.exchange);
-
-		return sp
-			.commitAnswers(req, peer, sp.n0().n)
-			.onExchange(peer, req) // The challenge page is ready
-			.answers(answer_save(sp, req, peer))
-			.seq(sp.persisession());
-	}
+//	ExchangeBlock onExchange(ExessionPersist sp, String peer, ExchangeBlock req)
+//			throws SQLException, TransException {
+//		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
+//		sp.expect(req).exstate(ExessionAct.exchange);
+//
+//		return sp
+//			.commitAnswers(req, peer, sp.n0().n)
+//			.onExchange(peer, req) // The challenge page is ready
+//			.answers(answer_save(sp, req, peer))
+//			.seq(sp.persisession());
+//	}
 
 	/**
 	 * Clean N.change[.].nyq <= NVp.[.], where,
@@ -278,6 +278,16 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 	}
 
+	/**
+	 * Commit changes by req's challenge page.
+	 * 
+	 * @param xp
+	 * @param req
+	 * @param peer
+	 * @return my {@link #xp}
+	 * @throws SQLException
+	 * @throws TransException
+	 */
 	ExessionPersist answer_save(ExessionPersist xp, ExchangeBlock req, String peer)
 			throws SQLException, TransException {
 		if (req == null || req.chpage == null) return xp;
@@ -293,33 +303,34 @@ public class DBSyntableBuilder extends DATranscxt {
 		ExchangeBlock resp = new ExchangeBlock(syndomx.domain, syndomx.synode, peer, xp.session(), xp.exstat())
 							.nv(xp.synx.nv);
 
-		AnResultset reqChgs = req.chpage;
+		// AnResultset reqChgs = req.chpage;
 
 		HashSet<String> warnsynodee = new HashSet<String>();
 		HashSet<String> warnsynoder = new HashSet<String>();
 
-		while (req.totalChallenges > 0 && reqChgs.next()) { // FIXME performance issue
-			String synodee = reqChgs.getString(subm.synodee);
-			String synoder = reqChgs.getString(chgm.synoder);
+		while (req.totalChallenges > 0 && req.chpage.next()) { // FIXME performance issue
+			String synodee = req.chpage.getString(subm.synodee);
+			String synoder = req.chpage.getString(chgm.synoder);
 
 			if (!xp.synx.nv.containsKey(synoder)) {
 				if (!warnsynoder.contains(synoder)) {
 					warnsynoder.add(synoder);
 					Utils.warnT(new Object() {},
 							"%s has no idea about %s. The changes %s -> %s are ignored.",
-							synode, synoder, reqChgs.getString(chgm.uids), synodee);
+							synode, synoder, req.chpage.getString(chgm.uids), synodee);
 				}
 				continue;
 			}
 			else if (eq(synodee, synode)) {
-				resp.removeChgsub(req.chpage, synode);	
-				changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
+				// resp.removeChgsub(req.chpage, synode);	
+				resp.removeChgsub(req.chpage);	
+				changes.append(req.chpage.getRowAt(req.chpage.getRow() - 1));
 			}
 			else {
-				Nyquence subnyq = getn(reqChgs, chgm.nyquence);
+				Nyquence subnyq = getn(req.chpage, chgm.nyquence);
 				if (!xp.synx.nv.containsKey(synodee) // I don't have information of the subscriber
-					&& eq(synm.tbl, reqChgs.getString(chgm.entbl))) // adding synode
-					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
+					&& eq(synm.tbl, req.chpage.getString(chgm.entbl))) // adding synode
+					changes.append(req.chpage.getRowAt(req.chpage.getRow() - 1));
 				else if (!xp.synx.nv.containsKey(synodee)) {
 					; // I have no idea
 					if (synmode != SynodeMode.leaf) {
@@ -329,7 +340,7 @@ public class DBSyntableBuilder extends DATranscxt {
 									"%s has no idea about %s. The change is committed at this node. This can either be automatically fixed or causing data lost later.",
 									synode, synodee);
 						}
-						changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
+						changes.append(req.chpage.getRowAt(req.chpage.getRow() - 1));
 					}
 					else // leaf
 						if (!warnsynodee.contains(synodee)) {
@@ -339,10 +350,10 @@ public class DBSyntableBuilder extends DATranscxt {
 									synode, synodee);
 						}	
 				}
-				// see alse ExessionPersist#saveChanges()
-				else if (compareNyq(subnyq, xp.synx.nv.get(reqChgs.getString(chgm.synoder))) > 0) {
+				// see also ExessionPersist#saveChanges()
+				else if (compareNyq(subnyq, xp.synx.nv.get(req.chpage.getString(chgm.synoder))) > 0) {
 					// should suppress the following case
-					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
+					changes.append(req.chpage.getRowAt(req.chpage.getRow() - 1));
 				}
 				else if (compareNyq(subnyq, xp.synx.nv.get(peer)) <= 0) {
 					// 2024.6.5 client shouldn't have older knowledge than me now,
@@ -350,7 +361,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					if (debug) Utils.warnT(new Object(){}, "Ignore this?");
 				}
 				else
-					changes.append(reqChgs.getRowAt(reqChgs.getRow() - 1));
+					changes.append(req.chpage.getRowAt(req.chpage.getRow() - 1));
 			}
 		}
 
