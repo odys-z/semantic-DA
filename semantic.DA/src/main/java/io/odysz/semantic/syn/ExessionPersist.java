@@ -315,7 +315,8 @@ public class ExessionPersist {
 	private Statement<?> insertDocref(DBSyntableBuilder t, SyntityMeta entm, String uids, HashMap<String,Object[]> cols, ArrayList<Object> row) {
 		try {
 		return entm instanceof ExpDocTableMeta
-			&& Regex.startsEvelope((String) row.get(TableMeta.colx(cols, ((ExpDocTableMeta) entm).uri)))
+			// && Regex.startsEvelope((String) row.get(TableMeta.colx(cols, ((ExpDocTableMeta) entm).uri) - 1))
+			&& Regex.startsEvelope(TableMeta.cellstr(cols, row, ((ExpDocTableMeta) entm).uri))
 			? t.insert(refm.tbl)
 				.nv(refm.syntabl,  entm.tbl)
 				.nv(refm.fromPeer, peer)

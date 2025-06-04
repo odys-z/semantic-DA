@@ -726,7 +726,7 @@ public class Docheck {
 					try {
 						return (DocRef)Anson.fromJson(rs.getString(docm.uri)); 
 					} catch (Exception e) {
-						Utils.warn("Deserializing docref failed: %s", s);
+						Utils.warn("[Docheck.docRef()] Deserializing docref failed: %s", s);
 						return null;
 					} 
 				})
