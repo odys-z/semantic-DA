@@ -168,7 +168,7 @@ public class DBSynTransBuilder extends DATranscxt {
 		if (synmanticMaps == null)
 			synmanticMaps = new HashMap<String, SemanticsMap>(); 
 		
-		DATranscxt.initConfigs(conn, loadSemanticsXml(conn),
+		DATranscxt.initConfigs(conn,// loadSemanticsXml(conn),
 						(c) -> new SemanticsMap(c));
 
 		if (!smtMaps.containsKey(conn))

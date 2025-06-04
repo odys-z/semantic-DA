@@ -174,7 +174,7 @@ public class DATranscxt extends Transcxt {
 	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
 		try {
 			return new DASemantext(connId,
-				initConfigs(connId, loadSemanticsXml(connId),
+				initConfigs(connId, 
 						(c) -> new SemanticsMap(c)),
 				usr, runtimepath);
 		} catch (Exception e) {
@@ -313,7 +313,7 @@ public class DATranscxt extends Transcxt {
 	 */
 	public DATranscxt(String conn) throws Exception {
 		this(new DASemantext(conn,
-				isblank(conn) ? null : initConfigs(conn, loadSemanticsXml(conn),
+				isblank(conn) ? null : initConfigs(conn,// loadSemanticsXml(conn),
 						(c) -> new SemanticsMap(c)),
 				dummyUser(), runtimepath));
 		if (isblank(conn))
@@ -356,7 +356,7 @@ public class DATranscxt extends Transcxt {
 				"No 'smtcs' configured in connects.xml for connection \"%1$s\"?\n" +
 				"Looking in path: %2$s", connId, fpath);
 		
-		Utils.logi("[%s] load semantics: %s", connId, fpath); // FIXME being parsing xml too many times
+		// Utils.logi("....................[%s] load semantics: %s", connId, fpath);
 
 		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
 			new Log4jWrapper("").setDebugMode(false), fpath, new IXMLStruct() {
@@ -384,8 +384,7 @@ public class DATranscxt extends Transcxt {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <M extends SemanticsMap, S extends DASemantics> M initConfigs(
-			String conn, XMLTable xcfg, SmapFactory<M> smFactory)
-			throws Exception {
+			String conn, SmapFactory<M> smFactory) throws Exception {
 		if (smtMaps == null)
 			smtMaps = new HashMap<String, SemanticsMap>();
 		if (!smtMaps.containsKey(conn))
@@ -394,6 +393,7 @@ public class DATranscxt extends Transcxt {
 			return (M) smtMaps.get(conn);
 
 		Utils.logT(new Object() {}, "Loading semantics of connection %s", conn);
+		XMLTable xcfg = loadSemanticsXml(conn);
 		xcfg.beforeFirst();
 
 		Transcxt trb = getBasicTrans(conn);

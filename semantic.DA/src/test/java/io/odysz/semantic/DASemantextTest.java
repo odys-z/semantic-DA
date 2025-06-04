@@ -3,7 +3,6 @@ package io.odysz.semantic;
 import static io.odysz.common.CheapIO.readB64;
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.Utils.loadTxt;
-import static io.odysz.semantic.DATranscxt.loadSemanticsXml;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -35,7 +34,6 @@ import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.syn.T_DA_PhotoMeta;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.ISemantext;
@@ -83,8 +81,7 @@ public class DASemantextTest {
 			String rootkey = System.getProperty("rootkey");
 			DATranscxt.key("user-pswd", rootkey);
 
-			// smtcfg = DATranscxt.loadSemantics(connId, "src/test/res/semantics.xml", true);
-			smtcfg = DATranscxt.initConfigs(connId, loadSemanticsXml(connId),
+			smtcfg = DATranscxt.initConfigs(connId,// loadSemanticsXml(connId),
 						(c) -> new SemanticsMap(c));
 			st = new DATranscxt(connId);
 
