@@ -24,6 +24,11 @@ public class DocRef extends AnDbField {
 	public String syntabl;
 	public String uri64;
 	public String uids;
+	/** 
+	 * @since 1.5.18
+	 * This is generated at server node, directly send and write into client's db,
+	 * so not usable when loaded from entity table for resolving references.
+	 */
 	public String docId;
 
 	public long breakpoint;
