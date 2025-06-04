@@ -356,6 +356,7 @@ public class DATranscxt extends Transcxt {
 				"No 'smtcs' configured in connects.xml for connection \"%1$s\"?\n" +
 				"Looking in path: %2$s", connId, fpath);
 		
+		Utils.logi("[%s] load semantics: %s", connId, fpath);
 
 		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
 			new Log4jWrapper("").setDebugMode(false), fpath, new IXMLStruct() {
