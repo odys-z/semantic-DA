@@ -837,7 +837,8 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		String[] args = "$VOLUME_HOME/shares,uri,userId,cate,docName".split(",");
 		String extroot = args[ShExtFilev2.ixExtRoot];
 		
-		String encoded = EnvPath.encodeUri(extroot, "ody", "000001 f.txt");
+		// String encoded = EnvPath.encodeUri(extroot, "ody", "000001 f.txt");
+		String encoded = FilenameUtils.concat(extroot, "ody", "000001 f.txt");
 		assertTrue( eq("$VOLUME_HOME/shares/ody/000001 f.txt", encoded) ||
 					eq("$VOLUME_HOME\\shares\\ody\\000001 f.txt", encoded));
 
@@ -846,7 +847,8 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 					eq("\\home\\ody\\volume\\shares\\ody\\000001 f.txt", abspath));
 		
 		args = "upload,uri,userId,cate,docName".split(",");
-		encoded = EnvPath.encodeUri(extroot, "admin", "000002 f.txt");
+		// encoded = EnvPath.encodeUri(extroot, "admin", "000002 f.txt");
+		encoded = FilenameUtils.concat(extroot, "admin", "000002 f.txt");
 		assertTrue( eq("$VOLUME_HOME/shares/admin/000002 f.txt", encoded) ||
 					eq("$VOLUME_HOME\\shares\\admin\\000002 f.txt", encoded));
 
@@ -856,7 +858,8 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 					eq("\\home\\ody\\volume\\shares\\admin\\000002 f.txt", abspath));
 
 		args = "/home/ody/upload,uri,userId,cate,docName".split(",");
-		encoded = EnvPath.encodeUri(extroot, "admin", "000003 f.txt");
+		// encoded = EnvPath.encodeUri(extroot, "admin", "000003 f.txt");
+		encoded = FilenameUtils.concat(extroot, "admin", "000003 f.txt");
 		// assertEquals("/home/ody/upload/admin/000003 f.txt", encoded);
 		assertTrue( eq("$VOLUME_HOME/shares/admin/000003 f.txt", encoded) ||
 					eq("$VOLUME_HOME\\shares\\admin\\000003 f.txt", encoded));

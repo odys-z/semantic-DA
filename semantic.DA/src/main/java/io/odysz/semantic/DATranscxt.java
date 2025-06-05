@@ -123,24 +123,6 @@ public class DATranscxt extends Transcxt {
 		}
 	}
 
-	protected static String cfgroot = ""; 
-	protected static String runtimepath = "";
-	public static String runtimeRoot() { return runtimepath; }
-
-	/**
-	 * Configuration's root
-	 * @since 1.4.25 will using EnvPath for this.
-	 * @param cfgRoot
-	 * @param absRuntimeRoot absolute path to current dir (test) or container root (web app)
-	 */
-	public static void configRoot(String cfgRoot, String absRuntimeRoot) {
-		cfgroot = cfgRoot;
-		runtimepath = absRuntimeRoot;
-		
-		Utils.logi("Configuration root path: %s", cfgRoot);
-		Utils.logi("Runtime root path: %s", absRuntimeRoot);
-	}
-
 	protected static IUser dummy;
 
 	@Override

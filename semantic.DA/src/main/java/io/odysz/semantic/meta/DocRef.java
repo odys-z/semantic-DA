@@ -46,6 +46,10 @@ public class DocRef extends AnDbField {
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	Funcall concats;
 
+	/** E.g. the h_photos.pname, a helper for user. */
+	@AnsonField(ignoreTo=true, ignoreFrom=true)
+	public String pname;
+
 	public DocRef() {
 		clsname = getClass().getName();
 		breakpoint = 0;
@@ -75,5 +79,15 @@ public class DocRef extends AnDbField {
 				.getHandler(doconn, syntabl, smtype.extFilev2))
 				.getFileRoot();
 		return Paths.get(IUser.tempDir(extroot, "resolve-" + peer, ssinf.ssid(), syntabl));
+	}
+
+	public DocRef docId(String pk) {
+		this.docId = pk;
+		return this;
+	}
+
+	public DocRef resname(String fn) {
+		this.pname = fn;
+		return this;
 	}
 }

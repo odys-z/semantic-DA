@@ -12,9 +12,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import io.odysz.anson.Anson;
 import io.odysz.common.AESHelper;
 import io.odysz.common.EnvPath;
@@ -40,7 +37,9 @@ import io.odysz.transact.sql.Transcxt;
 import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.ExtFileInsert;
+import io.odysz.transact.sql.parts.ExtFileInsertv2;
 import io.odysz.transact.sql.parts.ExtFileUpdate;
+import io.odysz.transact.sql.parts.ExtFileUpdatev2;
 import io.odysz.transact.sql.parts.Logic;
 import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.condition.Condit;
@@ -1581,7 +1580,7 @@ public class DASemantics {
 			return args[ixExtRoot];
 		}
 
-		@Override
+		/*
 		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
 				Object[] nv;
@@ -1596,11 +1595,11 @@ public class DASemantics {
 						// can be a string or an auto resulving (fk is handled before extfile)
 						Object fid = row.get(cols.get(pkField))[1];
 
-						ExtFileInsert f;
+						ExtFileInsertv2 f;
 						if (fid instanceof Resulving)
-							f = new ExtFileInsert((Resulving) fid, getFileRoot(), stx);
+							f = new ExtFileInsertv2((Resulving) fid, getFileRoot(), stx);
 						else
-							f = new ExtFileInsert(new ExprPart(fid.toString()), getFileRoot(), stx);
+							f = new ExtFileInsertv2(new ExprPart(fid.toString()), getFileRoot(), stx);
 						
 						String clientname = args[args.length - 1];
 						if (cols.containsKey(clientname)) {
@@ -1609,7 +1608,7 @@ public class DASemantics {
 								f.filename(clientname);
 						}
 
-						f.b64(nv[1].toString());
+						f.b64(nv[1]);
 						
 						for (int i = ixUri + 1; i < args.length - 1; i++) {
 							if (!cols.containsKey(args[i])) 
@@ -1634,6 +1633,64 @@ public class DASemantics {
 				}
 			}
 		}
+		*/
+		
+		@Override
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
+				Object[] nv;
+				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
+				if (cols.containsKey(args[ixUri])) {
+					// save file, replace v
+					nv = row.get(cols.get(args[ixUri]));
+					if (nv != null && nv[1] != null
+						&& (nv[1] instanceof String && !isblank(nv[1]) && !Anson.startEnvelope((String)nv[1])
+							|| nv[1] instanceof AbsPart && !startEnvelope((AbsPart)nv[1]))) {
+
+						// can be a string or an auto resulving (fk is handled before extfile)
+						Object fid = row.get(cols.get(pkField))[1];
+
+						ExtFileInsertv2 f;
+						if (fid instanceof Resulving)
+							f = new ExtFileInsertv2((Resulving) fid, getFileRoot(), stx);
+						else
+							f = new ExtFileInsertv2(new ExprPart(fid.toString()), getFileRoot(), stx);
+						
+						
+						String clientname = args[args.length - 1];
+						if (cols.containsKey(clientname)) {
+							clientname = row.get(cols.get(clientname))[1].toString();
+							if (clientname != null)
+								f.filename(clientname);
+						}
+
+						f.b64(nv[1])
+						 .subpaths(ixUri+ 1, args);
+
+//						for (int i = ixUri + 1; i < args.length - 1; i++) {
+//							if (!cols.containsKey(args[i])) 
+//								throw new SemanticException("To insert (create file) %s.%s, all required fields must be provided by user (missing %s).\nConfigured fields: %s.\nGot cols: %s",
+//										target, args[ixUri], args[i],
+//										Stream.of(args).skip(2).collect(Collectors.joining(", ")),
+//										cols.keySet().stream().collect(Collectors.joining(", ")));
+//							else
+//								f.appendSubFolder(row.get(cols.get(args[i]))[1]);
+//						}
+
+						if (verbose)
+							try {
+								Utils.logi("[io.odysz.semantic.DASemantics.SemanticHandler.verbose] :\n\t%s",
+										f.absolutePath(stx));
+							} catch (TransException e) {
+								e.printStackTrace();
+							}
+
+						nv = new Object[] {nv[0], f};
+						row.set(cols.get(args[ixUri]), nv);
+					}
+				}
+			}
+		}
 
 		public static boolean startEnvelope(AbsPart expr) {
 			return expr instanceof ExprPart && ((ExprPart)expr).isEvelope();
@@ -1646,8 +1703,7 @@ public class DASemantics {
 		 * <p>Client should avoid updating an external file while handling business logics.</p>
 		 * <p><b>NOTE:</b><br>This can be changed in the future.</p>
 		 * @see SemanticHandler#onUpdate(ISemantext, Update, ArrayList, Map, IUser)
-		 */
-		@Override
+		 * 
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 			if (cols.containsKey(args[ixUri])) {
 				throw new SemanticException(
@@ -1667,7 +1723,7 @@ public class DASemantics {
 					String oldUri = selectUri(stx, updt, updt.where(), usr);
 					String oldName = FilenameUtils.getName(oldUri);
 
-					ExtFileUpdate f = new ExtFileUpdate(oldName, getFileRoot(), stx)
+					ExtFileUpdatev2 f = new ExtFileUpdatev2(oldName, getFileRoot(), stx)
 							.oldUri(oldUri);
 
 					for (int i = ixUri + 1; i < args.length - 1; i++)
@@ -1688,8 +1744,53 @@ public class DASemantics {
 				}
 			}
 		}
+		 */
+		@Override
+		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+			if (cols.containsKey(args[ixUri])) {
+				throw new SemanticException(
+					"Found ext-file's contenet is updated.\n" +
+					"Currently update ExtFile (%s.%s) is not supported (and moving file shouldn't updating content). Use delete & insert instead.",
+					target, args[ixUri]);
+			}
+			else if (args.length > 1 && args[ixUri] != null && cols != null && !cols.containsKey(args[ixUri])) {
+				boolean touch = false;
+				for (int i = ixUri + 1; i < args.length - 1; i++)
+					if (cols.containsKey(args[i])) {
+						touch = true;
+						break;
+					}
+				if (touch) {
+					// String oldUri = row.get(cols.get(args[ixUri]))[1].toString();
+					// String oldUri = selectUri(stx, updt, updt.where(), usr);
+					String[] oldUriPk = selectUriPk(stx, updt, updt.where(), usr);
+					String oldName = FilenameUtils.getName(oldUriPk[0]);
 
-		protected String selectUri(ISemantext stx, Statement<?> stmt, Condit pk, IUser usr) throws SemanticException {
+					ExtFileUpdatev2 f = new ExtFileUpdatev2(oldUriPk[1], oldName)
+										.oldUri(oldUriPk[0]);
+
+					f.subpaths(ixUri + 1, args);
+//					for (int i = ixUri + 1; i < args.length - 1; i++)
+//						if (i != ixUri && !cols.containsKey(args[i])) 
+//							throw new SemanticException(
+//								"Cols for composing exp-file path are modified. To update (move file) %s.%s, all required fields must be provided by user (missing %s).\n" +
+//								"Needing fields: %s.\n" +
+//								"Modifying cols: %s",
+//								target, args[ixUri], args[i],
+//								Stream.of(args).skip(2).collect(Collectors.joining(", ")),
+//								cols.keySet().stream().collect(Collectors.joining(", ")));
+//						else
+//							f.appendSubFolder(row.get(cols.get(args[i]))[1]);
+
+					Object[] nv = new Object[] { args[ixUri], f };
+					cols.put(args[ixUri], nv.length);
+					row.add(nv);
+				}
+			}
+		}
+
+		@SuppressWarnings("unused")
+		private String selectUri(ISemantext stx, Statement<?> stmt, Condit pk, IUser usr) throws SemanticException {
 			AnResultset rs;
 			try {
 				rs = (AnResultset) stmt
@@ -1707,6 +1808,30 @@ public class DASemantics {
 				rs.beforeFirst().next();
 				
 				return rs.getString("uri");
+			} catch (SQLException | TransException e) {
+				e.printStackTrace();
+				throw new SemanticException(e.getMessage());
+			}
+		}
+
+		private String[] selectUriPk(ISemantext stx, Statement<?> stmt, Condit pk, IUser usr) throws SemanticException {
+			AnResultset rs;
+			try {
+				rs = (AnResultset) stmt
+						.transc()
+						.select(target)
+						.col(args[ixUri], "uri").col(this.pkField, "pk")
+						.where(pk)
+						.rs(stmt.transc().instancontxt(stx.connId(), usr))
+						.rs(0);
+				
+				if (rs.total() > 1) {
+					throw new SemanticException("Semantics handler, ExtFilev2, can only handling moving one file for each statement. Multiple records moving is not supported. Statement condition: %s",
+							pk.sql(stx));
+				}
+				rs.beforeFirst().next();
+				
+				return new String[] {rs.getString("uri"), rs.getString("pk")};
 			} catch (SQLException | TransException e) {
 				e.printStackTrace();
 				throw new SemanticException(e.getMessage());
