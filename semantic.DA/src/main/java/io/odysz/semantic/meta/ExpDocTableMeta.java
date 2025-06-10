@@ -107,7 +107,6 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 			.cols_byAlias(a,
 				DATranscxt.hasSemantics(conn, tbl, smtype.extFilev2)
 				// 2025-05-23: Root of OutOfMemoryError.
-				// ? replacele(entCols(), uri, extfile(a + "." + uri))
 				? replacele(entCols(), uri, refile(
 						new DocRef(syndomx.synode, this,
 								((ShExtFilev2) DATranscxt.getHandler(conn,  tbl, smtype.extFilev2)).getFileRoot(),

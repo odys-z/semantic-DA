@@ -99,9 +99,6 @@ public class DBSyntableBuilder extends DATranscxt {
 						  "\nThis instence can only be useful if is used to initialize the domain for the node",
 						  x.synode, x.domain);
 			}
-//			else
-//				syndomx.stamp = DAHelper.getNyquence(this, conn, syndomx.synm, syndomx.synm.nyquence,
-//						syndomx.synm.synoder, mynid, syndomx.synm.domain, syndomx.domain);
 		}
 		else if (isblank(x.domain))
 			Utils.warn("[%s] Synchrnizer builder (id %s) created without domain specified",
@@ -303,8 +300,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		ExchangeBlock resp = new ExchangeBlock(syndomx.domain, syndomx.synode, peer, xp.session(), xp.exstat())
 							.nv(xp.synx.nv);
 
-		// AnResultset reqChgs = req.chpage;
-
 		HashSet<String> warnsynodee = new HashSet<String>();
 		HashSet<String> warnsynoder = new HashSet<String>();
 
@@ -383,12 +378,11 @@ public class DBSyntableBuilder extends DATranscxt {
 			throw new SemanticException("Synchronizing Nyquence exception: %s.stamp = %d < n0 = %d.",
 					syndomx.synode, syndomx.stamp.n, cx.n0().n);
 		
-		// HashMap<String, Nyquence> snapshot = synyquvectMax(cx, rep.nv);
 		HashMap<String, Nyquence> snapshot = synXnv(cx, rep.nv);
 
 		syndomx.n0(this, syndomx.persistamp(this, maxn(syndomx.stamp, cx.n0())));
 
-		return cx.closexchange(rep).nv(snapshot); // cx.clear();
+		return cx.closexchange(rep).nv(snapshot);
 	}
 
 	/**
@@ -402,7 +396,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	Insert insertExbuf(String peer) throws TransException {
 		PeersMeta pnvm = syndomx.pnvm;
 
-		// 2025-01-14: Shouldn't caring Syntities here. Bug?
+		// 2025-01-14: Shouldn't care about Syntities here. Bug?
 		@SuppressWarnings("unused")
 		SynodeMeta synm = syndomx.synm;
 

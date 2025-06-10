@@ -33,8 +33,8 @@ class DocRefTest {
 		String conn_extpath_volume = "test-extpath-volume";
 		
 		DATranscxt.configRoot("src/test/res", ".");
-		new DATranscxt(conn_extpath_upload); //.initConfigs(conn_extpaths, (SemanticsMap c) -> new SemanticsMap(c));
-		new DATranscxt(conn_extpath_volume); //.initConfigs(conn_extpaths, (SemanticsMap c) -> new SemanticsMap(c));
+		new DATranscxt(conn_extpath_upload);
+		new DATranscxt(conn_extpath_volume);
 
 		String deploy_Y = "../deploy-Y";
 		String volume_Y = "VOLUME_Y";
@@ -44,9 +44,6 @@ class DocRefTest {
 		ExpDocTableMeta docm = new T_DA_PhotoMeta(null);
 		
 		// extpath to "uploads"
-//		ShExtFilev2 sh = (ShExtFilev2) new DASemantics(new DATranscxt(), docm.tbl, docm.pk)
-//				.parseHandler(new DATranscxt(), docm.tbl, smtype.extFilev2, docm.pk, 
-//						new String[] {"uploads", "uri", "family", "shareby", "folder", "docname"});
 		ShExtFilev2 sh = (ShExtFilev2) DATranscxt.getHandler(conn_extpath_upload, docm.tbl, smtype.extFilev2);
 
 		DocRef dr = (DocRef) Anson.fromJson(("{'type': 'io.odysz.semantic.meta.DocRef', "

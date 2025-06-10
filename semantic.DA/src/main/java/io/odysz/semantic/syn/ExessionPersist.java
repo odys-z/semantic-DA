@@ -608,22 +608,11 @@ public class ExessionPersist {
 
 	ExchangeBlock exchange(String peer, ExchangeBlock rep)
 			throws TransException, SQLException {
-		/*
-		if (exstate.state == restore && rep.act == restore)
-			; // got answer
-		else if (exstate.state != init && exstate.state != exchange)
-			throw new ExchangeException(exchange, this,
-				"Can't handle exchanging states from %s to %s.",
-				ExessionAct.nameOf(exstate.state), ExessionAct.nameOf(exchange)); 
-		*/
-
 		if (rep != null)
 			answerSeq = rep.challengeSeq;
 		expAnswerSeq = challengeSeq < pages() ? challengeSeq : -1; 
 
 		AnResultset rs = chpage();
-
-		// exstate.state = exchange;
 
 		return new ExchangeBlock(synx.domain,
 					trb == null ? rep.peer : synx.synode,

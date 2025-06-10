@@ -84,6 +84,7 @@ public class DocRef extends AnDbField {
 			docm.pk,
 			f("'\", \"syntabl\": \"%s\", \"uri64\": \"%s\", \"breakpoint\": %s, \"uids\": \"'", syntabl, m.uri, breakpoint),
 			Funcall.isnull(m.io_oz_synuid, "'null'").sql(dbcontext),
+			"'\", \"pname\": \"'", m.resname,
 			"'\"}'");
 	}
 
