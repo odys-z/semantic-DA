@@ -44,6 +44,28 @@
   		<dbg></dbg>
   		<smtcs>semantic-log.xml</smtcs>
   	</c>
+  	
+  	  	<c>
+  		<id>test-extpath-upload</id>
+  		<type>sqlite</type>
+  		<isdef></isdef>
+  		<src>semantic-DA.db</src>
+  		<usr>test</usr>
+  		<pswd>test</pswd>
+  		<dbg>true</dbg>
+  		<smtcs>semantics-extpath-upload.xml</smtcs>
+  	</c>
+  	
+  	  	<c>
+  		<id>test-extpath-volume</id>
+  		<type>sqlite</type>
+  		<isdef></isdef>
+  		<src>semantic-DA.db</src>
+  		<usr>test</usr>
+  		<pswd>test</pswd>
+  		<dbg>true</dbg>
+  		<smtcs>semantics-extpath-volume-y.xml</smtcs>
+  	</c>
 
 	<c>
 		<id>syn.00</id>
