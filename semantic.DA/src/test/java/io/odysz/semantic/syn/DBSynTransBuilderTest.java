@@ -25,6 +25,7 @@ import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SemanticTableMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
+import io.odysz.semantic.meta.SynDocRefMeta;
 import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
@@ -58,6 +59,7 @@ class DBSynTransBuilderTest {
 		chm = new SynChangeMeta();
 		sbm = new SynSubsMeta(chm);
 		xbm = new SynchangeBuffMeta(chm);
+		rfm = new SynDocRefMeta();
 		ssm = new SynSessionMeta();
 		prm = new PeersMeta();
 
@@ -75,7 +77,7 @@ class DBSynTransBuilderTest {
 
 		T_DA_PhotoMeta phm = regists.meta("h_photos");
 
-		SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm);
+		SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, rfm, prm, ssm, phm);
 
 		ArrayList<String> sqls = new ArrayList<String>();
 		sqls.add("delete from oz_autoseq;");

@@ -16,6 +16,8 @@ CREATE TABLE h_photos (
 
   shareflag  varchar2(12) default 'prv' not null,
   sync       varchar2(4),
+  
+  io_oz_synuid varchar2(25),
 
   PRIMARY KEY (pid)
 );

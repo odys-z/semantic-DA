@@ -772,12 +772,11 @@ public class ExessionPersist {
 		while (entbls.next()) {
 			String tbl = entbls.getString(chgm.entbl);
 
-			// SyntityMeta entm = eq(tbl, synm.tbl) ? synm : Syntities.get(synx.synconn).meta(tbl);
 			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(synx.synconn, tbl);
 
 			trb.pushDebug(true);
 			AnResultset entities = ((AnResultset) entm
-				.onselectSyntities(synx, trb.select(tbl, "e").distinct(true).cols("e.*"))
+				.onselectSyntities(synx, trb.select(tbl, "e").distinct(true).cols("e.*"), trb)
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.io_oz_synuid, chgm.uids)
 				.je_(exbm.tbl, "bf", "ch." + chgm.pk, exbm.changeId,
 					 constr(peer), exbm.peer, constVal(challengeSeq), exbm.pagex)

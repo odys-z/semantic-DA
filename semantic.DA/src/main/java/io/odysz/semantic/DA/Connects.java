@@ -489,7 +489,8 @@ public class Connects {
 	 */
 	public static void setMeta(String connId, TableMeta m) throws SemanticException, SQLException {
 		if (m == null || !m.typesInited())
-			throw new SemanticException("Arg or arg's types are null, TableMeta is not loaded from DB? Call getMeta() and extend it.");
+			throw new SemanticException(
+				"Arg or arg's types are null, TableMeta is not loaded from DB? Call getMeta() and extend it.");
 		TableMeta mdb = getMeta(connId, m.tbl);
 		if (mdb == null)
 			throw new SemanticException("Table %s deson't exists in connect %s.", m.tbl, connId);

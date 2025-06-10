@@ -913,7 +913,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 			.nv("roleId", "attach-01")
 			.nv("orgId", "R.C.")
 			.nv("birthday", Funcall.toDate("1866-12-12"))
-			.post(st.insert("a_attaches")
+			.post(st.insert("a_attaches") // ext-paths updated since 1.5.18, see also DocRefTest.
 					.nv("attName", "Sun Yet-sen Portrait.jpg")  // name: portrait
 					.nv("busiTbl", "a_users")
 					// Since attached file pattern no longer supported in DA v1.3.3, "busiId" are only used for sub folder and not for resulving FK.
@@ -1073,7 +1073,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		
 		// 2.2 refile()
 		String refstr = (String) DAHelper.getExprstr(st, connId, phm,
-					Funcall.refile(new T_SyndocRef("X29", phm)), phm.uri,
+					Funcall.refile(new T_SyndocRef("X29", phm, st.instancontxt(connId, usr))), phm.uri,
 					phm.pk, pid);
 
 		// 1.5.18, semantic-transact 1.5.60

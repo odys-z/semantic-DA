@@ -5,7 +5,9 @@ import static io.odysz.transact.sql.parts.condition.Funcall.refile;
 import java.sql.SQLException;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
+import io.odysz.semantic.syn.DBSyntableBuilder;
 import io.odysz.semantic.syn.SyndomContext;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.transact.sql.Query;
@@ -96,7 +98,7 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	}
 
 	@Override
-	public Query onselectSyntities(SyndomContext syndomx, Query select) throws TransException {
+	public Query onselectSyntities(SyndomContext syndomx, Query select, DBSyntableBuilder synb) throws TransException {
 		String a = tbl; 
 		if (select.alias() != null)
 			a = select.alias().toString();
@@ -106,7 +108,11 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 				DATranscxt.hasSemantics(conn, tbl, smtype.extFilev2)
 				// 2025-05-23: Root of OutOfMemoryError.
 				// ? replacele(entCols(), uri, extfile(a + "." + uri))
-				? replacele(entCols(), uri, refile(new DocRef(syndomx.synode, this), uri))
+				? replacele(entCols(), uri, refile(
+						new DocRef(syndomx.synode, this,
+								((ShExtFilev2) DATranscxt.getHandler(conn,  tbl, smtype.extFilev2)).getFileRoot(),
+								synb.instancontxt()),
+						uri))
 				: entCols());
 	}
 }

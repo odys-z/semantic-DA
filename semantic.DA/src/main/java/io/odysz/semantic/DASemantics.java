@@ -141,6 +141,7 @@ import io.odysz.transact.x.TransException;
  * 
  * @author odys-z@github.com
  */
+@SuppressWarnings("deprecation")
 public class DASemantics {
 	/** error code key word */
 	public static final String ERR_CHK = "err_smtcs";;
@@ -1576,7 +1577,10 @@ public class DASemantics {
 					target);
 		}
 
-		public String getFileRoot() {
+		/** 
+		 * @return this.args[{@link #ixExtRoot}], is usually the configured volume variable.
+		 */
+ 		public String getFileRoot() {
 			return args[ixExtRoot];
 		}
 
@@ -1595,11 +1599,11 @@ public class DASemantics {
 						// can be a string or an auto resulving (fk is handled before extfile)
 						Object fid = row.get(cols.get(pkField))[1];
 
-						ExtFileInsertv2 f;
+						ExtFileInsert f;
 						if (fid instanceof Resulving)
-							f = new ExtFileInsertv2((Resulving) fid, getFileRoot(), stx);
+							f = new ExtFileInsert((Resulving) fid, getFileRoot(), stx);
 						else
-							f = new ExtFileInsertv2(new ExprPart(fid.toString()), getFileRoot(), stx);
+							f = new ExtFileInsert(new ExprPart(fid.toString()), getFileRoot(), stx);
 						
 						String clientname = args[args.length - 1];
 						if (cols.containsKey(clientname)) {
@@ -1636,7 +1640,9 @@ public class DASemantics {
 		*/
 		
 		@Override
-		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row,
+				Map<String, Integer> cols, IUser usr) throws TransException {
+
 			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
 				Object[] nv;
 				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
@@ -1652,9 +1658,9 @@ public class DASemantics {
 
 						ExtFileInsertv2 f;
 						if (fid instanceof Resulving)
-							f = new ExtFileInsertv2((Resulving) fid, getFileRoot(), stx);
+							f = new ExtFileInsertv2(getFileRoot(), (Resulving) fid, stx);
 						else
-							f = new ExtFileInsertv2(new ExprPart(fid.toString()), getFileRoot(), stx);
+							f = new ExtFileInsertv2(getFileRoot(), new ExprPart(fid.toString()), stx);
 						
 						
 						String clientname = args[args.length - 1];
@@ -1665,17 +1671,8 @@ public class DASemantics {
 						}
 
 						f.b64(nv[1])
-						 .subpaths(ixUri+ 1, args);
-
-//						for (int i = ixUri + 1; i < args.length - 1; i++) {
-//							if (!cols.containsKey(args[i])) 
-//								throw new SemanticException("To insert (create file) %s.%s, all required fields must be provided by user (missing %s).\nConfigured fields: %s.\nGot cols: %s",
-//										target, args[ixUri], args[i],
-//										Stream.of(args).skip(2).collect(Collectors.joining(", ")),
-//										cols.keySet().stream().collect(Collectors.joining(", ")));
-//							else
-//								f.appendSubFolder(row.get(cols.get(args[i]))[1]);
-//						}
+						 // .subpaths(ixUri, args, cols, row);
+						 .subpaths(Arrays.copyOfRange(args, ixUri + 1, args.length - 1), cols, row);
 
 						if (verbose)
 							try {
@@ -1702,6 +1699,7 @@ public class DASemantics {
 		 * AS all files are treated as binary file, no file can be modified, only delete then create it makes sense.</p>
 		 * <p>Client should avoid updating an external file while handling business logics.</p>
 		 * <p><b>NOTE:</b><br>This can be changed in the future.</p>
+		 * @throws TransException 
 		 * @see SemanticHandler#onUpdate(ISemantext, Update, ArrayList, Map, IUser)
 		 * 
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
@@ -1746,7 +1744,7 @@ public class DASemantics {
 		}
 		 */
 		@Override
-		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
+		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws TransException {
 			if (cols.containsKey(args[ixUri])) {
 				throw new SemanticException(
 					"Found ext-file's contenet is updated.\n" +
@@ -1766,10 +1764,10 @@ public class DASemantics {
 					String[] oldUriPk = selectUriPk(stx, updt, updt.where(), usr);
 					String oldName = FilenameUtils.getName(oldUriPk[0]);
 
-					ExtFileUpdatev2 f = new ExtFileUpdatev2(oldUriPk[1], oldName)
+					ExtFileUpdatev2 f = new ExtFileUpdatev2(oldUriPk[1], oldName, oldName)
 										.oldUri(oldUriPk[0]);
 
-					f.subpaths(ixUri + 1, args);
+					f.subpaths(Arrays.copyOfRange(args, ixUri + 1, args.length - 1), cols, row);
 //					for (int i = ixUri + 1; i < args.length - 1; i++)
 //						if (i != ixUri && !cols.containsKey(args[i])) 
 //							throw new SemanticException(
@@ -1887,6 +1885,7 @@ public class DASemantics {
 				throw new SemanticException(e.getMessage());
 			}
 		}
+
 	}
 
 	/**

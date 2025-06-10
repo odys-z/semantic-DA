@@ -734,6 +734,10 @@ public class Docheck {
 		} finally { synb.popDebug(); }
 	}
 
+	public String synode() {
+		return synb.syndomx.synode;
+	}
+
 //	public Thread createRefstreamer(String peer) {
 //		return synb.syndomx.createResolver(peer);
 //	}

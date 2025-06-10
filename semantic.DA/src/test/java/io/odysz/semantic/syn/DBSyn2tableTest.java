@@ -73,7 +73,7 @@ public class DBSyn2tableTest {
 	public static final int Y = 1;
 	public static final int Z = 2;
 	public static final int W = 3;
-
+	
 	static String runtimepath;
 
 	static SynodeMeta snm;
@@ -307,9 +307,15 @@ public class DBSyn2tableTest {
 		logi(x_b64x0); // no extFilev2
 		assertTrue(x_b64x0.startsWith("iVBORw0K"));
 
+//		String y_extroot = ((ShExtFilev2) DATranscxt
+//							.getHandler(ck[Y].connId(), ck[Y].docm.tbl, smtype.extFilev2))
+//							.getFileRoot();
 		DocRef y_refx0 = (DocRef) Anson.fromJson((String) DAHelper
 				.getExprstr(ck[Y].b0, ck[Y].connId(), ck[Y].docm,
-					Funcall.refile(new DocRef(ck[X].synb.syndomx.synode, ck[Y].docm)), "docref",
+					Funcall.refile( new DocRef(ck[X].synode(),
+									ck[Y].docm,
+									"No-extfilev2, don't test",
+									ck[Y].synb.instancontxt())), "docref",
 					ck[Y].docm.io_oz_synuid, X_0_uids[2]));
 		assertNotNull(y_refx0);
 		assertEquals("X", y_refx0.synode);

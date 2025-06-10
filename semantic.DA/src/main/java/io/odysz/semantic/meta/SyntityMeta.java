@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.syn.DBSyntableBuilder;
 import io.odysz.semantic.syn.SyndomContext;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
@@ -208,7 +209,8 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * @return select
 	 * @throws TransException, SQLException 
 	 */
-	public Query onselectSyntities(SyndomContext syndomx, Query select) throws TransException, SQLException { return select; }
+	public Query onselectSyntities(SyndomContext syndomx, Query select, DBSyntableBuilder synb)
+			throws TransException, SQLException { return select; }
 
 // Replaced by synChangeMeta.uids(synode, sep, docId)
 //	public String synuid(AnResultset rs) {

@@ -6,6 +6,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import io.odysz.anson.AnsonField;
+import io.odysz.common.FilenameUtils;
+import io.odysz.common.Regex;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
@@ -13,6 +15,7 @@ import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SessionInf;
 import io.odysz.transact.sql.parts.AnDbField;
+import io.odysz.transact.sql.parts.ExtFilePaths;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
@@ -44,28 +47,43 @@ public class DocRef extends AnDbField {
 	final String clsname;
 
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
+	/** SQL boilerplate for generating serialized json string from doc-tables. */
 	Funcall concats;
 
-	/** E.g. the h_photos.pname, a helper for user. */
-	@AnsonField(ignoreTo=true, ignoreFrom=true)
+	/** E.g. the h_photos.pname, must not null for avoid conflicts,
+	 * by padding pid, at other synodes.
+	 */
 	public String pname;
+
+	/**
+	 * Usually environment volume path.
+	 * 
+	 * <h5>Issue:</h5>
+	 * Changing the configurable volume variable name will fail for replacing old data,
+	 * so it's simple replaced with the string format convention, the first "&.../" as volume name.
+	 * But this value is generated while reading entities for exchange.
+	 * 
+	 * @see ExpDocTableMeta#onselectSyntities(io.odysz.semantic.syn.SyndomContext, io.odysz.transact.sql.Query)
+	 */
+	public String volume;
 
 	public DocRef() {
 		clsname = getClass().getName();
 		breakpoint = 0;
 	}
 
-	public DocRef(String synode, ExpDocTableMeta m) {
+	public DocRef(String synode, ExpDocTableMeta m, String volume_extroot, ISemantext dbcontext) throws TransException {
 		this();
 		this.synode = synode;
 		this.syntabl = m.tbl;
 		this.docm = m;
+		this.volume = volume_extroot;
 
 		concats = Funcall.concat(
 			f("'{\"type\": \"%s\", \"synode\": \"%s\", \"docId\": \"'", clsname, synode),
 			docm.pk,
 			f("'\", \"syntabl\": \"%s\", \"uri64\": \"%s\", \"breakpoint\": %s, \"uids\": \"'", syntabl, m.uri, breakpoint),
-			m.io_oz_synuid,
+			Funcall.isnull(m.io_oz_synuid, "'null'").sql(dbcontext),
 			"'\"}'");
 	}
 
@@ -75,10 +93,10 @@ public class DocRef extends AnDbField {
 	}
 
 	public Path downloadPath(String peer, String doconn, SessionInf ssinf) {
-		String extroot = ((ShExtFilev2) DATranscxt
+		String volume = ((ShExtFilev2) DATranscxt
 				.getHandler(doconn, syntabl, smtype.extFilev2))
 				.getFileRoot();
-		return Paths.get(IUser.tempDir(extroot, "resolve-" + peer, ssinf.ssid(), syntabl));
+		return Paths.get(IUser.tempDir(volume, "resolve-" + peer, ssinf.ssid(), syntabl));
 	}
 
 	public DocRef docId(String pk) {
@@ -90,4 +108,35 @@ public class DocRef extends AnDbField {
 		this.pname = fn;
 		return this;
 	}
+
+	/**
+	 * Example: <pre>
+	 * docref.setupExtPaths(expths, Arrays.copyOfRange(sh.args, ixUri+1, sh.args.length - 1));
+	 * </pre>
+	 * @param expths
+	 * @param shSubpaths 
+	 * @return 
+	 * @return expths
+	public ExtFilePaths setupExtPaths(ExtFilePaths expths, String [] shSubpaths) {
+
+		return expths;
+	}
+	 */
+
+	public static ExtFilePaths createExtPaths(String conn, String tbl, DocRef ref) throws TransException {
+		ShExtFilev2 sh = ((ShExtFilev2) DATranscxt
+				.getHandler(conn, tbl, smtype.extFilev2));
+
+		return new ExtFilePaths(sh.getFileRoot(), ref.docId, ref.pname)
+					.prefix(ref.uri64);
+	}
+
+	public String relativeFolder(String conn) {
+		String extroot = DATranscxt.hasSemantics(conn, syntabl, smtype.extFilev2) ?
+				((ShExtFilev2)DATranscxt.getHandler(conn, syntabl, smtype.extFilev2)).getFileRoot() : null; 
+		return isblank(uri64) ? uri64
+				: FilenameUtils.getPathNoEndSeparator(
+				  Regex.removeVolumePrefix(uri64, extroot));
+	}
+
 }

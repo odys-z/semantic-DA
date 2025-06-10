@@ -36,7 +36,7 @@ public class T_SyndocRef extends AnDbField {
 		clsname = getClass().getName();
 	}
 
-	public T_SyndocRef(String synode, ExpDocTableMeta m) {
+	public T_SyndocRef(String synode, ExpDocTableMeta m, ISemantext dbcontext) throws TransException {
 		this();
 		this.synode = synode;
 		this.tbl = m.tbl;
@@ -48,7 +48,7 @@ public class T_SyndocRef extends AnDbField {
 			f("'\", \"tbl\": \"%s\", \"uri64\": \"'", tbl),
 			m.uri,
 			"'\"uids\": '",
-			m.io_oz_synuid,
+			Funcall.isnull(m.io_oz_synuid, "'null'").sql(dbcontext),
 			"'\"}'");
 	}
 
