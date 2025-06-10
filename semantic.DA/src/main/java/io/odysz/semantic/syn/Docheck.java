@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 
 import io.odysz.anson.Anson;
 import io.odysz.common.IAssert;
+import io.odysz.common.Regex;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
@@ -35,6 +36,8 @@ import io.odysz.semantic.meta.SynchangeBuffMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.transact.sql.Query;
+import io.odysz.transact.sql.parts.condition.Funcall;
+import io.odysz.transact.sql.parts.condition.Predicate;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -698,16 +701,6 @@ public class Docheck {
 		return this;
 	}
 	
-	/*
-	 * 
-	public void popDebug() {
-		if (tops != null) 
-			for (int cx = 0; cx < ck.length; cx++) 
-				if (ck[cx] != null)
-				Connects.setDebug(ck[cx].connId(), tops[cx]);
-	}
-	 */
-
 	/**
 	 * Try load doc-ref envelope from docm.tbl, not syn_docref.
 	 * @return refernces if it's envelope, other wise a null value in the list.
@@ -716,29 +709,24 @@ public class Docheck {
 	 */
 	public Collection<DocRef> docRef() throws SQLException, TransException {
 		try {
-			return ((AnResultset)synb.pushDebug(false).select(docm.tbl)
+			return ((AnResultset)synb.pushDebug(true).select(docm.tbl)
 				.col(docm.pk).col(docm.uri)
+				.where(Predicate.eq(Funcall.subStr(docm.uri, 1, 8), "{\"type\":")) // TODO we need function predicate
 				.rs(synb.instancontxt())
 				.rs(0))
-				// .map(docm.uri, (rs) -> new DocRef(this.synb.syndomx.synode, rs, docm))
 				.map(docm.pk, (rs) -> {
 					String s = rs.getString(docm.uri);
 					try {
-						return (DocRef)Anson.fromJson(rs.getString(docm.uri)); 
+						return Regex.startsEvelope(s) ? (DocRef)Anson.fromJson(s) : null; 
 					} catch (Exception e) {
 						Utils.warn("[Docheck.docRef()] Deserializing docref failed: %s", s);
 						return null;
 					} 
-				})
-				.values();
+				}).values();
 		} finally { synb.popDebug(); }
 	}
 
 	public String synode() {
 		return synb.syndomx.synode;
 	}
-
-//	public Thread createRefstreamer(String peer) {
-//		return synb.syndomx.createResolver(peer);
-//	}
 }

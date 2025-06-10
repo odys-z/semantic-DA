@@ -6,6 +6,8 @@ public class SynDocRefMeta extends SemanticTableMeta {
 	public final String fromPeer;
 	public final String io_oz_synuid;
 	public final String tried;
+	
+	public final String excludeTag;
 
 	public SynDocRefMeta(String... conn) {
 		super("syn_docref", conn);
@@ -15,6 +17,7 @@ public class SynDocRefMeta extends SemanticTableMeta {
 		fromPeer     = "fromPeer";
 		io_oz_synuid = "uids";
 		tried        = "tried";
+		excludeTag   = "excludeTag";
 	}
 	
 
