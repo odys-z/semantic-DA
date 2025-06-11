@@ -23,10 +23,16 @@ public class DocRef extends AnDbField {
 	/**
 	 * 
 	 */
-	public String synode;
+	public String synoder;
 	public String syntabl;
 	public String uri64;
+
 	public String uids;
+	public DocRef uids(String uids) {
+		this.uids = uids;
+		return this;
+	}
+
 	/** 
 	 * @since 1.5.18
 	 * This is generated at server node, directly send and write into client's db,
@@ -72,15 +78,15 @@ public class DocRef extends AnDbField {
 		breakpoint = 0;
 	}
 
-	public DocRef(String synode, ExpDocTableMeta m, String volume_extroot, ISemantext dbcontext) throws TransException {
+	public DocRef(String synoder, ExpDocTableMeta m, String volume_extroot, ISemantext dbcontext) throws TransException {
 		this();
-		this.synode = synode;
+		this.synoder = synoder;
 		this.syntabl = m.tbl;
 		this.docm = m;
 		this.volume = volume_extroot;
 
 		concats = Funcall.concat(
-			f("'{\"type\": \"%s\", \"synode\": \"%s\", \"docId\": \"'", clsname, synode),
+			f("'{\"type\": \"%s\", \"synoder\": \"%s\", \"docId\": \"'", clsname, synoder),
 			docm.pk,
 			f("'\", \"syntabl\": \"%s\", \"uri64\": \"%s\", \"breakpoint\": %s, \"uids\": \"'", syntabl, m.uri, breakpoint),
 			Funcall.isnull(m.io_oz_synuid, "'null'").sql(dbcontext),

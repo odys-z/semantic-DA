@@ -318,7 +318,7 @@ public class DBSyn2tableTest {
 									ck[Y].synb.instancontxt())), "docref",
 					ck[Y].docm.io_oz_synuid, X_0_uids[2]));
 		assertNotNull(y_refx0);
-		assertEquals("X", y_refx0.synode);
+		assertEquals("X", y_refx0.synoder);
 		assertEquals(X_0_uids[2], y_refx0.uids);
 		assertEquals("h_photos", y_refx0.syntabl);
 		assertTrue(gt(y_refx0.docId, B_0_uids[0]));

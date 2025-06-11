@@ -23,6 +23,9 @@ public class Exchanging extends Anson {
 	public static final int confirming = 3;
 	public static final int ready = 4;
 	
+	/** The ext-file is waiting to be resolved */
+	public static final int ext_docref = 5;
+	
 	public static final int mode_server = 0;
 	public static final int mode_client = 1;
 

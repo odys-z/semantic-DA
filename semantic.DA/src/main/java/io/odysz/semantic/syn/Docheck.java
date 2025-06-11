@@ -487,19 +487,6 @@ public class Docheck {
 		} finally { synb.popDebug();}
 	}
 	
-	/**
-	 * Verify if and only if one instance exists on this node.
-	 * 
-	 * @param synoder
-	 * @param clientpath
-	public void verifile(String synoder, String clientpath, ExpDocTableMeta docm) {
-		synb.select(docm.tbl)
-			.col(count(docm.pk), "c")
-			.where(new Predicate(op.eq, compound(synb.syndomx.chgm.uids), compoundVal(synoder, clientpath)))
-			;
-	}
-	 */
-
 	@SuppressWarnings("unchecked")
 	public static HashMap<String, Nyquence>[] printNyquv(Docheck[] ck, boolean... printSynode) throws SQLException, TransException {
 		Utils.logi(Stream.of(ck)
@@ -670,29 +657,6 @@ public class Docheck {
 
 	/** device meta */
 	public final SyntityMeta devm;
-	
-	/**
-	 * <p>Push connection's debug flags and return a checker instance.</p>
-	 * Example:
-	 * <pre>pushDebug()
-	 * .assertl(
-	 *  expect1, loadNyquvect(actual1), // logging suppressed
-	 *  expect2, loadNyquvect(actual2), // logging suppressed
-	 *  ...)
-	 * .popDebug();                     // logging restored</pre>
-	 * @throws Exception 
-	public static void pushDebug() throws Exception {
-		if (ck != null) {
-			final boolean[] tops = new boolean[ck.length];
-			for (int cx = 0; cx < ck.length; cx++) {
-				if (ck[cx] != null) {
-					tops[cx] = Connects.getDebug(ck[cx].connId());
-					Connects.setDebug(ck[cx].connId(), tops[cx]);
-				}
-			}
-		}
-	}
-	*/
 
 	public Docheck assertl(long ... n) {
 		if (!isNull(n))
@@ -709,7 +673,7 @@ public class Docheck {
 	 */
 	public Collection<DocRef> docRef() throws SQLException, TransException {
 		try {
-			return ((AnResultset)synb.pushDebug(true).select(docm.tbl)
+			return ((AnResultset)synb.pushDebug(false).select(docm.tbl)
 				.col(docm.pk).col(docm.uri)
 				.where(Predicate.eq(Funcall.subStr(docm.uri, 1, 8), "{\"type\":")) // TODO we need function predicate
 				.rs(synb.instancontxt())
