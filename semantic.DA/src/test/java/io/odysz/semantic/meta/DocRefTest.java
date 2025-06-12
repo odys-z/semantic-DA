@@ -5,12 +5,12 @@ import static io.odysz.common.LangExt.f;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
-
 import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.Anson;
 import io.odysz.common.Configs;
+import io.odysz.common.EnvPath;
 import io.odysz.common.Utils;
 import io.odysz.semantic.DASemantextTest;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
@@ -18,6 +18,7 @@ import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.syn.T_DA_PhotoMeta;
+import io.odysz.semantics.SessionInf;
 import io.odysz.transact.sql.parts.ExtFilePaths;
 
 class DocRefTest {
@@ -56,14 +57,14 @@ class DocRefTest {
 		
 		
 		ExtFilePaths extpaths = new ExtFilePaths(sh.getFileRoot(), dr.docId, dr.pname)
-							.prefix(dr.relativeFolder(conn_extpath_upload))
+							.prefix(dr.relativeFolder(sh.getFileRoot()))
 							.filename(dr.pname);
-		
+		// TODO test: extpaths = sh.getExtPaths()
 		assertEquals("uploads/ody/h_photo/0001 Sun Yet-sen Portrait.jpg", extpaths.dburi(true));
 
 		assertEquals(normalize(
 				"uploads/ody/h_photo/0001 Sun Yet-sen Portrait.jpg"),
-				extpaths.abspath());
+				extpaths.decodeUriPath());
 
 		// extpath to volume X
 		sh = (ShExtFilev2) DATranscxt.getHandler(conn_extpath_volume, docm.tbl, smtype.extFilev2);
@@ -74,16 +75,30 @@ class DocRefTest {
 				+ "'pname': 'Sun Yet-sen Portrait.jpg', "
 				+ "'uids': 'X,0001'}")
 				.replaceAll("'", "\""));
+		
+		assertEquals("../deploy-Y/ody/h_photo/0001 Sun Yet-sen Portrait.jpg",
+				EnvPath.decodeUri("$" + volume_Y, "ody/h_photo/0001 Sun Yet-sen Portrait.jpg"));
+
+		assertEquals(EnvPath.decodeUri("$" + volume_Y, "resolve-Y/ssid-test/ody/h_photo/0001 Sun Yet-sen Portrait.jpg"),
+				dr.downloadPath("Y", conn_extpath_volume, new SessionInf("ssid-test", "uid-test")));
+
+		assertEquals(EnvPath.decodeUri("$" + volume_Y, "resolve-Y/ssid-test"),
+				DocRef.resolveFolder("Y", conn_extpath_volume, dr.syntabl, new SessionInf("ssid-test", "uid-test")));
 
 		extpaths = new ExtFilePaths(sh.getFileRoot(), dr.docId, dr.pname)
 							.prefix(dr.relativeFolder(conn_extpath_volume))
 							.filename(dr.pname);
 		
 		assertEquals(f("$%s/ody/h_photo/0001 Sun Yet-sen Portrait.jpg", volume_Y), extpaths.dburi(true));
-		assertEquals(FilenameUtils.separatorsToSystem(
-				f("%s/%s", deploy_Y, "ody/h_photo/0001 Sun Yet-sen Portrait.jpg")),
-				extpaths.abspath());
+		String relativUri = FilenameUtils.separatorsToSystem(
+				f("%s/%s", deploy_Y, "ody/h_photo/0001 Sun Yet-sen Portrait.jpg"));
+
+		assertEquals(relativUri, extpaths.decodeUriPath());
 		
+		extpaths = DocRef.createExtPaths(conn_extpath_volume, docm.tbl, dr);
+		String targetpth = extpaths.decodeUriPath();
+		assertEquals(relativUri, targetpth);
+
 		if (volume_old != null)
 			System.setProperty(volume_Y, volume_old);
 	}

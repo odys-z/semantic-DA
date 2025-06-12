@@ -104,6 +104,19 @@ public class DASemantext implements ISemantext {
 		
 		this.usr = usr;
 	}
+	
+	/**
+	 * @deprecated TODO move this to DBsyntablebuilder.instancontxt()
+	 * @param connId
+	 * @param usr
+	 * @throws SemanticException
+	 * @throws SQLException
+	 * @since 1.5.18
+	 */
+	public DASemantext(String connId, IUser usr)
+			throws SemanticException, SQLException {
+		this(connId, null, usr, null);
+	}
 
 	/**
 	 * When inserting, process data row with configured semantics, like auto-pk, fk-ins, etc..

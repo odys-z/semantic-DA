@@ -1,18 +1,16 @@
 package io.odysz.semantic.meta;
 
 import static io.odysz.common.LangExt.f;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import static io.odysz.common.FilenameUtils.concat;
 
 import io.odysz.anson.AnsonField;
+import io.odysz.common.EnvPath;
 import io.odysz.common.FilenameUtils;
 import io.odysz.common.Regex;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantics.ISemantext;
-import io.odysz.semantics.IUser;
 import io.odysz.semantics.SessionInf;
 import io.odysz.transact.sql.parts.AnDbField;
 import io.odysz.transact.sql.parts.ExtFilePaths;
@@ -99,11 +97,29 @@ public class DocRef extends AnDbField {
 		return concats.sql(context);
 	}
 
-	public Path downloadPath(String peer, String doconn, SessionInf ssinf) {
-		String volume = ((ShExtFilev2) DATranscxt
-				.getHandler(doconn, syntabl, smtype.extFilev2))
-				.getFileRoot();
-		return Paths.get(IUser.tempDir(volume, "resolve-" + peer, ssinf.ssid(), syntabl));
+
+	public static String resolveFolder(String peer, String conn, String syntabl, SessionInf ssInfo) {
+		ShExtFilev2 h = ((ShExtFilev2) DATranscxt
+				.getHandler(conn, syntabl, smtype.extFilev2));
+		
+		return EnvPath.decodeUri(h.getFileRoot(), "resolve-" + peer, ssInfo.ssid());
+	}
+
+	/**
+	 * Get temporary path for downloading in asyn-resolver.
+	 * @param peer
+	 * @param doconn
+	 * @param ssinf
+	 * @return temp path, subfolder of {@link #resolveFolder(String, String, String, SessionInf) resolve-folder}.
+	 * @throws TransException
+	 */
+	public String downloadPath(String peer, String doconn, SessionInf ssinf) throws TransException {
+		ShExtFilev2 h = ((ShExtFilev2) DATranscxt
+				.getHandler(doconn, syntabl, smtype.extFilev2));
+
+		return h.getExtPaths(docId, pname)
+				.prefix(concat("resolve-" + peer, ssinf.ssid(), relativeFolder(h.getFileRoot())))
+				.decodeUriPath();
 	}
 
 	public DocRef docId(String pk) {
@@ -116,31 +132,17 @@ public class DocRef extends AnDbField {
 		return this;
 	}
 
-	/**
-	 * Example: <pre>
-	 * docref.setupExtPaths(expths, Arrays.copyOfRange(sh.args, ixUri+1, sh.args.length - 1));
-	 * </pre>
-	 * @param expths
-	 * @param shSubpaths 
-	 * @return 
-	 * @return expths
-	public ExtFilePaths setupExtPaths(ExtFilePaths expths, String [] shSubpaths) {
-
-		return expths;
-	}
-	 */
-
-	public static ExtFilePaths createExtPaths(String conn, String tbl, DocRef ref) throws TransException {
+	public static ExtFilePaths createExtPaths(String conn, String tbl, DocRef ref)
+			throws TransException {
 		ShExtFilev2 sh = ((ShExtFilev2) DATranscxt
 				.getHandler(conn, tbl, smtype.extFilev2));
-
-		return new ExtFilePaths(sh.getFileRoot(), ref.docId, ref.pname)
-					.prefix(ref.uri64);
+		
+		return sh.getExtPaths(ref.docId, ref.pname)
+				.prefix(ref.relativeFolder(sh.getFileRoot()))
+				;
 	}
 
-	public String relativeFolder(String conn) {
-		String extroot = DATranscxt.hasSemantics(conn, syntabl, smtype.extFilev2) ?
-				((ShExtFilev2)DATranscxt.getHandler(conn, syntabl, smtype.extFilev2)).getFileRoot() : null; 
+	public String relativeFolder(String extroot) {
 		return isblank(uri64) ? uri64
 				: FilenameUtils.getPathNoEndSeparator(
 				  Regex.removeVolumePrefix(uri64, extroot));

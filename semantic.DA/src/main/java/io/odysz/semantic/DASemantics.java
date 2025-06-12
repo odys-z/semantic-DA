@@ -38,6 +38,7 @@ import io.odysz.transact.sql.Update;
 import io.odysz.transact.sql.parts.AbsPart;
 import io.odysz.transact.sql.parts.ExtFileInsert;
 import io.odysz.transact.sql.parts.ExtFileInsertv2;
+import io.odysz.transact.sql.parts.ExtFilePaths;
 import io.odysz.transact.sql.parts.ExtFileUpdate;
 import io.odysz.transact.sql.parts.ExtFileUpdatev2;
 import io.odysz.transact.sql.parts.Logic;
@@ -1658,9 +1659,11 @@ public class DASemantics {
 
 						ExtFileInsertv2 f;
 						if (fid instanceof Resulving)
-							f = new ExtFileInsertv2(getFileRoot(), (Resulving) fid, stx);
+							// f = new ExtFileInsertv2(getFileRoot(), (Resulving) fid, stx);
+							f = new ExtFileInsertv2(new ExtFilePaths(getFileRoot(), ((Resulving)fid).sql(stx), null));
 						else
-							f = new ExtFileInsertv2(getFileRoot(), new ExprPart(fid.toString()), stx);
+							// f = new ExtFileInsertv2(getFileRoot(), new ExprPart(fid.toString()), stx);
+							f = new ExtFileInsertv2(getExtPaths(fid.toString(), null));
 						
 						
 						String clientname = args[args.length - 1];
@@ -1687,6 +1690,11 @@ public class DASemantics {
 					}
 				}
 			}
+		}
+
+
+		public ExtFilePaths getExtPaths(String fid, String filename) {
+			return new ExtFilePaths(getFileRoot(), fid, filename);
 		}
 
 		public static boolean startEnvelope(AbsPart expr) {

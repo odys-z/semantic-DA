@@ -181,7 +181,6 @@ public class DBSynTransBuilder extends DATranscxt {
 
 			return (M) synmanticMaps.get(conn);
 		}
-
 	}
 
 	public ISemantext instancontxt(String connId, IUser usr) throws TransException {

@@ -156,8 +156,7 @@ public class DATranscxt extends Transcxt {
 	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
 		try {
 			return new DASemantext(connId,
-				initConfigs(connId, 
-						(c) -> new SemanticsMap(c)),
+				initConfigs(connId, (c) -> new SemanticsMap(c)),
 				usr, runtimepath);
 		} catch (Exception e) {
 			// meta is null? shouldn't happen because this instance is already created
