@@ -86,7 +86,9 @@ public class DocRef extends AnDbField {
 		concats = Funcall.concat(
 			f("'{\"type\": \"%s\", \"synoder\": \"%s\", \"docId\": \"'", clsname, synoder),
 			docm.pk,
-			f("'\", \"syntabl\": \"%s\", \"uri64\": \"%s\", \"breakpoint\": %s, \"uids\": \"'", syntabl, m.uri, breakpoint),
+			f("'\", \"syntabl\": \"%s\", \"uri64\": \"'", syntabl),
+			Funcall.isnull(m.uri, "'null'").sql(dbcontext),
+			f("'\", \"breakpoint\": %s, \"uids\": \"'", breakpoint),
 			Funcall.isnull(m.io_oz_synuid, "'null'").sql(dbcontext),
 			"'\", \"pname\": \"'", m.resname,
 			"'\"}'");

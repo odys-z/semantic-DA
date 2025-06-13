@@ -7,6 +7,7 @@ import java.sql.SQLException;
 
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
+import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.meta.TableMeta;
@@ -141,14 +142,28 @@ public class DAHelper {
 	 */
 	public static SemanticObject updateFieldByPk(DATranscxt trb, String conn, TableMeta m, String recId,
 			String vfield, Object v, IUser usr) throws TransException, SQLException {
-		return trb.update(m.tbl, usr)
+//		return trb.update(m.tbl, usr)
+//			.nv(vfield, v instanceof ExprPart
+//						? (ExprPart)v
+//						: isPrimitive(v)
+//						? new ExprPart(String.valueOf(v))
+//						: Funcall.constr(v.toString()))
+//			.whereEq(m.pk, recId)
+//			.u(trb.instancontxt(conn, usr));
+		return updateFieldByPk(trb, trb.instancontxt(conn, usr), m, recId, vfield, v, usr);
+	}
+
+	public static SemanticObject updateFieldByPk(DATranscxt tb, ISemantext semantxt, TableMeta m, String recId,
+			String vfield, Object v, IUser usr) throws TransException, SQLException {
+		return tb.update(m.tbl, usr)
 			.nv(vfield, v instanceof ExprPart
 						? (ExprPart)v
 						: isPrimitive(v)
 						? new ExprPart(String.valueOf(v))
 						: Funcall.constr(v.toString()))
 			.whereEq(m.pk, recId)
-			.u(trb.instancontxt(conn, usr));
+			.u(semantxt);
+
 	}
 
 	/**
