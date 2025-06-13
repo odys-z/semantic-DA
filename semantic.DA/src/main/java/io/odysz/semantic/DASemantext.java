@@ -106,14 +106,15 @@ public class DASemantext implements ISemantext {
 	}
 	
 	/**
-	 * @deprecated TODO move this to DBsyntablebuilder.instancontxt()
+	 * Create a DASemantext instance (for committing statement) without semantics handlers. 
+	 * A protected constructor that can be created by {@link DATranscxt#instanonSemantext(String).
 	 * @param connId
 	 * @param usr
 	 * @throws SemanticException
 	 * @throws SQLException
 	 * @since 1.5.18
 	 */
-	public DASemantext(String connId, IUser usr)
+	protected DASemantext(String connId, IUser usr)
 			throws SemanticException, SQLException {
 		this(connId, null, usr, null);
 	}

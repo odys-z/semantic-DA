@@ -1024,6 +1024,16 @@ public class DBSyntableBuilder extends DATranscxt {
 		return instancontxt(syndomx.synconn, locrobot);
 	}
 
+	/**
+	 * Create a semantic context, without semantics handlers.
+	 * @return
+	 * @throws SQLException 
+	 * @throws SemanticException 
+	 */
+	public ISemantext nonsemantext() throws SemanticException, SQLException {
+		return DATranscxt.instanonSemantext(syndomx.synconn);
+	}
+
 	boolean dbgStack;
 	public DBSyntableBuilder pushDebug(boolean dbg) {
 		this.dbgStack = debug;

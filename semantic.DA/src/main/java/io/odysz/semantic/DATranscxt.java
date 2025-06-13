@@ -165,6 +165,11 @@ public class DATranscxt extends Transcxt {
 		}
 	}
 
+	public static DASemantext instanonSemantext(String conn)
+			throws SemanticException, SQLException {
+		return new DASemantext(conn, dummy);
+	}
+	
 	/**
 	 * Create a select statement.
 	 * 
