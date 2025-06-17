@@ -21,6 +21,7 @@ import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DASemantics.SemanticHandler;
 import io.odysz.semantic.DASemantics.smtype;
+import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -169,9 +170,33 @@ public class DATranscxt extends Transcxt {
 			throws SemanticException, SQLException {
 		return new DASemantext(conn, dummy);
 	}
-	
+
 	/**
-	 * Create a select statement.
+	 * Create a select transaction, only one of which is actually a select statement.
+	 * 
+	 * <p>This batch statement is the starting points to build a sql transact for querying.<br>
+	 * 
+	 * 
+	 * The return value, a resultset, is the first select statement result, 
+	 * by ignoring statements results of {@link Query#before(Statement)}.
+	 * 
+	 * @since 1.5.18 TODO verify with mysql
+	 */
+	public Query batchSelect(String tabl, String... alias) {
+		Query q = super.select(tabl, alias);
+		q.doneOp((sctx, sqls) -> {
+			if (sqls.size() > 1)
+				return donOp1_5_18(q, sctx, sqls);
+			else {
+				return doneOp1_4_0(q, sctx, sqls);
+			}
+		});
+		return q;
+	}
+
+	/**
+	 * Create a select statement. The select statement must be the first one, and cannot
+	 * call {@link Query#before(Statement)}. Use {@link #batchSelect(String, String...)} for this.
 	 * 
 	 * <p>This statement is the starting points to build a sql transact for querying.<br>
 	 * 
@@ -179,32 +204,89 @@ public class DATranscxt extends Transcxt {
 	 * <a href='https://github.com/odys-z/semantic-transact/blob/master/semantic.transact/src/test/java/io/odysz/transact/sql/TestTransc.java'>
 	 * DASemantextTest</a>.</p>
 	 * @see io.odysz.transact.sql.Transcxt#select(java.lang.String, java.lang.String[])
+	 * 
+	 * @since 1.5.18, the return value, a resultset, is the first select statement result,
+	 * by ignoring statements of #before().
+	 * TODO verify with mysql
 	 */
-	@Override
 	public Query select(String tabl, String... alias) {
 		Query q = super.select(tabl, alias);
 		q.doneOp((sctx, sqls) -> {
-			if (q.page() < 0 || q.size() <= 0) {
-				AnResultset rs = Connects.select(sctx.connId(), sqls.get(0));
-				rs.total(rs.getRowCount());
-				sctx.onSelected(rs);
-				return new SemanticObject().rs(rs, rs.total());
-			}
-			else {
-				AnResultset total = Connects.select(sctx.connId(),
-					((DASemantext) sctx).totalSql(sqls.get(0)));
-				total.beforeFirst().next();
-				int t = total.getInt(1);
-
-				AnResultset rs = Connects.select(sctx.connId(),
-					((DASemantext) sctx).pageSql(sqls.get(0), (int)q.page(), (int)q.size()));
-				rs.total(t);
-
-				sctx.onSelected(rs);
-				return new SemanticObject().rs(rs, t);
-			}
+				return doneOp1_4_0(q, sctx, sqls);
 		});
 		return q;
+	}
+
+	private SemanticObject doneOp1_4_0(Query q, ISemantext sctx, ArrayList<String> sqls)
+			throws SQLException, TransException {
+		if (q.page() < 0 || q.size() <= 0) {
+			AnResultset rs = Connects.select(sctx.connId(), sqls.get(0));
+			rs.total(rs.getRowCount());
+			sctx.onSelected(rs);
+			return new SemanticObject().rs(rs, rs.total());
+		}
+		else {
+			return queryPage(sctx, sqls.get(0), (int)q.page(), (int)q.size());
+		}
+	}
+
+	/**
+	 * @since 1.5.18
+	 * @param sctx
+	 * @param sql
+	 * @param page
+	 * @param size
+	 * @return resultset
+	 * @throws SQLException
+	 * @throws TransException
+	 */
+	private SemanticObject queryPage(ISemantext sctx, String sql, int page, int size)
+			throws SQLException, TransException {
+		AnResultset total = Connects.select(sctx.connId(),
+			((DASemantext) sctx).totalSql(sql));
+		total.beforeFirst().next();
+		int t = total.getInt(1);
+
+		AnResultset rs = Connects.select(sctx.connId(),
+			((DASemantext) sctx).pageSql(sql, page, size));
+		rs.total(t);
+
+		sctx.onSelected(rs);
+		return new SemanticObject().rs(rs, t);
+	}
+
+	/**
+	 * Commit and select, which is problematic.
+	 * See https://grok.com/share/bGVnYWN5_8ddf77db-6cd7-461c-84c5-1b8a5200e859
+	 * @param query 
+	 * 
+	 * @param sctx
+	 * @param sqls
+	 * @return the query result
+	 * @throws TransException 
+	 * @throws SQLException 
+	 * @since 1.5.18 TODO verify with mysql
+	 */
+	SemanticObject donOp1_5_18(Query query, ISemantext sctx, ArrayList<String> sqls) throws SQLException, TransException {
+		AbsConnect<?> conn = Connects.getConnect(sctx.connId()).pushAutoCommit(false);
+		if (conn == null)
+			throw new TransException("Cannot initiate connection %s", sctx.connId());
+
+		try {
+			Connects.commit(sctx.connId(), dummy,  // TODO refactor API for better performance
+					new ArrayList<String>(sqls.subList(0, query.beforeSqlsize())));
+
+			SemanticObject rs = doneOp1_4_0(query, sctx,
+					new ArrayList<String>(sqls.subList(query.beforeSqlsize(), query.beforeSqlsize() + 1)));
+
+			if (query.beforeSqlsize() < query.size() - 1)
+			Connects.commit(sctx.connId(), dummy, // TODO refactor API for better performance
+					new ArrayList<String>(sqls.subList(query.beforeSqlsize() + 1, (int) query.size())));
+
+			return rs;
+		} finally {
+			conn.popAutoCommit();
+		}
 	}
 
 	/**

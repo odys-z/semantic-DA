@@ -35,6 +35,4 @@ public class Msql2kDriver extends AbsConnect<Msql2kDriver> {
 	public int[] commit(IUser usr, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
 		throw new SQLException("For the author's knowledge, MS 2000 seams do not supporting LOB - TEXT is enough. You can contact the author.");
 	}
-
-	
 }

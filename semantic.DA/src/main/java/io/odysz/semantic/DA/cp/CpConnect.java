@@ -26,6 +26,7 @@ import io.odysz.semantics.IUser;
  *
  */
 public class CpConnect extends AbsConnect<CpConnect> {
+
 	/**Use this for querying database without help of sql builder (which need query meta data first with this method).
 	 * @param src name that matches context.xml/Resource/name, like 'inet' etc.
 	 * @param sql
@@ -39,7 +40,6 @@ public class CpConnect extends AbsConnect<CpConnect> {
         try {
         	InitialContext ctx = new InitialContext();
         	DataSource ds = (DataSource)ctx.lookup("java:/comp/env/" + src);
-        	// apache told us use this
             con = ds.getConnection();
             con.setAutoCommit(false);
 

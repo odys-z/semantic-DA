@@ -62,7 +62,7 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	}
 	
 	@Override
-	protected void close() throws SQLException {
+	public void close() throws SQLException {
 		// This is not correct
 		// https://stackoverflow.com/questions/31530700/static-finally-block-in-java
 		if (conn != null)
@@ -106,16 +106,22 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	
 	AnResultset selectStatic(String sql, int flag) throws SQLException {
 		Connection conn = getConnection();
-		// Connects.printSql(enableSystemout, flag, sql);
 		printSql(flag, sql);
 
 		Statement stmt = conn.createStatement();
-		ResultSet rs = stmt.executeQuery(sql);
-		AnResultset icrs = new AnResultset(rs);
-		rs.close();
-		stmt.close();
 
-		return icrs;
+		// ResultSet rs = stmt.executeQuery(sql);
+		try {
+			if (stmt.execute(sql)) {
+				ResultSet rs = stmt.getResultSet();
+				AnResultset icrs = new AnResultset(rs);
+				rs.close();
+				return icrs;
+			}
+		} finally {
+			stmt.close();
+		}
+		return null;
 	}
 
 	public AnResultset select(String sql, int flag) throws SQLException {
@@ -132,21 +138,21 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 		return commitst(sqls, flags);
 	}
 
-	/**Commit statement
+	/**
+	 * Commit statement
+	 * 
 	 * @param sqls
 	 * @param flags
 	 * @return The update counts in order of commands
 	 * @throws SQLException
 	 */
 	int[] commitst(ArrayList<String> sqls, int flags) throws SQLException {
-		// Connects.printSql(enableSystemout, flags, sqls);;
 		printSql(flags, sqls);;
 
 		int[] ret;
 		Statement stmt = null;
 		try {
 			Connection conn = getConnection();
-			// Connects.printSql(enableSystemout, flags, conn.toString());
 
 			stmt = conn.createStatement();
 			try {
@@ -161,8 +167,10 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 				}
 
 				ret = stmt.executeBatch();
-				conn.commit();
-
+				if (autoCommit)
+					conn.commit(); // 2025.06.16
+				else
+					pendding_conn = conn;
 			} catch (Exception exx) {
 				conn.rollback();
 				exx.printStackTrace();
@@ -183,6 +191,6 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 
 	@Override
 	public int[] commit(IUser usr, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {
-		throw new SQLException("To the author's knowledge, Sqlite do not supporting CLOB - TEXT is enough. You can contact the author.");
+		throw new SQLException("To the author's knowledge, Sqlite does not support CLOB - TEXT is enough. You can contact the author.");
 	}
 }

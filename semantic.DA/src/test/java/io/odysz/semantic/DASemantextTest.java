@@ -717,6 +717,82 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				s0.resulvedVal("b_alarms", "alarmId", -1)),
 				sqls.get(0));
 	}
+	
+	@Test
+	public void testDeleteBatchSelect() throws TransException, SQLException {
+		DASemantext ctx = new DASemantext(connId, smtcfg, usr, rtroot);
+		String alarmA = ((SemanticObject) st.insert("b_alarms", usr)
+			.nv("typeId", "batch-q-x")
+			.nv("remarks", "-------")
+			.ins(st.instancontxt(connId, usr)))
+			.resulve("b_alarms", "alarmId", 0);
+
+		st.insert("b_alarms", usr)
+			.nv("typeId", "batch-q-y")
+			.nv("remarks", "+++++++")
+			.ins(st.instancontxt(connId, usr));
+		
+		ctx = new DASemantext(connId, smtcfg, usr, rtroot);
+		AnResultset rs = (AnResultset) st.batchSelect("b_alarms", "a")
+			.cols("typeId", "remarks")
+			.before(st.delete("b_alarms")
+					.whereEq("typeId", "batch-q-y"))
+			.whereEq("typeId", "batch-q-y")
+			.rs(ctx)
+			.rs(0);
+		
+		assertFalse(rs.next());
+
+		rs = ((AnResultset) st.batchSelect("b_alarms", "a")
+			.cols("typeId", "remarks", "alarmId")
+			.before(st.delete("b_alarms")
+					.whereEq("typeId", "batch-q-y"))
+			.whereEq("typeId", "batch-q-x")
+			.rs(ctx)
+			.rs(0))
+			.nxt();
+		
+		assertEquals(1, rs.getRowCount());
+		assertEquals(alarmA, rs.getString("alarmId"));
+		assertEquals("batch-q-x", rs.getString("typeId"));
+		assertEquals("-------", rs.getString("remarks"));
+		
+		
+		rs = ((AnResultset) st.batchSelect("b_alarms", "a")
+			.page(0, 2)
+			.cols("typeId", "remarks", "alarmId")
+			.before(st.delete("b_alarms")
+					.whereEq("typeId", "batch-q-y"))
+			.whereEq("typeId", "batch-q-x")
+			.rs(ctx)
+			.rs(0))
+			.nxt();
+			
+		assertEquals(1, rs.getRowCount());
+		assertEquals(alarmA, rs.getString("alarmId"));
+		assertEquals("batch-q-x", rs.getString("typeId"));
+		assertEquals("-------", rs.getString("remarks"));
+		
+		rs = ((AnResultset) st.select("b_alarms", "a")
+			.page(0, 2)
+			.cols("typeId", "remarks", "alarmId")
+			.whereEq("typeId", "batch-q-x")
+			.rs(ctx)
+			.rs(0))
+			.nxt();
+			
+		assertEquals(1, rs.getRowCount());
+		assertEquals(alarmA, rs.getString("alarmId"));
+		assertEquals("batch-q-x", rs.getString("typeId"));
+		assertEquals("-------", rs.getString("remarks"));
+				
+		// TODO testpaging
+		// TODO testpaging
+		// TODO testpaging
+		// TODO testpaging
+		// TODO testpaging
+		// TODO testpaging
+	}
 
 	@SuppressWarnings("serial")
 	@Test
@@ -875,25 +951,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 					eq("\\home\\alice\\vol\\shares\\admin\\000003 f.txt", abspath));
 	}
 	
-//	/**Only Linux/MacOs
-//	 * https://stackoverflow.com/a/40682052/7362888
-//	 * @param newenv
-//	 * @throws Exception
-//	 */
-//	@SuppressWarnings("unchecked")
-//	public static void setEnv2(String key, String value) {
-//	    try {
-//	        Map<String, String> env = System.getenv();
-//	        Class<?> cl = env.getClass();
-//	        Field field = cl.getDeclaredField("m");
-//	        field.setAccessible(true);
-//	        Map<String, String> writableEnv = (Map<String, String>) field.get(env);
-//	        writableEnv.put(key, value);
-//	    } catch (Exception e) {
-//	        throw new IllegalStateException("Failed to set environment variable", e);
-//	    }
-//	}
-
 	/**
 	 * @throws TransException
 	 * @throws SQLException

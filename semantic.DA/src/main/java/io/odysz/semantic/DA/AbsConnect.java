@@ -2,6 +2,7 @@ package io.odysz.semantic.DA;
 
 import java.io.File;
 import java.sql.Clob;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,6 +50,7 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 		this.drvName = drvName;
 		this.id = id;
 		this.log = log;
+		this.autoCommit = true;
 	}
 	
 	public static AbsConnect<?> initDmConnect(String xmlDir, dbtype type, String id, String jdbcUrl,
@@ -103,7 +105,9 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 		return new CpConnect(id, jdbcUrl, type, printSql, log);
 	}
 	
-	protected void close() throws SQLException {}
+	public void close() throws SQLException {
+		if (pendding_conn != null) pendding_conn.close();
+	}
 
 	public abstract AnResultset select(String sql, int flags) throws SQLException, NamingException ;
 
@@ -121,6 +125,15 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 	 */
 	<V extends Anson> Map<String, V> select(String sql, ObjCreator<V> builder, int flags) { return null; }
 	
+	/**
+	 * Commit statements, sqls, in batch mode. if {@link #autoCommit} is false, need user code
+	 * to commit the statements. See {@link Query#select()}.
+	 * @param sqls
+	 * @param flags
+	 * @return results
+	 * @throws SQLException
+	 * @throws NamingException
+	 */
 	protected abstract int[] commit(ArrayList<String> sqls, int flags) throws SQLException, NamingException;
 
 	public final int[] commit(IUser usr, ArrayList<String> sqls, int flags) throws SQLException, NamingException {
@@ -188,6 +201,46 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 			|| enableSystemout && (flag & flag_disableSql) != flag_disableSql) {
 			Utils.logi("[%s]", id);
 			Utils.logi(sql);
+		}
+	}
+
+	/**
+	 * Pending connection for automatic commit is false.
+	 */
+	protected Connection pendding_conn;
+
+	/**
+	 * Batch auto-commit controlled by Statements, not of {@link java.sql.Connection#setAutoCommit(boolean)}.
+	 * used in in {@link #commit(ArrayList, int)} implementation in each driver.
+	 * @see SqliteDriver2#commitst(ArrayList, int) 
+	 * @since 1.5.18
+	 */
+	protected boolean autoCommit = true;
+	/** @since 1.5.18 */
+	protected boolean autoCommitStack;
+	/** @since 1.5.18 */
+	public AbsConnect<?> pushAutoCommit(boolean autc) throws SQLException {
+		autoCommitStack = autoCommit;
+		this.autoCommit = autc;
+		return this;
+	}
+
+	/** @since 1.5.18 */
+	public boolean popAutoCommit() throws SQLException {
+		boolean pop = autoCommit;
+		autoCommit = autoCommitStack;
+		return pop;
+	}
+
+	/**
+	 * For Sqlite drivers, it's critical to keep only one db connection, which is required for 
+	 * writing in on thread.
+	 * @throws SQLException
+	 */
+	public void submitAutoCommit() throws SQLException {
+		if (pendding_conn != null) {
+			try { pendding_conn.commit(); }
+			finally { pendding_conn = null; }
 		}
 	}
 }

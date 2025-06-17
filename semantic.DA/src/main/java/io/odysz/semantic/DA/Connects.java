@@ -546,4 +546,7 @@ public class Connects {
 			|| Connects.driverType(conn) == dbtype.sqlite_queue;
 	}
 
+	public static AbsConnect<?> getConnect(String id) {
+		return srcs.get(id); //.commit(null, CpConn);
+	}
 }

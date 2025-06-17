@@ -42,7 +42,7 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 			try {
 				stmt = qu.take();
 				int[] ret = stmt.statment.executeBatch();
-				conn.commit();
+				conn.commit(); // 2025.06.16, queued commitments cannot submit without auto-committing. 
 				
 				stmt.onCommit.ok(ret);
 			} catch (InterruptedException e) {

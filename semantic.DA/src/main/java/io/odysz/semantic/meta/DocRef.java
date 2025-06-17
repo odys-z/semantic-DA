@@ -46,6 +46,10 @@ public class DocRef extends AnDbField {
 	
 	@AnsonField(ignoreTo=true)
 	public ExpDocTableMeta docm;
+	public DocRef docm(ExpDocTableMeta docm) {
+		this.docm = docm;
+		return this;
+	}
 	
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	final String clsname;

@@ -36,6 +36,7 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 			conn = DriverManager.getConnection(connect, userName, pswd);
 		return conn;
 	}
+
 	
 	/**Use this to init connection without using servlet context for retrieving configured strings.<br>
 	 * This is the typical scenario when running test from "main" thread.
@@ -117,7 +118,7 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 					}
 
 					ret = stmt.executeBatch();
-					conn.commit();
+					if (autoCommit) conn.commit(); // 2025.06.16
 					if (enableSystemout) System.out.println("mysql batch execute successfully.");
 				} catch (Exception exx) {
 					conn.rollback();
@@ -149,4 +150,5 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 				+ " - and not planning supporting BLOB as this project is currently designed for supporting mainly JSON module over HTTP. "
 				+ "You can contact the author for any suggestion.");
 	}
+
 }
