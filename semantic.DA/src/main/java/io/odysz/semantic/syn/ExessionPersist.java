@@ -447,12 +447,12 @@ public class ExessionPersist {
 		if (trb != null) {
 			synx.loadNvstamp(trb);
 
-			trb.pushDebug(true);
+//			trb.pushDebug(true);
 			int total = ((SemanticObject) trb
 				.insertExbuf(peer)
 				.ins(trb.instancontxt())
 				).total();
-			trb.popDebug();
+//			trb.popDebug();
 
 			if (total > 0 && debug) {
 				Utils.logi("Changes in buffer for %s -> %s: %s",
@@ -566,26 +566,35 @@ public class ExessionPersist {
 			challengeSeq++;
 		
 			if (trb != null) {
-				// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
+				// try update change-logs' page-idx as even as possible - a little bit bewildering. TODO FIXME SIMPLIFY
+
+//				QueryPage page = (QueryPage) trb
+//					.selectPage(trb
+//						.select(exbm.tbl, "bf")
+//						.col(exbm.pagex, "page")
+//						.cols_byAlias("bf", exbm.changeId)
+//						.col("sub." + subm.synodee)
+//						.je_(chgm.tbl, "chg", exbm.changeId, chgm.pk, exbm.peer, Funcall.constr(peer))
+//						.je_(subm.tbl, "sub", "chg." + chgm.pk, subm.changeId)
+//						.whereEq(exbm.peer, peer))
+//					.page(challengeSeq, chsize)
+//					.col(exbm.changeId);
+
 				QueryPage page = (QueryPage) trb
 					.selectPage(trb
 						.select(exbm.tbl, "bf")
-						.col(exbm.pagex, "page")
-						.cols_byAlias("bf", exbm.changeId)
-						.col("sub." + subm.synodee)
-						.je_(chgm.tbl, "chg", exbm.changeId, chgm.pk, exbm.peer, Funcall.constr(peer))
-						.je_(subm.tbl, "sub", "chg." + chgm.pk, subm.changeId)
-						.whereEq(exbm.peer, peer))
+						.col(exbm.changeId)
+						.whereEq(exbm.peer, peer)
+						.whereEq(exbm.pagex, -1)
+						.groupby(exbm.changeId))
 					.page(challengeSeq, chsize)
 					.col(exbm.changeId);
 
-				trb.pushDebug(true);
 				trb.update(exbm.tbl, trb.synrobot())
 					.nv(exbm.pagex, challengeSeq)
 					.whereIn(exbm.changeId, page)
 					.u(trb.instancontxt())
 					;
-				trb.popDebug();
 			}
 		}
 

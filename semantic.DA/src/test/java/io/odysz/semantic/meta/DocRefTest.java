@@ -2,6 +2,8 @@ package io.odysz.semantic.meta;
 
 import static io.odysz.common.FilenameUtils.normalize;
 import static io.odysz.common.LangExt.f;
+import static io.odysz.common.AssertImpl.assertPathEquals;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
@@ -76,7 +78,7 @@ class DocRefTest {
 				+ "'uids': 'X,0001'}")
 				.replaceAll("'", "\""));
 		
-		assertEquals("../deploy-Y/ody/h_photo/0001 Sun Yet-sen Portrait.jpg",
+		assertPathEquals("../deploy-Y/ody/h_photo/0001 Sun Yet-sen Portrait.jpg",
 				EnvPath.decodeUri("$" + volume_Y, "ody/h_photo/0001 Sun Yet-sen Portrait.jpg"));
 
 		assertEquals(EnvPath.decodeUri("$" + volume_Y, "resolve-Y/ssid-test/ody/h_photo/0001 Sun Yet-sen Portrait.jpg"),
@@ -89,7 +91,7 @@ class DocRefTest {
 							.prefix(dr.relativeFolder(conn_extpath_volume))
 							.filename(dr.pname);
 		
-		assertEquals(f("$%s/ody/h_photo/0001 Sun Yet-sen Portrait.jpg", volume_Y), extpaths.dburi(true));
+		assertPathEquals(f("$%s/ody/h_photo/0001 Sun Yet-sen Portrait.jpg", volume_Y), extpaths.dburi(true));
 		String relativUri = FilenameUtils.separatorsToSystem(
 				f("%s/%s", deploy_Y, "ody/h_photo/0001 Sun Yet-sen Portrait.jpg"));
 

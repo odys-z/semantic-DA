@@ -52,7 +52,7 @@ import io.odysz.transact.x.TransException;
 /**
  * SQL statement builder for {@link DBSynmantext} for handling database synchronization. 
  * 
- * Improved with temporary tables for broken network (and shutdown), concurrency and memory usage.
+ * Be improved with temporary tables for broken network (and shutdown), concurrency and memory usage.
  * 
  * @author Ody
  */
@@ -425,29 +425,7 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		return insert(syndomx.exbm.tbl, locrobot)
 			.cols(syndomx.exbm.insertCols())
-			.select(
-				// 2025-01-14
-//				// target is the subscriber, synoder = this
-//				select(chgm.tbl, "cl")
-//					.cols(constr(peer), chgm.pk, new ExprPart(-1))
-//					.je_(subm.tbl, "sb", constr(peer), subm.synodee, chgm.pk, subm.changeId, chgm.synoder, constr(syndomx.synode))
-//					.je_(pnvm.tbl, "nv", chgm.synoder, synm.pk, constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
-//					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nv", pnvm.nyq), 0)
-//
-//				// propagating 3rd parties' subscriptions
-//				.union(select(chgm.tbl, "cl")
-//					.cols(constr(peer), chgm.pk, new ExprPart(-1))
-//					.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
-//											.and(Sql.condt(op.ne, constr(syndomx.synode), subm.synodee)))
-//					// fixed: orthogonal data handling
-//					// .je_(pnvm.tbl, "nvee", "sb." + subm.synodee, pnvm.synid,
-//					.je_(pnvm.tbl, "nvee", "cl." + chgm.synoder, pnvm.synid,
-//											constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
-//					.where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0)
-//				)
-					
-				q_exchgs
-			);
+			.select(q_exchgs);
 	}
 	
 	/**
@@ -911,7 +889,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			SynChangeMeta chgm = syndomx.chgm;
 			SynSubsMeta subm = syndomx.subm;
 			PeersMeta pnvm = syndomx.pnvm;
-
 
 			Query qstales = null;
 			try {

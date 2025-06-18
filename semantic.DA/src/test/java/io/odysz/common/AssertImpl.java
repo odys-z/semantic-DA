@@ -25,4 +25,13 @@ public class AssertImpl implements IAssert {
 	public void equall(long a, long b, String... msg) {
 		assertEquals(a, b, isNull(msg) ? null : msg[0]);
 	}
+	
+	public static void assertPathEquals(String expect, String actual) {
+		try {
+			assertEquals(expect, actual);
+		} catch (AssertionError e) {
+			assertEquals(expect.replaceAll("/", "\\\\"), actual);
+		}
+	}
+
 }
