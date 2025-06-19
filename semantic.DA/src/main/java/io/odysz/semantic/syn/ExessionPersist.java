@@ -442,12 +442,10 @@ public class ExessionPersist {
 		if (trb != null) {
 			synx.loadNvstamp(trb);
 
-//			trb.pushDebug(true);
 			int total = ((SemanticObject) trb
 				.insertExbuf(peer)
 				.ins(trb.instancontxt())
 				).total();
-//			trb.popDebug();
 
 			if (total > 0 && debug) {
 				Utils.logi("Changes in buffer for %s -> %s: %s",
@@ -585,6 +583,15 @@ public class ExessionPersist {
 					.page(challengeSeq, chsize)
 					.col(exbm.changeId);
 
+				try {
+					Utils.logi("======== next page size: [%s] %s",
+						trb.syndomx.synode,
+						((AnResultset) page
+							.rs(trb.pushDebug(true).instancontxt())
+							.rs(0))
+							.getRowCount());
+				} finally { trb.popDebug(); }
+				
 				trb.update(exbm.tbl, trb.synrobot())
 					.nv(exbm.pagex, challengeSeq)
 					.whereIn(exbm.changeId, page)
