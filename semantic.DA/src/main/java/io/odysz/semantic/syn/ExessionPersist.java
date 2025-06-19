@@ -45,7 +45,6 @@ import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
-import io.odysz.transact.sql.QueryPage;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
