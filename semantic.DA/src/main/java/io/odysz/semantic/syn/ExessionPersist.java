@@ -47,7 +47,6 @@ import io.odysz.transact.sql.QueryPage;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
-import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 /**
@@ -204,9 +203,7 @@ public class ExessionPersist {
 
 			String synodr = changes.getString(chgm.synoder);
 			String chuids = changes.getString(chgm.uids);
-			// String chgid  = changes.getString(chgm.pk);
 
-			// HashMap<String, AnResultset> entbuf = entites; // x.onchanges.entities;
 			if (!eq(change, CRUD.D)
 				&& (ents == null || !ents.containsKey(entm.tbl) || ents.get(entm.tbl).rowIndex0(chuids) < 0)) {
 				Utils.warnT(new Object() {},
@@ -238,7 +235,6 @@ public class ExessionPersist {
 					&& !eq(subsrb, synx.synode))
 					subscribeUC.add(trb.insert(subm.tbl)
 						.cols(subm.insertCols())
-						// .value(subm.insertSubVal(changes))); 
 						.value(subm.insertSubVal(changes, new Resulving(chgm.tbl, chgm.pk)))); 
 				
 				if (ofLastEntity(changes, chuids, chentbl, domain))
@@ -250,7 +246,6 @@ public class ExessionPersist {
 			
 			Insert chlog = subscribeUC.size() <= 0 ? null : trb
 					.insert(chgm.tbl)
-					// .nv(chgm.pk, chgid)
 					.nv(chgm.domain, domain)
 					.nv(chgm.crud, change).nv(chgm.updcols, changes.getString(chgm.updcols))
 					.nv(chgm.entbl, chentbl).nv(chgm.synoder, synodr)
@@ -317,7 +312,7 @@ public class ExessionPersist {
 		return entm instanceof ExpDocTableMeta
 			// && Regex.startsEvelope((String) row.get(TableMeta.colx(cols, ((ExpDocTableMeta) entm).uri) - 1))
 			&& Regex.startsEvelope(TableMeta.cellstr(cols, row, ((ExpDocTableMeta) entm).uri))
-			? t.insert(refm.tbl)
+			?  t.insert(refm.tbl)
 				.nv(refm.syntabl,  entm.tbl)
 				.nv(refm.fromPeer, peer)
 				.nv(refm.io_oz_synuid, uids)
@@ -332,9 +327,9 @@ public class ExessionPersist {
 	private Statement<?> deleteDocref(DBSyntableBuilder t, SyntityMeta entm, String uids) {
 		return entm instanceof ExpDocTableMeta ?
 			t.delete(refm.tbl)
-				.whereEq(refm.syntabl,  entm.tbl)
-				.whereEq(refm.fromPeer, peer)
-				.whereEq(refm.io_oz_synuid, uids)
+			 .whereEq(refm.syntabl,  entm.tbl)
+			 .whereEq(refm.fromPeer, peer)
+			 .whereEq(refm.io_oz_synuid, uids)
 			: null;
 	}
 
