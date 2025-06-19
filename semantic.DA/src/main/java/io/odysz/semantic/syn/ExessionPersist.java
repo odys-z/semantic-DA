@@ -2,6 +2,7 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.Utils.logi;
 import static io.odysz.semantic.syn.ExessionAct.close;
 import static io.odysz.semantic.syn.ExessionAct.exchange;
 import static io.odysz.semantic.syn.ExessionAct.init;
@@ -27,6 +28,7 @@ import io.odysz.common.Regex;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
+import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
 import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
@@ -57,6 +59,8 @@ import io.odysz.transact.x.TransException;
  * @author Ody
  */
 public class ExessionPersist {
+	public static final boolean dbgExchangeBreaking = true;
+
 	final SyndomContext synx;
 	public SyndomContext syndomx() {
 		// FIXME remove this if SynssionPeer.resolveDocrefs() if refactored.
@@ -93,7 +97,7 @@ public class ExessionPersist {
 	}
 
 	/**
-	 * Delete peers from my syn_subscribes.
+	 * Delete peers from my syn_subscribes, with the reply of challenges, in {@code conf.anspage}.
 	 */
 	ExessionPersist commitAnswers(ExchangeBlock conf, String srcnode, long tillN0_delete)
 			throws SQLException, TransException {
@@ -580,17 +584,28 @@ public class ExessionPersist {
 						.whereEq(exbm.peer, peer)
 						.whereEq(exbm.pagex, -1)
 						.groupby(exbm.changeId))
-					.page(challengeSeq, chsize)
+					.page(0, chsize)
 					.col(exbm.changeId);
 
 				try {
+					DATranscxt dbgt = new DATranscxt();
+					int pagesize = ((AnResultset) ((Query) dbgt
+						.select(exbm.tbl, "bf")
+						.col(exbm.changeId)
+						.whereEq(exbm.peer, peer)
+						.whereEq(exbm.pagex, -1)
+						.groupby(exbm.changeId)
+						.page(0, chsize) // debug notes: each time the previous are set to non -1
+						.col(exbm.changeId))
+						.rs(dbgt.instancontxt(trb.syndomx.synconn, trb.locrobot))
+						.rs(0))
+						.getRowCount();
+
 					Utils.logi("======== next page size: [%s] %s",
-						trb.syndomx.synode,
-						((AnResultset) page
-							.rs(trb.pushDebug(true).instancontxt())
-							.rs(0))
-							.getRowCount());
-				} finally { trb.popDebug(); }
+						trb.syndomx.synode, pagesize);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				
 				trb.update(exbm.tbl, trb.synrobot())
 					.nv(exbm.pagex, challengeSeq)
@@ -625,6 +640,9 @@ public class ExessionPersist {
 
 		AnResultset rs = chpage();
 
+		if (dbgExchangeBreaking)
+			printChpage(peer, rs, chEntities);
+
 		return new ExchangeBlock(synx.domain,
 					trb == null ? rep.peer : synx.synode,
 					peer, session, exstate)
@@ -632,6 +650,15 @@ public class ExessionPersist {
 				.totalChallenges(totalChallenges, this.chsize)
 				.seq(this)
 				.nv(synx.nv);
+	}
+
+	private void printChpage(String peer, AnResultset challenges, HashMap<String, AnResultset> syntities) {
+		logi("====== %s -> %s ====== Challenge Page: ======", synx.synode, peer);
+		logi("%s\npage-index: %s,\tchallenging size: %s\nSyntities:\n",
+			synx.synode, challengeSeq, challenges.getRowCount());
+		if (syntities != null)
+			for (String tbl : syntities.keySet())
+				logi("%s,\tsize: %s,", tbl, syntities.get(tbl).getRowCount());
 	}
 
 	ExchangeBlock onExchange(String peer, ExchangeBlock req)
@@ -643,10 +670,15 @@ public class ExessionPersist {
 
 		exstate.state = exchange;
 
+		AnResultset rs = chpage();
+
+		if (dbgExchangeBreaking)
+			printChpage(peer, rs, chEntities);
+
 		return new ExchangeBlock(synx.domain,
 					trb == null ? req.peer
 					: synx.synode, peer, session, exstate)
-				.chpage(chpage(), chEntities)
+				.chpage(rs, chEntities)
 				.totalChallenges(totalChallenges, this.chsize)
 				.seq(this)
 				.nv(synx.nv);
@@ -787,7 +819,8 @@ public class ExessionPersist {
 			
 			entities(tbl, entities);
 		}
-			
+
+		try {	
 		return trb == null ? null : (AnResultset)trb
 			.select(chgm.tbl, "ch")
 			.cols(exbm.pagex, "ch.*", "sb." + subm.synodee)
@@ -797,8 +830,9 @@ public class ExessionPersist {
 			.orderby(chgm.synoder)
 			.orderby(chgm.entbl)
 			.orderby(chgm.seq)
-			.rs(trb.instancontxt())
+			.rs(trb.pushDebug(dbgExchangeBreaking).instancontxt())
 			.rs(0);
+		} finally {trb.popDebug();}
 	}
 
 	public ExessionPersist entities(String tbl, AnResultset ents) {

@@ -4,6 +4,7 @@ import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.hasGt;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.str;
+import static io.odysz.common.Utils.logi;
 import static io.odysz.semantic.syn.ExessionAct.restore;
 import static io.odysz.semantic.syn.ExessionAct.setupDom;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
@@ -289,6 +290,9 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws SQLException, TransException {
 		if (req == null || req.chpage == null) return xp;
 
+		if (ExessionPersist.dbgExchangeBreaking)
+			printAnswer_persisting(peer, xp, req);
+
 		String      synode = syndomx.synode;
 		SynodeMeta    synm = syndomx.synm;
 		SynChangeMeta chgm = syndomx.chgm;
@@ -362,6 +366,16 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		return xp.saveAnswer(resp.anspage)
 				.saveChanges(changes, req.nv, req.entities);
+	}
+
+	private void printAnswer_persisting(String peer, ExessionPersist xp, ExchangeBlock req) {
+		logi("====== %s <- %s ====== Answering: ======", syndomx.synode, peer);
+		logi("%s\npage-index: %s,\tchallenging size: %s\nSyntities:\n",
+			syndomx.synode, xp.answerSeq, xp.challengeSeq, xp.chsize);
+		
+		if (xp.chEntities != null)
+			for (String tbl : xp.chEntities.keySet())
+				logi("%s\t%s", tbl, xp.chEntities.size());
 	}
 
 	public ExchangeBlock closexchange(ExessionPersist cx, ExchangeBlock rep)
