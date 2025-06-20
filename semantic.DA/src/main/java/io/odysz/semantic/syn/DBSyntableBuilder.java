@@ -290,7 +290,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws SQLException, TransException {
 		if (req == null || req.chpage == null) return xp;
 
-		if (ExessionPersist.dbgExchangeBreaking)
+		if (ExessionPersist.dbgExchangePaging)
 			printAnswer_persisting(peer, xp, req);
 
 		String      synode = syndomx.synode;
