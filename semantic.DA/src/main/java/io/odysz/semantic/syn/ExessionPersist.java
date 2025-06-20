@@ -58,7 +58,7 @@ import io.odysz.transact.x.TransException;
  * @author Ody
  */
 public class ExessionPersist {
-	public static final boolean dbgExchangeBreaking = true;
+	public static final boolean dbgExchangePaging = true;
 
 	final SyndomContext synx;
 	public SyndomContext syndomx() {
@@ -626,7 +626,7 @@ public class ExessionPersist {
 
 		AnResultset rs = chpage();
 
-		if (dbgExchangeBreaking)
+		if (dbgExchangePaging)
 			printChpage(peer, rs, chEntities);
 
 		return new ExchangeBlock(synx.domain,
@@ -658,7 +658,7 @@ public class ExessionPersist {
 
 		AnResultset rs = chpage();
 
-		if (dbgExchangeBreaking)
+		if (dbgExchangePaging)
 			printChpage(peer, rs, chEntities);
 
 		return new ExchangeBlock(synx.domain,
@@ -816,7 +816,7 @@ public class ExessionPersist {
 			.orderby(chgm.synoder)
 			.orderby(chgm.entbl)
 			.orderby(chgm.seq)
-			.rs(trb.pushDebug(dbgExchangeBreaking).instancontxt())
+			.rs(trb.pushDebug(dbgExchangePaging).instancontxt())
 			.rs(0);
 		} finally {trb.popDebug();}
 	}

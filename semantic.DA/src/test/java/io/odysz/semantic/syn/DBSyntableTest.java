@@ -724,8 +724,6 @@ public class DBSyntableTest {
 
 		Utils.logrst(new String[] {clientnid, "closing exchange"}, test, subno, ++no);
 		ExchangeBlock req = ctb.closexchange(cp, rep);
-//		if (req.nv.containsKey(clientnid))
-//			assertEquals(req.nv.get(clientnid).n + 1, SyndomContext.getNyquence(ctb).n);
 		assertEquals(ready, cp.exstate());
 
 		printChangeLines(ck);
@@ -735,8 +733,6 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {servnid, "on closing exchange"}, test, subno, ++no);
 		// FIXME what if the server doesn't agree?
 		rep = stb.onclosexchange(sp, req);
-//		if (req.nv.containsKey(clientnid))
-//			assertEquals(rep.nv.get(clientnid).n + 1, SyndomContext.getNyquence(stb).n);
 		assertEquals(ready, sp.exstate());
 
 		printChangeLines(ck);
