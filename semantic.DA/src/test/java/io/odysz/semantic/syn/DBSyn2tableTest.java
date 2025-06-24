@@ -42,6 +42,7 @@ import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSessionMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
 import io.odysz.semantic.meta.SynchangeBuffMeta;
+import io.odysz.semantic.meta.SynDocRefMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.syn.registry.Syntities;
@@ -80,6 +81,7 @@ public class DBSyn2tableTest {
 	static SynChangeMeta chm;
 	static SynSubsMeta sbm;
 	static SynchangeBuffMeta xbm;
+	static SynDocRefMeta rfm;
 	static SynSessionMeta ssm;
 	static PeersMeta prm;
 
@@ -134,6 +136,7 @@ public class DBSyn2tableTest {
 		chm = new SynChangeMeta();
 		sbm = new SynSubsMeta(chm);
 		xbm = new SynchangeBuffMeta(chm);
+		rfm = new SynDocRefMeta();
 		ssm = new SynSessionMeta();
 		prm = new PeersMeta();
 
@@ -143,7 +146,7 @@ public class DBSyn2tableTest {
 			T_DA_PhotoMeta phm = new T_DA_PhotoMeta(conn);//.replace();
 			T_DA_DevMeta   dvm = new T_DA_DevMeta(conn);  // .replace();
 
-			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, prm, ssm, phm, dvm);
+			SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, rfm, prm, ssm, phm, dvm);
 			phm.replace();
 			dvm.replace();
 
