@@ -170,18 +170,6 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 			row.add(new Object[] {c, entities.getStringByIndex(c, entid)});
 		return row;
 	}
-	/**
-	 * Generate select-items for select clause which is used for Insert, e.g.
-	 * <pre>insert into t select 'item-a', 'item-b' where not exists select 1 from t where condition-avoiding-duplicate</pre>
-	 * 
-	 * @param entid
-	 * @param entities
-	 * @param changes
-	 * @return select-items
-	 * @throws SQLException 
-	public abstract Object[] insertSelectItems(SynChangeMeta chgm, String entid,
-			AnResultset entities, AnResultset changes) throws TransException, SQLException;
-	 */
 
 	/**
 	 * 
@@ -211,19 +199,4 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 */
 	public Query onselectSyntities(SyndomContext syndomx, Query select, DBSyntableBuilder synb)
 			throws TransException, SQLException { return select; }
-
-// Replaced by synChangeMeta.uids(synode, sep, docId)
-//	public String synuid(AnResultset rs) {
-//		if (rs != null) {
-//			return uids.stream().map(f -> {
-//				try {
-//					return rs.getString(f);
-//				} catch (SQLException e) {
-//					e.printStackTrace();
-//					return f;
-//				}
-//			}).collect(Collectors.joining(","));
-//		}
-//		return null;
-//	}
 }

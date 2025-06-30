@@ -172,18 +172,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			.seq(cp.persisession());
 	}
 	
-//	ExchangeBlock onExchange(ExessionPersist sp, String peer, ExchangeBlock req)
-//			throws SQLException, TransException {
-//		// select ch.*, synodee from changelogs ch join syn_subscribes limit 100 * i, 100
-//		sp.expect(req).exstate(ExessionAct.exchange);
-//
-//		return sp
-//			.commitAnswers(req, peer, sp.n0().n)
-//			.onExchange(peer, req) // The challenge page is ready
-//			.answers(answer_save(sp, req, peer))
-//			.seq(sp.persisession());
-//	}
-
 	/**
 	 * Clean N.change[.].nyq <= NVp.[.], where,
 	 * N is synoder;
