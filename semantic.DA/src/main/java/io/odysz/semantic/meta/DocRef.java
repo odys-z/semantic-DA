@@ -8,6 +8,7 @@ import io.odysz.common.EnvPath;
 import io.odysz.common.FilenameUtils;
 import io.odysz.common.Regex;
 import io.odysz.semantic.DATranscxt;
+import io.odysz.semantic.syn.DBSyntableBuilder;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantics.ISemantext;
@@ -103,6 +104,9 @@ public class DocRef extends AnDbField {
 		return concats.sql(context);
 	}
 
+	public void updateDb(DBSyntableBuilder b) {
+		
+	}
 
 	public static String resolveFolder(String peer, String conn, String syntabl, SessionInf ssInfo) {
 		ShExtFilev2 h = ((ShExtFilev2) DATranscxt

@@ -110,7 +110,7 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 				? replacele(entCols(), uri, refile(
 						new DocRef(syndomx.synode, this,
 								((ShExtFilev2) DATranscxt.getHandler(conn,  tbl, smtype.extFilev2)).getFileRoot(),
-								synb.instancontxt()),
+								synb.instancontxt()),  // Is this a bug? Shouldn't be the context of the caller?
 						uri))
 				: entCols());
 	}

@@ -1,5 +1,7 @@
 package io.odysz.semantic.syn;
 
+import static io.odysz.common.LangExt._0;
+
 import java.io.PrintStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -47,6 +49,10 @@ public class ExchangeBlock extends Anson {
 	
 	public ExchangeBlock(String domain, String src, String peer, String sessionId, ExessionPersist exstate) {
 		this(domain, src, peer, sessionId, exstate.exstat());
+	}
+
+	public ExchangeBlock(String domain, String src, String peer, int mode_client_serv, int... mode_client_ready) {
+		this(domain, src, peer, null, new ExessionAct(mode_client_serv, _0(mode_client_ready, ExessionAct.ready)));
 	}
 
 	public ExchangeBlock nv(HashMap<String, Nyquence> nyquvect) {
