@@ -40,8 +40,8 @@ public class DocRef extends AnDbField {
 	public String docId;
 
 	public long breakpoint;
-	public DocRef breakpoint(int b) {
-		breakpoint = b;
+	public DocRef breakpoint(long range) {
+		breakpoint = range;
 		return this;
 	}
 	
