@@ -30,6 +30,10 @@ public abstract class SynEntity extends Anson {
 	}
 
 	public String uids;
+	public SynEntity uids(String uids) {
+		this.uids = uids;
+		return this;
+	}
 
 	/** Non-public: doc' device id is managed by session. */
 	protected String synode;
@@ -97,4 +101,10 @@ public abstract class SynEntity extends Anson {
 	 * @return {@code ins}
 	 */
 	public abstract Insert insertEntity(SyntityMeta m, Insert ins);
+
+	/**
+	 * This name is supposed to be called in situation that entities' meta are known.
+	 * @return entity table name
+	 */
+	public String tabl() { return entMeta.tbl; }
 }

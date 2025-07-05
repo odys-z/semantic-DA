@@ -43,6 +43,7 @@ import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Update;
+import io.odysz.transact.sql.parts.ExtFilePaths;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
 import io.odysz.transact.sql.parts.Sql;
@@ -1001,6 +1002,17 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	public ISemantext instancontxt() throws TransException {
 		return instancontxt(syndomx.synconn, locrobot);
+	}
+	
+	/**
+	 * %VOLUME/folder/sub.../id name.ext -> 
+	 * volume/folder/sub.../id name.ext 
+	 * 
+	 * @return the absolute file path
+	 * @throws TransException 
+	 */
+	public String decodeExtfile(String extfile) throws TransException {
+		return ExtFilePaths.decodeUri(instancontxt().containerRoot(), extfile);
 	}
 
 	/**

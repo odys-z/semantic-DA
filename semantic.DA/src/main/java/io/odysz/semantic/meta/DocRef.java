@@ -1,9 +1,13 @@
 package io.odysz.semantic.meta;
 
 import static io.odysz.common.LangExt.f;
+
 import static io.odysz.common.FilenameUtils.concat;
 
+import io.odysz.anson.Anson;
+import io.odysz.anson.AnsonException;
 import io.odysz.anson.AnsonField;
+import io.odysz.anson.JSONAnsonListener;
 import io.odysz.common.EnvPath;
 import io.odysz.common.FilenameUtils;
 import io.odysz.common.Regex;
@@ -19,11 +23,31 @@ import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
 
 public class DocRef extends AnDbField {
+	static {
+		JSONAnsonListener.registFactory(DocRef.class, (s) -> {
+			try {
+				// return new DocRef().toJson(new StringBuffer(s));
+				return (DocRef)Anson.fromJson(s);
+			} catch (AnsonException e) {
+				e.printStackTrace();
+				return new DocRef();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		});	
+	}
 	/**
 	 * 
 	 */
 	public String synoder;
+
 	public String syntabl;
+	public DocRef syntabl(String tbl) {
+		syntabl = tbl;
+		return this;
+	}
+
 	public String uri64;
 
 	public String uids;
