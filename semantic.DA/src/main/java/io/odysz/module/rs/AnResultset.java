@@ -60,6 +60,21 @@ public class AnResultset extends Anson {
 		T create(AnResultset rs) throws SQLException;
 	}
 
+	/**
+	 * @since 1.5.18
+	 */
+	@FunctionalInterface
+	public interface ObjFilter {
+		/**
+		 * Filter for filter out when calling {@link AnResultset#map(String, ObjCreator, ObjFilter...)}.
+		 * @param rs resultset at current row, iteration is driven by AnResultset, 
+		 * by calling {@link AnResultset#map(String, ObjCreator)}.
+		 * @return true for map into results, false for ignore.
+		 * @throws SQLException
+		 */
+		boolean filter(AnResultset rs) throws SQLException;
+	}
+
 	private int colCnt = 0;
 	/**current row index, start at 1. */
 	private int rowIdx = -1;
@@ -1127,16 +1142,18 @@ for (String coln : colnames.keySet())
 	 * @since 1.4.12
 	 * @param keyField value of the field name used for map's key
 	 * @param objCreator object creator (mapper)
+	 * @param filter filter of item. This is a parameter not recommended to use
+	 * for performance reason and should only for error tolerating.
 	 * @return objects' map
-	 * @return the hash map
 	 * @throws SQLException
 	 */
-	public <T> HashMap<String, T> map(String keyField, ObjCreator<T> objCreator)
+	public <T> HashMap<String, T> map(String keyField, ObjCreator<T> objCreator, ObjFilter... objFilter)
 			throws SQLException {
 		HashMap<String, T> map = new HashMap<String, T>(results.size());
 		beforeFirst();
 		while(next()) {
-			map.put(getString(keyField), objCreator.create(this));
+			if (isNull(objFilter) || objFilter[0].filter(this))
+				map.put(getString(keyField), objCreator.create(this));
 		}
 		beforeFirst();
 		return map;

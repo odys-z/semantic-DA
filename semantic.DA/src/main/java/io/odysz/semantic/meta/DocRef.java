@@ -60,6 +60,8 @@ public class DocRef extends AnDbField {
 	 * @since 1.5.18
 	 * This is generated at server node, directly send and write into client's db,
 	 * so not usable when loaded from entity table for resolving references.
+	 * 
+	 * When a doc-ref is selected, it is the first synode where the doc-ref is pointed to.
 	 */
 	public String docId;
 
