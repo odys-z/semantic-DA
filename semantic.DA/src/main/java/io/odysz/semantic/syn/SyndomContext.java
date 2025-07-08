@@ -3,7 +3,7 @@ package io.odysz.semantic.syn;
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.isNull;
-import static io.odysz.common.LangExt.musteq;
+import static io.odysz.common.LangExt.musteqi;
 import static io.odysz.common.LangExt.mustGe;
 import static io.odysz.common.LangExt.notBlank;
 import static io.odysz.common.LangExt.notNull;
@@ -293,7 +293,7 @@ public class SyndomContext {
 		notNull(usr.deviceId());
 
 		if (synlocker != null && eq(synlocker.sessionId(), usr.sessionId())) {
-			musteq(sylock[0], 1);
+			musteqi(sylock[0], 1);
 			sylock[0] = 0;
 			if (dbg) Utils.warn(
 					f("++ ++ unlocked %s <- %s\nuser: %s, ssid: %s",
