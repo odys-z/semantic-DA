@@ -367,6 +367,14 @@ public class DBSyntableBuilder extends DATranscxt {
 				logi("%s\t%s", tbl, xp.chEntities.size());
 	}
 
+	/**
+	 * Step n0, reply with closing Exchange-block.
+	 * @param cx
+	 * @param rep
+	 * @return reply
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public ExchangeBlock closexchange(ExessionPersist cx, ExchangeBlock rep)
 			throws TransException, SQLException {
 
