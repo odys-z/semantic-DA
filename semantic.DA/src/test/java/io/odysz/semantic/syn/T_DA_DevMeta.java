@@ -5,7 +5,6 @@ import static io.odysz.common.Utils.loadTxt;
 import io.odysz.semantic.meta.SyntityMeta;
 
 public class T_DA_DevMeta extends SyntityMeta {
-	// final String synode0;
 	final String devname;
 	final String mac;
 	final String org;
@@ -14,7 +13,6 @@ public class T_DA_DevMeta extends SyntityMeta {
 
 	public T_DA_DevMeta(String conn) {
 		super("doc_devices", "synode0", "device", conn);
-		// this.synode0 = "synode0";
 		this.devname = "devname";
 		this.mac     = "mac";
 		this.org     = "org";

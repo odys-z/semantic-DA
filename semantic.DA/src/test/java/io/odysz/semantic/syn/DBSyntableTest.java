@@ -72,9 +72,6 @@ public class DBSyntableTest {
 	public static final String father  = "src/test/res/Sun Yet-sen.jpg";
 	public static final String ukraine = "src/test/res/Ukraine.png";
 	
-//	static final String zsu = "zsu";
-//	static final String ura = "ura";
-
 	public static final int X = 0;
 	public static final int Y = 1;
 	public static final int Z = 2;
@@ -193,7 +190,7 @@ public class DBSyntableTest {
 					// s != W ? zsu : null,
 					zsu,
 					conn, synodes[s],
-					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, chpageSize, phm, null,
+					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, chpageSize, phm, dvm,
 					Connects.getDebug(conn));
 		}
 		
@@ -672,7 +669,7 @@ public class DBSyntableTest {
 	 * @throws TransException 
 	 * @throws IOException 
 	 */
-	void exchangeDocs(int srv, int cli, int test, int subno)
+	static void exchangeDocs(int srv, int cli, int test, int subno)
 			throws TransException, SQLException, IOException {
 		DBSyntableBuilder ctb = ck[cli].synb;
 		DBSyntableBuilder stb = ck[srv].synb;
@@ -683,7 +680,7 @@ public class DBSyntableTest {
 		exchange(ssm, sphm, cphm, stb, ctb, test, subno);
 	}
 
-	void exchangeSynodes(int srv, int cli, int test, int subno)
+	static void exchangeSynodes(int srv, int cli, int test, int subno)
 			throws TransException, SQLException, IOException {
 		DBSyntableBuilder ctb = ck[cli].synb;
 		DBSyntableBuilder stb = ck[srv].synb;
@@ -740,89 +737,6 @@ public class DBSyntableTest {
 		printNyquv(ck, true);
 	}
 
-	/*
-	static void exchange_break(SynSessionMeta ssm, SyntityMeta sphm, DBSyntableBuilder stb,
-			SyntityMeta cphm, DBSyntableBuilder ctb, int test, int subno)
-			throws TransException, SQLException, IOException {
-
-		int no = 0;
-		Utils.logrst(new String[] {ctb.synode(), "initiate"}, test, subno, ++no);
-
-		ExessionPersist cp = new ExessionPersist(stb, stb.synode());
-		ExchangeBlock ini = ctb.initExchange(cp);
-		assertTrue(ini.totalChallenges > 0);
-
-
-		ctb.abortExchange(cp, stb.synode(), null);
-		ini = ctb.initExchange(cp);
-		Utils.logrst(f("%s initiate changes: %d",
-				ctb.synode(), ini.totalChallenges), test, subno, ++no);
-		
-		ExessionPersist sp = new ExessionPersist(ctb, ctb.synode(), ini);
-		ExchangeBlock rep = stb.onInit(sp, ini);
-
-		Utils.logrst(f("%s on initiate: changes: %d    entities: %d",
-				ctb.synode(), rep.totalChallenges, rep.enitities(cphm.tbl)), test, subno, ++no);
-
-		ExchangeBlock req = null;
-
-		req = cp.nextExchange(rep);
-		Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
-		rep = stb.onExchange(sp, ctb.synode(), req);
-		Utils.logrst(f("%s on exchange response    changes: %d    entities: %d    answers: %d",
-				stb.synode(), rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, ++no);
-		printChangeLines(ck);
-		printNyquv(ck);
-	
-		// server had sent reply but client haven't got it
-		// challenges & answers are saved at server
-		ctb.restorexchange();
-
-		if (cp.hasNextChpages(ctb)) {
-			// client
-			req = cp.nextExchange(req);
-			// server
-			Utils.logrst(new String[] {stb.synode(), "on exchange"}, test, subno, ++no);
-			try {
-				// server found the client is trying an already replied challenge
-				rep = stb.onExchange(sp, ctb.synode(), req);
-				fail("Not here");
-			}
-			catch (ExchangeException exp) {
-				// server reply with saved answers
-				rep = stb.requirestore(sp, ctb.synode());
-
-				Utils.logrst(f("%s reuires restore    changes: %d    entities: %d    answers: %d",
-					stb.synode(), rep.chpage, rep.enitities(), rep.answers()), test, subno, ++no);
-				ctb.onRequires(cp, rep);
-			}
-
-			challengeAnswerLoop(sp, stb, cp, ctb, rep, test, subno, ++no);
-
-			assertNotNull(req);
-			assertEquals(0, req.chpage);
-
-			Utils.logrst(new String[] {ctb.synode(), "closing exchange"}, test, subno, ++no);
-			req = ctb.closexchange(cp, rep);
-
-			printChangeLines(ck);
-			printNyquv(ck);
-			// assertEquals(ExessionAct.ready, cp.exstate());
-
-			Utils.logrst(new String[] {stb.synode(), "on closing exchange"}, test, subno, ++no);
-			// FIXME what if server don't agree?
-			stb.onclosexchange(sp, req);
-			printChangeLines(ck);
-			printNyquv(ck);
-
-			if (req.totalChallenges > 0)
-				fail("Shouldn't has any more challenge here.");
-
-		}
-		else fail("Not here");
-	}
-	*/
-
 	static void challengeAnswerLoop(ExessionPersist sp, DBSyntableBuilder stb, 
 				ExessionPersist cp, DBSyntableBuilder ctb, ExchangeBlock rep,
 				int test, int subno, int step) throws SQLException, TransException {
@@ -875,17 +789,15 @@ public class DBSyntableTest {
 	 * @throws SQLException
 	 * @throws IOException 
 	 */
-	String[] insertPhoto(int s) throws TransException, SQLException, IOException {
+	static String[] insertPhoto(int s) throws TransException, SQLException, IOException {
 		DBSyntableBuilder trb = ck[s].synb;
 		ExpDocTableMeta m = ck[s].docm;
 		String synoder = trb.syndomx.synode;
 
-		// IUser rob = trb.syndomx.synrobot;
 		SyncUser usr = new SyncUser(synoder, synoder, "doc owner@" + synoder, "dev client of " + s);
 
 		String[] pid_chid = trb.insertEntity(ck[s].synb.syndomx, m,
-								// new T_Photo(ck[s].synb.syndomx.synconn, zsu)
-								new T_Photo(ck[s].synb.syndomx.synconn, ura) // FIXME to be tested
+								new T_Photo(ck[s].synb.syndomx.synconn, ura)
 				.create(ukraine)
 				.device(usr.deviceId())
 				.folder(usr.uid()));
@@ -903,7 +815,7 @@ public class DBSyntableTest {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	Object[] deletePhoto(int s) throws TransException, SQLException {
+	static Object[] deletePhoto(int s) throws TransException, SQLException {
 		DBSyntableBuilder t = ck[s].synb;
 		ExpDocTableMeta entm = ck[s].docm;
 		AnResultset slt = ((AnResultset) ck[s].synb
@@ -927,7 +839,7 @@ public class DBSyntableTest {
 	 * @throws AnsonException
 	 * @throws IOException
 	 */
-	String[] updatePname(int s)
+	static String[] updatePname(int s)
 			throws SQLException, TransException, AnsonException, IOException {
 		ExpDocTableMeta entm = ck[s].docm;
 		DBSyntableBuilder t = ck[s].synb;

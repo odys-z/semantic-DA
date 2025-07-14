@@ -11,12 +11,6 @@ public class T_Device extends SynEntity {
 	final String org;
 	final String devname;
 
-//	public T_Device(SyntityMeta entm) {
-//		super(entm);
-//		org = null;
-//		devname = null;
-//	}
-
 	public T_Device(String synconn, String org, String devid, String devname) {
 		super(new T_DA_DevMeta(synconn));
 		this.org = org;

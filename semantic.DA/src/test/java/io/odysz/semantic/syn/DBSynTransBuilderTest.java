@@ -1,6 +1,7 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.mustnonull;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.syn.Docheck.ck;
@@ -76,6 +77,8 @@ class DBSynTransBuilderTest {
 			});
 
 		T_DA_PhotoMeta phm = regists.meta("h_photos");
+		T_DA_DevMeta   dvm = regists.meta("doc_devices");
+		mustnonull(dvm);
 
 		SemanticTableMeta.setupSqliTables(conn, true, snm, chm, sbm, xbm, rfm, prm, ssm, phm);
 
@@ -92,7 +95,7 @@ class DBSynTransBuilderTest {
 		Connects.commit(conn, DATranscxt.dummyUser(), sqls);
 
 		Docheck.ck[0] = new Docheck(new AssertImpl(), zsu, conn, synodes[0],
-					SynodeMode.peer, chpageSize, phm, null, Connects.getDebug(conn));
+					SynodeMode.peer, chpageSize, phm, dvm, Connects.getDebug(conn));
 		
 		DBSyntableBuilder logger = Docheck.ck[0].synb;
 		logger.incN0();

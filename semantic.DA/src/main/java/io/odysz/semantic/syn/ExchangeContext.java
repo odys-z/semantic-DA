@@ -1,7 +1,6 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
-import static io.odysz.semantic.syn.Exchanging.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +45,7 @@ public class ExchangeContext {
 	public ExchangeContext(SynChangeMeta chgm, String target) {
 		this.target = target;
 		this.chgm = chgm;
-		this.exstate = new Exchanging(mode_client);
+		this.exstate = new Exchanging(ExessionAct.mode_client);
 		this.session = Radix64.toString((long) (Math.random() * Long.MAX_VALUE));
 	}
 
@@ -59,7 +58,7 @@ public class ExchangeContext {
 	public ExchangeContext(String session, SynChangeMeta chgm, String target) {
 		this.target = target;
 		this.chgm = chgm;
-		this.exstate = new Exchanging(mode_server);
+		this.exstate = new Exchanging(ExessionAct.mode_server);
 		this.session = session;
 	}
 

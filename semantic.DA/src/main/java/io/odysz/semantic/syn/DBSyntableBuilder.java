@@ -123,7 +123,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ExchangeBlock initExchange(ExessionPersist cp)
 			throws TransException, SQLException {
 		if (DAHelper.count(this, basictx().connId(), syndomx.exbm.tbl, syndomx.exbm.peer, cp.peer) > 0)
-			throw new ExchangeException(Exchanging.ready, cp,
+			throw new ExchangeException(ExessionAct.ready, cp,
 				"Can't initate new exchange session. There are exchanging records to be finished.");
 
 		return cp.init();
@@ -310,7 +310,6 @@ public class DBSyntableBuilder extends DATranscxt {
 				continue;
 			}
 			else if (eq(synodee, synode)) {
-				// resp.removeChgsub(req.chpage, synode);	
 				resp.removeChgsub(req.chpage);	
 				changes.append(req.chpage.getRowAt(req.chpage.getRow() - 1));
 			}
@@ -564,7 +563,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ExchangeBlock abortExchange(ExessionPersist cx)
 			throws TransException, SQLException {
 		HashMap<String, Nyquence> snapshot = Nyquence.clone(cx.synx.nv);
-		// syndomx.stamp.n = getNstamp(this).n;
 
 		return cx.abortExchange().nv(snapshot);
 	}
@@ -667,7 +665,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				.logChange(sdx, this, inst, m, syndomx.synode, entitypk)
 				.ins(instancontxt());
 
-		String phid = u.resulve(m, -1);
+		String phid = isblank(e.recId) ? u.resulve(m, -1) : e.recId;
 		String chid = u.resulve(syndomx.chgm, -1);
 		return new String[] {phid, chid};
 	}
@@ -876,7 +874,7 @@ public class DBSyntableBuilder extends DATranscxt {
 			throws TransException, SQLException {
 		// stamp = rep.nv.get(rep)
 		if (isblank(syndomx.domain))
-			throw new ExchangeException(Exchanging.ready, cp, "domain is empty when closing domain joining?");
+			throw new ExchangeException(ExessionAct.ready, cp, "domain is empty when closing domain joining?");
 
 		updateFieldByPk(this, syndomx.synconn, syndomx.synm,
 				syndomx.synode, syndomx.synm.domain, syndomx.domain, locrobot);
@@ -915,13 +913,6 @@ public class DBSyntableBuilder extends DATranscxt {
 				
 			
 					((AnResultset) qstales.rs(instancontxt()).rs(0)).print();
-
-//					((AnResultset) select(chgm.tbl, "ch")
-//						.cols(chgm.pk, chgm.uids, chgm.nyquence, subm.synodee)
-//						.je_(subm.tbl, "sb", chgm.pk, subm.changeId)
-//						.whereEq(subm.synodee, peer)
-//						.rs(instancontxt(synconn, locrobot))
-//						.rs(0)).print();
 				}
 			} catch (Exception e) {
 				e.printStackTrace();

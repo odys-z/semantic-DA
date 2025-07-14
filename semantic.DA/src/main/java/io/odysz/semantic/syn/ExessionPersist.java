@@ -564,6 +564,7 @@ public class ExessionPersist {
 			if (trb != null) {
 				// try update change-logs' page-idx as even as possible - a little bit bewildering. TODO FIXME SIMPLIFY
 
+				// TODO We have batch select now, change to use it
 				Query page = trb
 						.select(exbm.tbl, "bf")
 						.col(exbm.changeId)
@@ -792,7 +793,7 @@ public class ExessionPersist {
 
 			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(synx.synconn, tbl);
 
-			trb.pushDebug(true);
+			// trb.pushDebug(true);
 			AnResultset entities = ((AnResultset) entm
 				.onselectSyntities(synx, trb.select(tbl, "e").distinct(true).cols("e.*"), trb)
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.io_oz_synuid, chgm.uids)
@@ -801,13 +802,14 @@ public class ExessionPersist {
 				.rs(trb.instancontxt())
 				.rs(0))
 				.index0(entm.io_oz_synuid);
-			trb.popDebug();
+			// trb.popDebug();
 			
 			entities(tbl, entities);
 		}
 
 		try {	
 		return trb == null ? null : (AnResultset)trb
+			.pushDebug(dbgExchangePaging)
 			.select(chgm.tbl, "ch")
 			.cols(exbm.pagex, "ch.*", "sb." + subm.synodee)
 			.je_(exbm.tbl, "bf", chgm.pk, exbm.changeId,
@@ -816,7 +818,7 @@ public class ExessionPersist {
 			.orderby(chgm.synoder)
 			.orderby(chgm.entbl)
 			.orderby(chgm.seq)
-			.rs(trb.pushDebug(dbgExchangePaging).instancontxt())
+			.rs(trb.instancontxt())
 			.rs(0);
 		} finally {trb.popDebug();}
 	}

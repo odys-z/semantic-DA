@@ -273,6 +273,11 @@ public class Docheck {
 			return 0;
 	}
 
+	public void change_devlog(int count) {
+	}
+
+	public void change_devlog(int i, String c, String b_0) {
+	}
 
 	/**
 	 * Verify

@@ -78,45 +78,39 @@ public class DBSynmantics extends DASemantics {
 	 */
 	public static Insert logChange(SyndomContext x, DBSyntableBuilder b, Insert inst,
 			SyntityMeta entm, String synode, Object... entitypk) throws TransException {
-//		if (synuid == null) {
 
-			Insert insc = b.insert(x.chgm.tbl)
-				.nv(x.chgm.entbl, entm.tbl)
-				.nv(x.chgm.crud, CRUD.C)
-				.nv(x.chgm.synoder, x.synode)
-				.nv(x.chgm.nyquence, x.stamp.n)
-				.nv(x.chgm.seq, b.incSeq())
-				.nv(x.chgm.domain, x.domain)
-				.post(b.insert(x.subm.tbl)
-					.cols(x.subm.insertCols())
-					.select((Query) b.select(x.synm.tbl)
-						.col(new Resulving(x.chgm.tbl, x.chgm.pk))
-						.col(x.synm.synoder)
-						.where(op.ne, x.synm.synoder, constr(x.synode))
-						.whereEq(x.synm.domain, x.domain)));
+		Insert insc = b.insert(x.chgm.tbl)
+			.nv(x.chgm.entbl, entm.tbl)
+			.nv(x.chgm.crud, CRUD.C)
+			.nv(x.chgm.synoder, x.synode)
+			.nv(x.chgm.nyquence, x.stamp.n)
+			.nv(x.chgm.seq, b.incSeq())
+			.nv(x.chgm.domain, x.domain)
+			.post(b.insert(x.subm.tbl)
+				.cols(x.subm.insertCols())
+				.select((Query) b.select(x.synm.tbl)
+					.col(new Resulving(x.chgm.tbl, x.chgm.pk))
+					.col(x.synm.synoder)
+					.where(op.ne, x.synm.synoder, constr(x.synode))
+					.whereEq(x.synm.domain, x.domain)));
 
-			boolean resulveAutokey = DATranscxt.hasSemantics(x.synconn, entm.tbl, smtype.autoInc)
-								&& isNull(entitypk);
+		boolean resulveAutokey = DATranscxt.hasSemantics(x.synconn, entm.tbl, smtype.autoInc)
+							&& isNull(entitypk);
 
-//			if (Connects.getDebug(x.synconn) && !resulveAutokey && isNull(entitypk))
-//					throw new SemanticException("Inserting empty pk without smtype.autoInc for table %s, %s",
-//							entm.tbl, x.synconn);
+		Object epk = _0(entitypk);
+		ExprPart pid = resulveAutokey
+					? new Resulving(entm.tbl, entm.pk)
+					: epk instanceof String
+					? ExprPart.constr((String)epk)
+					: (ExprPart)epk;
 
-			Object epk = _0(entitypk);
-			ExprPart pid = resulveAutokey
-						? new Resulving(entm.tbl, entm.pk)
-						: epk instanceof String
-						? ExprPart.constr((String)epk)
-						: (ExprPart)epk;
+		Update upe =  b.update(entm.tbl);
 
-			Update upe =  b.update(entm.tbl);
+		upe.nv(entm.io_oz_synuid, SynChangeMeta.uids(synode, pid));
+		insc.nv(x.chgm.uids, SynChangeMeta.uids(synode, pid));
 
-			upe.nv(entm.io_oz_synuid, SynChangeMeta.uids(synode, pid));
-			insc.nv(x.chgm.uids, SynChangeMeta.uids(synode, pid));
-
-			inst.post(upe.whereEq(entm.pk, pid))
-				.post(insc);
-//		}
+		inst.post(upe.whereEq(entm.pk, pid))
+			.post(insc);
 
 		return inst;
 	}

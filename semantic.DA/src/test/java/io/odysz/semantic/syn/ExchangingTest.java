@@ -3,17 +3,13 @@ package io.odysz.semantic.syn;
 import static io.odysz.semantic.syn.ExessionAct.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.sql.SQLException;
-
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.odysz.common.Utils;
-import io.odysz.transact.x.TransException;
 
 class ExchangingTest {
 
-	@Disabled
 	@Test
 	void test() {
 		Exchanging srv = new Exchanging(mode_server);
@@ -25,12 +21,6 @@ class ExchangingTest {
 		clt.onExchange();
 		assertEquals(ready, clt.state);
 
-		clt.ack();
-		assertEquals(ready, clt.state);
-
-		clt.onAck();
-		assertEquals(ready, clt.state);
-
 		clt.close();
 		assertEquals(ready, clt.state);
 
@@ -40,16 +30,10 @@ class ExchangingTest {
 		srv.initexchange();
 		assertEquals(ready, clt.state);
 
-		srv.ack();
-		assertEquals(ready, clt.state);
-
 		clt.initexchange();
 		assertEquals(init, clt.state);
 
 		// 
-		srv.onAck();
-		assertEquals(ready, srv.state);
-
 		srv.close();
 		assertEquals(ready, srv.state);
 
@@ -58,13 +42,6 @@ class ExchangingTest {
 
 		srv.onExchange();
 		assertEquals(exchange, srv.state);
-
-		//
-		clt.ack();
-		assertEquals(0, clt.state);
-
-		srv.onAck();
-		assertEquals(0, srv.state);
 
 		clt.close();
 		assertEquals(ready, clt.state);
@@ -75,30 +52,52 @@ class ExchangingTest {
 
 	@Disabled
 	@Test
-	void testRestore() throws TransException, SQLException {
+	void testRestore() throws Exception {
 		int no = 0;
 
-		String server = "server";
-		String client = "client";
+		String server = "X";
+		String client = "Y";
+		String conn_srv = DBSyntableTest.conns[0];
+		String conn_clt = DBSyntableTest.conns[1];
 
-		Utils.logrst("client initate", ++no);
-		ExessionPersist cp = new ExessionPersist(null, server)
-				.forcetest(16, 5);
+		SyndomContext domx_srv = new SyndomContext(SynodeMode.peer, 16, DBSyn2tableTest.zsu, server, conn_srv, true);
+		DBSyntableBuilder tb_srv = new DBSyntableBuilder(domx_srv);
 
-		ExchangeBlock req = cp.init();
-		int ch_c = -1;
-		req.print(System.out);
+		SyndomContext domx_clt = new SyndomContext(SynodeMode.peer, 16, DBSyn2tableTest.zsu, client, conn_clt, true);
+		DBSyntableBuilder tb_clt = new DBSyntableBuilder(domx_clt);
+
+						Utils.logrst("client initate", ++no);
+						ExessionPersist cp = new ExessionPersist(tb_clt, server)
+								.forcetest(16, 5);
+
+						ExchangeBlock req = cp.init();
+						int ch_c = -1;
+						req.print(System.out);
+						assertEquals(server, req.peer);
+						assertEquals(client, req.srcnode);
+						assertEquals(init, req.act);
+						assertEquals(init, cp.exstate());
+						assertEquals(ch_c, req.challengeSeq);
+						assertEquals(-1, req.answerSeq);
+						assertEquals(ch_c, cp.expAnswerSeq);
 
 		Utils.logrst("server initate", ++no);
-		ExessionPersist sp = new ExessionPersist(null, client, req)
+		ExessionPersist sp = new ExessionPersist(tb_srv, client, req)
 				.forcetest(12, 4);
 		ExchangeBlock rep = sp.onInit(req);
 		int ch_s = -1;
 		rep.print(System.out);
+		assertEquals(client, rep.peer);
+		assertEquals(server, rep.srcnode);
+		assertEquals(init, rep.act);
+		assertEquals(ch_s, rep.challengeSeq);
+		assertEquals(ch_c, rep.answerSeq);
+		assertEquals(ch_s, sp.expAnswerSeq);
 		
 						// client ch: 0
 						Utils.logrst("client exchange", ++no);
-						req = cp.nextExchange(rep); ch_c = 0;
+						req = cp.nextExchange(rep);
+						ch_c = 0;
 						req.print(System.out);
 						assertEquals(server, req.peer);
 						assertEquals(client, req.srcnode);
@@ -110,12 +109,12 @@ class ExchangingTest {
 
 		// server ch: 0
 		Utils.logrst("server on-exchange", ++no);
-		// rep = sp.onextExchange(client, req);
 		rep = sp.nextExchange(req);
-		rep.print(System.out); ch_s = 0;
+		rep.print(System.out);
+		ch_s = 0;
 		assertEquals(client, rep.peer);
 		assertEquals(server, rep.srcnode);
-		assertEquals(ExessionAct.exchange, rep.act);
+		assertEquals(exchange, rep.act);
 		assertEquals(ch_s, rep.challengeSeq);
 		assertEquals(ch_c, rep.answerSeq);
 		assertEquals(ch_s, sp.expAnswerSeq);
@@ -132,18 +131,17 @@ class ExchangingTest {
 						req.print(System.out);
 						assertEquals(server, req.peer);
 						assertEquals(client, req.srcnode);
-						assertEquals(ExessionAct.restore, req.act);
+						assertEquals(restore, req.act);
 						assertEquals(ch_c, req.challengeSeq);
 						assertEquals(  -1, req.answerSeq);  // ch.answer - 1
 						assertEquals(ch_c, cp.expAnswerSeq);
 
 		Utils.logrst("server on-retry last", ++no);
-		// rep = sp.pageback().onextExchange(client, req);
 		rep = sp.pageback().nextExchange(req);
 		rep.print(System.out);
 		assertEquals(client, rep.peer);
 		assertEquals(server, rep.srcnode);
-		assertEquals(ExessionAct.exchange, rep.act);
+		assertEquals(exchange, rep.act);
 		assertEquals(ch_s, rep.challengeSeq);
 		assertEquals(ch_c, rep.answerSeq);
 		assertEquals(ch_s, sp.expAnswerSeq);
@@ -192,7 +190,6 @@ class ExchangingTest {
 						assertEquals(ch_c, cp.expAnswerSeq);
 
 		Utils.logrst("server on-retry last", ++no);
-		// rep = sp.onextExchange(client, req); ch_s++;
 		rep = sp.nextExchange(req); ch_s++;
 		rep.print(System.out);
 		assertEquals(client, rep.peer);

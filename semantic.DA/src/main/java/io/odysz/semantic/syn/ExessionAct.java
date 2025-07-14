@@ -29,6 +29,8 @@ public class ExessionAct {
 	public static final int mode_server = 0;
 	public static final int mode_client = 1;
 
+	public static final int ext_docref = 10;
+
 	public int state;
 	int exmode;
 	public int exmode() { return exmode; }
