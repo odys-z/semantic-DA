@@ -50,6 +50,7 @@ class ExchangingTest {
 		assertEquals(ready, srv.state);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Disabled
 	@Test
 	void testRestore() throws Exception {

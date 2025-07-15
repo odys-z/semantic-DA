@@ -87,7 +87,7 @@ public class DBSyntableTest {
 	static SynSessionMeta ssm;
 	static PeersMeta prm;
 
-	static String[] synodes;
+	static String[] synodes = new String[] { "X", "Y", "Z", "W" };
 
 	static {
 		printCaller(false);
@@ -135,7 +135,6 @@ public class DBSyntableTest {
 		}
 
 		ck = new Docheck[4];
-		synodes = new String[] { "X", "Y", "Z", "W" };
 		chm = new SynChangeMeta();
 		sbm = new SynSubsMeta(chm);
 		xbm = new SynchangeBuffMeta(chm);

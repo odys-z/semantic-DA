@@ -2,6 +2,7 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.musteq;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.semantic.syn.ExessionAct.close;
 import static io.odysz.semantic.syn.ExessionAct.exchange;
@@ -607,6 +608,7 @@ public class ExessionPersist {
 	}
 
 	/**
+	 * @deprecated backup for deprecated test, only for references.
 	 * Reset to last page
 	 * @return this
 	 */
@@ -617,6 +619,18 @@ public class ExessionPersist {
 		challengeSeq--;
 		expAnswerSeq = challengeSeq;
 		return this;
+	}
+
+	/**
+	 * Restore a persisted session.
+	 * @param req
+	 * @return exchanging reply
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public ExchangeBlock onRestore(ExchangeBlock req) throws TransException, SQLException {
+		loadsession(req.peer);
+		return exchange(req.peer, req);
 	}
 
 	ExchangeBlock exchange(String peer, ExchangeBlock rep)
@@ -793,7 +807,6 @@ public class ExessionPersist {
 
 			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(synx.synconn, tbl);
 
-			// trb.pushDebug(true);
 			AnResultset entities = ((AnResultset) entm
 				.onselectSyntities(synx, trb.select(tbl, "e").distinct(true).cols("e.*"), trb)
 				.je_(chgm.tbl, "ch", "ch." + chgm.entbl, constr(tbl), entm.io_oz_synuid, chgm.uids)
@@ -802,7 +815,6 @@ public class ExessionPersist {
 				.rs(trb.instancontxt())
 				.rs(0))
 				.index0(entm.io_oz_synuid);
-			// trb.popDebug();
 			
 			entities(tbl, entities);
 		}
@@ -853,6 +865,30 @@ public class ExessionPersist {
 		}
 		return this;
 	}
+	
+	public ExessionPersist loadsession(String peer) throws TransException, SQLException {
+		musteq(this.peer, peer);
+		if (trb != null) {
+			AnResultset rs = ((AnResultset) trb.select(sysm.tbl).cols(
+				sysm.chpage,	//challengeSeq)
+				sysm.answerx,	// answerSeq)
+				sysm.expansx,	// expAnswerSeq)
+				sysm.mode,		//  exstate.exmode)
+				sysm.state)		// exstate.state)
+				.whereEq(sysm.peer, peer)
+				.rs(trb.instancontxt())
+				.rs(0))
+				.nxt();
+			
+			challengeSeq = rs.getInt(sysm.chpage);
+			answerSeq = rs.getInt(sysm.answerx);
+			expAnswerSeq = rs.getInt(sysm.expansx);
+			exstate.exmode = rs.getInt(sysm.mode);
+			exstate.state = rs.getInt(sysm.state);
+		}
+		return this;
+	}
+
 
 	/**
 	 * Save starting session.

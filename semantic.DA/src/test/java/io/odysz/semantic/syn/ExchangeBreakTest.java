@@ -14,13 +14,14 @@ import static io.odysz.semantic.syn.Docheck.printNyquv;
 import static io.odysz.semantic.syn.ExessionAct.init;
 import static io.odysz.semantic.syn.ExessionAct.ready;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static io.odysz.semantic.syn.DBSyntableTest.*;
 import static io.odysz.semantic.syn.DBSyn2tableTest.zsu;
 import static io.odysz.semantic.syn.DBSyn2tableTest.ura;
 import static io.odysz.semantic.syn.DBSyn2tableTest.chpageSize;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,15 +59,6 @@ import io.odysz.transact.x.TransException;
 public class ExchangeBreakTest {
 	public static final String[] conns;
 	public static final String[] testers;
-	public static final String logconn = "log";
-	public static final String rtroot  = "src/test/res/";
-	public static final String father  = "src/test/res/Sun Yet-sen.jpg";
-	public static final String ukraine = "src/test/res/Ukraine.png";
-	
-	public static final int X = 0;
-	public static final int Y = 1;
-	public static final int Z = 2;
-	public static final int W = 3;
 
 	static String runtimepath;
 
@@ -78,7 +70,8 @@ public class ExchangeBreakTest {
 	static SynSessionMeta ssm;
 	static PeersMeta prm;
 
-	static String[] synodes;
+//	static String[] synodes;
+	static T_SynDomanager[] synodes;
 
 	static {
 		printCaller(false);
@@ -116,7 +109,8 @@ public class ExchangeBreakTest {
 		}
 
 		ck = new Docheck[4];
-		synodes = new String[] { "X", "Y", "Z", "W" };
+		synodes = new T_SynDomanager[4];
+
 		chm = new SynChangeMeta();
 		sbm = new SynSubsMeta(chm);
 		xbm = new SynchangeBuffMeta(chm);
@@ -149,7 +143,7 @@ public class ExchangeBreakTest {
 			// Do this before loading syndomx.
 			// This is necessary as the initial state is unspecified about last synchronization's results,
 			// and increasing n-stamp only will lead to confusion later when initiating exchanges. 
-			SyndomContext.incN0Stamp(conn, snm, synodes[s]);
+			SyndomContext.incN0Stamp(conn, snm, DBSyntableTest.synodes[s]);
 
 			Syntities syntities = Syntities.load(runtimepath, f("syntity-%s.json", s), 
 					(synreg) -> {
@@ -166,10 +160,9 @@ public class ExchangeBreakTest {
 				m.replace();
 
 			Docheck.ck[s] = new Docheck(new AssertImpl(),
-					// s != W ? zsu : null,
 					zsu,
-					conn, synodes[s],
-					s != ExchangeBreakTest.W ? SynodeMode.peer : SynodeMode.leaf, chpageSize, phm, dvm,
+					conn, DBSyntableTest.synodes[s],
+					s != W ? SynodeMode.peer : SynodeMode.leaf, chpageSize, phm, dvm,
 					Connects.getDebug(conn));
 		}
 		
@@ -186,17 +179,17 @@ public class ExchangeBreakTest {
 		testPageBreak(++no);
 	}
 
-	void testPageBreak(int section)
-			throws TransException, SQLException, IOException {
-		SyndomContext xx = ck[X].synb.syndomx;
-		SyndomContext yx = ck[Y].synb.syndomx;
-		SyndomContext zx = ck[Z].synb.syndomx;
+	void testPageBreak(int section) throws Exception {
+
+		synodes[X] = new T_SynDomanager(ck[X]);
+		synodes[Y] = new T_SynDomanager(ck[Y]);
+		synodes[Z] = new T_SynDomanager(ck[Z]);
 
 		@SuppressWarnings("unchecked")
 		HashMap<String, Nyquence>[] nvs = (HashMap<String, Nyquence>[]) new HashMap[] {
-				xx.loadNvstamp(ck[X].synb),
-				yx.loadNvstamp(ck[Y].synb),
-				zx.loadNvstamp(ck[Z].synb)};
+				synodes[X].loadNvstamp(ck[X].synb),
+				synodes[Y].loadNvstamp(ck[Y].synb),
+				synodes[Z].loadNvstamp(ck[Z].synb)};
 
 		HashMap<String, Nyquence>[] nvs_ = Nyquence.clone(nvs);
 
@@ -210,8 +203,8 @@ public class ExchangeBreakTest {
 
 		for (String[] xuids : X_33_uids) {
 			String X_0 = xuids[0];
-			ck[X].change_log(1, C, synodes[X], X_0, ck[X].devm);
-			ck[X].psubs(2, xuids[1], -1, Y, Z, -1);
+			ck[X].change_log(1, C, synodes[X].synode, X_0, ck[X].devm);
+			ck[X].psubs(ck[X].devm, 2, xuids[1], -1, Y, Z, -1);
 		}
 
 		// 2 insert B
@@ -224,31 +217,33 @@ public class ExchangeBreakTest {
 		for (String[] yuids : B_15_uids) {
 			String B_0 = yuids[0];
 
-			ck[Y].change_log(1, C, synodes[Y], B_0, ck[Y].devm);
-			ck[Y].psubs(2, yuids[1], X, -1, Z, -1);
+			ck[Y].change_log(1, C, synodes[Y].synode, B_0, ck[Y].devm);
+			ck[Y].psubs(ck[Y].devm, 2, yuids[1], X, -1, Z, -1);
 
 			ck[Y].change_devlog(1, C, B_0);
 //			ck[Y].change_devlog(1, C, x, X_0);
-			ck[Y].psubs(1, yuids[1], -1, -1, Z, -1);
-			ck[Y].psubs_uid(1, yuids[2], -1, -1, Z, -1);
+			ck[Y].psubs(ck[Y].devm, 1, yuids[1], -1, -1, Z, -1);
+			ck[Y].psubs_uid(ck[Y].devm, 1, yuids[2], -1, -1, Z, -1);
 		}
 
 		// 3. X <= Y
 		Utils.logrst("X <= Y", section, ++no);
-		exchangePage(X, Y, section, no);
+		exchangeDevsBreak(X, Y, section, no);
 
 		printChangeLines(ck);
 		nvs = printNyquv(ck);
 
-		restart(X);
+		ExchangeBlock rep = restart(X);
+		assertNull(rep);
 
-		exchangePage(X, Y, section, no);
+		exchangeDevsBreak(X, Y, section, no);
 		printChangeLines(ck);
 		nvs = printNyquv(ck);
 
-		restart(Y);
+		rep = restart(Y);
+		assertNull(rep);
 
-		exchangePage(X, Y, section, no);
+		exchangeDevsBreak(X, Y, section, no);
 		printChangeLines(ck);
 		nvs = printNyquv(ck);
 
@@ -259,51 +254,34 @@ public class ExchangeBreakTest {
 		printChangeLines(ck);
 		nvs = printNyquv(ck);
 
-		for (String[] xuids : X_33_uids) {
-			String X_0 = xuids[0];
-			ck[Z].change_log(1, C, synodes[Z], X_0, ck[Z].devm);
-			ck[Z].psubs(0, xuids[1], -1, -1, Z, -1);
-		}
-//		ck[Z].change_log(0, C, synodes[Z], X_0, ck[Z].devm);
-//		ck[Z].change_log(0, C, x, X_0, ck[Z].devm);
-//		ck[Z].psubs(0, X_0_uids[1], -1, -1, Z, -1);
-//
-//		ck[Z].change_doclog(0, C, B_0);
-//		ck[Z].change_doclog(0, C, B_0);
-//		ck[Z].psubs(0, B_0_uids[1], -1, -1, Z, -1);
-//		
-//		ck[Y].change_doclog(0, C, X_0);
-//		ck[Y].change_doclog(0, C, B_0);
-//		ck[Y].psubs(0, X_0_uids[1], -1, -1, Z, -1);
-//		ck[Y].psubs(0, B_0_uids[1], -1, -1, Z, -1);
+		ck[Z].change_devlog(0);
+		assertEquals(33 + 15, ck[Z].devs());
 
-		assertI(ck, nvs);
-		assertnv(nvs_[X], nvs[X], 0, 0, 0);
-		assertnv(nvs_[Y], nvs[Y], 0, 1, 1);
-		// 0, 0, 1 => 1, 2, 2
-		assertnv(nvs_[Z], nvs[Z], 1, 2, 1);
+//		assertI(ck, nvs);
+//		assertnv(nvs_[X], nvs[X], 0, 0, 0);
+//		assertnv(nvs_[Y], nvs[Y], 0, 1, 1);
+//		// 0, 0, 1 => 1, 2, 2
+//		assertnv(nvs_[Z], nvs[Z], 1, 2, 1);
 		
 		// 4. X <= Y
 		Utils.logrst("X <= Y", section, ++no);
 		exchangeDevsBreak(X, Y, section, no);
 		ck[X].change_devlog(0);
-		ck[X].change_devlog(0);
+		ck[Y].change_devlog(0);
 
 		assertEquals(ck[X].devs(), ck[Y].devs());
 		assertEquals(ck[Z].devs(), ck[Y].devs());
 	}
 
-	private void restart(int y2) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private void exchangePage(int y2, int z2, int section, int no) {
-		// TODO Auto-generated method stub
-		
+	private ExchangeBlock restart(int nx) throws Exception {
+		T_SynDomanager domx = synodes[nx];
+		domx.breakdown();
+		synodes[nx] = T_SynDomanager.reboot(ck[nx]);
+		return synodes[nx].resumeBreakpoint();
 	}
 
 	private String[][] insertDevices(int cnt, int nx) throws TransException, SQLException {
+		T_SynDomanager dom = synodes[nx];
 		DBSyntableBuilder trb = ck[nx].synb;
 		SyntityMeta m = ck[nx].devm;
 		String synoder = trb.syndomx.synode;
@@ -313,12 +291,12 @@ public class ExchangeBreakTest {
 		String [][] dev_uids = new String[cnt][];
 
 		for (int ci = 0; ci < cnt; ci++) {
-			String devid = f("d-%s.%s", nx, ci);
-			T_Device device = new T_Device(ck[nx].synb.syndomx.synconn, ura,
-							devid, f("device %s[%s]", nx, ci));
+			String devid = f("d-%s.%s", dom.synode, ci);
+			T_Device device = new T_Device(dom.synconn, ura,
+							devid, f("device %s[%s]", dom.synode, ci));
 
 			String[] pid_chid = trb
-				.insertEntity(ck[nx].synb.syndomx, m, device, devid);
+				.insertEntity(dom, m, device, devid);
 
 			dev_uids[ci] = new String[] {pid_chid[0], pid_chid[1],
 					SynChangeMeta.uids(synoder, pid_chid[0])};
@@ -328,65 +306,43 @@ public class ExchangeBreakTest {
 		return dev_uids;
 	}
 
-	String servnid; 
-	DBSyntableBuilder ctb;
-	DBSyntableBuilder stb;
-	ExessionPersist cp;
-	ExessionPersist sp;
-	SyndomContext srvx;
-	
 	void exchangeDevsBreak(int srv, int cli, int test, int subno)
-			throws TransException, SQLException, IOException {
-		ctb = ck[cli].synb;
-		stb = ck[srv].synb;
-
-		exchangeBreak(ssm,
-				new T_DA_DevMeta(stb.basictx().connId()),
-				new T_DA_DevMeta(ctb.basictx().connId()),
-				stb, ctb,
-				test, subno);
+			throws Exception {
+		exchangeBreak(synodes[srv], synodes[cli], test, subno);
 	}
 
-	void exchangeBreak(SynSessionMeta ssm, SyntityMeta sphm, SyntityMeta cphm,
-			DBSyntableBuilder stb, DBSyntableBuilder ctb, int test, int subno)
-			throws TransException, SQLException, IOException {
-
+	void exchangeBreak(T_SynDomanager srv, T_SynDomanager cli, int test, int subno)
+			throws Exception {
 		int no = 0;
-		SyndomContext cltx = ctb.syndomx; 
-		String clientnid = cltx.synode;
-
-		srvx = stb.syndomx;
-		servnid = srvx.synode;
 		
-		Utils.logrst(new String[] {clientnid, "initiate"}, test, subno, ++no);
-		cp = new ExessionPersist(ctb, servnid);
+		Utils.logrst(new String[] {cli.synode, "initiate"}, test, subno, ++no);
+		ExessionPersist cp = new ExessionPersist(cli.synb, srv.synode);
 
-		ExchangeBlock ini = ctb.initExchange(cp);
+		ExchangeBlock ini = cli.xp(cp).synb.initExchange(cp);
 		Utils.logrst(f("%s initiate: changes: %d    entities: %d",
-				clientnid, ini.totalChallenges, ini.enitities(cphm.tbl)), test, subno, no, 1);
+				cli.synode, ini.totalChallenges, ini.enitities(cli.devm.tbl)), test, subno, no, 1);
 
-		Utils.logrst(new String[] {servnid, "on initiate"}, test, subno, ++no);
-		sp = new ExessionPersist(stb, clientnid, ini);
+		Utils.logrst(new String[] {srv.synode, "on initiate"}, test, subno, ++no);
+		ExessionPersist sp = new ExessionPersist(srv.synb, cli.synode, ini);
 
-		ExchangeBlock rep = stb.onInit(sp, ini);
+		ExchangeBlock rep = srv.xp(sp).synb.onInit(sp, ini);
 		Utils.logrst(f("%s on initiate: changes: %d",
-				servnid, rep.totalChallenges),
+				srv.synode, rep.totalChallenges),
 				test, subno, no, 1);
 
-		//
-		chLoopBreak(rep, test, subno, ++no);
+		// chLoop_ok(rep, srv, cli, test, subno, ++no);
+		chLoopBreak(rep, srv, cli, test, subno, ++no);
 
-		Utils.logrst(new String[] {clientnid, "closing exchange"}, test, subno, ++no);
-		ExchangeBlock req = ctb.closexchange(cp, rep);
+		Utils.logrst(new String[] {cli.synode, "closing exchange"}, test, subno, ++no);
+		ExchangeBlock req = cli.synb.closexchange(cp, rep);
 		assertEquals(ready, cp.exstate());
 
 		printChangeLines(ck);
 		printNyquv(ck);
 		printNyquv(ck, true);
 
-		Utils.logrst(new String[] {servnid, "on closing exchange"}, test, subno, ++no);
-		// FIXME what if the server doesn't agree?
-		rep = stb.onclosexchange(sp, req);
+		Utils.logrst(new String[] {srv.synode, "on closing exchange"}, test, subno, ++no);
+		rep = srv.synb.onclosexchange(sp, req);
 		assertEquals(ready, sp.exstate());
 
 		printChangeLines(ck);
@@ -394,40 +350,46 @@ public class ExchangeBreakTest {
 		printNyquv(ck, true);
 	}
 
-	void chLoopBreak(ExchangeBlock rep, int test, int subno, int step) throws SQLException, TransException {
+	void chLoopBreak(ExchangeBlock rep, T_SynDomanager srv, T_SynDomanager cli, int test, int subno, int step) throws Exception {
 		int no = 0;
 		
 		if (rep != null) {
-			SyndomContext syxc = ctb.syndomx; 
-			String cid = syxc.synode;
-
-			SyndomContext syxs = stb.syndomx; 
-			String sid = syxs.synode;
-
-			Utils.logrst(new String[] {"exchange loops", sid, "<=>", cid},
+			Utils.logrst(new String[] {"exchange loops", srv.synode, "<=>", cli.synode},
 				test, subno, step);
 			
-			ctb.onInit(cp, rep);
+			cli.synb.onInit(cli.xp, rep); // client on init reply
 
-			while (cp.hasNextChpages(ctb)
+			while (cli.xp.hasNextChpages(cli.synb)
 				|| rep.act == init // force to go on the initiation respond
 				|| rep.hasmore()) {
+				
+				int exseq = 0;
 				// client
-				Utils.logrst(new String[] {cid, "exchange"}, test, subno, step, ++no);
+				Utils.logrst(new String[] {cli.synode, "exchange"}, test, subno, step, ++no);
 
-				ExchangeBlock req = cp.nextExchange(rep);
+				ExchangeBlock req = cli.xp.nextExchange(rep);
 				Utils.logrst(f("%s exchange challenge    changes: %d    entities: %d    answers: %d",
-						cid, req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, 1);
+						cli.synode, req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, ++exseq);
 				req.print(System.out);
 				printChangeLines(ck);
 				printNyquv(ck);
+				
+				req = restart(Y); // continue or close
+
+				Utils.logrst(new String[] {srv.synode, "on resume"}, test, subno, step, no, ++exseq);
+				rep = srv.xp.onRestore(req);
+
+				req = cli.xp.nextExchange(rep);
+				Utils.logrst(f("%s exchange challenge    changes: %d    entities: %d    answers: %d",
+						cli.synode, req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, ++exseq);
+				req.print(System.out);
 
 				// server
-				Utils.logrst(new String[] {sid, "on exchange"}, test, subno, step, ++no);
-				rep = sp.nextExchange(req);
+				Utils.logrst(new String[] {srv.synode, "on exchange"}, test, subno, step, no, ++exseq);
+				rep = srv.xp.nextExchange(req);
 
 				Utils.logrst(f("%s on exchange response    changes: %d    entities: %d    answers: %d",
-						sid, rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, no, 1);
+						srv.synode, rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, no, ++exseq);
 				rep.print(System.out);
 				printChangeLines(ck);
 				printNyquv(ck);
@@ -435,42 +397,39 @@ public class ExchangeBreakTest {
 		}
 	}
 
-	/*
-	void testBreakAck(int section) throws Exception {
-		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
-
+	void chLoop_ok(ExchangeBlock rep, T_SynDomanager srv, T_SynDomanager cli, int test, int subno, int step) throws Exception {
 		int no = 0;
+		
+		if (rep != null) {
+			Utils.logrst(new String[] {"exchange loops", srv.synode, "<=>", cli.synode},
+				test, subno, step);
+			
+			cli.synb.onInit(cli.xp, rep); // client on init reply
 
-		Utils.logrst("X update, Y insert", section, ++no);
-		String[] xu = updatePname(X);
-		printChangeLines(ck);
-		printNyquv(ck);
+			while (cli.xp.hasNextChpages(cli.synb)
+				|| rep.act == init // force to go on the initiation respond
+				|| rep.hasmore()) {
+				// client
+				Utils.logrst(new String[] {cli.synode, "exchange"}, test, subno, step, ++no);
 
-		ck[X].buf_change(1 + 1, // already have 1
-				U, xu[0], ck[X].docm);
-		ck[X].psubs(4 + 3,  // already have 4 
-				null, -1, Y, Z, W);
-		ck[X].psubs(3, xu[1], -1, Y, Z, W);
+				ExchangeBlock req = cli.xp.nextExchange(rep);
+				Utils.logrst(f("%s exchange challenge    changes: %d    entities: %d    answers: %d",
+						cli.synode, req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, 1);
+				req.print(System.out);
+				printChangeLines(ck);
+				printNyquv(ck);
+				
+				// server
+				Utils.logrst(new String[] {srv.synode, "on exchange"}, test, subno, step, ++no);
+				rep = srv.xp.nextExchange(req);
 
-		String[] yi = insertPhoto(Y);
-		ck[Y].buf_change(1, C, yi[0], ck[Y].docm);
-		ck[Y].psubs(3, yi[1], X, -1, Z, W);
-
-		printChangeLines(ck);
-		printNyquv(ck);
-
-		Utils.logrst("X <= Y", section, ++no);
-		// exchange_break(ssm, ck[X].docm, ck[X].synb, ck[Y].docm, ck[Y].synb, section, no);
-
-		ck[X].buf_change(1, C, ck[X].synb.syndomx.synode, xu[0], ck[X].docm);
-		ck[X].buf_change(1, C, ck[Y].synb.syndomx.synode, yi[0], ck[X].docm);
-		ck[X].psubs(2, xu[1], -1, -1, Z, W);
-		ck[X].psubs(2, yi[1], -1, -1, Z, W);
-		ck[Y].buf_change(1, C, ck[X].synb.syndomx.synode, xu[0], ck[Y].docm);
-		ck[Y].buf_change(1, C, ck[Y].synb.syndomx.synode, yi[0], ck[Y].docm);
-		ck[Y].psubs(2, xu[1], -1, -1, Z, W);
-		ck[Y].psubs(2, yi[1], -1, -1, Z, W);
+				Utils.logrst(f("%s on exchange response    changes: %d    entities: %d    answers: %d",
+						srv.synode, rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, no, 1);
+				rep.print(System.out);
+				printChangeLines(ck);
+				printNyquv(ck);
+			}
+		}
 	}
-	*/
 	
 }
