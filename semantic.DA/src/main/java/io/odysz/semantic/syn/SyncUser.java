@@ -185,39 +185,16 @@ public class SyncUser extends SemanticObject implements IUser {
 		return tempDir;
 	}
 	
-//	/**
-//	 * 
-//	 * @param conn
-//	 * @param doctbl
-//	 * @param folder
-//	 * @param ssid
-//	 * @return temp dir
-//	 * @throws SemanticException No {@link smtype#extFilev2}, used for redirecting file root with
-//	 * environment variable, found for the table, <i>doctbl</i>.
-//	 */
-//	public String touchTempDir(String conn, String doctbl, String folder, String ssid) throws SemanticException {
-//		if (!DATranscxt.hasSemantics(conn, doctbl, smtype.extFilev2))
-//			throw new SemanticException(
-//					"Touching temp dir is failed. No smtype.extFilev handler is configured for conn %s, table %s.",
-//					conn, doctbl);
-//
-//		String extroot = ((ShExtFilev2) DATranscxt
-//						.getHandler(conn, doctbl, smtype.extFilev2))
-//						.getFileRoot();
-//
-//		String tempDir = IUser.tempDir(extroot, userId, folder, ssid);
-//		if (tempDirs == null)
-//			tempDirs= new HashSet<String>(1);
-//		tempDirs.add(tempDir);
-//		return tempDir;	
-//	}
-
 	public SessionInf sessionInf() {
 		return new SessionInf().device(deviceId);
 	}
 
+	/** SynssionServ */
 	public Object synssion;
 
+	/**
+	 * @param synssionServ, instance of SynssionServ
+	 */
 	public void synssion(Object synssionServ) {
 		this.synssion = synssionServ;
 	}

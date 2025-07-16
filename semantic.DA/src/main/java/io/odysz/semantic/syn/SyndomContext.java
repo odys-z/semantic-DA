@@ -83,6 +83,8 @@ public class SyndomContext {
 	Nyquence stamp;
 	public long stamp() { return stamp.n; }
 
+	final DATranscxt tb0;
+
 	protected SyndomContext(SynodeMode mod, int pagesize, String dom, String synode, String synconn, boolean debug)
 			throws Exception {
 
@@ -100,6 +102,8 @@ public class SyndomContext {
 		this.refm = new SynDocRefMeta(synconn).replace();
 		
 		dbg = debug;
+
+		tb0 = new DATranscxt(synconn);
 	}
 
 	public Nyquence n0() { return nv.get(synode); }
@@ -164,7 +168,17 @@ public class SyndomContext {
 		return n;
 	}
 
+	public SyndomContext loadomainx() throws TransException, SQLException {
+		Utils.logi("\n[ ♻.%s ] loading domain %s ...", synode, domain());
+		
+		SyncUser robot = new SyncUser(synode, "pswd: local null", synode)
+				.deviceId(synode);
 
+		loadNvstamp(tb0, robot);
+		
+		return this;
+	}
+	
 	public HashMap<String, Nyquence> loadNvstamp(DBSyntableBuilder synb)
 			throws TransException, SQLException {
 

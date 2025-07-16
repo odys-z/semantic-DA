@@ -113,8 +113,21 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	////////////////////////////// protocol API ////////////////////////////////
 	/**
-	 * insert into exchanges select * from change_logs where n > nyquvect[target].n
-	 * 
+	 * Client have found unfinished exchange session then retry it.
+	 * @return null or restore-request
+	 * @throws SQLException 
+	 * @throws TransException 
+	 * @since 1.5.18
+	 */
+	public ExchangeBlock restorexchange(ExessionPersist xp) throws TransException, SQLException {
+		if (DAHelper.count(this, this.syndomx.synconn, xp.sysm.tbl, xp.sysm.peer, xp.peer) > 0)
+			return null;
+		else
+			return xp.restore();
+	}
+
+	/**
+	 * @see ExessionPersist#init()
 	 * @param cp
 	 * @return {total: change-logs to be exchanged} 
 	 * @throws TransException
@@ -130,8 +143,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 	
 	/**
-	 * Insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n.
-	 * 
+	 * @see ExessionPersist#onInit(ExchangeBlock)
 	 * @param sp
 	 * @param inireq
 	 * @return response block
@@ -170,7 +182,8 @@ public class DBSyntableBuilder extends DATranscxt {
 			.commitAnswers(lastconf, cp.peer, cp.n0().n)
 			.exchange(cp.peer, lastconf)
 			.answers(answer_save(cp, lastconf, cp.peer))
-			.seq(cp.persisession());
+			// .seq(cp.persisession());
+			.seq(cp);
 	}
 	
 	/**
@@ -607,11 +620,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		}
 		else throw new ExchangeException(0, cp, "TODO");
 	}
-
-	/**
-	 * Client have found unfinished exchange session then retry it.
-	 */
-	public void restorexchange() { }
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	public int deleteEntityBySynuid(SyndomContext syndomContext, SyntityMeta entm, String synuid)

@@ -57,6 +57,8 @@ import io.odysz.transact.x.TransException;
 * @author Ody
 */
 public class ExchangeBreakTest {
+	static boolean breakExchange;
+	
 	public static final String[] conns;
 	public static final String[] testers;
 
@@ -233,15 +235,20 @@ public class ExchangeBreakTest {
 		printChangeLines(ck);
 		nvs = printNyquv(ck);
 
-		ExchangeBlock rep = restart(X);
-		assertNull(rep);
+		ExchangeBlock rep;
+		if (breakExchange) {
+			rep = restart_synssion(X, ck[Y].synode());
+			assertNull(rep);
+		}
 
 		exchangeDevsBreak(X, Y, section, no);
 		printChangeLines(ck);
 		nvs = printNyquv(ck);
 
-		rep = restart(Y);
-		assertNull(rep);
+		if (breakExchange) {
+			rep = restart_synssion(Y, ck[X].synode());
+			assertNull(rep);
+		}
 
 		exchangeDevsBreak(X, Y, section, no);
 		printChangeLines(ck);
@@ -273,11 +280,11 @@ public class ExchangeBreakTest {
 		assertEquals(ck[Z].devs(), ck[Y].devs());
 	}
 
-	private ExchangeBlock restart(int nx) throws Exception {
-		T_SynDomanager domx = synodes[nx];
+	private ExchangeBlock restart_synssion(int at, String peer) throws Exception {
+		T_SynDomanager domx = synodes[at];
 		domx.breakdown();
-		synodes[nx] = T_SynDomanager.reboot(ck[nx]);
-		return synodes[nx].resumeBreakpoint();
+		synodes[at] = T_SynDomanager.reboot(ck[at]);
+		return synodes[at].syssionPeer_exesrestore(peer);
 	}
 
 	private String[][] insertDevices(int cnt, int nx) throws TransException, SQLException {
@@ -330,8 +337,10 @@ public class ExchangeBreakTest {
 				srv.synode, rep.totalChallenges),
 				test, subno, no, 1);
 
-		// chLoop_ok(rep, srv, cli, test, subno, ++no);
-		chLoopBreak(rep, srv, cli, test, subno, ++no);
+		if (breakExchange)
+			chLoopBreak(rep, srv, cli, test, subno, ++no);
+		else
+			chLoop_ok(rep, srv, cli, test, subno, ++no);
 
 		Utils.logrst(new String[] {cli.synode, "closing exchange"}, test, subno, ++no);
 		ExchangeBlock req = cli.synb.closexchange(cp, rep);
@@ -374,10 +383,13 @@ public class ExchangeBreakTest {
 				printChangeLines(ck);
 				printNyquv(ck);
 				
-				req = restart(Y); // continue or close
+				req = restart_synssion(Y, ck[X].synode()); // continue or close
 
-				Utils.logrst(new String[] {srv.synode, "on resume"}, test, subno, step, no, ++exseq);
+				// Client failed before server has replied
+				Utils.logrst(new String[] {srv.synode, "server on resume"}, test, subno, step, no, ++exseq);
 				rep = srv.xp.onRestore(req);
+				// TODO must test both server replied and not yet;
+				// TODO assert challenge-seq & anser-seq, see ExessionPersist.onRestore()
 
 				req = cli.xp.nextExchange(rep);
 				Utils.logrst(f("%s exchange challenge    changes: %d    entities: %d    answers: %d",

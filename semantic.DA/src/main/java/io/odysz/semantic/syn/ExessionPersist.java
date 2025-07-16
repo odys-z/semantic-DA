@@ -2,7 +2,7 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.isNull;
-import static io.odysz.common.LangExt.musteq;
+import static io.odysz.common.LangExt.musteqs;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.semantic.syn.ExessionAct.close;
 import static io.odysz.semantic.syn.ExessionAct.exchange;
@@ -393,7 +393,10 @@ public class ExessionPersist {
 	}
 
 	/**
-	 * Collect the task infor, and setup exchange buffer table.
+	 * Collect the task info, and setup exchange buffer table.<br>
+	 * insert into syn_exchange_buf select * from change_logs where n > nyquvect[target].n<br>
+	 * update syn_sessions with cp.challengeSeq
+	 * 
 	 * <pre>
 	 * exstate.state = init;
 	 * expAnswerSeq = 0;
@@ -435,7 +438,8 @@ public class ExessionPersist {
 	}
 
 	/**
-	 * insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
+	 * insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n<br>
+	 * update syn_sessions with cp.challengeSeq
 	 * 
 	 * @param ini
 	 * @return new message
@@ -553,10 +557,11 @@ public class ExessionPersist {
 		me.exstate(nextChpage() ? exchange : close);
 
 		return trb == null // null for test
-			? new ExchangeBlock(synx.domain, rep.peer, peer, session, me.exstate).seq(this)
+			// ? new ExchangeBlock(synx.domain, rep.peer, peer, session, me.exstate).seq(this)
+			? new ExchangeBlock(synx.domain, synx.synode, peer, session, me.exstate).seq(this)
 			: trb.exchangePage(this, rep);
 	}
-
+	
 	private boolean nextChpage() throws TransException, SQLException {
 		int pages = pages();
 		if (challengeSeq < pages) {
@@ -621,22 +626,34 @@ public class ExessionPersist {
 		return this;
 	}
 
+	public ExchangeBlock restore() throws TransException, SQLException {
+		loadsession(peer);
+		exstate.state = restore;
+		return exchange(peer, null);
+	}
+
 	/**
 	 * Restore a persisted session.
 	 * @param req
 	 * @return exchanging reply
 	 * @throws TransException
 	 * @throws SQLException
+	 * @since 1.5.18
 	 */
 	public ExchangeBlock onRestore(ExchangeBlock req) throws TransException, SQLException {
-		loadsession(req.peer);
-		return exchange(req.peer, req);
+		if (req.challengeSeq == answerSeq)
+			return exchange(req.peer, req); // re-reply
+		else
+			return null;
 	}
 
 	ExchangeBlock exchange(String peer, ExchangeBlock rep)
 			throws TransException, SQLException {
-		if (rep != null)
+		if (rep != null) {
 			answerSeq = rep.challengeSeq;
+			musteqs(rep.peer, synx.synode);
+		}
+		
 		expAnswerSeq = challengeSeq < pages() ? challengeSeq : -1; 
 
 		AnResultset rs = chpage();
@@ -645,11 +662,12 @@ public class ExessionPersist {
 			printChpage(peer, rs, chEntities);
 
 		return new ExchangeBlock(synx.domain,
-					trb == null ? rep.peer : synx.synode,
+					synx.synode,
 					peer, session, exstate)
 				.chpage(rs, chEntities)
 				.totalChallenges(totalChallenges, this.chsize)
-				.seq(this)
+				// .seq(this)
+				.seq(persisession())
 				.nv(synx.nv);
 	}
 
@@ -681,7 +699,8 @@ public class ExessionPersist {
 					: synx.synode, peer, session, exstate)
 				.chpage(rs, chEntities)
 				.totalChallenges(totalChallenges, this.chsize)
-				.seq(this)
+				// .seq(this)
+				.seq(persisession())
 				.nv(synx.nv);
 	}
 
@@ -709,9 +728,7 @@ public class ExessionPersist {
 		} finally {
 			if (trb != null)
 			try {
-				trb.delete(exbm.tbl, trb.synrobot())
-					.whereEq(exbm.peer, peer)
-					.d(trb.instancontxt());
+				closession();
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
 			}
@@ -738,9 +755,10 @@ public class ExessionPersist {
 					.seq(this);
 		} finally {
 			try {
-				trb.delete(exbm.tbl, trb.synrobot())
-					.whereEq(exbm.peer, peer)
-					.d(trb.instancontxt());
+				breaksession();
+//				trb.delete(exbm.tbl, trb.synrobot())
+//					.whereEq(exbm.peer, peer)
+//					.d(trb.instancontxt());
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
 			}
@@ -749,6 +767,7 @@ public class ExessionPersist {
 
 	/**
 	 * Retry last page
+	 * @deprecated backup for deprecated test, only for references.
 	 * @param peer
 	 * @return request message
 	 * @throws SQLException 
@@ -867,9 +886,9 @@ public class ExessionPersist {
 	}
 	
 	public ExessionPersist loadsession(String peer) throws TransException, SQLException {
-		musteq(this.peer, peer);
+		musteqs(this.peer, peer);
 		if (trb != null) {
-			AnResultset rs = ((AnResultset) trb.select(sysm.tbl).cols(
+			AnResultset rs = (AnResultset) trb.select(sysm.tbl).cols(
 				sysm.chpage,	//challengeSeq)
 				sysm.answerx,	// answerSeq)
 				sysm.expansx,	// expAnswerSeq)
@@ -877,18 +896,29 @@ public class ExessionPersist {
 				sysm.state)		// exstate.state)
 				.whereEq(sysm.peer, peer)
 				.rs(trb.instancontxt())
-				.rs(0))
-				.nxt();
+				.rs(0);
 			
-			challengeSeq = rs.getInt(sysm.chpage);
-			answerSeq = rs.getInt(sysm.answerx);
-			expAnswerSeq = rs.getInt(sysm.expansx);
-			exstate.exmode = rs.getInt(sysm.mode);
-			exstate.state = rs.getInt(sysm.state);
+			if (rs.next()) {
+				challengeSeq = rs.getInt(sysm.chpage);
+				answerSeq = rs.getInt(sysm.answerx);
+				expAnswerSeq = rs.getInt(sysm.expansx);
+				exstate.exmode = rs.getInt(sysm.mode);
+				exstate.state = rs.getInt(sysm.state);
+			}
 		}
 		return this;
 	}
 
+	public void breaksession() throws TransException, SQLException {
+	}
+
+	public void closession() throws TransException, SQLException {
+		trb.delete(sysm.tbl, trb.synrobot())
+			.whereEq(sysm.peer, peer)
+			.post(trb.delete(exbm.tbl)
+					.whereEq(exbm.peer, peer))
+			.d(trb.instancontxt());
+	}
 
 	/**
 	 * Save starting session.
@@ -899,11 +929,13 @@ public class ExessionPersist {
 	 */
 	public ExessionPersist persistarting(String peer) throws TransException, SQLException {
 		if (trb != null) {
-			trb.delete(sysm.tbl, trb.synrobot())
-				.whereEq(sysm.peer, peer)
-				.post(sysm.insertSession(trb.insert(sysm.tbl), peer))
-				.d(trb.instancontxt());
-		}
+//			trb.delete(sysm.tbl, trb.synrobot())
+//				.whereEq(sysm.peer, peer)
+//				.post(sysm.insertSession(trb.insert(sysm.tbl), peer))
+//				.d(trb.instancontxt());
+			((Insert)sysm.insertSession(trb.insert(sysm.tbl), peer))
+				.ins(trb.instancontxt());
+		} // else test
 		return this;
 	}
 
