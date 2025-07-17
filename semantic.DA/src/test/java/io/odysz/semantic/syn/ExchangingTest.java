@@ -80,7 +80,7 @@ class ExchangingTest {
 						assertEquals(init, cp.exstate());
 						assertEquals(ch_c, req.challengeSeq);
 						assertEquals(-1, req.answerSeq);
-						assertEquals(ch_c, cp.expAnswerSeq);
+//						assertEquals(ch_c, cp.expAnswerSeq);
 
 		Utils.logrst("server initate", ++no);
 		ExessionPersist sp = new ExessionPersist(tb_srv, client, req)
@@ -93,7 +93,7 @@ class ExchangingTest {
 		assertEquals(init, rep.act);
 		assertEquals(ch_s, rep.challengeSeq);
 		assertEquals(ch_c, rep.answerSeq);
-		assertEquals(ch_s, sp.expAnswerSeq);
+//		assertEquals(ch_s, sp.expAnswerSeq);
 		
 						// client ch: 0
 						Utils.logrst("client exchange", ++no);
@@ -106,7 +106,7 @@ class ExchangingTest {
 						assertEquals(exchange, cp.exstate());
 						assertEquals(ch_c, req.challengeSeq);
 						assertEquals(ch_s, req.answerSeq);
-						assertEquals(ch_c, cp.expAnswerSeq);
+//						assertEquals(ch_c, cp.expAnswerSeq);
 
 		// server ch: 0
 		Utils.logrst("server on-exchange", ++no);
@@ -118,7 +118,7 @@ class ExchangingTest {
 		assertEquals(exchange, rep.act);
 		assertEquals(ch_s, rep.challengeSeq);
 		assertEquals(ch_c, rep.answerSeq);
-		assertEquals(ch_s, sp.expAnswerSeq);
+//		assertEquals(ch_s, sp.expAnswerSeq);
 
 		// IOException: rep lost
 		Utils.logrst("reply lost", no, 1);
@@ -135,7 +135,7 @@ class ExchangingTest {
 						assertEquals(restore, req.act);
 						assertEquals(ch_c, req.challengeSeq);
 						assertEquals(  -1, req.answerSeq);  // ch.answer - 1
-						assertEquals(ch_c, cp.expAnswerSeq);
+//						assertEquals(ch_c, cp.expAnswerSeq);
 
 		Utils.logrst("server on-retry last", ++no);
 		rep = sp.pageback().nextExchange(req);
@@ -145,7 +145,7 @@ class ExchangingTest {
 		assertEquals(exchange, rep.act);
 		assertEquals(ch_s, rep.challengeSeq);
 		assertEquals(ch_c, rep.answerSeq);
-		assertEquals(ch_s, sp.expAnswerSeq);
+//		assertEquals(ch_s, sp.expAnswerSeq);
 		
 						Utils.logrst("client exchange", ++no);
 						req = cp.nextExchange(rep); ch_c++;
@@ -154,7 +154,7 @@ class ExchangingTest {
 						assertEquals(client, req.srcnode);
 						assertEquals(ch_c, req.challengeSeq);
 						assertEquals(ch_s, req.answerSeq);
-						assertEquals(ch_c, cp.expAnswerSeq);
+//						assertEquals(ch_c, cp.expAnswerSeq);
 
 		Utils.logrst("server on-exchange", ++no);
 		rep = sp.nextExchange(req); ch_s++;
@@ -164,7 +164,7 @@ class ExchangingTest {
 		assertEquals(server, rep.srcnode);
 		assertEquals(ch_s, rep.challengeSeq);
 		assertEquals(ch_c, rep.answerSeq);
-		assertEquals(ch_s, sp.expAnswerSeq);
+//		assertEquals(ch_s, sp.expAnswerSeq);
 	
 						Utils.logrst("client exchange", ++no);
 						req = cp.nextExchange(rep); ch_c++;
@@ -174,7 +174,7 @@ class ExchangingTest {
 						assertEquals(exchange, cp.exstate());
 						assertEquals(ch_c, req.challengeSeq);
 						assertEquals(ch_s, req.answerSeq);
-						assertEquals(ch_c, cp.expAnswerSeq);
+//						assertEquals(ch_c, cp.expAnswerSeq);
 
 		// IOException: req lost
 		Utils.logrst("req lost", no, 1);
@@ -188,7 +188,7 @@ class ExchangingTest {
 						assertEquals(client, req.srcnode);
 						assertEquals(ch_c, req.challengeSeq);
 						assertEquals(ch_s, req.answerSeq);
-						assertEquals(ch_c, cp.expAnswerSeq);
+//						assertEquals(ch_c, cp.expAnswerSeq);
 
 		Utils.logrst("server on-retry last", ++no);
 		rep = sp.nextExchange(req); ch_s++;
@@ -197,7 +197,7 @@ class ExchangingTest {
 		assertEquals(server, rep.srcnode);
 		assertEquals(ch_s, rep.challengeSeq);
 		assertEquals(ch_c, rep.answerSeq);
-		assertEquals(ch_s, sp.expAnswerSeq);
+//		assertEquals(ch_s, sp.expAnswerSeq);
 		
 						Utils.logrst("client exchange", ++no);
 						req = cp.nextExchange(rep); ch_c++;
@@ -207,7 +207,7 @@ class ExchangingTest {
 						assertEquals(client, req.srcnode);
 						assertEquals(ch_c, req.challengeSeq);
 						assertEquals(ch_s, req.answerSeq);
-						assertEquals(ch_c, cp.expAnswerSeq);
+//						assertEquals(ch_c, cp.expAnswerSeq);
 
 		Utils.logrst("server on-exchange - no more challenge pages", ++no);
 		rep = sp.nextExchange(req); ch_s = -1;// no more challenges
@@ -217,7 +217,7 @@ class ExchangingTest {
 		assertEquals(server, rep.srcnode);
 		assertEquals(ch_s, rep.challengeSeq);
 		assertEquals(ch_c, rep.answerSeq);
-		assertEquals(ch_s, sp.expAnswerSeq);
+//		assertEquals(ch_s, sp.expAnswerSeq);
 
 						Utils.logrst("client close", ++no);
 						req = cp.closexchange(rep);

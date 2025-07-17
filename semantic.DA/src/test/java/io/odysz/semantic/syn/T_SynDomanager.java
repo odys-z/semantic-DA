@@ -1,16 +1,14 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt._0;
+import static io.odysz.common.LangExt.musteqi;
 import static io.odysz.common.LangExt.musteqs;
 import static io.odysz.semantic.syn.DBSyn2tableTest.zsu;
-
-import java.sql.SQLException;
 
 import static io.odysz.semantic.syn.DBSyn2tableTest.chpageSize;
 
 import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.SyntityMeta;
-import io.odysz.transact.x.TransException;
 
 
 /**
@@ -30,6 +28,7 @@ public class T_SynDomanager extends SyndomContext {
 			throws Exception {
 		super(mod, chpageSize, domain, synode, synconn, _0(debug, false));
 		musteqs(zsu, domain);
+		musteqi(16, chpageSize);
 	}
 
 	public T_SynDomanager(SyndomContext dx, DBSyntableBuilder synb) throws Exception {

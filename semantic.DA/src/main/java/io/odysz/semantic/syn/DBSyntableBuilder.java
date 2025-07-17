@@ -622,30 +622,30 @@ public class DBSyntableBuilder extends DATranscxt {
 				.seq(xp);
 	}
 	
-	public void onRequires(ExessionPersist cp, ExchangeBlock req) throws ExchangeException {
-		if (req.act == restore) {
-			if (cp.challengeSeq <= req.challengeSeq) {
-				// server is actually handled my challenge. Just step ahead 
-				cp.challengeSeq = req.challengeSeq;
-			}
-			else if (cp.challengeSeq == req.challengeSeq + 1) {
-				// server haven't got the previous package
-				// setup for send again
-				cp.challengeSeq = req.challengeSeq;
-			}
-			else {
-				// not correct
-				cp.challengeSeq = req.challengeSeq;
-			}
-	
-			if (cp.answerSeq < req.answerSeq) {
-				cp.answerSeq = req.answerSeq;
-			}
-			
-			cp.expAnswerSeq = cp.challengeSeq;
-		}
-		else throw new ExchangeException(0, cp, "TODO");
-	}
+//	public void onRequires(ExessionPersist cp, ExchangeBlock req) throws ExchangeException {
+//		if (req.act == restore) {
+//			if (cp.challengeSeq <= req.challengeSeq) {
+//				// server is actually handled my challenge. Just step ahead 
+//				cp.challengeSeq = req.challengeSeq;
+//			}
+//			else if (cp.challengeSeq == req.challengeSeq + 1) {
+//				// server haven't got the previous package
+//				// setup for send again
+//				cp.challengeSeq = req.challengeSeq;
+//			}
+//			else {
+//				// not correct
+//				cp.challengeSeq = req.challengeSeq;
+//			}
+//	
+//			if (cp.answerSeq < req.answerSeq) {
+//				cp.answerSeq = req.answerSeq;
+//			}
+//			
+//			// cp.expAnswerSeq = cp.challengeSeq;
+//		}
+//		else throw new ExchangeException(0, cp, "TODO");
+//	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	public int deleteEntityBySynuid(SyndomContext syndomContext, SyntityMeta entm, String synuid)

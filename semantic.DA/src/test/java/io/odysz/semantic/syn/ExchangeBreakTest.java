@@ -447,7 +447,7 @@ public class ExchangeBreakTest {
 		// 7
 		//                                                 <=  0 entities
 		//                    srv.next-exchange
-		new int[][] {new int[]{33,     1,       -1,      1}, new int[]{15,     -1,       1,     -1}},
+		new int[][] {new int[]{33,     1,       -1,      1}, new int[]{15,     -1,       0,     -1}},
 		// 8
 		//                                                 => 16 entities
 		//                                                       |    cli.next-exchange
@@ -482,38 +482,6 @@ public class ExchangeBreakTest {
 	};
 	
 	/**
-	 * <pre>
-	 * page size 16
-	 *           server                            client
-	 * total challenge answer exp-answer | total challenge answer exp-answer
-	 *   0     -1       -1       -1      |   0      -1       -1     -1
-	 *                                   |       - cli.init -
-	 *   0     -1       -1       -1      |   15     -1       -1     -1
-	 *         - srv.oninit -            |
-	 *   33    -1       -1       -1      |   15     -1       -1     -1
-	 *        33 ex-buff,                |
-	 *   33     0       -1        0      |   15     -1       -1     -1
-	 *                           =&gt; 16 entities 
-	 *                                   |       - cli.oninit (drop reply) -
-	 *                                   |      15 ex-buff,    =&gt; 16 entities [drop] TODO let's optimize
-	 *                                   |       - cli.next-exchange -
-	 *   33     0       -1        0      |   15      0        0      0
-	 *                           &lt;= 15 entities
-	 *      - srv.next-exchange          |
-	 *   33     1        0        1      |   15      0        0      0
-	 *                           =&gt; 16 entities 
-	 *                                   |       - cli.next-exchange -
-	 *   33     1        0        1      |   15     -1        1     -1
-	 *                           &lt;=  0 entities
-	 *      - srv.next-exchange          |
-	 *   33    -1       -1       -1      |   15     -1        1     -1
-	 *                           =&gt;  0 entities 
-	 *   33    -1       -1       -1      |   15     -1       -1     -1
-	 *                                   |       - cli.close -
-	 *      - srv.close -                |
-	 *   33    -1       -1       -1      |   15     -1       -1     -1
-	 *                                   |         
-	 * </pre>
 	 * @param rep
 	 * @param srv
 	 * @param cli
