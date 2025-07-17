@@ -367,9 +367,13 @@ public class ExessionPersist {
 		this.sysm = new SynSessionMeta(synx.synconn);
 		this.pnvm = synx.pnvm;
 		this.exstate = new ExessionAct(mode_server, ready);
-		// this.chsize = 480;
 		this.chsize = tb.syndomx.pageSize;
 
+		this.totalChallenges = 0;
+		this.expAnswerSeq = -1;
+		this.answerSeq = -1;
+		this.challengeSeq = -1;
+		
 		debug = trb == null ? true : Connects.getDebug(synx.synconn);
 	}
 
@@ -393,9 +397,7 @@ public class ExessionPersist {
 	}
 
 	/**
-	 * Collect the task info, and setup exchange buffer table.<br>
-	 * insert into syn_exchange_buf select * from change_logs where n > nyquvect[target].n<br>
-	 * update syn_sessions with cp.challengeSeq
+	 * Collect the task info. This method won't setup exchange buffer table.<br>
 	 * 
 	 * <pre>
 	 * exstate.state = init;
@@ -433,7 +435,8 @@ public class ExessionPersist {
 				trb == null ? null : synx.synode,
 				peer, session, exstate)
 			.totalChallenges(totalChallenges, this.chsize)
-			.seq(persistarting(peer))
+			// .seq(persistarting(peer))
+			.seq(this)
 			.nv(synx.nv);
 	}
 
@@ -535,7 +538,7 @@ public class ExessionPersist {
 		
 		if (req.challengeSeq >= 0 && (req.act != restore && answerSeq + 1 != req.challengeSeq))
 			throw new ExchangeException(ExessionAct.unexpect, this,
-					"Challenge page lost, expecting %s",
+					"Challenge page lost, expecting page index %s",
 					answerSeq + 1);
 		
 		if (req.act == restore
@@ -642,7 +645,7 @@ public class ExessionPersist {
 	 */
 	public ExchangeBlock onRestore(ExchangeBlock req) throws TransException, SQLException {
 		if (req.challengeSeq == answerSeq)
-			return exchange(req.peer, req); // re-reply
+			return exchange(peer, req); // re-reply
 		else
 			return null;
 	}
@@ -661,30 +664,19 @@ public class ExessionPersist {
 		if (dbgExchangePaging)
 			printChpage(peer, rs, chEntities);
 
-		return new ExchangeBlock(synx.domain,
-					synx.synode,
-					peer, session, exstate)
+		return new ExchangeBlock(synx.domain, synx.synode, peer, session, exstate)
 				.chpage(rs, chEntities)
 				.totalChallenges(totalChallenges, this.chsize)
-				// .seq(this)
 				.seq(persisession())
 				.nv(synx.nv);
 	}
 
-	private void printChpage(String peer, AnResultset challenges, HashMap<String, AnResultset> syntities) {
-		logi("====== %s -> %s ====== Challenge Page: ======", synx.synode, peer);
-		logi("%s\npage-index: %s,\tchallenging size: %s\nSyntities:\n",
-			synx.synode, challengeSeq, challenges.getRowCount());
-		if (syntities != null)
-			for (String tbl : syntities.keySet())
-				logi("%s,\tsize: %s,", tbl, syntities.get(tbl).getRowCount());
-	}
-
 	ExchangeBlock onExchange(String peer, ExchangeBlock req)
 			throws TransException, SQLException {
-
-		if (req != null)
+		if (req != null) {
 			answerSeq = req.challengeSeq;
+			musteqs(req.peer, synx.synode);
+		}
 		expAnswerSeq = challengeSeq < pages() ? challengeSeq : -1; 
 
 		exstate.state = exchange;
@@ -694,15 +686,13 @@ public class ExessionPersist {
 		if (dbgExchangePaging)
 			printChpage(peer, rs, chEntities);
 
-		return new ExchangeBlock(synx.domain,
-					trb == null ? req.peer
-					: synx.synode, peer, session, exstate)
+		return new ExchangeBlock(synx.domain, synx.synode, peer, session, exstate)
 				.chpage(rs, chEntities)
 				.totalChallenges(totalChallenges, this.chsize)
-				// .seq(this)
 				.seq(persisession())
 				.nv(synx.nv);
 	}
+	
 
 	public ExchangeBlock closexchange(ExchangeBlock rep) throws ExchangeException {
 		/* enable?
@@ -933,7 +923,7 @@ public class ExessionPersist {
 //				.whereEq(sysm.peer, peer)
 //				.post(sysm.insertSession(trb.insert(sysm.tbl), peer))
 //				.d(trb.instancontxt());
-			((Insert)sysm.insertSession(trb.insert(sysm.tbl), peer))
+			((Insert)sysm.insertSession(trb.insert(sysm.tbl, trb.synrobot()), peer))
 				.ins(trb.instancontxt());
 		} // else test
 		return this;
@@ -1030,4 +1020,14 @@ public class ExessionPersist {
 	public Nyquence stamp() {
 		return synx.stamp;
 	}
+
+	private void printChpage(String peer, AnResultset challenges, HashMap<String, AnResultset> syntities) {
+		logi("====== %s -> %s ====== Challenge Page: ======", synx.synode, peer);
+		logi("%s\npage-index: %s,\tchallenging size: %s\nSyntities:\n",
+			synx.synode, challengeSeq, challenges.getRowCount());
+		if (syntities != null)
+			for (String tbl : syntities.keySet())
+				logi("%s,\tsize: %s,", tbl, syntities.get(tbl).getRowCount());
+	}
+
 }

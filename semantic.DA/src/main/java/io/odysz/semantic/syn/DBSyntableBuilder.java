@@ -120,7 +120,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @since 1.5.18
 	 */
 	public ExchangeBlock restorexchange(ExessionPersist xp) throws TransException, SQLException {
-		if (DAHelper.count(this, this.syndomx.synconn, xp.sysm.tbl, xp.sysm.peer, xp.peer) > 0)
+		if (DAHelper.count(this, this.syndomx.synconn, xp.sysm.tbl, xp.sysm.peer, xp.peer) == 0)
 			return null;
 		else
 			return xp.restore();
@@ -426,6 +426,8 @@ public class DBSyntableBuilder extends DATranscxt {
 		SynChangeMeta chgm = syndomx.chgm;
 		SynSubsMeta subm = syndomx.subm;
 		
+		// FIXME Move this to static selectExbuf(),
+		// and count total changes before exbuf has been inserted?
 		Query q_exchgs = select(chgm.tbl, "cl")
 				.distinct(true)
 				.cols(constr(peer), chgm.pk, new ExprPart(-1))
@@ -449,6 +451,30 @@ public class DBSyntableBuilder extends DATranscxt {
 		return insert(syndomx.exbm.tbl, locrobot)
 			.cols(syndomx.exbm.insertCols())
 			.select(q_exchgs);
+	}
+	
+	/**
+	 * @deprecated not used
+	 * @param inst
+	 * @param syndomx
+	 * @param peer
+	 * @throws TransException
+	 */
+	static void selectExbuf(DBSyntableBuilder inst, SyndomContext syndomx, String peer) throws TransException {
+		SynodeMeta synm = syndomx.synm;
+		SynChangeMeta chgm = syndomx.chgm;
+		SynSubsMeta subm = syndomx.subm;
+		PeersMeta pnvm = syndomx.pnvm;
+	
+			Query q_exchgs = inst.select(chgm.tbl, "cl")
+				.distinct(true)
+				.cols(constr(peer), chgm.pk, new ExprPart(-1))
+				.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
+										.and(Sql.condt(op.eq, constr(syndomx.domain), "cl." + chgm.domain))
+										.and(Sql.condt(op.ne, constr(syndomx.synode), subm.synodee)))
+				.je_(pnvm.tbl, "nvee", "cl." + chgm.synoder, pnvm.synid,
+										constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
+				.where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0);
 	}
 	
 	/**

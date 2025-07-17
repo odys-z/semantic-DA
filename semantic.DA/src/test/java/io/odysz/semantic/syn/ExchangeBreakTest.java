@@ -6,8 +6,6 @@ import static io.odysz.common.LangExt.len;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
-import static io.odysz.semantic.syn.Docheck.assertI;
-import static io.odysz.semantic.syn.Docheck.assertnv;
 import static io.odysz.semantic.syn.Docheck.ck;
 import static io.odysz.semantic.syn.Docheck.printChangeLines;
 import static io.odysz.semantic.syn.Docheck.printNyquv;
@@ -15,6 +13,7 @@ import static io.odysz.semantic.syn.ExessionAct.init;
 import static io.odysz.semantic.syn.ExessionAct.ready;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static io.odysz.semantic.syn.DBSyntableTest.*;
 import static io.odysz.semantic.syn.DBSyn2tableTest.zsu;
@@ -57,7 +56,7 @@ import io.odysz.transact.x.TransException;
 * @author Ody
 */
 public class ExchangeBreakTest {
-	static boolean breakExchange;
+	static boolean breakExchange = false;
 	
 	public static final String[] conns;
 	public static final String[] testers;
@@ -72,7 +71,6 @@ public class ExchangeBreakTest {
 	static SynSessionMeta ssm;
 	static PeersMeta prm;
 
-//	static String[] synodes;
 	static T_SynDomanager[] synodes;
 
 	static {
@@ -315,22 +313,31 @@ public class ExchangeBreakTest {
 
 	void exchangeDevsBreak(int srv, int cli, int test, int subno)
 			throws Exception {
-		exchangeBreak(synodes[srv], synodes[cli], test, subno);
+		exchangeBreak(srv, cli, test, subno);
 	}
 
-	void exchangeBreak(T_SynDomanager srv, T_SynDomanager cli, int test, int subno)
+	/**
+	 * 
+	 * @param srv
+	 * @param cli int, the index of T_Domanager which will be replaced with a new instance while restarting.   
+	 * @param test
+	 * @param subno
+	 * @throws Exception
+	 */
+	void exchangeBreak(int srvx, int cli, int test, int subno)
 			throws Exception {
+		T_SynDomanager srv = synodes[srvx];
 		int no = 0;
 		
-		Utils.logrst(new String[] {cli.synode, "initiate"}, test, subno, ++no);
-		ExessionPersist cp = new ExessionPersist(cli.synb, srv.synode);
+		Utils.logrst(new String[] {synodes[cli].synode, "initiate"}, test, subno, ++no);
+		ExessionPersist cp = new ExessionPersist(synodes[cli].synb, srv.synode);
 
-		ExchangeBlock ini = cli.xp(cp).synb.initExchange(cp);
+		ExchangeBlock ini = synodes[cli].xp(cp).synb.initExchange(cp);
 		Utils.logrst(f("%s initiate: changes: %d    entities: %d",
-				cli.synode, ini.totalChallenges, ini.enitities(cli.devm.tbl)), test, subno, no, 1);
+				synodes[cli].synode, ini.totalChallenges, ini.enitities(synodes[cli].devm.tbl)), test, subno, no, 1);
 
 		Utils.logrst(new String[] {srv.synode, "on initiate"}, test, subno, ++no);
-		ExessionPersist sp = new ExessionPersist(srv.synb, cli.synode, ini);
+		ExessionPersist sp = new ExessionPersist(srv.synb, synodes[cli].synode, ini);
 
 		ExchangeBlock rep = srv.xp(sp).synb.onInit(sp, ini);
 		Utils.logrst(f("%s on initiate: changes: %d",
@@ -340,10 +347,10 @@ public class ExchangeBreakTest {
 		if (breakExchange)
 			chLoopBreak(rep, srv, cli, test, subno, ++no);
 		else
-			chLoop_ok(rep, srv, cli, test, subno, ++no);
+			chLoop_ok(rep, srvx, cli, test, subno, ++no);
 
-		Utils.logrst(new String[] {cli.synode, "closing exchange"}, test, subno, ++no);
-		ExchangeBlock req = cli.synb.closexchange(cp, rep);
+		Utils.logrst(new String[] {synodes[cli].synode, "closing exchange"}, test, subno, ++no);
+		ExchangeBlock req = synodes[cli].synb.closexchange(cp, rep);
 		assertEquals(ready, cp.exstate());
 
 		printChangeLines(ck);
@@ -359,41 +366,41 @@ public class ExchangeBreakTest {
 		printNyquv(ck, true);
 	}
 
-	void chLoopBreak(ExchangeBlock rep, T_SynDomanager srv, T_SynDomanager cli, int test, int subno, int step) throws Exception {
+	void chLoopBreak(ExchangeBlock rep, T_SynDomanager srv, int cli, int test, int subno, int step) throws Exception {
 		int no = 0;
 		
 		if (rep != null) {
-			Utils.logrst(new String[] {"exchange loops", srv.synode, "<=>", cli.synode},
+			Utils.logrst(new String[] {"exchange loops", srv.synode, "<=>", synodes[cli].synode},
 				test, subno, step);
 			
-			cli.synb.onInit(cli.xp, rep); // client on init reply
+			synodes[cli].synb.onInit(synodes[cli].xp, rep); // client on init reply
 
-			while (cli.xp.hasNextChpages(cli.synb)
+			while (synodes[cli].xp.hasNextChpages(synodes[cli].synb)
 				|| rep.act == init // force to go on the initiation respond
 				|| rep.hasmore()) {
 				
 				int exseq = 0;
 				// client
-				Utils.logrst(new String[] {cli.synode, "exchange"}, test, subno, step, ++no);
+				Utils.logrst(new String[] {synodes[cli].synode, "exchange"}, test, subno, step, ++no);
 
-				ExchangeBlock req = cli.xp.nextExchange(rep);
+				ExchangeBlock req = synodes[cli].xp.nextExchange(rep);
 				Utils.logrst(f("%s exchange challenge    changes: %d    entities: %d    answers: %d",
-						cli.synode, req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, ++exseq);
+						synodes[cli].synode, req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, ++exseq);
 				req.print(System.out);
 				printChangeLines(ck);
 				printNyquv(ck);
 				
+				// Client failed before server has replied
 				req = restart_synssion(Y, ck[X].synode()); // continue or close
 
-				// Client failed before server has replied
 				Utils.logrst(new String[] {srv.synode, "server on resume"}, test, subno, step, no, ++exseq);
 				rep = srv.xp.onRestore(req);
 				// TODO must test both server replied and not yet;
 				// TODO assert challenge-seq & anser-seq, see ExessionPersist.onRestore()
 
-				req = cli.xp.nextExchange(rep);
+				req = synodes[cli].xp.nextExchange(rep);
 				Utils.logrst(f("%s exchange challenge    changes: %d    entities: %d    answers: %d",
-						cli.synode, req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, ++exseq);
+						synodes[cli].synode, req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, ++exseq);
 				req.print(System.out);
 
 				// server
@@ -409,14 +416,125 @@ public class ExchangeBreakTest {
 		}
 	}
 
-	void chLoop_ok(ExchangeBlock rep, T_SynDomanager srv, T_SynDomanager cli, int test, int subno, int step) throws Exception {
+	static final int xtotal = 0, xch = 1, xans = 2, xexp = 3;
+	static final int[][][] xp_seqs = new int[][][] {
+		// 0
+	    //                    server                             |    client
+		//                   total challenge answer exp-answer   |   total challenge answer exp-answer
+		new int[][] {new int[]{0,     -1,       -1,     -1}, new int[]{0,      -1,      -1,     -1}},
+		// 1
+		//                                                       |    cli.init
+		new int[][] {new int[]{0,     -1,       -1,     -1}, new int[]{0,      -1,      -1,     -1}},
+		// 2
+		//                    srv.oninit, 33 ex-buffs                    
+		new int[][] {new int[]{33,    -1,       -1,     -1}, new int[]{0,      -1,      -1,     -1}},
+		// 3
+		//                                                 => 0 entities
+		//                                                       |    cli.oninit, 15 ex-buffs
+		new int[][] {new int[]{33,    -1,       -1,     -1}, new int[]{15,     -1,      -1,     -1}},
+		// 4
+		//                                                       |    => 15 entities [dropped, TODO optimize]
+		//                                                       |    cli.next-exchange
+		new int[][] {new int[]{33,    -1,       -1,     -1}, new int[]{15,      0,      -1,      0}},
+		// 5
+		//                                                 <= 15 entities
+		//                    srv.next-exchange
+		new int[][] {new int[]{33,     0,        0,      0}, new int[]{15,      0,      -1,      0}},
+		// 6
+		//                                                 => 16 entities
+		//                                                       |    cli.next-exchange
+		new int[][] {new int[]{33,     0,        0,      0}, new int[]{15,     -1,       0,     -1}},
+		// 7
+		//                                                 <=  0 entities
+		//                    srv.next-exchange
+		new int[][] {new int[]{33,     1,       -1,      1}, new int[]{15,     -1,       1,     -1}},
+		// 8
+		//                                                 => 16 entities
+		//                                                       |    cli.next-exchange
+		new int[][] {new int[]{33,     1,       -1,      1}, new int[]{15,     -1,       1,     -1}},
+		//                                                 <=  0 entities
+		//                    srv.next-exchange
+		new int[][] {new int[]{33,     2,       -1,      2}, new int[]{15,     -1,       1,     -1}},
+		//                                                 =>  1 entities
+		//                                                       |    cli.next-exchange
+		new int[][] {new int[]{33,     2,       -1,      2}, new int[]{15,     -1,       2,     -1}},
+		//                                                 <=  0 entities
+		//                    srv.next-exchange
+		new int[][] {new int[]{33,    -1,       -1,     -1}, new int[]{15,     -1,       2,     -1}},
+		//                                                 =>  0 entities
+		//                                                       |    cli.close
+		new int[][] {new int[]{33,    -1,       -1,     -1}, new int[]{15,     -1,      -1,     -1}},
+		//                    srv.close
+		new int[][] {new int[]{33,    -1,       -1,     -1}, new int[]{15,     -1,      -1,     -1}}
+	};
+
+	static void assertSeqs(int round, int sx, int cx) {
+		ExessionPersist sp = synodes[sx].xp;
+		ExessionPersist cp = synodes[cx].xp;
+		int[] arrs = new int[] {sp.totalChallenges, sp.challengeSeq, sp.answerSeq, xp_seqs[round][sx][xexp]};
+		int[] arrc = new int[] {cp.totalChallenges, cp.challengeSeq, cp.answerSeq, xp_seqs[round][cx][xexp]};
+
+		Utils.logi("Round %s", round);
+		Utils.logArr2d(xp_seqs[round], new int[][] {arrs, arrc});
+
+		assertArrayEquals(xp_seqs[round][sx], arrs);
+		assertArrayEquals(xp_seqs[round][cx], arrc);
+	};
+	
+	/**
+	 * <pre>
+	 * page size 16
+	 *           server                            client
+	 * total challenge answer exp-answer | total challenge answer exp-answer
+	 *   0     -1       -1       -1      |   0      -1       -1     -1
+	 *                                   |       - cli.init -
+	 *   0     -1       -1       -1      |   15     -1       -1     -1
+	 *         - srv.oninit -            |
+	 *   33    -1       -1       -1      |   15     -1       -1     -1
+	 *        33 ex-buff,                |
+	 *   33     0       -1        0      |   15     -1       -1     -1
+	 *                           =&gt; 16 entities 
+	 *                                   |       - cli.oninit (drop reply) -
+	 *                                   |      15 ex-buff,    =&gt; 16 entities [drop] TODO let's optimize
+	 *                                   |       - cli.next-exchange -
+	 *   33     0       -1        0      |   15      0        0      0
+	 *                           &lt;= 15 entities
+	 *      - srv.next-exchange          |
+	 *   33     1        0        1      |   15      0        0      0
+	 *                           =&gt; 16 entities 
+	 *                                   |       - cli.next-exchange -
+	 *   33     1        0        1      |   15     -1        1     -1
+	 *                           &lt;=  0 entities
+	 *      - srv.next-exchange          |
+	 *   33    -1       -1       -1      |   15     -1        1     -1
+	 *                           =&gt;  0 entities 
+	 *   33    -1       -1       -1      |   15     -1       -1     -1
+	 *                                   |       - cli.close -
+	 *      - srv.close -                |
+	 *   33    -1       -1       -1      |   15     -1       -1     -1
+	 *                                   |         
+	 * </pre>
+	 * @param rep
+	 * @param srv
+	 * @param cli
+	 * @param test
+	 * @param subno
+	 * @param step
+	 * @return round of seqs
+	 * @throws Exception
+	 */
+	int chLoop_ok(ExchangeBlock rep, int srvx, int clix, int test, int subno, int step) throws Exception {
+		T_SynDomanager srv = synodes[srvx], cli = synodes[clix];
 		int no = 0;
+		int round = 1;
+		assertSeqs(++round, srvx, clix);
 		
 		if (rep != null) {
 			Utils.logrst(new String[] {"exchange loops", srv.synode, "<=>", cli.synode},
 				test, subno, step);
-			
+
 			cli.synb.onInit(cli.xp, rep); // client on init reply
+			assertSeqs(++round, srvx, clix);
 
 			while (cli.xp.hasNextChpages(cli.synb)
 				|| rep.act == init // force to go on the initiation respond
@@ -425,6 +543,8 @@ public class ExchangeBreakTest {
 				Utils.logrst(new String[] {cli.synode, "exchange"}, test, subno, step, ++no);
 
 				ExchangeBlock req = cli.xp.nextExchange(rep);
+				assertSeqs(++round, srvx, clix);
+
 				Utils.logrst(f("%s exchange challenge    changes: %d    entities: %d    answers: %d",
 						cli.synode, req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, 1);
 				req.print(System.out);
@@ -434,6 +554,7 @@ public class ExchangeBreakTest {
 				// server
 				Utils.logrst(new String[] {srv.synode, "on exchange"}, test, subno, step, ++no);
 				rep = srv.xp.nextExchange(req);
+				assertSeqs(++round, srvx, clix);
 
 				Utils.logrst(f("%s on exchange response    changes: %d    entities: %d    answers: %d",
 						srv.synode, rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, no, 1);
@@ -442,6 +563,7 @@ public class ExchangeBreakTest {
 				printNyquv(ck);
 			}
 		}
+		return round;
 	}
 	
 }

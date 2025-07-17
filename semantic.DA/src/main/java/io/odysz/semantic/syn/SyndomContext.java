@@ -134,16 +134,6 @@ public class SyndomContext {
 		seq = 0;
 	}
 
-//	public Nyquence incN0Stamp(DBSyntableBuilder b) throws TransException, SQLException {
-//		persistNyquence(b, synode, nv.get(synode).inc());
-//
-//		stamp.inc();
-//
-//		persistamp(b);
-//
-//		return nv.get(synode);
-//	}
-	
 	/**
 	 * Inc n0 &amp; n-stamp, avoiding synmantics triggering by using lower transaction API.
 	 * @param synodes 
@@ -168,6 +158,11 @@ public class SyndomContext {
 		return n;
 	}
 
+	/**
+	 * @return this
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public SyndomContext loadomainx() throws TransException, SQLException {
 		Utils.logi("\n[ ♻.%s ] loading domain %s ...", synode, domain());
 		

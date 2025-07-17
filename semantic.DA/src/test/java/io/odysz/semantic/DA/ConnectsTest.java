@@ -86,7 +86,7 @@ public class ConnectsTest {
 		ArrayList<String> sqls = new ArrayList<String>(1);
 		st.insert("a_functions")
 			.nv("flags", flag)
-			.nv("funcId", "AUTO")
+			// .nv("funcId", "AUTO")
 			.nv("funcName", "func - " + flag)
 			.commit(st.instancontxt(null, null), sqls); // using static semantext for testing
 	}
