@@ -474,7 +474,7 @@ public class ExchangeBreakTest {
 		new int[][] {new int[]{33,    -1,       -1,     -1}, new int[]{15,     -1,      -1,     -1}}
 	};
 
-	static void assertSeqs(int round, int sx, int cx, int[][][]... ex_seqs) {
+	static void assertSeqs(int round, int sx, int cx, int[][][] ex_seqs) {
 		if (isNull(ex_seqs)) return;
 		ExessionPersist sp = synodes[sx].xp;
 		ExessionPersist cp = synodes[cx].xp;
@@ -484,8 +484,8 @@ public class ExchangeBreakTest {
 		Utils.logi("Round %s", round);
 		Utils.logArr2d(seqs_X33_Y15[round], new int[][] {arrs, arrc});
 
-		assertArrayEquals(_0(ex_seqs)[round][sx], arrs);
-		assertArrayEquals(_0(ex_seqs)[round][cx], arrc);
+		assertArrayEquals((ex_seqs)[round][sx], arrs);
+		assertArrayEquals((ex_seqs)[round][cx], arrc);
 	};
 	
 	/**
@@ -498,18 +498,19 @@ public class ExchangeBreakTest {
 	 * @return round of seqs
 	 * @throws Exception
 	 */
-	int chLoop_ok(ExchangeBlock rep, int srvx, int clix, int test, int subno, int step, int[][][]... ex_seqs) throws Exception {
+	int chLoop_ok(ExchangeBlock rep, int srvx, int clix, int test, int subno, int step,
+			int[][][]... ex_seqs) throws Exception {
 		T_SynDomanager srv = synodes[srvx], cli = synodes[clix];
 		int no = 0;
 		int round = 1;
-		assertSeqs(++round, srvx, clix);
+		assertSeqs(++round, srvx, clix, _0(ex_seqs));
 		
 		if (rep != null) {
 			Utils.logrst(new String[] {"exchange loops", srv.synode, "<=>", cli.synode},
 				test, subno, step);
 
 			cli.synb.onInit(cli.xp, rep); // client on init reply
-			assertSeqs(++round, srvx, clix);
+			assertSeqs(++round, srvx, clix, _0(ex_seqs));
 
 			while (cli.xp.hasNextChpages(cli.synb)
 				|| rep.act == init // force to go on the initiation respond
@@ -518,7 +519,7 @@ public class ExchangeBreakTest {
 				Utils.logrst(new String[] {cli.synode, "exchange"}, test, subno, step, ++no);
 
 				ExchangeBlock req = cli.xp.nextExchange(rep);
-				assertSeqs(++round, srvx, clix);
+				assertSeqs(++round, srvx, clix, _0(ex_seqs));
 
 				Utils.logrst(f("%s exchange challenge    changes: %d    entities: %d    answers: %d",
 						cli.synode, req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, 1);
@@ -529,7 +530,7 @@ public class ExchangeBreakTest {
 				// server
 				Utils.logrst(new String[] {srv.synode, "on exchange"}, test, subno, step, ++no);
 				rep = srv.xp.nextExchange(req);
-				assertSeqs(++round, srvx, clix);
+				assertSeqs(++round, srvx, clix, _0(ex_seqs));
 
 				Utils.logrst(f("%s on exchange response    changes: %d    entities: %d    answers: %d",
 						srv.synode, rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, no, 1);
