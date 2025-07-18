@@ -642,12 +642,13 @@ public class ExessionPersist {
 
 	public ExchangeBlock restore() throws TransException, SQLException {
 		loadsession(peer);
+		totalChallenges = DAHelper.count(trb, synx.synconn, exbm.tbl, exbm.peer, peer);
 		exstate.state = restore;
 		return exchange(peer, null);
 	}
 
 	/**
-	 * Restore a persisted session.
+	 * Reply to a restore request, by either step next page or re-send the last one.
 	 * @param req
 	 * @return exchanging reply
 	 * @throws TransException
@@ -655,8 +656,18 @@ public class ExessionPersist {
 	 * @since 1.5.18
 	 */
 	public ExchangeBlock onRestore(ExchangeBlock req) throws TransException, SQLException {
-		if (req.challengeSeq == answerSeq)
+		/** Try
+		if (req.challengeSeq < 0 || req.challengeSeq == answerSeq + 1)
+			return nextExchange(req);
+		else if (req.challengeSeq == answerSeq)
 			return exchange(peer, req); // re-reply
+		else
+			return null;
+		*/
+		if (req.challengeSeq >= 0 && req.challengeSeq == answerSeq)
+			return exchange(peer, req); // re-reply
+		else if (req.challengeSeq < 0 || req.challengeSeq == answerSeq + 1)
+			return nextExchange(req);
 		else
 			return null;
 	}
