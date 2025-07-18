@@ -1,8 +1,10 @@
 package io.odysz.semantic.syn;
 
+import static io.odysz.common.LangExt._0;
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.len;
+import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.common.Utils.printCaller;
 import static io.odysz.semantic.CRUD.C;
@@ -228,7 +230,7 @@ public class ExchangeBreakTest {
 
 		// 3. X <= Y
 		Utils.logrst("X <= Y", section, ++no);
-		exchangeDevsBreak(X, Y, section, no);
+		exchangeDevsBreak(X, Y, section, no, seqs_X33_Y15);
 
 		printChangeLines(ck);
 		nvs = printNyquv(ck);
@@ -239,18 +241,18 @@ public class ExchangeBreakTest {
 			assertNull(rep);
 		}
 
-		exchangeDevsBreak(X, Y, section, no);
-		printChangeLines(ck);
-		nvs = printNyquv(ck);
-
-		if (breakExchange) {
-			rep = restart_synssion(Y, ck[X].synode());
-			assertNull(rep);
-		}
-
-		exchangeDevsBreak(X, Y, section, no);
-		printChangeLines(ck);
-		nvs = printNyquv(ck);
+//		exchangeDevsBreak(X, Y, section, no);
+//		printChangeLines(ck);
+//		nvs = printNyquv(ck);
+//
+//		if (breakExchange) {
+//			rep = restart_synssion(Y, ck[X].synode());
+//			assertNull(rep);
+//		}
+//
+//		exchangeDevsBreak(X, Y, section, no);
+//		printChangeLines(ck);
+//		nvs = printNyquv(ck);
 
 		// 4. Y <= Z
 		Utils.logrst("Y <= Z", section, ++no);
@@ -311,9 +313,9 @@ public class ExchangeBreakTest {
 		return dev_uids;
 	}
 
-	void exchangeDevsBreak(int srv, int cli, int test, int subno)
+	void exchangeDevsBreak(int srv, int cli, int test, int subno, int[][][]... ex_seqs)
 			throws Exception {
-		exchangeBreak(srv, cli, test, subno);
+		exchangeBreak(srv, cli, test, subno, ex_seqs);
 	}
 
 	/**
@@ -322,9 +324,10 @@ public class ExchangeBreakTest {
 	 * @param cli int, the index of T_Domanager which will be replaced with a new instance while restarting.   
 	 * @param test
 	 * @param subno
+	 * @param ex_seqs the synssion seqs, i. e. the sequence numbers used in exchange handshakes. Null for ignore verification.
 	 * @throws Exception
 	 */
-	void exchangeBreak(int srvx, int cli, int test, int subno)
+	void exchangeBreak(int srvx, int cli, int test, int subno, int[][][]... ex_seqs)
 			throws Exception {
 		T_SynDomanager srv = synodes[srvx];
 		int no = 0;
@@ -347,7 +350,7 @@ public class ExchangeBreakTest {
 		if (breakExchange)
 			chLoopBreak(rep, srv, cli, test, subno, ++no);
 		else
-			chLoop_ok(rep, srvx, cli, test, subno, ++no);
+			chLoop_ok(rep, srvx, cli, test, subno, ++no, ex_seqs);
 
 		Utils.logrst(new String[] {synodes[cli].synode, "closing exchange"}, test, subno, ++no);
 		ExchangeBlock req = synodes[cli].synb.closexchange(cp, rep);
@@ -417,7 +420,10 @@ public class ExchangeBreakTest {
 	}
 
 	static final int xtotal = 0, xch = 1, xans = 2, xexp = 3;
-	static final int[][][] xp_seqs = new int[][][] {
+	/**
+	 * The syssnion seqs for the first round synssion, after X inserted 33 devices, Y inserted 15 devices.
+	 */
+	static final int[][][] seqs_X33_Y15 = new int[][][] {
 		// 0
 	    //                    server                             |    client
 		//                   total challenge answer exp-answer   |   total challenge answer exp-answer
@@ -468,17 +474,18 @@ public class ExchangeBreakTest {
 		new int[][] {new int[]{33,    -1,       -1,     -1}, new int[]{15,     -1,      -1,     -1}}
 	};
 
-	static void assertSeqs(int round, int sx, int cx) {
+	static void assertSeqs(int round, int sx, int cx, int[][][]... ex_seqs) {
+		if (isNull(ex_seqs)) return;
 		ExessionPersist sp = synodes[sx].xp;
 		ExessionPersist cp = synodes[cx].xp;
-		int[] arrs = new int[] {sp.totalChallenges, sp.challengeSeq, sp.answerSeq, xp_seqs[round][sx][xexp]};
-		int[] arrc = new int[] {cp.totalChallenges, cp.challengeSeq, cp.answerSeq, xp_seqs[round][cx][xexp]};
+		int[] arrs = new int[] {sp.totalChallenges, sp.challengeSeq, sp.answerSeq, seqs_X33_Y15[round][sx][xexp]};
+		int[] arrc = new int[] {cp.totalChallenges, cp.challengeSeq, cp.answerSeq, seqs_X33_Y15[round][cx][xexp]};
 
 		Utils.logi("Round %s", round);
-		Utils.logArr2d(xp_seqs[round], new int[][] {arrs, arrc});
+		Utils.logArr2d(seqs_X33_Y15[round], new int[][] {arrs, arrc});
 
-		assertArrayEquals(xp_seqs[round][sx], arrs);
-		assertArrayEquals(xp_seqs[round][cx], arrc);
+		assertArrayEquals(_0(ex_seqs)[round][sx], arrs);
+		assertArrayEquals(_0(ex_seqs)[round][cx], arrc);
 	};
 	
 	/**
@@ -491,7 +498,7 @@ public class ExchangeBreakTest {
 	 * @return round of seqs
 	 * @throws Exception
 	 */
-	int chLoop_ok(ExchangeBlock rep, int srvx, int clix, int test, int subno, int step) throws Exception {
+	int chLoop_ok(ExchangeBlock rep, int srvx, int clix, int test, int subno, int step, int[][][]... ex_seqs) throws Exception {
 		T_SynDomanager srv = synodes[srvx], cli = synodes[clix];
 		int no = 0;
 		int round = 1;

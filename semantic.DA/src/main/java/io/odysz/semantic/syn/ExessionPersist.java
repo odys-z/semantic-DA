@@ -572,6 +572,7 @@ public class ExessionPersist {
 	
 	private boolean nextChpage() throws TransException, SQLException {
 		int pages = pages();
+		int pagerecords = 0;
 		if (challengeSeq < pages) {
 			challengeSeq++;
 		
@@ -608,10 +609,11 @@ public class ExessionPersist {
 					e.printStackTrace();
 				}
 				
-				trb.update(exbm.tbl, trb.synrobot())
+				pagerecords = trb.update(exbm.tbl, trb.synrobot())
 					.nv(exbm.pagex, challengeSeq)
 					.whereIn(exbm.changeId, page)
 					.u(trb.instancontxt())
+					.total()
 					;
 			}
 		}
@@ -619,6 +621,8 @@ public class ExessionPersist {
 
 		// expAnswerSeq = challengeSeq < pages ? challengeSeq : -1;
 		// return challengeSeq < pages;
+		if (pagerecords <= 0)
+			challengeSeq = -1;
 		return challengeSeq < 0;
 	}
 
@@ -1035,7 +1039,7 @@ public class ExessionPersist {
 
 	private void printChpage(String peer, AnResultset challenges, HashMap<String, AnResultset> syntities) {
 		logi("====== %s -> %s ====== Challenge Page: ======", synx.synode, peer);
-		logi("%s\npage-index: %s,\tchallenging size: %s\nSyntities:\n",
+		logi("%s\npage-index: %s,\tchallenging size (all subscribers): %s\nSyntities:\n",
 			synx.synode, challengeSeq, challenges.getRowCount());
 		if (syntities != null)
 			for (String tbl : syntities.keySet())
