@@ -625,29 +625,29 @@ public class ExchangeBreakTest {
 		// 6
 		//                                                 => 16 entities
 		//                                                       |    cli.next-exchange
-		new int[][] {new int[]{33,     0,        0,      0}, new int[]{15,     -1,       0,     -1}},
+		new int[][] {new int[]{33,     0,        0,      0}, new int[]{15,      1,       0,     -1}},
 		// 7
 		//                                                 <=  0 entities
 		//                    srv.next-exchange
-		new int[][] {new int[]{33,     1,       -1,      1}, new int[]{15,     -1,       0,     -1}},
+		new int[][] {new int[]{33,     1,        1,      1}, new int[]{15,      1,       0,     -1}},
 		// 8
 		//                                                 => 16 entities
 		//                                                       |    cli.next-exchange
-		new int[][] {new int[]{33,     1,       -1,      1}, new int[]{15,     -1,       1,     -1}},
+		new int[][] {new int[]{33,     1,        1,      1}, new int[]{15,      2,       1,     -1}},
 		//                                                 <=  0 entities
 		//                    srv.next-exchange
-		new int[][] {new int[]{33,     2,       -1,      2}, new int[]{15,     -1,       1,     -1}},
+		new int[][] {new int[]{33,     2,        2,      2}, new int[]{15,      2,       1,     -1}},
 		//                                                 =>  1 entities
 		//                                                       |    cli.next-exchange
-		new int[][] {new int[]{33,     2,       -1,      2}, new int[]{15,     -1,       2,     -1}},
+		new int[][] {new int[]{33,     2,        2,      2}, new int[]{15,      3,       2,     -1}},
 		//                                                 <=  0 entities
 		//                    srv.next-exchange
-		new int[][] {new int[]{33,    -1,       -1,     -1}, new int[]{15,     -1,       2,     -1}},
+		new int[][] {new int[]{33,     3,        3,     -1}, new int[]{15,      3,       2,     -1}},
 		//                                                 =>  0 entities
 		//                                                       |    cli.close
-		new int[][] {new int[]{33,    -1,       -1,     -1}, new int[]{15,     -1,      -1,     -1}},
+		new int[][] {new int[]{33,     3,        3,     -1}, new int[]{15,      4,       3,     -1}},
 		//                    srv.close
-		new int[][] {new int[]{33,    -1,       -1,     -1}, new int[]{15,     -1,      -1,     -1}}
+		new int[][] {new int[]{33,     4,        4,     -1}, new int[]{15,      4,       3,     -1}}
 	};
 
 	static final int[][][] seqs_X33_Y15_breaks = new int[][][] {
@@ -678,47 +678,47 @@ public class ExchangeBreakTest {
 		// 6
 		//                                                 <= 15 entities
 		//                    srv.on-restore, exchange
-		new int[][] {new int[]{33,     0,        0,      0}, new int[]{15,      0,      -1,      0}},
+		new int[][] {new int[]{33,     0,        0,     16}, new int[]{15,      0,      -1,      0}},
 
 		// 7
 		//                                                 => 16 entities
 		//                                                       |    cli.next-exchange
-		new int[][] {new int[]{33,     0,        0,      0}, new int[]{15,     -1,       0,     -1}},
+		new int[][] {new int[]{33,     0,        0,     16}, new int[]{15,      1,       0,      0}},
 
 		// 8
 		//                                                 <=  0 entities
 		//                    srv.next-exchange
-		new int[][] {new int[]{33,     1,        -1,     1}, new int[]{15,     -1,       0,     -1}},
+		new int[][] {new int[]{33,     1,        1,     16}, new int[]{15,      1,       0,      0}},
 
 		// 9
 		// 
 		//                                                 => 16 entities
 		//                                                       |    cli.next-exchange
-		new int[][] {new int[]{33,     1,        -1,     1}, new int[]{15,     -1,       1,     -1}},
+		new int[][] {new int[]{33,     1,        1,     16}, new int[]{15,      2,       1,      0}},
 
 		// 10
 		//                                                       |    cli failed, reboot
 		//                                                       |    cli.loadomx, cli.restore_synssion (and exchange again)
-		new int[][] {new int[]{33,     1,        -1,     1}, new int[]{15,     -1,       1,     -1}},
+		new int[][] {new int[]{33,     1,        1,     16}, new int[]{15,      2,       1,      0}},
 
 		// 11
 		//                                                 <=  0 entities
 		//                    srv.on-restore, exchange
-		new int[][] {new int[]{33,     2,        -1,     2}, new int[]{15,     -1,       1,     -1}},
+		new int[][] {new int[]{33,     2,        2,      1}, new int[]{15,      2,       1,      0}},
 
 		// 
 		//                                                 =>  1 entities
 		//                                                       |    cli.next-exchange
-		new int[][] {new int[]{33,     2,        -1,     2}, new int[]{15,     -1,       2,     -1}},
+		new int[][] {new int[]{33,     2,        2,      1}, new int[]{15,      3,       2,      0}},
 		// 
 		//                                                 <=  0 entities
 		//                    srv.next-exchange
-		new int[][] {new int[]{33,    -1,       -1,     -1}, new int[]{15,     -1,       2,     -1}},
+		new int[][] {new int[]{33,     3,        3,      0}, new int[]{15,      3,       2,      0}},
 		//                                                 =>  0 entities
 		//                                                       |    cli.close
-		new int[][] {new int[]{33,    -1,       -1,     -1}, new int[]{15,     -1,      -1,     -1}},
+		new int[][] {new int[]{33,     3,        3,      0}, new int[]{15,      4,       3,      0}},
 		//                    srv.close
-		new int[][] {new int[]{33,    -1,       -1,     -1}, new int[]{15,     -1,      -1,     -1}}
+		new int[][] {new int[]{33,     4,        4,      0}, new int[]{15,      4,       3,      0}}
 	
 	};
 	
@@ -767,77 +767,77 @@ public class ExchangeBreakTest {
 		// 9
 		//                                                 <= 16 entities
 		//                    srv.next-exchange
-		new int[][] {new int[]{16,    -1,        1,      0}, new int[]{49,      1,       0,     16}},
+		new int[][] {new int[]{16,     1,        1,      0}, new int[]{49,      1,       0,     16}},
 
 		// 10
 		//                                                 =>  0 entities
 		//                                                       |    cli failed, reboot
 		//                                                       |    cli.loadomx, cli.restore_synssion (and exchange again)
-		new int[][] {new int[]{16,    -1,        1,      0}, new int[]{49,      1,       0,     16}},
+		new int[][] {new int[]{16,     1,        1,      0}, new int[]{49,      1,       0,     16}},
 
 		// 11
 		//                                                 <= 16 entities
 		//                    srv.on-restore, exchange
-		new int[][] {new int[]{16,    -1,        1,      0}, new int[]{49,      1,       0,     16}},
+		new int[][] {new int[]{16,     1,        1,      0}, new int[]{49,      1,       0,     16}},
 
 		// 12 loop-2
 		//                                                 =>  0 entities
 		//                                                       |    cli.next-exchange
-		new int[][] {new int[]{16,    -1,        1,      0}, new int[]{49,      2,      -1,     16}},
+		new int[][] {new int[]{16,     1,        1,      0}, new int[]{49,      2,       1,     16}},
 
 		// 13
 		//                                                 <= 16 entities
 		//                    srv.next-exchange
-		new int[][] {new int[]{16,    -1,        2,      0}, new int[]{49,      2,      -1,     16}},
+		new int[][] {new int[]{16,     2,        2,      0}, new int[]{49,      2,       1,     16}},
 
 		// 14
 		//                                                 =>  0 entities
 		//                                                       |    cli failed, reboot
 		//                                                       |    cli.loadomx, cli.restore_synssion (and exchange again)
-		new int[][] {new int[]{16,    -1,        2,      0}, new int[]{49,      2,      -1,     16}},
+		new int[][] {new int[]{16,     2,        2,      0}, new int[]{49,      2,       1,     16}},
 
 		// 15
 		//                                                 <= 16 entities
 		//                    srv.on-restore, exchange
-		new int[][] {new int[]{16,    -1,        2,      0}, new int[]{49,      2,      -1,     16}},
+		new int[][] {new int[]{16,     2,        2,      0}, new int[]{49,      2,       1,     16}},
 
 		// 16 loop-3
 		//                                                 =>  0 entities
 		//                                                       |    cli.next-exchange
-		new int[][] {new int[]{16,    -1,        2,      0}, new int[]{49,      3,      -1,      1}},
+		new int[][] {new int[]{16,     2,        2,      0}, new int[]{49,      3,       2,      1}},
 
 		// 13
 		//                                                 <=  1 entities
 		//                    srv.next-exchange
-		new int[][] {new int[]{16,    -1,        3,      0}, new int[]{49,      3,      -1,      1}},
+		new int[][] {new int[]{16,     3,        3,      0}, new int[]{49,      3,       2,      1}},
 
 		// 14
 		//                                                 =>  0 entities
 		//                                                       |    cli failed, reboot
 		//                                                       |    cli.loadomx, cli.restore_synssion (and exchange again)
-		new int[][] {new int[]{16,    -1,        3,      0}, new int[]{49,      3,      -1,      1}},
+		new int[][] {new int[]{16,     3,        3,      0}, new int[]{49,      3,       2,      1}},
 
 		// 15
 		//                                                 <=  1 entities
 		//                    srv.on-restore, exchange
-		new int[][] {new int[]{16,    -1,        3,      0}, new int[]{49,      3,      -1,      1}},
+		new int[][] {new int[]{16,     3,        3,      0}, new int[]{49,      3,       2,      1}},
 
 		// 16
 		//                                                 =>  0 entities
 		//                                                       |    cli.close
-		new int[][] {new int[]{16,    -1,        3,      0}, new int[]{49,      -1,      -1,     0}},
+		new int[][] {new int[]{16,     3,        3,      0}, new int[]{49,      3,       3,     0}},
 
 		// 17
 		//                    srv.close
-		new int[][] {new int[]{16,    -1,       -1,      0}, new int[]{49,     -1,      -1,      0}}
+		new int[][] {new int[]{16,     4,        3,      0}, new int[]{49,      4,       3,      0}}
 	};
 	
 	static void assertSeqs(int round, int sx, int cx, int[][][] ex_seqs) {
 		if (isNull(ex_seqs)) return;
 		ExessionPersist sp = synodes[sx].xp;
 		ExessionPersist cp = synodes[cx].xp;
-		int[] arrs = new int[] {sp.totalChallenges, sp.challengeSeq, sp.answerSeq, ex_seqs[round][sx][xexp]};
-		int[] arrc = new int[] {cp.totalChallenges, cp.challengeSeq, cp.answerSeq, ex_seqs[round][cx][xexp]};
+		int[] arrs = new int[] {sp.totalChallenges, sp.challengeSeq(), sp.answerSeq(), ex_seqs[round][sx][xexp]};
+		int[] arrc = new int[] {cp.totalChallenges, cp.challengeSeq(), cp.answerSeq(), ex_seqs[round][cx][xexp]};
 
 		Utils.logi("Round %s", round);
 		Utils.logArr2d(ex_seqs[round], new int[][] {arrs, arrc});

@@ -113,8 +113,6 @@ public class ExessionPersist {
 		rply.beforeFirst();
 		String recId = null;
 		while (rply.next()) {
-//			if (compareNyq(rply.getLong(chgm.nyquence), tillN0) > 0)
-//				break; // FIXME continue? Or throw?
 	
 			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(synx.synconn, rply.getString(chgm.entbl));
 
@@ -508,11 +506,14 @@ public class ExessionPersist {
 
 	// public int expAnswerSeq;
 	/** Challenging sequence number, i. e. current page */
-	public int challengeSeq;
+	private int challengeSeq;
+	public int challengeSeq() { return challengeSeq; }
+
 	/** challenge page size */
 	protected int chsize;
 
-	public int answerSeq;
+	private int answerSeq;
+	public int answerSeq() { return answerSeq; }
 
 	/**
 	 * Has another page in {@link SynchangeBuffMeta}.tbl to be send to.
@@ -549,7 +550,7 @@ public class ExessionPersist {
 		if (req.act == restore
 			|| req.answerSeq == -1 // first exchange
 			|| challengeSeq >= 0 && challengeSeq == req.answerSeq) {
-			answerSeq = req.challengeSeq;
+			// answerSeq = req.challengeSeq;
 			return this;
 		}
 
@@ -565,7 +566,6 @@ public class ExessionPersist {
 		me.exstate(nextChpage() ? exchange : close);
 
 		return trb == null // null for test
-			// ? new ExchangeBlock(synx.domain, rep.peer, peer, session, me.exstate).seq(this)
 			? new ExchangeBlock(synx.domain, synx.synode, peer, session, me.exstate).seq(this)
 			: trb.exchangePage(this, rep);
 	}
@@ -573,8 +573,9 @@ public class ExessionPersist {
 	private boolean nextChpage() throws TransException, SQLException {
 		int pages = pages();
 		int pagerecords = 0;
+		challengeSeq++;
 		if (challengeSeq < pages) {
-			challengeSeq++;
+//			challengeSeq++;
 		
 			if (trb != null) {
 				// try update change-logs' page-idx as even as possible - a little bit bewildering. TODO FIXME SIMPLIFY
@@ -617,13 +618,13 @@ public class ExessionPersist {
 					;
 			}
 		}
-		else challengeSeq = -1;
+		// else challengeSeq = -1;
 
 		// expAnswerSeq = challengeSeq < pages ? challengeSeq : -1;
-		// return challengeSeq < pages;
-		if (pagerecords <= 0)
-			challengeSeq = -1;
-		return challengeSeq < 0;
+//		if (pagerecords <= 0)
+//			challengeSeq = -1;
+//		return challengeSeq < 0;
+		return pagerecords <= 0;
 	}
 
 	/**
@@ -632,11 +633,11 @@ public class ExessionPersist {
 	 * @return this
 	 */
 	ExessionPersist pageback() {
-		if (challengeSeq < 0)
-			return this;
-
-		challengeSeq--;
-		// expAnswerSeq = challengeSeq;
+//		if (challengeSeq < 0)
+//			return this;
+//
+//		challengeSeq--;
+//		// expAnswerSeq = challengeSeq;
 		return this;
 	}
 
@@ -690,8 +691,8 @@ public class ExessionPersist {
 		// expAnswerSeq = challengeSeq < pages() ? challengeSeq : -1; 
 
 		AnResultset rs = chpage();
-		if (rs.getRowCount() <= 0)
-			challengeSeq = -1;
+//		if (rs.getRowCount() <= 0)
+//			challengeSeq = -1;
 
 		if (dbgExchangePaging)
 			printChpage(peer, rs, chEntities);
@@ -714,8 +715,8 @@ public class ExessionPersist {
 		exstate.state = exchange;
 
 		AnResultset rs = chpage();
-		if (rs.getRowCount() <= 0)
-			challengeSeq = -1;
+//		if (rs.getRowCount() <= 0)
+//			challengeSeq = -1;
 
 		if (dbgExchangePaging)
 			printChpage(peer, rs, chEntities);
@@ -739,8 +740,8 @@ public class ExessionPersist {
 			// expAnswerSeq = -1; 
 			if (rep != null)
 				answerSeq = rep.challengeSeq;
-			else answerSeq = -1;
-			challengeSeq = -1; 
+//			else answerSeq = -1;
+//			challengeSeq = -1; 
 
 			exstate.state = ready;
 
@@ -766,9 +767,9 @@ public class ExessionPersist {
 	public ExchangeBlock abortExchange() {
 		try {
 			// expAnswerSeq = -1; 
-			answerSeq = -1;
-			challengeSeq = -1; 
-			totalChallenges = 0;
+//			answerSeq = -1;
+//			challengeSeq = -1; 
+//			totalChallenges = 0;
 
 			exstate.state = ready;
 
@@ -780,9 +781,6 @@ public class ExessionPersist {
 		} finally {
 			try {
 				breaksession();
-//				trb.delete(exbm.tbl, trb.synrobot())
-//					.whereEq(exbm.peer, peer)
-//					.d(trb.instancontxt());
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
 			}

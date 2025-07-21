@@ -5,7 +5,6 @@ import static io.odysz.common.LangExt.hasGt;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.str;
 import static io.odysz.common.Utils.logi;
-import static io.odysz.semantic.syn.ExessionAct.restore;
 import static io.odysz.semantic.syn.ExessionAct.setupDom;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
@@ -372,7 +371,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	private void printAnswer_persisting(String peer, ExessionPersist xp, ExchangeBlock req) {
 		logi("====== %s <- %s ====== Answering: ======", syndomx.synode, peer);
 		logi("%s\npage-index: %s,\tchallenging size: %s\nSyntities:\n",
-			syndomx.synode, xp.answerSeq, xp.challengeSeq, xp.chsize);
+			syndomx.synode, xp.answerSeq(), xp.challengeSeq(), xp.chsize);
 		
 		if (xp.chEntities != null)
 			for (String tbl : xp.chEntities.keySet())
@@ -459,7 +458,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @param syndomx
 	 * @param peer
 	 * @throws TransException
-	 */
 	static void selectExbuf(DBSyntableBuilder inst, SyndomContext syndomx, String peer) throws TransException {
 		SynodeMeta synm = syndomx.synm;
 		SynChangeMeta chgm = syndomx.chgm;
@@ -476,6 +474,7 @@ public class DBSyntableBuilder extends DATranscxt {
 										constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
 				.where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0);
 	}
+	 */
 	
 	/**
 	 * Orthogonally synchronize n-vectors locally.

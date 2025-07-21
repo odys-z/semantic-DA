@@ -130,11 +130,10 @@ public class ExchangeBlock extends Anson {
 	}
 
 	int chpagesize;
-	/** @deprecated */
-	public ExchangeBlock chpagesize(int size) {
-		chpagesize = size;
-		return this;
-	}
+//	public ExchangeBlock chpagesize(int size) {
+//		chpagesize = size;
+//		return this;
+//	}
 
 	int totalChallenges;
 	/**
@@ -184,7 +183,8 @@ public class ExchangeBlock extends Anson {
 	 * @return this
 	 */
 	 public ExchangeBlock seq(ExessionPersist xp) {
-	 	return seq(xp.challengeSeq < xp.pages() ? xp.challengeSeq : -1, xp.answerSeq, xp.totalChallenges);
+	 	// return seq(xp.challengeSeq() < xp.pages() ? xp.challengeSeq() : -1, xp.answerSeq(), xp.totalChallenges);
+	 	return seq(xp.challengeSeq(), xp.answerSeq(), xp.totalChallenges);
 	 }
 
 	public ExchangeBlock requirestore() {

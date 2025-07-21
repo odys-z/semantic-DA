@@ -328,7 +328,7 @@ public class SyndomContext {
 		while (!lockx(admin)) {
 			double sleep = onMutext.onlocked(synlocker);
 			if (sleep > 0)
-				Thread.sleep((long) (sleep * 1000));
+				Thread.sleep((long) ((sleep + Math.random()) * 1000));
 			else if (sleep < 0)
 				return false;
 		}

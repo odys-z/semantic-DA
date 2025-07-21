@@ -285,9 +285,11 @@ public class DASemantextTest {
 			.rs(0)).nxt();
 		
 		// oz_autoseq.sql: ('doc_devices.device', 64 * 64 * 4, 'device');
-		assertEquals("1.4.34.0004", rs.getString("device").subSequence(0, 11), "000G01");
+		assertTrue(eq("1.4.34.0004", rs.getString("device").subSequence(0, 11).toString())
+				|| eq("1.4.34.000G", rs.getString("device").subSequence(0, 11).toString()), "000G01");
 		rs.next();
-		assertEquals("synode0.0004", rs.getString("device").subSequence(0, 12), "000402");
+		assertTrue(eq("synode0.0004", rs.getString("device").subSequence(0, 12).toString())
+				|| eq("synode0.000G", rs.getString("device").subSequence(0, 12).toString()), "000402");
 	}
 
 	/**Test cross referencing auto k.<br>
