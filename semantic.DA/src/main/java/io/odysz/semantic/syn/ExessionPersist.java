@@ -656,20 +656,28 @@ public class ExessionPersist {
 	 * @since 1.5.18
 	 */
 	public ExchangeBlock onRestore(ExchangeBlock req) throws TransException, SQLException {
-		/** Try
-		if (req.challengeSeq < 0 || req.challengeSeq == answerSeq + 1)
+		musteqi(restore, req.act);
+		if (challengeSeq == req.answerSeq) // restore and you are confirming my challenge
 			return nextExchange(req);
-		else if (req.challengeSeq == answerSeq)
-			return exchange(peer, req); // re-reply
+		else if (challengeSeq < 0 || challengeSeq == req.answerSeq + 1)
+			return exchange(peer, req); // repeat the reply for the expected answer
 		else
-			return null;
-		*/
+			// return null;
+			throw new ExchangeException(restore, this,
+				"req seq and my seq state cannot be restored.\nreq.challenge-seq answer-seq : my.challange-seq answer-seq\n%s %s : %s %s",
+				req.challengeSeq, req.answerSeq, challengeSeq, answerSeq);
+		/** Try
+		musteqi(restore, req.act);
 		if (req.challengeSeq >= 0 && req.challengeSeq == answerSeq)
 			return exchange(peer, req); // re-reply
 		else if (req.challengeSeq < 0 || req.challengeSeq == answerSeq + 1)
 			return nextExchange(req);
 		else
-			return null;
+			// return null;
+			throw new ExchangeException(restore, this,
+				"req seq and my seq state cannot be restored. req.challenge-seq answer-seq / my.challange-seq answer-seq",
+				req.challengeSeq, req.answerSeq, challengeSeq, answerSeq);
+		*/
 	}
 
 	ExchangeBlock exchange(String peer, ExchangeBlock rep)

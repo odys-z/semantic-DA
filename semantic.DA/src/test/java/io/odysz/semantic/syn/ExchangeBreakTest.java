@@ -360,25 +360,6 @@ public class ExchangeBreakTest {
 				Utils.logrst(new String[] {srv.synode, "server on resume"}, test, subno, step, no, ++exseq);
 				rep = srv.xp.onRestore(req);
 				assertSeqs(++round, srvx, clix, ex_seqs);
-
-				/*
-				req = synodes[clix].xp.nextExchange(rep);
-				assertSeqs(++round, srvx, clix, ex_seqs);
-				Utils.logrst(f("%s exchange challenge    changes: %d    entities: %d    answers: %d",
-						synodes[clix].synode, req.totalChallenges, req.enitities(), req.answers()), test, subno, step, no, ++exseq);
-				req.print(System.out);
-
-				// server
-				Utils.logrst(new String[] {srv.synode, "on exchange"}, test, subno, step, no, ++exseq);
-				rep = srv.xp.nextExchange(req);
-				assertSeqs(++round, srvx, clix, ex_seqs);
-
-				Utils.logrst(f("%s on exchange response    changes: %d    entities: %d    answers: %d",
-						srv.synode, rep.totalChallenges, rep.enitities(), rep.answers()), test, subno, step, no, ++exseq);
-				rep.print(System.out);
-				printChangeLines(ck);
-				printNyquv(ck);
-				*/
 			}
 		}
 		return round;
@@ -830,7 +811,7 @@ public class ExchangeBreakTest {
 		//                    srv.next-exchange
 		new int[][] {new int[]{16,    -1,        3,      0}, new int[]{49,      3,      -1,      1}},
 
-		// 15
+		// 14
 		//                                                 =>  0 entities
 		//                                                       |    cli failed, reboot
 		//                                                       |    cli.loadomx, cli.restore_synssion (and exchange again)
