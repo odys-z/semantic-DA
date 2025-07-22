@@ -624,7 +624,7 @@ public class ExessionPersist {
 //		if (pagerecords <= 0)
 //			challengeSeq = -1;
 //		return challengeSeq < 0;
-		return pagerecords <= 0;
+		return pagerecords > 0;
 	}
 
 	/**
