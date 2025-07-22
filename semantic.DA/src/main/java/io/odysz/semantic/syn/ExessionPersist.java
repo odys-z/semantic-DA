@@ -256,7 +256,6 @@ public class ExessionPersist {
 					.nv(chgm.nyquence, changes.getLong(chgm.nyquence))
 					.nv(chgm.seq, trb.incSeq()).nv(chgm.uids, chuids)
 					.post(subscribeUC)
-					// .post(del0subchange(entm, domain, synodr, chuids, chgid, synx.synode))
 					;
 
 			if (iamSynodee || subscribeUC.size() > 0) {
@@ -370,7 +369,6 @@ public class ExessionPersist {
 		this.chsize = tb.syndomx.pageSize;
 
 		this.totalChallenges = 0;
-		// this.expAnswerSeq = -1;
 		this.answerSeq = -1;
 		this.challengeSeq = -1;
 		
@@ -423,7 +421,6 @@ public class ExessionPersist {
 			Utils.warnT(new Object() {}, "Null transaction builder. - null builder only for test");
 		
 		challengeSeq = -1;
-		// expAnswerSeq = -1; //challengeSeq;
 		answerSeq = -1;
 
 		if (trb != null)
@@ -542,7 +539,6 @@ public class ExessionPersist {
 		if (req.act == restore
 			|| req.answerSeq == -1 // first exchange
 			|| challengeSeq >= 0 && challengeSeq == req.answerSeq) {
-			// answerSeq = req.challengeSeq;
 			return this;
 		}
 
@@ -611,20 +607,6 @@ public class ExessionPersist {
 		}
 		return pagerecords > 0;
 	}
-
-	/**
-	 * @deprecated backup for deprecated test, only for references.
-	 * Reset to last page
-	 * @return this
-	ExessionPersist pageback() {
-//		if (challengeSeq < 0)
-//			return this;
-//
-//		challengeSeq--;
-//		// expAnswerSeq = challengeSeq;
-		return this;
-	}
-	 */
 
 	public ExchangeBlock restore() throws TransException, SQLException {
 		loadsession(peer);
@@ -745,28 +727,6 @@ public class ExessionPersist {
 			}
 		}
 	}
-
-	/**
-	 * Retry last page
-	 * @deprecated backup for deprecated test, only for references.
-	 * @param peer
-	 * @return request message
-	 * @throws SQLException 
-	 * @throws TransException 
-	public ExchangeBlock retryLast(String peer) throws TransException, SQLException {
-
-		pageback();
-		nextChpage();
-		exstate.state = restore;
-
-		return new ExchangeBlock(synx.domain,
-					trb == null ? null : synx.synode,
-					peer, session, exstate)
-				.requirestore()
-				.totalChallenges(totalChallenges, this.chsize)
-				.seq(this);
-	}
-	 */
 
 	/**Challenging Entities */
 	HashMap<String, AnResultset> chEntities;

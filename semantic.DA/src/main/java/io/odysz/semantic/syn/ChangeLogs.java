@@ -11,6 +11,11 @@ import io.odysz.semantic.CRUD;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantics.x.SemanticException;
 
+/**
+ * Data structure for exchange syn_change."
+ * 
+ * @since 1.5.0
+ */
 public class ChangeLogs extends Anson {
 
 	public static final String ChangeFlag = "change";
@@ -19,8 +24,6 @@ public class ChangeLogs extends Anson {
 	SynChangeMeta chm;
 	
 	HashMap<String, Nyquence> nyquvect;
-
-	// HashMap<String, Long> exchangenv;
 
 	/** 
 	 * clone {@code nyquvect} into my nyq-vector.
@@ -44,11 +47,8 @@ public class ChangeLogs extends Anson {
 		return this;
 	}
 
-	// private boolean dirty;
-
 	public ChangeLogs(SynChangeMeta changemeta) {
 		this.chm = changemeta;
-		// dirty = false;
 	}
 
 	/**
@@ -66,8 +66,6 @@ public class ChangeLogs extends Anson {
 		ArrayList<Object> row = challenge.getRowAt(challenge.currentRow()-1);
 		row.add(answers.getColumex(ChangeFlag)-1, CRUD.U);
 		answers.append(row);
-
-		// dirty = true;
 	}
 
 	public static Nyquence parseNyq(Object[] c) {
@@ -94,7 +92,6 @@ public class ChangeLogs extends Anson {
 		entities = null;
 	}
 
-	// public HashMap<String, HashMap<String, ? extends SynEntity>> entities;
 	HashMap<String, AnResultset> entities;
 
 	public ChangeLogs entities(String tbl, AnResultset entities) {
