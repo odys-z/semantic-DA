@@ -5,7 +5,6 @@ import static io.odysz.common.LangExt.hasGt;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.str;
 import static io.odysz.common.Utils.logi;
-import static io.odysz.semantic.syn.ExessionAct.restore;
 import static io.odysz.semantic.syn.ExessionAct.setupDom;
 import static io.odysz.semantic.syn.Nyquence.compareNyq;
 import static io.odysz.semantic.syn.Nyquence.getn;
@@ -113,8 +112,21 @@ public class DBSyntableBuilder extends DATranscxt {
 
 	////////////////////////////// protocol API ////////////////////////////////
 	/**
-	 * insert into exchanges select * from change_logs where n > nyquvect[target].n
-	 * 
+	 * Client have found unfinished exchange session then retry it.
+	 * @return null or restore-request
+	 * @throws SQLException 
+	 * @throws TransException 
+	 * @since 1.5.18
+	 */
+	public ExchangeBlock restorexchange(ExessionPersist xp) throws TransException, SQLException {
+		if (DAHelper.count(this, this.syndomx.synconn, xp.sysm.tbl, xp.sysm.peer, xp.peer) == 0)
+			return null;
+		else
+			return xp.restore();
+	}
+
+	/**
+	 * @see ExessionPersist#init()
 	 * @param cp
 	 * @return {total: change-logs to be exchanged} 
 	 * @throws TransException
@@ -130,8 +142,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 	
 	/**
-	 * Insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n.
-	 * 
+	 * @see ExessionPersist#onInit(ExchangeBlock)
 	 * @param sp
 	 * @param inireq
 	 * @return response block
@@ -170,7 +181,8 @@ public class DBSyntableBuilder extends DATranscxt {
 			.commitAnswers(lastconf, cp.peer, cp.n0().n)
 			.exchange(cp.peer, lastconf)
 			.answers(answer_save(cp, lastconf, cp.peer))
-			.seq(cp.persisession());
+			// .seq(cp.persisession());
+			.seq(cp);
 	}
 	
 	/**
@@ -359,7 +371,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	private void printAnswer_persisting(String peer, ExessionPersist xp, ExchangeBlock req) {
 		logi("====== %s <- %s ====== Answering: ======", syndomx.synode, peer);
 		logi("%s\npage-index: %s,\tchallenging size: %s\nSyntities:\n",
-			syndomx.synode, xp.answerSeq, xp.challengeSeq, xp.chsize);
+			syndomx.synode, xp.answerSeq(), xp.challengeSeq(), xp.chsize);
 		
 		if (xp.chEntities != null)
 			for (String tbl : xp.chEntities.keySet())
@@ -413,6 +425,8 @@ public class DBSyntableBuilder extends DATranscxt {
 		SynChangeMeta chgm = syndomx.chgm;
 		SynSubsMeta subm = syndomx.subm;
 		
+		// FIXME Move this to static selectExbuf(),
+		// and count total changes before exbuf has been inserted?
 		Query q_exchgs = select(chgm.tbl, "cl")
 				.distinct(true)
 				.cols(constr(peer), chgm.pk, new ExprPart(-1))
@@ -437,6 +451,30 @@ public class DBSyntableBuilder extends DATranscxt {
 			.cols(syndomx.exbm.insertCols())
 			.select(q_exchgs);
 	}
+	
+	/**
+	 * @deprecated not used
+	 * @param inst
+	 * @param syndomx
+	 * @param peer
+	 * @throws TransException
+	static void selectExbuf(DBSyntableBuilder inst, SyndomContext syndomx, String peer) throws TransException {
+		SynodeMeta synm = syndomx.synm;
+		SynChangeMeta chgm = syndomx.chgm;
+		SynSubsMeta subm = syndomx.subm;
+		PeersMeta pnvm = syndomx.pnvm;
+	
+			Query q_exchgs = inst.select(chgm.tbl, "cl")
+				.distinct(true)
+				.cols(constr(peer), chgm.pk, new ExprPart(-1))
+				.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
+										.and(Sql.condt(op.eq, constr(syndomx.domain), "cl." + chgm.domain))
+										.and(Sql.condt(op.ne, constr(syndomx.synode), subm.synodee)))
+				.je_(pnvm.tbl, "nvee", "cl." + chgm.synoder, pnvm.synid,
+										constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
+				.where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0);
+	}
+	 */
 	
 	/**
 	 * Orthogonally synchronize n-vectors locally.
@@ -583,35 +621,30 @@ public class DBSyntableBuilder extends DATranscxt {
 				.seq(xp);
 	}
 	
-	public void onRequires(ExessionPersist cp, ExchangeBlock req) throws ExchangeException {
-		if (req.act == restore) {
-			if (cp.challengeSeq <= req.challengeSeq) {
-				// server is actually handled my challenge. Just step ahead 
-				cp.challengeSeq = req.challengeSeq;
-			}
-			else if (cp.challengeSeq == req.challengeSeq + 1) {
-				// server haven't got the previous package
-				// setup for send again
-				cp.challengeSeq = req.challengeSeq;
-			}
-			else {
-				// not correct
-				cp.challengeSeq = req.challengeSeq;
-			}
-	
-			if (cp.answerSeq < req.answerSeq) {
-				cp.answerSeq = req.answerSeq;
-			}
-			
-			cp.expAnswerSeq = cp.challengeSeq;
-		}
-		else throw new ExchangeException(0, cp, "TODO");
-	}
-
-	/**
-	 * Client have found unfinished exchange session then retry it.
-	 */
-	public void restorexchange() { }
+//	public void onRequires(ExessionPersist cp, ExchangeBlock req) throws ExchangeException {
+//		if (req.act == restore) {
+//			if (cp.challengeSeq <= req.challengeSeq) {
+//				// server is actually handled my challenge. Just step ahead 
+//				cp.challengeSeq = req.challengeSeq;
+//			}
+//			else if (cp.challengeSeq == req.challengeSeq + 1) {
+//				// server haven't got the previous package
+//				// setup for send again
+//				cp.challengeSeq = req.challengeSeq;
+//			}
+//			else {
+//				// not correct
+//				cp.challengeSeq = req.challengeSeq;
+//			}
+//	
+//			if (cp.answerSeq < req.answerSeq) {
+//				cp.answerSeq = req.answerSeq;
+//			}
+//			
+//			// cp.expAnswerSeq = cp.challengeSeq;
+//		}
+//		else throw new ExchangeException(0, cp, "TODO");
+//	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	public int deleteEntityBySynuid(SyndomContext syndomContext, SyntityMeta entm, String synuid)

@@ -511,9 +511,9 @@ public class Docheck {
 		for (int cx = 0; cx < ck.length && ck[cx] instanceof Docheck; cx++) {
 			DBSyntableBuilder t = ck[cx].synb;
 
-			boolean top = Connects.getDebug(ck[cx].synb.syndomx.synconn);
-			Connects.setDebug(ck[cx].synb.syndomx.synconn, false);
-
+//			boolean top = Connects.getDebug(ck[cx].synb.syndomx.synconn);
+//			Connects.setDebug(ck[cx].synb.syndomx.synconn, false);
+			ck[cx].synb.pushDebug(false);
 			try {
 				HashMap<String, Nyquence> nyquvect = ck[cx].synb.syndomx.loadNvstamp(t); 
 
@@ -534,7 +534,8 @@ public class Docheck {
 					ck[cx].doclist(ck[cx].synb.syndomx.synm) :
 					ck[cx].doclist(ck[cx].docm));
 			}
-			finally { Connects.setDebug(ck[cx].synb.syndomx.synconn, top); }
+			// finally { Connects.setDebug(ck[cx].synb.syndomx.synconn, top); }
+			finally { ck[cx].synb.popDebug(); }
 		}
 
 		return (HashMap<String, Nyquence>[]) nv2;

@@ -1,8 +1,10 @@
 package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt._0;
+import static io.odysz.common.LangExt.musteqi;
 import static io.odysz.common.LangExt.musteqs;
 import static io.odysz.semantic.syn.DBSyn2tableTest.zsu;
+
 import static io.odysz.semantic.syn.DBSyn2tableTest.chpageSize;
 
 import io.odysz.semantic.meta.ExpDocTableMeta;
@@ -26,6 +28,7 @@ public class T_SynDomanager extends SyndomContext {
 			throws Exception {
 		super(mod, chpageSize, domain, synode, synconn, _0(debug, false));
 		musteqs(zsu, domain);
+		musteqi(16, chpageSize);
 	}
 
 	public T_SynDomanager(SyndomContext dx, DBSyntableBuilder synb) throws Exception {
@@ -45,11 +48,14 @@ public class T_SynDomanager extends SyndomContext {
 	}
 
 	static public T_SynDomanager reboot(Docheck ck) throws Exception {
-		return new T_SynDomanager(ck) ;
+		T_SynDomanager domx = new T_SynDomanager(ck) ;
+		return (T_SynDomanager) domx.loadomainx();
 	}
-
-	public ExchangeBlock resumeBreakpoint() {
-		return null;
+	
+	ExchangeBlock syssionPeer_exesrestore(String peer) throws Exception {
+		DBSyntableBuilder b0 = new DBSyntableBuilder(this);
+		xp = new ExessionPersist(b0, peer, null);
+		return b0.restorexchange(xp);
 	}
 
 	public void breakdown() {

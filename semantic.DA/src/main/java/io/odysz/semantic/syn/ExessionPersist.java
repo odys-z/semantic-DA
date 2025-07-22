@@ -2,7 +2,8 @@ package io.odysz.semantic.syn;
 
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.isNull;
-import static io.odysz.common.LangExt.musteq;
+import static io.odysz.common.LangExt.musteqi;
+import static io.odysz.common.LangExt.musteqs;
 import static io.odysz.common.Utils.logi;
 import static io.odysz.semantic.syn.ExessionAct.close;
 import static io.odysz.semantic.syn.ExessionAct.exchange;
@@ -46,6 +47,7 @@ import io.odysz.semantics.meta.TableMeta;
 import io.odysz.semantics.x.ExchangeException;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.sql.Query;
+import io.odysz.transact.sql.QueryPage;
 import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.parts.Logic.op;
 import io.odysz.transact.sql.parts.Resulving;
@@ -111,8 +113,6 @@ public class ExessionPersist {
 		rply.beforeFirst();
 		String recId = null;
 		while (rply.next()) {
-//			if (compareNyq(rply.getLong(chgm.nyquence), tillN0) > 0)
-//				break; // FIXME continue? Or throw?
 	
 			SyntityMeta entm = DBSynTransBuilder.getEntityMeta(synx.synconn, rply.getString(chgm.entbl));
 
@@ -367,9 +367,13 @@ public class ExessionPersist {
 		this.sysm = new SynSessionMeta(synx.synconn);
 		this.pnvm = synx.pnvm;
 		this.exstate = new ExessionAct(mode_server, ready);
-		// this.chsize = 480;
 		this.chsize = tb.syndomx.pageSize;
 
+		this.totalChallenges = 0;
+		// this.expAnswerSeq = -1;
+		this.answerSeq = -1;
+		this.challengeSeq = -1;
+		
 		debug = trb == null ? true : Connects.getDebug(synx.synconn);
 	}
 
@@ -393,7 +397,8 @@ public class ExessionPersist {
 	}
 
 	/**
-	 * Collect the task infor, and setup exchange buffer table.
+	 * Collect the task info. This method won't setup exchange buffer table.<br>
+	 * 
 	 * <pre>
 	 * exstate.state = init;
 	 * expAnswerSeq = 0;
@@ -418,7 +423,7 @@ public class ExessionPersist {
 			Utils.warnT(new Object() {}, "Null transaction builder. - null builder only for test");
 		
 		challengeSeq = -1;
-		expAnswerSeq = -1; //challengeSeq;
+		// expAnswerSeq = -1; //challengeSeq;
 		answerSeq = -1;
 
 		if (trb != null)
@@ -430,12 +435,14 @@ public class ExessionPersist {
 				trb == null ? null : synx.synode,
 				peer, session, exstate)
 			.totalChallenges(totalChallenges, this.chsize)
-			.seq(persistarting(peer))
+			// .seq(persistarting(peer))
+			.seq(this)
 			.nv(synx.nv);
 	}
 
 	/**
-	 * insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n
+	 * insert into exchanges select * from change_logs where n > nyquvect[sx.peer].n<br>
+	 * update syn_sessions with cp.challengeSeq
 	 * 
 	 * @param ini
 	 * @return new message
@@ -446,25 +453,26 @@ public class ExessionPersist {
 		if (trb != null) {
 			synx.loadNvstamp(trb);
 
-			int total = ((SemanticObject) trb
+			totalChallenges = ((SemanticObject) trb
 				.insertExbuf(peer)
 				.ins(trb.instancontxt())
 				).total();
 
-			if (total > 0 && debug) {
+			if (totalChallenges > 0 && debug) {
 				Utils.logi("Changes in buffer for %s -> %s: %s",
-					synx.synode, peer, total);
+					synx.synode, peer, totalChallenges);
 			}
 		}
 		else 
 			Utils.warnT(new Object() {}, "Null transaction builder. - null builder only for test");
 		
 		challengeSeq = -1;
-		expAnswerSeq = ini.answerSeq;
+		// expAnswerSeq = ini.answerSeq;
+		musteqi(-1, ini.challengeSeq);
 		answerSeq = ini.challengeSeq;
 	
-		if (trb != null) 
-			totalChallenges = DAHelper.count(trb, synx.synconn, exbm.tbl, exbm.peer, peer);
+//		if (trb != null) 
+//			totalChallenges = DAHelper.count(trb, synx.synconn, exbm.tbl, exbm.peer, peer);
 		chsize = ini.chpagesize > 0 ? ini.chpagesize : -1;
 
 		exstate = new ExessionAct(mode_server, init);
@@ -472,7 +480,7 @@ public class ExessionPersist {
 		return new ExchangeBlock(synx.domain,
 					trb == null ? ini.peer : synx.synode,
 					peer, session, exstate)
-				.totalChallenges(totalChallenges, ini.chpagesize)
+				.totalChallenges(totalChallenges, chsize)
 				.seq(persistarting(peer))
 				.nv(synx.nv);
 	}
@@ -496,13 +504,16 @@ public class ExessionPersist {
 	 */
 	public int totalChallenges;
 
-	public int expAnswerSeq;
+	// public int expAnswerSeq;
 	/** Challenging sequence number, i. e. current page */
-	public int challengeSeq;
+	private int challengeSeq;
+	public int challengeSeq() { return challengeSeq; }
+
 	/** challenge page size */
 	protected int chsize;
 
-	public int answerSeq;
+	private int answerSeq;
+	public int answerSeq() { return answerSeq; }
 
 	/**
 	 * Has another page in {@link SynchangeBuffMeta}.tbl to be send to.
@@ -514,10 +525,12 @@ public class ExessionPersist {
 	public boolean hasNextChpages(DBSyntableBuilder b)
 			throws SQLException, TransException {
 		int pages = pages();
-		if (pages > 0 && challengeSeq + 1 < pages)
-			return true;
-		else
-			return false;
+//		if (pages > 0 && challengeSeq + 1 < pages)
+//			return true;
+//		else
+//			return false;
+		return pages > 0 && DAHelper.count(b, b.syndomx.synconn, b.xp.exbm.tbl,
+				b.xp.exbm.peer, peer, b.xp.exbm.pagex, -1) > 0;
 	}
 
 	public ExessionPersist expect(ExchangeBlock req) throws ExchangeException {
@@ -531,19 +544,19 @@ public class ExessionPersist {
 		
 		if (req.challengeSeq >= 0 && (req.act != restore && answerSeq + 1 != req.challengeSeq))
 			throw new ExchangeException(ExessionAct.unexpect, this,
-					"Challenge page lost, expecting %s",
+					"Challenge page lost, expecting page index %s",
 					answerSeq + 1);
 		
 		if (req.act == restore
-			|| expAnswerSeq == 0 && req.answerSeq == -1 // first exchange
-			|| expAnswerSeq == req.answerSeq) {
-			answerSeq = req.challengeSeq;
+			|| req.answerSeq == -1 // first exchange
+			|| challengeSeq >= 0 && challengeSeq == req.answerSeq) {
+			// answerSeq = req.challengeSeq;
 			return this;
 		}
 
 		throw new ExchangeException(ExessionAct.unexpect, this,
-			"for challenge %s, got answer %s, expecting %s",
-			req.challengeSeq, req.answerSeq, expAnswerSeq);
+			"for challenge %s, got answer %s",
+			req.challengeSeq, req.answerSeq);
 	}
 	
 	public ExchangeBlock nextExchange(ExchangeBlock rep)
@@ -553,21 +566,23 @@ public class ExessionPersist {
 		me.exstate(nextChpage() ? exchange : close);
 
 		return trb == null // null for test
-			? new ExchangeBlock(synx.domain, rep.peer, peer, session, me.exstate).seq(this)
+			? new ExchangeBlock(synx.domain, synx.synode, peer, session, me.exstate).seq(this)
 			: trb.exchangePage(this, rep);
 	}
-
+	
 	private boolean nextChpage() throws TransException, SQLException {
 		int pages = pages();
+		int pagerecords = 0;
+		challengeSeq++;
 		if (challengeSeq < pages) {
-			challengeSeq++;
+//			challengeSeq++;
 		
 			if (trb != null) {
 				// try update change-logs' page-idx as even as possible - a little bit bewildering. TODO FIXME SIMPLIFY
 
 				// TODO We have batch select now, change to use it
-				Query page = trb
-						.select(exbm.tbl, "bf")
+				QueryPage page = (QueryPage) trb
+						.selectPage(exbm.tbl, "bf")
 						.col(exbm.changeId)
 						.whereEq(exbm.peer, peer)
 						.whereEq(exbm.pagex, -1)
@@ -595,16 +610,21 @@ public class ExessionPersist {
 					e.printStackTrace();
 				}
 				
-				trb.update(exbm.tbl, trb.synrobot())
+				pagerecords = trb.update(exbm.tbl, trb.synrobot())
 					.nv(exbm.pagex, challengeSeq)
 					.whereIn(exbm.changeId, page)
 					.u(trb.instancontxt())
+					.total()
 					;
 			}
 		}
+		// else challengeSeq = -1;
 
-		expAnswerSeq = challengeSeq < pages ? challengeSeq : -1;
-		return challengeSeq < pages;
+		// expAnswerSeq = challengeSeq < pages ? challengeSeq : -1;
+//		if (pagerecords <= 0)
+//			challengeSeq = -1;
+//		return challengeSeq < 0;
+		return pagerecords > 0;
 	}
 
 	/**
@@ -613,77 +633,101 @@ public class ExessionPersist {
 	 * @return this
 	 */
 	ExessionPersist pageback() {
-		if (challengeSeq < 0)
-			return this;
-
-		challengeSeq--;
-		expAnswerSeq = challengeSeq;
+//		if (challengeSeq < 0)
+//			return this;
+//
+//		challengeSeq--;
+//		// expAnswerSeq = challengeSeq;
 		return this;
 	}
 
+	public ExchangeBlock restore() throws TransException, SQLException {
+		loadsession(peer);
+		totalChallenges = DAHelper.count(trb, synx.synconn, exbm.tbl, exbm.peer, peer);
+		exstate.state = restore;
+		return exchange(peer, null);
+	}
+
 	/**
-	 * Restore a persisted session.
+	 * Reply to a restore request, by either step next page or re-send the last one.
 	 * @param req
 	 * @return exchanging reply
 	 * @throws TransException
 	 * @throws SQLException
+	 * @since 1.5.18
 	 */
 	public ExchangeBlock onRestore(ExchangeBlock req) throws TransException, SQLException {
-		loadsession(req.peer);
-		return exchange(req.peer, req);
+		musteqi(restore, req.act);
+		if (challengeSeq == req.answerSeq) // restore and you are confirming my challenge
+			return nextExchange(req);
+		else if (challengeSeq < 0 || challengeSeq == req.answerSeq + 1)
+			return exchange(peer, req); // repeat the reply for the expected answer
+		else
+			// return null;
+			throw new ExchangeException(restore, this,
+				"req seq and my seq state cannot be restored.\nreq.challenge-seq answer-seq : my.challange-seq answer-seq\n%s %s : %s %s",
+				req.challengeSeq, req.answerSeq, challengeSeq, answerSeq);
+		/** Try
+		musteqi(restore, req.act);
+		if (req.challengeSeq >= 0 && req.challengeSeq == answerSeq)
+			return exchange(peer, req); // re-reply
+		else if (req.challengeSeq < 0 || req.challengeSeq == answerSeq + 1)
+			return nextExchange(req);
+		else
+			// return null;
+			throw new ExchangeException(restore, this,
+				"req seq and my seq state cannot be restored. req.challenge-seq answer-seq / my.challange-seq answer-seq",
+				req.challengeSeq, req.answerSeq, challengeSeq, answerSeq);
+		*/
 	}
 
 	ExchangeBlock exchange(String peer, ExchangeBlock rep)
 			throws TransException, SQLException {
-		if (rep != null)
+		if (rep != null) {
 			answerSeq = rep.challengeSeq;
-		expAnswerSeq = challengeSeq < pages() ? challengeSeq : -1; 
+			musteqs(rep.peer, synx.synode);
+		}
+		
+		// expAnswerSeq = challengeSeq < pages() ? challengeSeq : -1; 
 
 		AnResultset rs = chpage();
+//		if (rs.getRowCount() <= 0)
+//			challengeSeq = -1;
 
 		if (dbgExchangePaging)
 			printChpage(peer, rs, chEntities);
 
-		return new ExchangeBlock(synx.domain,
-					trb == null ? rep.peer : synx.synode,
-					peer, session, exstate)
+		return new ExchangeBlock(synx.domain, synx.synode, peer, session, exstate)
 				.chpage(rs, chEntities)
 				.totalChallenges(totalChallenges, this.chsize)
-				.seq(this)
+				.seq(persisession())
 				.nv(synx.nv);
-	}
-
-	private void printChpage(String peer, AnResultset challenges, HashMap<String, AnResultset> syntities) {
-		logi("====== %s -> %s ====== Challenge Page: ======", synx.synode, peer);
-		logi("%s\npage-index: %s,\tchallenging size: %s\nSyntities:\n",
-			synx.synode, challengeSeq, challenges.getRowCount());
-		if (syntities != null)
-			for (String tbl : syntities.keySet())
-				logi("%s,\tsize: %s,", tbl, syntities.get(tbl).getRowCount());
 	}
 
 	ExchangeBlock onExchange(String peer, ExchangeBlock req)
 			throws TransException, SQLException {
-
-		if (req != null)
+		if (req != null) {
 			answerSeq = req.challengeSeq;
-		expAnswerSeq = challengeSeq < pages() ? challengeSeq : -1; 
+			musteqs(req.peer, synx.synode);
+		}
+		// expAnswerSeq = challengeSeq < pages() ? challengeSeq : -1; 
 
 		exstate.state = exchange;
 
 		AnResultset rs = chpage();
+//		if (rs.getRowCount() <= 0)
+//			challengeSeq = -1;
 
 		if (dbgExchangePaging)
 			printChpage(peer, rs, chEntities);
 
-		return new ExchangeBlock(synx.domain,
-					trb == null ? req.peer
-					: synx.synode, peer, session, exstate)
+		return new ExchangeBlock(synx.domain, synx.synode, peer, session, exstate)
 				.chpage(rs, chEntities)
 				.totalChallenges(totalChallenges, this.chsize)
-				.seq(this)
+				.seq(persisession())
 				.nv(synx.nv);
 	}
+	
 
 	public ExchangeBlock closexchange(ExchangeBlock rep) throws ExchangeException {
 		/* enable?
@@ -693,11 +737,11 @@ public class ExessionPersist {
 		*/
 
 		try {
-			expAnswerSeq = -1; 
+			// expAnswerSeq = -1; 
 			if (rep != null)
 				answerSeq = rep.challengeSeq;
-			else answerSeq = -1;
-			challengeSeq = -1; 
+//			else answerSeq = -1;
+//			challengeSeq = -1; 
 
 			exstate.state = ready;
 
@@ -709,9 +753,7 @@ public class ExessionPersist {
 		} finally {
 			if (trb != null)
 			try {
-				trb.delete(exbm.tbl, trb.synrobot())
-					.whereEq(exbm.peer, peer)
-					.d(trb.instancontxt());
+				closession();
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
 			}
@@ -724,10 +766,10 @@ public class ExessionPersist {
 	
 	public ExchangeBlock abortExchange() {
 		try {
-			expAnswerSeq = -1; 
-			answerSeq = -1;
-			challengeSeq = -1; 
-			totalChallenges = 0;
+			// expAnswerSeq = -1; 
+//			answerSeq = -1;
+//			challengeSeq = -1; 
+//			totalChallenges = 0;
 
 			exstate.state = ready;
 
@@ -738,9 +780,7 @@ public class ExessionPersist {
 					.seq(this);
 		} finally {
 			try {
-				trb.delete(exbm.tbl, trb.synrobot())
-					.whereEq(exbm.peer, peer)
-					.d(trb.instancontxt());
+				breaksession();
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
 			}
@@ -749,6 +789,7 @@ public class ExessionPersist {
 
 	/**
 	 * Retry last page
+	 * @deprecated backup for deprecated test, only for references.
 	 * @param peer
 	 * @return request message
 	 * @throws SQLException 
@@ -857,7 +898,8 @@ public class ExessionPersist {
 			sysm.update(trb.update(sysm.tbl, trb.synrobot()))
 				.nv(sysm.chpage, challengeSeq)
 				.nv(sysm.answerx, answerSeq)
-				.nv(sysm.expansx, expAnswerSeq)
+				// .nv(sysm.expansx, expAnswerSeq)
+				.nv(sysm.expansx, challengeSeq)
 				.nv(sysm.mode,  exstate.exmode)
 				.nv(sysm.state, exstate.state)
 				.whereEq(sysm.peer, peer)
@@ -867,9 +909,9 @@ public class ExessionPersist {
 	}
 	
 	public ExessionPersist loadsession(String peer) throws TransException, SQLException {
-		musteq(this.peer, peer);
+		musteqs(this.peer, peer);
 		if (trb != null) {
-			AnResultset rs = ((AnResultset) trb.select(sysm.tbl).cols(
+			AnResultset rs = (AnResultset) trb.select(sysm.tbl).cols(
 				sysm.chpage,	//challengeSeq)
 				sysm.answerx,	// answerSeq)
 				sysm.expansx,	// expAnswerSeq)
@@ -877,18 +919,29 @@ public class ExessionPersist {
 				sysm.state)		// exstate.state)
 				.whereEq(sysm.peer, peer)
 				.rs(trb.instancontxt())
-				.rs(0))
-				.nxt();
+				.rs(0);
 			
-			challengeSeq = rs.getInt(sysm.chpage);
-			answerSeq = rs.getInt(sysm.answerx);
-			expAnswerSeq = rs.getInt(sysm.expansx);
-			exstate.exmode = rs.getInt(sysm.mode);
-			exstate.state = rs.getInt(sysm.state);
+			if (rs.next()) {
+				challengeSeq = rs.getInt(sysm.chpage);
+				answerSeq = rs.getInt(sysm.answerx);
+				// expAnswerSeq = rs.getInt(sysm.expansx);
+				exstate.exmode = rs.getInt(sysm.mode);
+				exstate.state = rs.getInt(sysm.state);
+			}
 		}
 		return this;
 	}
 
+	public void breaksession() throws TransException, SQLException {
+	}
+
+	public void closession() throws TransException, SQLException {
+		trb.delete(sysm.tbl, trb.synrobot())
+			.whereEq(sysm.peer, peer)
+			.post(trb.delete(exbm.tbl)
+					.whereEq(exbm.peer, peer))
+			.d(trb.instancontxt());
+	}
 
 	/**
 	 * Save starting session.
@@ -899,11 +952,13 @@ public class ExessionPersist {
 	 */
 	public ExessionPersist persistarting(String peer) throws TransException, SQLException {
 		if (trb != null) {
-			trb.delete(sysm.tbl, trb.synrobot())
-				.whereEq(sysm.peer, peer)
-				.post(sysm.insertSession(trb.insert(sysm.tbl), peer))
-				.d(trb.instancontxt());
-		}
+//			trb.delete(sysm.tbl, trb.synrobot())
+//				.whereEq(sysm.peer, peer)
+//				.post(sysm.insertSession(trb.insert(sysm.tbl), peer))
+//				.d(trb.instancontxt());
+			((Insert)sysm.insertSession(trb.insert(sysm.tbl, trb.synrobot()), peer))
+				.ins(trb.instancontxt());
+		} // else test
 		return this;
 	}
 
@@ -998,4 +1053,14 @@ public class ExessionPersist {
 	public Nyquence stamp() {
 		return synx.stamp;
 	}
+
+	private void printChpage(String peer, AnResultset challenges, HashMap<String, AnResultset> syntities) {
+		logi("====== %s -> %s ====== Challenge Page: ======", synx.synode, peer);
+		logi("%s\npage-index: %s,\tchallenging size (all subscribers): %s\nSyntities:\n",
+			synx.synode, challengeSeq, challenges.getRowCount());
+		if (syntities != null)
+			for (String tbl : syntities.keySet())
+				logi("%s,\tsize: %s,", tbl, syntities.get(tbl).getRowCount());
+	}
+
 }

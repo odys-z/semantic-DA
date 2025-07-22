@@ -68,7 +68,7 @@ public class DBSyn2tableTest {
 	
 	static final String zsu = "zsu";
 	static final String ura = "ura";
-	static final int chpageSize = 480;
+	static final int chpageSize = 16;
 
 	public static final int X = 0;
 	public static final int Y = 1;
