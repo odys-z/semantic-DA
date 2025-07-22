@@ -87,7 +87,7 @@ public class DBSyntableTest {
 	static SynSessionMeta ssm;
 	static PeersMeta prm;
 
-	static String[] synodes;
+	static String[] synodes = new String[] { "X", "Y", "Z", "W" };
 
 	static {
 		printCaller(false);
@@ -119,23 +119,12 @@ public class DBSyntableTest {
 			conns[s] = f("syn.%02x", s);
 			Connects.commit(conns[s], DATranscxt.dummyUser(),
 					"drop table if exists a_logs");
-//				"CREATE TABLE if not exists a_logs (\n"
-//				+ "  logId text(20),\n"
-//				+ "  funcId text(20),\n"
-//				+ "  funcName text(50),\n"
-//				+ "  oper text(20),\n"
-//				+ "  logTime text(20),\n"
-//				+ "  cnt int,\n"
-//				+ "  txt text(4000),\n"
-//				+ "  CONSTRAINT oz_logs_pk PRIMARY KEY (logId)\n"
-//				+ ");" );
-			
+
 			AutoSeqMeta autom = new AutoSeqMeta(conns[s]);
 			Connects.commit(conns[s], DATranscxt.dummyUser(), autom.ddlSqlite);
 		}
 
 		ck = new Docheck[4];
-		synodes = new String[] { "X", "Y", "Z", "W" };
 		chm = new SynChangeMeta();
 		sbm = new SynSubsMeta(chm);
 		xbm = new SynchangeBuffMeta(chm);
@@ -684,6 +673,7 @@ public class DBSyntableTest {
 		Utils.logrst(new String[] {clientnid, "closing exchange"}, test, subno, ++no);
 		ExchangeBlock req = ctb.closexchange(cp, rep);
 		assertEquals(ready, cp.exstate());
+		assertEquals(0, DAHelper.count(ctb, ctb.syndomx.synconn, ssm.tbl, ssm.peer, stb.syndomx.synode));
 
 		printChangeLines(ck);
 		printNyquv(ck);
@@ -693,6 +683,7 @@ public class DBSyntableTest {
 		// FIXME what if the server doesn't agree?
 		rep = stb.onclosexchange(sp, req);
 		assertEquals(ready, sp.exstate());
+		assertEquals(0, DAHelper.count(stb, stb.syndomx.synconn, ssm.tbl, ssm.peer, stb.syndomx.synode));
 
 		printChangeLines(ck);
 		printNyquv(ck);

@@ -68,7 +68,7 @@ public class DBSyn2tableTest {
 	
 	static final String zsu = "zsu";
 	static final String ura = "ura";
-	static final int chpageSize = 480;
+	static final int chpageSize = 16;
 
 	public static final int X = 0;
 	public static final int Y = 1;
@@ -115,18 +115,6 @@ public class DBSyn2tableTest {
 
 		for (int s = 0; s < 4; s++) {
 			conns[s] = f("syn.%02x", s);
-//			Connects.commit(conns[s], DATranscxt.dummyUser(),
-//				"CREATE TABLE if not exists a_logs (\n"
-//				+ "  logId text(20),\n"
-//				+ "  funcId text(20),\n"
-//				+ "  funcName text(50),\n"
-//				+ "  oper text(20),\n"
-//				+ "  logTime text(20),\n"
-//				+ "  cnt int,\n"
-//				+ "  txt text(4000),\n"
-//				+ "  CONSTRAINT oz_logs_pk PRIMARY KEY (logId)\n"
-//				+ ");" );
-			
 			AutoSeqMeta autom = new AutoSeqMeta(conns[s]);
 			Connects.commit(conns[s], DATranscxt.dummyUser(), autom.ddlSqlite);
 		}
@@ -151,8 +139,6 @@ public class DBSyn2tableTest {
 			dvm.replace();
 
 			ArrayList<String> sqls = new ArrayList<String>();
-			// sqls.add("delete from oz_autoseq;");
-			// sqls.add(Utils.loadTxt("../oz_autoseq.sql"));
 			assertTrue(DAHelper.count(new DATranscxt(conn), conn, "oz_autoseq", "sid", "h_photos.pid") == 1);
 			sqls.add(f("update oz_autoseq set seq = %d where sid = 'h_photos.pid'", (long) Math.pow(64, s+1)));
 
@@ -310,9 +296,6 @@ public class DBSyn2tableTest {
 		logi(x_b64x0); // no extFilev2
 		assertTrue(x_b64x0.startsWith("iVBORw0K"));
 
-//		String y_extroot = ((ShExtFilev2) DATranscxt
-//							.getHandler(ck[Y].connId(), ck[Y].docm.tbl, smtype.extFilev2))
-//							.getFileRoot();
 		DocRef y_refx0 = (DocRef) Anson.fromJson((String) DAHelper
 				.getExprstr(ck[Y].b0, ck[Y].connId(), ck[Y].docm,
 					Funcall.refile( new DocRef(ck[X].synode(),
@@ -388,8 +371,6 @@ public class DBSyn2tableTest {
 
 		Utils.logrst(new String[] {clientnid, "closing exchange"}, test, subno, ++no);
 		ExchangeBlock req = ctb.closexchange(cp, rep);
-//		if (req.nv.containsKey(clientnid))
-//			assertEquals(req.nv.get(clientnid).n + 1, SyndomContext.getNyquence(ctb).n);
 		assertEquals(ready, cp.exstate());
 
 		printChangeLines(ck);
@@ -399,8 +380,6 @@ public class DBSyn2tableTest {
 		Utils.logrst(new String[] {servnid, "on closing exchange"}, test, subno, ++no);
 		// FIXME what if the server doesn't agree?
 		rep = stb.onclosexchange(sp, req);
-//		if (req.nv.containsKey(clientnid))
-//			assertEquals(rep.nv.get(clientnid).n + 1, SyndomContext.getNyquence(stb).n);
 		assertEquals(ready, sp.exstate());
 
 		printChangeLines(ck);
@@ -490,26 +469,4 @@ public class DBSyn2tableTest {
 		return new String[] {did_chid[0], did_chid[1],
 					SynChangeMeta.uids(synoder, did_chid[0])};
 	}
-
-	/**
-	 * @param chgm
-	 * @param s checker index
-	 * @return [synuid, 1/0]
-	 * @throws TransException
-	 * @throws SQLException
-	Object[] deletePhoto(int s) throws TransException, SQLException {
-		DBSyntableBuilder t = ck[s].synb;
-		ExpDocTableMeta entm = ck[s].docm;
-		AnResultset slt = ((AnResultset) ck[s].synb
-				.select(entm.tbl)
-				.limit(1)
-				.rs(t.instancontxt(ck[s].synb.syndomx.synconn, t.synrobot()))
-				.rs(0))
-				.nxt();
-
-		String suid = slt.getString(entm.io_oz_synuid);
-
-		return new Object[] {suid, t.deleteEntityBySynuid(ck[s].synb.syndomx, entm, suid)};
-	}
-	 */
 }

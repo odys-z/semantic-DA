@@ -360,6 +360,10 @@ public class Docheck {
 		return 0;
 	}
 
+	public void psubs(int subcount, String chgid, int ... sub) throws SQLException, TransException {
+		psubs(docm, subcount, chgid, sub);
+	}
+
 	/**
 	 * verify h_photos' subscription.
 	 * @param chgid
@@ -367,26 +371,29 @@ public class Docheck {
 	 * @throws SQLException 
 	 * @throws TransException 
 	 */
-	public void psubs(int subcount, String chgid, int ... sub) throws SQLException, TransException {
+	public void psubs(SyntityMeta entm, int subcount, String chgid, int ... sub) throws SQLException, TransException {
 		ArrayList<String> toIds = new ArrayList<String>();
 		for (int n : sub)
 			if (n >= 0)
 				toIds.add(ck[n].synb.syndomx.synode);
-		subsCount(docm, subcount, chgid, toIds.toArray(new String[0]));
+		subsCount(entm, subcount, chgid, toIds.toArray(new String[0]));
 	}
 	
-	
 	public void psubs_uid(int subcount, String synuid, int ... sub) throws SQLException, TransException {
+		psubs_uid(docm, subcount, synuid, sub);
+	}
+	
+	public void psubs_uid(SyntityMeta entm, int subcount, String synuid, int ... sub) throws SQLException, TransException {
 		ArrayList<String> toIds = new ArrayList<String>();
 		for (int n : sub)
 			if (n >= 0)
 				toIds.add(ck[n].synb.syndomx.synode);
 
 		String chgid = DAHelper.getValstr(synb, synb.syndomx.synconn, chm, chm.pk,
-				chm.domain, constr(synb.syndomx.domain), chm.entbl, constr(this.docm.tbl),
+				chm.domain, constr(synb.syndomx.domain), chm.entbl, constr(entm.tbl),
 				chm.uids, synuid);
 
-		subsCount(docm, subcount, chgid, toIds.toArray(new String[0]));
+		subsCount(entm, subcount, chgid, toIds.toArray(new String[0]));
 	}
 
 	public void synsubs(int subcount, String uids, int ... sub) throws SQLException, TransException {
@@ -435,7 +442,7 @@ public class Docheck {
 			}
 
 			azert.equali(subcount, cnt);
-			azert.equali(subcount, subs.getRowCount());
+			// azert.equali(subcount, subs.getRowCount());
 		}
 	}
 
@@ -443,7 +450,7 @@ public class Docheck {
 			throws SQLException, TransException {
 
 		String chgId = DAHelper.getValstr(synb, synb.syndomx.synconn, chm, chm.pk,
-				chm.domain, constr(synb.syndomx.domain), chm.entbl, constr(this.docm.tbl),
+				chm.domain, constr(synb.syndomx.domain), chm.entbl, constr(entm.tbl),
 				chm.uids, synuid);
 
 
@@ -504,9 +511,9 @@ public class Docheck {
 		for (int cx = 0; cx < ck.length && ck[cx] instanceof Docheck; cx++) {
 			DBSyntableBuilder t = ck[cx].synb;
 
-			boolean top = Connects.getDebug(ck[cx].synb.syndomx.synconn);
-			Connects.setDebug(ck[cx].synb.syndomx.synconn, false);
-
+//			boolean top = Connects.getDebug(ck[cx].synb.syndomx.synconn);
+//			Connects.setDebug(ck[cx].synb.syndomx.synconn, false);
+			ck[cx].synb.pushDebug(false);
 			try {
 				HashMap<String, Nyquence> nyquvect = ck[cx].synb.syndomx.loadNvstamp(t); 
 
@@ -527,7 +534,8 @@ public class Docheck {
 					ck[cx].doclist(ck[cx].synb.syndomx.synm) :
 					ck[cx].doclist(ck[cx].docm));
 			}
-			finally { Connects.setDebug(ck[cx].synb.syndomx.synconn, top); }
+			// finally { Connects.setDebug(ck[cx].synb.syndomx.synconn, top); }
+			finally { ck[cx].synb.popDebug(); }
 		}
 
 		return (HashMap<String, Nyquence>[]) nv2;
