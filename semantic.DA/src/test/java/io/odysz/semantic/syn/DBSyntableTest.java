@@ -547,44 +547,6 @@ public class DBSyntableTest {
 		assertEquals(ck[X].docs(), ck[Y].docs());
 	}
 	
-	/* TODO
-	void testBreakAck(int section) throws Exception {
-		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), section);
-
-		int no = 0;
-
-		Utils.logrst("X update, Y insert", section, ++no);
-		String[] xu = updatePname(X);
-		printChangeLines(ck);
-		printNyquv(ck);
-
-		ck[X].buf_change(1 + 1, // already have 1
-				U, xu[0], ck[X].docm);
-		ck[X].psubs(4 + 3,  // already have 4 
-				null, -1, Y, Z, W);
-		ck[X].psubs(3, xu[1], -1, Y, Z, W);
-
-		String[] yi = insertPhoto(Y);
-		ck[Y].buf_change(1, C, yi[0], ck[Y].docm);
-		ck[Y].psubs(3, yi[1], X, -1, Z, W);
-
-		printChangeLines(ck);
-		printNyquv(ck);
-
-		Utils.logrst("X <= Y", section, ++no);
-		exchange_break(ssm, ck[X].docm, ck[X].synb, ck[Y].docm, ck[Y].synb, section, no);
-
-		ck[X].buf_change(1, C, ck[X].synx.synode, xu[0], ck[X].docm);
-		ck[X].buf_change(1, C, ck[Y].synx.synode, yi[0], ck[X].docm);
-		ck[X].psubs(2, xu[1], -1, -1, Z, W);
-		ck[X].psubs(2, yi[1], -1, -1, Z, W);
-		ck[Y].buf_change(1, C, ck[X].synx.synode, xu[0], ck[Y].docm);
-		ck[Y].buf_change(1, C, ck[Y].synx.synode, yi[0], ck[Y].docm);
-		ck[Y].psubs(2, xu[1], -1, -1, Z, W);
-		ck[Y].psubs(2, yi[1], -1, -1, Z, W);
-	}
-	*/
-	
 	/**
 	 * insert synode(apply)
 	 * 

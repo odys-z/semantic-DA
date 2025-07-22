@@ -6,17 +6,8 @@ import io.odysz.anson.Anson;
 import io.odysz.semantics.x.ExchangeException;
 
 /**
- *<pre>  server                      client
- * ready                       ready
- *                             exchanging [{@link #initexchange()}]
- * exchanging [{@link #onExchange()}]
- *                             exchange 
- * close [{@link #close()}]
- *                             ready [{@link #onclose()}]
- * </pre>
-
+ * Exchange states
  * @author Ody
- *
  */
 public class Exchanging extends Anson {
 
@@ -67,17 +58,6 @@ public class Exchanging extends Anson {
 
 	@Override
 	public String toString() { return name(); }
-
-	/**
-	 * Test the {@code exp} state is the right next state.
-	 * @param exp
-	 * @return current state
-	 * @throws ExchangeException expecting state if {@code exp} is not the right one.
-	 */
-//	public int can(int exp) throws ExchangeException {
-//		// deprecated, keep for DBSyansactBuilder
-//		return can(exp, null);
-//	}
 
 	public int can(int exp, ExessionPersist xp) throws ExchangeException {
 		if (mode == mode_client) {

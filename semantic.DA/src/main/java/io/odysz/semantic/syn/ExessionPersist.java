@@ -467,12 +467,9 @@ public class ExessionPersist {
 			Utils.warnT(new Object() {}, "Null transaction builder. - null builder only for test");
 		
 		challengeSeq = -1;
-		// expAnswerSeq = ini.answerSeq;
 		musteqi(-1, ini.challengeSeq);
 		answerSeq = ini.challengeSeq;
 	
-//		if (trb != null) 
-//			totalChallenges = DAHelper.count(trb, synx.synconn, exbm.tbl, exbm.peer, peer);
 		chsize = ini.chpagesize > 0 ? ini.chpagesize : -1;
 
 		exstate = new ExessionAct(mode_server, init);
@@ -504,7 +501,6 @@ public class ExessionPersist {
 	 */
 	public int totalChallenges;
 
-	// public int expAnswerSeq;
 	/** Challenging sequence number, i. e. current page */
 	private int challengeSeq;
 	public int challengeSeq() { return challengeSeq; }
@@ -525,10 +521,6 @@ public class ExessionPersist {
 	public boolean hasNextChpages(DBSyntableBuilder b)
 			throws SQLException, TransException {
 		int pages = pages();
-//		if (pages > 0 && challengeSeq + 1 < pages)
-//			return true;
-//		else
-//			return false;
 		return pages > 0 && DAHelper.count(b, b.syndomx.synconn, b.xp.exbm.tbl,
 				b.xp.exbm.peer, peer, b.xp.exbm.pagex, -1) > 0;
 	}
@@ -575,7 +567,6 @@ public class ExessionPersist {
 		int pagerecords = 0;
 		challengeSeq++;
 		if (challengeSeq < pages) {
-//			challengeSeq++;
 		
 			if (trb != null) {
 				// try update change-logs' page-idx as even as possible - a little bit bewildering. TODO FIXME SIMPLIFY
@@ -618,12 +609,6 @@ public class ExessionPersist {
 					;
 			}
 		}
-		// else challengeSeq = -1;
-
-		// expAnswerSeq = challengeSeq < pages ? challengeSeq : -1;
-//		if (pagerecords <= 0)
-//			challengeSeq = -1;
-//		return challengeSeq < 0;
 		return pagerecords > 0;
 	}
 
@@ -631,7 +616,6 @@ public class ExessionPersist {
 	 * @deprecated backup for deprecated test, only for references.
 	 * Reset to last page
 	 * @return this
-	 */
 	ExessionPersist pageback() {
 //		if (challengeSeq < 0)
 //			return this;
@@ -640,6 +624,7 @@ public class ExessionPersist {
 //		// expAnswerSeq = challengeSeq;
 		return this;
 	}
+	 */
 
 	public ExchangeBlock restore() throws TransException, SQLException {
 		loadsession(peer);
@@ -667,18 +652,6 @@ public class ExessionPersist {
 			throw new ExchangeException(restore, this,
 				"req seq and my seq state cannot be restored.\nreq.challenge-seq answer-seq : my.challange-seq answer-seq\n%s %s : %s %s",
 				req.challengeSeq, req.answerSeq, challengeSeq, answerSeq);
-		/** Try
-		musteqi(restore, req.act);
-		if (req.challengeSeq >= 0 && req.challengeSeq == answerSeq)
-			return exchange(peer, req); // re-reply
-		else if (req.challengeSeq < 0 || req.challengeSeq == answerSeq + 1)
-			return nextExchange(req);
-		else
-			// return null;
-			throw new ExchangeException(restore, this,
-				"req seq and my seq state cannot be restored. req.challenge-seq answer-seq / my.challange-seq answer-seq",
-				req.challengeSeq, req.answerSeq, challengeSeq, answerSeq);
-		*/
 	}
 
 	ExchangeBlock exchange(String peer, ExchangeBlock rep)
@@ -688,11 +661,7 @@ public class ExessionPersist {
 			musteqs(rep.peer, synx.synode);
 		}
 		
-		// expAnswerSeq = challengeSeq < pages() ? challengeSeq : -1; 
-
 		AnResultset rs = chpage();
-//		if (rs.getRowCount() <= 0)
-//			challengeSeq = -1;
 
 		if (dbgExchangePaging)
 			printChpage(peer, rs, chEntities);
@@ -710,13 +679,10 @@ public class ExessionPersist {
 			answerSeq = req.challengeSeq;
 			musteqs(req.peer, synx.synode);
 		}
-		// expAnswerSeq = challengeSeq < pages() ? challengeSeq : -1; 
 
 		exstate.state = exchange;
 
 		AnResultset rs = chpage();
-//		if (rs.getRowCount() <= 0)
-//			challengeSeq = -1;
 
 		if (dbgExchangePaging)
 			printChpage(peer, rs, chEntities);
@@ -740,8 +706,6 @@ public class ExessionPersist {
 			// expAnswerSeq = -1; 
 			if (rep != null)
 				answerSeq = rep.challengeSeq;
-//			else answerSeq = -1;
-//			challengeSeq = -1; 
 
 			exstate.state = ready;
 
@@ -766,11 +730,6 @@ public class ExessionPersist {
 	
 	public ExchangeBlock abortExchange() {
 		try {
-			// expAnswerSeq = -1; 
-//			answerSeq = -1;
-//			challengeSeq = -1; 
-//			totalChallenges = 0;
-
 			exstate.state = ready;
 
 			return new ExchangeBlock(synx.domain,
@@ -794,7 +753,6 @@ public class ExessionPersist {
 	 * @return request message
 	 * @throws SQLException 
 	 * @throws TransException 
-	 */
 	public ExchangeBlock retryLast(String peer) throws TransException, SQLException {
 
 		pageback();
@@ -808,6 +766,7 @@ public class ExessionPersist {
 				.totalChallenges(totalChallenges, this.chsize)
 				.seq(this);
 	}
+	 */
 
 	/**Challenging Entities */
 	HashMap<String, AnResultset> chEntities;
@@ -952,10 +911,6 @@ public class ExessionPersist {
 	 */
 	public ExessionPersist persistarting(String peer) throws TransException, SQLException {
 		if (trb != null) {
-//			trb.delete(sysm.tbl, trb.synrobot())
-//				.whereEq(sysm.peer, peer)
-//				.post(sysm.insertSession(trb.insert(sysm.tbl), peer))
-//				.d(trb.instancontxt());
 			((Insert)sysm.insertSession(trb.insert(sysm.tbl, trb.synrobot()), peer))
 				.ins(trb.instancontxt());
 		} // else test
