@@ -1030,9 +1030,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		  .nv("attName", "Sun Yet-sen Portrait.jpg")
 		  .nv("busiTbl", "a_folder2")
 		  .nv("busiId", "res")
-		  // .nv("uri", uri1)
 		  .whereEq("attId", attId)
-		  // .commit(sqls, usr)
 		  .u(s0.clone(usr));
 		
 		assertFalse(f.exists());

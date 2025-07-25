@@ -1,5 +1,6 @@
 package io.odysz.semantic;
 
+import static io.odysz.common.LangExt.ifnull;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.split;
 
@@ -156,6 +157,7 @@ public class DATranscxt extends Transcxt {
 	@Override
 	public ISemantext instancontxt(String connId, IUser usr) throws TransException {
 		try {
+			connId = ifnull(connId, basictx.connId());
 			return new DASemantext(connId,
 				initConfigs(connId, (c) -> new SemanticsMap(c)),
 				usr, runtimepath);

@@ -88,6 +88,7 @@ public class ConnectsTest {
 			.nv("flags", flag)
 			// .nv("funcId", "AUTO")
 			.nv("funcName", "func - " + flag)
+			.nv("parentId", "0")
 			.commit(st.instancontxt(null, null), sqls); // using static semantext for testing
 	}
 	

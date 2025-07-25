@@ -1044,7 +1044,8 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @throws TransException 
 	 */
 	public String decodeExtfile(String extfile) throws TransException {
-		return ExtFilePaths.decodeUri(instancontxt().containerRoot(), extfile);
+		// return ExtFilePaths.decodeUri(instancontxt().containerRoot(), extfile);
+		return ExtFilePaths.decodeUriPath(extfile);
 	}
 
 	/**

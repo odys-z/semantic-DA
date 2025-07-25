@@ -2,6 +2,7 @@ package io.odysz.semantic;
 
 import static io.odysz.common.LangExt.eq;
 import static io.odysz.common.LangExt.f;
+import static io.odysz.common.LangExt.ifnull;
 import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.split;
@@ -458,7 +459,8 @@ public class DASemantics {
 				throw new SemanticException("Since v1.4.12, orclob is no longer supported.");
 			else if ("ef".equals(type) || "e-f".equals(type) || "ext-file".equals(type)
 					|| "xf".equals(type) || "x-f".equals(type))
-				return extFile;
+				// return extFile;
+				return extFilev2;
 			else
 				throw new SemanticException("semantics not known, type: " + type);
 		}
@@ -820,11 +822,11 @@ public class DASemantics {
 				if (isblank(pid, "null")) {
 					Utils.warnT(new Object() {},
 						"Fullpath Handling Error. To generate fullpath, the parentId must be configured, and parent value must be providen.\n" +
-						"table     : %s,\n" +
-						"parent col: %s,\n" +
-						"args      : %s,\n" +
-						"cols      : %s\n" +
-						"row       : %s",
+						"table  : %1$s,\n" +
+						"parent : %2$s,\n" +
+						"args   : %3$s,\n" +
+						"cols   : %4$s\n" +
+						"row    : %5$s",
 						target, pid, LangExt.toString(args), str(cols), LangExt.str(row));
 					// v1.3.0 v = id;
 				} else {
@@ -946,16 +948,24 @@ public class DASemantics {
 			super(trxt, smtype.autoInc, tabl, pk, args);
 
 			long start0 = 0;
+
 			if (args == null || args.length < 2 || isblank(args[0]) || isblank(args[1]))
-				throw new SemanticException(
+//				throw new SemanticException(
+//						"Since Semantic.DA 1.4.45, AUTO pk's configuration format is:\n"
+//						+ "<tabl>*,<start-long>*,<prefix-0>,... <prefix-i>.\n"
+//						+ "Some fields are missing in auto-key configuration: conn = %s, tabl = %s, pk = %s, args = %s",
+//						trxt.basictx().connId(), tabl, pk, LangExt.toString(args));
+
+
+				Utils.warn(
 						"Since Semantic.DA 1.4.45, AUTO pk's configuration format is:\n"
-						+ "<tabl>*,<start-long>*,<prefix-0>,... <prefix-i>, which is deprecating the oz_autoseq.sql way.\n"
-						+ "configuration: conn = %s, tabl = %s, pk = %s, args = %s",
+						+ "<tabl>*,<start-long>*,<prefix-0>,... <prefix-i>.\n"
+						+ "Some fields are missing in auto-key configuration: conn = %s, tabl = %s, pk = %s, args = %s",
 						trxt.basictx().connId(), tabl, pk, LangExt.toString(args));
 
 			// 1.4.45: insert start0 to oz_autoseq 
 			try {
-				start0 = Long.valueOf(args[args.length - 1]);
+				start0 = Long.valueOf(ifnull(args[args.length - 1], "0"));
 			} catch (Exception e) {}
 
 			String sql = f("select count(sid) c from oz_autoseq where sid = '%1$s.%2$s'", target, args[0]);
@@ -1709,47 +1719,6 @@ public class DASemantics {
 		 * <p><b>NOTE:</b><br>This can be changed in the future.</p>
 		 * @throws TransException 
 		 * @see SemanticHandler#onUpdate(ISemantext, Update, ArrayList, Map, IUser)
-		 * 
-		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
-			if (cols.containsKey(args[ixUri])) {
-				throw new SemanticException(
-					"Found ext-file's contenet is updated.\n" +
-					"Currently update ExtFile (%s.%s) is not supported (and moving file shouldn't updating content). Use delete & insert instead.",
-					target, args[ixUri]);
-			}
-			else if (args.length > 1 && args[ixUri] != null && cols != null && !cols.containsKey(args[ixUri])) {
-				boolean touch = false;
-				for (int i = ixUri + 1; i < args.length - 1; i++)
-					if (cols.containsKey(args[i])) {
-						touch = true;
-						break;
-					}
-				if (touch) {
-					// String oldUri = row.get(cols.get(args[ixUri]))[1].toString();
-					String oldUri = selectUri(stx, updt, updt.where(), usr);
-					String oldName = FilenameUtils.getName(oldUri);
-
-					ExtFileUpdatev2 f = new ExtFileUpdatev2(oldName, getFileRoot(), stx)
-							.oldUri(oldUri);
-
-					for (int i = ixUri + 1; i < args.length - 1; i++)
-						if (i != ixUri && !cols.containsKey(args[i])) 
-							throw new SemanticException(
-								"Cols for composing exp-file path are modified. To update (move file) %s.%s, all required fields must be provided by user (missing %s).\n" +
-								"Needing fields: %s.\n" +
-								"Modifying cols: %s",
-								target, args[ixUri], args[i],
-								Stream.of(args).skip(2).collect(Collectors.joining(", ")),
-								cols.keySet().stream().collect(Collectors.joining(", ")));
-						else
-							f.appendSubFolder(row.get(cols.get(args[i]))[1]);
-
-					Object[] nv = new Object[] { args[ixUri], f };
-					cols.put(args[ixUri], nv.length);
-					row.add(nv);
-				}
-			}
-		}
 		 */
 		@Override
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws TransException {
@@ -1768,26 +1737,13 @@ public class DASemantics {
 					}
 				if (touch) {
 					// String oldUri = row.get(cols.get(args[ixUri]))[1].toString();
-					// String oldUri = selectUri(stx, updt, updt.where(), usr);
 					String[] oldUriPk = selectUriPk(stx, updt, updt.where(), usr);
 					String oldName = FilenameUtils.getName(oldUriPk[0]);
 
-					ExtFileUpdatev2 f = new ExtFileUpdatev2(oldUriPk[1], oldName, oldName)
+					ExtFileUpdatev2 f = new ExtFileUpdatev2(oldUriPk[1], oldUriPk[1], oldName)
 										.oldUri(oldUriPk[0]);
 
 					f.subpaths(Arrays.copyOfRange(args, ixUri + 1, args.length - 1), cols, row);
-//					for (int i = ixUri + 1; i < args.length - 1; i++)
-//						if (i != ixUri && !cols.containsKey(args[i])) 
-//							throw new SemanticException(
-//								"Cols for composing exp-file path are modified. To update (move file) %s.%s, all required fields must be provided by user (missing %s).\n" +
-//								"Needing fields: %s.\n" +
-//								"Modifying cols: %s",
-//								target, args[ixUri], args[i],
-//								Stream.of(args).skip(2).collect(Collectors.joining(", ")),
-//								cols.keySet().stream().collect(Collectors.joining(", ")));
-//						else
-//							f.appendSubFolder(row.get(cols.get(args[i]))[1]);
-
 					Object[] nv = new Object[] { args[ixUri], f };
 					cols.put(args[ixUri], nv.length);
 					row.add(nv);
@@ -1820,6 +1776,14 @@ public class DASemantics {
 			}
 		}
 
+		/**
+		 * @param stx
+		 * @param stmt
+		 * @param pk
+		 * @param usr
+		 * @return [uri, pk]
+		 * @throws SemanticException
+		 */
 		private String[] selectUriPk(ISemantext stx, Statement<?> stmt, Condit pk, IUser usr) throws SemanticException {
 			AnResultset rs;
 			try {
@@ -1846,7 +1810,6 @@ public class DASemantics {
 
 		@Override
 		protected void onDelete(ISemantext stx,
-				// Statement<? extends Statement<?>> stmt,
 				Delete stmt,
 				Condit condt, IUser usr)
 				throws SemanticException {
@@ -1863,22 +1826,28 @@ public class DASemantics {
 
 				while (rs.next()) {
 					try {
-						String uri = rs.getString("uri");
-						if (isblank(uri, "\\.*", "\\**", "\\s*"))
+						String dburi = rs.getString("uri");
+						if (isblank(dburi, "\\.*", "\\**", "\\s*")
+							|| Regex.startsEvelope(dburi))
 							continue;
 
-						uri = EnvPath.decodeUri(stx, uri);
+						// 2025-07-25
+						// FIXME TODO to be tested
+						// uri = EnvPath.decodeUri(stx, uri);
+						final String uri = ExtFileUpdatev2.decodeUriPath(dburi);
+						Utils.warn("*** ---- ======== verified %s ?", uri);
+						// end
 
 						if (verbose)
-							Utils.warn("deleting %s", uri);
+							Utils.warn("deleting %s [%s.uri: %s]", uri, target, dburi);
 
-						final String v = uri;
+						// final String v = uri;
 						stx.addOnRowsCommitted((st, sqls) -> {
-							File f = new File(v);
-							if (!f.isDirectory())
-								f.delete();
+							File file = new File(uri);
+							if (!file.isDirectory())
+								file.delete();
 							else 
-								Utils.warn("ShExtHandler#onDelete(): Ignoring deleting %s", v);
+								Utils.warn("ShExtHandler#onDelete(): Ignoring deleting %s", uri);
 
 							return null;
 						});

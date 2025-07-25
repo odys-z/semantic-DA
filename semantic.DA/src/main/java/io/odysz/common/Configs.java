@@ -52,16 +52,11 @@ public class Configs {
 		public static final String disableTokenKey = "disable-token";
 		
 		/**
-		 * key of synode id
-		 * @since 2.0.0
-		public static final String synode    = "io.oz.syn.synode";
-		 */
-		
-		/**
 		 * key of log connection,
 		 * args: conn-id (in connects.xml), log-table (e. e. a_logs)
+		 * @since 1.5.18, ISSUE fixed from logConnId to log-connId. Works in previous version?
 		 */
-		public static final String logConnId = "logConnId";
+		public static final String logConnId = "log-connId";
 	}
 
 	protected static HashMap<String, HashMap<String, String>> cfgs;
