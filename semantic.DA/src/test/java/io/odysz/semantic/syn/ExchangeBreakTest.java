@@ -162,7 +162,9 @@ public class ExchangeBreakTest {
 			Docheck.ck[s] = new Docheck(new AssertImpl(),
 					zsu,
 					conn, DBSyntableTest.synodes[s],
-					s != W ? SynodeMode.peer : SynodeMode.leaf, chpageSize, phm, dvm,
+					// s != W ? SynodeMode.peer : SynodeMode.leaf,
+					SynodeMode.peer,
+					chpageSize, phm, dvm,
 					Connects.getDebug(conn));
 		}
 		

@@ -1502,56 +1502,56 @@ public class DASemantics {
 
 		@Override
 		protected void onDelete(ISemantext stx,
-				// Statement<? extends Statement<?>> stmt,
-				Delete stmt,
-				Condit condt, IUser usr)
-				throws SemanticException {
+			// Statement<? extends Statement<?>> stmt,
+			Delete stmt,
+			Condit condt, IUser usr)
+			throws SemanticException {
 
-				// delete external files when sqls committed
-				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
-				AnResultset rs;
-				try {
-					rs = (AnResultset) stmt.transc()
-							.select(target)
-							.col(args[ixUri])
-							.where(condt)
-							// v1.3.0: basictx() created a connection not the same as the visiting one 
-							// .rs(stmt.transc().basictx())
-							.rs(stmt.transc().instancontxt(stx.connId(), usr))
-							.rs(0);
-					rs.beforeFirst();
+			// delete external files when sqls committed
+			// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
+			AnResultset rs;
+			try {
+				rs = (AnResultset) stmt.transc()
+						.select(target)
+						.col(args[ixUri])
+						.where(condt)
+						// v1.3.0: basictx() created a connection not the same as the visiting one 
+						// .rs(stmt.transc().basictx())
+						.rs(stmt.transc().instancontxt(stx.connId(), usr))
+						.rs(0);
+				rs.beforeFirst();
 
-					while (rs.next()) {
-						try {
-							String uri = rs.getString(args[ixUri]);
-							if (isblank(uri, "\\.*", "\\**", "\\s*"))
-								continue;
+				while (rs.next()) {
+					try {
+						String uri = rs.getString(args[ixUri]);
+						if (isblank(uri, "\\.*", "\\**", "\\s*"))
+							continue;
 
-							uri = EnvPath.decodeUri(stx, uri);
+						uri = "deprecated ShExtFile v1: EnvPath.decodeUri(stx, uri);";
 
-							if (verbose)
-								Utils.warn("deleting %s", uri);
+						if (verbose)
+							Utils.warn("deleting %s", uri);
 
-							final String v = uri;
-							stx.addOnRowsCommitted((st, sqls) -> {
-								File f = new File(v);
-								if (!f.isDirectory())
-									f.delete();
-								else 
-									Utils.warn("ShExtHandler#onDelete(): Ignoring deleting directory %s", v);
+						final String v = uri;
+						stx.addOnRowsCommitted((st, sqls) -> {
+							File f = new File(v);
+							if (!f.isDirectory())
+								f.delete();
+							else 
+								Utils.warn("ShExtHandler#onDelete(): Ignoring deleting directory %s", v);
 
-								return null;
-							});
-						}
-						catch (Exception ex) {
-							ex.printStackTrace();
-						}
+							return null;
+						});
 					}
-				} catch (SQLException e) {
-					e.printStackTrace();
-				} catch (TransException e) {
-					throw new SemanticException(e.getMessage());
+					catch (Exception ex) {
+						ex.printStackTrace();
+					}
 				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (TransException e) {
+				throw new SemanticException(e.getMessage());
+			}
 		}
 	}
 

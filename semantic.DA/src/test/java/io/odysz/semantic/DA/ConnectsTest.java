@@ -24,12 +24,6 @@ public class ConnectsTest {
 
 	private static Transcxt st;
 
-	/* FIXME
-	 * FIXME but why @BeforeAll won't working here?
-	 * FIXME but why @BeforeAll won't working here?
-	@BeforeAll
-	public static void testInit() {
-	*/
 	static {
 		File file = new File(DASemantextTest.rtroot);
 		String abspath = file.getAbsolutePath();

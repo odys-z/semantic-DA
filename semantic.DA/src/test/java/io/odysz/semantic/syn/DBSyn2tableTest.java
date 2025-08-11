@@ -172,7 +172,9 @@ public class DBSyn2tableTest {
 				m.replace();
 
 			Docheck.ck[s] = new Docheck(new AssertImpl(), s != W ? zsu : null, conn, synodes[s],
-					s != DBSyn2tableTest.W ? SynodeMode.peer : SynodeMode.leaf, chpageSize, phm,
+					// s != DBSyn2tableTest.W ? SynodeMode.peer : SynodeMode.leaf,
+					SynodeMode.peer,
+					chpageSize, phm,
 					new T_DA_DevMeta(conn),
 					Connects.getDebug(conn));
 			

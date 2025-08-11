@@ -23,14 +23,15 @@ public class Synode extends Anson {
 
 	String domain;
 	public String domain() { return domain; }
+	
+	/**
+	 * @since 0.7.6 "hub" or null
+	 */
+	String remarks;
 
 	long nyquence;
 	String syn_uid;
 
-	/** for update peers' jserv */
-	// public String jserv;
-	// public boolean https;
-	
 	public Synode() {
 	}
 
@@ -42,10 +43,11 @@ public class Synode extends Anson {
 	 * @param domain
 	 * @throws TransException
 	 */
-	public Synode(String synid, String synuid, String org, String domain) throws TransException {
+	public Synode(String synid, String synuid, String org, String domain, String remarks) throws TransException {
 		this.synid = synid;
 		this.org = org;
-		this.domain = domain;
+		this.domain  = domain;
+		this.remarks = remarks;
 		this.syn_uid = synuid;
 	}
 	
@@ -54,6 +56,7 @@ public class Synode extends Anson {
 		this.synid = r.getString(synm.pk);
 		this.mac = r.getString(synm.device);
 		this.domain = r.getString(synm.domain);
+		this.remarks = r.getString(synm.remarks);
 		this.nyquence = r.getLong(synm.nyquence);
 		this.syn_uid = r.getString(synm.io_oz_synuid);
 	}
@@ -74,7 +77,7 @@ public class Synode extends Anson {
 			.nv(synm.device, "#" + synid)
 			.nv(synm.nyquence, n0.n)
 			.nv(synm.domain, domain)
-			// .nv(synm.synuid, SynChangeMeta.uids(creator, synodeId))
+			.nv(synm.remarks, remarks)
 			.nv(synm.io_oz_synuid, syn_uid)
 			.nv(synm.org, org);
 	}
@@ -90,13 +93,16 @@ public class Synode extends Anson {
 	 */
 	public Insert insertRow(String domain, SynodeMeta synm, Insert insert) throws TransException {
 		return insert
-		  .cols(synm.pk, synm.device, synm.nyquence, synm.domain, synm.io_oz_synuid, synm.org)
+		  .cols(synm.pk, synm.device, synm.nyquence, synm.domain, synm.remarks, synm.io_oz_synuid, synm.org)
 		  .value(new ArrayList<Object[]>() {
 			private static final long serialVersionUID = 1L;
 			{add(new Object[] {synm.pk, synid});}
-			{add(new Object[] {synm.device, "#" + synid});}
+			// {add(new Object[] {synm.device, "#" + synid});}
+			// 0.7.6
+			{add(new Object[] {synm.device, mac});}
 			{add(new Object[] {synm.nyquence, nyquence});}
 			{add(new Object[] {synm.domain, domain});}
+			{add(new Object[] {synm.remarks, remarks});}
 			{add(new Object[] {synm.io_oz_synuid, syn_uid});}
 			{add(new Object[] {synm.org, org});}
 		});

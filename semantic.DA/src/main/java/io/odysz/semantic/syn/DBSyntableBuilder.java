@@ -287,6 +287,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @throws SQLException
 	 * @throws TransException
 	 */
+	@SuppressWarnings("deprecation")
 	ExessionPersist answer_save(ExessionPersist xp, ExchangeBlock req, String peer)
 			throws SQLException, TransException {
 		if (req == null || req.chpage == null) return xp;
@@ -332,7 +333,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					changes.append(req.chpage.getRowAt(req.chpage.getRow() - 1));
 				else if (!xp.synx.nv.containsKey(synodee)) {
 					; // I have no idea
-					if (synmode != SynodeMode.leaf) {
+					if (synmode != SynodeMode.leaf_) {
 						if (!warnsynodee.contains(synodee)) {
 							warnsynodee.add(synodee);
 							Utils.warnT(new Object() {},
@@ -772,11 +773,9 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ExchangeBlock domainSignup(ExessionPersist app, String admin)
 			throws TransException, SQLException {
 		try {
-			// syndomx.loadNvstamp(this);
 			return app.signup(admin);
 		}
 		finally { 
-			// syndomx.incStamp(app.trb, null);
 			syndomx.incStamp(app.trb);
 		}
 	}
@@ -784,7 +783,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	public ExchangeBlock domainOnAdd(ExessionPersist ap, ExchangeBlock req, String org)
 			throws TransException, SQLException {
 	
-		// syndomx.incStamp(ap.trb, req.nv);
 		syndomx.incStamp(ap.trb);
 		syndomx.loadNvstamp(this);
 
@@ -798,7 +796,8 @@ public class DBSyntableBuilder extends DATranscxt {
 		String childId = req.srcnode;
 		IUser robot = locrobot;
 	
-		Synode apply = new Synode(childId, null, org, domain);
+		// 0.7.6: remarks == null, as there is only one, the first, is the Hub node.
+		Synode apply = new Synode(childId, null, org, domain, null);
 
 		req.synodes.beforeFirst().next();
 		

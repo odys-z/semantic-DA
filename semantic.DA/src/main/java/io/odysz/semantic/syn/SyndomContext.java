@@ -85,8 +85,8 @@ public class SyndomContext {
 
 	final DATranscxt tb0;
 
-	protected SyndomContext(SynodeMode mod, int pagesize, String dom, String synode, String synconn, boolean debug)
-			throws Exception {
+	protected SyndomContext(SynodeMode mod, int pagesize, String dom,
+			String synode, String synconn, boolean debug) throws Exception {
 
 		this.synode  = notBlank(synode);
 		this.domain  = dom;

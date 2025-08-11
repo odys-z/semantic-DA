@@ -19,13 +19,13 @@ public class SynodeMeta extends SyntityMeta {
 
 	public final String domain;
 
+	public final String remarks;
+
 	/** Nyquence for synchronizing */
 	public final String nyquence;
 
 	/** Nyquence for stamping change logs */
 	public final String nstamp;
-
-	// public final String mac;
 
 	public final String synoder;
 
@@ -47,6 +47,7 @@ public class SynodeMeta extends SyntityMeta {
 		nstamp  = "nstamp";
 		org     = "org";
 		domain  = "domain";
+		remarks = "remarks";
 		jserv   = "jserv";
 		synoder = pk;
 
@@ -59,9 +60,4 @@ public class SynodeMeta extends SyntityMeta {
 	public ArrayList<Object[]> updateEntNvs(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset challenges) {
 		return null;
 	}
-
-//	@Override
-//	public String[] insertSelectItems(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset changes) {
-//		return null;
-//	}
 }

@@ -63,22 +63,24 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 			// Debug Notes:
 			// Since Docker volume can not be mounted in tomcat webapps' sub-folder,
 			// file path handling can be replaced with environment variables now.
-			Utils.logi("[%s]\nResolving sqlite db, xmlDir: %s,\n\tjdbcUrl: %s", id, xmlDir, jdbcUrl);
+			String absXml = new File(xmlDir).getAbsolutePath();
+			Utils.logi("[%s]\nResolving sqlite db, xmlDir: %s,\n\tjdbcUrl: %s\n\t%s", id, xmlDir, jdbcUrl, absXml);
 
-			String dbpath = FilenameUtils.concat(xmlDir, EnvPath.replaceEnv(jdbcUrl));
+			String dbpath = FilenameUtils.concat(absXml, EnvPath.replaceEnv(jdbcUrl));
 			Utils.logi("\tUsing sqlite db: %s", dbpath);
 			
 			File f = new File(dbpath);
 			if (!f.exists())
-				throw new SemanticException("Can't find DB file: %s", f.getAbsolutePath());
+				throw new SemanticException("Can't find DB file: %s [%s]", dbpath, f.getAbsolutePath());
 
 			return SqliteDriver2.initConnection(id, String.format("jdbc:sqlite:%s", dbpath),
 					usr, pswd, log, printSql ? flag_printSql : flag_nothing);
 		}
 		else if (type == dbtype.sqlite_queue) {
-			Utils.logi("[%s]\nResolving sqlite db (queued), xmlDir: %s,\n\tjdbcUrl: %s", id, xmlDir, jdbcUrl);
+			String absXml = new File(xmlDir).getAbsolutePath();
+			Utils.logi("[%s]\nResolving sqlite db, xmlDir: %s,\n\tjdbcUrl: %s\n\t%s", id, xmlDir, jdbcUrl, absXml);
 
-			String dbpath = FilenameUtils.concat(xmlDir, EnvPath.replaceEnv(jdbcUrl));
+			String dbpath = FilenameUtils.concat(absXml, EnvPath.replaceEnv(jdbcUrl));
 			Utils.logi("\tUsing sqlite db (queued): %s", dbpath);
 			
 			File f = new File(dbpath);

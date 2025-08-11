@@ -179,7 +179,9 @@ public class DBSyntableTest {
 					// s != W ? zsu : null,
 					zsu,
 					conn, synodes[s],
-					s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf, chpageSize, phm, dvm,
+					// s != DBSyntableTest.W ? SynodeMode.peer : SynodeMode.leaf,
+					SynodeMode.peer,
+					chpageSize, phm, dvm,
 					Connects.getDebug(conn));
 		}
 		
