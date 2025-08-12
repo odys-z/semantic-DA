@@ -12,6 +12,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -117,7 +118,15 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 				throw new SemanticException("Forcing drop table %s without DDL provided.", m.tbl);
 	}
 
-	public static void setupSqlitables(String conn, boolean force_drop, Iterable<SyntityMeta> ms)
+	/**
+	 * @deprecated since 0.7.6, redundant
+	 * @param conn
+	 * @param force_drop
+	 * @param ms
+	 * @throws SQLException
+	 * @throws TransException
+	 */
+	public static void setupSqlitables(String conn, boolean force_drop, Iterable<SemanticTableMeta> ms)
 			throws SQLException, TransException {
 		dbtype dt = Connects.driverType(conn);
 		if (dt != dbtype.sqlite && dt != dbtype.sqlite_queue)

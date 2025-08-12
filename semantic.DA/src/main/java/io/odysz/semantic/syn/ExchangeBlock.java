@@ -130,21 +130,18 @@ public class ExchangeBlock extends Anson {
 	}
 
 	int chpagesize;
-//	public ExchangeBlock chpagesize(int size) {
-//		chpagesize = size;
-//		return this;
-//	}
 
 	int totalChallenges;
+
 	/**
-	 * @deprecated Don't call this directly unless in test
+	 * Don't call this directly unless in test
 	 * @param count
 	 * @return this
-	 */
 	ExchangeBlock totalChallenges(int count) {
 		totalChallenges = count; 
 		return this;
 	}
+	 */
 	
 	public ExchangeBlock totalChallenges(int count, int chsize) {
 		totalChallenges = count; 
