@@ -1131,7 +1131,7 @@ for (String coln : colnames.keySet())
 		.select(met.tbl, "l")
 		.rs(st.instancontxt(conn, usr))
 		.rs(0)
-		.&lt;UserType&gt;map((currow) -&gt; {
+		.&lt;UserType&gt;map("id", (currow) -&gt; {
 			// create instance according current row
 			return new UserType(currow.getString("id"));
 		}); 

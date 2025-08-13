@@ -80,6 +80,8 @@ public class SyndomContext {
 	long seq;
 
 	HashMap<String, Nyquence> nv;
+	public HashMap<String, Nyquence> nv() { return Nyquence.clone(nv); }
+
 	Nyquence stamp;
 	public long stamp() { return stamp.n; }
 

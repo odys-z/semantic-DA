@@ -27,7 +27,7 @@ public class Synode extends Anson {
 	/**
 	 * @since 0.7.6 "hub" or null
 	 */
-	String remarks;
+	public String remarks;
 
 	long nyquence;
 	String syn_uid;
