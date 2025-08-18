@@ -12,7 +12,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -50,6 +49,7 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 					return null;
 				}
 
+			System.err.println(uri);
 			uri = Paths.get(uri).toUri();
 
 			return Files.readAllLines(

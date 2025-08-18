@@ -10,9 +10,7 @@ public class T_DA_PhotoMeta extends ExpDocTableMeta {
 	public T_DA_PhotoMeta(String conn) throws TransException {
 		super("h_photos", "pid", "device", conn);
 		ddlSqlite = loadSqlite(T_DA_PhotoMeta.class, "h_photos.sqlite.ddl");
-
 		exif = "exif";
-		// ddlSqlite = loadTxt(T_DA_PhotoMeta.class, "h_photos.sqlite.ddl");
 	}
 
 }
