@@ -7,12 +7,12 @@ import java.sql.SQLException;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
-import io.odysz.semantic.syn.DBSyntableBuilder;
-import io.odysz.semantic.syn.SyndomContext;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
+import io.oz.syn.DBSyntableBuilder;
+import io.oz.syn.SyndomContext;
 
 /**
  * Experimental: document entity table meta.

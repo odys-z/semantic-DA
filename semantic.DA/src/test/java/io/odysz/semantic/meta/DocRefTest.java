@@ -18,9 +18,9 @@ import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
-import io.odysz.semantic.syn.T_DA_PhotoMeta;
 import io.odysz.semantics.SessionInf;
 import io.odysz.transact.sql.parts.ExtFilePaths;
+import io.oz.syn.T_DA_PhotoMeta;
 
 class DocRefTest {
 	static final String configroot = "src/test/res";

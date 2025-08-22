@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import io.odysz.module.rs.AnResultset;
-import io.odysz.semantic.syn.DBSyntableBuilder;
-import io.odysz.semantic.syn.SyndomContext;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.Query;
 import io.odysz.transact.x.TransException;
+import io.oz.syn.DBSyntableBuilder;
+import io.oz.syn.SyndomContext;
 
 /**
  * Synchronizable entity table meta
@@ -174,8 +174,8 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	/**
 	 * 
 	 * <p>Entity meta's query event handler, while synchronizing.</p>
-	 * <p>{@link io.odysz.semantic.syn.ExessionPersist ExessionPersist}
-	 * (or {@link io.odysz.semantic.syn.DBSyntableBuilder DBSyntableBuilder})
+	 * <p>{@link io.oz.syn.ExessionPersist ExessionPersist}
+	 * (or {@link io.oz.syn.DBSyntableBuilder DBSyntableBuilder})
 	 * use this for loading entities in a syn-exchang page.</p>
 	 * <p>Note: call select.cols(...) first.</p>
 	 * 
@@ -192,7 +192,7 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * pages, which is based upon semantics of change-log pages, not entities' page. 
 	 * @param syndomx 
 	 * 
-	 * @see io.odysz.semantic.syn.ExessionPersist#chpage()
+	 * @see io.oz.syn.ExessionPersist#chpage()
 	 * @param select typically should already called {@link Query#cols(String...)}, etc. alrady.
 	 * @return select
 	 * @throws TransException, SQLException 

@@ -1,8 +1,8 @@
 package io.odysz.semantics.x;
 
-import io.odysz.semantic.syn.Exchanging;
-import io.odysz.semantic.syn.ExessionAct;
-import io.odysz.semantic.syn.ExessionPersist;
+import io.oz.syn.Exchanging;
+import io.oz.syn.ExessionAct;
+import io.oz.syn.ExessionPersist;
 
 @SuppressWarnings("serial")
 public class ExchangeException extends SemanticException {

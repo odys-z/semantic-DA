@@ -12,7 +12,6 @@ import io.odysz.common.EnvPath;
 import io.odysz.common.FilenameUtils;
 import io.odysz.common.Regex;
 import io.odysz.semantic.DATranscxt;
-import io.odysz.semantic.syn.DBSyntableBuilder;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantics.ISemantext;
@@ -21,6 +20,7 @@ import io.odysz.transact.sql.parts.AnDbField;
 import io.odysz.transact.sql.parts.ExtFilePaths;
 import io.odysz.transact.sql.parts.condition.Funcall;
 import io.odysz.transact.x.TransException;
+import io.oz.syn.DBSyntableBuilder;
 
 public class DocRef extends AnDbField {
 	static {
@@ -98,7 +98,7 @@ public class DocRef extends AnDbField {
 	 * so it's simple replaced with the string format convention, the first "&.../" as volume name.
 	 * But this value is generated while reading entities for exchange.
 	 * 
-	 * @see ExpDocTableMeta#onselectSyntities(io.odysz.semantic.syn.SyndomContext, io.odysz.transact.sql.Query)
+	 * @see ExpDocTableMeta#onselectSyntities(io.oz.syn.SyndomContext, io.odysz.transact.sql.Query)
 	 */
 	public String volume;
 
