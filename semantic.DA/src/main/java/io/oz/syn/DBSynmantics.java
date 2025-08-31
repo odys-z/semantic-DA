@@ -251,7 +251,7 @@ public class DBSynmantics extends DASemantics {
 
 			if (verbose) Utils.logi("synChange: onInsert ...");
 
-			DBSyntableBuilder synb = ((ISyncontext)stx).synbuilder();
+			DBSyntableBuilder synb = (DBSyntableBuilder) ((ISyncontext) stx).synbuilder();
 			
 			// Object synuid = null;
 			Object pk = null;
@@ -291,7 +291,7 @@ public class DBSynmantics extends DASemantics {
 				AnResultset hittings = hits(stx, updt);
 				if (hittings.getRowCount() > 0)
 					updt = logChange(((ISyncontext)stx).syndomContext(),
-								((ISyncontext)stx).synbuilder(), updt, entm, synode,
+								(DBSyntableBuilder) ((ISyncontext)stx).synbuilder(), updt, entm, synode,
 								hittings, cols.keySet());
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
@@ -316,7 +316,7 @@ public class DBSynmantics extends DASemantics {
 				while (hittings.next())
 					stmt = logChange(
 							((ISyncontext)stx).syndomContext(),
-							((ISyncontext)stx).synbuilder(),
+							(DBSyntableBuilder) ((ISyncontext)stx).synbuilder(),
 							stmt, entm, hittings);
 			} catch (SQLException e) {
 				e.printStackTrace();

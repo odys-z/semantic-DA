@@ -9,7 +9,7 @@ import io.odysz.semantics.ISemantext;
  */
 public interface ISyncontext extends ISemantext {
 	/** Get a new builder */
-	public <T extends DATranscxt> T synbuilder();
+	public DATranscxt synbuilder();
 
 	public SyndomContext syndomContext();
 }

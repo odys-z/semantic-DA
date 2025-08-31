@@ -3,7 +3,6 @@ package io.oz.syn;
 import java.sql.SQLException;
 
 import io.odysz.semantic.DASemantext;
-import io.odysz.semantic.DATranscxt;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
@@ -46,9 +45,8 @@ public class DBSynmantext extends DASemantext implements ISyncontext {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public DATranscxt synbuilder() {
+	public DBSyntableBuilder  synbuilder() {
 		return creator;
 	}
 
