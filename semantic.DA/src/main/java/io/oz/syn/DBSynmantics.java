@@ -53,7 +53,7 @@ public class DBSynmantics extends DASemantics {
 
 	@Override
 	public SemanticHandler parseHandler(Transcxt tsx, String tabl, smtype smtp,
-			String pk, String[] args) throws Exception {
+			String pk, String[] args) throws SQLException, TransException {
 		if (smtype.synChange == smtp)
 			// relic for docs 
 			Utils.warn("The syn-change semantics is silenced as a newer design decision");

@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import org.xml.sax.SAXException;
+
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
@@ -74,15 +76,12 @@ public class DBSyntableBuilder extends DATranscxt {
 	/**
 	 * 
 	 * @param x
-	 * @throws Exception
 	 */
-	public DBSyntableBuilder(SyndomContext x) throws Exception {
+	public DBSyntableBuilder(SyndomContext x) throws TransException, SQLException, SAXException, IOException {
 
 		super(x.synconn);	
 
 		syndomx = x;
-		// FIXME: Comparing to mobile device node, a device is the equivalent to synode
-		// at Synode tier, so robot.device should be removed.
 		locrobot = new SyncUser(x.synode, x.synode, "rob@" + x.synode, x.synode);
 		
 		debug    = Connects.getDebug(x.synconn);

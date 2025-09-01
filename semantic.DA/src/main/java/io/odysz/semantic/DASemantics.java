@@ -557,7 +557,7 @@ public class DASemantics {
 
 
 	public SemanticHandler parseHandler(Transcxt trb, String tabl, smtype semantic, String recId, String[] args)
-			throws Exception {
+			throws SQLException, TransException {
 		if (smtype.fullpath == semantic)
 			return new ShFullpath(basicTsx, tabl, recId, args);
 		else if (smtype.autoInc == semantic)

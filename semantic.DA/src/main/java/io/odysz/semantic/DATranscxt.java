@@ -379,9 +379,11 @@ public class DATranscxt extends Transcxt {
 	 * will trigger the semantics loading.
 	 * 
 	 * @param conn connection Id
+	 * @throws IOException 
+	 * @throws SAXException 
 	 * @throws Exception 
 	 */
-	public DATranscxt(String conn) throws Exception {
+	public DATranscxt(String conn) throws TransException, SQLException, SAXException, IOException {
 		this(new DASemantext(conn,
 				isblank(conn) ? null : initConfigs(conn,// loadSemanticsXml(conn),
 						(c) -> new SemanticsMap(c)),
@@ -450,11 +452,14 @@ public class DATranscxt extends Transcxt {
 	 * @param xcfg
 	 * @param smFactory
 	 * @return map per {@code conn}
+	 * @throws SAXException 
+	 * @throws IOException 
+	 * @throws SQLException 
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
 	public static <M extends SemanticsMap, S extends DASemantics> M initConfigs(
-			String conn, SmapFactory<M> smFactory) throws Exception {
+			String conn, SmapFactory<M> smFactory) throws TransException, SAXException, IOException, SQLException {
 		if (smtMaps == null)
 			smtMaps = new HashMap<String, SemanticsMap>();
 		if (!smtMaps.containsKey(conn))
@@ -472,19 +477,22 @@ public class DATranscxt extends Transcxt {
 		SemanticsMap s = smtMaps.get(conn); 
 		xcfg.map(
 			(XMLTable t) -> {
-				String tabl = xcfg.getString("tabl");
-				String pk   = xcfg.getString("pk");
-				String smtc = xcfg.getString("smtc");
-				String args = xcfg.getString("args");
-				
-				HashMap<String, DASemantics> m = s.ss;
-				if (!m.containsKey(tabl))
-					m.put(tabl, s.createSemantics(trb, tabl, pk, debug));
+				try {
+					String tabl = xcfg.getString("tabl");
+					String pk   = xcfg.getString("pk");
+					String smtc = xcfg.getString("smtc");
+					String args = xcfg.getString("args");
+					
+					HashMap<String, DASemantics> m = s.ss;
+					if (!m.containsKey(tabl))
+						m.put(tabl, s.createSemantics(trb, tabl, pk, debug));
 
-				S smtcs = (S) m.get(tabl);
-				smtcs.addHandler(
-					smtcs.parseHandler(trb, tabl, smtype.parse(smtc), pk, split(args)));
-
+					S smtcs = (S) m.get(tabl);
+					smtcs.addHandler(
+						smtcs.parseHandler(trb, tabl, smtype.parse(smtc), pk, split(args)));
+				} catch (SAXException | SQLException | TransException e) {
+					e.printStackTrace();
+				}
 				// because the table is not come with pk = tabl, returned value is useless here.
 				return null;
 			});
