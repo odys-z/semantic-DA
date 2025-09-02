@@ -31,6 +31,9 @@ public class SynodeMeta extends SyntityMeta {
 
 	public final String jserv;
 
+	public final String oper;
+	public final String optime;
+
 	/**
 	 * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
 	 * 
@@ -49,6 +52,8 @@ public class SynodeMeta extends SyntityMeta {
 		domain  = "domain";
 		remarks = "remarks";
 		jserv   = "jserv";
+		oper    = "oper";
+		optime  = "optime";
 		synoder = pk;
 
 		ddlSqlite = loadSqlite(SyntityMeta.class, "syn_node.sqlite.ddl");

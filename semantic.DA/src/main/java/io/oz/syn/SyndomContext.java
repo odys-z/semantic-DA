@@ -140,11 +140,11 @@ public class SyndomContext {
 	 * @throws TransException 
 	 * @throws SQLException 
 	 */
-	public static void incN0Stamp(String conn, SynodeMeta m, String synodeId)
+	public static void incN0Stamp(String conn, SynodeMeta m, String synodeId, String domain)
 			throws SQLException, TransException {
 		Connects.commit(conn, DATranscxt.dummyUser(),
-				f("update %1$s set %2$s = %3$s + 1, %3$s = %3$s + 1 where %4$s = '%5$s';",
-					m.tbl, m.nstamp, m.nyquence, m.pk, synodeId));
+				f("update %1$s set %2$s = %3$s + 1, %3$s = %3$s + 1 where %4$s = '%5$s' and %6$s = '%7$s';",
+					m.tbl, m.nstamp, m.nyquence, m.pk, synodeId, m.domain, domain));
 	}
 	
 	public Nyquence n0(DBSyntableBuilder synb, Nyquence maxn)

@@ -47,14 +47,6 @@ import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
-import io.oz.syn.DBSyntableBuilder;
-import io.oz.syn.Docheck;
-import io.oz.syn.ExchangeBlock;
-import io.oz.syn.ExessionPersist;
-import io.oz.syn.Nyquence;
-import io.oz.syn.SyncUser;
-import io.oz.syn.SyndomContext;
-import io.oz.syn.SynodeMode;
 import io.oz.syn.registry.Syntities;
 
 /**
@@ -151,7 +143,7 @@ public class ExchangeBreakTest {
 			// Do this before loading syndomx.
 			// This is necessary as the initial state is unspecified about last synchronization's results,
 			// and increasing n-stamp only will lead to confusion later when initiating exchanges. 
-			SyndomContext.incN0Stamp(conn, snm, DBSyntableTest.synodes[s]);
+			SyndomContext.incN0Stamp(conn, snm, DBSyntableTest.synodes[s], zsu);
 
 			Syntities syntities = Syntities.load(runtimepath, f("syntity-%s.json", s), 
 					(synreg) -> {
