@@ -959,7 +959,7 @@ public class DASemantics {
 
 				Utils.warn(
 						"Since Semantic.DA 1.4.45, AUTO pk's configuration format is:\n"
-						+ "<tabl>*,<start-long>*,<prefix-0>,... <prefix-i>.\n"
+						+ "<pk>*,<start-long>*,<prefix-0>,... <prefix-i>.\n"
 						+ "Some fields are missing in auto-key configuration: conn = %s, tabl = %s, pk = %s, args = %s",
 						trxt.basictx().connId(), tabl, pk, LangExt.toString(args));
 
@@ -976,7 +976,7 @@ public class DASemantics {
 				// TODO to be tested in DB other than sqlite.
 				Connects.commit(trxt.basictx().connId(), DATranscxt.dummyUser(),
 					f("insert into oz_autoseq (sid, seq, remarks) values\r\n"
-					+ "('%1$s.%2$s', %3$s, 'by ShAutoKPrefix');", target, pk, start0));
+					+ "('%1$s.%2$s', %3$s, 'by ShAutoKPrefix');", target, ifnull(args[0], pk), start0));
 
 			if (args.length >= 3)
 				prefixCols = Arrays.copyOfRange(args, 2, args.length);
