@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.Map;
 import io.odysz.anson.Anson;
 import io.odysz.common.AESHelper;
-import io.odysz.common.EnvPath;
 import io.odysz.common.FilenameUtils;
 import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
@@ -949,7 +948,7 @@ public class DASemantics {
 
 			long start0 = 0;
 
-			if (args == null || args.length < 2 || isblank(args[0]) || isblank(args[1]))
+			if (args == null || args.length < 2 || isblank(args[1])) {
 //				throw new SemanticException(
 //						"Since Semantic.DA 1.4.45, AUTO pk's configuration format is:\n"
 //						+ "<tabl>*,<start-long>*,<prefix-0>,... <prefix-i>.\n"
@@ -962,13 +961,16 @@ public class DASemantics {
 						+ "<pk>*,<start-long>*,<prefix-0>,... <prefix-i>.\n"
 						+ "Some fields are missing in auto-key configuration: conn = %s, tabl = %s, pk = %s, args = %s",
 						trxt.basictx().connId(), tabl, pk, LangExt.toString(args));
+				args = new String[] {ifnull(args[0], pk), "0"};
+			}
 
 			// 1.4.45: insert start0 to oz_autoseq 
 			try {
-				start0 = Long.valueOf(ifnull(args[args.length - 1], "0"));
+				// start0 = Long.valueOf(ifnull(args[args.length - 1], "0"));
+				start0 = Long.valueOf(ifnull(args[1], "0"));
 			} catch (Exception e) {}
 
-			String sql = f("select count(sid) c from oz_autoseq where sid = '%1$s.%2$s'", target, args[0]);
+			String sql = f("select count(sid) c from oz_autoseq where sid = '%1$s.%2$s'", target, pk);
 			AnResultset rs = Connects.select(trxt.basictx().connId(), sql);
 			if (!rs.next())
 				throw new SemanticException("Something wrong: " + sql); // ?
@@ -976,7 +978,7 @@ public class DASemantics {
 				// TODO to be tested in DB other than sqlite.
 				Connects.commit(trxt.basictx().connId(), DATranscxt.dummyUser(),
 					f("insert into oz_autoseq (sid, seq, remarks) values\r\n"
-					+ "('%1$s.%2$s', %3$s, 'by ShAutoKPrefix');", target, ifnull(args[0], pk), start0));
+					+ "('%1$s.%2$s', %3$s, 'by ShAutoKPrefix');", target, pk, start0));
 
 			if (args.length >= 3)
 				prefixCols = Arrays.copyOfRange(args, 2, args.length);
