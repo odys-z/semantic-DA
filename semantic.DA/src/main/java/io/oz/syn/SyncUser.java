@@ -21,8 +21,9 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 /**
- * Synchronizing user for robot and base class of DocUser
- *  
+ * Synchronizing user for robot and base class of DocUser.
+ * This is not a type for session management.
+ * 
  * @author odys-z@github.com
  */
 public class SyncUser extends SemanticObject implements IUser {

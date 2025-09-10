@@ -4,7 +4,9 @@ import static io.odysz.common.LangExt.isNull;
 import static io.odysz.common.LangExt.isPrimitive;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 
+import io.odysz.anson.Anson;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantics.ISemantext;
@@ -282,5 +284,9 @@ public class DAHelper {
 		return ((AnResultset) b.select(m.tbl)
 				.whereEq(m.pk, id).rs(b.instancontxt(b.basictx().connId(), DATranscxt.dummyUser()))
 				.rs(0));
+	}
+
+	public static HashMap<String, Anson> getEntities() {
+		return null;
 	}
 }
