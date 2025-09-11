@@ -1,8 +1,6 @@
 package io.odysz.semantic.meta;
 
-import io.odysz.semantics.meta.TableMeta;
-
-public class DomainMeta extends TableMeta {
+public class DomainMeta extends SemanticTableMeta {
 
 	public final String parent;
 	public final String domainName;
@@ -12,12 +10,22 @@ public class DomainMeta extends TableMeta {
 
 	public DomainMeta(String... conn) {
 		super("a_domain", conn);
-		this.pk = "domainId";
-		this.parent = "parentId";
-		this.domainName = "domainName";
+		this.pk          = "domainId";
+		this.parent      = "parentId";
+		this.domainName  = "domainName";
 		this.domainValue = "domainValue";
-		this.sort = "sort";
-		this.fullpath = "fullpath";
+		this.sort        = "sort";
+		this.fullpath    = "fullpath";
+
+		ddlSqlite = "CREATE TABLE a_domain (\n"
+					+ "  domainId    varchar2(12) NOT NULL,\n"
+					+ "  parentId 	 varchar2(12),\n"
+					+ "  domainName  varchar2(50),\n"
+					+ "  domainValue varchar2(50),\n"
+					+ "  sort        int DEFAULT 0,\n"
+					+ "  fullpath    varchar2(80),\n"
+					+ "  PRIMARY KEY (\"domainId\")\n"
+					+ ");";
 	}
 
 }
