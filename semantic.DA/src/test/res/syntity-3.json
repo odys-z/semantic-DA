@@ -1,6 +1,6 @@
-   {"type": "io.odysz.semantic.syn.registry.Syntities",
+   {"type": "io.oz.syn.registry.Syntities",
     "conn": "syn.03",
    	"syntities": [
-   	    {"table": "h_photos", "meta": "io.odysz.semantic.syn.T_DA_PhotoMeta"},
-   	    {"table": "doc_devices", "meta": "io.odysz.semantic.syn.T_DA_DevMeta"}]
+   	    {"table": "h_photos", "meta": "io.oz.syn.T_DA_PhotoMeta"},
+   	    {"table": "doc_devices", "meta": "io.oz.syn.T_DA_DevMeta"}]
    }

@@ -393,9 +393,15 @@ public class Connects {
 							String tabl = xmetas.getString("tabl");
 							String clzz = xmetas.getString("semanticlass");
 							
-							return (IMapValue) Class.forName(clzz)
-									.getConstructor(String.class, String.class)
-									.newInstance(tabl, connId);
+							try {
+								return (IMapValue) Class.forName(clzz)
+										.getConstructor(String.class, String.class)
+										.newInstance(tabl, connId);
+							} catch (ReflectiveOperationException e) {
+								SemanticException x = new SemanticException(e.getMessage());
+								x.setStackTrace(e.getStackTrace());
+								throw x;
+							}
 						});
 				} catch (Exception e) {
 					e.printStackTrace();

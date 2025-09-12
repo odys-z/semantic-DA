@@ -8,6 +8,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import io.odysz.semantics.x.SemanticException;
+
 @SuppressWarnings("deprecation")
 public class XMLTable {
 	public interface IMapValue {
@@ -23,7 +25,7 @@ public class XMLTable {
 		 * @return parsed object
 		 * @throws SAXException
 		 */
-		T parse(XMLTable t) throws Exception;
+		T parse(XMLTable t) throws SemanticException, SAXException;
 	}
 
 	private static final String TAG = "XMLTable";
@@ -739,7 +741,7 @@ public class XMLTable {
 	}
 
 	public <T extends IMapValue> HashMap<String, T> map(IParser<T> parser)
-			throws Exception {
+			throws SemanticException, SAXException {
 		HashMap<String, T> m = new HashMap<String, T>(getRowCount());
 		beforeFirst();
 		while (next()) {

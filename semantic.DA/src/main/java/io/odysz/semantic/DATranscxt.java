@@ -381,7 +381,7 @@ public class DATranscxt extends Transcxt {
 	 * @param conn connection Id
 	 * @throws Exception 
 	 */
-	public DATranscxt(String conn) throws Exception {
+	public DATranscxt(String conn) throws TransException, SQLException {
 		this(new DASemantext(conn,
 				isblank(conn) ? null : initConfigs(conn,// loadSemanticsXml(conn),
 						(c) -> new SemanticsMap(c)),
@@ -417,7 +417,7 @@ public class DATranscxt extends Transcxt {
 	 * @throws SemanticException 
 	 */
 	public static XMLTable loadSemanticsXml(String connId)
-			throws SAXException, IOException, SemanticException {
+			throws SAXException, SemanticException {
 
 		String fpath = Connects.getSmtcsPath(connId);
 		if (isblank(fpath, "\\."))
@@ -428,17 +428,25 @@ public class DATranscxt extends Transcxt {
 		
 		// Utils.logi("....................[%s] load semantics: %s", connId, fpath);
 
-		LinkedHashMap<String, XMLTable> xtabs = XMLDataFactoryEx.getXtables(
-			new Log4jWrapper("").setDebugMode(false), fpath, new IXMLStruct() {
-					@Override public String rootTag() { return "semantics"; }
-					@Override public String tableTag() { return "t"; }
-					@Override public String recordTag() { return "s"; }});
+		LinkedHashMap<String, XMLTable> xtabs;
+		try {
+			xtabs = XMLDataFactoryEx.getXtables(
+				new Log4jWrapper("").setDebugMode(false), fpath, new IXMLStruct() {
+						@Override public String rootTag() { return "semantics"; }
+						@Override public String tableTag() { return "t"; }
+						@Override public String recordTag() { return "s"; }});
 
 		XMLTable xtbl = xtabs.get("semantics");
 		if (xtbl == null)
 			throw new SemanticException("Xml structure error (no semantics table) in\n%s", fpath);
 		
 		return xtbl;
+		} catch (IOException e) {
+			e.printStackTrace();
+			SemanticException s = new SemanticException(e.getMessage());
+			s.setStackTrace(e.getStackTrace());
+			throw s;
+		}
 	}
 	
 	/**
@@ -450,11 +458,14 @@ public class DATranscxt extends Transcxt {
 	 * @param xcfg
 	 * @param smFactory
 	 * @return map per {@code conn}
+	 * @throws SAXException 
+	 * @throws IOException 
+	 * @throws SQLException 
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
 	public static <M extends SemanticsMap, S extends DASemantics> M initConfigs(
-			String conn, SmapFactory<M> smFactory) throws Exception {
+			String conn, SmapFactory<M> smFactory) throws TransException, SQLException {
 		if (smtMaps == null)
 			smtMaps = new HashMap<String, SemanticsMap>();
 		if (!smtMaps.containsKey(conn))
@@ -462,32 +473,42 @@ public class DATranscxt extends Transcxt {
 		else
 			return (M) smtMaps.get(conn);
 
-		Utils.logT(new Object() {}, "Loading semantics of connection %s", conn);
-		XMLTable xcfg = loadSemanticsXml(conn);
-		xcfg.beforeFirst();
+		try {
+			Utils.logT(new Object() {}, "Loading semantics of connection %s", conn);
+			XMLTable xcfg = loadSemanticsXml(conn);
+			xcfg.beforeFirst();
 
-		Transcxt trb = getBasicTrans(conn);
-		boolean debug = Connects.getDebug(conn);
-		
-		SemanticsMap s = smtMaps.get(conn); 
-		xcfg.map(
-			(XMLTable t) -> {
-				String tabl = xcfg.getString("tabl");
-				String pk   = xcfg.getString("pk");
-				String smtc = xcfg.getString("smtc");
-				String args = xcfg.getString("args");
-				
-				HashMap<String, DASemantics> m = s.ss;
-				if (!m.containsKey(tabl))
-					m.put(tabl, s.createSemantics(trb, tabl, pk, debug));
+			Transcxt trb = getBasicTrans(conn);
+			boolean debug = Connects.getDebug(conn);
+			
+			SemanticsMap s = smtMaps.get(conn); 
+			xcfg.map(
+				(XMLTable t) -> {
+					try {
+						String tabl = xcfg.getString("tabl");
+						String pk   = xcfg.getString("pk");
+						String smtc = xcfg.getString("smtc");
+						String args = xcfg.getString("args");
+						
+						HashMap<String, DASemantics> m = s.ss;
+						if (!m.containsKey(tabl))
+							m.put(tabl, s.createSemantics(trb, tabl, pk, debug));
 
-				S smtcs = (S) m.get(tabl);
-				smtcs.addHandler(
-					smtcs.parseHandler(trb, tabl, smtype.parse(smtc), pk, split(args)));
-
-				// because the table is not come with pk = tabl, returned value is useless here.
-				return null;
-			});
+						S smtcs = (S) m.get(tabl);
+						smtcs.addHandler(
+							smtcs.parseHandler(trb, tabl, smtype.parse(smtc), pk, split(args)));
+					} catch (SAXException | SQLException | TransException e) {
+						e.printStackTrace();
+					}
+					// because the table is not come with pk = tabl, returned value is useless here.
+					return null;
+				});
+		} catch (SAXException e) {
+			e.printStackTrace();
+			TransException t = new TransException(e.getMessage());
+			t.setStackTrace(e.getStackTrace());
+			throw t;
+		}
 
 		return (M) smtMaps.get(conn);
 	}
@@ -529,7 +550,7 @@ public class DATranscxt extends Transcxt {
 	 * @throws SemanticException 
 	 */
 	public static Transcxt getBasicTrans(String conn)
-			throws SQLException, SAXException, IOException, SemanticException {
+			throws SQLException, SAXException, SemanticException {
 		if (basicTrxes == null)
 			basicTrxes = new HashMap<String, Transcxt>();
 		

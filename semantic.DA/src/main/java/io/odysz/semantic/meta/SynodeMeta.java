@@ -1,8 +1,14 @@
 package io.odysz.semantic.meta;
 
+import static io.odysz.common.LangExt._0;
+import static io.odysz.common.LangExt.isNull;
+
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import io.odysz.module.rs.AnResultset;
+import io.odysz.module.rs.AnResultset.ObjFilter;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantics.x.SemanticException;
@@ -31,6 +37,9 @@ public class SynodeMeta extends SyntityMeta {
 
 	public final String jserv;
 
+	public final String oper;
+	public final String optime;
+
 	/**
 	 * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
 	 * 
@@ -49,6 +58,8 @@ public class SynodeMeta extends SyntityMeta {
 		domain  = "domain";
 		remarks = "remarks";
 		jserv   = "jserv";
+		oper    = "oper";
+		optime  = "optime";
 		synoder = pk;
 
 		ddlSqlite = loadSqlite(SyntityMeta.class, "syn_node.sqlite.ddl");
@@ -59,5 +70,21 @@ public class SynodeMeta extends SyntityMeta {
 	@Override
 	public ArrayList<Object[]> updateEntNvs(SynChangeMeta chgm, String entid, AnResultset entities, AnResultset challenges) {
 		return null;
+	}
+
+	/**
+	 * Load valid jservs, by ignoring invalid urls and path roots.
+	 * @return {node-id: [jserv, timestamp]}
+	 * @since 0.7.6
+	 */
+	public HashMap<String, String[]> loadJservs(DATranscxt tb, String domain, ObjFilter... filter) throws SQLException, TransException {
+		return ((AnResultset) tb.select(tbl)
+		  .cols(jserv, synoder, optime)
+		  .whereEq(this.domain, domain)
+		  .rs(tb.instancontxt(conn(), DATranscxt.dummyUser()))
+		  .rs(0))
+		  .map(synoder,
+			  (rs) -> new String[] {rs.getString(jserv), rs.getString(optime)},
+			  (rs) -> isNull(filter) ? true : _0(filter).filter(rs));
 	}
 }

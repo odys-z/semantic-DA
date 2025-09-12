@@ -29,7 +29,6 @@ import io.odysz.semantics.IUser;
 import io.odysz.semantics.x.SemanticException;
 
 public abstract class AbsConnect<T extends AbsConnect<T>> {
-
 	public static final int flag_nothing = 0;
 	public static final int flag_printSql = 1;
 	public static final int flag_disableSql = 2;

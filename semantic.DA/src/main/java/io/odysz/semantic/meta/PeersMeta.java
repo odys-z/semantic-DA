@@ -3,7 +3,7 @@ package io.odysz.semantic.meta;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import io.odysz.semantic.syn.Nyquence;
+import io.oz.syn.Nyquence;
 
 public class PeersMeta extends SemanticTableMeta {
 

@@ -115,7 +115,7 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 				Connects.commit(conn, DATranscxt.dummyUser(), m.ddlSqlite);
 			}
 			else if (force_drop)
-				throw new SemanticException("Forcing drop table %s without DDL provided.", m.tbl);
+				throw new SemanticException("Modifying table %s without DDL provided?", m.tbl);
 	}
 
 	/**
