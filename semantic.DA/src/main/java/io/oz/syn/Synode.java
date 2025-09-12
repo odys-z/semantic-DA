@@ -25,9 +25,27 @@ public class Synode extends Anson {
 	public String domain() { return domain; }
 	
 	/**
+	 * This field is for Cynode, the node in registry central, not Synode.
+	 * @param s see Registry central CentSynodemeta.CynodeStats
+	 * @since 0.7.6
+	 */
+	String stat;
+	public Synode state(String s) {
+		stat = s;
+		return this;
+	}
+
+	/**
 	 * @since 0.7.6 "hub" or null
 	 */
 	public String remarks;
+	
+	/** @since 0.7.6 "hub" or null */
+	public String jserv;
+	public Synode jserv(String s) {
+		jserv = s;
+		return this;
+	}
 
 	long nyquence;
 	String syn_uid;
@@ -107,6 +125,4 @@ public class Synode extends Anson {
 			{add(new Object[] {synm.org, org});}
 		});
 	}
-
-
 }
