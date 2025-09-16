@@ -38,7 +38,7 @@ public class SynodeMeta extends SyntityMeta {
 	public final String jserv;
 
 	public final String oper;
-	public final String optime;
+	public final String jserv_utc;
 
 	/**
 	 * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
@@ -51,16 +51,15 @@ public class SynodeMeta extends SyntityMeta {
 	public SynodeMeta(String conn) throws TransException {
 		super("syn_node", "synid", "mac", conn);
 
-		// mac     = "mac";
-		nyquence= "nyq";
-		nstamp  = "nstamp";
-		org     = "org";
-		domain  = "domain";
-		remarks = "remarks";
-		jserv   = "jserv";
-		oper    = "oper";
-		optime  = "optime";
-		synoder = pk;
+		nyquence = "nyq";
+		nstamp   = "nstamp";
+		org      = "org";
+		domain   = "domain";
+		remarks  = "remarks";
+		jserv    = "jserv";
+		oper     = "oper";
+		jserv_utc= "optime";
+		synoder  = pk;
 
 		ddlSqlite = loadSqlite(SyntityMeta.class, "syn_node.sqlite.ddl");
 
@@ -79,12 +78,12 @@ public class SynodeMeta extends SyntityMeta {
 	 */
 	public HashMap<String, String[]> loadJservs(DATranscxt tb, String domain, ObjFilter... filter) throws SQLException, TransException {
 		return ((AnResultset) tb.select(tbl)
-		  .cols(jserv, synoder, optime)
+		  .cols(jserv, synoder, jserv_utc)
 		  .whereEq(this.domain, domain)
 		  .rs(tb.instancontxt(conn(), DATranscxt.dummyUser()))
 		  .rs(0))
 		  .map(synoder,
-			  (rs) -> new String[] {rs.getString(jserv), rs.getString(optime)},
+			  (rs) -> new String[] {rs.getString(jserv), rs.getString(jserv_utc)},
 			  (rs) -> isNull(filter) ? true : _0(filter).filter(rs));
 	}
 }
