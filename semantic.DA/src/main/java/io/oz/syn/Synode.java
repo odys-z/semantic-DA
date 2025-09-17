@@ -1,10 +1,13 @@
 package io.oz.syn;
 
+import static io.odysz.common.LangExt.isblank;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 
 import io.odysz.anson.Anson;
 import io.odysz.module.rs.AnResultset;
+import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.transact.sql.Insert;
 import io.odysz.transact.x.TransException;
@@ -66,7 +69,7 @@ public class Synode extends Anson {
 		this.org = org;
 		this.domain  = domain;
 		this.remarks = remarks;
-		this.syn_uid = synuid;
+		this.syn_uid = isblank(syn_uid) ? SynChangeMeta.uids(synid, synid) : syn_uid;
 	}
 	
 	public Synode(AnResultset r, SynodeMeta synm) throws SQLException {
@@ -84,7 +87,7 @@ public class Synode extends Anson {
 	 * Example:<pre>insert(synm, synode, n0(), tranxbuilder.insert(synm.tbl, robot))</pre>
 	 * 
 	 * @param synm
-	 * @param syn_uid global synuid
+	 * @param syn_uid global synuid, can be null, and will automatically generate one.
 	 * @param n0
 	 * @return {@link Insert} statement
 	 * @throws TransException
@@ -96,7 +99,7 @@ public class Synode extends Anson {
 			.nv(synm.nyquence, n0.n)
 			.nv(synm.domain, domain)
 			.nv(synm.remarks, remarks)
-			.nv(synm.io_oz_synuid, syn_uid)
+			.nv(synm.io_oz_synuid, isblank(syn_uid) ? SynChangeMeta.uids(synid, synid) : syn_uid)
 			.nv(synm.org, org);
 	}
 
