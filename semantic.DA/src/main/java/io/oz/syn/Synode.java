@@ -69,7 +69,7 @@ public class Synode extends Anson {
 		this.org = org;
 		this.domain  = domain;
 		this.remarks = remarks;
-		this.syn_uid = isblank(syn_uid) ? SynChangeMeta.uids(synid, synid) : syn_uid;
+		this.syn_uid = isblank(synuid) ? SynChangeMeta.uids(synid, synid) : synuid;
 	}
 	
 	public Synode(AnResultset r, SynodeMeta synm) throws SQLException {
