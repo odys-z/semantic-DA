@@ -17,6 +17,9 @@ import io.odysz.transact.x.TransException;
 /**
  * <a href='./syn_node.sqlite.ddl'>syn_node.ddl</a>
  * 
+ * Synodes in a domain won't care any data across markets, and the table has no market id.
+ * But Cynodes in central service does care.
+ * 
  * @author odys-z@github.com
  */
 public class SynodeMeta extends SyntityMeta {

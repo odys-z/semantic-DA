@@ -94,7 +94,7 @@ public class Docheck {
 	public Docheck(IAssert assertImpl, String domain, String conn,
 			String synid, SynodeMode mod, int chpageSize, ExpDocTableMeta m, SyntityMeta devm, boolean debugx)
 			throws Exception {
-		this(assertImpl, new SyndomContext(mod, chpageSize, domain, synid, conn, debugx), m, devm);
+		this(assertImpl, new SyndomContext(mod, chpageSize, org, domain, synid, conn, debugx), m, devm);
 	}
 
 	/**

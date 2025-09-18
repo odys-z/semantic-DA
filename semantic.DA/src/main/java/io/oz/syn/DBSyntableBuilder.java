@@ -871,7 +871,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					.u(instancontxt(synconn, locrobot));
 
 					// don't delete: all local data before joining is ignored
-					syndomx.domainitOnjoin(this, domain, mxn);
+					syndomx.domainitOnjoin(this, locrobot.orgId(), domain, mxn);
 				}
 				else {
 					Synode n = new Synode(ns, synm);

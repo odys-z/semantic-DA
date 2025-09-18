@@ -50,6 +50,7 @@ public class SyndomContext {
 
 	public final boolean dbg;
 	
+	protected String org;
 	protected String domain;
 	public String domain() { return domain; }
 	
@@ -85,13 +86,14 @@ public class SyndomContext {
 	Nyquence stamp;
 	public long stamp() { return stamp.n; }
 
-	final DATranscxt tb0;
+	protected final DATranscxt synb;
 
-	protected SyndomContext(SynodeMode mod, int pagesize, String dom,
+	protected SyndomContext(SynodeMode mod, int pagesize, String orgid, String dom,
 			String synode, String synconn, boolean debug) throws Exception {
 
 		this.synode  = notBlank(synode);
 		this.domain  = dom;
+		this.org     = orgid;
 		this.synconn = notBlank(synconn);
 		this.mode    = notNull(mod);
 		this.pageSize= mustGe(pagesize, 1);
@@ -105,7 +107,7 @@ public class SyndomContext {
 		
 		dbg = debug;
 
-		tb0 = new DATranscxt(synconn);
+		synb = new DATranscxt(synconn);
 	}
 
 	public Nyquence n0() { return nv.get(synode); }
@@ -169,7 +171,7 @@ public class SyndomContext {
 		SyncUser robot = new SyncUser(synode, "pswd: local null", synode)
 				.deviceId(synode);
 
-		loadNvstamp(tb0, robot);
+		loadNvstamp(synb, robot);
 		
 		return this;
 	}
@@ -254,10 +256,11 @@ public class SyndomContext {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public SyndomContext domainitOnjoin(DBSyntableBuilder b, String dom, Nyquence n0)
+	public SyndomContext domainitOnjoin(DBSyntableBuilder b, String org, String dom, Nyquence n0)
 			throws TransException, SQLException {
 		DAHelper.updateFieldWhereEqs(b, synconn, admin, synm, synm.domain, dom,
 				synm.synoder, synode, synm.domain, this.domain);
+		this.org = org;
 		domain = dom;
 
 		persistNyquence(b, synm.nyquence, n0);

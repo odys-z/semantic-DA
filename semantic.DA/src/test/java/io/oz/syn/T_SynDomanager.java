@@ -8,12 +8,6 @@ import static io.oz.syn.DBSyn2tableTest.zsu;
 
 import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.SyntityMeta;
-import io.oz.syn.DBSyntableBuilder;
-import io.oz.syn.Docheck;
-import io.oz.syn.ExchangeBlock;
-import io.oz.syn.ExessionPersist;
-import io.oz.syn.SyndomContext;
-import io.oz.syn.SynodeMode;
 
 
 /**
@@ -29,15 +23,15 @@ public class T_SynDomanager extends SyndomContext {
 	public ExpDocTableMeta docm;
 	public ExessionPersist xp;
 
-	protected T_SynDomanager(SynodeMode mod, String domain, String synode, String synconn, boolean... debug)
+	protected T_SynDomanager(SynodeMode mod, String org, String domain, String synode, String synconn, boolean... debug)
 			throws Exception {
-		super(mod, chpageSize, domain, synode, synconn, _0(debug, false));
+		super(mod, chpageSize, org, domain, synode, synconn, _0(debug, false));
 		musteqs(zsu, domain);
 		musteqi(16, chpageSize);
 	}
 
 	public T_SynDomanager(SyndomContext dx, DBSyntableBuilder synb) throws Exception {
-		this(dx.mode, dx.domain, dx.synode, dx.synconn);
+		this(dx.mode, dx.org, dx.domain, dx.synode, dx.synconn);
 		this.synb = synb;
 	}
 
