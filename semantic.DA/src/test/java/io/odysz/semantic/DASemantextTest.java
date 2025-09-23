@@ -255,7 +255,7 @@ public class DASemantextTest {
 	 */
 	@Test
 	void testAutoKprefix() throws TransException, SQLException {
-		String devname = DateFormat.formatime(new Date());
+		String devname = DateFormat.formatime_utc(new Date());
 		
 		String tbl = "doc_devices";
 
@@ -380,7 +380,7 @@ public class DASemantextTest {
 	 */
 	@Test
 	public void testSmtxUsers() throws TransException, SQLException, GeneralSecurityException, IOException {
-		String flag = DateFormat.formatime(new Date());
+		String flag = DateFormat.formatime_utc(new Date());
 		String usrName = "01 " + flag;
 
 		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
@@ -698,7 +698,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				sqls.get(2));
 	}
 	
-	@SuppressWarnings("serial")
 	@Test
 	public void testMuiltiRowsInsert() throws TransException, SQLException, IOException {
 		ArrayList<String> sqls = new ArrayList<String>(1);
@@ -796,7 +795,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// TODO testpaging
 	}
 
-	@SuppressWarnings("serial")
 	@Test
 	public void testMuiltiInsOpertime() throws TransException, SQLException, IOException {
 		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
@@ -960,7 +958,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 	 */
 	@Test
 	public void testExtfile() throws TransException, SQLException, IOException {
-		String flag = DateFormat.formatime(new Date());
+		String flag = DateFormat.formatime_utc(new Date());
 		String usrName = "attached " + flag;
 
 		DASemantext s0 = new DASemantext(connId, smtcfg, usr, runtimepath);

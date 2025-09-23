@@ -58,8 +58,8 @@ public class MysqlDriver extends AbsConnect<MysqlDriver> {
 			// FIXME decipher pswd
 			// pswd = Encrypt.DecryptPswdImpl(pswd);
 			try {
-				Class.forName("com.mysql.jdbc.Driver").newInstance();
-			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+				Class.forName("com.mysql.jdbc.Driver").getDeclaredConstructor().newInstance();
+			} catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
 				e.printStackTrace();
 				throw new SQLException(e.getMessage());
 			}
