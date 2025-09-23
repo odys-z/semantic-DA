@@ -24,6 +24,7 @@ import io.odysz.module.xtable.XMLTable.IMapValue;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.SemanticTableMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
 import io.odysz.semantics.SemanticObject;
@@ -1864,6 +1865,18 @@ public class DASemantics {
 			}
 		}
 
+		/**
+		 * Resolve root path for file saving, the reverse of
+		 * {@link ExtFileUpdatev2#sql()} -> {@link ExtFilePaths#decodeUriPath()}.
+		 */
+		public static String resolvUri(String conn, String docId, String dburi, String pname, SemanticTableMeta meta) {
+			ShExtFilev2 h2 = ((ShExtFilev2) DATranscxt.getHandler(conn, meta.tbl, smtype.extFilev2));
+		
+			return h2.getExtPaths(docId, pname)
+					.prefix(ExtFilePaths.relativeFolder(dburi, h2.getFileRoot()))
+					.decodeUriPath()
+					;	
+		}
 	}
 
 	/**

@@ -174,19 +174,14 @@ public class DocRef extends AnDbField {
 		ShExtFilev2 sh = ((ShExtFilev2) DATranscxt
 				.getHandler(conn, tbl, smtype.extFilev2));
 		
-		musteq(ref.relativeFolder(sh.getFileRoot()), relativeFolder(ref.uri64, sh.getFileRoot()));
+		musteq(ref.relativeFolder(sh.getFileRoot()), ExtFilePaths.relativeFolder(ref.uri64, sh.getFileRoot()));
 		return sh.getExtPaths(ref.docId, ref.pname)
 				// .prefix(ref.relativeFolder(sh.getFileRoot()))
-				.prefix(relativeFolder(ref.uri64, sh.getFileRoot()))
+				.prefix(ExtFilePaths.relativeFolder(ref.uri64, sh.getFileRoot()))
 				;
 	}
-	// TODO Refactor Move to ExtFilePaths 
-	public static String relativeFolder(String uri64, String abs) {
-		return isblank(uri64) ? uri64
-				: FilenameUtils.getPathNoEndSeparator(
-				  Regex.removeVolumePrefix(uri64, abs));
-	}
-
+	
+	/** @deprecated */
 	private String relativeFolder(String extroot) {
 		return isblank(uri64) ? uri64
 				: FilenameUtils.getPathNoEndSeparator(

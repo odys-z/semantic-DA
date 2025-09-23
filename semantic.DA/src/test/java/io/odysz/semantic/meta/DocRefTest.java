@@ -60,7 +60,7 @@ class DocRefTest {
 		
 		ExtFilePaths extpaths = new ExtFilePaths(sh.getFileRoot(), dr.docId, dr.pname)
 							// .prefix(dr.relativeFolder(sh.getFileRoot()))
-							.prefix(DocRef.relativeFolder(dr.uri64, sh.getFileRoot()))
+							.prefix(ExtFilePaths.relativeFolder(dr.uri64, sh.getFileRoot()))
 							.filename(dr.pname);
 		// TODO test: extpaths = sh.getExtPaths()
 		assertEquals("uploads/ody/h_photo/0001 Sun Yet-sen Portrait.jpg", extpaths.dburi(true));
@@ -95,7 +95,7 @@ class DocRefTest {
 
 		extpaths = new ExtFilePaths(sh.getFileRoot(), dr.docId, dr.pname)
 							// .prefix(dr.relativeFolder(conn_extpath_volume))
-							.prefix(DocRef.relativeFolder(dr.uri64, conn_extpath_volume))
+							.prefix(ExtFilePaths.relativeFolder(dr.uri64, conn_extpath_volume))
 							.filename(dr.pname);
 		
 		assertPathEquals(f("$%s/ody/h_photo/0001 Sun Yet-sen Portrait.jpg", volume_Y), extpaths.dburi(true));
