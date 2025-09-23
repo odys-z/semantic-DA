@@ -1666,7 +1666,7 @@ public class DASemantics {
 						&& (nv[1] instanceof String && !isblank(nv[1]) && !Anson.startEnvelope((String)nv[1])
 							|| nv[1] instanceof AbsPart && !startEnvelope((AbsPart)nv[1]))) {
 
-						// can be a string or an auto resulving (fk is handled before extfile)
+						// can be a string or an auto resulving (fk is handled before the ext-file)
 						Object fid = row.get(cols.get(pkField))[1];
 
 						ExtFileInsertv2 f;
@@ -1686,7 +1686,6 @@ public class DASemantics {
 						}
 
 						f.b64(nv[1])
-						 // .subpaths(ixUri, args, cols, row);
 						 .subpaths(Arrays.copyOfRange(args, ixUri + 1, args.length - 1), cols, row);
 
 						if (verbose)
