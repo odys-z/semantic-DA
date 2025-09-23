@@ -176,12 +176,11 @@ public class DocRef extends AnDbField {
 		
 		musteq(ref.relativeFolder(sh.getFileRoot()), ExtFilePaths.relativeFolder(ref.uri64, sh.getFileRoot()));
 		return sh.getExtPaths(ref.docId, ref.pname)
-				// .prefix(ref.relativeFolder(sh.getFileRoot()))
 				.prefix(ExtFilePaths.relativeFolder(ref.uri64, sh.getFileRoot()))
 				;
 	}
 	
-	/** @deprecated */
+	/** @deprecated to be removed after ExtFilePaths.relativeFolder is verified. */
 	private String relativeFolder(String extroot) {
 		return isblank(uri64) ? uri64
 				: FilenameUtils.getPathNoEndSeparator(

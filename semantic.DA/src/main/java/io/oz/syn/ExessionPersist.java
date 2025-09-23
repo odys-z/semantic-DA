@@ -685,7 +685,6 @@ public class ExessionPersist {
 		*/
 
 		try {
-			// expAnswerSeq = -1; 
 			if (rep != null)
 				answerSeq = rep.challengeSeq;
 

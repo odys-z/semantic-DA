@@ -236,8 +236,6 @@ public class DBSynmantics extends DASemantics {
 						entm.replace();
 				}
 				else entm = (SyntityMeta) m;
-
-				// entId = new Resulving(entm.tbl, entm.pk);
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new SemanticException(e.getMessage());
@@ -253,7 +251,6 @@ public class DBSynmantics extends DASemantics {
 
 			DBSyntableBuilder synb = (DBSyntableBuilder) ((ISyncontext) stx).synbuilder();
 			
-			// Object synuid = null;
 			Object pk = null;
 			try {
 				if (cols.containsKey(entm.pk))

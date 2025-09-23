@@ -453,30 +453,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 	
 	/**
-	 * @deprecated not used
-	 * @param inst
-	 * @param syndomx
-	 * @param peer
-	 * @throws TransException
-	static void selectExbuf(DBSyntableBuilder inst, SyndomContext syndomx, String peer) throws TransException {
-		SynodeMeta synm = syndomx.synm;
-		SynChangeMeta chgm = syndomx.chgm;
-		SynSubsMeta subm = syndomx.subm;
-		PeersMeta pnvm = syndomx.pnvm;
-	
-			Query q_exchgs = inst.select(chgm.tbl, "cl")
-				.distinct(true)
-				.cols(constr(peer), chgm.pk, new ExprPart(-1))
-				.j(subm.tbl, "sb", Sql.condt(op.eq, chgm.pk, subm.changeId)
-										.and(Sql.condt(op.eq, constr(syndomx.domain), "cl." + chgm.domain))
-										.and(Sql.condt(op.ne, constr(syndomx.synode), subm.synodee)))
-				.je_(pnvm.tbl, "nvee", "cl." + chgm.synoder, pnvm.synid,
-										constr(syndomx.domain), pnvm.domain, constr(peer), pnvm.peer)
-				.where(op.gt, sqlCompare("cl", chgm.nyquence, "nvee", pnvm.nyq), 0);
-	}
-	 */
-	
-	/**
 	 * Orthogonally synchronize n-vectors locally.
 	 * 
 	 * @param xp
@@ -485,7 +461,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @throws TransException
 	 * @throws SQLException
 	 */
-	public HashMap<String, Nyquence> synXnv(ExessionPersist xp, // String peer,
+	public HashMap<String, Nyquence> synXnv(ExessionPersist xp,
 			HashMap<String, Nyquence> xnv) throws TransException, SQLException {
 
 		Update u = null;
@@ -541,63 +517,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		return u;
 	}
 
-	/**
-	 * Find max nv element, persist syn_synode.nyq[.] if change,
-	 * then return the mx-nv snapshot.
-	 * 
-	 * @param xp
-	 * @param xnv
-	 * @return max-nv snapshot
-	 * @throws TransException
-	 * @throws SQLException
-	public HashMap<String, Nyquence> synyquvectMax(ExessionPersist xp, // String peer,
-			HashMap<String, Nyquence> xnv) throws TransException, SQLException {
-
-		Update u = null;
-
-		HashMap<String, Nyquence> snapshot =  new HashMap<String, Nyquence>();
-
-		SynodeMeta synm = syndomx.synm;
-		
-		for (String n : xnv.keySet()) {
-			if (!xp.synx.nv.containsKey(n))
-				continue;
-			Nyquence nyq = null;
-			
-			if (eq(syndomx.synode, n)) {
-				Nyquence mx = maxn(xnv.get(n), xp.n0(), xnv.get(xp.peer));
-				snapshot.put(n, new Nyquence(mx.n));
-				xp.trb.incN0(mx);
-			}
-			else
-				snapshot.put(n, new Nyquence(maxn(xnv.get(n), xp.synx.nv.get(n)).n));
-
-			nyq = maxn(xnv.get(n), xp.synx.nv.get(n));
-
-			if (compareNyq(nyq, xp.synx.nv.get(n)) != 0) {
-				if (u == null)
-					u = update(synm.tbl, locrobot)
-						.nv(synm.nyquence, nyq.n)
-						.whereEq(synm.domain, syndomx.domain)
-						.whereEq(synm.pk, n);
-				else
-					u.post(update(synm.tbl)
-						.nv(synm.nyquence, nyq.n)
-						.whereEq(synm.domain, syndomx.domain)
-						.whereEq(synm.pk, n));
-			}
-		}
-
-		if (u != null) {
-			u.u(instancontxt(syndomx.synconn, locrobot));
-
-			xp.synx.loadNvstamp(this);
-		}
-
-		return snapshot;
-	}
-	 */
-
 	public ExchangeBlock abortExchange(ExessionPersist cx)
 			throws TransException, SQLException {
 		HashMap<String, Nyquence> snapshot = Nyquence.clone(cx.synx.nv);
@@ -621,31 +540,6 @@ public class DBSyntableBuilder extends DATranscxt {
 				.seq(xp);
 	}
 	
-//	public void onRequires(ExessionPersist cp, ExchangeBlock req) throws ExchangeException {
-//		if (req.act == restore) {
-//			if (cp.challengeSeq <= req.challengeSeq) {
-//				// server is actually handled my challenge. Just step ahead 
-//				cp.challengeSeq = req.challengeSeq;
-//			}
-//			else if (cp.challengeSeq == req.challengeSeq + 1) {
-//				// server haven't got the previous package
-//				// setup for send again
-//				cp.challengeSeq = req.challengeSeq;
-//			}
-//			else {
-//				// not correct
-//				cp.challengeSeq = req.challengeSeq;
-//			}
-//	
-//			if (cp.answerSeq < req.answerSeq) {
-//				cp.answerSeq = req.answerSeq;
-//			}
-//			
-//			// cp.expAnswerSeq = cp.challengeSeq;
-//		}
-//		else throw new ExchangeException(0, cp, "TODO");
-//	}
-
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	public int deleteEntityBySynuid(SyndomContext syndomContext, SyntityMeta entm, String synuid)
 			throws TransException, SQLException {
@@ -852,10 +746,6 @@ public class DBSyntableBuilder extends DATranscxt {
 			throw new ExchangeException(setupDom, cp,
 					"Unexpected domain. me: %s, peer: %s", syndomx.domain, domain);
 
-//		if (!isblank(syndomx.domain))
-//			throw new ExchangeException(setupDom, cp, "Domain must be null for initialization %s in %s.",
-//					synm.tbl, synm.domain);
-		
 		Nyquence mxn = domainof.nv.get(admin); 
 
 		if (domainof.synodes != null) {

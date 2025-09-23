@@ -292,7 +292,6 @@ public class Connects {
 		return srcs.get(defltConn).commit(usr, sqls, lobs, flags.length > 0 ? flags[0] : AbsConnect.flag_nothing);
 	}
 
-	@SuppressWarnings("serial")
 	public static int[] commit(String conn, IUser usr, String sql, int... flags) throws SQLException, TransException {
 		return commit(conn, usr, new ArrayList<String>() { {add(sql);} }, flags.length > 0 ? flags[0] : AbsConnect.flag_nothing);
 	}
@@ -309,7 +308,6 @@ public class Connects {
 		}
 	}
 
-	@SuppressWarnings("serial")
 	public static int[] commit(IUser usr, final String sql) throws SQLException, TransException {
 		return commit(usr, new ArrayList<String> () { {add(sql);} });
 	}

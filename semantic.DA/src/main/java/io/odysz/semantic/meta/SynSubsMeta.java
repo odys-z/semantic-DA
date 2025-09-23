@@ -19,9 +19,6 @@ public class SynSubsMeta extends SemanticTableMeta {
 	final SynChangeMeta chgm;
 
 	public final String changeId;
-	// public final String domain;
-	// public final String entbl;
-	// public final String uids;
 	public final String synodee;
 	private String[] subcols;
 
@@ -36,7 +33,6 @@ public class SynSubsMeta extends SemanticTableMeta {
 	}
 
 	public String[] cols() {
-		// return new String[] {domain, entbl, synodee, uids};
 		return new String[] {changeId, synodee};
 	}
 
@@ -74,14 +70,12 @@ public class SynSubsMeta extends SemanticTableMeta {
 		String[] cols = insertCols();
 		ArrayList<Object[]> val = new ArrayList<Object[]> (cols.length);
 
-		// val.add(new Object[] {cols[0], chlogs.getString(chgm.pk)});
 		val.add(new Object[] {cols[0], chgId});
 		val.add(new Object[] {cols[1], chlogs.getString(synodee)});
 
 		return val;
 	}
 
-	@SuppressWarnings("serial")
 	public ArrayList<Object[]> insertSubVal(String org, String entbl, String synodee, String uds) throws SQLException {
 		return new ArrayList<Object[]>() {
 
@@ -95,19 +89,4 @@ public class SynSubsMeta extends SemanticTableMeta {
 			{add(new Object[] {subcols[2], synodee});}
 		};
 	}
-
-	/**
-	 * ISSUE: why not merge with {@link SyntityMeta#replace()}?
-	 * @return
-	 * @throws SQLException
-	 * @throws TransException
-	public SynSubsMeta replace() throws SQLException, TransException {
-		TableMeta mdb = Connects.getMeta(conn, tbl);
-		if (!(mdb instanceof SyntityMeta))
-			DBSynmantics.replaceMeta(tbl, this, conn);
-		if (isNull(this.ftypes) && mdb.ftypes() != null)
-			this.ftypes = mdb.ftypes();
-		return this;
-	}
-	 */
 }

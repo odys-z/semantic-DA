@@ -98,7 +98,6 @@ public class ExchangeBlock extends Anson {
 			return;
 		
 		if (anspage == null) {
-			// anspage = new ArrayList<ArrayList<Object>>();
 			HashMap<String, Object[]> cols = challenpage.colnames();
 			if (!cols.containsKey(ChangeLogs.ChangeFlag.toUpperCase()))
 				cols.put(ChangeLogs.ChangeFlag.toUpperCase(),
@@ -180,7 +179,6 @@ public class ExchangeBlock extends Anson {
 	 * @return this
 	 */
 	 public ExchangeBlock seq(ExessionPersist xp) {
-	 	// return seq(xp.challengeSeq() < xp.pages() ? xp.challengeSeq() : -1, xp.answerSeq(), xp.totalChallenges);
 	 	return seq(xp.challengeSeq(), xp.answerSeq(), xp.totalChallenges);
 	 }
 
