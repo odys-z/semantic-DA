@@ -22,7 +22,7 @@ import io.odysz.transact.x.TransException;
 
 /**
  * Synchronizing user for robot and base class of DocUser.
- * This is not a type for session management.
+ * This is not a type for session management, but for clients.
  * 
  * @author odys-z@github.com
  */
