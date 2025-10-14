@@ -49,6 +49,22 @@ public class Synode extends Anson {
 		jserv = s;
 		return this;
 	}
+	
+	/**
+	 * Used by central as jserv_utc.
+	 * @since 1.5.18
+	 */
+	public String optime;
+	/**
+	 * Used by central as cynode creator.
+	 * @since 1.5.18
+	 */
+	public String oper;
+	public Synode jserv(String s, String optime, String oper) {
+		this.optime = optime;
+		this.oper = oper;
+		return this;
+	}
 
 	long nyquence;
 	String syn_uid;

@@ -86,7 +86,7 @@ public class SynodeMeta extends SyntityMeta {
 		  .rs(tb.instancontxt(conn(), DATranscxt.dummyUser()))
 		  .rs(0))
 		  .map(synoder,
-			  (rs) -> new String[] {rs.getString(jserv), rs.getString(jserv_utc)},
+			  (rs) -> new String[] {rs.getString(jserv), rs.getString(jserv_utc), rs.getString(oper)},
 			  (rs) -> isNull(filter) ? true : _0(filter).filter(rs));
 	}
 }
