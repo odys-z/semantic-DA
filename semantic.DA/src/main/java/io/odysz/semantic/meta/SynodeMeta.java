@@ -79,9 +79,10 @@ public class SynodeMeta extends SyntityMeta {
 	 * @return {node-id: [jserv, timestamp]}
 	 * @since 0.7.6
 	 */
-	public HashMap<String, String[]> loadJservs(DATranscxt tb, String domain, ObjFilter... filter) throws SQLException, TransException {
+	public HashMap<String, String[]> loadJservs(DATranscxt tb, String orgId, String domain, ObjFilter... filter) throws SQLException, TransException {
 		return ((AnResultset) tb.select(tbl)
-		  .cols(jserv, synoder, jserv_utc)
+		  .cols(jserv, synoder, jserv_utc, oper)
+		  .whereEq(this.org, orgId)
 		  .whereEq(this.domain, domain)
 		  .rs(tb.instancontxt(conn(), DATranscxt.dummyUser()))
 		  .rs(0))
