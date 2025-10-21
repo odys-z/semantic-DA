@@ -157,13 +157,15 @@ public class Docheck {
 			q.whereIn(docm.io_oz_synuid, uids);
 
 		synb.pushDebug(false);
+		int c = count - 1;
 		try {
-			azert.equali(count, ((AnResultset) q
+			c = ((AnResultset) q
 				.rs(synb.instancontxt(synb.syndomx.synconn, synb.synrobot()))
 				.rs(0))
 				.nxt()
-				.getInt("c"));
+				.getInt("c");
 		} finally { synb.popDebug(); }
+		azert.equali(count, c);
 	}
 
 	/**
@@ -274,9 +276,11 @@ public class Docheck {
 	}
 
 	public void change_devlog(int count) {
+		// TODO until test break points resuming
 	}
 
 	public void change_devlog(int i, String c, String b_0) {
+		// TODO until test break points resuming
 	}
 
 	/**
@@ -442,7 +446,6 @@ public class Docheck {
 			}
 
 			azert.equali(subcount, cnt);
-			// azert.equali(subcount, subs.getRowCount());
 		}
 	}
 
@@ -511,8 +514,6 @@ public class Docheck {
 		for (int cx = 0; cx < ck.length && ck[cx] instanceof Docheck; cx++) {
 			DBSyntableBuilder t = ck[cx].synb;
 
-//			boolean top = Connects.getDebug(ck[cx].synb.syndomx.synconn);
-//			Connects.setDebug(ck[cx].synb.syndomx.synconn, false);
 			ck[cx].synb.pushDebug(false);
 			try {
 				HashMap<String, Nyquence> nyquvect = ck[cx].synb.syndomx.loadNvstamp(t); 
@@ -534,7 +535,6 @@ public class Docheck {
 					ck[cx].doclist(ck[cx].synb.syndomx.synm) :
 					ck[cx].doclist(ck[cx].docm));
 			}
-			// finally { Connects.setDebug(ck[cx].synb.syndomx.synconn, top); }
 			finally { ck[cx].synb.popDebug(); }
 		}
 
@@ -561,9 +561,7 @@ public class Docheck {
 
 		for (int cx = 0; cx < ck.length && ck[cx] instanceof Docheck; cx++) {
 			DBSyntableBuilder b = ck[cx].synb;
-			SyndomContext x = ck[cx].synb.syndomx;
-			boolean top = Connects.getDebug(x.synconn);
-			Connects.setDebug(x.synconn, false);
+			b.pushDebug(false);
 			try {
 				HashMap<String,String> idmap = ((AnResultset) b
 					.select(chm.tbl, "ch")
@@ -571,7 +569,6 @@ public class Docheck {
 					.je_(sbm.tbl, "sub", chm.pk, sbm.changeId)
 					.l_(xbm.tbl, "xb", chm.pk, xbm.changeId)
 					.orderby(xbm.pagex, chm.entbl, chm.uids)
-					// .rs(b.instancontxt(x.synconn, b.synrobot()))
 					.rs(b.instancontxt())
 					.rs(0))
 					.<String>map(new String[] {chm.uids, sbm.synodee}, (r) -> changeLine(r));
@@ -584,7 +581,7 @@ public class Docheck {
 				}
 			}
 			finally { 
-				Connects.setDebug(x.synconn, top);
+				b.popDebug();
 			}
 		}
 		
