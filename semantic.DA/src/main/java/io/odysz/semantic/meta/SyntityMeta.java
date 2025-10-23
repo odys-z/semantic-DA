@@ -33,6 +33,9 @@ public abstract class SyntityMeta extends SemanticTableMeta {
 	 * Global syn-uid. Must be transparent to users.
 	 * 
 	 * (using this field in transactions will suppress semantics handling of smtyp.synchange)
+	 * 
+	 * Use this line to generate the global unique value:
+	 * <pre>SynChangeMeta.uids(synid, synid)</pre>
 	 */
 	public final String io_oz_synuid;
 	
