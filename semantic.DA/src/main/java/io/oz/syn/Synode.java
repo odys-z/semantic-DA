@@ -61,6 +61,7 @@ public class Synode extends Anson {
 	 */
 	public String oper;
 	public Synode jserv(String s, String optime, String oper) {
+		this.jserv = s;
 		this.optime = optime;
 		this.oper = oper;
 		return this;
