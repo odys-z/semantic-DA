@@ -107,7 +107,7 @@ public class DASemantext implements ISemantext {
 	
 	/**
 	 * Create a DASemantext instance (for committing statement) without semantics handlers. 
-	 * A protected constructor that can be created by {@link DATranscxt#instanonSemantext(String).
+	 * A protected constructor that can be created by DATranscxt.instanonSemantext(String).
 	 * @param connId
 	 * @param usr
 	 * @throws SemanticException

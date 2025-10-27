@@ -2,7 +2,7 @@ package io.oz.syn;
 
 /**
  * Synode working modes
- * @since 0.7.0
+ * @since 1.5.18
  */
 public enum SynodeMode {
 	/** device or transction builder, etc. are not for synodes */

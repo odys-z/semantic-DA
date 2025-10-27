@@ -10,7 +10,6 @@ import java.util.HashMap;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.Utils;
-import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.DASemantics;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
@@ -151,7 +150,7 @@ public class DBSynTransBuilder extends DATranscxt {
 	 * Registering syntities, adding semantics handler, {@link ShSynChange},
 	 * to the Semantics map.
 	 *  
-	 * Equivalent to {@link DATranscxt#initConfigs(String, XMLTable, SmapFactory)}.
+	 * Equivalent to {@link DATranscxt#initConfigs(String, SmapFactory)}.
 	 * 
 	 * @param <M>
 	 * @param <S>

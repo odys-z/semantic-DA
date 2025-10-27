@@ -96,10 +96,10 @@ public class DocRef extends AnDbField {
 	 * 
 	 * <h5>Issue:</h5>
 	 * Changing the configurable volume variable name will fail for replacing old data,
-	 * so it's simple replaced with the string format convention, the first "&.../" as volume name.
+	 * so it's simple replaced with the string format convention, the first "&amp;.../" as volume name.
 	 * But this value is generated while reading entities for exchange.
 	 * 
-	 * @see ExpDocTableMeta#onselectSyntities(io.oz.syn.SyndomContext, io.odysz.transact.sql.Query)
+	 * @see ExpDocTableMeta#onselectSyntities(io.oz.syn.SyndomContext, io.odysz.transact.sql.Query, DBSyntableBuilder)
 	 */
 	public String volume;
 

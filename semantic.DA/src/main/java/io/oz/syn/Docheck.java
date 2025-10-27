@@ -175,7 +175,6 @@ public class Docheck {
 	 * @param crud flag to be verified
 	 * @param eid  entity id
 	 * @param entm entity table meta
-	 * @return nyquence.n
 	 * @throws TransException
 	 * @throws SQLException
 	 */

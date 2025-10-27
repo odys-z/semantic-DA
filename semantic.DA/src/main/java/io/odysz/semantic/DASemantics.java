@@ -106,7 +106,7 @@ import io.odysz.transact.x.TransException;
  * test/resources/semantics.xml.<br>
  * 2. Set the configured semantics as context of
  * {@link io.odysz.transact.sql.Statement}. See example in
- * {@link io.odysz.semantic.DASemantextTest}. Then use Statement's subclass's
+ * io.odysz.semantic.DASemantextTest. Then use Statement's subclass's
  * commit() method to generate SQLs
  * </p>
  * <h3>Is this Enough?</h3>
@@ -950,13 +950,6 @@ public class DASemantics {
 			long start0 = 0;
 
 			if (args == null || args.length < 2 || isblank(args[1])) {
-//				throw new SemanticException(
-//						"Since Semantic.DA 1.4.45, AUTO pk's configuration format is:\n"
-//						+ "<tabl>*,<start-long>*,<prefix-0>,... <prefix-i>.\n"
-//						+ "Some fields are missing in auto-key configuration: conn = %s, tabl = %s, pk = %s, args = %s",
-//						trxt.basictx().connId(), tabl, pk, LangExt.toString(args));
-
-
 				Utils.warn(
 						"Since Semantic.DA 1.4.45, AUTO pk's configuration format is:\n"
 						+ "<pk>*,<start-long>*,<prefix-0>,... <prefix-i>.\n"
@@ -967,7 +960,6 @@ public class DASemantics {
 
 			// 1.4.45: insert start0 to oz_autoseq 
 			try {
-				// start0 = Long.valueOf(ifnull(args[args.length - 1], "0"));
 				start0 = Long.valueOf(ifnull(args[1], "0"));
 			} catch (Exception e) {}
 
@@ -1034,24 +1026,6 @@ public class DASemantics {
 						prefix += precol;
 				}
 			try {
-				/*
-				Object alreadyResulved = stx.resulvedVal(target, args[0]);
-				if (verbose && alreadyResulved != null && isNull(prefixCols))
-					// 1. When cross fk referencing happened, this branch will reached by handling post inserts.
-					// 2. When multiple children inserting, this happens
-					Utils.warn(
-						"Debug Notes(verbose): Found an already resulved value (%s) while handling %s auto-key generation. Replacing ...",
-						alreadyResulved, target);
-				
-				if (alreadyResulved == null && isblank(autonv[1])) {
-					String ak = isblank(prefix)
-						? stx.genId(stx.connId(), target, args[0])
-						: stx.genId(stx.connId(), target, args[0], prefix);
-					autonv[1] = trxt.quotation(ak, stx.connId(), target, args[0]);
-				}
-				else if (alreadyResulved != null && isblank(autonv[1]))
-					autonv[1] = alreadyResulved;
-				*/
 				if (isblank(autonv[1])) {
 					String ak = isblank(prefix)
 						? stx.genId(stx.connId(), target, args[0])
@@ -1260,8 +1234,6 @@ public class DASemantics {
 					if (rowBid != null) {
 						// already provided by client, override it if possible
 						if (bid != null)
-							// rowBid[1] = bid;
-							// rowBid[1] = stx.composeVal(bid, target, fBusiId);
 							rowBid[1] = trxt.quotation(bid, stx.connId(), target, fBusiId);
 					}
 					// otherwise it may be a Resulving()
@@ -1320,27 +1292,6 @@ public class DASemantics {
 
 		@Override
 		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-			/*
-			if (args.length > 1 && args[1] != null) {
-				Object[] nv;
-				if (cols.containsKey(args[0]) // with nv from client
-						&& cols.get(args[0]) < row.size()) // with nv must been generated from semantics
-					nv = row.get(cols.get(args[0]));
-				else {
-					nv = new Object[2];
-					cols.put(args[0], row.size());
-					row.add(nv);
-				}
-				nv[0] = args[0];
-				if (nv[1] == null)
-					nv[1] = stx.composeVal(args[1], target, (String)nv[0]);
-				else if ("".equals(nv[1]) && args[1] != null && !args[1].equals(""))
-					// this is not robust but any better way to handle empty json value?
-					nv[1] = stx.composeVal(args[1], target, (String)nv[0]);
-				else if ((nv[1] instanceof ExprPart) && ((ExprPart)nv[1]).isNull())
-					nv[1] = stx.composeVal(args[1], target, (String)nv[0]);
-			}*/
-
 			if (args.length > 1 && args[1] != null) {
 				requiredNv(args[0],
 					trxt.quotation(args[1], stx.connId(), target, args[0]),
@@ -1402,7 +1353,6 @@ public class DASemantics {
 
 		@Override
 		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-			// if (args.length > 1 && args[1] != null) {
 			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
 				Object[] nv;
 				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
@@ -1427,10 +1377,8 @@ public class DASemantics {
 
 						ExtFileInsert f;
 						if (fn instanceof Resulving)
-							// f = new ExtFile((Resulving) fn, arargs[ixRoot]gs[ixRoot], stx.containerRoot());
 							f = new ExtFileInsert((Resulving) fn, getFileRoot(), stx);
 						else
-							// f = new ExtFile(new ExprPart(fn.toString()), args[ixRoot], stx.containerRoot());
 							f = new ExtFileInsert(new ExprPart(fn.toString()), getFileRoot(), stx);
 						
 						if (args.length >= ixClientName) {
@@ -1470,7 +1418,6 @@ public class DASemantics {
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
 			// onInsert(stx, null, row, cols, usr);
 			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
-			// if (args.length > 1 && args[1] != null) {
 				Object[] nv;
 				if (cols.containsKey(args[ixSubCate]) || cols.containsKey(args[ixBusiCate]) || cols.containsKey(args[ixClientName])) {
 					if ( !cols.containsKey(args[ixUri]) || !cols.containsKey(args[ixSubCate])
@@ -1598,61 +1545,6 @@ public class DASemantics {
 			return args[ixExtRoot];
 		}
 
-		/*
-		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) throws SemanticException {
-			if (args.length > 1 && args[1] != null && cols != null && cols.containsKey(args[ixUri])) {
-				Object[] nv;
-				// args 0: uploads, 1: uri, 2: busiTbl, 3: busiId, 4: client-name (optional)
-				if (cols.containsKey(args[ixUri])) {
-					// save file, replace v
-					nv = row.get(cols.get(args[ixUri]));
-					if (nv != null && nv[1] != null
-						&& (nv[1] instanceof String && !isblank(nv[1]) && !Anson.startEnvelope((String)nv[1])
-							|| nv[1] instanceof AbsPart && !startEnvelope((AbsPart)nv[1]))) {
-
-						// can be a string or an auto resulving (fk is handled before extfile)
-						Object fid = row.get(cols.get(pkField))[1];
-
-						ExtFileInsert f;
-						if (fid instanceof Resulving)
-							f = new ExtFileInsert((Resulving) fid, getFileRoot(), stx);
-						else
-							f = new ExtFileInsert(new ExprPart(fid.toString()), getFileRoot(), stx);
-						
-						String clientname = args[args.length - 1];
-						if (cols.containsKey(clientname)) {
-							clientname = row.get(cols.get(clientname))[1].toString();
-							if (clientname != null)
-								f.filename(clientname);
-						}
-
-						f.b64(nv[1]);
-						
-						for (int i = ixUri + 1; i < args.length - 1; i++) {
-							if (!cols.containsKey(args[i])) 
-								throw new SemanticException("To insert (create file) %s.%s, all required fields must be provided by user (missing %s).\nConfigured fields: %s.\nGot cols: %s",
-										target, args[ixUri], args[i],
-										Stream.of(args).skip(2).collect(Collectors.joining(", ")),
-										cols.keySet().stream().collect(Collectors.joining(", ")));
-							else
-								f.appendSubFolder(row.get(cols.get(args[i]))[1]);
-						}
-
-						if (verbose)
-							try {
-								Utils.logi("[io.odysz.semantic.DASemantics.SemanticHandler.verbose] :\n\t%s", f.absolutePath(stx));
-							} catch (TransException e) {
-								e.printStackTrace();
-							}
-
-						nv = new Object[] {nv[0], f};
-						row.set(cols.get(args[ixUri]), nv);
-					}
-				}
-			}
-		}
-		*/
-		
 		@Override
 		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row,
 				Map<String, Integer> cols, IUser usr) throws TransException {
@@ -1867,7 +1759,7 @@ public class DASemantics {
 
 		/**
 		 * Resolve root path for file saving, the reverse of
-		 * {@link ExtFileUpdatev2#sql()} -> {@link ExtFilePaths#decodeUriPath()}.
+		 * {@link ExtFileUpdatev2#sql(ISemantext)} -> {@link ExtFilePaths#decodeUriPath()}.
 		 */
 		public static String resolvUri(String conn, String docId, String dburi, String pname, SemanticTableMeta meta) {
 			ShExtFilev2 h2 = ((ShExtFilev2) DATranscxt.getHandler(conn, meta.tbl, smtype.extFilev2));
@@ -2123,32 +2015,6 @@ public class DASemantics {
 					// stx.composeVal(usr == null ? "sys" : usr.uid(), target, args[0]),
 					trxt.quotation(usr == null ? "sys" : usr.uid(), stx.connId(), target, args[0]),
 					cols, row, target, usr);
-			/*
-			Object[] nvOper;
-			if (cols.containsKey(args[0])) {
-				int jx = cols.get(args[0]);
-
-				if (row.size() <= jx) {
-					// this row need to be expanded - happens when handling following rows after 1st row expanded cols with oper & optime.
-					nvOper = new Object[2];
-					int adding = jx - row.size() + 1;
-					while (adding > 0) {
-						adding--;
-						row.add(new Object[2]);
-					}
-					row.set(jx, nvOper);
-				}
-				else
-					nvOper = row.get(jx);
-			}
-			else {
-				nvOper = new Object[2];
-				cols.put(args[0], row.size()); // oper
-				row.add(nvOper);
-			}
-			nvOper[0] = args[0];
-			nvOper[1] = stx.composeVal(usr == null ? "sys" : usr.uid(), target, args[0]);
-			*/
 		}
 
 		protected void onUpdate(ISemantext stx, Update updt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {

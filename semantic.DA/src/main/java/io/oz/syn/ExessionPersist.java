@@ -494,7 +494,7 @@ public class ExessionPersist {
 
 	/**
 	 * Counted when in {@link #init()}, and not correct after
-	 * {@link DBSyntableBuilder#cleanStale(HashMap, String)} has been called.
+	 * {@link DBSyntableBuilder#cleanStaleSubs(String)} has been called.
 	 */
 	public int totalChallenges;
 

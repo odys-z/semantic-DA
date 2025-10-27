@@ -128,7 +128,9 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 	
 	/**
 	 * Commit statements, sqls, in batch mode. if {@link #autoCommit} is false, need user code
-	 * to commit the statements. See {@link Query#select()}.
+	 * to commit the statements.
+	 * See {@link io.odysz.semantic.DATranscxt#select(io.odysz.transact.sql.Query, String...)}
+	 * and {@link io.odysz.transact.sql.Query}.
 	 * @param sqls
 	 * @param flags
 	 * @return results

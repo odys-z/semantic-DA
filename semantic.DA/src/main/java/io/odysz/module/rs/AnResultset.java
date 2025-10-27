@@ -53,7 +53,7 @@ public class AnResultset extends Anson {
 	public interface ObjCreator<T> {
 		/**
 		 * @param rs resultset at current row, iteration is driven by AnResultset, 
-		 * by calling {@link AnResultset#map(String, ObjCreator)}.
+		 * by calling {@link AnResultset#map(String[], ObjCreator)}
 		 * @return
 		 * @throws SQLException
 		 */
@@ -68,7 +68,7 @@ public class AnResultset extends Anson {
 		/**
 		 * Filter for filter out when calling {@link AnResultset#map(String, ObjCreator, ObjFilter...)}.
 		 * @param rs resultset at current row, iteration is driven by AnResultset, 
-		 * by calling {@link AnResultset#map(String, ObjCreator)}.
+		 * by calling {@link AnResultset#map(String, ObjCreator, ObjFilter...)}.
 		 * @return true for map into results, false for ignore.
 		 * @throws SQLException
 		 */
@@ -1142,7 +1142,7 @@ for (String coln : colnames.keySet())
 	 * @since 1.4.12
 	 * @param keyField value of the field name used for map's key
 	 * @param objCreator object creator (mapper)
-	 * @param filter filter of item. This is a parameter not recommended to use
+	 * @param objFilter filter of item. This is a parameter not recommended to use
 	 * for performance reason and should only for error tolerating.
 	 * @return objects' map
 	 * @throws SQLException

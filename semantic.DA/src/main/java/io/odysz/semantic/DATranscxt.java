@@ -455,7 +455,6 @@ public class DATranscxt extends Transcxt {
 	 * @param <M> semantics map type
 	 * @param <S> semantics
 	 * @param conn
-	 * @param xcfg
 	 * @param smFactory
 	 * @return map per {@code conn}
 	 * @throws SAXException 

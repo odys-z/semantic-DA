@@ -138,7 +138,6 @@ public class SyndomContext {
 
 	/**
 	 * Inc n0 &amp; n-stamp, avoiding synmantics triggering by using lower transaction API.
-	 * @param synodes 
 	 * @throws TransException 
 	 * @throws SQLException 
 	 */
@@ -295,8 +294,6 @@ public class SyndomContext {
 	}
 	
 	////////////////////////////////////////////////////////////////////////////
-	// final ReentrantLock sylock = new ReentrantLock(); 
-	// final Object sylock = new Object(); 
 	final int[] sylock = new int[1];
 	protected SyncUser synlocker;
 	

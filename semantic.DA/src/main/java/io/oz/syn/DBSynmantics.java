@@ -71,7 +71,7 @@ public class DBSynmantics extends DASemantics {
 	 * @param inst
 	 * @param entm
 	 * @param synode
-	 * @param entitypk, required if the entity's id is a not {@link smptyp.autoInc}.
+	 * @param entitypk, required if the entity's id is a not {@link smtype#autoInc}.
 	 * This is resolved with {@link Resulving}, and overriden by a {@link Resulving} argument.
 	 * @return inst
 	 * @throws TransException

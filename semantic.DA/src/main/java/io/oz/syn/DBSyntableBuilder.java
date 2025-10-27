@@ -576,7 +576,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * 
 	 * @param m
 	 * @param e
-	 * @param entitypk must be ignored if is inserting an entity of {@link smtype.autoInc}
+	 * @param entitypk must be ignored if is inserting an entity of auto-key
 	 * @return [entity-id, change-id]
 	 * @throws TransException
 	 * @throws SQLException

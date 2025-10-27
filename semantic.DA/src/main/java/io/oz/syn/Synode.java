@@ -135,8 +135,6 @@ public class Synode extends Anson {
 		  .value(new ArrayList<Object[]>() {
 			private static final long serialVersionUID = 1L;
 			{add(new Object[] {synm.pk, synid});}
-			// {add(new Object[] {synm.device, "#" + synid});}
-			// 0.7.6
 			{add(new Object[] {synm.device, mac});}
 			{add(new Object[] {synm.nyquence, nyquence});}
 			{add(new Object[] {synm.domain, domain});}
