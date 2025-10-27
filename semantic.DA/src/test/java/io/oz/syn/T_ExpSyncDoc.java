@@ -15,8 +15,6 @@ import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.transact.sql.Insert;
-import io.oz.syn.SynEntity;
-
 import static io.odysz.common.LangExt.*;
 
 /**
@@ -186,7 +184,7 @@ public class T_ExpSyncDoc extends SynEntity {
 		this.folder = rs.getString(meta.folder);
 		
 		try {
-			this.sharedate = DateFormat.formatime(rs.getDate(meta.shareDate));
+			this.sharedate = DateFormat.formatime_utc(rs.getDate(meta.shareDate));
 		} catch (Exception ex) {
 			this.sharedate = rs.getString(meta.createDate);
 		}

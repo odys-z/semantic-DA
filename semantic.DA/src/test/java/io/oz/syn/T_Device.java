@@ -5,7 +5,6 @@ import java.util.Date;
 import io.odysz.common.DateFormat;
 import io.odysz.semantic.meta.SyntityMeta;
 import io.odysz.transact.sql.Insert;
-import io.oz.syn.SynEntity;
 
 public class T_Device extends SynEntity {
 

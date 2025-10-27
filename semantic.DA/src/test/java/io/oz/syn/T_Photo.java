@@ -78,7 +78,7 @@ public class T_Photo extends T_ExpSyncDoc {
 		this.device =  rs.getString(m.device);
 		
 		try {
-			this.sharedate = DateFormat.formatime(rs.getDate("sharedate"));
+			this.sharedate = DateFormat.formatime_utc(rs.getDate("sharedate"));
 		} catch (SQLException ex) {
 			this.sharedate = rs.getString("pdate");
 		}
@@ -159,7 +159,6 @@ public class T_Photo extends T_ExpSyncDoc {
 		return this;
 	}
 
-	@SuppressWarnings("serial")
 	public T_Photo create(String fullpath) throws IOException {
 		File png = new File(fullpath);
 		FileInputStream ifs = new FileInputStream(png);

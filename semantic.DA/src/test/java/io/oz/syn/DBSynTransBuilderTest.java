@@ -33,10 +33,6 @@ import io.odysz.semantic.meta.SynodeMeta;
 import io.odysz.semantic.util.DAHelper;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
-import io.oz.syn.DBSynTransBuilder;
-import io.oz.syn.DBSyntableBuilder;
-import io.oz.syn.Docheck;
-import io.oz.syn.SynodeMode;
 import io.oz.syn.registry.Syntities;
 
 class DBSynTransBuilderTest {
