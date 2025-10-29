@@ -19,6 +19,7 @@ import io.odysz.transact.x.TransException;
  */
 public class Synode extends Anson {
 
+	/** redundant */
 	public String org;
 	public String synid;
 
@@ -127,7 +128,8 @@ public class Synode extends Anson {
 	 * @param insert
 	 * @return
 	 * @throws TransException
-	 * @since 
+	 * @since 1.5.18
+	 * @deprecated Should merge with the counter part in AppSettings.inst_updateLaterDBserv()?
 	 */
 	public Insert insertRow(String domain, SynodeMeta synm, Insert insert) throws TransException {
 		return insert
