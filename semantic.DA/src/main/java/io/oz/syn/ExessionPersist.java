@@ -464,7 +464,7 @@ public class ExessionPersist {
 			Utils.warnT(new Object() {}, "Null transaction builder. - null builder only for test");
 		
 		challengeSeq = -1;
-		musteqi(-1, ini.challengeSeq);
+		musteqi(-1, ini.challengeSeq, "Challenging(%s) seq != -1", String.valueOf(ini.challengeSeq));
 		answerSeq = ini.challengeSeq;
 	
 		chsize = ini.chpagesize > 0 ? ini.chpagesize : -1;
