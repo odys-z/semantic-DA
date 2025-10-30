@@ -538,6 +538,18 @@ public class ExchangeBreakTest {
 		printNyquv(ck, true);
 	}
 
+	/**
+	 * Emulate package lost from client to server, before the server has any chances to take actions.
+	 * @param rep
+	 * @param srvx
+	 * @param clix
+	 * @param test
+	 * @param subno
+	 * @param step
+	 * @param ex_seqs
+	 * @return exchange rounds
+	 * @throws Exception
+	 */
 	int chLoopBreak(ExchangeBlock rep, int srvx, int clix, int test, int subno, int step, int[][][]... ex_seqs) throws Exception {
 		T_SynDomanager srv = synodes[srvx];
 		int no = 0;
