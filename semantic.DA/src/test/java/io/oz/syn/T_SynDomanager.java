@@ -51,6 +51,12 @@ public class T_SynDomanager extends SyndomContext {
 		return (T_SynDomanager) domx.loadomainx();
 	}
 	
+	/**
+	 * Equivalent to Docsync-jserv: SyssionPeer.exesrestore(), for tests
+	 * @param peer
+	 * @return restore request
+	 * @throws Exception
+	 */
 	ExchangeBlock syssionPeer_exesrestore(String peer) throws Exception {
 		DBSyntableBuilder b0 = new DBSyntableBuilder(this);
 		xp = new ExessionPersist(b0, peer, null);

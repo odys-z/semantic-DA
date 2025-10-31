@@ -608,6 +608,12 @@ public class ExessionPersist {
 		return pagerecords > 0;
 	}
 
+	/**
+	 * 
+	 * @return request block, state = {@link ExessionAct#restore}
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public ExchangeBlock restore() throws TransException, SQLException {
 		loadsession(peer);
 		totalChallenges = DAHelper.count(trb, synx.synconn, exbm.tbl, exbm.peer, peer);

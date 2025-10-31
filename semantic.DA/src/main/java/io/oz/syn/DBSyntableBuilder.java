@@ -116,6 +116,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @throws SQLException 
 	 * @throws TransException 
 	 * @since 1.5.18
+	 * @see ExessionPersist#restore()
 	 */
 	public ExchangeBlock restorexchange(ExessionPersist xp) throws TransException, SQLException {
 		if (DAHelper.count(this, this.syndomx.synconn, xp.sysm.tbl, xp.sysm.peer, xp.peer) == 0)
