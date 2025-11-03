@@ -752,6 +752,8 @@ public class ExessionPersist {
 	 * @return a change log page, with entities saved in {@link #chEntities}.
 	 * @throws SQLException 
 	 * @throws TransException 
+	 * @since 0.7.6 As doc-refs are resolved later asynchronously, this method will not
+	 * be optimized for using an entities pool / buffer, for both peers.
 	 */
 	AnResultset chpage() throws TransException, SQLException {
 		// 
@@ -876,7 +878,15 @@ public class ExessionPersist {
 	 */
 	public ExessionPersist persistarting(String peer) throws TransException, SQLException {
 		if (trb != null) {
-			((Insert)sysm.insertSession(trb.insert(sysm.tbl, trb.synrobot()), peer))
+//			((Insert)sysm.insertSession(trb.insert(sysm.tbl, trb.synrobot()), peer))
+//				.ins(trb.instancontxt());
+			trb.insert(sysm.tbl, trb.synrobot())
+					.nv(sysm.peer, peer)
+					.nv(sysm.chpage,  -1)
+					.nv(sysm.answerx, -1)
+					.nv(sysm.expansx, -1)
+					.nv(sysm.mode, this.exstate.exmode)
+					.nv(sysm.state, this.exstate.state)
 				.ins(trb.instancontxt());
 		} // else test
 		return this;
