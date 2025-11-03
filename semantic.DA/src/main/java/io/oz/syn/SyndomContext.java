@@ -301,7 +301,18 @@ public class SyndomContext {
 		notNull(usr);
 		notNull(usr.deviceId());
 
-		if (synlocker != null && eq(synlocker.sessionId(), usr.sessionId())) {
+		if (synlocker != null &&
+			 eq(synlocker.deviceId, usr.deviceId) &&
+			!eq(synlocker.sessionId(), usr.sessionId()))
+			musteqi(1, 1);// debug
+		
+		if (synlocker != null &&
+			// Nov 3 2025
+			// client can die without any closing handling. Now only device id is matching.
+		    // This can be avoided if onRestore() close the existing session?
+			// eq(synlocker.deviceId, usr.deviceId)
+			eq(synlocker.sessionId(), usr.sessionId())
+			) {
 			musteqi(sylock[0], 1);
 			sylock[0] = 0;
 			if (dbg) Utils.warn(
@@ -357,6 +368,29 @@ public class SyndomContext {
 			return true;
 		}
 		else return false;
+	}
+	
+	/**
+	 * Must only be called when on restoring a broken syn-exchanges.
+	 * @param usr
+	 * @return ok or not
+	 */
+	public synchronized boolean relockx(SyncUser usr) {
+		notNull(usr);
+		notNull(usr.deviceId());
+		
+		if (sylock[0] == 1 && synlocker != null && eq(synlocker.deviceId, usr.deviceId)) {
+			// see unlockx(usr);
+			sylock[0] = 0;
+			if (dbg) Utils.warn(
+					f("++ ++ unlocked by relockx(), %s <- %s\nuser: %s, ssid: %s",
+					synode, usr.deviceId(), synlocker.uid(), synlocker.ssid));
+			usr.domx = null;
+			synlocker.domx = null;
+			synlocker = null;
+		}
+
+		return lockx(usr);
 	}
 
 	/**

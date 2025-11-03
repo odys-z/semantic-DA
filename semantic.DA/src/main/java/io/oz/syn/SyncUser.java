@@ -73,10 +73,13 @@ public class SyncUser extends SemanticObject implements IUser {
 
 	/**
 	 * Constructor for jserv synssion instance.
+	 * Note: the device can be synode-id, used for lock-unlock domain for syn-exchanges.
 	 * 
 	 * @param userid
 	 * @param pswd
 	 * @param userName
+	 * @param device, for mobile device, this is device ID;
+	 * for a Synode, this must be the synode-id.
 	 */
 	public SyncUser(String userid, String pswd, String userName, String device) {
 		this.userId = userid;
