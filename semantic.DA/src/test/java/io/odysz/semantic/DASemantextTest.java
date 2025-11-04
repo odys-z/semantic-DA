@@ -1078,21 +1078,23 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// <args>uploads,uri,family,shareby,month,docname</args>
 		String content64 = readB64("src/test/res/Sun Yet-sen.jpg");
 
+
 		st.insert(phm.tbl)
 			.nv(phm.org, "zsu.ua")
 			.nv(phm.shareby, "ody")
 			.nv(phm.folder, "2022-10")
 			.nv(phm.resname, "Sun Yet-sen.jpg")
 			.nv(phm.uri, content64)
+			.nv(phm.io_oz_synuid,  "PRV,001")
 			.commit(s0, sqls);
 
 		String pid = (String) s0.resulvedVal(phm.tbl, phm.pk, -1);
 
 		assertEquals(String.format(
-				"insert into h_photos (family, shareby, folder, docname, uri, pid) " +
+				"insert into h_photos (family, shareby, folder, docname, uri, io_oz_synuid, pid) " +
 				"values ('zsu.ua', 'ody', '2022-10', 'Sun Yet-sen.jpg', " +
 				"'uploads/zsu.ua/ody/2022-10/%1$s Sun Yet-sen.jpg', " +
-				"'%1$s')", pid),
+				"'PRV,001', '%1$s')", pid),
 				sqls.get(0));
 		Connects.commit(usr , sqls);
 

@@ -686,11 +686,11 @@ public class DASemantics {
 
 		protected boolean post = false;
 
-		protected String target;
+		public final String target;
 		@Override
 		public String mapKey() { return target; }
 		
-		protected String pkField;
+		public final String pkField;
 		protected String[] args;
 		protected Transcxt trxt;
 

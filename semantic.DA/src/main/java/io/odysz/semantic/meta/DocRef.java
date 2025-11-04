@@ -1,7 +1,11 @@
 package io.odysz.semantic.meta;
 
+import static io.odysz.common.LangExt._0;
 import static io.odysz.common.LangExt.f;
-import static io.odysz.common.LangExt.musteq;
+import static io.odysz.common.LangExt.musteqs;
+import static io.odysz.common.LangExt.mustnonull;
+
+import java.sql.SQLException;
 
 import static io.odysz.common.FilenameUtils.concat;
 
@@ -12,6 +16,7 @@ import io.odysz.anson.JSONAnsonListener;
 import io.odysz.common.EnvPath;
 import io.odysz.common.FilenameUtils;
 import io.odysz.common.Regex;
+import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
@@ -24,6 +29,8 @@ import io.odysz.transact.x.TransException;
 import io.oz.syn.DBSyntableBuilder;
 
 public class DocRef extends AnDbField {
+	public static final String resolve_prenom = "resolve-docref-";
+	
 	static {
 		JSONAnsonListener.registFactory(DocRef.class, (s) -> {
 			try {
@@ -82,9 +89,9 @@ public class DocRef extends AnDbField {
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	final String clsname;
 
-	@AnsonField(ignoreTo=true, ignoreFrom=true)
-	/** SQL boilerplate for generating serialized json string from doc-tables. */
-	Funcall concats;
+//	@AnsonField(ignoreTo=true, ignoreFrom=true)
+//	/** SQL boilerplate for generating serialized json string from doc-tables. */
+//	Funcall concats;
 
 	/** E.g. the h_photos.pname, must not null for avoid conflicts,
 	 * by padding pid, at other synodes.
@@ -115,6 +122,7 @@ public class DocRef extends AnDbField {
 		this.docm = m;
 		this.volume = volume_extroot;
 
+		/*
 		concats = Funcall.concat(
 			f("'{\"type\": \"%s\", \"synoder\": \"%s\", \"docId\": \"'", clsname, synoder),
 			docm.pk,
@@ -124,11 +132,22 @@ public class DocRef extends AnDbField {
 			Funcall.isnull(m.io_oz_synuid, "'null'").sql(dbcontext),
 			"'\", \"pname\": \"'", m.resname,
 			"'\"}'");
+		*/
 	}
 
 	@Override
 	public String sql(ISemantext context) throws TransException {
-		return concats.sql(context);
+		// return concats.sql(context);
+		return Funcall.concat(
+				f("'{\"type\": \"%s\", \"synoder\": \"%s\", \"docId\": \"'", clsname, synoder),
+				docm.pk,
+				f("'\", \"syntabl\": \"%s\", \"uri64\": \"'", syntabl),
+				Funcall.isnull(docm.uri, "'null'").sql(context),
+				f("'\", \"breakpoint\": %s, \"uids\": \"'", breakpoint),
+				Funcall.isnull(docm.io_oz_synuid, "'null'").sql(context),
+				"'\", \"pname\": \"'", docm.resname,
+				"'\"}'"
+				).sql(context);
 	}
 
 	public void updateDb(DBSyntableBuilder b) {
@@ -139,7 +158,7 @@ public class DocRef extends AnDbField {
 		ShExtFilev2 h = ((ShExtFilev2) DATranscxt
 				.getHandler(conn, syntabl, smtype.extFilev2));
 		
-		return EnvPath.decodeUri(h.getFileRoot(), "resolve-" + peer, ssInfo.ssid());
+		return EnvPath.decodeUri(h.getFileRoot(), resolve_prenom + peer, ssInfo.ssid());
 	}
 
 	/**
@@ -155,7 +174,7 @@ public class DocRef extends AnDbField {
 				.getHandler(doconn, syntabl, smtype.extFilev2));
 
 		return h.getExtPaths(docId, pname)
-				.prefix(concat("resolve-" + peer, ssinf.ssid(), relativeFolder(h.getFileRoot())))
+				.prefix(concat("resolve-docref-" + peer, ssinf.ssid(), relativeFolder(h.getFileRoot())))
 				.decodeUriPath();
 	}
 
@@ -169,18 +188,33 @@ public class DocRef extends AnDbField {
 		return this;
 	}
 
-	public static ExtFilePaths createExtPaths(String conn, String tbl, DocRef ref)
-			throws TransException {
+	public static ExtFilePaths createExtPaths(String conn, ExpDocTableMeta meta, DocRef ref, DATranscxt... st0)
+			throws TransException, SQLException {
 		ShExtFilev2 sh = ((ShExtFilev2) DATranscxt
-				.getHandler(conn, tbl, smtype.extFilev2));
+				.getHandler(conn, meta.tbl, smtype.extFilev2));
 		
-		musteq(ref.relativeFolder(sh.getFileRoot()), ExtFilePaths.relativeFolder(ref.uri64, sh.getFileRoot()));
-		return sh.getExtPaths(ref.docId, ref.pname)
-				.prefix(ExtFilePaths.relativeFolder(ref.uri64, sh.getFileRoot()))
-				;
+		musteqs(meta.pk, sh.pkField);
+		musteqs(meta.tbl, sh.target);
+		mustnonull(ref.uids);
+		musteqs(ref.relativeFolder(sh.getFileRoot()), ExtFilePaths.relativeFolder(ref.uri64, sh.getFileRoot()));
+
+		DATranscxt st = _0(st0, new DATranscxt(conn));
+		AnResultset rs = ((AnResultset) st.select(meta.tbl) 
+				.col(sh.pkField)
+				.whereEq(meta.io_oz_synuid, ref.uids)
+				.rs(st.instancontxt(conn, DATranscxt.dummyUser()))
+				.rs(0))
+				.nxt();
+
+		String ref_docid = rs.getString(sh.pkField);
+		mustnonull(ref_docid);
+		return
+			// sh.getExtPaths(ref.docId, ref.pname)
+			sh.getExtPaths(ref_docid, ref.pname)
+			.prefix(ExtFilePaths.relativeFolder(ref.uri64, sh.getFileRoot()))
+			;
 	}
 	
-	/** @deprecated to be removed after ExtFilePaths.relativeFolder is verified. */
 	private String relativeFolder(String extroot) {
 		return isblank(uri64) ? uri64
 				: FilenameUtils.getPathNoEndSeparator(

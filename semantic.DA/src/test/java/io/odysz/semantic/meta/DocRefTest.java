@@ -5,7 +5,6 @@ import static io.odysz.common.LangExt.f;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
-
 import org.junit.jupiter.api.Test;
 
 import io.odysz.anson.Anson;
@@ -18,6 +17,9 @@ import io.odysz.semantic.DASemantics.ShExtFilev2;
 import io.odysz.semantic.DASemantics.smtype;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantics.ISemantext;
+import io.odysz.semantics.IUser;
+import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.SessionInf;
 import io.odysz.transact.sql.parts.ExtFilePaths;
 import io.oz.syn.T_DA_PhotoMeta;
@@ -82,30 +84,48 @@ class DocRefTest {
 		assertPathEquals("../deploy-Y/ody/h_photo/0001 Sun Yet-sen Portrait.jpg",
 				EnvPath.decodeUri("$" + volume_Y, "ody/h_photo/0001 Sun Yet-sen Portrait.jpg"));
 
-		String jpg = "resolve-Y/ssid-test/ody/h_photo/0001 Sun Yet-sen Portrait.jpg";
+		String jpg = "resolve-docref-Y/ssid-test/ody/h_photo/0001 Sun Yet-sen Portrait.jpg";
 		String absoluteVolumeJpg = FilenameUtils.concat(new File(".").getAbsolutePath(), configroot, EnvPath.decodeUri("$" + volume_Y, jpg));
 
-//		assertEquals(EnvPath.decodeUri("$" + volume_Y, "resolve-Y/ssid-test/ody/h_photo/0001 Sun Yet-sen Portrait.jpg"),
-//				dr.downloadPath("Y", conn_extpath_volume, new SessionInf("ssid-test", "uid-test")));
 		assertEquals(absoluteVolumeJpg,
 				new File(dr.downloadPath("Y", conn_extpath_volume, new SessionInf("ssid-test", "uid-test"))).getAbsolutePath());
 
-		assertEquals(EnvPath.decodeUri("$" + volume_Y, "resolve-Y/ssid-test"),
-				DocRef.resolveFolder("Y", conn_extpath_volume, dr.syntabl, new SessionInf("ssid-test", "uid-test")));
+		DATranscxt st = new DATranscxt(conn_extpath_volume);
+		ISemantext s0 = st.instancontxt(conn_extpath_volume, DATranscxt.dummyUser());
 
-		extpaths = new ExtFilePaths(sh.getFileRoot(), dr.docId, dr.pname)
+		IUser u = DATranscxt.dummyUser();
+		SemanticObject res = (SemanticObject) st
+			.delete(docm.tbl, u)
+			.whereEq(docm.io_oz_synuid,  dr.uids)
+			.post(st
+				.insert(docm.tbl, u)
+				.nv(docm.org, "zsu.ua")
+				.nv(docm.shareby, "ody")
+				.nv(docm.folder, "2022-10")
+				.nv(docm.resname, "Sun Yet-sen.jpg")
+				.nv(docm.uri, dr.toBlock())
+				.nv(docm.io_oz_synuid,  dr.uids))
+			.d(s0);
+		
+		String docid = res.resulve(docm.tbl, docm.pk).get(0);
+
+		assertEquals(EnvPath.decodeUri("$" + volume_Y, f("%sY/ssid-test", DocRef.resolve_prenom)),
+				DocRef.resolveFolder("Y", conn_extpath_volume,
+						dr.syntabl,
+						new SessionInf("ssid-test", "uid-test")));
+
+		extpaths = new ExtFilePaths(sh.getFileRoot(), docid, dr.pname)
 							// .prefix(dr.relativeFolder(conn_extpath_volume))
 							.prefix(ExtFilePaths.relativeFolder(dr.uri64, conn_extpath_volume))
 							.filename(dr.pname);
 		
-		assertPathEquals(f("$%s/ody/h_photo/0001 Sun Yet-sen Portrait.jpg", volume_Y), extpaths.dburi(true));
+		assertPathEquals(f("$%s/ody/h_photo/%s Sun Yet-sen Portrait.jpg", volume_Y, docid), extpaths.dburi(true));
 		String relativUri = FilenameUtils.separatorsToSystem(
-				// f("%s/%s", deploy_Y, "ody/h_photo/0001 Sun Yet-sen Portrait.jpg"));
-				f("%s/%s", FilenameUtils.concat(configroot, deploy_Y), "ody/h_photo/0001 Sun Yet-sen Portrait.jpg"));
+				f("%s/ody/h_photo/%s Sun Yet-sen Portrait.jpg", FilenameUtils.concat(configroot, deploy_Y), docid));
 
 		assertEquals(relativUri, extpaths.decodeUriPath());
 		
-		extpaths = DocRef.createExtPaths(conn_extpath_volume, docm.tbl, dr);
+		extpaths = DocRef.createExtPaths(conn_extpath_volume, docm, dr);
 		String targetpth = extpaths.decodeUriPath();
 		assertEquals(relativUri, targetpth);
 
