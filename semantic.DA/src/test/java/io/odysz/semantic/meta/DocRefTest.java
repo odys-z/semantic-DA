@@ -46,7 +46,7 @@ class DocRefTest {
 		String volume_old = System.getProperty(volume_Y);
 		System.setProperty(volume_Y, deploy_Y);
 
-		ExpDocTableMeta docm = new T_DA_PhotoMeta(null);
+		ExpDocTableMeta docm = new T_DA_PhotoMeta(conn_extpath_volume);
 		
 		// extpath to "uploads"
 		ShExtFilev2 sh = (ShExtFilev2) DATranscxt.getHandler(conn_extpath_upload, docm.tbl, smtype.extFilev2);
