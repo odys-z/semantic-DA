@@ -60,7 +60,7 @@
   		<id>test-extpath-volume</id>
   		<type>sqlite</type>
   		<isdef></isdef>
-  		<src>semantic-DA.db</src>
+  		<src>semantic-DA-test-docref.db</src>
   		<usr>test</usr>
   		<pswd>test</pswd>
   		<dbg>true</dbg>

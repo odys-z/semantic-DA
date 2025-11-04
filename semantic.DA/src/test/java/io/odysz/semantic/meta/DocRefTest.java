@@ -39,7 +39,7 @@ class DocRefTest {
 		
 		DATranscxt.configRoot(configroot, ".");
 		new DATranscxt(conn_extpath_upload);
-		new DATranscxt(conn_extpath_volume);
+		DATranscxt st = new DATranscxt(conn_extpath_volume);
 
 		String deploy_Y = "../deploy-Y";
 		String volume_Y = "VOLUME_Y";
@@ -90,7 +90,7 @@ class DocRefTest {
 		assertEquals(absoluteVolumeJpg,
 				new File(dr.downloadPath("Y", conn_extpath_volume, new SessionInf("ssid-test", "uid-test"))).getAbsolutePath());
 
-		DATranscxt st = new DATranscxt(conn_extpath_volume);
+		// DATranscxt st = new DATranscxt(conn_extpath_volume);
 		ISemantext s0 = st.instancontxt(conn_extpath_volume, DATranscxt.dummyUser());
 
 		IUser u = DATranscxt.dummyUser();
