@@ -821,10 +821,10 @@ public class ExessionPersist {
 	 */
 	public ExessionPersist persisession() throws TransException, SQLException {
 		if (trb != null) {
-			sysm.update(trb.update(sysm.tbl, trb.synrobot()))
+			// sysm.update(trb.update(sysm.tbl, trb.synrobot()))
+			trb.update(sysm.tbl, trb.synrobot())
 				.nv(sysm.chpage, challengeSeq)
 				.nv(sysm.answerx, answerSeq)
-				// .nv(sysm.expansx, expAnswerSeq)
 				.nv(sysm.expansx, challengeSeq)
 				.nv(sysm.mode,  exstate.exmode)
 				.nv(sysm.state, exstate.state)
@@ -850,7 +850,6 @@ public class ExessionPersist {
 			if (rs.next()) {
 				challengeSeq = rs.getInt(sysm.chpage);
 				answerSeq = rs.getInt(sysm.answerx);
-				// expAnswerSeq = rs.getInt(sysm.expansx);
 				exstate.exmode = rs.getInt(sysm.mode);
 				exstate.state = rs.getInt(sysm.state);
 			}
@@ -878,8 +877,6 @@ public class ExessionPersist {
 	 */
 	public ExessionPersist persistarting(String peer) throws TransException, SQLException {
 		if (trb != null) {
-//			((Insert)sysm.insertSession(trb.insert(sysm.tbl, trb.synrobot()), peer))
-//				.ins(trb.instancontxt());
 			trb.insert(sysm.tbl, trb.synrobot())
 					.nv(sysm.peer, peer)
 					.nv(sysm.chpage,  -1)

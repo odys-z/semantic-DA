@@ -1,7 +1,5 @@
 package io.odysz.semantic.meta;
 
-import io.odysz.transact.sql.Insert;
-import io.odysz.transact.sql.Statement;
 import io.odysz.transact.sql.Update;
 
 public class SynSessionMeta extends SemanticTableMeta {
@@ -35,8 +33,8 @@ public class SynSessionMeta extends SemanticTableMeta {
 //			.nv(expansx, -1);
 //	}
 
-	public Update update(Update st) {
-		return st;
-	}
+//	public Update update(Update st) {
+//		return st;
+//	}
 
 }
