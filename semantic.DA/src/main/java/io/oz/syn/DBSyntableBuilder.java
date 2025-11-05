@@ -287,7 +287,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	 * @throws SQLException
 	 * @throws TransException
 	 */
-	@SuppressWarnings("deprecation")
+	
 	ExessionPersist answer_save(ExessionPersist xp, ExchangeBlock req, String peer)
 			throws SQLException, TransException {
 		if (req == null || req.chpage == null) return xp;
@@ -309,7 +309,9 @@ public class DBSyntableBuilder extends DATranscxt {
 		HashSet<String> warnsynodee = new HashSet<String>();
 		HashSet<String> warnsynoder = new HashSet<String>();
 
-		while (req.totalChallenges > 0 && req.chpage.next()) { // FIXME performance issue
+		// while (req.totalChallenges > 0 && req.chpage.next()) { // FIXME performance issue
+		req.chpage.beforeFirst();
+		while (req.chpage.next()) { // FIXME performance issue
 			String synodee = req.chpage.getString(subm.synodee);
 			String synoder = req.chpage.getString(chgm.synoder);
 
@@ -333,7 +335,7 @@ public class DBSyntableBuilder extends DATranscxt {
 					changes.append(req.chpage.getRowAt(req.chpage.getRow() - 1));
 				else if (!xp.synx.nv.containsKey(synodee)) {
 					; // I have no idea
-					if (synmode != SynodeMode.leaf_) {
+					if (synmode == SynodeMode.hub || synmode == SynodeMode.peer) {
 						if (!warnsynodee.contains(synodee)) {
 							warnsynodee.add(synodee);
 							Utils.warnT(new Object() {},

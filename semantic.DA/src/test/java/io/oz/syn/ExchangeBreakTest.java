@@ -358,6 +358,7 @@ public class ExchangeBreakTest {
 				// Client failed after server has replied
 				req = restart_synssion(clix, ck[srvx].synode()); // continue or close
 				assertSeqs(++round, srvx, clix, ex_seqs);
+				srv.xp.loadsession(ck[clix].synode()); // equivalent to re-login
 
 				Utils.logrst(new String[] {srv.synode, "server on resume"}, test, subno, step, no, ++exseq);
 				rep = srv.xp.onRestore(req);

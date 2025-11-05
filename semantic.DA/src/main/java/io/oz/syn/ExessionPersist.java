@@ -310,7 +310,8 @@ public class ExessionPersist {
 	 * @param row
 	 * @return the insert statement or null
 	 */
-	private Statement<?> insertDocref(DBSyntableBuilder t, SyntityMeta entm, String uids, HashMap<String,Object[]> cols, ArrayList<Object> row) {
+	private Statement<?> insertDocref(DBSyntableBuilder t, SyntityMeta entm,
+			String uids, HashMap<String,Object[]> cols, ArrayList<Object> row) {
 		try {
 		return entm instanceof ExpDocTableMeta
 			// && Regex.startsEvelope((String) row.get(TableMeta.colx(cols, ((ExpDocTableMeta) entm).uri) - 1))
@@ -467,7 +468,7 @@ public class ExessionPersist {
 		musteqi(-1, ini.challengeSeq, "Challenging(%s) seq != -1", String.valueOf(ini.challengeSeq));
 		answerSeq = ini.challengeSeq;
 	
-		chsize = ini.chpagesize > 0 ? ini.chpagesize : -1;
+		// chsize = ini.chpagesize > 0 ? ini.chpagesize : -1;
 
 		exstate = new ExessionAct(mode_server, init);
 
@@ -551,7 +552,8 @@ public class ExessionPersist {
 			throws SQLException, TransException {
 
 		ExessionPersist me = expect(rep); //.exstate(exchange);
-		me.exstate(nextChpage() ? exchange : close);
+		boolean nxt_page = nextChpage();
+		me.exstate(nxt_page ? exchange : close);
 
 		return trb == null // null for test
 			? new ExchangeBlock(synx.domain, synx.synode, peer, session, me.exstate).seq(this)
@@ -852,6 +854,8 @@ public class ExessionPersist {
 				answerSeq = rs.getInt(sysm.answerx);
 				exstate.exmode = rs.getInt(sysm.mode);
 				exstate.state = rs.getInt(sysm.state);
+
+				totalChallenges = DAHelper.count(trb, synx.synconn, exbm.tbl, exbm.peer, peer);
 			}
 		}
 		return this;
