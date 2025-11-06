@@ -64,10 +64,10 @@ public class ExessionPersist {
 	public static final boolean dbgExchangePaging = true;
 
 	final SyndomContext synx;
-	public SyndomContext syndomx() {
-		// FIXME remove this if SynssionPeer.resolveDocrefs() if refactored.
-		return synx;
-	} 
+//	public SyndomContext syndomx() {
+//		// FIXME remove this if SynssionPeer.resolveDocrefs() if refactored.
+//		return synx;
+//	} 
 
 	final SynChangeMeta chgm;
 	final SynSubsMeta subm;
@@ -706,7 +706,7 @@ public class ExessionPersist {
 		} finally {
 			if (trb != null)
 			try {
-				closession();
+				clean_synssion();
 			} catch (TransException | SQLException e) {
 				e.printStackTrace();
 			}
@@ -717,6 +717,10 @@ public class ExessionPersist {
 		}
 	}
 	
+	/**
+	 * @deprecated
+	 * @return exchange block, state = ready
+	 */
 	public ExchangeBlock abortExchange() {
 		try {
 			exstate.state = ready;
@@ -864,7 +868,7 @@ public class ExessionPersist {
 	public void breaksession() throws TransException, SQLException {
 	}
 
-	public void closession() throws TransException, SQLException {
+	void clean_synssion() throws TransException, SQLException {
 		trb.delete(sysm.tbl, trb.synrobot())
 			.whereEq(sysm.peer, peer)
 			.post(trb.delete(exbm.tbl)

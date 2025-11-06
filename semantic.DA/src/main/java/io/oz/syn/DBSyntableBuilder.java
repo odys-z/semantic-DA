@@ -142,6 +142,64 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 	
 	/**
+	 * Fix the special case of losing the close request from client,
+	 * where the pages are all synchronized.
+	 * The client must not stop push unless server replied close first. See SessionPeer.synwith_peer().
+	 * 
+	 * Return nothing as the closing exchange block is supposed to be dropped.
+	 * 
+	 * ISSUE The figuring of the lost n-stamp is too brutal.
+	 * @param sp 
+	 * @param ini
+	 * @throws TransException
+	 * @throws SQLException
+	 */
+	public void fix_closexchange(ExessionPersist sp, ExchangeBlock ini)
+			throws TransException, SQLException {
+		HashMap<String, Nyquence> nv = load_peer_nv(sp, ini);
+		if (nv != null) {
+			synXnv(sp, nv);
+			syndomx.n0(this, syndomx.persistamp(this, maxn(syndomx.stamp, sp.n0())));
+			sp.clean_synssion();
+		}
+	}
+
+	/**
+	 * Load n-vector from syn_peers, where the synssion closing is broken. 
+	 * @param peer
+	 * @return n-vector or null
+	 * @throws SQLException 
+	 * @throws TransException 
+	 */
+	private HashMap<String, Nyquence> load_peer_nv(ExessionPersist sp, ExchangeBlock ini)
+			throws TransException, SQLException {
+
+		/*
+		peer|synid|nyq|domain|
+		----+-----+---+------+
+		PRV |MOB  |0  |zsu   |
+		PRV |HUB  |0  |zsu   |
+		PRV |PRV  |1  |zsu   | */
+
+		AnResultset rs = (AnResultset) batchSelect(sp.pnvm.tbl)
+			.whereEq(sp.pnvm.peer, sp.peer)
+			.whereEq(sp.pnvm.domain, sp.synx.domain)
+			.rs(instancontxt())
+			.rs(0);
+
+		if (rs.hasnext()) {
+			HashMap<String, Nyquence> nv = new HashMap<String, Nyquence>(rs.getRowCount());
+			while (rs.next()) {
+				String nid = rs.getString(sp.pnvm.peer);
+				nv.put(nid, new Nyquence(rs.getLong(sp.pnvm.nyq)));
+			}
+			return nv;
+		}
+		else return null;
+	}
+
+
+	/**
 	 * @see ExessionPersist#onInit(ExchangeBlock)
 	 * @param sp
 	 * @param inireq
@@ -207,6 +265,8 @@ public class DBSyntableBuilder extends DATranscxt {
 		SynodeMeta    synm = syndomx.synm;
 		SynChangeMeta chgm = syndomx.chgm;
 		SynSubsMeta   subm = syndomx.subm;
+
+		// SynSessionMeta sysm = syndomx.s;
 		
 		if (debug)
 			Utils.logi("Cleaning staleness at %s, peer %s ...", synode, peer);
@@ -309,9 +369,9 @@ public class DBSyntableBuilder extends DATranscxt {
 		HashSet<String> warnsynodee = new HashSet<String>();
 		HashSet<String> warnsynoder = new HashSet<String>();
 
-		// while (req.totalChallenges > 0 && req.chpage.next()) { // FIXME performance issue
+		// while (req.totalChallenges > 0 && req.chpage.next()) { // ISSUE performance
 		req.chpage.beforeFirst();
-		while (req.chpage.next()) { // FIXME performance issue
+		while (req.chpage.next()) { // ISSUE performance
 			String synodee = req.chpage.getString(subm.synodee);
 			String synoder = req.chpage.getString(chgm.synoder);
 
@@ -382,7 +442,10 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	/**
-	 * Step n0, reply with closing Exchange-block.
+	 * Step n0 = stemp-nyq;<br>
+	 * Clean syn_session by calling {@link ExessionPersist#clean_synssion()}; But not syn_exchange_buf?<br>
+	 * Reply with closing Exchange-block.<br>
+	 * 
 	 * @param cx
 	 * @param rep
 	 * @return reply
@@ -396,12 +459,14 @@ public class DBSyntableBuilder extends DATranscxt {
 
 		Nyquence peerme = nv.get(syndomx.synode);
 		if (peerme != null && Nyquence.compareNyq(cx.n0(), peerme) < 0)
-			throw new SemanticException("Synchronizing Nyquence exception: my.n0 = %d < peer.nv[me] = %d, at %s (me).",
-					cx.n0().n, peerme.n, syndomx.synode);
+			throw new SemanticException(
+				"Synchronizing Nyquence exception: my.n0 = %d < peer.nv[me] = %d, at %s (me).",
+				cx.n0().n, peerme.n, syndomx.synode);
 
 		if (Nyquence.compareNyq(syndomx.stamp, cx.n0()) < 0)
-			throw new SemanticException("Synchronizing Nyquence exception: %s.stamp = %d < n0 = %d.",
-					syndomx.synode, syndomx.stamp.n, cx.n0().n);
+			throw new SemanticException(
+				"Synchronizing Nyquence exception: %s.stamp = %d < n0 = %d.",
+				syndomx.synode, syndomx.stamp.n, cx.n0().n);
 		
 		HashMap<String, Nyquence> snapshot = synXnv(cx, rep.nv);
 
@@ -420,10 +485,6 @@ public class DBSyntableBuilder extends DATranscxt {
 	 */
 	Insert insertExbuf(String peer) throws TransException {
 		PeersMeta pnvm = syndomx.pnvm;
-
-		// 2025-01-14: Shouldn't care about Syntities here. Bug?
-		@SuppressWarnings("unused")
-		SynodeMeta synm = syndomx.synm;
 
 		SynChangeMeta chgm = syndomx.chgm;
 		SynSubsMeta subm = syndomx.subm;
@@ -457,6 +518,7 @@ public class DBSyntableBuilder extends DATranscxt {
 	
 	/**
 	 * Orthogonally synchronize n-vectors locally.
+	 * (update my nv knowledge according to xnv)
 	 * 
 	 * @param xp
 	 * @param xnv
@@ -506,20 +568,22 @@ public class DBSyntableBuilder extends DATranscxt {
 	
 	private Update persistNyq(Update u, String nodeId, Nyquence nyq) {
 		SynodeMeta synm = syndomx.synm;
-		if (u == null)
-			u = update(synm.tbl, locrobot)
+
+		Update pu = update(synm.tbl, locrobot)
 				.nv(synm.nyquence, nyq.n)
 				.whereEq(synm.domain, syndomx.domain)
 				.whereEq(synm.pk, nodeId);
-		else
-			u.post(update(synm.tbl)
-				.nv(synm.nyquence, nyq.n)
-				.whereEq(synm.domain, syndomx.domain)
-				.whereEq(synm.pk, nodeId));
-		
-		return u;
+
+		return u == null ? pu : u.post(pu);
 	}
 
+	/**
+	 * @deprecated
+	 * @param cx
+	 * @return exchange block
+	 * @throws TransException
+	 * @throws SQLException
+	 */
 	public ExchangeBlock abortExchange(ExessionPersist cx)
 			throws TransException, SQLException {
 		HashMap<String, Nyquence> snapshot = Nyquence.clone(cx.synx.nv);

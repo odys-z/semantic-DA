@@ -1564,10 +1564,8 @@ public class DASemantics {
 
 						ExtFileInsertv2 f;
 						if (fid instanceof Resulving)
-							// f = new ExtFileInsertv2(getFileRoot(), (Resulving) fid, stx);
 							f = new ExtFileInsertv2(new ExtFilePaths(getFileRoot(), ((Resulving)fid).sql(stx), null));
 						else
-							// f = new ExtFileInsertv2(getFileRoot(), new ExprPart(fid.toString()), stx);
 							f = new ExtFileInsertv2(getExtPaths(fid.toString(), null));
 						
 						

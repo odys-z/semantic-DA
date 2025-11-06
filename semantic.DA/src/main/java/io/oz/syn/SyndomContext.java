@@ -267,7 +267,7 @@ public class SyndomContext {
 		return this;
 	}
 
-	public Nyquence persistamp(DBSyntableBuilder trb, Nyquence... up2max)
+	protected Nyquence persistamp(DBSyntableBuilder trb, Nyquence... up2max)
 			throws TransException, SQLException {
 
 		if (stamp == null)

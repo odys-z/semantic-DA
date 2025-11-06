@@ -354,6 +354,7 @@ public class DBSyntableTest {
 
 			Utils.logi(ex_at_w.getMessage());
 
+			@SuppressWarnings("deprecation") //
 			ExchangeBlock req = ctb.abortExchange(ex_at_w.persist);
 
 			stb.onAbort(req);
