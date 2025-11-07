@@ -181,9 +181,12 @@ public class DBSyntableBuilder extends DATranscxt {
 		PRV |HUB  |0  |zsu   |
 		PRV |PRV  |1  |zsu   | */
 
-		AnResultset rs = (AnResultset) batchSelect(sp.pnvm.tbl)
-			.whereEq(sp.pnvm.peer, sp.peer)
-			.whereEq(sp.pnvm.domain, sp.synx.domain)
+		AnResultset rs = (AnResultset) batchSelect(sp.pnvm.tbl, "nvs")
+			.col("nvs.*")
+			.je_(sp.exbm.tbl, "exb", sp.exbm.peer, sp.pnvm.peer)
+			.whereEq("nvs." + sp.pnvm.peer, sp.peer)
+			.whereEq("nvs." + sp.pnvm.domain, sp.synx.domain)
+			.where(op.ne, sp.exbm.pagex, Funcall.constr("-1"))
 			.rs(instancontxt())
 			.rs(0);
 
