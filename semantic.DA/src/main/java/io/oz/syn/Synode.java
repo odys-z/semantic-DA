@@ -3,8 +3,6 @@ package io.oz.syn;
 import static io.odysz.common.LangExt.isblank;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-
 import io.odysz.anson.Anson;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.meta.SynChangeMeta;
@@ -130,7 +128,6 @@ public class Synode extends Anson {
 	 * @throws TransException
 	 * @since 1.5.18
 	 * @deprecated Should merge with the counter part in AppSettings.inst_updateLaterDBserv()?
-	 */
 	public Insert insertRow(String domain, SynodeMeta synm, Insert insert) throws TransException {
 		return insert
 		  .cols(synm.pk, synm.device, synm.nyquence, synm.domain, synm.remarks, synm.io_oz_synuid, synm.org)
@@ -145,4 +142,5 @@ public class Synode extends Anson {
 			{add(new Object[] {synm.org, org});}
 		});
 	}
+	 */
 }

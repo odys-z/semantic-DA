@@ -82,7 +82,7 @@ public class DBSynTransBuilder extends DATranscxt {
 
 	private final boolean force_clean_subs;
 
-	private DBSyntableBuilder changelogBuilder;
+	private final DBSyntableBuilder changelogBuilder;
 
 	public DBSynTransBuilder (SyndomContext x, DBSyntableBuilder logger)
 			throws SemanticException, SQLException, SAXException, IOException, Exception {
