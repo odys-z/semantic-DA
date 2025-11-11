@@ -89,10 +89,6 @@ public class DocRef extends AnDbField {
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	final String clsname;
 
-//	@AnsonField(ignoreTo=true, ignoreFrom=true)
-//	/** SQL boilerplate for generating serialized json string from doc-tables. */
-//	Funcall concats;
-
 	/** E.g. the h_photos.pname, must not null for avoid conflicts,
 	 * by padding pid, at other synodes.
 	 */
@@ -121,23 +117,10 @@ public class DocRef extends AnDbField {
 		this.syntabl = m.tbl;
 		this.docm = m;
 		this.volume = volume_extroot;
-
-		/*
-		concats = Funcall.concat(
-			f("'{\"type\": \"%s\", \"synoder\": \"%s\", \"docId\": \"'", clsname, synoder),
-			docm.pk,
-			f("'\", \"syntabl\": \"%s\", \"uri64\": \"'", syntabl),
-			Funcall.isnull(m.uri, "'null'").sql(dbcontext),
-			f("'\", \"breakpoint\": %s, \"uids\": \"'", breakpoint),
-			Funcall.isnull(m.io_oz_synuid, "'null'").sql(dbcontext),
-			"'\", \"pname\": \"'", m.resname,
-			"'\"}'");
-		*/
 	}
 
 	@Override
 	public String sql(ISemantext context) throws TransException {
-		// return concats.sql(context);
 		return Funcall.concat(
 				f("'{\"type\": \"%s\", \"synoder\": \"%s\", \"docId\": \"'", clsname, synoder),
 				docm.pk,
@@ -148,10 +131,6 @@ public class DocRef extends AnDbField {
 				"'\", \"pname\": \"'", docm.resname,
 				"'\"}'"
 				).sql(context);
-	}
-
-	public void updateDb(DBSyntableBuilder b) {
-		
 	}
 
 	public static String resolveFolder(String peer, String conn, String syntabl, SessionInf ssInfo) {
@@ -210,7 +189,6 @@ public class DocRef extends AnDbField {
 		String ref_docid = rs.getString(sh.pkField);
 		mustnonull(ref_docid);
 		return
-			// sh.getExtPaths(ref.docId, ref.pname)
 			sh.getExtPaths(ref_docid, ref.pname)
 			.prefix(ExtFilePaths.relativeFolder(ref.uri64, sh.getFileRoot()))
 			;

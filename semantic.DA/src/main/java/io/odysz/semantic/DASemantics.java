@@ -1643,7 +1643,6 @@ public class DASemantics {
 			}
 		}
 
-		@SuppressWarnings("unused")
 		private String selectUri(ISemantext stx, Statement<?> stmt, Condit pk, IUser usr) throws SemanticException {
 			AnResultset rs;
 			try {
