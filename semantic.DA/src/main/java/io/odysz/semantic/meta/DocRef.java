@@ -166,7 +166,8 @@ public class DocRef extends AnDbField {
 	 * @param peer
 	 * @param doconn
 	 * @param ssinf
-	 * @return temp path, subfolder of {@link #resolveFolder(String, String, String, SessionInf) resolve-folder}.
+	 * @return a temporary path, the sub-folder of
+	 * {@link #resolveFolder(String, String, String, SessionInf)}.
 	 * @throws TransException
 	 */
 	public String downloadPath(String peer, String doconn, SessionInf ssinf) throws TransException {
