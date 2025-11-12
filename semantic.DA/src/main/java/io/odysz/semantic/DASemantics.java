@@ -1594,7 +1594,11 @@ public class DASemantics {
 			}
 		}
 
-
+		/**
+		 * @param fid
+		 * @param filename
+		 * @return new {@link ExtFilePaths}
+		 */
 		public ExtFilePaths getExtPaths(String fid, String filename) {
 			return new ExtFilePaths(getFileRoot(), fid, filename);
 		}
@@ -1643,29 +1647,29 @@ public class DASemantics {
 			}
 		}
 
-		private String selectUri(ISemantext stx, Statement<?> stmt, Condit pk, IUser usr) throws SemanticException {
-			AnResultset rs;
-			try {
-				rs = (AnResultset) stmt
-						.transc()
-						.select(target)
-						.col(args[ixUri], "uri")
-						.where(pk)
-						.rs(stmt.transc().instancontxt(stx.connId(), usr))
-						.rs(0);
-				
-				if (rs.total() > 1) {
-					throw new SemanticException("Semantics handler, ExtFilev2, can only handling moving one file for each statement. Multiple records moving is not supported. Statement condition: %s",
-							pk.sql(stx));
-				}
-				rs.beforeFirst().next();
-				
-				return rs.getString("uri");
-			} catch (SQLException | TransException e) {
-				e.printStackTrace();
-				throw new SemanticException(e.getMessage());
-			}
-		}
+//		private String selectUri(ISemantext stx, Statement<?> stmt, Condit pk, IUser usr) throws SemanticException {
+//			AnResultset rs;
+//			try {
+//				rs = (AnResultset) stmt
+//						.transc()
+//						.select(target)
+//						.col(args[ixUri], "uri")
+//						.where(pk)
+//						.rs(stmt.transc().instancontxt(stx.connId(), usr))
+//						.rs(0);
+//				
+//				if (rs.total() > 1) {
+//					throw new SemanticException("Semantics handler, ExtFilev2, can only handling moving one file for each statement. Multiple records moving is not supported. Statement condition: %s",
+//							pk.sql(stx));
+//				}
+//				rs.beforeFirst().next();
+//				
+//				return rs.getString("uri");
+//			} catch (SQLException | TransException e) {
+//				e.printStackTrace();
+//				throw new SemanticException(e.getMessage());
+//			}
+//		}
 
 		/**
 		 * @param stx
@@ -1765,6 +1769,18 @@ public class DASemantics {
 					.prefix(ExtFilePaths.relativeFolder(dburi, h2.getFileRoot()))
 					.decodeUriPath()
 					;	
+		}
+
+		/**
+		 * Resolve uri's absolute ext-file path, without re-composing uri
+		 * with the ext-file path's rule.
+		 * 
+		 * @param dburi
+		 * @return absolute path
+		 */
+		public static String resolvUri(String dburi) {
+			String root = Transcxt.cfgroot();
+			return ExtFilePaths.decodeUri(eq(root, ".") ? "" : root, dburi);
 		}
 	}
 

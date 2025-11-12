@@ -168,8 +168,8 @@ public class DocRef extends AnDbField {
 		return this;
 	}
 
-	public static ExtFilePaths createExtPaths(String conn, ExpDocTableMeta meta, DocRef ref, DATranscxt... st0)
-			throws TransException, SQLException {
+	public static ExtFilePaths createExtPaths(String conn, ExpDocTableMeta meta,
+			DocRef ref, DATranscxt... st0) throws TransException, SQLException {
 		ShExtFilev2 sh = ((ShExtFilev2) DATranscxt
 				.getHandler(conn, meta.tbl, smtype.extFilev2));
 		
