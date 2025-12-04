@@ -780,7 +780,7 @@ public class DBSyntableBuilder extends DATranscxt {
 				.nv(chgm.seq, incSeq())
 				.nv(chgm.domain, domain)
 				.post(insert(subm.tbl) // TODO the tree mode is different here
-					.cols(subm.insertCols())
+					.cols(subm.insertingCols())
 					.select((Query)select(synm.tbl)
 						.col(new Resulving(chgm.tbl, chgm.pk))
 						.col(synm.synoder)

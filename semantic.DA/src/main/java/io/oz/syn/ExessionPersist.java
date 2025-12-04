@@ -150,10 +150,10 @@ public class ExessionPersist {
 							.nv(chgm.synoder, rpnodr)
 							.nv(chgm.uids, rsynuid)
 							.post(trb.insert(subm.tbl)
-								.cols(subm.insertCols())
+								.cols(subm.insertingCols())
 								.value(subm.insertSubVal(rply, new Resulving(chgm.tbl, chgm.pk)))))
 					: trb.insert(subm.tbl)
-						.cols(subm.insertCols())
+						.cols(subm.insertingCols())
 						.value(subm.insertSubVal(rply, new Resulving(chgm.tbl, chgm.pk)))
 
 	
@@ -238,7 +238,7 @@ public class ExessionPersist {
 				else if (compareNyq(chgnyq, synx.nv.get(synodr)) > 0
 					&& !eq(subsrb, synx.synode))
 					subscribeUC.add(trb.insert(subm.tbl)
-						.cols(subm.insertCols())
+						.cols(subm.insertingCols())
 						.value(subm.insertSubVal(changes, new Resulving(chgm.tbl, chgm.pk)))); 
 				
 				if (ofLastEntity(changes, chuids, chentbl, domain))
@@ -926,7 +926,7 @@ public class ExessionPersist {
 
 			for (String sub : missing) 
 				stats.add(trb.insert(subm.tbl)
-					.cols(subm.insertCols())
+					.cols(subm.insertingCols())
 					.value(subm.insertSubVal(domain, entbl, sub, uids)));
 		}
 		return missing;

@@ -87,7 +87,7 @@ public class DBSynmantics extends DASemantics {
 			.nv(x.chgm.seq, b.incSeq())
 			.nv(x.chgm.domain, x.domain)
 			.post(b.insert(x.subm.tbl)
-				.cols(x.subm.insertCols())
+				.cols(x.subm.insertingCols())
 				.select((Query) b.select(x.synm.tbl)
 					.col(new Resulving(x.chgm.tbl, x.chgm.pk))
 					.col(x.synm.synoder)
@@ -133,7 +133,7 @@ public class DBSynmantics extends DASemantics {
 					.nv(x.chgm.domain, x.domain)
 					.nv(x.chgm.updcols, updcols)
 					.post(b.insert(x.subm.tbl)
-						.cols(x.subm.insertCols())
+						.cols(x.subm.insertingCols())
 						.select((Query)b.select(x.synm.tbl)
 							.col(new Resulving(x.chgm.tbl, x.chgm.pk))
 							.col(x.synm.synoder)
@@ -165,7 +165,7 @@ public class DBSynmantics extends DASemantics {
 					.nv(x.chgm.domain, x.domain)
 					.post(b
 						.insert(x.subm.tbl)
-						.cols(x.subm.insertCols())
+						.cols(x.subm.insertingCols())
 						.select((Query)b
 							.select(x.synm.tbl)
 							.col(new Resulving(x.chgm.tbl, x.chgm.pk))

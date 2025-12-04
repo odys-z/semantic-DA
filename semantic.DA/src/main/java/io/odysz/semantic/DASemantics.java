@@ -403,7 +403,6 @@ public class DASemantics {
 		/**
 		 * "cmp-col" | "compose-col" | "compse-column": compose a column from other
 		 * columns;<br>
-		 * TODO
 		composingCol
 		 */
 
@@ -1726,9 +1725,6 @@ public class DASemantics {
 							|| Regex.startsEvelope(dburi))
 							continue;
 
-						// 2025-07-25
-						// FIXME TODO to be tested
-						// uri = EnvPath.decodeUri(stx, uri);
 						final String uri = ExtFileUpdatev2.decodeUriPath(dburi);
 						Utils.warn("*** ---- ======== verified %s ?", uri);
 						// end
