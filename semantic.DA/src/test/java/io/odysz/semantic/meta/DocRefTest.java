@@ -64,7 +64,6 @@ class DocRefTest {
 							// .prefix(dr.relativeFolder(sh.getFileRoot()))
 							.prefix(ExtFilePaths.relativeFolder(dr.uri64, sh.getFileRoot()))
 							.filename(dr.pname);
-		// TODO test: extpaths = sh.getExtPaths()
 		assertEquals("uploads/ody/h_photo/0001 Sun Yet-sen Portrait.jpg", extpaths.dburi(true));
 
 		assertEquals(FilenameUtils.concat(

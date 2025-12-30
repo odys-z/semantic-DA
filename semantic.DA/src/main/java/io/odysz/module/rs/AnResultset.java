@@ -1197,7 +1197,6 @@ for (String coln : colnames.keySet())
 
 	/**
 	 * Generate row indices, start at 0.
-	 * FIXME move this method to Query and be called before rs construction.
 	 * @param pk
 	 * @return this
 	 */

@@ -52,11 +52,12 @@ public class SynSubsMeta extends SemanticTableMeta {
 
 	/**
 	 * @return [changeId, synodee]
+	 * 
+	 * FIXME TODO add "domain"
 	 */
-	public String[] insertCols() {
+	public String[] insertingCols() {
 		if (this.subcols == null)
-			// this.subcols = new String[] { domain, entbl, synodee, uids };
-			this.subcols = new String[] {changeId, synodee}; // FIXME TODO add "domain"
+			this.subcols = new String[] {changeId, synodee};
 		return subcols;
 	}
 
@@ -67,7 +68,7 @@ public class SynSubsMeta extends SemanticTableMeta {
 	 * @throws SQLException
 	 */
 	public ArrayList<Object[]> insertSubVal(AnResultset chlogs, Resulving chgId) throws SQLException {
-		String[] cols = insertCols();
+		String[] cols = insertingCols();
 		ArrayList<Object[]> val = new ArrayList<Object[]> (cols.length);
 
 		val.add(new Object[] {cols[0], chgId});
@@ -78,13 +79,7 @@ public class SynSubsMeta extends SemanticTableMeta {
 
 	public ArrayList<Object[]> insertSubVal(String org, String entbl, String synodee, String uds) throws SQLException {
 		return new ArrayList<Object[]>() {
-
-			/*
-			{add(new Object[] {subcols[0], org});}
-			{add(new Object[] {subcols[1], entbl});}
-			{add(new Object[] {subcols[2], synodee});}
-			{add(new Object[] {subcols[3], uids});}
-			*/
+			private static final long serialVersionUID = 1L;
 			{add(new Object[] {changeId, new Resulving(chgm.tbl, chgm.pk)});}
 			{add(new Object[] {subcols[2], synodee});}
 		};
