@@ -80,14 +80,14 @@ public class Docheck {
 		} finally { synb.popDebug(); }
 	}
 
-	public String doclist(SyntityMeta entm) throws SQLException, TransException {
-		AnResultset rs = synb.entitySynuids(entm).beforeFirst();
-		String r = "";
-		while (rs.next()) {
-			r += " " + rs.getString(1);
-		}
-		return r.trim();
-	}
+//	public String doclist(SyntityMeta entm) throws SQLException, TransException {
+//		AnResultset rs = synb.entitySynuids(entm).beforeFirst();
+//		String r = "";
+//		while (rs.next()) {
+//			r += " " + rs.getString(1);
+//		}
+//		return r.trim();
+//	}
 
 	String connId() { return synb.basictx().connId(); }
 
@@ -502,7 +502,9 @@ public class Docheck {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static HashMap<String, Nyquence>[] printNyquv(Docheck[] ck, boolean... printSynode) throws SQLException, TransException {
+	public static HashMap<String, Nyquence>[] printNyquv(Docheck[] ck, boolean... printSynode)
+			throws SQLException, TransException {
+
 		Utils.logi(Stream.of(ck)
 				.filter(c -> c != null)
 				.map(c -> { return c.synb.syndomx.synode;})
@@ -531,8 +533,8 @@ public class Docheck {
 						})
 					.collect(Collectors.joining(", ")),
 					is(printSynode) ?
-					ck[cx].doclist(ck[cx].synb.syndomx.synm) :
-					ck[cx].doclist(ck[cx].docm));
+					ck[cx].synb.doclist(ck[cx].synb.syndomx.synm) :
+					ck[cx].synb.doclist(ck[cx].docm));
 			}
 			finally { ck[cx].synb.popDebug(); }
 		}

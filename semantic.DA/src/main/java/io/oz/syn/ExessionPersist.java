@@ -170,6 +170,8 @@ public class ExessionPersist {
 		ArrayList<String> sqls = new ArrayList<String>();
 		for (Statement<?> s : stats)
 			s.commit(sqls, trb.synrobot());
+		
+		try { if (sqls.size() > 0) logi(sqls); } catch (Exception e) { e.printStackTrace(); }
 		Connects.commit(synx.synconn, trb.synrobot(), sqls);
 		
 		return this;
@@ -663,6 +665,7 @@ public class ExessionPersist {
 				.nv(synx.nv);
 	}
 
+	/* Not used ?
 	ExchangeBlock onExchange(String peer, ExchangeBlock req)
 			throws TransException, SQLException {
 		if (req != null) {
@@ -683,7 +686,7 @@ public class ExessionPersist {
 				.seq(persisession())
 				.nv(synx.nv);
 	}
-	
+	*/
 
 	public ExchangeBlock closexchange(ExchangeBlock rep) throws ExchangeException {
 		/* enable?
