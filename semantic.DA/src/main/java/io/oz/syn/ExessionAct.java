@@ -26,7 +26,7 @@ public class ExessionAct {
 	/** setup domain request */
 	public static final int setupDom = 5;
 	
-	public static final int mode_server = 0;
+	public static final int mode_server = 0; // FIXME how about 100 or 64?
 	public static final int mode_client = 1;
 
 	public static final int ext_docref = 10;

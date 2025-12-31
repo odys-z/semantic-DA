@@ -11,6 +11,8 @@ import static io.oz.syn.Nyquence.maxn;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
@@ -86,7 +88,7 @@ public class SyndomContext {
 	Nyquence stamp;
 	public long stamp() { return stamp.n; }
 
-	protected final DATranscxt synb;
+	public final DATranscxt synb;
 
 	protected SyndomContext(SynodeMode mod, int pagesize, String orgid, String dom,
 			String synode, String synconn, boolean debug) throws Exception {
@@ -416,4 +418,24 @@ public class SyndomContext {
 
 	}
 
+	/**
+	 * @see io.oz.syn.Docheck#printNyquv(Docheck[], boolean...)
+	 */
+	public void printNv() {
+		print(synode, nv);
+	}
+	
+	public static void print(String n0, HashMap<String, Nyquence> nv) {
+		try {
+			Utils.logi("%s [ %s ]",
+				n0,
+				nv.keySet().stream()
+				.map(n -> {
+					return String.format("%12s : %6d", n, nv.get(n).n);
+				})
+				.collect(Collectors.joining(", "))
+				);
+		}
+		catch (Exception e) { e.printStackTrace(); }
+	}
 }

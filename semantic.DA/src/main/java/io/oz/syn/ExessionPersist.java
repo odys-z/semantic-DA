@@ -62,13 +62,8 @@ import io.odysz.transact.x.TransException;
  */
 public class ExessionPersist {
 	public static final boolean dbgExchangePaging = true;
-
+	
 	final SyndomContext synx;
-//	public SyndomContext syndomx() {
-//		// FIXME remove this if SynssionPeer.resolveDocrefs() if refactored.
-//		return synx;
-//	} 
-
 	final SynChangeMeta chgm;
 	final SynSubsMeta subm;
 	final SynchangeBuffMeta exbm;

@@ -17,16 +17,11 @@ import static io.oz.syn.Nyquence.sqlCompare;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.xml.sax.SAXException;
 
-import io.odysz.common.DateFormat;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
@@ -1034,25 +1029,27 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 
-	/**
-	 * @see io.oz.syn.Docheck#printNyquv(Docheck[], boolean...)
-	 */
-	@SuppressWarnings("unlikely-arg-type")
-	public void printNv(SyntityMeta entm) {
-		pushDebug(false);
-		try {
-			Utils.logi("%s %s [ %s ] { %s }",
-				DateFormat.formatime_utc(new Date()),
-				syndomx.synode,
-				Stream.of(syndomx.nv.keySet()).map(n -> {
-					return String.format("%12s : %6d", n, syndomx.nv.get(n).n);
-				})
-				.collect(Collectors.joining(", ")),
-				doclist(entm));
-		}
-		catch (Exception e) { e.printStackTrace(); }
-		finally { popDebug(); }
-	}
+//	/**
+//	 * @see io.oz.syn.Docheck#printNyquv(Docheck[], boolean...)
+//	 */
+//	@SuppressWarnings("unlikely-arg-type")
+//	public void printNv(SyntityMeta entm) {
+//		if (syndomx == null) return;
+//		
+//		pushDebug(false);
+//		try {
+//			Utils.logi("%s %s [ %s ] { %s }",
+//				DateFormat.formatime_utc(new Date()),
+//				syndomx.synode,
+//				Stream.of(syndomx.nv.keySet()).map(n -> {
+//					return String.format("%12s : %6d", n, syndomx.nv.get(n).n);
+//				})
+//				.collect(Collectors.joining(", ")),
+//				doclist(entm));
+//		}
+//		catch (Exception e) { e.printStackTrace(); }
+//		finally { popDebug(); }
+//	}
 	
 	public String doclist(SyntityMeta entm) throws SQLException, TransException {
 		AnResultset rs = entitySynuids(entm).beforeFirst();
