@@ -1,7 +1,5 @@
 package io.odysz.semantic.meta;
 
-import io.odysz.transact.sql.Update;
-
 public class SynSessionMeta extends SemanticTableMeta {
 
 	public final String peer;
@@ -24,17 +22,4 @@ public class SynSessionMeta extends SemanticTableMeta {
 
 		ddlSqlite = loadSqlite(SynSessionMeta.class, "syn_sessions.sqlite.ddl");
 	}
-
-//	public Statement<?> insertSession(Insert ins, String peer) {
-//		return ins
-//			.nv(this.peer, peer)
-//			.nv(chpage,  -1)
-//			.nv(answerx, -1)
-//			.nv(expansx, -1);
-//	}
-
-//	public Update update(Update st) {
-//		return st;
-//	}
-
 }

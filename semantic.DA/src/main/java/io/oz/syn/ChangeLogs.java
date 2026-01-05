@@ -57,6 +57,7 @@ public class ChangeLogs extends Anson {
 	 * @param synode
 	 * @throws SQLException
 	 */
+	@SuppressWarnings("serial")
 	public void remove_sub(AnResultset challenge, String synode) throws SQLException {
 		if (answers == null) 
 			answers = new AnResultset(checkChangeCol(challenge.getColnames()))

@@ -49,7 +49,13 @@ public abstract class SemanticTableMeta extends TableMeta implements IMapValue {
 					return null;
 				}
 
-			System.err.println(uri);
+			/// 1.5.22
+			/// TODO FIXME
+			/// TODO FIXME
+			/// TODO FIXME
+			/// Temporarily shutdown this warning
+			/// System.err.println(uri);
+
 			uri = Paths.get(uri).toUri();
 
 			return Files.readAllLines(
