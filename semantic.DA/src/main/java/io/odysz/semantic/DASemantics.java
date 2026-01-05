@@ -1726,8 +1726,7 @@ public class DASemantics {
 							continue;
 
 						final String uri = ExtFileUpdatev2.decodeUriPath(dburi);
-						Utils.warn("*** ---- ======== verified %s ?", uri);
-						// end
+						// Utils.warn("*** ---- ======== verified %s ?", uri);
 
 						if (verbose)
 							Utils.warn("deleting %s [%s.uri: %s]", uri, target, dburi);

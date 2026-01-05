@@ -7,13 +7,18 @@ import static io.odysz.common.LangExt.musteqi;
 import static io.odysz.common.LangExt.mustGe;
 import static io.odysz.common.LangExt.notBlank;
 import static io.odysz.common.LangExt.notNull;
+import static io.odysz.common.LangExt.strcenter;
+import static io.odysz.common.LangExt.strof;
 import static io.oz.syn.Nyquence.maxn;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import io.odysz.common.CheapMath;
 import io.odysz.common.Utils;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DATranscxt;
@@ -421,20 +426,38 @@ public class SyndomContext {
 	/**
 	 * @see io.oz.syn.Docheck#printNyquv(Docheck[], boolean...)
 	 */
-	public void printNv() {
-		print(synode, nv);
+	public void printNv(boolean printHead) {
+		print(synode, nv, printHead);
 	}
 	
-	public static void print(String n0, HashMap<String, Nyquence> nv) {
+	public static void print(String n0, HashMap<String, Nyquence> nv, boolean header) {
 		try {
-			Utils.logi("%s [ %s ]",
-				n0,
-				nv.keySet().stream()
+			List<String> sortedKeys = new ArrayList<>(nv.keySet());
+
+			Collections.sort(sortedKeys);
+
+			int w = CheapMath.maxLen(sortedKeys);
+			
+			String h = strof(w, " ") +  
+					sortedKeys.stream()
+					.map(n -> strcenter(n, w + 1))
+					.collect(Collectors.joining("|", "|", "|\n"));
+			String s = strof(w, " ") +
+					sortedKeys.stream()
+					.map(n -> strof(w + 1, "-"))
+					.collect(Collectors.joining("+", "+", "+"));
+
+			String elemfmt = f("%%%dd", w);
+
+			Utils.logi("%s%s%s%s|%s |\n%s",
+				header ? h : "", header ? s : "", header ? "\n" : "",
+				strcenter(n0, w),
+				sortedKeys.stream()
 				.map(n -> {
-					return String.format("%12s : %6d", n, nv.get(n).n);
+					return f(elemfmt, nv.get(n).n);
 				})
-				.collect(Collectors.joining(", "))
-				);
+				.collect(Collectors.joining(" |")),
+				s);
 		}
 		catch (Exception e) { e.printStackTrace(); }
 	}

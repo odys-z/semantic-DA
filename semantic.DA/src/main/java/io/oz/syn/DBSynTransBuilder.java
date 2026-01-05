@@ -192,6 +192,16 @@ public class DBSynTransBuilder extends DATranscxt {
 		}
 	}
 	
+	/**
+	 * Is there such table in {@link #tableMeta(String)}?
+	 * @param synconn
+	 * @param entity
+	 * @return true or not 
+	 */
+	public static boolean hasEntity(String synconn, String entity) {
+		return Syntities.get(synconn) != null && Syntities.get(synconn).meta(entity) != null;
+	}
+
 	public static SyntityMeta getEntityMeta(String synconn, String tbl)
 			throws TransException, SQLException {
 		return Syntities.get(synconn).meta(tbl).replace();

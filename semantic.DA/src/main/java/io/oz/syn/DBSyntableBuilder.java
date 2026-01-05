@@ -1,6 +1,7 @@
 package io.oz.syn;
 
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.hasGt;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.str;
@@ -27,6 +28,7 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.CRUD;
 import io.odysz.semantic.DATranscxt;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.ExpDocTableMeta;
 import io.odysz.semantic.meta.PeersMeta;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.semantic.meta.SynSubsMeta;
@@ -980,7 +982,15 @@ public class DBSyntableBuilder extends DATranscxt {
 	}
 
 	public AnResultset entitySynuids(SyntityMeta m) throws SQLException, TransException {
-		return (AnResultset) select(m.tbl).col(m.io_oz_synuid).orderby(m.io_oz_synuid).rs(basictx).rs(0);
+		Query q = select(m.tbl)
+				.col(m.io_oz_synuid)
+				.orderby(m.io_oz_synuid);
+
+		if (m instanceof ExpDocTableMeta)
+			q.col(((ExpDocTableMeta)m).resname);
+
+		return
+			(AnResultset) q.rs(basictx).rs(0);
 	}
 
 	ExessionPersist xp;
@@ -1029,33 +1039,13 @@ public class DBSyntableBuilder extends DATranscxt {
 		return this;
 	}
 
-//	/**
-//	 * @see io.oz.syn.Docheck#printNyquv(Docheck[], boolean...)
-//	 */
-//	@SuppressWarnings("unlikely-arg-type")
-//	public void printNv(SyntityMeta entm) {
-//		if (syndomx == null) return;
-//		
-//		pushDebug(false);
-//		try {
-//			Utils.logi("%s %s [ %s ] { %s }",
-//				DateFormat.formatime_utc(new Date()),
-//				syndomx.synode,
-//				Stream.of(syndomx.nv.keySet()).map(n -> {
-//					return String.format("%12s : %6d", n, syndomx.nv.get(n).n);
-//				})
-//				.collect(Collectors.joining(", ")),
-//				doclist(entm));
-//		}
-//		catch (Exception e) { e.printStackTrace(); }
-//		finally { popDebug(); }
-//	}
-	
 	public String doclist(SyntityMeta entm) throws SQLException, TransException {
 		AnResultset rs = entitySynuids(entm).beforeFirst();
-		String r = "";
+		String r = f("[%d]", rs.getRowCount());
 		while (rs.next()) {
-			r += " " + rs.getString(1);
+			r += rs.getColCount() > 1 ?
+				f(" %s(%s)", rs.getString(1), rs.getString(2)) :
+				" " + rs.getString(1);
 		}
 		return r.trim();
 	}
