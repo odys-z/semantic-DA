@@ -90,7 +90,7 @@ public abstract class ExpDocTableMeta extends SyntityMeta {
 	 * Get fields from rs where cols is selected with statement generated
 	 * by {@link #selectSynPaths(DATranscxt, String)}.
 	 * @param rs
-	 * @return strings
+	 * @return strings [device, shareflag, shareby, shareDate, isDocRef]
 	 * @throws SQLException
 	 */
 	public Object[] getPathInfo(AnResultset rs) throws SQLException {
