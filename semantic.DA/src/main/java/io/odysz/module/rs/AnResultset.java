@@ -1300,7 +1300,7 @@ for (String coln : colnames.keySet())
 	/**
 	 * Get the cached flat column names in the same sequence with rows. (cached for performance)
 	 * @return column names, index start at 0
-	 * @since 2.0.0
+	 * @since 1.5.0
 	 * ISSUE
 	 * This will throw the out-of-bound exception if the select statament who constructed
 	 * this resultset has ignored same name fields. It's planned to  not ignore columns in

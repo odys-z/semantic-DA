@@ -29,7 +29,7 @@ import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.x.TransException;
 
 /**
- * @since 2.0.0
+ * @since 1.5.0
  */
 @Disabled("Must be tested in a separated running.")
 class SqliteDriverQueuedTest {

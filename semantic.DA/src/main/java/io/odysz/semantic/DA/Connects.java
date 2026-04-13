@@ -360,7 +360,7 @@ public class Connects {
 	/**
 	 * Replace DB metas with classes defined in semantics.xml/t[id=metas]
 	 * 
-	 * @since 2.0.0
+	 * @since 1.5.0
 	 * @param metas
 	 * @throws IOException 
 	 * @throws SAXException 

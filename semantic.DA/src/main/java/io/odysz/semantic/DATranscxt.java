@@ -394,7 +394,7 @@ public class DATranscxt extends Transcxt {
 	/**
 	 * Create a stub transaction helper without depending on a database connection,
 	 * typically for initialization.
-	 * @since 2.0.0
+	 * @since 1.5.0
 	 * @throws Exception
 	 */
 	public DATranscxt() throws Exception {
