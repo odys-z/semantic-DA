@@ -95,8 +95,8 @@ public class AnResultset extends Anson {
 	colnames.put(colName, new Object[] {i, rsMeta.getColumnLabel(i)});
 		</pre>
 		case 2<pre>
-for (String coln : colnames.keySet()) 
-	colnames.put(coln.toUpperCase(), new Object[] {colnames.get(coln), coln});
+	for (String coln : colnames.keySet()) 
+		colnames.put(coln.toUpperCase(), new Object[] {colnames.get(coln), coln});
 		</pre>
 	 * */
 	@AnsonField(valType="[Ljava.lang.Object;")
