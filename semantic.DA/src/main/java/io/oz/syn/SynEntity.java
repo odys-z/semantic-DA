@@ -1,9 +1,8 @@
 package io.oz.syn;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-
 import io.odysz.anson.Anson;
+import io.odysz.anson.AnsonCtor;
 import io.odysz.anson.AnsonField;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.meta.SynChangeMeta;
@@ -17,6 +16,9 @@ import io.odysz.transact.sql.Insert;
  * and jprotocol oriented data record, used for record synchronizing
  * in docsync.jserv. 
  * 
+ * @since 1.5.23 force creator accept semantics of null entity meta,
+ * won't call {@link #tabl()}, if created without providing one.
+ * 
  * @author Ody
  */
 public abstract class SynEntity extends Anson {
@@ -24,8 +26,8 @@ public abstract class SynEntity extends Anson {
 
 	public String recId;
 	public String recId() { return recId; }
-	public SynEntity recId(String did) {
-		recId = did;
+	public SynEntity recId(String rid) {
+		recId = rid;
 		return this;
 	}
 
@@ -55,19 +57,20 @@ public abstract class SynEntity extends Anson {
 	@AnsonField(ignoreTo=true, ignoreFrom=true)
 	ISemantext semantxt;
 
-	protected ArrayList<String[]> subs;
+//	protected ArrayList<String[]> subs;
 
 	protected String synoder;
 	protected Nyquence nyquence;
 	
-	public SynEntity(AnResultset rs, SyntityMeta entity, SynChangeMeta change) throws SQLException {
-		this.entMeta = entity;
+	public SynEntity(AnResultset rs, SyntityMeta entm, SynChangeMeta change) throws SQLException {
+		this.entMeta = entm;
 		this.chgm = change;
 		this.subMeta = new SynSubsMeta(change);
 
 		format(rs);
 	}
 
+	@AnsonCtor(base={}, initialist={"SyntityMeta meta = entMeta"})
 	public SynEntity(SyntityMeta entm) {
 		this.entMeta = entm;
 		if (entm != null) { // used only for table name, no any connection
@@ -104,6 +107,9 @@ public abstract class SynEntity extends Anson {
 
 	/**
 	 * This name is supposed to be called in situation that entities' meta are known.
+	 * 
+	 * In the case such as start a block chain, this method is never reached. That's the semantics.
+	 * 
 	 * @return entity table name
 	 */
 	public String tabl() { return entMeta.tbl; }
