@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import io.odysz.anson.Anson;
-import io.odysz.common.AESHelper;
+import io.odysz.common.AESHelper2;
 import io.odysz.common.Configs;
 import io.odysz.common.DateFormat;
 import io.odysz.common.EnvPath;
@@ -430,9 +430,9 @@ public class DASemantextTest {
 			rootK = "odys-z.github.io";
 		}
 
-		byte[] iv = AESHelper.getRandom();
-		String iv64 = AESHelper.encode64(iv);
-		String pswdCipher = AESHelper.encrypt("abc123", clientKey, iv);
+		byte[] iv = AESHelper2.getRandom();
+		String iv64 = AESHelper2.encode64(iv);
+		String pswdCipher = AESHelper2.encrypt("abc123", clientKey, iv);
 		// usr.sessionKey("odys-z.github.io");
 
 		ISemantext s2 = st.instancontxt(connId, usr);
@@ -454,12 +454,12 @@ public class DASemantextTest {
 		String pswd = rs.getString("pswd");
 		assertNotEquals("abc123", pswd);
 
-		iv = AESHelper.decode64(rs.getString("iv"));
+		iv = AESHelper2.decode64(rs.getString("iv"));
 
 		// 3.2 update with iv
-		iv = AESHelper.getRandom();
-		iv64 = AESHelper.encode64(iv);
-		pswdCipher = AESHelper.encrypt("xyz999", clientKey, iv);
+		iv = AESHelper2.getRandom();
+		iv64 = AESHelper2.encode64(iv);
+		pswdCipher = AESHelper2.encrypt("xyz999", clientKey, iv);
 
 		ISemantext s3 = st.instancontxt(connId, usr);
 		st.update("a_users", usr)
@@ -478,8 +478,8 @@ public class DASemantextTest {
 
 		rs.beforeFirst().next();
 		pswd = rs.getString("pswd");
-		iv = AESHelper.decode64(rs.getString("iv"));
-		assertNotEquals("abc123", AESHelper.decrypt(pswd, rootK, iv));
+		iv = AESHelper2.decode64(rs.getString("iv"));
+		assertNotEquals("abc123", AESHelper2.decrypt(pswd, rootK, iv));
 
 		testz04(usrId);
 	}

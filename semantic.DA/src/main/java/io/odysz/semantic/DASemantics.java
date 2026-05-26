@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import io.odysz.anson.Anson;
-import io.odysz.common.AESHelper;
+import io.odysz.common.AESHelper2;
 import io.odysz.common.FilenameUtils;
 import io.odysz.common.LangExt;
 import io.odysz.common.Regex;
@@ -1947,7 +1947,7 @@ public class DASemantics {
 				if (decryptK != null) {
 					// mvn test -Drootkey=********
 					String rootK = DATranscxt.key("user-pswd");
-					return AESHelper.dencrypt(pB64, decryptK, ivB64, rootK);
+					return AESHelper2.dencrypt(pB64, decryptK, ivB64, rootK);
 				}
 				return null;
 			} catch (Throwable e) {
