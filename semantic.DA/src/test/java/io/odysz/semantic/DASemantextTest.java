@@ -698,6 +698,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				sqls.get(2));
 	}
 	
+	@SuppressWarnings("serial")
 	@Test
 	public void testMuiltiRowsInsert() throws TransException, SQLException, IOException {
 		ArrayList<String> sqls = new ArrayList<String>(1);
@@ -795,6 +796,7 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// TODO testpaging
 	}
 
+	@SuppressWarnings("serial")
 	@Test
 	public void testMuiltiInsOpertime() throws TransException, SQLException, IOException {
 		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);

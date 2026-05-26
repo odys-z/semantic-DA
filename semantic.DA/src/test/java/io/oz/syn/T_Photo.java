@@ -159,6 +159,7 @@ public class T_Photo extends T_ExpSyncDoc {
 		return this;
 	}
 
+	@SuppressWarnings("serial")
 	public T_Photo create(String fullpath) throws IOException {
 		File png = new File(fullpath);
 		FileInputStream ifs = new FileInputStream(png);

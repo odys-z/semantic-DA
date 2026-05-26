@@ -60,7 +60,7 @@ public abstract class SynEntity extends Anson {
 //	protected ArrayList<String[]> subs;
 
 	protected String synoder;
-	protected Nyquence nyquence;
+//	protected Nyquence nyquence;
 	
 	public SynEntity(AnResultset rs, SyntityMeta entm, SynChangeMeta change) throws SQLException {
 		this.entMeta = entm;
