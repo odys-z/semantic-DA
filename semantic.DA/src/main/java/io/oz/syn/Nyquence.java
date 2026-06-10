@@ -10,6 +10,27 @@ import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.meta.SynChangeMeta;
 import io.odysz.transact.sql.parts.condition.ExprPart;
 
+/**
+ * ISSUE
+ * =====
+ * 
+ * If Nyquence is not a IJsonable, it cannot be a field of Anson types.
+ * 
+ * The Nyquence values in Exchange block is (must be) serialized as Object in the map.
+ * 
+ * Test case: 
+ * <pre>
+ * {"type": "io.odysz.semantic.jprotocol.AnsonMsg"
+ *  "body": [{"type": "io.odysz.semantic.tier.docs.DocsReq","blockSeq": -858993460,"deletings": [],"device": {"type": "io.odysz.semantic.tier.docs.Device","devname": "Ody@test","id": "","synode0": "synode anclient.cmake test","toFolder": ""},
+ *     "doc": {"type": "io.odysz.semantic.tier.docs.ExpSyncDoc","entm": null,
+ *             "nyquence": -858993460,
+ *             "recId": "","synode": "","synoder": "","synpageCols": [],"uids": "","clientpath": "","createDate": "","device": "","folder": "","mime": "","org": "","pname": "","shareMsg": "","shareby": "","sharedate": "","shareflag": "","size": -858993460,"uri64": ""},
+ *     "docTabl": "h_photos","limit": -858993460,"org": "","pageInf": {"type": "io.odysz.transact.sql.PageInf","arrCondts": [],"mapCondts": {},"page": -858993460,"size": -858993460,"total": -858993460},
+ *     "reset": "serialize error: boolean",
+ *     "stamp": "","syncQueries": [],"syncingPage": {"type": "io.odysz.semantic.tier.docs.PathsPage","clientPaths": {},"device": "","end": 1,"start": 0},"synuri": ""}],"code": "null","port": "docstier"}
+ * </pre>
+ * The above will cause a deserialization error of unable to set the Nyquence field.
+ */
 public class Nyquence {
 
 	/**

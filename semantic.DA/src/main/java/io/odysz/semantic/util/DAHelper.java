@@ -204,7 +204,7 @@ public class DAHelper {
 	 * 
 	 * update m.tbl set field = v where whereqs[0] = whereqs[1] and whereqs[2] = whereqs[3] ...
 	 * 
-	 * @since 2.0.0
+	 * @since 1.5.0
 	 * 
 	 * @param trb
 	 * @param conn

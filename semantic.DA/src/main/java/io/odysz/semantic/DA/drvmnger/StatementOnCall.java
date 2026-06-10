@@ -8,7 +8,7 @@ import java.sql.Statement;
 public class StatementOnCall {
 
 	/**
-	 * @since 2.0.0
+	 * @since 1.5.0
 	 */
 	@FunctionalInterface
 	public interface OnCommit {
