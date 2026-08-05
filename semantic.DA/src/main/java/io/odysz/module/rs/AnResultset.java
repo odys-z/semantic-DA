@@ -36,7 +36,6 @@ import io.odysz.transact.sql.parts.AnDbField;
  * TODO This will be changed in the future (It's proved starting at 0 is more bug free).
  * 
  * @author odys-z@github.com
- *
  */
 public class AnResultset extends Anson {
 	private static final boolean debug = true;
