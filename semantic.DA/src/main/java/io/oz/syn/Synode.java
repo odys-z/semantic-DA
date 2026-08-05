@@ -78,6 +78,7 @@ public class Synode extends Anson {
 	 * @param synuid must be null when joining by peer, must be provided without synmantics handling 
 	 * @param org
 	 * @param domain
+	 * @param remarks used for "hub"
 	 * @throws TransException
 	 */
 	public Synode(String synid, String synuid, String org, String domain, String remarks) throws TransException {
