@@ -428,7 +428,7 @@ end;
 				@Override public IUser notify(Object note) throws TransException { return this; }
 				@Override public List<Object> notifies() { return null; }
 				@Override public long touchedMs() { return 0; }
-				@Override public IUser sessionKey(String ssId) { return this; }
+				@Override public IUser privateKnowledge(String ssId) { return this; }
 				@Override public String sessionKey() { return null; } };
 
 		// each table has a lock.

@@ -45,7 +45,7 @@ public class LoggingUser implements IUser {
 			@Override public String uid() { return "dummy"; }
 			@Override public IUser logAct(String funcName, String funcId) { return this; }
 			@Override public String sessionKey() { return null; }
-			@Override public IUser sessionKey(String skey) { return null; }
+			@Override public IUser privateKnowledge(String skey) { return null; }
 			@Override public IUser notify(Object note) throws TransException { return this; }
 			@Override public List<Object> notifies() { return null; }
 			@Override public long touchedMs() { return 0; }
@@ -131,7 +131,7 @@ public class LoggingUser implements IUser {
 	public IUser logAct(String funcName, String funcId) { return this; }
 
 	@Override
-	public IUser sessionKey(String skey) {
+	public IUser privateKnowledge(String skey) {
 		this.sessionKey = skey;
 		return this;
 	}
