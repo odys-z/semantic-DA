@@ -816,7 +816,7 @@ public class DASemantics {
 
 			Object v = null;
 			try {
-				Object pid = cols.containsKey(args[0]) ? row.get(cols.get(args[0]))[1] : null;
+				Object pid = cols.containsKey(args[0]) ? row.get(cols.get(args[0]))[1] : ".";
 
 				if (isblank(pid, "null")) {
 					Utils.warnT(new Object() {},
@@ -845,7 +845,8 @@ public class DASemantics {
 						/* v1.3.0
 						v = String.format("%s %s", sibling, id);
 						*/
-						v = sibling;
+						// [2026-08-19 v 1.5.24]
+						v = String.join(".", pid.toString(), sibling);
 				}
 			} catch (Exception e) {
 				if ( !(e instanceof TransException) )

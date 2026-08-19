@@ -494,7 +494,7 @@ public class DATranscxt extends Transcxt {
 							m.put(tabl, s.createSemantics(trb, tabl, pk, debug));
 
 						S smtcs = (S) m.get(tabl);
-						smtcs.addHandler(
+						smtcs.addHandler( // ISSUE 2026-08-19: Can we check if the table exists to avoid silently disable a semantics? 
 							smtcs.parseHandler(trb, tabl, smtype.parse(smtc), pk, split(args)));
 					} catch (SAXException | SQLException | TransException e) {
 						e.printStackTrace();
