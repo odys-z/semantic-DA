@@ -143,7 +143,6 @@ import io.odysz.transact.x.TransException;
  * 
  * @author odys-z@github.com
  */
-@SuppressWarnings("deprecation")
 public class DASemantics {
 	/** error code key word */
 	public static final String ERR_CHK = "err_smtcs";;
