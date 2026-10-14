@@ -2,6 +2,7 @@ package io.odysz.semantic;
 
 import static io.odysz.common.CheapIO.readB64;
 import static io.odysz.common.LangExt.eq;
+import static io.odysz.common.LangExt.f;
 import static io.odysz.common.Utils.loadTxt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -479,8 +480,11 @@ public class DASemantextTest {
 		rs.beforeFirst().next();
 		pswd = rs.getString("pswd");
 		iv = AESHelper2.decode64(rs.getString("iv"));
-		assertNotEquals("abc123", AESHelper2.decrypt(pswd, rootK, iv));
-
+		try {
+		    assertNotEquals("abc123", AESHelper2.decrypt(pswd, rootK, iv));
+		} catch (GeneralSecurityException e) {
+		    fail(f("\n\nThe current test DB uses rootkey=%s ?, (pswd=%s)\n\n", rootK, pswd), e);
+		}
 		testz04(usrId);
 	}
 		
@@ -698,7 +702,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 				sqls.get(2));
 	}
 	
-	@SuppressWarnings("serial")
 	@Test
 	public void testMuiltiRowsInsert() throws TransException, SQLException, IOException {
 		ArrayList<String> sqls = new ArrayList<String>(1);
@@ -796,7 +799,6 @@ insert into b_logic_device  (remarks, deviceLogId, logicId, alarmId) values ('L2
 		// TODO testpaging
 	}
 
-	@SuppressWarnings("serial")
 	@Test
 	public void testMuiltiInsOpertime() throws TransException, SQLException, IOException {
 		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
