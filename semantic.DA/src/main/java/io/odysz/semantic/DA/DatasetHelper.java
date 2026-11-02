@@ -157,6 +157,10 @@ public class DatasetHelper {
 			root.children_(childrenArray);
 		}
 
+		// end of the result set: the last child of the last branch is also a last sibling
+		if (childrenArray.size() > 0)
+			root.children_(childrenArray).tagLast();
+
 		return childrenArray;
 	}
 
