@@ -20,13 +20,18 @@ import static io.oz.syn.ExessionAct.init;
 import static io.oz.syn.ExessionAct.ready;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -199,6 +204,7 @@ public class DBSyntableTest {
 		testBranchPropagation(++no);
 		test02Update(++no);
 		test03delete(++no);
+		test06Doctree(++no);
 	}
 
 	void test01InsertBasic(int section)
@@ -549,6 +555,176 @@ public class DBSyntableTest {
 		assertEquals(ck[X].docs(), ck[Y].docs());
 	}
 	
+	/**
+	 * <p>Doc-tree records, i.e. semantic-doc's committed doc packages, are h_photos records
+	 * with mime {@link #doctree_mime}, uploaded by the doc-tree editing tier. This tests the
+	 * synchronizing engine handles them the same as photos.</p>
+	 * 
+	 * <h4>Background</h4>
+	 * <p>This problem raise in the integration of semantic-doc to synodes.
+	 * If the doctree records, package in uri, is to be synchronized, the doctree needs a new mime type and
+	 * should be handled / synced like the other records.</p>
+	 *
+	 * <ol><li>X commits a doc-tree record, which reaches Y and Z;</li>
+	 * <li>X commits again to the same doc, replacing the record. As updating uri is not supported
+	 * (see DASemantics.ShExtFilev2#onUpdate()), this is a delete &amp; insert: the record gets a new
+	 * syn-uid, while the doc's id in the package stays the same;</li>
+	 * <li>Y commits another doc-tree record (a new record), while X deletes the replaced one.</li></ol>
+	 * 
+	 * <p>W is not verified, the same as {@link #test03delete(int)}: changes subscribed by W
+	 * are still pending at X, Y and Z after W &lt;= Y.</p>
+	 *
+	 * @param test
+	 * @throws Exception
+	 */
+	void test06Doctree(int test) throws Exception {
+		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), test);
+		int no = 0;
+
+		int[] docs0 = new int[] {ck[X].docs(), ck[Y].docs(), ck[Z].docs()};
+
+		Utils.logrst("X commits a doc-tree", test, ++no);
+		String v1 = doctreePackage("doc-a", "Annual Report 2026", 1, 0);
+		String[] xdt = commitDoctree(X, "doc-a.json", v1);
+		assertDoctree(X, xdt[2], v1);
+
+		syncDoctrees(test, ++no);
+		for (int s : new int[] {X, Y, Z}) {
+			assertDoctree(s, xdt[2], v1);
+			assertEquals(docs0[s] + 1, ck[s].docs());
+		}
+
+		Utils.logrst("X replaces the doc-tree (delete & insert)", test, ++no);
+		String v2 = doctreePackage("doc-a", "Annual Report 2026, revised", 2, 1);
+		String[] xdt2 = replaceDoctree(X, xdt[2], "doc-a.json", v2);
+		assertDoctree(X, xdt[2], null);
+		assertDoctree(X, xdt2[2], v2);
+
+		syncDoctrees(test, ++no);
+		for (int s : new int[] {X, Y, Z}) {
+			assertDoctree(s, xdt[2], null);
+			assertDoctree(s, xdt2[2], v2);
+			assertEquals(docs0[s] + 1, ck[s].docs());
+		}
+
+		Utils.logrst("Y commits a new doc-tree, X deletes doc-a", test, ++no);
+		String b1 = doctreePackage("doc-b", "Glossary", 1, 0);
+		String[] ydt = commitDoctree(Y, "doc-b.json", b1);
+		assertEquals(1, ck[X].synb.deleteEntityBySynuid(ck[X].synb.syndomx, ck[X].docm, xdt2[2]));
+		assertDoctree(X, xdt2[2], null);
+
+		syncDoctrees(test, ++no);
+		for (int s : new int[] {X, Y, Z}) {
+			assertDoctree(s, xdt2[2], null);
+			assertDoctree(s, ydt[2], b1);
+			assertEquals(docs0[s] + 1, ck[s].docs());
+		}
+
+		// photos are not affected
+		assertEquals(ck[X].docs(), ck[Y].docs());
+		assertEquals(ck[X].docs(), ck[Z].docs());
+	}
+
+	/** semantic-doc's doc-tree record (committed doc package) mime */
+	static final String doctree_mime = "application/vnd.semantic-doc.doctree+json";
+
+	/**
+	 * A minimal doc package, the DoctreeResp shape of semantic-doc/doctree.jserv, plus versions.
+	 */
+	static String doctreePackage(String docId, String title, int version, int baseVersion) {
+		return f("{\"type\":\"io.oz.sdoc.DoctreeResp\", \"version\":%d, \"baseVersion\":%d, "
+				+ "\"doc\":{\"type\":\"io.oz.sdoc.DocInf\", \"docId\":\"%s\", \"title\":\"%s\"}, "
+				+ "\"nodes\":[{\"type\":\"io.oz.sdoc.DocNode\", \"docId\":\"%s\", \"nid\":\"%s.1\", \"kind\":\"p\"}]}",
+				version, baseVersion, docId, title, docId, docId);
+	}
+
+	static String b64(String s) {
+		return Base64.getEncoder().encodeToString(s.getBytes(StandardCharsets.UTF_8));
+	}
+
+	/**
+	 * Commit a doc-tree package as a new h_photos record, uploaded by the doc-tree editor at s.
+	 * @return [pid, change-id, syn-uid]
+	 */
+	static String[] commitDoctree(int s, String pname, String pkg)
+			throws TransException, SQLException, IOException {
+		DBSyntableBuilder trb = ck[s].synb;
+		ExpDocTableMeta m = ck[s].docm;
+		String synoder = trb.syndomx.synode;
+
+		SyncUser usr = new SyncUser(synoder, synoder, "doc editor@" + synoder, "doctree editor of " + s);
+
+		T_ExpSyncDoc dt = new T_ExpSyncDoc(m, ura)
+				.clientname(pname)
+				.device(usr.deviceId())
+				.folder(".doctree")
+				.share(usr.uid(), "pub", new Date());
+		dt.fullpath(f("doctree/%s", pname));
+		dt.mime = doctree_mime;
+		dt.uri = b64(pkg);
+		dt.size = pkg.length();
+
+		String[] pid_chid = trb.insertEntity(trb.syndomx, m, dt);
+
+		printChangeLines(ck);
+		printNyquv(ck);
+
+		return new String[] {pid_chid[0], pid_chid[1],
+					SynChangeMeta.uids(synoder, pid_chid[0])};
+	}
+
+	/**
+	 * Replace a doc-tree record (the user's choice of committing to the same record),
+	 * with delete &amp; insert, as updating uri is not supported by ShExtFilev2.
+	 * @return the new record's [pid, change-id, syn-uid]
+	 */
+	static String[] replaceDoctree(int s, String synuid, String pname, String pkg)
+			throws TransException, SQLException, IOException {
+		DBSyntableBuilder t = ck[s].synb;
+		assertEquals(1, t.deleteEntityBySynuid(t.syndomx, ck[s].docm, synuid));
+		return commitDoctree(s, pname, pkg);
+	}
+
+	/**
+	 * Assert the doc-tree record at s.
+	 * @param pkg expected package, null for not existing
+	 */
+	static void assertDoctree(int s, String synuid, String pkg) throws SQLException, TransException {
+		DBSyntableBuilder t = ck[s].synb;
+		ExpDocTableMeta m = ck[s].docm;
+
+		AnResultset rs = ((AnResultset) t
+				.select(m.tbl)
+				.cols(m.mime, m.uri, m.folder)
+				.whereEq(m.io_oz_synuid, synuid)
+				.rs(t.instancontxt())
+				.rs(0))
+				.nxt();
+
+		if (pkg == null) {
+			assertNull(rs, f("Doc-tree %s shouldn't exist at %s.", synuid, synodes[s]));
+			return;
+		}
+
+		assertNotNull(rs, f("Doc-tree %s not found at %s.", synuid, synodes[s]));
+		assertEquals(doctree_mime, rs.getString(m.mime));
+		assertEquals(".doctree", rs.getString(m.folder));
+		assertEquals(pkg, new String(Base64.getDecoder().decode(rs.getString(m.uri)), StandardCharsets.UTF_8),
+				f("Doc-tree %s's content at %s", synuid, synodes[s]));
+	}
+
+	/**
+	 * X &lt;= Y, Z &lt;= Y, X &lt;= Y, Z &lt;= Y, so that changes at X, Y or Z reach the other two.
+	 */
+	static void syncDoctrees(int test, int no) throws Exception {
+		exchangeDocs(X, Y, test, no);
+		exchangeDocs(Z, Y, test, no);
+		exchangeDocs(X, Y, test, no);
+		exchangeDocs(Z, Y, test, no);
+		printChangeLines(ck);
+		printNyquv(ck);
+	}
+
 	/**
 	 * insert synode(apply)
 	 * 
