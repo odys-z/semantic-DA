@@ -571,8 +571,9 @@ public class DBSyntableTest {
 	 * syn-uid, while the doc's id in the package stays the same;</li>
 	 * <li>Y commits another doc-tree record (a new record), while X deletes the replaced one.</li></ol>
 	 * 
-	 * <p>W is not verified, the same as {@link #test03delete(int)}: changes subscribed by W
-	 * are still pending at X, Y and Z after W &lt;= Y.</p>
+	 * <p>W knows only Y, as its joining in {@link #testJoinChild(int)} is aborted at "Z vs W".
+	 * Y selects changes for W only by synoders W knows (syn_peers), so W receives the
+	 * doc-tree committed by Y, but none committed by X (the same as photos).</p>
 	 *
 	 * @param test
 	 * @throws Exception
@@ -581,14 +582,14 @@ public class DBSyntableTest {
 		Utils.logrst(new Object(){}.getClass().getEnclosingMethod().getName(), test);
 		int no = 0;
 
-		int[] docs0 = new int[] {ck[X].docs(), ck[Y].docs(), ck[Z].docs()};
+		int[] docs0 = new int[] {ck[X].docs(), ck[Y].docs(), ck[Z].docs(), ck[W].docs()};
 
 		Utils.logrst("X commits a doc-tree", test, ++no);
 		String v1 = doctreePackage("doc-a", "Annual Report 2026", 1, 0);
 		String[] xdt = commitDoctree(X, "doc-a.json", v1);
 		assertDoctree(X, xdt[2], v1);
 
-		syncDoctrees(test, ++no);
+		no = syncDoctrees(test, no);
 		for (int s : new int[] {X, Y, Z}) {
 			assertDoctree(s, xdt[2], v1);
 			assertEquals(docs0[s] + 1, ck[s].docs());
@@ -600,7 +601,7 @@ public class DBSyntableTest {
 		assertDoctree(X, xdt[2], null);
 		assertDoctree(X, xdt2[2], v2);
 
-		syncDoctrees(test, ++no);
+		no = syncDoctrees(test, no);
 		for (int s : new int[] {X, Y, Z}) {
 			assertDoctree(s, xdt[2], null);
 			assertDoctree(s, xdt2[2], v2);
@@ -613,12 +614,19 @@ public class DBSyntableTest {
 		assertEquals(1, ck[X].synb.deleteEntityBySynuid(ck[X].synb.syndomx, ck[X].docm, xdt2[2]));
 		assertDoctree(X, xdt2[2], null);
 
-		syncDoctrees(test, ++no);
+		no = syncDoctrees(test, no);
 		for (int s : new int[] {X, Y, Z}) {
 			assertDoctree(s, xdt2[2], null);
 			assertDoctree(s, ydt[2], b1);
 			assertEquals(docs0[s] + 1, ck[s].docs());
 		}
+
+		// W knows only Y (its joining in testJoinChild is aborted at Z vs W),
+		// so it accepts changes made by Y, but not by X.
+		assertDoctree(W, xdt[2], null);
+		assertDoctree(W, xdt2[2], null);
+		assertDoctree(W, ydt[2], b1);
+		assertEquals(docs0[W] + 1, ck[W].docs());
 
 		// photos are not affected
 		assertEquals(ck[X].docs(), ck[Y].docs());
@@ -714,15 +722,24 @@ public class DBSyntableTest {
 	}
 
 	/**
-	 * X &lt;= Y, Z &lt;= Y, X &lt;= Y, Z &lt;= Y, so that changes at X, Y or Z reach the other two.
+	 * X &lt;= Y, Z &lt;= Y, X &lt;= Y, Z &lt;= Y, so that changes at X, Y or Z reach the other two,
+	 * then Y &lt;= W, initiated by W. Each exchange is a sub-section of test.
+	 * @return the last sub-section number
 	 */
-	static void syncDoctrees(int test, int no) throws Exception {
+	static int syncDoctrees(int test, int no) throws Exception {
+		Utils.logrst("X <= Y", test, ++no);
 		exchangeDocs(X, Y, test, no);
+		Utils.logrst("Z <= Y", test, ++no);
 		exchangeDocs(Z, Y, test, no);
+		Utils.logrst("X <= Y", test, ++no);
 		exchangeDocs(X, Y, test, no);
+		Utils.logrst("Z <= Y", test, ++no);
 		exchangeDocs(Z, Y, test, no);
+		Utils.logrst("Y <= W, W initiates", test, ++no);
+		exchangeDocs(Y, W, test, no);
 		printChangeLines(ck);
 		printNyquv(ck);
+		return no;
 	}
 
 	/**
