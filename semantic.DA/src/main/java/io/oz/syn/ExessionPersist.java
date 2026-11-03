@@ -166,7 +166,7 @@ public class ExessionPersist {
 		for (Statement<?> s : stats)
 			s.commit(sqls, trb.synrobot());
 		
-		try { if (sqls.size() > 0) logi(sqls); } catch (Exception e) { e.printStackTrace(); }
+		try { if (sqls.size() > 0 && Connects.getDebug(synx.synconn)) logi(sqls); } catch (Exception e) { e.printStackTrace(); }
 		Connects.commit(synx.synconn, trb.synrobot(), sqls);
 		
 		return this;
@@ -790,9 +790,7 @@ public class ExessionPersist {
 			entities(tbl, entities);
 		}
 
-		try {	
 		return trb == null ? null : (AnResultset)trb
-			.pushDebug(dbgExchangePaging)
 			.select(chgm.tbl, "ch")
 			.cols(exbm.pagex, "ch.*", "sb." + subm.synodee)
 			.je_(exbm.tbl, "bf", chgm.pk, exbm.changeId,
@@ -803,7 +801,6 @@ public class ExessionPersist {
 			.orderby(chgm.seq)
 			.rs(trb.instancontxt())
 			.rs(0);
-		} finally {trb.popDebug();}
 	}
 
 	public ExessionPersist entities(String tbl, AnResultset ents) {

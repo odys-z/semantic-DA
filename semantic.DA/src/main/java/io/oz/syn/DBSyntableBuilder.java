@@ -17,6 +17,7 @@ import static io.oz.syn.Nyquence.sqlCompare;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -86,7 +87,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		locrobot = new SyncUser(x.synode, x.synode, "rob@" + x.synode, x.synode);
 		
 		debug    = Connects.getDebug(x.synconn);
-		dbgStack = debug;
 		
 		// seq = 0;
 		force_clean_subs = true;
@@ -275,7 +275,6 @@ public class DBSyntableBuilder extends DATranscxt {
 		if (debug)
 			Utils.logi("Cleaning staleness at %s, peer %s ...", synode, peer);
 
-		pushDebug(true);
 		delete(pnvm.tbl, locrobot)
 			.whereEq(pnvm.peer, peer)
 			.whereEq(pnvm.domain, domain)
@@ -283,7 +282,6 @@ public class DBSyntableBuilder extends DATranscxt {
 				.cols(pnvm.inscols)
 				.values(pnvm.insVals(srcnv, peer, domain)))
 			.d(instancontxt(synconn, locrobot));
-		popDebug();
 
 		// FIXME 1.5.14 This should can be simplified now.
 		SemanticObject res = (SemanticObject) ((DBSyntableBuilder)
@@ -1025,17 +1023,29 @@ public class DBSyntableBuilder extends DATranscxt {
 		return DATranscxt.instanonSemantext(syndomx.synconn);
 	}
 
-	boolean dbgStack;
+	/** Saved debug flags of {@link #pushDebug(boolean)}, which can be nested. */
+	final ArrayDeque<Boolean> dbgStack = new ArrayDeque<Boolean>();
+
+	/**
+	 * Set the debug flag, also of the connection (printing sql), until {@link #popDebug()}.
+	 * @param dbg
+	 * @return this
+	 */
 	public DBSyntableBuilder pushDebug(boolean dbg) {
-		this.dbgStack = debug;
+		dbgStack.push(debug);
 		debug = dbg;
 		Connects.setDebug(syndomx.synconn, dbg);
 		return this;
 	}
 
+	/**
+	 * Restore the debug flag saved by the paired {@link #pushDebug(boolean)}.
+	 * @return this
+	 */
 	public DBSyntableBuilder popDebug() {
-		Connects.setDebug(syndomx.synconn, dbgStack);
-		debug = dbgStack;
+		if (!dbgStack.isEmpty())
+			debug = dbgStack.pop();
+		Connects.setDebug(syndomx.synconn, debug);
 		return this;
 	}
 
