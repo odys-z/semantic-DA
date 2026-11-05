@@ -39,6 +39,9 @@ import io.odysz.transact.sql.parts.condition.Condit;
 import io.odysz.transact.x.TransException;
 
 import static io.odysz.common.LangExt.isNull;
+import static io.odysz.common.LangExt.indexOf;
+import static io.odysz.common.LangExt.indexIn;
+import static io.odysz.common.LangExt.isblank;
 
 /**
  * A basic semantic context for generating sql.
@@ -374,19 +377,37 @@ end;
 					radix64_32(newInt));
 	}
 
+	/** 0: not read yet; 1: radix 32 ({@link #isRadix32(String)}); 2: radix 64 */
 	public static int file_sys = 0; 
 
 	/**
+	 * Values of config.xml/k=file-sys for radix 32 auto keys, compared trimmed and case-insensitive.
+	 * Radix 32 strings (0-9A-V) are case-insensitive file names, e.g. on Windows, and sortable.
+	 */
+	public static final String[] radix32Keywords = new String[] {"windows", "win32", "rad32", "radix32", "r32", "32"};
+	public static final String[] radix64Keywords = new String[] {"posix", "linux", "unix", "rad64", "radix64", "r64", "64"};
+
+	/**
+	 * @param fileSys value of config.xml/k=file-sys
+	 * @return true if auto keys are radix 32, see {@link #radix32Keywords}
+	 */
+	public static boolean isRadix32(String fileSys) {
+		if (isblank(fileSys)) return false;
+		String fs = fileSys.trim().toLowerCase();
+		return indexOf(radix32Keywords, fs) >= 0 || indexIn(fs, radix64Keywords) < 0;
+	}
+
+	/**
 	 * Try generate a radix 64 string of v.
-	 * String length is controlled by connfigs.xml/k=db-len, overriding default 8 for windows, or 6 for others.
-	 * If configs.xml/k=filesys is "windows", then generate a radix 32 string.
+	 * String length is controlled by connfigs.xml/k=id-len, overriding default 8 for radix 32, or 6 for radix 64.
+	 * If configs.xml/k=file-sys is one of {@link #radix32Keywords}, e.g. "windows", then generate a radix 32 string.
 	 * 
 	 * @param v
 	 * @return radix 64/32
 	 */
 	public static String radix64_32(long v) {
 		if (file_sys == 0)
-			file_sys = "windows".equals(Configs.getCfg(keys.fileSys)) ? 1 : 2;
+			file_sys = isRadix32(Configs.getCfg(keys.fileSys)) ? 1 : 2;
 		if (file_sys == 2)
 			return Radix64.toString(v, Configs.getInt(keys.idLen, 6));
 		else

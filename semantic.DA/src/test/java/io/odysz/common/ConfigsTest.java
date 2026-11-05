@@ -65,4 +65,27 @@ public class ConfigsTest {
 		Configs.cfgs.get(keys.deftXTableId).put(keys.idLen, "2");
 		assertEquals("--", DASemantext.radix64_32(16777215));
 	}
+
+	@Test
+	public void testRadix32FileSys() {
+		for (String v : new String[] {"windows", "win32", "rad32", "win", "radix32", " Windows ", "RADIX32", "32"})
+			assertTrue(DASemantext.isRadix32(v), v);
+		for (String v : new String[] {null, "", "linux", "radix64", "64", "RAD64"})
+			assertFalse(DASemantext.isRadix32(v), v);
+
+		String fs = Configs.getCfg(keys.fileSys), len = Configs.getCfg(keys.idLen);
+		try {
+			Configs.cfgs.get(keys.deftXTableId).put(keys.idLen, "4");
+			Configs.cfgs.get(keys.deftXTableId).put(keys.fileSys, "rad32");
+			DASemantext.file_sys = 0;
+			assertEquals("0010", DASemantext.radix64_32(32));
+			assertEquals("VVVV", DASemantext.radix64_32((1 << 20) - 1));
+		} finally {
+			if (fs == null) Configs.cfgs.get(keys.deftXTableId).remove(keys.fileSys);
+			else Configs.cfgs.get(keys.deftXTableId).put(keys.fileSys, fs);
+			if (len == null) Configs.cfgs.get(keys.deftXTableId).remove(keys.idLen);
+			else Configs.cfgs.get(keys.deftXTableId).put(keys.idLen, len);
+			DASemantext.file_sys = 0;
+		}
+	}
 }
