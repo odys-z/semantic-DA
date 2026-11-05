@@ -781,14 +781,23 @@ public class DASemantics {
 	 * 
 	 * @author odys-z@github.com
 	 */
-	static class ShFullpath extends SemanticHandler {
-		private int siblingSize;
+	public static class ShFullpath extends SemanticHandler {
+		final int siblingSize;
+		public int siblinSize() { return siblingSize; }
+		
+		/**
+		 * @since 1.5.27
+		 * @param num
+		 */
+		public String padSibling(String srt) {
+			return LangExt.leftPad(srt, siblingSize, '0');
+		}
 
 		/**
 		 * @param tabl
 		 * @param recId
 		 * @param args
-		 *            see {@link smtype#fullpath}
+		 * see {@link smtype#fullpath}
 		 * @throws SemanticException
 		 */
 		public ShFullpath(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
@@ -796,10 +805,10 @@ public class DASemantics {
 			insert = true;
 			update = true;
 			
-			siblingSize = 3;
-			if (args.length >= 4)
-				try {siblingSize = Integer.valueOf(args[3]);}
-				catch (Exception e) {}
+			int size = 3;
+			try { size = Integer.valueOf(args[3]); }
+			catch (Exception e) {}
+			siblingSize = size;
 		}
 
 		@Override
@@ -808,9 +817,11 @@ public class DASemantics {
 			String sibling;
 			try {
 				String s = String.valueOf(row.get(cols.get(args[1]))[1]);
-				sibling = LangExt.leftPad(s, siblingSize, '0');
+//				sibling = LangExt.leftPad(s, siblingSize, '0');
+				sibling = padSibling(s);
 			} catch (Exception e) {
-				sibling = LangExt.leftPad("", siblingSize, "0");
+//				sibling = LangExt.leftPad("", siblingSize, "0");
+				sibling = padSibling("");
 			}
 
 			Object v = null;
@@ -826,7 +837,6 @@ public class DASemantics {
 						"cols   : %4$s\n" +
 						"row    : %5$s",
 						target, pid, LangExt.toString(args), str(cols), LangExt.str(row));
-					// v1.3.0 v = id;
 				} else {
 					SemanticObject s = trxt.select(target, "_t0").col(args[2]).where("=", pkField, "'" + pid + "'")
 							.rs(stx);
@@ -834,16 +844,8 @@ public class DASemantics {
 					AnResultset rs = (AnResultset) s.rs(0);
 					if (rs.beforeFirst().next()) {
 						String parentpath = rs.getString(args[2]);
-						/* v1.3.0
-						v = String.format("%s.%s %s",
-								LangExt.isblank(parentpath, "null") ? "" : parentpath,
-								sibling, id);
-						*/
 						v = String.format("%s.%s", parentpath, sibling);
 					} else
-						/* v1.3.0
-						v = String.format("%s %s", sibling, id);
-						*/
 						// [2026-08-19 v 1.5.24]
 						v = String.join(".", pid.toString(), sibling);
 				}
@@ -880,60 +882,6 @@ public class DASemantics {
 			onInsert(sxt, null, row, cols, usr);
 		}
 	}
-
-//	/**
-//	 * Auto Pk Handler.<br>
-//	 * Generate a radix 64, 6 bit of string representation of integer.
-//	 * @see smtype#autoInc
-//	 * @deprecated replaced by {@link ShAutoKPrefix}
-//	 */
-//	static class ShAutoK extends SemanticHandler {
-//		/**
-//		 * @param trxt
-//		 * @param tabl
-//		 * @param pk
-//		 * @param args 0: auto field
-//		 * @throws SemanticException
-//		 */
-//		ShAutoK(Transcxt trxt, String tabl, String pk, String[] args) throws SemanticException {
-//			super(trxt, smtype.autoInc, tabl, pk, args);
-//			if (args == null || args.length == 0 || isblank(args[0]))
-//				throw new SemanticException("AUTO pk semantics' configuration is not correct. tabl = %s, pk = %s, args: %s",
-//						tabl, pk, LangExt.toString(args));
-//			insert = true;
-//		}
-//
-//		@Override
-//		protected void onInsert(ISemantext stx, Insert insrt, ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr) {
-//			Object[] nv;
-//			if (cols.containsKey(args[0]) // with nv from client
-//					&& cols.get(args[0]) < row.size()) // with nv must been generated from semantics
-//				nv = row.get(cols.get(args[0]));
-//			else {
-//				nv = new Object[2];
-//				cols.put(args[0], row.size());
-//				row.add(nv);
-//			}
-//			nv[0] = args[0];
-//
-//			try {
-//
-//				Object alreadyResulved = stx.resulvedVal(target, args[0], -1);
-//				if (verbose && alreadyResulved != null)
-//					// 1. When cross fk referencing happened, this branch will reached by handling post inserts.
-//					// 2. When multiple children inserting, this happens
-//					Utils.warn(
-//							"Debug Notes(verbose): Found an already resulved value (%s) while handling %s auto-key generation. Replacing ...",
-//							alreadyResulved, target);
-//				// side effect: generated auto key already been put into autoVals,
-//				// which can be referenced later.
-//				// nv[1] = stx.composeVal(stx.genId(target, args[0]), target, args[0]);
-//				nv[1] = trxt.quotation(stx.genId(stx.connId(), target, args[0]), stx.connId(), target, args[0]);
-//			} catch (SQLException | TransException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//	}
 
 	/**
 	 * Auto Pk Handler.<br>

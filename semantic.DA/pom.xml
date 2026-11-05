@@ -42,7 +42,6 @@
 	    <scope>test</scope>
     </dependency>
 
-	<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
 	<dependency>
 		<groupId>commons-io</groupId>
 		<artifactId>commons-io</artifactId>
@@ -50,30 +49,21 @@
 	</dependency>
 
 	<dependency>
-		<!-- As sonatype SNAPSHOT is updating on a daily base, you may update this with:
-			mvn clean package -U
-			to update immediately. -->
 	    <groupId>io.github.odys-z</groupId>
 	    <artifactId>semantics.transact</artifactId>
-	    <version>[1.5.79,)</version>
+	    <version>[1.5.80,)</version>
 	</dependency>
 
-	<!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
 	<dependency>
 	    <groupId>org.xerial</groupId>
 	    <artifactId>sqlite-jdbc</artifactId>
 	    <version>3.44.0.0</version>
 	</dependency>
 	
-	<!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
 	<dependency>
 		<groupId>mysql</groupId>
 		<artifactId>mysql-connector-java</artifactId>
 		<version>[8.0.33,)</version>
-	    <!-- This is only needed when testing, but we deployed this dependency because we don't want to skip tests when deploying.
-	    	see https://stackoverflow.com/questions/30108053/can-i-configure-maven-to-ignore-test-scoped-dependencies-if-im-skipping-runni
-		<scope>test</scope>
-		 -->
 	</dependency>
 
 	<!-- ojdbc14.jar

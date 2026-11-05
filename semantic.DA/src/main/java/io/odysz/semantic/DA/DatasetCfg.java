@@ -28,6 +28,9 @@ import io.odysz.module.xtable.Log4jWrapper;
 import io.odysz.module.xtable.XMLDataFactoryEx;
 import io.odysz.module.xtable.XMLTable;
 import io.odysz.semantic.util.LogFlags;
+import io.odysz.semantic.DASemantics.ShFullpath;
+import io.odysz.semantic.DASemantics.smtype;
+import io.odysz.semantic.DATranscxt;
 import io.odysz.semantics.SemanticObject;
 import io.odysz.semantics.x.SemanticException;
 import io.odysz.transact.sql.PageInf;
@@ -208,6 +211,16 @@ public class DatasetCfg {
 						return alias(x);
 				}
 			return expr;
+		}
+		
+		public String padSorting(String connId, int num) {
+			ShFullpath sh = (ShFullpath) DATranscxt.getHandler(connId, tabl(), smtype.fullpath);
+			return sh.padSibling(String.valueOf(num));
+		}
+		
+		public int siblingWidth(String connId) {
+			ShFullpath sh = (ShFullpath) DATranscxt.getHandler(connId, tabl(), smtype.fullpath);
+			return sh.siblinSize();
 		}
 	}
 
