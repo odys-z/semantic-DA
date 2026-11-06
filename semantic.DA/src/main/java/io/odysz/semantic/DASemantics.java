@@ -24,6 +24,7 @@ import io.odysz.module.xtable.XMLTable.IMapValue;
 import io.odysz.semantic.DATranscxt.SemanticsMap;
 import io.odysz.semantic.DA.AbsConnect;
 import io.odysz.semantic.DA.Connects;
+import io.odysz.semantic.meta.AutoSeqMeta;
 import io.odysz.semantic.meta.SemanticTableMeta;
 import io.odysz.semantics.ISemantext;
 import io.odysz.semantics.IUser;
@@ -910,15 +911,21 @@ public class DASemantics {
 				start0 = Long.valueOf(ifnull(args[1], "0"));
 			} catch (Exception e) {}
 
-			String sql = f("select count(sid) c from oz_autoseq where sid = '%1$s.%2$s'", target, pk);
-			AnResultset rs = Connects.select(trxt.basictx().connId(), sql);
-			if (!rs.next())
-				throw new SemanticException("Something wrong: " + sql); // ?
-			else if (0 == rs.getInt("c"))
-				// TODO to be tested in DB other than sqlite.
-				Connects.commit(trxt.basictx().connId(), DATranscxt.dummyUser(),
-					f("insert into oz_autoseq (sid, seq, remarks) values\r\n"
-					+ "('%1$s.%2$s', %3$s, 'by ShAutoKPrefix');", target, pk, start0));
+			// 1.5.27: oz_autoseq is only for sqlite (DASemantext.genSqliteId()),
+			// created here if missing; other DBs generate keys with their own stored function.
+			String conn = trxt.basictx().connId();
+			if (Connects.isqlite(conn)) {
+				Connects.commit(conn, DATranscxt.dummyUser(), new AutoSeqMeta(conn).ddlSqlite);
+
+				String sql = f("select count(sid) c from oz_autoseq where sid = '%1$s.%2$s'", target, pk);
+				AnResultset rs = Connects.select(conn, sql);
+				if (!rs.next())
+					throw new SemanticException("Something wrong: " + sql); // ?
+				else if (0 == rs.getInt("c"))
+					Connects.commit(conn, DATranscxt.dummyUser(),
+						f("insert into oz_autoseq (sid, seq, remarks) values\r\n"
+						+ "('%1$s.%2$s', %3$s, 'by ShAutoKPrefix');", target, pk, start0));
+			}
 
 			if (args.length >= 3)
 				prefixCols = Arrays.copyOfRange(args, 2, args.length);

@@ -341,10 +341,11 @@ end;
 	 * @throws TransException
 	 */
 	protected static String genIdPrefix(String conn, String target, String idField, String subCate) throws SQLException, TransException {
-		// String connId = ""; 
-		dbtype dt = Connects.driverType(null);
-		if (dt == dbtype.sqlite)
+		// 1.5.27: the type of conn, not of the default connection; sqlite_queue is sqlite too
+		if (Connects.isqlite(conn))
 			return genSqliteId(conn, target, idField);
+
+		dbtype dt = Connects.driverType(conn);
 
 		if (subCate == null) subCate = "";
 		String sql;
