@@ -12,7 +12,7 @@ package io.odysz.semantic.meta;
  * see <a href='https://www.sqlite.org/limits.html'>
  * 13. Maximum Number Of Rows In A Table</a>
  * 
- * @author odys-z@github.com
+ * @author odys
  */
 public class AutoSeqMeta extends SemanticTableMeta {
 
