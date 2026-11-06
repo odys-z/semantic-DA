@@ -2,6 +2,7 @@ package io.odysz.semantic.DA;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import io.odysz.common.Configs;
 import io.odysz.common.DateFormat;
 import io.odysz.common.Utils;
+import io.odysz.common.dbtype;
 import io.odysz.module.rs.AnResultset;
 import io.odysz.semantic.DASemantextTest;
 import io.odysz.semantic.DATranscxt;
@@ -37,6 +39,35 @@ public class ConnectsTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * A sqlite db created and connected after init(), not configured in connects.xml.
+	 * @since 1.5.28
+	 */
+	@Test
+	public void testAddSqlite() throws Exception {
+		File db = new File(DASemantextTest.rtroot, "add-sqlite/added.db");
+		db.delete();
+
+		Connects.addSqlite("added-sqlite", db.getAbsolutePath(), "semantics.xml");
+		assertTrue(db.exists());
+		assertEquals(dbtype.sqlite, Connects.driverType("added-sqlite"));
+		assertTrue(Connects.getSmtcsPath("added-sqlite").endsWith("semantics.xml"));
+
+		ArrayList<String> sqls = new ArrayList<String>();
+		sqls.add("drop table if exists t_added");
+		sqls.add("create table t_added (id varchar(8) primary key)");
+		sqls.add("insert into t_added values ('A')");
+		Connects.commit("added-sqlite", null, sqls);
+		assertEquals("A", Connects.select("added-sqlite", "select id from t_added").nxt().getString("id"));
+
+		// an existing id is kept, the file isn't touched
+		Connects.addSqlite("added-sqlite", "/no/such/dir/x.db", "semantics.xml");
+		assertEquals(1, Connects.select("added-sqlite", "select count(*) c from t_added").nxt().getInt("c"));
+
+		db.delete();
+		db.getParentFile().delete();
 	}
 
 	@Test

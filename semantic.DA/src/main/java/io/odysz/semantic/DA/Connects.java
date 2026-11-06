@@ -1,5 +1,6 @@
 package io.odysz.semantic.DA;
 
+import static io.odysz.common.LangExt.is;
 import static io.odysz.common.LangExt.isblank;
 import static io.odysz.common.LangExt.f;
 import static io.odysz.common.LangExt.len;
@@ -117,6 +118,42 @@ public class Connects {
 		}
 	}
 	
+	/**
+	 * Add a sqlite connection not configured in connects.xml. Sqlite is in-process,
+	 * so a db can be created and connected at any time, e.g. semantic-doc's doc-tree db
+	 * in a synode's volume.
+	 *
+	 * <p>Creates an empty db file if there is none. Nothing happens if the id exists.
+	 * Call after {@link #init(String)}, which loads connects.xml only once.</p>
+	 *
+	 * @param id connection id
+	 * @param dbpath the db file, absolute
+	 * @param smtcs semantics xml, relative to the working dir (the xml dir of {@link #init(String)})
+	 * @param printSql
+	 * @throws SemanticException not initialized
+	 * @throws IOException
+	 * @throws SQLException
+	 * @since 1.5.28
+	 */
+	public static void addSqlite(String id, String dbpath, String smtcs, boolean... printSql)
+			throws SemanticException, IOException, SQLException {
+		if (srcs == null)
+			throw new SemanticException("Connects must be initialized before adding connection %s.", id);
+		if (srcs.containsKey(id))
+			return;
+
+		File f = new File(dbpath);
+		if (!f.exists()) {
+			if (f.getParentFile() != null)
+				f.getParentFile().mkdirs();
+			f.createNewFile();
+		}
+
+		srcs.put(id, AbsConnect.initDmConnect(workingDir, dbtype.sqlite, id, f.getAbsolutePath(),
+				null, null, is(printSql), false)
+				.prop("smtcs", smtcs));
+	}
+
 	static HashMap<String, AbsConnect<? extends AbsConnect<?>>> loadConnects(
 			HashMap<String, AbsConnect<? extends AbsConnect<?>>> srcs,
 			String tablId, int dmCp, ILogger logger, String xmlDir) throws SAXException {
