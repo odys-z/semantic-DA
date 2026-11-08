@@ -7,6 +7,7 @@ import static io.odysz.common.Utils.loadTxt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -246,6 +247,35 @@ public class DASemantextTest {
 		assertTrue(reg.match(sqls.get(2)), ".*000.002'\\)");
 	}
 	
+	/** A top-level node's fullpath is its sibling sort alone, whether the parent is left out or null. */
+	@Test
+	public void testFullpathTop() throws TransException, SQLException {
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
+		ArrayList<String> sqls = new ArrayList<String>(2);
+		st.insert("a_functions")
+			.nv("funcName", "testFullpathTop no parent")
+			.nv("sibling", "2")
+			.commit(s0, sqls);
+		st.insert("a_functions")
+			.nv("funcName", "testFullpathTop parent null")
+			.nv("parentId", (String) null)
+			.nv("sibling", "3")
+			.commit(s0, sqls);
+
+		assertTrue(sqls.get(0).endsWith(", '002')"), sqls.get(0));
+		assertTrue(sqls.get(1).endsWith(", '003')"), sqls.get(1));
+	}
+
+	/** A wrong fullpath configuration is refused while loading, as inserting can't tell it from a top-level node. */
+	@Test
+	public void testFullpathConfig() throws Exception {
+		DASemantics.ShFullpath.checkColumns(st, "a_functions", new String[] {"parentId", "sibling", "fullpath"});
+		assertThrows(SemanticException.class, () ->
+			DASemantics.ShFullpath.checkColumns(st, "a_functions", new String[] {"parent", "sibling", "fullpath"}));
+		assertThrows(SemanticException.class, () ->
+			DASemantics.ShFullpath.checkColumns(st, "a_functions", new String[] {"parentId", "sibling"}));
+	}
+
 	/**
 	 * Test prefix.auto-key.
 	 * 

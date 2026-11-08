@@ -805,11 +805,41 @@ public class DASemantics {
 			super(trxt, smtype.fullpath, tabl, recId, args);
 			insert = true;
 			update = true;
+
+			checkColumns(trxt, tabl, args);
 			
 			int size = 3;
 			try { size = Integer.valueOf(args[3]); }
 			catch (Exception e) {}
 			siblingSize = size;
+		}
+
+		/**
+		 * A blank parent is taken as a top-level node while inserting, so a wrong configuration
+		 * can't be found there: check it here, while loading semantics.
+		 * @since 1.5.29
+		 * @throws SemanticException args are not parent, sort, fullpath[, width],
+		 * or a column is not in the table
+		 */
+		static void checkColumns(Transcxt trxt, String tabl, String[] args) throws SemanticException {
+			if (args == null || args.length < 3 || isblank(args[0]) || isblank(args[2]))
+				throw new SemanticException(
+					"Fullpath semantics of %s: args must be parent, sort, fullpath[, sibling width], but are %s",
+					tabl, LangExt.toString(args));
+
+			TableMeta mt = trxt == null || trxt.basictx() == null ? null : trxt.basictx().tablType(tabl);
+			if (mt == null) {
+				Utils.warnT(new Object() {},
+					"Fullpath semantics of %s: can't check its columns, no table meta (the table not created yet?)", tabl);
+				return;
+			}
+			// column names in metas are as the DB reports them, e.g. lower case in a sqlite ddl
+			for (int x = 0; x < 3; x++) {
+				String c = args[x];
+				if (!isblank(c) && mt.ftypes().keySet().stream().noneMatch(k -> k.equalsIgnoreCase(c)))
+					throw new SemanticException(
+						"Fullpath semantics of %s: column %s (args[%d]) is not in the table.", tabl, c, x);
+			}
 		}
 
 		@Override
@@ -827,18 +857,13 @@ public class DASemantics {
 
 			Object v = null;
 			try {
-				Object pid = cols.containsKey(args[0]) ? row.get(cols.get(args[0]))[1] : ".";
+				Object pid = cols.containsKey(args[0]) ? row.get(cols.get(args[0]))[1] : "";
 
-				if (isblank(pid, "null")) {
-					Utils.warnT(new Object() {},
-						"Fullpath Handling Error. To generate fullpath, the parentId must be configured, and parent value must be providen.\n" +
-						"table  : %1$s,\n" +
-						"parent : %2$s,\n" +
-						"args   : %3$s,\n" +
-						"cols   : %4$s\n" +
-						"row    : %5$s",
-						target, pid, LangExt.toString(args), str(cols), LangExt.str(row));
-				} else {
+				// pid is the composed value, e.g. ExprPart of null, so check its text
+				if (isblank(pid == null ? null : pid.toString(), "null"))
+					// [2026-11-08 v 1.5.29] a top-level node, e.g. "01", the same as SemanticTree
+					v = sibling;
+				else {
 					SemanticObject s = trxt.select(target, "_t0").col(args[2]).where("=", pkField, "'" + pid + "'")
 							.rs(stx);
 
