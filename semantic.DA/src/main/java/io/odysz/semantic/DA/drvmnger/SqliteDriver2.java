@@ -139,7 +139,20 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	}
 
 	/**
-	 * Commit statement
+	 * <h4>Commit statement</h4>
+	 * 
+	 * Change in 1.5.30: fix test error: <pre>
+	 * [INFO] Running io.odysz.semantic.DASemantextTest
+	 * org.sqlite.SQLiteException: [SQLITE_BUSY] The database file is locked (database is locked)
+	 * at org.sqlite.core.DB.newSQLException(DB.java:1179)
+	 * at org.sqlite.core.DB.newSQLException(DB.java:1190)
+	 * at org.sqlite.core.DB.throwex(DB.java:1150)
+	 * at org.sqlite.core.DB.exec(DB.java:198)
+	 * at org.sqlite.SQLiteConnection.commit(SQLiteConnection.java:449)
+	 * ...</pre>
+        
+	 * Explain: A connection was left in manual-commit mode, so one of its later reads kept a lock
+	 * that never ended. A different connection then couldn’t write to the same file.
 	 * 
 	 * @param sqls
 	 * @param flags
@@ -147,47 +160,76 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 * @throws SQLException
 	 */
 	int[] commitst(ArrayList<String> sqls, int flags) throws SQLException {
-		printSql(flags, sqls);;
+	    printSql(flags, sqls);
 
-		int[] ret;
-		Statement stmt = null;
-		try {
-			Connection conn = getConnection();
+	    Connection conn = getConnection();
+	    boolean pushed = conn.getAutoCommit();      // push
+	    conn.setAutoCommit(false);
 
-			stmt = conn.createStatement();
-			try {
-				conn.setAutoCommit(false);
-				stmt = conn.createStatement(
-						ResultSet.TYPE_FORWARD_ONLY,
-						ResultSet.CONCUR_READ_ONLY);
+	    int[] ret;
+	    try (Statement stmt = conn.createStatement(
+	            ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
+	        for (String sql : sqls)
+	            if (!isblank(sql)) stmt.addBatch(sql);
+	        ret = stmt.executeBatch();
 
-				for (String sql : sqls) {
-					if (isblank(sql)) continue;
-					stmt.addBatch(sql);
-				}
-
-				ret = stmt.executeBatch();
-				if (autoCommit)
-					conn.commit(); // 2025.06.16
-				else
-					pendding_conn = conn;
-			} catch (Exception exx) {
-				conn.rollback();
-				exx.printStackTrace();
-				throw new SQLException(exx);
-			}
-		} finally {
-			try {
-				if (stmt != null)
-					stmt.close();
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			} finally {
-				stmt = null;
-			}
-		}
-		return ret;
+	        if (autoCommit) {
+	            conn.commit();
+	            conn.setAutoCommit(pushed);         // pop
+	        }
+	        else {
+	            pendding_conn = conn;
+	            pendding_autoCommit = pushed;       // pop deferred to submitAutoCommit()
+	        }
+	    } catch (Exception exx) {
+	        conn.rollback();
+	        conn.setAutoCommit(pushed);             // pop
+	        throw new SQLException(exx);
+	    }
+	    return ret;
 	}
+//	int[] commitst(ArrayList<String> sqls, int flags) throws SQLException {
+//		printSql(flags, sqls);;
+//
+//		int[] ret;
+//		Statement stmt = null;
+//		try {
+//			Connection conn = getConnection();
+//
+//			stmt = conn.createStatement();
+//			try {
+//				conn.setAutoCommit(false);
+//				stmt = conn.createStatement(
+//						ResultSet.TYPE_FORWARD_ONLY,
+//						ResultSet.CONCUR_READ_ONLY);
+//
+//				for (String sql : sqls) {
+//					if (isblank(sql)) continue;
+//					stmt.addBatch(sql);
+//				}
+//
+//				ret = stmt.executeBatch();
+//				if (autoCommit)
+//					conn.commit(); // 2025.06.16
+//				else
+//					pendding_conn = conn;
+//			} catch (Exception exx) {
+//				conn.rollback();
+//				exx.printStackTrace();
+//				throw new SQLException(exx);
+//			}
+//		} finally {
+//			try {
+//				if (stmt != null)
+//					stmt.close();
+//			} catch (Exception ex) {
+//				ex.printStackTrace();
+//			} finally {
+//				stmt = null;
+//			}
+//		}
+//		return ret;
+//	}
 
 	@Override
 	public int[] commit(IUser usr, ArrayList<String> sqls, ArrayList<Clob> lobs, int i) throws SQLException {

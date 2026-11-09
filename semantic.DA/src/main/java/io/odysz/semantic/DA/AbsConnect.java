@@ -211,6 +211,9 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 	 * Pending connection for automatic commit is false.
 	 */
 	protected Connection pendding_conn;
+	
+	/** @since 1.5.30 See {@link SqliteDriver2#commitst(ArrayList, int)} */
+	protected boolean pendding_autoCommit = true;
 
 	/**
 	 * Batch auto-commit controlled by Statements, not of {@link java.sql.Connection#setAutoCommit(boolean)}.
@@ -242,7 +245,10 @@ public abstract class AbsConnect<T extends AbsConnect<T>> {
 	 */
 	public void submitAutoCommit() throws SQLException {
 		if (pendding_conn != null) {
-			try { pendding_conn.commit(); }
+			try {
+				pendding_conn.commit();
+				pendding_conn.setAutoCommit(pendding_autoCommit); // 1.5.30
+			}
 			finally { pendding_conn = null; }
 		}
 	}
