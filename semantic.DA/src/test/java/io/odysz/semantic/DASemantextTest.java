@@ -120,7 +120,7 @@ public class DASemantextTest {
 					"a_logs", "a_attaches",
 					"a_domain", "a_functions", "a_orgs", "a_role_func", "a_roles", "a_users",
 					"b_alarms", "b_alarm_logic", "b_logic_device",
-					"crs_a", "crs_b", "h_photos", "doc_devices"}) {
+					"crs_a", "crs_b", "h_photos", "doc_devices", "a_docnodes"}) {
 				sqls.add("drop table if exists " + tbl);
 				Connects.commit(usr, sqls, AbsConnect.flag_nothing);
 				sqls.clear();
@@ -132,13 +132,15 @@ public class DASemantextTest {
 					"a_orgs.ddl",      "a_orgs.sql",
 					"a_role_func.ddl", "a_roles.ddl",        "a_users.ddl",     "b_alarm_logic.ddl",
 					"b_alarms.ddl",    "b_logic_device.ddl", "crs_a.ddl",       "crs_b.ddl",
-					"h_photos.ddl",    "doc_devices.ddl"}) {
+					"h_photos.ddl",    "doc_devices.ddl",    "a_docnodes.ddl"}) {
 
 				sqls.add(loadTxt(DASemantextTest.class, tbl));
 				Connects.commit(usr, sqls, AbsConnect.flag_nothing);
 				sqls.clear();
 			}
 //			Connects.reload(runtimepath); // reload metas
+			// a_docnodes (ShFullpath2) may be created after the metas are loaded, e.g. in a clean test db
+			Connects.getMeta(connId).putIfAbsent("a_docnodes", Connects.loadMeta(connId).get("a_docnodes"));
 			st = new DATranscxt(connId);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -274,6 +276,102 @@ public class DASemantextTest {
 			DASemantics.ShFullpath.checkColumns(st, "a_functions", new String[] {"parent", "sibling", "fullpath"}));
 		assertThrows(SemanticException.class, () ->
 			DASemantics.ShFullpath.checkColumns(st, "a_functions", new String[] {"parentId", "sibling"}));
+	}
+
+	/**
+	 * ShFullpath2 (smtc fullpath2) is found as fullpath, and is a ShFullpath, e.g. for siblinSize().
+	 * @since 1.5.31
+	 */
+	@Test
+	public void testFullpath2Handler() {
+		DASemantics.SemanticHandler h = DATranscxt.getHandler(connId, "a_docnodes", smtype.fullpath);
+		assertTrue(h instanceof DASemantics.ShFullpath2, String.valueOf(h));
+		assertEquals(4, ((DASemantics.ShFullpath) h).siblinSize());
+		assertTrue(h.is(smtype.fullpath2));
+
+		// a_functions is left with ShFullpath
+		assertFalse(DATranscxt.getHandler(connId, "a_functions", smtype.fullpath) instanceof DASemantics.ShFullpath2);
+	}
+
+	/**
+	 * ShFullpath2, updating: other columns leave the fullpath untouched (saving a doc node's text);
+	 * only the sort, or only the parent, takes the other from the record.
+	 * @since 1.5.31
+	 */
+	@Test
+	public void testFullpath2Update() throws TransException, SQLException {
+		ArrayList<String> sqls = new ArrayList<String>();
+		st.insert("a_docnodes")
+			.nv("nid", "u.0").nv("ptext", "root").nv("sort", "7")
+			.post(st.insert("a_docnodes")
+				.nv("nid", "u.1").nv("parentId", "u.0").nv("ptext", "child").nv("sort", "2"))
+			.commit(new DASemantext(connId, smtcfg, usr, rtroot), sqls);
+		Connects.commit(usr, sqls);
+		assertTrue(sqls.get(0).endsWith(", '0007')"), sqls.get(0));
+		assertTrue(sqls.get(1).endsWith(", '0007.0002')"), sqls.get(1));
+
+		// text only: no fullpath
+		sqls.clear();
+		st.update("a_docnodes")
+			.nv("ptext", "child edited")
+			.whereEq("nid", "u.1")
+			.commit(new DASemantext(connId, smtcfg, usr, rtroot), sqls);
+		assertEquals("update a_docnodes set ptext='child edited' where nid = 'u.1'", sqls.get(0));
+
+		// sort only: the parent from the record
+		sqls.clear();
+		st.update("a_docnodes")
+			.nv("sort", "5")
+			.whereEq("nid", "u.1")
+			.commit(new DASemantext(connId, smtcfg, usr, rtroot), sqls);
+		assertEquals("update a_docnodes set sort=5, fullpath='0007.0005' where nid = 'u.1'", sqls.get(0));
+		Connects.commit(usr, sqls);
+
+		// parent only: the sort from the record, moved to top-level
+		sqls.clear();
+		st.update("a_docnodes")
+			.nv("parentId", (String) null)
+			.whereEq("nid", "u.1")
+			.commit(new DASemantext(connId, smtcfg, usr, rtroot), sqls);
+		assertEquals("update a_docnodes set parentId=null, fullpath='0005' where nid = 'u.1'", sqls.get(0));
+
+		// no record, no change
+		sqls.clear();
+		st.update("a_docnodes")
+			.nv("sort", "3")
+			.whereEq("nid", "not-exists")
+			.commit(new DASemantext(connId, smtcfg, usr, rtroot), sqls);
+		assertEquals("update a_docnodes set sort=3 where nid = 'not-exists'", sqls.get(0));
+	}
+
+	/**
+	 * ShFullpath2, multi-row insert: every row gets its fullpath; and a parent of the same
+	 * transaction (not in the DB yet) gives its fullpath, not its id.
+	 * @since 1.5.31
+	 */
+	@Test
+	public void testFullpath2Insert() throws TransException, SQLException {
+		ArrayList<Object[]> r1 = new ArrayList<Object[]>();
+		r1.add(new Object[] {"nid", "m.1"}); r1.add(new Object[] {"sort", "1"});
+		ArrayList<Object[]> r2 = new ArrayList<Object[]>();
+		r2.add(new Object[] {"nid", "m.2"}); r2.add(new Object[] {"sort", "2"});
+		ArrayList<Object[]> r3 = new ArrayList<Object[]>();
+		r3.add(new Object[] {"nid", "m.3"}); r3.add(new Object[] {"sort", "3"});
+
+		ArrayList<String> sqls = new ArrayList<String>();
+		st.insert("a_docnodes")
+			.cols("nid", "sort")
+			.value(r1).value(r2).value(r3)
+			.post(st.insert("a_docnodes")
+				.nv("nid", "m.2.1").nv("parentId", "m.2").nv("sort", "1")
+				.post(st.insert("a_docnodes")
+					.nv("nid", "m.2.1.1").nv("parentId", "m.2.1").nv("sort", "9")))
+			.commit(new DASemantext(connId, smtcfg, usr, rtroot), sqls);
+
+		assertEquals("insert into a_docnodes (nid, sort, fullpath) values "
+				+ "('m.1', 1, '0001'), ('m.2', 2, '0002'), ('m.3', 3, '0003')", sqls.get(0));
+		assertTrue(sqls.get(1).endsWith(", '0002.0001')"), sqls.get(1));
+		assertTrue(sqls.get(2).endsWith(", '0002.0001.0009')"), sqls.get(2));
 	}
 
 	/**

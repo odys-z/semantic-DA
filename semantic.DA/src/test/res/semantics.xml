@@ -23,6 +23,13 @@
   		<args>parentId,sibling,fullpath</args>
   	</s>
   	<s>
+  		<id>03</id>
+  		<smtc>fullpath2</smtc>
+  		<tabl>a_docnodes</tabl>
+  		<pk>nid</pk>
+  		<args>parentId,sort,fullpath,4</args>
+  	</s>
+  	<s>
   		<id>11</id>
   		<smtc>pk</smtc>
   		<tabl>a_roles</tabl>

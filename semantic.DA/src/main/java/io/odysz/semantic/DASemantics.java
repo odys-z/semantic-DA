@@ -12,7 +12,10 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 import io.odysz.anson.Anson;
 import io.odysz.common.AESHelper2;
 import io.odysz.common.FilenameUtils;
@@ -221,6 +224,14 @@ public class DASemantics {
 		 */
 		fullpath,
 		/**
+		 * xml/smtc = "fp2" | "fullpath2" (experimental):<br>
+		 * <p>args: the same as {@link #fullpath}.</p>
+		 * Handler: {@link DASemantics.ShFullpath2}, which is also found as {@link #fullpath},
+		 * e.g. by {@link DATranscxt#getHandler(String, String, smtype)}.
+		 * @since 1.5.31
+		 */
+		fullpath2,
+		/**
 		 * xml/smtc = "dv" | "d-v" | "dfltVal":<br>
 		 * Handler: {@link DASemantics.ShDefltVal}
 		 */
@@ -427,6 +438,8 @@ public class DASemantics {
 				return fkCateIns;
 			else if ("fp".equals(type) || "f-p".equals(type) || "fullpath".equals(type))
 				return fullpath;
+			else if ("fp2".equals(type) || "fullpath2".equals(type))
+				return fullpath2;
 			else if ("dfltval".equals(type) || "d-v".equals(type) || "dv".equals(type))
 				return defltVal;
 			else if ("pc-del-all".equals(type) || "parent-child-del-all".equals(type)
@@ -559,6 +572,8 @@ public class DASemantics {
 			throws SQLException, TransException {
 		if (smtype.fullpath == semantic)
 			return new ShFullpath(basicTsx, tabl, recId, args);
+		else if (smtype.fullpath2 == semantic)
+			return new ShFullpath2(basicTsx, tabl, recId, args);
 		else if (smtype.autoInc == semantic)
 			return new ShAutoKPrefix(basicTsx, tabl, recId, args);
 		else if (smtype.fkIns == semantic)
@@ -906,6 +921,186 @@ public class DASemantics {
 						throws SemanticException {
 			// Design Memo: statement parameter (updt, or insert for onInsert()) is not used
 			onInsert(sxt, null, row, cols, usr);
+		}
+	}
+
+	/**
+	 * <p>Experimental fullpath handler, configured with smtc "fullpath2" (or "fp2"), the same
+	 * args as {@link ShFullpath}, which is left as it is.</p>
+	 * 
+	 * Differences to ShFullpath:
+	 * <ol>
+	 * <li>Updating: the fullpath is changed only when the parent or the sort is updated.
+	 *     Updating other columns, e.g. a doc node's text, leaves the fullpath untouched.
+	 *     If only one of the parent and the sort is updated, the other is read from the record,
+	 *     by the update's conditions. A fullpath given by the update is kept.</li>
+	 * <li>The parent and sort values are resolved in the statement's context
+	 *     ({@link AbsPart#sql(ISemantext)}), e.g. a {@link Resulving}, not with sql(null).</li>
+	 * <li>Multi-row insert: every row gets its fullpath; the 2nd and following rows' are not null.</li>
+	 * <li>A parent composed earlier in the same transaction (context), not in the DB yet,
+	 *     gives its fullpath, not its id, to the children.</li>
+	 * </ol>
+	 * 
+	 * It is a {@link ShFullpath} with {@link smtype#fullpath}, so it is found by
+	 * {@link DATranscxt#getHandler(String, String, smtype) getHandler(conn, tabl, smtype.fullpath)}
+	 * and can be cast to ShFullpath, e.g. for {@link ShFullpath#siblinSize()}.
+	 * 
+	 * @since 1.5.31
+	 */
+	public static class ShFullpath2 extends ShFullpath {
+
+		/**
+		 * Fullpaths composed in each context (transaction), for the children inserted later
+		 * in the same context, while their parents are not in the DB yet.
+		 * key: pk value; weak keys: dropped with the context.
+		 */
+		private final Map<ISemantext, HashMap<String, String>> composed =
+				Collections.synchronizedMap(new WeakHashMap<ISemantext, HashMap<String, String>>());
+
+		public ShFullpath2(Transcxt trxt, String tabl, String recId, String[] args) throws SemanticException {
+			super(trxt, tabl, recId, args);
+		}
+
+		@Override
+		public boolean is(smtype sm) {
+			return sm == smtype.fullpath2 || super.is(sm);
+		}
+
+		@Override
+		protected void onInsert(ISemantext stx, Insert insert, ArrayList<Object[]> row,
+				Map<String, Integer> cols, IUser usr) throws SemanticException {
+			try {
+				Object pid = cols.containsKey(args[0]) && cols.get(args[0]) < row.size()
+						? row.get(cols.get(args[0]))[1] : null;
+				Object srt = !isblank(args[1]) && cols.containsKey(args[1]) && cols.get(args[1]) < row.size()
+						? row.get(cols.get(args[1]))[1] : null;
+				fullpath(stx, row, cols, resolve(stx, pid), resolve(stx, srt));
+			} catch (SemanticException e) {
+				throw e;
+			} catch (TransException e) {
+				throw new SemanticException(e.getMessage());
+			}
+		}
+
+		@Override
+		protected void onUpdate(ISemantext stx, Update updt,
+				ArrayList<Object[]> row, Map<String, Integer> cols, IUser usr)
+						throws SemanticException {
+			boolean byParent = cols.containsKey(args[0]);
+			boolean bySort = !isblank(args[1]) && cols.containsKey(args[1]);
+			if (!byParent && !bySort || cols.containsKey(args[2]))
+				return;
+
+			try {
+				String pid = byParent ? resolve(stx, row.get(cols.get(args[0]))[1]) : null;
+				String srt = bySort ? resolve(stx, row.get(cols.get(args[1]))[1]) : null;
+
+				if (!byParent || !bySort) {
+					String missing = byParent ? args[1] : args[0];
+					if (updt == null || updt.where() == null)
+						throw new SemanticException(
+							"Fullpath semantics of %s: can't find the updating records for %s, which is not updated.",
+							target, missing);
+
+					AnResultset rs = (AnResultset) trxt.select(target)
+							.col(missing)
+							.where(updt.where())
+							.rs(stx).rs(0);
+
+					if (!rs.beforeFirst().next())
+						return; // nothing to update
+
+					String v = rs.getString(missing);
+					while (rs.next())
+						if (!eq(v, rs.getString(missing)))
+							throw new SemanticException(
+								"Fullpath semantics of %s: updating %s of records with different %s, which can't share a fullpath.",
+								target, byParent ? args[0] : args[1], missing);
+
+					if (byParent) srt = v;
+					else pid = v;
+				}
+
+				fullpath(stx, row, cols, pid, srt);
+			} catch (SemanticException e) {
+				throw e;
+			} catch (SQLException | TransException e) {
+				throw new SemanticException(e.getMessage());
+			}
+		}
+
+		/**
+		 * Compose the fullpath and put it into the row; a fullpath given by the caller is kept.
+		 * 
+		 * @param pid resolved parent id, blank or "null" for a top-level node
+		 * @param srt resolved sibling sort, can be blank
+		 */
+		void fullpath(ISemantext stx, ArrayList<Object[]> row, Map<String, Integer> cols,
+				String pid, String srt) throws TransException {
+			String sibling = padSibling(isblank(srt, "null") ? "" : srt);
+
+			String v;
+			if (isblank(pid, "null"))
+				v = sibling; // a top-level node, the same as SemanticTree
+			else {
+				HashMap<String, String> inctx = composed.get(stx);
+				String parentpath = inctx == null ? null : inctx.get(pid);
+				if (parentpath == null)
+					try {
+						AnResultset rs = (AnResultset) trxt.select(target, "_t0")
+								.col(args[2])
+								.whereEq(pkField, pid)
+								.rs(stx).rs(0);
+						if (rs.beforeFirst().next())
+							parentpath = rs.getString(args[2]);
+					} catch (SQLException e) {
+						throw new SemanticException(e.getMessage());
+					}
+				v = parentpath == null
+					? String.join(".", pid, sibling) // as ShFullpath, parent not found
+					: String.format("%s.%s", parentpath, sibling);
+			}
+
+			Object[] nv;
+			if (cols.containsKey(args[2])) {
+				// a column added by the 1st row, e.g. in a multi-row insert
+				if (row.size() <= cols.get(args[2]))
+					row = expandRow(row, cols);
+				nv = row.get(cols.get(args[2]));
+				if (nv[1] == null) // padded by expandRow(), or null given by the caller
+					nv[1] = trxt.quotation(v, stx.connId(), target, args[2]);
+			}
+			else {
+				nv = new Object[] { args[2], trxt.quotation(v, stx.connId(), target, args[2]) };
+				cols.put(args[2], row.size());
+				row.add(nv);
+			}
+
+			// for the children inserted later in this context
+			if (cols.containsKey(pkField) && cols.get(pkField) < row.size()) {
+				String pk = resolve(stx, row.get(cols.get(pkField))[1]);
+				String fp = resolve(stx, nv[1]);
+				if (!isblank(pk, "null") && !isblank(fp, "null"))
+					composed.computeIfAbsent(stx, (c) -> new HashMap<String, String>()).put(pk, fp);
+			}
+		}
+
+		/**
+		 * Resolve a value of the row in the statement's context, e.g. a {@link Resulving},
+		 * which can't be resolved with sql(null).
+		 * 
+		 * @return the raw value, unquoted; null for null or an {@link ExprPart} of null
+		 */
+		static String resolve(ISemantext stx, Object v) throws TransException {
+			if (v == null)
+				return null;
+			if (v instanceof ExprPart && ((ExprPart) v).isNull())
+				return null;
+			if (v instanceof AbsPart) {
+				String s = ((AbsPart) v).sql(stx);
+				return s == null ? null : s.replaceAll("^\\s*'", "").replaceAll("'\\s*$", "");
+			}
+			return v.toString();
 		}
 	}
 
