@@ -62,7 +62,7 @@ public class Configs {
 	protected static HashMap<String, HashMap<String, String>> cfgs;
 
 	static {
-		Utils.logi("============= Semantic.DA 1.5 built on 2025-06-04 =============");
+		Utils.logi("============= Semantic.DA 1.6 built on 2026-10-10 =============");
 
 		log = new Log4jWrapper("Configs");
 
