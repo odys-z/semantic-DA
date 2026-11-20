@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Date;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -138,7 +139,6 @@ public class DASemantextTest {
 				Connects.commit(usr, sqls, AbsConnect.flag_nothing);
 				sqls.clear();
 			}
-//			Connects.reload(runtimepath); // reload metas
 			// a_docnodes (ShFullpath2) may be created after the metas are loaded, e.g. in a clean test db
 			Connects.getMeta(connId).putIfAbsent("a_docnodes", Connects.loadMeta(connId).get("a_docnodes"));
 			st = new DATranscxt(connId);
@@ -291,6 +291,55 @@ public class DASemantextTest {
 
 		// a_functions is left with ShFullpath
 		assertFalse(DATranscxt.getHandler(connId, "a_functions", smtype.fullpath) instanceof DASemantics.ShFullpath2);
+	}
+
+	/**
+	 * Resulving with an index: in one multi-row insert of a tree, children refer to their parents'
+	 * auto keys in the same table by the order of generation (the last one would be the child's own key).
+	 * a_docnodes: autopk nid, fullpath2. Rows leave nid out: the pk column is the last one.
+	 * @since 1.5.31, semantics.transact 1.5.81
+	 */
+	@Test
+	public void testResulvingTree() throws TransException, SQLException {
+		ArrayList<ArrayList<Object[]>> vals = new ArrayList<ArrayList<Object[]>>();
+		vals.add(docnode("r2-root", "1", "section"));                         // key 0
+		vals.add(docnode(new Resulving("a_docnodes", "nid", 0), "1", "p1"));  // key 1
+		vals.add(docnode(new Resulving("a_docnodes", "nid", 0), "2", "sub")); // key 2
+		vals.add(docnode(new Resulving("a_docnodes", "nid", 2), "1", "sub.p1")); // key 3
+
+		DASemantext s0 = new DASemantext(connId, smtcfg, usr, rtroot);
+		ArrayList<String> sqls = new ArrayList<String>();
+		st.insert("a_docnodes")
+			.cols(new String[] {"parentId", "sort", "ptext", "nid"})
+			.values(vals)
+			.commit(s0, sqls);
+
+		@SuppressWarnings("unchecked")
+		List<String> k = (List<String>)(List<?>) s0.resulvedVals("a_docnodes", "nid");
+		assertEquals(4, k.size());
+		assertEquals(1, sqls.size());
+		assertEquals(String.format("insert into a_docnodes (parentId, sort, ptext, nid, fullpath) values "
+				+ "('r2-root', 1, 'section', '%1$s', 'r2-root.0001'), "
+				+ "('%1$s', 1, 'p1', '%2$s', 'r2-root.0001.0001'), "
+				+ "('%1$s', 2, 'sub', '%3$s', 'r2-root.0001.0002'), "
+				+ "('%3$s', 1, 'sub.p1', '%4$s', 'r2-root.0001.0002.0001')",
+				k.get(0), k.get(1), k.get(2), k.get(3)),
+			sqls.get(0));
+
+		// -1, the last key, as without an index
+		assertEquals("'" + k.get(3) + "'", new Resulving("a_docnodes", "nid", -1).sql(s0));
+		assertEquals("'" + k.get(3) + "'", new Resulving("a_docnodes", "nid").sql(s0));
+
+		// not generated
+		assertThrows(TransException.class, () -> new Resulving("a_docnodes", "nid", 4).sql(s0));
+	}
+
+	static ArrayList<Object[]> docnode(Object parent, String sort, String text) {
+		ArrayList<Object[]> r = new ArrayList<Object[]>();
+		r.add(new Object[] {"parentId", parent});
+		r.add(new Object[] {"sort", sort});
+		r.add(new Object[] {"ptext", text});
+		return r;
 	}
 
 	/**
