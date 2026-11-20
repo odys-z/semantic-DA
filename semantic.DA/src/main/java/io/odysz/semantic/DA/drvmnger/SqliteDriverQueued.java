@@ -145,11 +145,13 @@ public class SqliteDriverQueued extends SqliteDriver2 {
 	}	
 	
 	@Override
-	public void close() {
+	public void close() throws SQLException {
 		stop = true;
 		try {
 			// qu.put(null);
 			this.worker.join(500);
 		} catch (InterruptedException e) { }
+		// the worker is stopped, now its connection
+		super.close();
 	}
 }

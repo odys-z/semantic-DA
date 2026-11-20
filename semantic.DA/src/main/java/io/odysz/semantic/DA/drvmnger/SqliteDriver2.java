@@ -30,7 +30,6 @@ import static io.odysz.common.LangExt.isblank;
  * @author odys-z@github.com
  */
 public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
-	private static JDBC drv;
 
 	String userName;
 	String pswd;
@@ -44,14 +43,33 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	 */
 	protected Connection conn;
 
+	/**
+	 * Loads (initializes) org.sqlite.JDBC, which registers its own driver instance in its static block.
+	 * <p>Before 1.5.32, a second instance was registered here, while {@link #close()} tried to deregister
+	 * yet another one, never registered, which was a no-op (DriverManager matches drivers by identity).</p>
+	 * see answer of Eehol:
+	 * https://stackoverflow.com/questions/16725377/no-suitable-driver-found-sqlite
+	 */
 	static {
 		try {
-			// see answer of Eehol:
-			// https://stackoverflow.com/questions/16725377/no-suitable-driver-found-sqlite
-			drv = new JDBC();
-			DriverManager.registerDriver(new JDBC());
-		} catch (SQLException e) {
+			Class.forName(JDBC.class.getName());
+		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Deregister the sqlite drivers registered by this class loader, e.g. when a webapp is undeployed.
+	 * Not called by {@link #close()}, as the driver is shared by all sqlite connections.
+	 * @since 1.5.32
+	 */
+	public static void deregisterDrivers() {
+		java.util.Enumeration<java.sql.Driver> ds = DriverManager.getDrivers();
+		while (ds.hasMoreElements()) {
+			java.sql.Driver d = ds.nextElement();
+			if (d instanceof JDBC && d.getClass().getClassLoader() == SqliteDriver2.class.getClassLoader())
+				try { DriverManager.deregisterDriver(d); }
+				catch (SQLException e) { e.printStackTrace(); }
 		}
 	}
 
@@ -62,12 +80,13 @@ public class SqliteDriver2 extends AbsConnect<SqliteDriver2> {
 	}
 	
 	@Override
+	/**
+	 * Close the connection, but not the driver, which other sqlite connections share.
+	 * @see #deregisterDrivers()
+	 */
 	public void close() throws SQLException {
-		// This is not correct
-		// https://stackoverflow.com/questions/31530700/static-finally-block-in-java
-		if (conn != null)
+		if (conn != null && !conn.isClosed())
 			conn.close();
-		DriverManager.deregisterDriver(drv);
 	}
 
 	/**

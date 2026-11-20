@@ -11,6 +11,7 @@ import java.sql.Clob;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import javax.naming.NamingException;
 import org.xml.sax.SAXException;
 
 import io.odysz.common.dbtype;
+import io.odysz.semantic.DATranscxt;
 import io.odysz.common.EnvPath;
 import io.odysz.common.FilenameUtils;
 import io.odysz.common.LangExt;
@@ -72,6 +74,14 @@ public class Connects {
 
 	/** Connection (data sources) */
 	private static HashMap<String, AbsConnect<? extends AbsConnect<?>>> srcs;
+
+	/**
+	 * Ids of the connections added by {@link #addSqlite(String, String, String, boolean...)},
+	 * the only ones {@link #removeSqlite(String)} removes. Connections of connects.xml, by the
+	 * driver manager ("drvmnger") or pooled by the container ("dbcp", JNDI), are not.
+	 * @since 1.5.32
+	 */
+	private static HashSet<String> dynamics = new HashSet<String>();
 	public static Set<String> getAllConnIds() {
 		return srcs == null ? null : srcs.keySet();
 	}
@@ -152,6 +162,40 @@ public class Connects {
 		srcs.put(id, AbsConnect.initDmConnect(workingDir, dbtype.sqlite, id, f.getAbsolutePath(),
 				null, null, is(printSql), false)
 				.prop("smtcs", smtcs));
+		dynamics.add(id);
+	}
+
+	/**
+	 * Remove a connection added by {@link #addSqlite(String, String, String, boolean...)}: its
+	 * jdbc connection is closed, but not the driver, which other sqlite connections still use; its table
+	 * metas and its semantics (DATranscxt's) are dropped, so the db file can be moved, and a connection
+	 * of the same id added again loads them anew.
+	 *
+	 * @param id
+	 * @return whether there was such a connection
+	 * @throws SQLException
+	 * @since 1.5.32
+	 */
+	public static boolean removeSqlite(String id) throws SQLException {
+		if (srcs == null || !srcs.containsKey(id))
+			return false;
+		if (!dynamics.contains(id)) {
+			// a connection of connects.xml: a pooled one belongs to the container,
+			// and the semantics of jserv's are configured on it.
+			Utils.warn("[Connects.removeSqlite] %s is not added by addSqlite(), not removed.", id);
+			return false;
+		}
+
+		AbsConnect<?> c = srcs.remove(id);
+		dynamics.remove(id);
+
+		// addSqlite() always connects by the driver manager, with one connection per id;
+		// close() closes it (SqliteDriverQueued: after its worker stopped), not the shared driver
+		c.close();
+
+		clearMeta(id);
+		DATranscxt.clearSemantics(id);
+		return true;
 	}
 
 	static HashMap<String, AbsConnect<? extends AbsConnect<?>>> loadConnects(

@@ -520,6 +520,19 @@ public class DATranscxt extends Transcxt {
 		smtMaps = null;
 	}
 
+	/**
+	 * Drop the semantics and the basic transact builder of a connection, e.g. removed by
+	 * {@link Connects#removeSqlite(String)}.
+	 * @param conn
+	 * @since 1.5.32
+	 */
+	public static void clearSemantics(String conn) {
+		if (smtMaps != null)
+			smtMaps.remove(conn);
+		if (basicTrxes != null)
+			basicTrxes.remove(conn);
+	}
+
 	public static boolean hasSemantics(String conn, String tabl, smtype sm) {
 		if (smtMaps == null || !smtMaps.containsKey(conn)
 				|| !smtMaps.get(conn).ss.containsKey(tabl))

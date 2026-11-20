@@ -1,6 +1,9 @@
 package io.odysz.semantic.DA;
 
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -68,6 +71,55 @@ public class ConnectsTest {
 
 		db.delete();
 		db.getParentFile().delete();
+	}
+
+	/**
+	 * A sqlite connection removed: the file can be moved, the same id added again connects to the new file;
+	 * the other sqlite connections still work (the driver is kept).
+	 * @since 1.5.32
+	 */
+	@Test
+	public void testRemoveSqlite() throws Exception {
+		File dir = new File(DASemantextTest.rtroot, "remove-sqlite");
+		File db = new File(dir, "a.db");
+		File moved = new File(dir, "a.db.bak");
+		db.delete();
+		moved.delete();
+
+		Connects.addSqlite("removed-sqlite", db.getAbsolutePath(), "semantics.xml");
+		Connects.commit("removed-sqlite", null, "create table t_a (id varchar(8) primary key)");
+		Connects.commit("removed-sqlite", null, "insert into t_a values ('A')");
+		assertNotNull(Connects.getMeta("removed-sqlite", "t_a"));
+
+		assertTrue(Connects.removeSqlite("removed-sqlite"));
+		assertNull(Connects.getConnect("removed-sqlite"));
+		assertFalse(Connects.removeSqlite("removed-sqlite"));
+
+		assertTrue(db.renameTo(moved));
+
+		// the shared driver is not deregistered
+		assertNotNull(java.sql.DriverManager.getDriver("jdbc:sqlite:"));
+
+		// the same id, a new file
+		Connects.addSqlite("removed-sqlite", db.getAbsolutePath(), "semantics.xml");
+		Connects.commit("removed-sqlite", null, "create table t_b (id varchar(8) primary key)");
+		assertNull(Connects.getMeta("removed-sqlite", "t_a"));
+		assertNotNull(Connects.getMeta("removed-sqlite", "t_b"));
+		assertEquals(0, Connects.select("removed-sqlite", "select count(*) c from t_b").nxt().getInt("c"));
+
+		// the default (sqlite) connection still works
+		assertTrue(Connects.select("select 1 one").nxt().getInt("one") == 1);
+
+		// connections of connects.xml are not removed
+		String dflt = Connects.defltConn();
+		assertFalse(Connects.removeSqlite(dflt));
+		assertNotNull(Connects.getConnect(dflt));
+		assertTrue(Connects.select("select 1 one").nxt().getInt("one") == 1);
+
+		Connects.removeSqlite("removed-sqlite");
+		db.delete();
+		moved.delete();
+		dir.delete();
 	}
 
 	@Test
