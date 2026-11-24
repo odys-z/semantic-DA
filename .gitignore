@@ -1,2 +1,3 @@
 comments.*
 commit.comments/*
+.flattened-pom.xml
